@@ -1,0 +1,108 @@
+{% extends "pages/databasepage.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+{% block search_results%}
+
+{% ifequal type "manuscripts" %}
+<table class="simple headersX">
+    <tr>
+        <th>Index</th>
+        <th>Repository</th>
+        <th>Shelfmark</th>
+        <th>Folio(s)</th>
+        <th>Description</th>
+        <th>Actions</th>
+    </tr>       
+    {% autopaginate results 9 %}
+    {% for result in results %}
+    <tr class="{% cycle 'bgColour' '' %}">
+      <td>{{ result.historical_item.catalogue_number }}</td>
+      <td>{{ result.current_item.repository.name }}</td>
+      <td>{{ result.current_item.shelfmark }}</td>
+      <td>{{ result.locus }}</td>
+      <td>
+          {% for desc in result.historical_item.description_set.all %}
+          {{ desc.description|truncatewords:15 }} ..
+          {% endfor %}
+      </td>
+      <td>
+          <ul class="inline">
+              <li><a class="ctrl edit" href="../admin/hand/itempart/{{ result.id }}">Edit</a></li>
+
+              <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a></li>
+          </ul>
+      </td>
+  </tr>
+  {% endfor %}
+  {% paginate %}
+</table>
+{% endifequal %}
+
+{% ifequal type "hands" %}
+<table class="simple headersX">
+    <tr>
+        <th>Scribe</th>
+        <th>Place</th>
+        <th>Date</th>
+        <th>Repository</th>
+        <th>Shelfmark</th>
+        <th>Catalogue Number</th>
+        <th>Actions</th>
+    </tr> 
+    {% autopaginate results 9 %}
+    {% for result in results %}
+    <tr class="{% cycle 'bgColour' '' %}">
+      <td>{{ result.scribe.name }}</td>
+      <td>{{ result.assigned_place.name }}</td>
+      <td>{{ result.assigned_date.date }}</td>
+      <td>{{ result.item_part.current_item.repository.name }}</td>
+      <td>{{ result.item_part.current_item.shelfmark }}</td>
+      <td>{{ result.item_part.historical_item.catalogue_number }}</td>
+      <td>
+          <ul class="inline">
+              <li><a class="ctrl add" href="../admin/hand/hand/{{ result.id }}">Edit</a></li>
+              <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
+              <li><a class="ctrl view" href="../image-display/?style=grid&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">Grid</a></li>
+              <li><a class="ctrl view" href="../image-display/?style=list&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">List</a></li>
+          </ul>
+      </td>
+  </tr>
+  {% endfor %}
+  {% paginate %}
+</table>
+<form id="filter-form" action="graph/" method="GET">
+    <label for="filter-form">Show graphs filtered by:</label>
+    <fieldset>
+        {{ drilldownform.as_ul }}
+    </fieldset>
+    <button>Refine</button>
+</form>
+{% endifequal %}
+
+{% ifequal type "scribes" %}
+<table class="simple headersX">
+    <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Scriptorium</th>
+        <th>Actions</th>
+    </tr>
+    {% autopaginate results 9 %}
+    {% for result in results %}
+    <tr class="{% cycle 'bgColour' '' %}">
+      <td>{{ result.name }}</td>
+      <td>{{ result.date }}</td>
+      <td>{{ result.scriptorium.name }}</td>
+      <td>
+          <ul class="inline">
+              <li><a class="ctrl add" href="../admin/hand/scribe/{{ result.id }}">Edit</a></li>
+              <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
+          </ul>
+      </td>
+  </tr>
+  {% endfor %}
+  {% paginate %}
+</table>
+{% endifequal %}
+{% endblock %}

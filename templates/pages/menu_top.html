@@ -1,0 +1,8 @@
+{% load cms_tags menu_tags %}
+{% for child in children %}
+<li>
+	<a  class="navLink {% if child.selected or child.ancestor %}selected{% endif %} {% if forloop.first %}first{% endif %}{% if forloop.last %}last{% endif %}" href="{{ child.get_absolute_url }}" >{{ child.get_menu_title }}</a>
+</li>
+{% endfor %}
+
+

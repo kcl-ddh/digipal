@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags keyword_tags %}
+{% block meta_title %}{{ page.title }}{% endblock %}
+
+{% block main %}
+{% page_menu "pages/breadcrumb.html" %}
+<div class="unit size1of4 firstCol">
+    <section>
+        <div class="mod quickSearch">
+            <h3>Basic Search</h3>
+            <div class="mod quickSearch">
+                <div class="mod quickSearch">
+                    <form class="searchForm" method="GET">
+                        <fieldset class="searchBox">
+                            {{ searchform.as_ul }}
+                        </fieldset>
+                        <fieldset>
+                            <button>Search</button>
+                            <button class="resetButton" type="reset">Reset</button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div><!-- end firstCol -->
+<div class="unit size3of4 secondCol lastUnit">
+    <section class="content">
+        <h1>Matching {{ type }} records {{ results.count }}</h1>
+        {% block search_results %}
+        {% endblock %}
+    </section>
+</div>
+{% endblock %}

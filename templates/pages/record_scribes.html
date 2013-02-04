@@ -1,0 +1,63 @@
+{% extends "pages/record.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+{% block record_title %}{{ scribe.name }}{% endblock %}
+{% block tab_1_title %}Scribe Details{% endblock %}
+{% block tab_2_title %}Idiographs{% endblock %}
+{% block tab_3_title %}Unused{% endblock %}
+{% block tab_4_title %}Unused{% endblock %}
+{% block details %}
+    <table class="fullRecord list">
+        <tbody>
+            <tr>
+                <th>Name</th>
+                <td>{{ scribe.name }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ scribe.date }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="fullRecord list">
+        <tbody>
+            <tr>
+                <th>Scriptorium</th>
+                <td>{{ scribe.scriptorium }}</td>
+            </tr>
+            <tr>
+                <th>Town or City</th>
+                <td>{{ scribe.scriptorium.place }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
+{% block idiograph_components %}
+{% regroup idiograph_components by idiograph as idiograph_component %}
+<div class="list">
+    <br /><br /><br />
+    {% for ic in idiograph_component %}
+    <ul>
+        <li class="idiograph"><span class="expand">+&nbsp;<u>Idiograph</u>:&nbsp;{{ ic.grouper.display_label }} (Allograph: {{ ic.grouper.allograph.name }}) <a href="{% url hand.search_views.allographHandSearch %}?allograph={{ ic.grouper.allograph.id }}&amp;terms={{ terms }}">Go to Graph</a></span>
+            <ul class="initial">
+                {% for idiograph_component in ic.list %}
+                    <li class="idiograph"><span class="expand">+&nbsp;Component:&nbsp;{{ idiograph_component.component.name }}</span>
+                        <ul class="initial">
+                            {% for each_feature in idiograph_component.features.all %}
+                                <li class="idiograph"><strong>Feature:</strong>&nbsp;{{ each_feature.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+    {% endfor %}
+
+</div>
+
+{% endblock idiograph_components %}
+{% block graphs %}
+    Unused.
+{% endblock graphs %}

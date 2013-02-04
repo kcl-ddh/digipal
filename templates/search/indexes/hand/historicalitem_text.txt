@@ -1,0 +1,9 @@
+{{ object.hair }}
+{{ object.language }}
+{{ object.url }}
+{{ object.vernacular }}
+{{ object.neumed }}
+{{ object.catalogue_number }}
+{{ object.owners }}
+{{ object.display_label }}
+{{ object.modified_date }}

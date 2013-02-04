@@ -1,0 +1,8 @@
+{{ object.repository }}
+{{ object.repository.place.name }}
+{{ object.shelfmark }}
+{{ object.description }}
+{{ object.description }}
+{{ object.display_label }}
+{{ object.created }}
+{{ object.modified }}

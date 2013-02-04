@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+{% block image_view %}
+<div class="unit size1of1">
+    <div class="mod searchResults gridDisplay">
+        {% ifnotequal style "allograph_list" %}
+            {% with r=results|first %}
+            <h1>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
+            {% endwith %}
+            {% else %}
+            <h1>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
+        {% endifnotequal %}
+        
+        <div class="resultsSummary">
+            <ul class="resultsOptions inline resultsRecord">
+                <!--<li class="resultsNumber">Showing x of {{ results.count }} results</li>
+                <li class="showResults">Show results in:</li>-->
+                <li><a class="ctrl recordDisplay grid tip" title="A compact display which allows you to see many images at a time">Grid format</a></li>
+                <li><a class="ctrl recordDisplay list tip" title="A more detailed view of image records, together with associated metadata">List format</a></li>
+            </ul>
+        </div>
+
+        {% ifequal style "list" %} <!-- Display list view, of course -->
+            <table class="simple headersX">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>MS Name</th>
+                        <th>Index</th>
+                        <th>Folio(s)</th>
+                        <th>Town or City</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% autopaginate results 9 %}
+                    {% for result in results %}
+                    <tr>
+                        <td>
+                            <!-- links to full record -->
+                            <a class="" href="#" title="View full record">
+                                <img alt="" src="assets/images/grid-test.jpg" />
+                            </a>
+                        </td>
+                        <td>{{ result.}}</td>
+                        <td>Index</td>
+                        <td>Folio(s)</td>
+                        <td>Town or City</td>
+                        <td>Description</td>
+                    </tr>
+                    {% endfor %}
+                    {% paginate %}
+                </tbody>
+            </table>
+        {% endifequal %}
+
+        {% ifequal style "grid" %} <!-- Or grid view if you prefer... -->
+            <ul class="imgGrid">
+                {% for result in results %}
+                <li>
+                    <dl>
+                        <dt>{{ result.idiograph.allograph.name }}</dt>
+                        <dd>
+                            <a href="../../hand/page/{{ result.annotation.page.id }}/">{{ result.annotation.thumbnail }}</a>
+                        </dd>
+                    </dl>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endifequal %}
+        {% ifequal style "allograph_list" %} <!-- Display list view, of course -->
+            <!--<p>
+            Testing Graph context object
+            {% for g in graphs %}
+            {{ g.hand.id }}
+            {% endfor %}
+            </p>-->
+            {% regroup graphs by hand as handlist %}
+            <table class="simple headersX">
+                <tr>
+                    <th>Graphs</th>
+                    <th>Scribe</th>
+                    <th>Place</th>
+                    <th>Date</th>
+                    <th>Repository</th>
+                    <th>Shelfmark</th>
+                    <th>Catalogue Number</th>
+                </tr>
+                {% autopaginate handlist 9 %}
+                {% for hand in handlist %}
+                <tr class="{% cycle 'bgColour' '' %}">
+                    <td>
+                        {% for graph in hand.list %}
+                        <a title={{ hand.grouper.id }} href="../../hand/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                        {% endfor %}
+                    </td>
+                    <td>{{ hand.grouper.scribe }}</td>
+                    <td>{{ hand.grouper.assigned_place }}</td>
+                    <td>{{ hand.grouper.assigned_date }}</td>
+                    <td>{{ hand.grouper.item_part.current_item.repository.name }}</td>
+                    <td>{{ hand.grouper.item_part.current_item.shelfmark }}</td>
+                    <td>{{ hand.grouper.item_part.historical_item.catalogue_number }}</td>
+                </tr>
+                {% empty %} <td>No records to display.<td>
+                {% endfor %}
+                {% paginate %}
+            </tbody>
+            </table>
+            {% endifequal %}
+</div>
+</div>
+{% endblock %}

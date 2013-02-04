@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+{% block list_view %}
+				<!-- Breadcrumb (in base.html? 
+                <div id="breadCrumb1" class="breadcrumb">
+                    <ul class="inline">
+                        <li><a class="breadcrumbLink" href="#">Home</a></li>
+                        <li><span><a class="breadcrumbLink" href="#">Image Database</a></span></li>
+                        <li class="last">Cotton Tiberius</li>
+                        
+                    </ul>
+                    
+                </div>
+                -->
+                
+                <div class="unit size1of1">
+                    <div class="mod searchResults gridDisplay">
+                    <h1>London, British Library, Cotton Tiberius</h1>
+                        <div class="resultsSummary">
+                          
+                            <ul class="resultsOptions inline resultsRecord">
+                                <li class="resultsNumber">Showing x of y results</li>
+                                <li class="showResults">Show results in:</li>
+                                <li><a class="ctrl recordDisplay grid tip" title="A compact display which allows you to see many images at a time">Grid format</a></li>
+                                <li><a class="ctrl recordDisplay list tip" title="A more detailed view of image records, together with associated metadata">List format</a></li>
+                            </ul>
+                        </div>
+                        <div class="mod pagination">
+                           
+                            <ul class="inline resultsNav">
+                                <li><a class="ctrl resultsBrowse first" href="#">First</a></li>
+                                <li><a class="ctrl resultsBrowse prev" href="#">Previous</a></li>
+                                <li class="selected">1</li>
+                                <li><a href="#" class="ctrl result">2</a></li>
+                                <li><a href="#" class="ctrl result">3</a></li>
+                                <li><a href="#" class="ctrl result">4</a></li>
+                                <li><a href="#" class="ctrl result">5</a></li>
+                                <li><a class="ctrl resultsBrowse next" href="#">Next</a></li>
+                                <li><a class="ctrl resultsBrowse last" href="#">Last</a></li>
+                            </ul>
+                        </div>
+                        
+                  <table class="simple headersX">
+                    <thead>
+                     <tr>
+                              <th>Image</th>
+                              <th>MS Name</th>
+                              <th>Index</th>
+                              <th>Folio(s)</th>
+                              <th>Town or City</th>
+                              <th>Description</th>
+                              
+                      </tr>
+                    </thead>
+                      <tbody>
+                          <tr>
+                              <td>
+                                  <!-- links to full record -->
+                                  <a class="" href="#" title="View full record">
+                                      <img alt="" src="assets/images/grid-test.jpg" />
+                                  </a>
+                              </td>
+                              <td>MS Name</td>
+                              <td>Index</td>
+                              <td>Folio(s)</td>
+                              <td>Town or City</td>
+                              <td>Description</td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <!-- links to full record -->
+                                  <a class="" href="#" title="View full record">
+                                      <img alt="" src="assets/images/grid-test.jpg" />
+                                  </a>
+                              </td>
+                              <td>MS Name</td>
+                              <td>Index</td>
+                              <td>Folio(s)</td>
+                              <td>Town or City</td>
+                              <td>Description</td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <!-- links to full record -->
+                                  <a class="" href="#" title="View full record">
+                                      <img alt="" src="assets/images/grid-test.jpg" />
+                                  </a>
+                              </td>
+                              <td>MS Name</td>
+                              <td>Index</td>
+                              <td>Folio(s)</td>
+                              <td>Town or City</td>
+                              <td>Description</td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <!-- links to full record -->
+                                  <a class="" href="#" title="View full record">
+                                      <img alt="" src="assets/images/grid-test.jpg" />
+                                  </a>
+                              </td>
+                              <td>MS Name</td>
+                              <td>Index</td>
+                              <td>Folio(s)</td>
+                              <td>Town or City</td>
+                              <td>Description</td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <!-- links to full record -->
+                                  <a class="" href="#" title="View full record">
+                                      <img alt="" src="assets/images/grid-test.jpg" />
+                                  </a>
+                              </td>
+                              <td>MS Name</td>
+                              <td>Index</td>
+                              <td>Folio(s)</td>
+                              <td>Town or City</td>
+                              <td>Description</td>
+                          </tr>
+                      </tbody>
+                      
+                      
+                      
+                  </table>
+                        
+                        
+                
+                    </div>
+                  
+                </div>
+                <!-- end unit -->
+{% endblock %}
+            
+   

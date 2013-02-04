@@ -1,0 +1,4 @@
+{{ object.name }}
+{{ object.scriptorium.name }}
+{{ object.created }}
+{{ object.modified_date }}

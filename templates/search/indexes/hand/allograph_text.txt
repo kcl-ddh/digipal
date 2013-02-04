@@ -1,0 +1,6 @@
+{{ object.name }}
+{{ object.character }}
+{{ object.aspects }}
+{{ object.default }}
+{{ object.created }}
+{{ object.modified_date }}

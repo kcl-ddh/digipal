@@ -1,0 +1,3 @@
+{{ object.historical_item }}
+{{ object.current_item }}
+{{ object.locus }}

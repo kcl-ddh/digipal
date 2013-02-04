@@ -1,0 +1,5 @@
+{{ object.name }}
+{{ object.short_name }}
+{{ object.place }}
+{{ object.created }}
+{{ object.modified_date }}

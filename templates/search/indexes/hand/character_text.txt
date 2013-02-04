@@ -1,0 +1,5 @@
+{{ object.name }}
+{{ object.form }}
+{{ object.ontograph }}
+{{ object.components }}
+{{ object.modified_date }}

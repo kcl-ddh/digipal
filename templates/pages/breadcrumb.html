@@ -1,0 +1,45 @@
+
+<!-- Breadcrumb only 4 layers deep --> 
+{% if page.parent %}
+<div id="breadCrumb1" class="breadcrumb">
+	<ul class="inline">
+	{% with p1=page.parent %}
+		{% if not p1.parent %} 
+		<li class="first"><span><a class="breadcrumbLink" href="{{ p1.get_absolute_url }}">{{ p1.title }}</a></span></li>
+		<li><span class="breadcrumbCurrent last">{{ page.title }}</span></li>
+		{% else %}
+		{% with p2=p1.parent %}
+			{% if not p2.parent %}
+			<li class="first"><span><a class="breadcrumbLink" href="{{ p2.get_absolute_url }}">{{ p2.title }}</a></span></li>
+			<li><span><a class="breadcrumbLink" href="{{ p1.get_absolute_url }}">{{ p1.title }}</a></span></li>
+			<li><span class="breadcrumbCurrent last">{{ page.title }}</span></li>
+			{% else %}
+			{% with p3=p2.parent %}
+				{% if not p3.parent %}
+				<li class="first"><span><a class="breadcrumbLink" href="{{ p3.get_absolute_url }}">{{ p3.title }}</a></span></li>
+				<li><span><a class="breadcrumbLink" href="{{ p2.get_absolute_url }}">{{ p2.title }}</a></span></li>
+				<li><span><a class="breadcrumbLink" href="{{ p1.get_absolute_url }}">{{ p1.title }}</a></span></li>
+				<li><span class="breadcrumbCurrent last">{{ page.title }}</span></li>
+				{% else %}
+					{% with p4=p3.parent %}
+						<li class="first"><span><a class="breadcrumbLink" href="{{ p4.get_absolute_url }}">{{ p4.title }}</a></span></li>
+						<li><span><a class="breadcrumbLink" href="{{ p3.get_absolute_url }}">{{ p3.title }}</a></span></li>
+						<li><span><a class="breadcrumbLink" href="{{ p2.get_absolute_url }}">{{ p2.title }}</a></span></li>
+						<li><span><a class="breadcrumbLink" href="{{ p1.get_absolute_url }}">{{ p1.title }}</a></span></li>
+						<li><span class="breadcrumbCurrent last">{{ page.title }}</span></li>
+					{% endwith %}
+				   {% endif %}					
+			{% endwith %}
+			{% endif %}
+		{% endwith %}
+		{% endif %}
+	{% endwith %}
+	
+		</ul>
+	</div>
+	
+{% endif %}
+
+
+
+		

@@ -1,0 +1,28 @@
+{% extends "pages/databasepage.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+{% block search_results%}
+    <table class="simple headersX">
+    <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Scriptorium</th>
+        <th>Actions</th>
+    </tr>
+    {% autopaginate results 9 %}
+    {% for result in results %}
+    <tr class="{% cycle 'bgColour' '' %}">
+        <td>{{ result.name }}</td>
+        <td>{{ result.date }}</td>
+        <td>{{ result.scriptorium.name }}</td>
+        <td>
+            <ul class="inline">
+                <li><a class="ctrl add" href="../admin/hand/scribe/{{ result.id }}">Edit</a></li>
+                <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
+            </ul>
+        </td>
+    </tr>
+    {% endfor %}
+    {% paginate %}
+    </table>
+{% endblock search_results %}

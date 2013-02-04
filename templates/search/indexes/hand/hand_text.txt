@@ -1,0 +1,21 @@
+{{ object.num }}
+{{ object.item_part }}
+{{ object.script }}
+{{ object.scribe }}
+{{ object.assigned_date }}
+{{ object.assigned_place }}
+{{ object.label }}
+{{ object.display_note }}
+{{ object.internal_note }}
+{{ object.appearance }}
+{{ object.description }}
+{{ object.comments }}
+{{ object.pages }}
+{{ object.display_label }}
+{{ object.item_part.current_item }}
+{{ object.item_part.historical_item }}
+{{ object.descriptions }}
+{% for desc in object.item_part.historical_item.description_set.all %}
+    {{ desc.description }}
+{% endfor %}
+{{ object.item_part.current_item.description }}

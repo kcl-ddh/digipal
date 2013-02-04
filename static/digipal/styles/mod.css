@@ -1,0 +1,151 @@
+/*
+
+	mod.css:		CSS for modules
+	Included modules:
+		
+			facingPages
+			facetedNav
+			overlay
+			pagination
+			search
+				autocomplete
+			tabs
+			draggable
+			
+*/
+
+
+/* pageViewer */
+
+.mod.facingPages {
+	width:95%;
+	position:relative;
+	font-size:1em;
+	line-height:1.714285714285714;
+	margin:1.714285714285714em;
+}
+
+.facingPage {
+	
+	position:relative;
+	display: inline;
+	float: left;
+	height:100%;
+}
+	
+.facingPage.left{width:50%;}
+	
+.facingPage.right {width:50%;}
+
+.facingPage.full { width: 100%;}
+	
+.pageViewerTools {}
+	
+.pageViewerTextBox {
+	border:1px solid #ccc;
+	min-height:480px;
+	clear:both;
+	height:100%;
+	width:99%;
+	overflow:auto;
+}
+	
+.pageViewerTextBox.left { }
+	
+.pageViewerTextBox.right {}	
+
+.pageViewerTextBox {
+	
+}
+	
+.pageViewerText {
+	overflow:auto;
+	height:auto;
+	width:100%;
+	position:absolute;
+	top:24px;
+	bottom:0;
+	line-height:1.714285714285714em;
+}
+
+.pageViewerTextBox {
+	
+}
+
+/* tabs */
+.mod {
+	border:1px dotted #ccc;
+}
+
+
+.mod.tabs {
+	margin:1.714285714285714em;
+	width: 95%;
+	
+}
+
+.tabControlHeader a.current {
+	font-weight:bold;
+}
+
+/* pagination */
+.mod.pagination {
+	margin:1.714285714285714em;
+	width:95%;
+	
+}
+
+.mod.pagination p {
+	clear: both;
+	float:left;
+	margin-left:0;
+	margin-top:0;
+}
+
+.resultsNav {
+	float:right;
+	margin:0 1.714285714285714em;
+}
+
+.resultsOptions { 
+	float:left;
+	display:inline;
+	margin:0 1.714285714285714em;
+}
+.ctrl.recordDisplay grid {}
+.ctrl.recordDisplay list {}
+.resultsNav {}
+a.ctrl.resultsBrowse.first {}
+
+	
+/* controls */
+
+a.ctrl.tooltip {
+	vertical-align:super;
+	
+}
+
+div.tooltipBox {
+	background-color:#444;
+	font-size:0.857142857142857em;
+	padding:1em;
+	-webkit-box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.4);
+	-moz-box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.4);
+	box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.4);
+	color:#fff;
+	z-index:1000;
+	display:none;
+}
+
+
+
+
+a.ctrl.sync {}
+	
+a.ctrl.criticalApparatus {}
+	
+a.ctrl.commentary {}
+	
+a.ctrl.chapterisation {}
+	
+a.ctrl.fullScreen {}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% if data %}
+{% block meta-title %}Page Allograph{% endblock %}
+
+{% block extra_head %}
+<script type="text/javascript">
+  function selectFeature(id) {
+    window.opener.annotator.selectFeatureByIdAndCentre(id);
+    window.opener.focus();
+    return false;
+  }
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="annotations">
+  {% for key, allographs in data.items %}
+  <div class="scribe">
+    <h1>{{ key }}</h1>
+    {% for key, annotations in allographs.items %}
+    <h2>{{ key }}</h2>
+    <ul>
+      {% for annotation in annotations %}
+      <li>
+      <p>
+      <a href="{{ annotation.cutout }}">View</a>
+      <span> | </span>
+      <a href="{% url admin:hand_graph_change annotation.graph.id %}">Edit</a>
+      </p>
+      <a href="#" onclick="selectFeature('{{ annotation.vector_id}}');">
+      {{ annotation.thumbnail }}
+      </a> 
+      </li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% else %}
+<p>No annotations available.</p>
+{% endif %}

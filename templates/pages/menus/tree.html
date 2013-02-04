@@ -1,0 +1,18 @@
+{% load i18n pages_tags %}
+
+{% spaceless %}
+{% if page_branch_in_navigation %}
+<li>
+<a class="navLink" href="/">Home</a>
+</li>
+{% for page in page_branch %}
+<li>
+<a  class="navLink
+	{% if page.is_current_or_ascendant %} selected {% endif %}
+	{% if not page.is_primary and forloop.first %} first{% endif %}
+	{% if forloop.last %} last{% endif %}"
+	href="{% url page page.slug %}" >{{ page.title }}</a>
+</li>
+{% endfor %}
+{% endif %}
+{% endspaceless %}

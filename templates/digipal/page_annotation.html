@@ -1,0 +1,131 @@
+{% if page.image %}
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="keywords" content="{% block meta_keywords %}{% endblock %}">
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+
+    <title>Page Annotation{% if settings.SITE_TITLE %} | {{ settings.SITE_TITLE }}{% endif %}</title>
+
+    <link rel="shortcut icon"
+    href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
+    <link rel="stylesheet" type="text/css"
+    href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/ui-lightness/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css"
+    href="{{ STATIC_URL }}digipal/styles/annotation.css"/>
+    <link rel="stylesheet" type="text/css"
+    href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+    <script type="text/javascript">
+
+      $(document).ready(function() {
+         annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+        '{{ page.image.url }}', {{ width }}, {{ height }},
+        '{{ image_server_url }}'
+
+          );
+
+          $('#id_allograph').change(function() {
+            updateFeatureSelect();
+          });
+
+          $("#id_feature").multiselect({noneSelectedText: 'Select features',
+            selectedList: 10
+          });
+
+          $(document).keypress(function(event) {
+            annotator.activateKeyboardShortcuts();
+          });
+
+          {% if vector_id %}
+          // vectorLayer event moveend is triggered on first load so flag this
+          initialLoad = true;
+
+          // tries to centre the map every 1/2 second
+          interval = setInterval(function() {
+              annotator.selectFeatureByIdAndCentre('{{ vector_id }}');
+          }, 500);
+
+          // listen for the moveend event
+          annotator.vectorLayer.events.register('moveend', 
+              annotator.vectorLayer, function() {
+              // checks if it is a first load, if not kill the interval
+              if (initialLoad) {
+                initialLoad=false
+              } else {
+                clearInterval(interval);
+                annotator.selectFeatureByIdAndZoom('{{ vector_id }}');
+		annotator.vectorLayer.events.remove('moveend');
+              }
+          });
+
+	
+
+          {% endif %}
+      });
+    </script>
+</head>
+<body>
+  <div id="gw">
+    <div id="c2">
+      <div class="form">
+        <form action="" id="frmAnnotation" method="get" name="frmAnnotation">
+          {% csrf_token %}
+          <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+
+          <div id="topSection">
+            <h3>
+              <a href="{{ page_link }}">{{ page|capfirst }}</a>
+              <a class="annotationLink" href="#"
+                onclick="window.open('allographs/',
+                ''); return false;">Annotations by Allograph</a>
+            </h3>
+            <div class="row">
+              <p id="status" class="notice">-</p>
+            </div>
+          </div>
+
+          <div id="bottomSection">
+            <div class="leftContainer">
+              <div id="map"></div>
+              <div id="toolbar" class="olControlEditingToolbar"></div>
+            </div>
+
+            <div class="rightContainer">
+              <div class="fieldWrapper">
+                <p>
+                <label for="id_hide">Hide unselected annotations?</label>
+                <input id="id_hide" name="hide" type="checkbox" />
+                </p>
+              </div>
+              {% for field in form %}
+              <div class="fieldWrapper">
+                <p>
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+                </p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+{% else %}
+<p>No image available.</p>
+{% endif %}
+

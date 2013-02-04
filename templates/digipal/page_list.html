@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h1>Pages</h1>
+<div class="imageContainer">
+    {% for page in page_list %}
+    <dl class="imageDatabase">
+        <dt>
+        {{ page.thumbnail_with_link }}
+        </dt>
+        <dd>
+        <a href="{{ page.id }}/">{{ page }}</a>
+        </dd>
+    </dl>
+    {% endfor %}
+</div>
+{% endblock %}

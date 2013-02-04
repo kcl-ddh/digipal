@@ -1,0 +1,4 @@
+{{ object.display_label }}
+{{ object.allograph.name }}
+{{ object.created }}
+{{ object.modified_date }}

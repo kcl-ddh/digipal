@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+
+
+{% block record_content %}
+{% page_menu "pages/breadcrumb.html" %}
+<div class="unit size1of1">
+    <h1><span>Full Record:</span> {% block record_title %}{% endblock %}</h1>
+    <div class="mod pagination DisplayRecord">
+        {% for result in results %}
+            {% ifequal result.id|safe id %}
+                {% with prevRec=forloop.counter|add:"-1" %}
+                    <ul class="inline resultsNav resultsRecord">
+                    <li class="resultsNumber">Record {{ forloop.counter }} of {{ results|length }}</li>
+                    {% if forloop.counter|safe > 1|safe %}
+                        {% for p in results %}
+                            {% ifequal forloop.counter|safe prevRec|safe %}
+                                <li class="prev"><a class="ctrl resultsBrowse prev" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ p.id }}&amp;record={{ forloop.counter|add:"-1" }}">Previous</a> -</li>
+                            {% endifequal %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            {% with nextRec=forloop.counter|add:"1" %}
+                {% ifnotequal results|length|safe  forloop.counter|safe %}
+                    {% for n in results %}
+                        {% ifequal forloop.counter|safe nextRec|safe %}
+                            <li><a class="ctrl resultsBrowse next" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ n.id }}&amp;record={{ forloop.counter|add:"1" }}">Next</a></li>
+                        {% endifequal %}
+                    {% endfor %}
+                {% endifnotequal %}
+            {% endwith %}
+            <li><a class="ctrl resultsBrowse last" href="?terms={{ terms }}&amp;basic_search_type={{ type }}">Return to record view</a></li>
+            </ul>
+        </div>
+        <div class="mod tabs info">
+            <ul class="tabControls fullRecord">
+                <li class="tabControlHeader"><a href="#data">{% block tab_1_title %}Record Data{% endblock %}</a></li>
+                <li class="tabControlHeader"><a href="#item">{% block tab_2_title %}Menu Item 2{% endblock %}</a></li>
+                <li class="tabControlHeader"><a href="#magnify">{% block tab_3_title %}Magnify Manuscript{% endblock %}</a></li>
+                <li class="tabControlHeader"><a href="#menu">{% block tab_4_title %}Menu Item{% endblock %}</a></li>
+            </ul>
+            <div class="tabPanes line recordData">
+                <section id="data">
+                    <div class="line">
+                        <div class="unit size2of3 mod recordDetail">
+                            {% block details %}{% endblock %}
+                        </div>
+                        <div class="unit size1of3">
+                        {% for page in pages %} 
+                            <a href="../hand/page/{{ page.id }}">
+                            {{ page.thumbnail }}
+                            </a>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </section>
+                <section id="item">
+                    <div class="line">
+                        <div class="unit size2of3 mod recordDetail">
+                            {% block idiograph_components %}{% endblock %}
+                        </div>
+                    </div>
+                </section>
+                <section id="magnify">
+                <div class="unit size1of1">
+                    <p>magnify</p>
+                    <img src="assets/images/magnify.png" class="zoom" alt=""/>
+                </div>
+                </section> <!-- magnify section ends -->
+                <section id="menu">
+                    <div class="line">
+                        <div class="unit size2of3 mod recordDetail">
+                            {% block graphs %}{% endblock %}
+                        </div>
+                    </div>
+                </section>
+                </div>
+            </div>
+        </div>
+        {% endifequal %}
+    {% endfor %}
+{% endblock %}

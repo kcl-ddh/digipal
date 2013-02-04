@@ -1,0 +1,43 @@
+{% extends "pages/databasepage.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+{% block search_results%}
+    <table class="simple headersX">
+        <tr>
+            <th>Scribe</th>
+            <th>Place</th>
+            <th>Date</th>
+            <th>Repository</th>
+            <th>Shelfmark</th>
+            <th>Catalogue Number</th>
+            <th>Actions</th>
+        </tr> 
+        {% autopaginate results 9 %}
+        {% for result in results %}
+        <tr class="{% cycle 'bgColour' '' %}">
+          <td>{{ result.scribe.name }}</td>
+          <td>{{ result.assigned_place.name }}</td>
+          <td>{{ result.assigned_date.date }}</td>
+          <td>{{ result.item_part.current_item.repository.name }}</td>
+          <td>{{ result.item_part.current_item.shelfmark }}</td>
+          <td>{{ result.item_part.historical_item.catalogue_number }}</td>
+          <td>
+              <ul class="inline">
+                  <li><a class="ctrl add" href="../admin/hand/hand/{{ result.id }}">Edit</a></li>
+                  <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
+                  <li><a class="ctrl view" href="../image-display/?style=grid&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">Grid</a></li>
+                  <li><a class="ctrl view" href="../image-display/?style=list&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">List</a></li>
+              </ul>
+          </td>
+      </tr>
+      {% endfor %}
+      {% paginate %}
+    </table>
+    <form id="filter-form" action="graph/" method="GET">
+        <label for="filter-form">Show graphs filtered by:</label>
+        <fieldset>
+            {{ drilldownform.as_ul }}
+        </fieldset>
+        <button>Show Graphs</button>
+    </form>
+{% endblock search_results %}

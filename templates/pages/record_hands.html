@@ -1,0 +1,48 @@
+{% extends "pages/record.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+
+{% block record_title %}{{ item_part.display_label }}{% endblock %}
+{% block details %}
+    <h2>Location</h2>
+    <table class="fullRecord list">
+        <tbody>
+            <tr>
+                <th>Repository</th>
+                <td>{{ result.current_item.repository.name }}</td>
+            </tr>
+            <tr>
+                <th>Town or City</th>
+                <td>{{ result.current_item.repository.place }}</td>
+            </tr>
+            <tr>
+                <th>Shelfmark</th>
+                <td>
+                    {{ result.current_item.shelfmark }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <h2>Description</h2>
+    <table class="fullRecord list">
+        <tbody>
+            <tr>
+                <th>MS Name</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Index</th>
+                <td>{{ result.historical_item.catalogue_number }}</td>
+            </tr>
+            <tr>
+                <th>MS Description</th>
+                <td>
+                    {% for desc in result.historical_item.description_set.all %}
+                        {{ desc.description }}
+                    {% endfor %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

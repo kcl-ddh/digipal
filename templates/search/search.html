@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load hand_filters %}
+
+{% block main %}
+<div class="unit size1of4 firstCol">
+<div class="mod quickSearch">
+    <form class="searchForm" method="GET" action=".">
+        {# {% csrf_token %} #}
+        <fieldset class="searchBox">
+            <legend>Enter a search term</legend>
+            {{ form.as_ul }}
+        </fieldset>
+        <fieldset>
+            <input type="submit" value="Search">
+        </fieldset><br>
+        {# {% if query %} #}
+        {# Render facets even if there's no search term #}
+        {# This logic is immensely hairy, and should be handled in forms.py #}
+        <fieldset>
+            <legend>Available Facets</legend>
+            {# for all available facet fields #}
+            {% for facet, values in facets.fields.items %}
+                <select multiple="multiple" class="facetDrop" name="{{ facet }}">
+                    <option value="">Filter by {{ facet }}…</option>
+                    {# for each item in the current field #}
+                    {% for item in values %}
+                    {% with facet|add:":"|add:item.0 as facet_exists %}
+                        {% if facet_exists in active_facets %}
+                            <option
+                                selected="selected"
+                                class="{{ facet_exists|uniq }}"
+                                name="selected_facets"
+                                value="{{ item.0 }}">
+                                    {{ item.0|truncatewords:4|unquote_string }}
+                            </option>
+                        {% else %}
+                        {# we don't have a match #}
+                            <option
+                                name="selected_facets"
+                                value="{{ item.0 }}">
+                                    {{ item.0|truncatewords:4|unquote_string }} ({{ item.1 }} results)
+                            </option>
+                        {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </select>
+                <br>
+            {% endfor %}
+        </fieldset><br>
+        <fieldset>
+            <input id="filter_btn" type="submit" value="Filter">
+        </fieldset><br>
+    {# {% endif %} #}
+        <fieldset>
+            <legend>Active Facets</legend>
+            {% for facet in active_facets %}
+                <span class="active_facet">
+                    {{ facet|unquote_string }}&nbsp;<span class="clear_facet" id="{{ facet|uniq }}">x</span></span>&nbsp;
+            {% endfor %}
+        </fieldset>
+</form>
+</div>
+</div>
+    <div class="unit size3of4 secondCol lastUnit">
+        <section class="content">
+            <table class="simple headersX">
+                <tr>
+                    <th>Description</th>
+                    <th>Scribe</th>
+                    <th>Place</th>
+                    <th>Date</th>
+                    <th>Repository</th>
+                    <th>Shelfmark</th>
+                    <th>Catalogue No.</th>
+                </tr>
+            {% for result in page.object_list %}
+                <tr class="{% cycle 'bgColour' '' %}">
+                    </td>
+                    <td>{{ result.object.description }}</td>
+                    <td>{{ result.scribe }}</td>
+                    <td>{{ result.assignedplace }}</td>
+                    <td>{{ result.assigneddate }}</td>
+                    <td>{{ result.object.item_part.current_item.repository }}</td>
+                    <td>{{ result.object.item_part.current_item.shelfmark }}</td>
+                    <td>{{ result.object.item_part.historical_item.catalogue_number }}</td>
+                    <td>
+                        <ul class="inline">
+                            <li><a class="ctrl edit" href="../../admin/hand/itempart/{{ result.object.id }}">Edit</a></li>
+                            <li><a class="ctrl view" href="../../search/?terms={{ terms }}&amp;basic_search_type=hands&amp;id={{ result.object.id }}&amp;record={{ forloop.counter }}">View</a></li>
+                        </ul>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <p>Sorry, no results found.</p>
+                </tr>
+            {% endfor %}
+            </table>
+            {% if page.has_previous or page.has_next %}
+            <br>
+            <div>
+                {% if page.has_previous %}<a href="?q={{ query }}&amp;{{ active_facets|querystring }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
+                |
+                {% if page.has_next %}<a href="?q={{ query }}&amp;{{ active_facets|querystring }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
+{% endblock %}

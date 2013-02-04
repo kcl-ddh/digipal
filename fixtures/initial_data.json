@@ -1,0 +1,22 @@
+[
+  {
+    "model": "digipal.status",
+    "pk": 1,
+    "fields": {
+      "name": "draft",
+      "default": true,
+      "created": "2012-11-14",
+      "modified": "2012-11-14"
+    }
+  },
+  {
+    "model": "digipal.status",
+    "pk": 2,
+    "fields": {
+      "name": "chopper",
+      "default": false,
+      "created": "2012-11-14",
+      "modified": "2012-11-14"
+    }
+  }
+]

@@ -3,3 +3,4 @@ South
 -e git+https://github.com/toastdriven/django-haystack.git@master#egg=django-haystack
 django-reversion
 pyelasticsearch
+PIL

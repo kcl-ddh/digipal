@@ -3,6 +3,11 @@ DigiPal
 
 Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
 
+About
+=====
+
+The Digital Resource for Palaeography (DigiPal) is a project funded by the European Research Council that brings digital technology to bear on scholarly discussion of medieval handwriting. At its heart will be hundreds of newly-commissioned photographs of eleventh-century Anglo-Saxon script from the major manuscript collections in the world, with detailed descriptions of the handwriting, the textual content, and the wider manuscript or documentary context.
+
 Required settings
 =================
 

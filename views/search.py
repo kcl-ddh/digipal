@@ -75,7 +75,7 @@ def searchDB(request):
         context = {}
         context['searchform'] = SearchForm()
         return render_to_response(
-            'pages/databasepage.html',
+            'search/search.html',
             context,
             context_instance=RequestContext(request))
 

@@ -2,28 +2,30 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
-{% block image_view %}
-<div class="unit size1of1">
-    <div class="mod searchResults gridDisplay">
+{% block main %}
+<div class="row-fluid">
+    <ul class="breadcrumb">
+        <li><a href="/">Home</a> <span class="divider">/</span></li>
+        <li><a href="/digipal/search/">Search</a> <span class="divider">/</span></li>
+        <li><a href="/digipal/search/?terms={{term}}">{{ term }}</a> <span class="divider">/</span></li>
+        <li>Graphs</li>
+    </ul>
         {% ifnotequal style "allograph_list" %}
             {% with r=results|first %}
-            <h1>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
+            <h1 class='header1'>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
             {% endwith %}
             {% else %}
-            <h1>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
+            <h1 class='header1'>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
         {% endifnotequal %}
         
-        <div class="resultsSummary">
-            <ul class="resultsOptions inline resultsRecord">
+            <ul class="nav nav-pills">
                 <!--<li class="resultsNumber">Showing x of {{ results.count }} results</li>
                 <li class="showResults">Show results in:</li>-->
                 <li><a class="ctrl recordDisplay grid tip" title="A compact display which allows you to see many images at a time">Grid format</a></li>
-                <li><a class="ctrl recordDisplay list tip" title="A more detailed view of image records, together with associated metadata">List format</a></li>
+                <li class='active'><a class="ctrl recordDisplay list tip" title="A more detailed view of image records, together with associated metadata">List format</a></li>
             </ul>
-        </div>
-
         {% ifequal style "list" %} <!-- Display list view, of course -->
-            <table class="simple headersX">
+            <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
                         <th>Image</th>
@@ -63,7 +65,7 @@
                     <dl>
                         <dt>{{ result.idiograph.allograph.name }}</dt>
                         <dd>
-                            <a href="../../hand/page/{{ result.annotation.page.id }}/">{{ result.annotation.thumbnail }}</a>
+                            <a href="/digipal/page/{{ result.annotation.page.id }}/">{{ result.annotation.thumbnail }}</a>
                         </dd>
                     </dl>
                 </li>
@@ -78,7 +80,7 @@
             {% endfor %}
             </p>-->
             {% regroup graphs by hand as handlist %}
-            <table class="simple headersX">
+            <table class="table table-striped table-bordered">
                 <tr>
                     <th>Graphs</th>
                     <th>Scribe</th>
@@ -93,7 +95,7 @@
                 <tr class="{% cycle 'bgColour' '' %}">
                     <td>
                         {% for graph in hand.list %}
-                        <a title={{ hand.grouper.id }} href="../../hand/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                        <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                         {% endfor %}
                     </td>
                     <td>{{ hand.grouper.scribe }}</td>

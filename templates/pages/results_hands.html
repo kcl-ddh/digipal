@@ -1,8 +1,14 @@
-{% extends "pages/databasepage.html" %}
+{% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
-{% block search_results%}
-    <table class="simple headersX">
+{% block main %}
+<ul class="breadcrumb">
+        <li><a href="/">Home</a> <span class="divider">/</span></li>
+        <li><a href="/digipal/search/">Search</a> <span class="divider">/</span></li>
+        <li><i class='icon-search'></i> {{ terms }}</li>
+    </ul>
+<h1 class='header1'>Hands</h1>
+    <table class="table table-striped table-bordered table-condensed">
         <tr>
             <th>Scribe</th>
             <th>Place</th>
@@ -22,22 +28,22 @@
           <td>{{ result.item_part.current_item.shelfmark }}</td>
           <td>{{ result.item_part.historical_item.catalogue_number }}</td>
           <td>
-              <ul class="inline">
+              <ul class="nav nav-tabs">
+                  {% if request.session.admin %}
                   <li><a class="ctrl add" href="../admin/hand/hand/{{ result.id }}">Edit</a></li>
+                  {% endif %}
                   <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
                   <li><a class="ctrl view" href="../image-display/?style=grid&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">Grid</a></li>
-                  <li><a class="ctrl view" href="../image-display/?style=list&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">List</a></li>
+                  <li class='active'><a class="ctrl view" href="../image-display/?style=list&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">List</a></li>
               </ul>
           </td>
       </tr>
       {% endfor %}
       {% paginate %}
     </table>
-    <form id="filter-form" action="graph/" method="GET">
-        <label for="filter-form">Show graphs filtered by:</label>
-        <fieldset>
-            {{ drilldownform.as_ul }}
-        </fieldset>
-        <button>Show Graphs</button>
+    <form class="form-horizontal" action="graph/" method="GET">
+        <h3 class='header1'>Show graphs filtered by:</h3>
+            {{ drilldownform.as_p }}
+        <button class='btn btn-primary'>Show Graphs</button>
     </form>
-{% endblock search_results %}
+{% endblock main %}

@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 {% load hand_filters %}
-
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags keyword_tags %}
 {% block main %}
-<div class="unit size1of4 firstCol">
-<div class="mod quickSearch">
-    <form class="searchForm" method="GET" action=".">
-        {# {% csrf_token %} #}
-        <fieldset class="searchBox">
-            <legend>Enter a search term</legend>
-            {{ form.as_ul }}
-        </fieldset>
-        <fieldset>
-            <input type="submit" value="Search">
-        </fieldset><br>
+<div class="row-fluid">
+    <div class="span12">
+        <h1 class='header1'>Search</h1>
+        <form class="form-horizontal" method="GET" action=".">
+            {# {% csrf_token %} #}
+                {{ searchform.as_p }}
+                <input type="submit" value="Search" class='btn btn-primary' /> <input type='reset' class='btn' />
+                  </form>
+   
+    <!--
         {# {% if query %} #}
         {# Render facets even if there's no search term #}
         {# This logic is immensely hairy, and should be handled in forms.py #}
@@ -47,6 +47,7 @@
                 <br>
             {% endfor %}
         </fieldset><br>
+
         <fieldset>
             <input id="filter_btn" type="submit" value="Filter">
         </fieldset><br>
@@ -96,6 +97,7 @@
                 </tr>
             {% endfor %}
             </table>
+        -->
             {% if page.has_previous or page.has_next %}
             <br>
             <div>
@@ -103,7 +105,10 @@
                 |
                 {% if page.has_next %}<a href="?q={{ query }}&amp;{{ active_facets|querystring }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
             </div>
-        </section>
-    </div>
-    {% endif %}
+            {% endif %}
+    </div> 
+  
+ </div>
+</div>
+    
 {% endblock %}

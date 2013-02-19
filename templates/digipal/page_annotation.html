@@ -29,12 +29,17 @@
     <script type="text/javascript">
 
       $(document).ready(function() {
+
+        {% if isAdmin %}
+          isAdmin = true
+        {% else %}
+          isAdmin = false
+        {% endif %}
+
          annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
         '{{ page.image.url }}', {{ width }}, {{ height }},
-        '{{ image_server_url }}'
-
-          );
-
+        '{{ image_server_url }}', isAdmin);
+          annotator.toolbarPanel.defaultControl['Modify']
           $('#id_allograph').change(function() {
             updateFeatureSelect();
           });
@@ -46,6 +51,7 @@
           $(document).keypress(function(event) {
             annotator.activateKeyboardShortcuts();
           });
+
 
           {% if vector_id %}
           // vectorLayer event moveend is triggered on first load so flag this
@@ -70,7 +76,6 @@
           });
 
 	
-
           {% endif %}
       });
     </script>
@@ -83,7 +88,7 @@
           {% csrf_token %}
           <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
 
-          <div id="topSection">
+          <div id="header">
             <h3>
               <a href="{{ page_link }}">{{ page|capfirst }}</a>
               <a class="annotationLink" href="#"

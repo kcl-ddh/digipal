@@ -5,35 +5,39 @@
 
 {% block record_title %}{{ item_part.display_label }}{% endblock %}
 {% block details %}
-    <h2>Location</h2>
-    <table class="fullRecord list">
+
+
+ 
+    <h3 class='header1'>Location</h3>
+    
+    <table class="table table-striped table-bordered">
         <tbody>
             <tr>
                 <th>Repository</th>
-                <td>{{ result.current_item.repository.name }}</td>
+                <td>{{ result.item_part.current_item.repository.name }}</td>
             </tr>
             <tr>
                 <th>Town or City</th>
-                <td>{{ result.current_item.repository.place }}</td>
+                <td>{{ result.item_part.current_item.repository.place.name }}</td>
             </tr>
             <tr>
                 <th>Shelfmark</th>
                 <td>
-                    {{ result.current_item.shelfmark }}
+                    {{ result.item_part.current_item.shelfmark }}
                 </td>
             </tr>
         </tbody>
     </table>
-    <h2>Description</h2>
-    <table class="fullRecord list">
+    <h3 class='header1'>Description</h3>
+    <table class="table table-striped table-bordered">
         <tbody>
             <tr>
                 <th>MS Name</th>
-                <td></td>
+                <td>{{ result.item_part.historical_item.name }}</td>
             </tr>
             <tr>
                 <th>Index</th>
-                <td>{{ result.historical_item.catalogue_number }}</td>
+                <td>{{ result.item_part.historical_item.catalogue_number }}</td>
             </tr>
             <tr>
                 <th>MS Description</th>
@@ -45,4 +49,15 @@
             </tr>
         </tbody>
     </table>
+    <div class="span12">
+    {% for page in pages %} 
+        {% if page.thumbnail %}
+            <span class='span4' style='width:21%'>
+                <a class="imageDatabase" href="digipal/page/{{ page.id }}">
+                {{ page.thumbnail }}
+                </a>
+            </span>
+        {% endif %}
+    {% endfor %}
+</div>
 {% endblock %}

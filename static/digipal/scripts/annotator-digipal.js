@@ -17,26 +17,31 @@ DigipalAnnotator.prototype.constructor = DigipalAnnotator;
  *              URL of the image on an image server.
  */
 function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
-                                                    imageServerUrl) {
+                                                    imageServerUrl, isAdmin) {
     if (imageServerUrl && imageServerUrl != 'None' && imageServerUrl.length > 0) {
-        Annotator.call(this, imageServerUrl, imageWidth, imageHeight, true);
+        Annotator.call(this, imageServerUrl, imageWidth, imageHeight, true, isAdmin);
     } else {
-        Annotator.call(this, imageUrl, imageWidth, imageHeight, false);
+        Annotator.call(this, imageUrl, imageWidth, imageHeight, false, isAdmin);
     }
 
     this.annotations = null;
     this.mediaUrl = mediaUrl;
-    
-    this.deleteFeature.panel_div.title = 'Delete (ctrl + d)';
-    this.modifyFeature.panel_div.title = 'Modify (ctrl + m)';
-    this.transformFeature.panel_div.title = 'Transform (ctrl + t)';
-    this.duplicateFeature.panel_div.title = 'Duplicate (ctrl + d)';
-    this.polygonFeature.panel_div.title = 'Draw Polygon (ctrl + p)';
-    this.rectangleFeature.panel_div.title = 'Draw Rectangle (ctrl + r)';
-    this.selectFeature.panel_div.title = 'Select (ctrl + f)';
-    this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
-    this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
-    this.saveButton.panel_div.title = 'Save (ctrl + s)';
+    if(isAdmin){
+        this.deleteFeature.panel_div.title = 'Delete (ctrl + d)';
+        this.modifyFeature.panel_div.title = 'Modify (ctrl + m)';
+        this.transformFeature.panel_div.title = 'Transform (ctrl + t)';
+        this.duplicateFeature.panel_div.title = 'Duplicate (ctrl + d)';
+        this.polygonFeature.panel_div.title = 'Draw Polygon (ctrl + p)';
+        this.rectangleFeature.panel_div.title = 'Draw Rectangle (ctrl + r)';
+        this.selectFeature.panel_div.title = 'Select (ctrl + f)';
+        this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
+        this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
+        this.saveButton.panel_div.title = 'Save (ctrl + s)';
+    } else {
+        this.selectFeature.panel_div.title = 'Select (ctrl + f)';
+        this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
+        this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
+    }
 }
 
 /**

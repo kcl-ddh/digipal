@@ -1,17 +1,62 @@
 {% extends "base.html" %}
-
+{% load mezzanine_tags pagination_tags %}
 {% block main %}
-<h1>Pages</h1>
-<div class="imageContainer">
-    {% for page in page_list %}
-    <dl class="imageDatabase">
-        <dt>
-        {{ page.thumbnail_with_link }}
-        </dt>
-        <dd>
-        <a href="{{ page.id }}/">{{ page }}</a>
-        </dd>
-    </dl>
-    {% endfor %}
+<h1 class='header1'>Manuscript Images</h1>
+    <div class="row-fluid">
+     <div class="span12">
+    {% if is_paginated %}
+        {% load i18n %}
+        <div class="pagination">
+            <ul>
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">{{ page_obj.previous_page_number }}</a></li>
+            {% else %}
+                <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+            {% endif %}
+            <li class="active"><a href='#'>Page {{ page_obj.number }} of {{paginator.num_pages}}</a></li>
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{{ page_obj.next_page_number }} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
+            {% else %}
+                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
+        {% endif %}
+         </ul>
+    </div>
+    {% endif %}
+
+        {% for page in page_list %}
+        <div class='span4' style='width:21%'>
+            <dl class="imageDatabase">
+                <dt>
+                     <a href="{{ page.id }}/">{{ page.thumbnail }}</a>
+                </dt>
+                <dd>
+                    <a href="{{ page.id }}/">{{ page }}</a>
+                </dd>
+            </dl>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+    {% if is_paginated %}
+        {% load i18n %}
+        <div class="pagination">
+            <ul>
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">{{ page_obj.previous_page_number }}</a></li>
+            {% else %}
+                <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+            {% endif %}
+            <li class="active"><a href='#'>Page {{ page_obj.number }} of {{paginator.num_pages}}</a></li>
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{{ page_obj.next_page_number }} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
+            {% else %}
+                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
+        {% endif %}
+         </ul>
+    </div>
+    {% endif %}
 {% endblock %}

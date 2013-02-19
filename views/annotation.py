@@ -37,8 +37,6 @@ def allograph_features(request, page_id, allograph_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
-
-@login_required
 def page(request, page_id):
     """Returns a page annotation form."""
     page = Page.objects.get(id=page_id)
@@ -54,18 +52,23 @@ def page(request, page_id):
     width, height = page.dimensions()
     image_server_url = page.zoomify
 
+    if request.user.is_superuser:
+        isAdmin = True
+    else:
+        isAdmin = False
+
     if vector_id:
         return render_to_response('digipal/page_annotation.html',
                 {'vector_id': vector_id, 'form': form, 'page': page,
                     'height': height, 'width': width,
                     'image_server_url': image_server_url,
-                    'page_link': page_link},
+                    'page_link': page_link, 'isAdmin': isAdmin},
                 context_instance=RequestContext(request))
     else:
         return render_to_response('digipal/page_annotation.html',
                 {'form': form, 'page': page, 'height': height, 'width': width,
                     'image_server_url': image_server_url,
-                    'page_link': page_link},
+                    'page_link': page_link, 'isAdmin': isAdmin},
                 context_instance=RequestContext(request))
 
 

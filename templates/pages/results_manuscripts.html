@@ -1,8 +1,15 @@
-{% extends "pages/databasepage.html" %}
+{% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
-{% block search_results%}
-    <table class="simple headersX">
+{% block main %}
+<ul class="breadcrumb">
+        <li><a href="/">Home</a> <span class="divider">/</span></li>
+        <li><a href="/digipal/search/">Search</a> <span class="divider">/</span></li>
+        <li><i class='icon-search'></i> {{ terms }}</li>
+    </ul>
+<h1 class='header1'>Manuscripts</h1>
+
+    <table class="table table-striped table-bordered">
         <tr>
             <th>Index</th>
             <th>Repository</th>
@@ -24,9 +31,10 @@
                 {% endfor %}
             </td>
             <td>
-                <ul class="inline">
+                <ul class="nav nav-tabs">
+                    {% if request.session.admin %}
                     <li><a class="ctrl edit" href="../admin/hand/itempart/{{ result.id }}">Edit</a></li>
-
+                    {% endif %}
                     <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a></li>
                 </ul>
             </td>
@@ -34,4 +42,4 @@
         {% endfor %}
         {% paginate %}
     </table>
-{% endblock search_results %}
+{% endblock main %}

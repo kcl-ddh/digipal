@@ -105,7 +105,7 @@ class Character(models.Model):
     unicode_point = models.CharField(max_length=32, unique=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
-    components = models.ManyToManyField(Component)
+    components = models.ManyToManyField(Component, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

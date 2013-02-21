@@ -582,6 +582,7 @@ class Repository(models.Model):
     comma = models.NullBooleanField(null=True)
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
+    copyright_notice = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

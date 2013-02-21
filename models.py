@@ -105,7 +105,7 @@ class Character(models.Model):
     unicode_point = models.CharField(max_length=32, unique=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
-    components = models.ManyToManyField(Component)
+    components = models.ManyToManyField(Component, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -582,6 +582,7 @@ class Repository(models.Model):
     comma = models.NullBooleanField(null=True)
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
+    copyright_notice = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

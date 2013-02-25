@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select
 from django.utils.safestring import mark_safe
-from models import Allograph, Hand, Status, Character, Feature, Component
+from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place
 from models import Script, CurrentItem
 from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
@@ -109,6 +109,69 @@ class SearchForm(forms.Form):
         label='years',
         widget=HiddenInput(attrs={'id':'active_years'}))
 
+class FilterHands(forms.Form):
+    scribes = forms.ModelChoiceField(
+        queryset = Scribe.objects.order_by('name').all(),
+        widget = Select(attrs={'id':'scribes-select'}),
+        label = "Scribes",
+        required = False)
+
+    repository = forms.ModelChoiceField(
+        queryset = Repository.objects.order_by('name').all(),
+        widget = Select(attrs={'id':'repository-select'}),
+        label = "Repository",
+        required = False)
+
+    place = forms.ModelChoiceField(
+        queryset = Place.objects.order_by('name').all(),
+        widget = Select(attrs={'id':'place-select'}),
+        label = "Place",
+        required = False)
+
+    date = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'date-select'}),
+        label = "Date",
+        required = False)
+
+class FilterManuscripts(forms.Form):
+
+    index = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'index-select'}),
+        label = "Index",
+        required = False)
+
+    repository = forms.ModelChoiceField(
+        queryset = Repository.objects.order_by('name').all(),
+        widget = Select(attrs={'id':'repository-select'}),
+        label = "Repository",
+        required = False)
+
+    date = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'date-select'}),
+        label = "Date",
+        required = False)
+
+class FilterScribes(forms.Form):
+    name = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'name-select'}),
+        label = "Name",
+        required = False)
+
+    scriptorium = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'scriptorium-select'}),
+        label = "Scriptorium",
+        required = False)
+
+    date = forms.ChoiceField(
+        choices = (('1', 'All',),),
+        widget = Select(attrs={'id':'date-select'}),
+        label = "Date",
+        required = False)
 
 class DrilldownForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """

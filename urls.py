@@ -3,7 +3,6 @@ from django.views.generic import ListView
 from models import Page
 from views.facet import facet_search
 
-
 urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/$', ListView.as_view(
                            model=Page, paginate_by=24,

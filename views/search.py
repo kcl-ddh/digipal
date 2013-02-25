@@ -2,7 +2,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 from digipal.models import *
-from digipal.forms import SearchForm, DrilldownForm
+from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes
 
 
 def searchDB(request):
@@ -25,6 +25,7 @@ def searchDB(request):
         context['searchform'] = searchform
         # Distinguish between search types
         if searchtype == 'manuscripts':
+            context['manuscript_filters'] = FilterManuscripts()
             resultpage = "pages/results_manuscripts.html"
             context['results'] = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(
@@ -45,6 +46,7 @@ def searchDB(request):
                     Q(item_part__current_item__repository__name__icontains=term) | \
                     Q(item_part__historical_item__catalogue_number__icontains=term))
         elif searchtype == 'scribes':
+            context['scribes_filters'] = FilterScribes()
             resultpage = "pages/results_scribes.html"
             context['results'] = Scribe.objects.filter(
                 name__icontains=term).order_by('name')
@@ -74,6 +76,9 @@ def searchDB(request):
         # Failed validation, or initial request. Just return a blank form
         context = {}
         context['searchform'] = SearchForm()
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
         return render_to_response(
             'search/search.html',
             context,

@@ -3,14 +3,55 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags keyword_tags %}
 {% block main %}
+
 <div class="row-fluid">
     <div class="span12">
         <h1 class='header1'>Search</h1>
-        <form class="form-horizontal" method="GET" action=".">
+        <form id='searchform' class="form-inline" method="GET" action=".">
             {# {% csrf_token %} #}
-                {{ searchform.as_p }}
-                <input type="submit" value="Search" class='btn btn-primary' /> <input type='reset' class='btn' />
-                  </form>
+
+            <div class='container'>
+                {{ searchform.as_ul }}
+            </div>
+
+            <div class='container'>
+                 <script>
+                    $(document).ready(function() {
+                        radio = $("#searchform input[type='radio']")            
+                        radio.change(function(){
+                            content = '';
+                            label = '';
+                            container = $('#containerFilters');
+                            labelFilters = $('#labelFilters');                       
+                            if($("#searchform input[type='radio']:checked").val() == 'hands'){
+                                content += '{{filterHands.as_ul|escapejs}}';
+                                label += "<p><b>Show Hands filtered by:</b></p>"
+                            } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
+                                content += '{{filterManuscripts.as_ul|escapejs}}'
+                                label += "<p><b>Show Manuscripts filtered by:</b></p>"
+                            } else {
+                                content += '{{filterScribes.as_ul|escapejs}}'
+                                label += "<p><b>Show Scribes filtered by:</b></p>"
+                            }
+                            labelFilters.html(label)
+                            container.html(content)
+                       });
+                    });
+                </script>
+                <div class='container'>
+                    <div id='labelFilters'></div>
+                </div>
+                <div class='container'>
+                    <div id='containerFilters'></div>
+                </div>
+            </div>
+            <div class='container'>
+                    <input type="submit" value="Search" class='btn btn-primary' />
+                    <input type='reset' class='btn' />
+            </div>
+        </form>
+    </div>
+    
    
     <!--
         {# {% if query %} #}

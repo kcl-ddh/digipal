@@ -5,8 +5,6 @@
 
 {% block record_title %}{{ item_part.display_label }}{% endblock %}
 {% block details %}
-
-
  
     <h3>Location</h3>
     
@@ -49,15 +47,17 @@
             </tr>
         </tbody>
     </table>
-    <div class="span12">
-    {% for page in pages %} 
-        {% if page.thumbnail %}
-            <span class='span4' style='width:21%'>
-                <a class="imageDatabase" href="digipal/page/{{ page.id }}">
-                {{ page.thumbnail }}
-                </a>
-            </span>
-        {% endif %}
-    {% endfor %}
+    <div class='imagesDiv'>
+        <div class="span12">
+        {% for page in pages %} 
+            {% if page.thumbnail %}
+                <span class='span4' style='width:21%'>
+                    <a class="imageDatabase" href="digipal/page/{{ page.id }}">
+                    {{ page.thumbnail }}
+                    </a>
+                </span>
+            {% endif %}
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

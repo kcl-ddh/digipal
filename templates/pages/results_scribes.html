@@ -2,14 +2,25 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 {% block main %}
-<ul class="breadcrumb">
-        <li><a href="/">Home</a> <span class="divider">/</span></li>
-        <li><a href="/digipal/search/">Search</a> <span class="divider">/</span></li>
-        <li><i class='icon-search'></i> {{ terms }}</li>
-    </ul>
-<h1 class='header1'>Scribes</h1>
 
-    <table class="table table-striped table-bordered table-condensed">
+<h1 class='header1'>Scribes</h1>
+        <form id='searchform' class="form-inline" method="GET" action="">
+            {# {% csrf_token %} #}
+            <!--
+            <div class='container'>
+                {{ searchform.as_ul }}
+            </div>
+          -->
+              <h3>Show Scribes filtered by:</h3>
+              <div>
+              {{ scribes_filters.as_ul }}
+            </div>
+             <div class='container'>
+                    <p><input type="submit" value="Show Graphs" class='btn btn-primary' />
+                    <input type='reset' class='btn' /></p>
+            </div>
+        </form>
+    <table class="table table-condensed">
     <tr>
         <th>Name</th>
         <th>Date</th>

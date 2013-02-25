@@ -84,11 +84,11 @@
   <div id="gw">
     <div id="c2">
       <div class="form">
-        <form action="" id="frmAnnotation" method="get" name="frmAnnotation" class="form-horizontal">
+        <form action="" id="frmAnnotation" method="get" name="frmAnnotation">
           {% csrf_token %}
           <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
 
-          <div class="navbar navbar-inverse navbar-fixed-top">
+          <div id="header">
             <h3>
               <a href="{{ page_link }}">{{ page|capfirst }}</a>
               <a class="annotationLink" href="#"

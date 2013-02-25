@@ -3,12 +3,7 @@
 {% load mezzanine_tags pagination_tags %}
 
 {% block head %}
-<ul class="breadcrumb">
-    <li><a href="/">Home</a> <span class="divider">/</span></li>
-    <li><a href="/digipal/search/">Search</a> <span class="divider">/</span></li>
-    <li><a href="/digipal/search/?terms={{terms}}">{{ terms }}</a> <span class="divider">/</span></li>
-    <li>View {{terms}}</li>
-</ul>
+
 <h1 class='header1'><span>Full Record:</span> {% block record_title %}{% endblock %} </h1>
 <div class='container'>
     <div class='span12'>

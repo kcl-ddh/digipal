@@ -51,6 +51,9 @@ def searchDB(request):
             context['results'] = Scribe.objects.filter(
                 name__icontains=term).order_by('name')
 
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
         # Distinguish between requests for one record, and full results
         if request.GET.get('record', ''):
             context['id'] = request.GET.get('id', '')

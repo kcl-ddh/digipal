@@ -9,46 +9,52 @@
         <h1 class='header1'>Search</h1>
         <form id='searchform' class="form-inline" method="GET" action=".">
             {# {% csrf_token %} #}
-
-            <div class='container'>
-                {{ searchform.as_ul }}
+        <div class='container'>
+          <div class='span7'>
+                {{ searchform.as_ul }}        
+          </div>
+            <div class='span3'>
+              <input type="submit" value="Search" class='btn btn-primary' />
+              <input type='reset' class='btn' />
             </div>
-
+        </div>
             <div class='container'>
                  <script>
                     $(document).ready(function() {
-                        radio = $("#searchform input[type='radio']")            
+                        var radio = $("#searchform input[type='radio']");
+
+                        // Setting default radio
+                        var container = $('#containerFilters');
+                        var content = $('{{ filterHands.as_ul|escapejs }}');
+                        container.html(content);
+
+                        // Setting default label
+                        var labelFilters = $('#labelFilters');
+                        var label = "<h5 class='header1'><b>Show Hands filtered by:</b></h5>";
+                        labelFilters.html(label);
+
+                        // event onchange on radios
                         radio.change(function(){
                             content = '';
-                            label = '';
-                            container = $('#containerFilters');
-                            labelFilters = $('#labelFilters');                       
+                            label = '';                       
                             if($("#searchform input[type='radio']:checked").val() == 'hands'){
-                                content += '{{filterHands.as_ul|escapejs}}';
-                                label += "<p><b>Show Hands filtered by:</b></p>"
+                                content += '{{ filterHands.as_ul|escapejs }}';
+                                label += "<h5 class='header1'><b>Show Hands filtered by:</b></h5>";
                             } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
-                                content += '{{filterManuscripts.as_ul|escapejs}}'
-                                label += "<p><b>Show Manuscripts filtered by:</b></p>"
+                                content += '{{filterManuscripts.as_ul|escapejs}}';
+                                label += "<h5 class='header1'><b>Show Manuscripts filtered by:</b></h5>";
                             } else {
-                                content += '{{filterScribes.as_ul|escapejs}}'
-                                label += "<p><b>Show Scribes filtered by:</b></p>"
+                                content += '{{filterScribes.as_ul|escapejs}}';
+                                label += "<h5 class='header1'><b>Show Scribes filtered by:</b></h5>";
                             }
-                            labelFilters.html(label)
-                            container.html(content)
+                            labelFilters.html(label);
+                            container.html(content);
                        });
                     });
                 </script>
-                <div class='container'>
                     <div id='labelFilters'></div>
-                </div>
-                <div class='container'>
                     <div id='containerFilters'></div>
-                </div>
-            </div>
-            <div class='container'>
-                    <input type="submit" value="Search" class='btn btn-primary' />
-                    <input type='reset' class='btn' />
-            </div>
+            </div>             
         </form>
     </div>
     

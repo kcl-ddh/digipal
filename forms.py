@@ -97,7 +97,9 @@ class SearchForm(forms.Form):
         choices = [
             ('hands', 'Hands'),
             ('manuscripts', 'Manuscripts'),
-            ('scribes', 'Scribes')])
+            ('scribes', 'Scribes')],
+        initial='hands'
+        )
     ordering = forms.CharField(
         initial="default",
         required=False,

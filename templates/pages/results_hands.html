@@ -128,8 +128,8 @@
           <td>{{ result.item_part.historical_item.catalogue_number }}</td>
           <td>
               <ul class="nav nav-tabs">
-                  {% if request.session.admin %}
-                  <li><a class="ctrl add" href="../admin/hand/hand/{{ result.id }}">Edit</a></li>
+                  {% if request.user.is_superuser %}
+                  <li><a class="ctrl add" href="/admin/digipal/hand/{{ result.id }}">Edit</a></li>
                   {% endif %}
                   <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
                   <li><a class="ctrl view" href="../image-display/?style=grid&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">Grid</a></li>

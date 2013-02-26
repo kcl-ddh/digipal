@@ -26,15 +26,16 @@
     {% endif %}
 
         {% for page in page_list %}
-        <div class='span4' style='width:21%'>
-            <dl class="imageDatabase panel">
+        <div class='span4' style='width:21%; text-align:center;'>
+            <p class='imageDetails'><a href='{{ page.id }}/' class='label label-info'>View Annotations</a> <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
+            <dl class="imageDatabase">
                 <dt>
                      <a href="{{ page.id }}/">{{ page.thumbnail }}</a>
                 </dt>
                 <dd>
                     <p>{{ page }}</p>
                 </dd>
-                 <p class='imageDetails'><a href=''>View Annotations</a> | <a href="{{ page.id }}/">View Image</a></p>
+                 
             </dl>
 
         </div>

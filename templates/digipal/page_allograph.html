@@ -26,7 +26,7 @@
         <li>
         <p>
         <a href="{{ annotation.cutout }}">View</a>
-        {% if request.session.admin %}
+        {% if request.user.is_superuser %}
         <span> | </span>
         <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
         {% else %}

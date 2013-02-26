@@ -31,12 +31,12 @@
 
                         // Setting default radio
                         var container = $('#containerFilters');
-                        var content = $('{{ filterHands.as_ul|escapejs }}');
+                        var content = $('{{ filterManuscripts.as_ul|escapejs }}');
                         container.html(content);
 
                         // Setting default label
                         var labelFilters = $('#labelFilters');
-                        var label = "<h5 class='header5'>Show Hands filtered by:</h5>";
+                        var label = "<h5 class='header5'>Show Manuscripts filtered by:</h5>";
                         labelFilters.html(label);
 
                         // event onchange on radios
@@ -102,8 +102,8 @@
             </td>
             <td>
                 <ul class="nav nav-tabs">
-                    {% if request.session.admin %}
-                    <li><a class="ctrl edit" href="../admin/hand/itempart/{{ result.id }}">Edit</a></li>
+                    {% if request.user.is_superuser %}
+                    <li><a class="ctrl edit" href="/admin/digipal/itempart/{{ result.id }}">Edit</a></li>
                     {% endif %}
                     <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a></li>
                 </ul>

@@ -4,13 +4,14 @@
 {% block main %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"></style>
-<h1 class='header1'>Scribes</h1>
-       <form id='searchform' class="form-inline" method="GET" action=".">
-            {# {% csrf_token %} #}
-        <div class='container'>
-          <div class='span7'>
-                {{ searchform. }}
-                <script>
+<form id='searchform' class="form-inline panel" method="GET" action=".">
+    <div class='row-fluid'>
+    {# {% csrf_token %} #}
+      <div class='span9'>
+            <div id='radio'>
+                <h3 class='header5'>Search</h3>
+                {{ searchform }}
+                 <script>
                     $('#radio ul').contents().unwrap();
                     $('#radio li').contents().unwrap();
                     // Then move the input to outside of the label
@@ -20,56 +21,90 @@
                     // Then apply the jQuery UI buttonset
                     $("#radio").buttonset();
                     $('#radio .ui-button-text').css('padding','.2em 1em');
-                </script>              
-          </div>
-            <div class='span3'>
-              <input type="submit" value="Search" class='btn btn-primary' />
-              <input type='reset' class='btn' />
+                </script>  
+                     
             </div>
         </div>
-            <div class='container'>
-                 <script>
-                    $(document).ready(function() {
-                        var radio = $("#searchform input[type='radio']");
+    </div>
+         <script>
+            $(document).ready(function() {
+                var radio = $("#searchform input[type='radio']");
 
-                        // Setting default radio
-                        var container = $('#containerFilters');
-                        var content = $('{{ filterHands.as_ul|escapejs }}');
-                        container.html(content);
+                // Setting default radio
+                var container = $('#containerFilters');
+                var content = $('{{ filterScribes.as_ul|escapejs }}');
+                container.html(content);
 
-                        // Setting default label
-                        var labelFilters = $('#labelFilters');
-                        var label = "<h5 class='header1'><b>Show Hands filtered by:</b></h5>";
-                        labelFilters.html(label);
+                // Setting default label
+                var labelFilters = $('#labelFilters');
+                var label = "<h5 class='header5'>Show Scribes filtered by:</h5>";
+                labelFilters.html(label);
 
-                        // event onchange on radios
-                        radio.change(function(){
-                            content = '';
-                            label = '';                       
-                            if($("#searchform input[type='radio']:checked").val() == 'hands'){
-                                content += '{{ filterHands.as_ul|escapejs }}';
-                                label += "<h5 class='header5'>Show Hands filtered by:</h5>";
-                            } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
-                                content += '{{filterManuscripts.as_ul|escapejs}}';
-                                label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
-                            } else {
-                                content += '{{filterScribes.as_ul|escapejs}}';
-                                label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
-                            }
-                            labelFilters.html(label);
-                            container.html(content);
-                       });
-                    });
-                </script>
-                    <div id='labelFilters'></div>
-                    <div id='containerFilters'></div>
-            </div>              
-        </form>
-        <h5 class='header5'>Show Graphs filtered by:</h5>
-            {{ drilldownform.as_ul }}
-        <div>
-        <p><input type="submit" value="Show Graphs" class='btn btn-primary' /> <input type='reset' class='btn' /></p>
+                // event onchange on radios
+                radio.change(function(){
+                    content = '';
+                    label = '';                       
+                    if($("#searchform input[type='radio']:checked").val() == 'hands'){
+                            content += '{{ filterHands.as_ul|escapejs }}';
+                            label += "<h5 class='header5'>Show Hands filtered by:</h5>";
+                        } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
+                            content += '{{filterManuscripts.as_ul|escapejs}}';
+                            label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
+                        } else {
+                            content += '{{filterScribes.as_ul|escapejs}}';
+                            label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
+                        }
+                    labelFilters.html(label);
+                    container.html(content);
+               });
+
+                $('#filtersform').hide();
+                var filter = 0;
+                options = {
+                  'title': 'Show Graph Filters',
+                  'content': 'Click this button to explore and filter graphs',
+                  'trigger': 'hover'
+                }
+                $('#show_filters').popover(options)
+                $('#show_filters').click(function(){
+                  if(filter == 0){
+                    $('#filtersform').slideDown();
+                    $('#show_filters').attr('class', 'btn');
+                    $('#show_filters').text('Hide Graphs Filters');
+                    filter = 1;
+                  } else {
+                    $('#filtersform').slideUp();
+                    $('#show_filters').attr('class', 'btn btn-success');
+                    $('#show_filters').text('Show Graphs Filters');
+                    filter = 0;
+                  }
+
+                })
+
+            });
+        </script>
+        <div class='container'>
+            <div id='labelFilters'></div>
+            <div id='containerFilters'></div>
         </div>
+        <div class='container'>
+          <input type="submit" value="Search" class='btn btn-primary' />
+          <input type='reset' class='btn' />
+        </div>
+    </form>
+    <div class='container'>
+      <p><a class='btn btn-success' id='show_filters'>Show Graphs Filters</a></p>
+    </div>
+    <form class="form-inline panel" id='filtersform' method="GET" action="/graph">
+      <h5 class='header5'>Show Graphs filtered by:</h5>
+      <div class='container'>
+      {{ drilldownform.as_ul }}
+    </div>
+      <div class='container'>
+            <input type="submit" value="Show Graphs" class='btn btn-primary' />
+            <input type='reset' class='btn' />
+        </div>
+    </form> 
     <h2 class='header1'>Results for <i>Scribes</i></h2>
     <table class="table table-condensed">
     <tr>
@@ -86,8 +121,8 @@
         <td>{{ result.scriptorium.name }}</td>
         <td>
             <ul class="inline">
-                {% if request.session.admin %}
-                <li><a class="ctrl add" href="../admin/hand/scribe/{{ result.id }}">Edit</a></li>
+                {% if request.user.is_superuser %}
+                <li><a class="ctrl add" href="/admin/digipal/scribe/{{ result.id }}">Edit</a></li>
                 {% endif %}
                 <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
             </ul>

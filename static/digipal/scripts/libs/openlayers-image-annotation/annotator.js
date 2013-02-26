@@ -36,7 +36,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 					maxExtent, new OpenLayers.Size(this.imageWidth / 7,
 							this.imageHeight / 7, {
 								isBaseLayer : true,
-								numZoomLevels : 3,
+								numZoomLevels : 1,
 								ratio : 1.0
 							}));
 	}

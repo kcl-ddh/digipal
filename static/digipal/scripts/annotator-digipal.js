@@ -133,35 +133,26 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
  * Updates the feature select according to the currently selected allograph.
  */
 function updateFeatureSelect(currentFeatures) {
-    $('#id_feature option').each(function() {
-        $(this).remove();
-    });
 
     $.getJSON('allograph/' + $('#id_allograph option:selected').val() + '/features/',
                 function(data) {
+        $(body).append('<div id="dialog' + $('#id_allograph option:selected').val()+ '"></div>');
+        $('#dialog' + $('#id_allograph option:selected').val()).dialog({
+            draggable: true,
+            height: 350, 
+            title: $('#id_allograph option:selected').text()
+        });
         $.each(data, function(idx) {
+
             component = data[idx].name;
             component_id = data[idx].id;
-            features = data[idx].features;
 
+            features = data[idx].features;
             $.each(features, function(idx) {
                 var value = component_id + '::' + features[idx].id;
-
-                $('#id_feature').append($('<option>', {
-                    value : value
-                }).text(component + ': ' + features[idx].name));
+                $('#dialog' + $('#id_allograph option:selected').val()).append("<p>" + ("<b>" + component + '</b>: ' + features[idx].name) + "</p>");
             });
-
-            if (currentFeatures) {
-                $('#id_feature option').each(function() {
-                    if (currentFeatures.indexOf($(this).val()) >= 0) {
-                        $(this).attr('selected', 'selected');
-                    }
-                });
-            }
         });
-
-        $('#id_feature').multiselect('refresh');
     });
 }
 
@@ -263,10 +254,9 @@ function updateOptionsForLetter(letterId, annotation) {
         $('#id_feature').multiselect('refresh');
 
         var features = data.features;
-
+        
         $.each(features, function(idx) {
             var value = features[idx];
-
             $('#id_feature').append($('<option>', {
                 value : idx
             }).text(value));

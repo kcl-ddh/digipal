@@ -113,19 +113,19 @@ class SearchForm(forms.Form):
 
 class FilterHands(forms.Form):
     scribes = forms.ModelChoiceField(
-        queryset = Scribe.objects.order_by('name').all(),
+        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'scribes-select'}),
         label = "Scribes",
         required = False)
 
     repository = forms.ModelChoiceField(
-        queryset = Repository.objects.order_by('name').all(),
+        queryset =  Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'repository-select'}),
         label = "Repository",
         required = False)
 
     place = forms.ModelChoiceField(
-        queryset = Place.objects.order_by('name').all(),
+        queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'place-select'}),
         label = "Place",
         required = False)
@@ -145,7 +145,7 @@ class FilterManuscripts(forms.Form):
         required = False)
 
     repository = forms.ModelChoiceField(
-        queryset = Repository.objects.order_by('name').all(),
+        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'repository-select'}),
         label = "Repository",
         required = False)
@@ -157,14 +157,14 @@ class FilterManuscripts(forms.Form):
         required = False)
 
 class FilterScribes(forms.Form):
-    name = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    name = forms.ModelChoiceField(
+        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'name-select'}),
         label = "Name",
         required = False)
 
-    scriptorium = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    scriptorium = forms.ModelChoiceField(
+        queryset = Scribe.objects.values_list('scriptorium', flat=True).order_by('scriptorium').distinct(),
         widget = Select(attrs={'id':'scriptorium-select'}),
         label = "Scriptorium",
         required = False)

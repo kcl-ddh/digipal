@@ -1,32 +1,33 @@
-{% if page.image %}
-<html>
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width">
-    <meta name="keywords" content="{% block meta_keywords %}{% endblock %}">
-    <meta name="description" content="{% block meta_description %}{% endblock %}">
+{% extends "base.html" %}
 
+{% block extra_head %}
     <title>Page Annotation{% if settings.SITE_TITLE %} | {{ settings.SITE_TITLE }}{% endif %}</title>
+    {% endblock %}
 
-    <link rel="shortcut icon"
-    href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
-    <link rel="stylesheet" type="text/css"
-    href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/ui-lightness/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css"
-    href="{{ STATIC_URL }}digipal/styles/annotation.css"/>
-    <link rel="stylesheet" type="text/css"
-    href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
+    {% block extra_css %}
+      <link rel="shortcut icon"
+      href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
+      <link rel="stylesheet" type="text/css"
+      href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/ui-lightness/jquery-ui.css" />
+      <link rel="stylesheet" type="text/css"
+      href="{{ STATIC_URL }}digipal/styles/annotation.css"/>
+      <link rel="stylesheet" type="text/css"
+      href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
+              <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
 
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-    <script type="text/javascript">
+    {% endblock %}
+
+    {% block extra_js %}
+      <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
+      <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+      <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+      <script type="text/javascript">
 
       $(document).ready(function() {
 
@@ -71,66 +72,57 @@
               } else {
                 clearInterval(interval);
                 annotator.selectFeatureByIdAndZoom('{{ vector_id }}');
-		annotator.vectorLayer.events.remove('moveend');
+    annotator.vectorLayer.events.remove('moveend');
               }
           });
+           function goFullscreen(id) {
+              var element = document.getElementById(id);
 
-	
+              if (element.mozRequestFullScreen) {
+
+                element.mozRequestFullScreen();
+              } else if (element.webkitRequestFullScreen) {
+
+                element.webkitRequestFullScreen();
+             }
+            }
+  
           {% endif %}
       });
     </script>
-</head>
-<body>
-  <div id="gw">
-    <div id="c2">
-      <div class="form">
-        <form action="" id="frmAnnotation" method="get" name="frmAnnotation">
-          {% csrf_token %}
-          <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+    {% endblock %}
 
-          <div id="header">
-            <h3>
-              <a href="{{ page_link }}">{{ page|capfirst }}</a>
-              <a class="annotationLink" href="#"
-                onclick="window.open('allographs/',
-                ''); return false;">Annotations by Allograph</a>
-            </h3>
-            <div class="row">
-              <p id="status" class="notice">-</p>
-            </div>
+{% block annotations %}
+<div class='container'>
+{% if page.image %}
+<h2 class='header5'>{{page|capfirst}}</h2>
+<form action="" id="frmAnnotation" method="get" name="frmAnnotation">
+    {% csrf_token %}
+    <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+        <ul class='nav nav-tabs'>
+          <li class='active'><a>View Manuscript</a></li>
+          <li><a class="annotationLink" href="#"
+            onclick="window.open('allographs/',
+            ''); return false;">Annotations by Allograph</a></li>
+            <li><a href=''>View Metadata</a></li>
+        </ul>
+        
+        <div class='container'>
+            <div id="map"></div>
+            <div id="toolbar" class="olControlEditingToolbar"></div>
+        </div>
+          <div style='display:none;'>
+            {% for field in form %}
+              {{ field }}
+            {% endfor %}
           </div>
-
-          <div id="bottomSection">
-            <div class="leftContainer">
-              <div id="map"></div>
-              <div id="toolbar" class="olControlEditingToolbar"></div>
-            </div>
-
-            <div class="rightContainer">
-              <div class="fieldWrapper">
-                <p>
-                <label for="id_hide">Hide unselected annotations?</label>
-                <input id="id_hide" name="hide" type="checkbox" />
-                </p>
-              </div>
-              {% for field in form %}
-              <div class="fieldWrapper">
-                <p>
-                {{ field.label_tag }}
-                {{ field }}
-                {{ field.errors }}
-                </p>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+        </div>
+  </form>
 </body>
 </html>
 {% else %}
 <p>No image available.</p>
 {% endif %}
+</div>
+{% endblock %}
 

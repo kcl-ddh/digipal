@@ -25,7 +25,6 @@ def searchDB(request):
         context['searchform'] = searchform
         # Distinguish between search types
         if searchtype == 'manuscripts':
-            context['manuscript_filters'] = FilterManuscripts()
             resultpage = "pages/results_manuscripts.html"
             context['results'] = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(
@@ -35,7 +34,6 @@ def searchDB(request):
                     Q(historical_item__catalogue_number__icontains=term) | \
                     Q(historical_item__description__description__icontains=term))
         elif searchtype == 'hands':
-            context['drilldownform'] = DrilldownForm({'terms': term})
             resultpage = "pages/results_hands.html"
             context['results'] = Hand.objects.distinct().order_by(
                 'scribe__name','id').filter(
@@ -46,11 +44,10 @@ def searchDB(request):
                     Q(item_part__current_item__repository__name__icontains=term) | \
                     Q(item_part__historical_item__catalogue_number__icontains=term))
         elif searchtype == 'scribes':
-            context['scribes_filters'] = FilterScribes()
             resultpage = "pages/results_scribes.html"
             context['results'] = Scribe.objects.filter(
                 name__icontains=term).order_by('name')
-
+        context['drilldownform'] = DrilldownForm({'terms': term})
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()

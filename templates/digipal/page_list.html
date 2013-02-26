@@ -27,14 +27,16 @@
 
         {% for page in page_list %}
         <div class='span4' style='width:21%'>
-            <dl class="imageDatabase">
+            <dl class="imageDatabase panel">
                 <dt>
                      <a href="{{ page.id }}/">{{ page.thumbnail }}</a>
                 </dt>
                 <dd>
-                    <a href="{{ page.id }}/">{{ page }}</a>
+                    <p>{{ page }}</p>
                 </dd>
+                 <p class='imageDetails'><a href=''>View Annotations</a> | <a href="{{ page.id }}/">View Image</a></p>
             </dl>
+
         </div>
         {% endfor %}
     </div>

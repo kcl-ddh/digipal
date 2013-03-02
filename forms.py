@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select
 from django.utils.safestring import mark_safe
-from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place
+from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place, Date, HistoricalItem
 from models import Script, CurrentItem
 from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
@@ -130,16 +130,16 @@ class FilterHands(forms.Form):
         label = "Place",
         required = False)
 
-    date = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    date = forms.ModelChoiceField(
+        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select'}),
         label = "Date",
         required = False)
 
 class FilterManuscripts(forms.Form):
 
-    index = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    index = forms.ModelChoiceField(
+        queryset = HistoricalItem.objects.values_list('catalogue_number', flat=True).distinct(),
         widget = Select(attrs={'id':'index-select'}),
         label = "Index",
         required = False)
@@ -150,8 +150,28 @@ class FilterManuscripts(forms.Form):
         label = "Repository",
         required = False)
 
-    date = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    date = forms.ModelChoiceField(
+        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
+        widget = Select(attrs={'id':'date-select'}),
+        label = "Date",
+        required = False)
+
+class FilterManuscriptsImages(forms.Form):
+
+    town_or_ciry = forms.ModelChoiceField(
+        queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
+        widget = Select(attrs={'id':'town-select'}),
+        label = "Town or City",
+        required = False)
+
+    repository = forms.ModelChoiceField(
+        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
+        widget = Select(attrs={'id':'repository-select'}),
+        label = "Repository",
+        required = False)
+
+    date = forms.ModelChoiceField(
+        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select'}),
         label = "Date",
         required = False)
@@ -169,8 +189,8 @@ class FilterScribes(forms.Form):
         label = "Scriptorium",
         required = False)
 
-    date = forms.ChoiceField(
-        choices = (('1', 'All',),),
+    date = forms.ModelChoiceField(
+        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select'}),
         label = "Date",
         required = False)

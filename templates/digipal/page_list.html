@@ -2,8 +2,118 @@
 {% load mezzanine_tags pagination_tags %}
 {% block main %}
 <h1 class='header1'>Manuscript Images</h1>
-    <div class="row-fluid">
-     <div class="span12">
+<div class='container'>
+    {% if is_paginated %}
+        {% load i18n %}
+        <div class="pagination span4">
+            <ul>
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">{{ page_obj.previous_page_number }}</a></li>
+            {% else %}
+                <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+            {% endif %}
+            <li class="active"><a href='#'>Page {{ page_obj.number }} of {{paginator.num_pages}}</a></li>
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{{ page_obj.next_page_number }} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
+            {% else %}
+                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
+        {% endif %}
+         </ul>
+    </div>
+    
+    {% endif %}
+    <!--
+    <div class='pull-right' style='line-height:4;'>
+        <input type='button' class='btn btn-success' id='show_filters' value='Filter Manuscript Images' />
+        
+    </div>
+    <div id='filtersform' class='container'>
+        {{ filterManuscriptImages.as_ul }}
+    </div>
+    <script>
+        $('#filtersform').hide();
+                var filter = 0;
+                options = {
+                  'title': 'Show Graph Filters',
+                  'content': 'Click this button to explore and filter graphs',
+                  'trigger': 'hover',
+                  'placement': 'left'
+                }
+                $('#show_filters').popover(options)
+                $('#show_filters').click(function(){
+                  if(filter == 0){
+                    $('#filtersform').slideDown();
+                    $('#show_filters').attr('class', 'btn');
+                    $('#show_filters').text('Hide Graphs Filters');
+                    filter = 1;
+                  } else {
+                    $('#filtersform').slideUp();
+                    $('#show_filters').attr('class', 'btn btn-success');
+                    $('#show_filters').text('Show Graphs Filters');
+                    filter = 0;
+                  }
+
+                })
+            </script>
+        -->
+</div>
+    <div class='container'>
+        {% for page in page_list %}
+        {% if forloop.counter|divisibleby:4 %}
+            <div class='row-fluid'>
+            <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+                <p class='imageDetails'>
+                    {% ifequal page.annotation_set.all.count 0 %}
+                    <span class='label'>View Annotations</span>
+                    {% else %}
+                    <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                    {% endifequal %}
+                    <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
+                    <p style='line-height:4'>
+                        <span>Annotations: 
+                        <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
+                    <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+
+                </p>
+                <dl class="imageDatabase">
+                    <dt>
+                         <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail }}</a>
+                    </dt>
+                    <dd>
+                        <p>{{ page }}</p>
+                    </dd>               
+                </dl>
+            </div>
+            </div>
+        {% else %}
+            <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+                <p class='imageDetails'>
+                    {% ifequal page.annotation_set.all.count 0 %}
+                    <span class='label'>View Annotations</span>
+                    {% else %}
+                    <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                    {% endifequal %}
+                    <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
+                    <p style='line-height:4'>
+                        <span>Annotations: 
+                        <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
+                    <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+
+                </p>
+                <dl class="imageDatabase">
+                    <dt>
+                         <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail }}</a>
+                    </dt>
+                    <dd>
+                        <p>{{ page }}</p>
+                    </dd>               
+                </dl>
+            </div>
+        {% endif %}
+        {% endfor %}
+
     {% if is_paginated %}
         {% load i18n %}
         <div class="pagination">
@@ -22,44 +132,7 @@
                 <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
         {% endif %}
          </ul>
-    </div>
-    {% endif %}
-
-        {% for page in page_list %}
-        <div class='span4' style='width:21%; text-align:center;'>
-            <p class='imageDetails'><a href='{{ page.id }}/' class='label label-info'>View Annotations</a> <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
-            <dl class="imageDatabase">
-                <dt>
-                     <a href="{{ page.id }}/">{{ page.thumbnail }}</a>
-                </dt>
-                <dd>
-                    <p>{{ page }}</p>
-                </dd>
-                 
-            </dl>
-
-        </div>
-        {% endfor %}
     </div>
 </div>
-    {% if is_paginated %}
-        {% load i18n %}
-        <div class="pagination">
-            <ul>
-            {% if page_obj.has_previous %}
-                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
-                <li><a href="?page={{ page_obj.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">{{ page_obj.previous_page_number }}</a></li>
-            {% else %}
-                <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
-            {% endif %}
-            <li class="active"><a href='#'>Page {{ page_obj.number }} of {{paginator.num_pages}}</a></li>
-            {% if page_obj.has_next %}
-                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{{ page_obj.next_page_number }} &rsaquo;&rsaquo;</a></li>
-                <li><a href="?page={{ page_obj.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
-            {% else %}
-                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
-        {% endif %}
-         </ul>
-    </div>
     {% endif %}
 {% endblock %}

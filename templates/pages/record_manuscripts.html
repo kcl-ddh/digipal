@@ -5,44 +5,113 @@
 
 {% block record_title %}{{ item_part.display_label }}{% endblock %}
 {% block details %}
-    <h3>Location</h3>
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>Repository</th>
-                <td>{{ result.current_item.repository.name }}</td>
-            </tr>
-            <tr>
-                <th>Town or City</th>
-                <td>{{ result.current_item.repository.place }}</td>
-            </tr>
-            <tr>
-                <th>Shelfmark</th>
-                <td>
-                    {{ result.current_item.shelfmark }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <h3>Description</h3>
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>MS Name</th>
-                <td></td>
-            </tr>
-            <tr>
-                <th>Index</th>
-                <td>{{ result.historical_item.catalogue_number }}</td>
-            </tr>
-            <tr>
-                <th>MS Description</th>
-                <td>
-                    {% for desc in result.historical_item.description_set.all %}
-                        {{ desc.description }}
-                    {% endfor %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class='tabbable'>
+    <div id='myTabContent' class='tab-content'>
+        <div class='tab-pane fade active in' id='data'>
+            <h3 class='header5'>Record Data</h3>
+            <h3>Location</h3>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <th>Repository</th>
+                        <td>{{ result.current_item.repository.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Town or City</th>
+                        <td>{{ result.current_item.repository.place }}</td>
+                    </tr>
+                    <tr>
+                        <th>Shelfmark</th>
+                        <td>
+                            {{ result.current_item.shelfmark }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data</h3>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <th>Date</th>
+                        <td>{{ result.historical_item.date }}</td>
+                    </tr>
+                    <tr>
+                        <th>Origin</th>
+                        <td>{% for data in result.historical_item.itemorigin_set.all %}
+                        <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
+                         {% endfor %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class='tab-pane fade' id='descriptions'>
+            <h3 class='header5'>Description</h3>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>MS Name</th>
+                            <td>{{ result.historical_item.name }} </td>
+                        </tr>
+                        <tr>
+                            <th>Index</th>
+                            <td>{{ result.historical_item.catalogue_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>MS Description</th>
+                            <td>
+                                {% for desc in result.historical_item.description_set.all %}
+                                    {{ desc.description }}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+        </div>
+        <div class='tab-pane fade' id='pages'>
+        <h3 class='header5'>Pages</h3>
+
+            {% if pages %}
+            <div class='row-fluid'> 
+                <div class='span12'>
+                {% for page in pages %} 
+                    {% if page.thumbnail %}
+                        <div class='span4' style='width:21%;'>
+                            <dl class="imageDatabase">
+                                <dt>
+                                    <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                {{ page.thumbnail }}
+                                </a>
+                              </dt>
+                              <dd>
+                                <p>{{ page }}</p>
+                                </dd>
+                            </dl>
+                     </div>
+                </div>
+            </div>
+                    {% endif %}
+                {% endfor %}
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No Images available</h4>
+                    </div>
+
+        {% endif %}
+    </div>
+    <div class='tab-pane fade' id='hands'>
+        <h3 class='header5'>Hands</h3>
+        <div class='row-fluid'>
+        {% if result.hand %}
+            {{ result.hand }}
+        {% else %}
+            <div class="alert alert-block">
+                <h4>No hands available</h4>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+</div>
 {% endblock %}

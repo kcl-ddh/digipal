@@ -3,10 +3,7 @@
 {% load mezzanine_tags pagination_tags %}
 
 {% block record_title %}{{ scribe.name }}{% endblock %}
-{% block tab_1_title %}Scribe Details{% endblock %}
-{% block tab_2_title %}Idiographs{% endblock %}
-{% block tab_3_title %}Unused{% endblock %}
-{% block tab_4_title %}Unused{% endblock %}
+
 {% block details %}
     <h3>Location</h3>
 
@@ -22,7 +19,7 @@
             </tr>
         </tbody>
     </table>
-     <h3>Description</h3>
+    <h3>Description</h3>
 
     <table class="table table-condensed">
         <tbody>
@@ -33,6 +30,16 @@
             <tr>
                 <th>Town or City</th>
                 <td>{{ scribe.scriptorium.place }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Hands</h3>
+    <table class="table table-condensed">
+        <tbody>
+            <tr>
+                <th>Hand</th>
+                <td>{{scribe.hand_set.all}}</td>
             </tr>
         </tbody>
     </table>

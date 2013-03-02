@@ -6,11 +6,12 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
-from digipal.forms import PageAnnotationForm
+from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
         GraphComponent, Graph, Component, Feature, Idiograph, Page
 import ast
 from django import template
+from django.views.generic import DetailView
 
 register = template.Library()
 
@@ -40,6 +41,8 @@ def allograph_features(request, page_id, allograph_id):
 def page(request, page_id):
     """Returns a page annotation form."""
     page = Page.objects.get(id=page_id)
+    annotations = page.annotation_set.values('graph').count()
+    hands = page.hand_set.count()
     # Check for a vector_id in page referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
@@ -62,13 +65,13 @@ def page(request, page_id):
                 {'vector_id': vector_id, 'form': form, 'page': page,
                     'height': height, 'width': width,
                     'image_server_url': image_server_url,
-                    'page_link': page_link, 'isAdmin': isAdmin},
+                    'page_link': page_link, 'annotations': annotations, 'hands': hands, 'isAdmin': isAdmin},
                 context_instance=RequestContext(request))
     else:
         return render_to_response('digipal/page_annotation.html',
                 {'form': form, 'page': page, 'height': height, 'width': width,
                     'image_server_url': image_server_url,
-                    'page_link': page_link, 'isAdmin': isAdmin},
+                    'page_link': page_link, 'annotations': annotations, 'hands': hands, 'isAdmin': isAdmin},
                 context_instance=RequestContext(request))
 
 
@@ -125,7 +128,7 @@ def page_allographs(request, page_id):
     """Returns a list of all the allographs/annotations for the requested
     page."""
     annotation_list = Annotation.objects.filter(page=page_id)
-
+    page = Page.objects.get(id=page_id)
     data = SortedDict()
 
     for annotation in annotation_list:
@@ -144,6 +147,18 @@ def page_allographs(request, page_id):
     return render_to_response('digipal/page_allograph.html',
             {'page': page, 'data': data},
             context_instance=RequestContext(request))
+
+def page_metadata(request, page_id):
+    """Returns a list of all the allographs/annotations for the requested
+    page."""
+    context = {}
+    page = Page.objects.get(id=page_id)
+    context['page'] = page
+
+    return render_to_response('pages/record_pages.html',
+            context,
+            context_instance=RequestContext(request))
+
 
 
 @login_required

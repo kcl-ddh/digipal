@@ -26,22 +26,16 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 
     this.annotations = null;
     this.mediaUrl = mediaUrl;
-    if(isAdmin){
-        this.deleteFeature.panel_div.title = 'Delete (ctrl + d)';
-        this.modifyFeature.panel_div.title = 'Modify (ctrl + m)';
-        this.transformFeature.panel_div.title = 'Transform (ctrl + t)';
-        this.duplicateFeature.panel_div.title = 'Duplicate (ctrl + d)';
-        this.polygonFeature.panel_div.title = 'Draw Polygon (ctrl + p)';
-        this.rectangleFeature.panel_div.title = 'Draw Rectangle (ctrl + r)';
-        this.selectFeature.panel_div.title = 'Select (ctrl + f)';
-        this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
-        this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
-        this.saveButton.panel_div.title = 'Save (ctrl + s)';
-    } else {
-        this.selectFeature.panel_div.title = 'Select (ctrl + f)';
-        this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
-        this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
-    }
+    this.deleteFeature.panel_div.title = 'Delete (ctrl + d)';
+    this.modifyFeature.panel_div.title = 'Modify (ctrl + m)';
+    this.transformFeature.panel_div.title = 'Transform (ctrl + t)';
+    this.duplicateFeature.panel_div.title = 'Duplicate (ctrl + d)';
+    this.polygonFeature.panel_div.title = 'Draw Polygon (ctrl + p)';
+    this.rectangleFeature.panel_div.title = 'Draw Rectangle (ctrl + r)';
+    this.selectFeature.panel_div.title = 'Select (ctrl + f)';
+    this.dragFeature.panel_div.title = 'Drag (ctrl + w)';
+    this.zoomBoxFeature.panel_div.title = 'Zoom (ctrl + z)';
+    this.saveButton.panel_div.title = 'Save (ctrl + s)';
 }
 
 /**
@@ -132,16 +126,18 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 /**
  * Updates the feature select according to the currently selected allograph.
  */
-function updateFeatureSelect(currentFeatures) {
-
+function updateFeatureSelect(currentFeatures, e) {    
+    id = Math.random().toString(36).substring(7)
     $.getJSON('allograph/' + $('#id_allograph option:selected').val() + '/features/',
                 function(data) {
-        $(body).append('<div id="dialog' + $('#id_allograph option:selected').val()+ '"></div>');
-        $('#dialog' + $('#id_allograph option:selected').val()).dialog({
-            draggable: true,
-            height: 350, 
-            title: $('#id_allograph option:selected').text()
-        });
+        $('#annotations').append('<div id="dialog' + id + '"></div>');
+        
+            $('#dialog' + id).dialog({
+                draggable: true,
+                height: 270, 
+                title: $('#id_allograph option:selected').text()
+            });
+
         $.each(data, function(idx) {
 
             component = data[idx].name;
@@ -150,7 +146,7 @@ function updateFeatureSelect(currentFeatures) {
             features = data[idx].features;
             $.each(features, function(idx) {
                 var value = component_id + '::' + features[idx].id;
-                $('#dialog' + $('#id_allograph option:selected').val()).append("<p>" + ("<b>" + component + '</b>: ' + features[idx].name) + "</p>");
+                $('#dialog' + id).append("<p>" + ("<b>" + component + '</b>: ' + features[idx].name) + "</p>");
             });
         });
     });

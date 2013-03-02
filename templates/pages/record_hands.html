@@ -3,61 +3,126 @@
 {% load mezzanine_tags pagination_tags %}
 
 
-{% block record_title %}{{ item_part.display_label }}{% endblock %}
+{% block record_title %}{{ item_part.historical_item.display_label }}{% endblock %}
 {% block details %}
- 
-    <h3>Location</h3>
-    
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>Repository</th>
-                <td>{{ result.item_part.current_item.repository.name }}</td>
-            </tr>
-            <tr>
-                <th>Town or City</th>
-                <td>{{ result.item_part.current_item.repository.place.name }}</td>
-            </tr>
-            <tr>
-                <th>Shelfmark</th>
-                <td>
-                    {{ result.item_part.current_item.shelfmark }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <h3>Description</h3>
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>MS Name</th>
-                <td>{{ result.item_part.historical_item.name }}</td>
-            </tr>
-            <tr>
-                <th>Index</th>
-                <td>{{ result.item_part.historical_item.catalogue_number }}</td>
-            </tr>
-            <tr>
-                <th>MS Description</th>
-                <td>
-                    {% for desc in result.historical_item.description_set.all %}
-                        {{ desc.description }}
+
+  <div class='tabbable'>
+    <div id='myTabContent' class='tab-content'>
+        <div class='tab-pane fade active in' id='data'>
+            <h3 class='header5'>Record Data</h3>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ result.label }}</td>
+                    </tr>
+                    <tr>
+                        <th>Manuscript</th>
+                        <td>{{ result.item_part }}</td>
+                    </tr>
+                    <tr>
+                        <th>Script</th>
+                        <td>
+                            {{ result.script }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Scribe</th>
+                        <td>
+                            {{ result.scribe }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td>
+                            {{ result.assigned_date }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Place</th>
+                        <td>
+                            {{ result.assigned_place }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class='tab-pane fade' id='descriptions'>
+            <h3 class='header5'>Description</h3>
+            <div>
+                {{ result.description }}
+            </div>       
+        </div>
+        <div class='tab-pane fade' id='pages'>
+              <h3 class='header5'>Pages</h3>
+            {% if pages %}                  
+                <div class='imagesDiv'>
+
+                    <div class="span12">
+                    {% for page in pages %} 
+                        {% if page.thumbnail %}
+                            <div class='span4' style='width:27%'>
+                                <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                {{ page.thumbnail }}
+                                </a>
+                            </div>
+                        {% endif %}
                     {% endfor %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <div class='imagesDiv'>
-        <div class="span12">
-        {% for page in pages %} 
-            {% if page.thumbnail %}
-                <span class='span4' style='width:21%'>
-                    <a class="imageDatabase" href="../page/{{ page.id }}/">
-                    {{ page.thumbnail }}
-                    </a>
-                </span>
+                    </div>
+                </div>
+            {% else %}
+                    <div class="alert alert-block">
+                        <h4>No Images available</h4>
+                    </div>
             {% endif %}
+
+    </div>
+    <div class='tab-pane fade' id='graphs'>
+    <h3 class = 'header5'>Graphs</h3>
+    <div class="scribe annotations">
+     {% if data %}
+  {% for key, allographs in data.items %}
+  <div class="scribe">
+    <div class='panel'>
+    {% for key, annotations in allographs.items %}
+
+    <span><a class="label label-info" href='#{{key}}'>{{ key }}</a></span>
+
+    {% endfor %}
+    </div>
+    <h3 class='header1'>{{ key }}</h3>
+    {% for key, annotations in allographs.items %}
+
+    <div>
+      <h4 class='header5' id='{{key}}'>{{ key }}</h4>
+      <ul>
+        {% for annotation in annotations %}
+        <li>
+        <p>
+        <a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
+        {% if request.user.is_superuser %}
+        <span> | </span>
+        <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
+        {% else %}
+        </p>
+        {% endif %}
+        <a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
+        {{ annotation.thumbnail }}
+        </a> 
+        </li>
         {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+<div><a id='ontop' href='#top' title='On Top'></a></div>
+{% else %}
+<div class='alert alert-warning'>No annotations available.</p>
+{% endif %}
     </div>
 </div>
+</div>
+
 {% endblock %}

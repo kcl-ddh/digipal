@@ -12,13 +12,6 @@
             {% else %}
             <h1 class='header1'>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
         {% endifnotequal %}
-        
-            <ul class="nav nav-pills">
-                <!--<li class="resultsNumber">Showing x of {{ results.count }} results</li>
-                <li class="showResults">Show results in:</li>-->
-                <li><a class="ctrl recordDisplay grid tip" title="A compact display which allows you to see many images at a time">Grid format</a></li>
-                <li class='active'><a class="ctrl recordDisplay list tip" title="A more detailed view of image records, together with associated metadata">List format</a></li>
-            </ul>
         {% ifequal style "list" %} <!-- Display list view, of course -->
             <table class="table table-striped table-bordered">
                 <thead>

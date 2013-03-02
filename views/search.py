@@ -1,6 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
+from django.utils.datastructures import SortedDict
 from digipal.models import *
 from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes
 
@@ -26,16 +27,39 @@ def searchDB(request):
         # Distinguish between search types
         if searchtype == 'manuscripts':
             resultpage = "pages/results_manuscripts.html"
-            context['results'] = ItemPart.objects.order_by(
+
+            # Get forms
+            repository = request.GET.get('repository', '')
+            index_manuscript = request.GET.get('index', '')
+            date = request.GET.get('date', '')
+
+
+            # Filter scribes
+            manuscripts = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(
                     Q(locus__contains=term) | \
                     Q(current_item__shelfmark__icontains=term) | \
                     Q(current_item__repository__name__icontains=term) | \
                     Q(historical_item__catalogue_number__icontains=term) | \
                     Q(historical_item__description__description__icontains=term))
+            if date:
+                manuscripts = manuscripts.filter(historical_item__date=date)
+            if repository:
+                manuscripts = manuscripts.filter(current_item__repository__name=repository)
+            if index_manuscript:
+                manuscripts = manuscripts.filter(historical_item__catalogue_number=index_manuscript)
+            context['results'] = manuscripts
+
         elif searchtype == 'hands':
             resultpage = "pages/results_hands.html"
-            context['results'] = Hand.objects.distinct().order_by(
+
+            # Get forms
+            scribes = request.GET.get('scribes', '')
+            repository = request.GET.get('repository', '')
+            place = request.GET.get('place', '')
+            date = request.GET.get('date', '')
+            # Filters Hands
+            hands = Hand.objects.distinct().order_by(
                 'scribe__name','id').filter(
                     Q(scribe__name__icontains=term) | \
                     Q(assigned_place__name__icontains=term) | \
@@ -43,10 +67,44 @@ def searchDB(request):
                     Q(item_part__current_item__shelfmark__icontains=term) | \
                     Q(item_part__current_item__repository__name__icontains=term) | \
                     Q(item_part__historical_item__catalogue_number__icontains=term))
+            if scribes:
+                hands = hands.filter(scribe__name=scribes).order_by(
+                'scribe__name','id')
+            if repository:
+                hands = hands.filter(item_part__current_item__repository__name=repository).order_by(
+                'scribe__name','id')
+            if place:
+                hands = hands.filter(assigned_place__name=place).order_by(
+                'scribe__name','id')
+            if date:
+                hands = hands.filter(assigned_date__date=date).order_by(
+                'scribe__name','id')
+
+            context['results'] = hands
+            
         elif searchtype == 'scribes':
+
+            # Get forms
+            name = request.GET.get('name', '')
+            scriptorium = request.GET.get('scriptorium', '')
+            date = request.GET.get('date', '')
+
+            # Filter Scribes
             resultpage = "pages/results_scribes.html"
-            context['results'] = Scribe.objects.filter(
+            scribes = Scribe.objects.filter(
                 name__icontains=term).order_by('name')
+            if name:
+                scribes = Scribe.objects.filter(
+                name=name).order_by('name')
+            if scriptorium:
+                scribes = Scribe.objects.filter(
+                scriptorium=scriptorium).order_by('name')
+            if date:
+                scribes = Scribe.objects.filter(
+                date=date).order_by('name')
+
+            context['results'] = scribes
+
         context['drilldownform'] = DrilldownForm({'terms': term})
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
@@ -63,6 +121,26 @@ def searchDB(request):
                 context['scribe'] = Scribe.objects.get(id=context['id'])
                 context['idiograph_components'] = scribe_details(request)[0]
                 context['graphs'] = scribe_details(request)[1]
+            if searchtype == 'hands':
+                p = Hand.objects.get(id=context['id'])
+                c = Page.objects.filter(item_part=p.id)
+                annotation_list = Annotation.objects.filter(page=c.values('id'))
+                data = SortedDict()
+
+                for annotation in annotation_list:
+                    hand = annotation.graph.hand
+                    allograph_name = annotation.graph.idiograph.allograph
+
+                    if hand in data:
+                        if allograph_name not in data[hand]:
+                            data[hand][allograph_name] = []
+                    else:
+                        data[hand] = SortedDict()
+                        data[hand][allograph_name] = []
+
+                    data[hand][allograph_name].append(annotation)
+                    context['data'] = data
+
             return render_to_response(
                 'pages/record_' + searchtype +'.html',
                 context,

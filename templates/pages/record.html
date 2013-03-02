@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
-
+{% block extra_js %}
+<script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>{% endblock %}
 {% block head %}
 
 <h1 class='header1'><span>Full Record:</span> {% block record_title %}{% endblock %} </h1>
 <div class='container'>
     <div class='span12'>
         <div class='span4'>
-                <ul class="nav nav-tabs">
-                    <li class="active"><a href="#data">{% block tab_1_title %}Record Data{% endblock %}</a></li>
-                    <li><a href="#item">{% block tab_2_title %}Menu Item{% endblock %}</a></li>
-                    <li><a href="#magnify">{% block tab_3_title %}Magnify Manuscript{% endblock %}</a></li>
+                <ul class="nav nav-tabs" id='myTab'>
+                    <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
+                    {% if type == "manuscripts" %}
+                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                    <li><a href="#hands" data-toggle="tab">Hands</a></li>
+                    {% elif type == "hands" %}
+                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                    <li><a href="#graphs" data-toggle="tab">Graphs</a></li>
+                    {% elif type == "scribes" %}
+                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                    <li><a href="#hands" data-toggle="tab">Hands</a></li>
+                    <li><a href="#idiographs" data-toggle="tab">Idiographs</a></li>
+                    {% endif %}
                 </ul>
                     
                     <section id="item">
@@ -59,6 +72,7 @@
                 </ul>
             </div>
         </div>
+
         {% block details %}{% endblock %}
     </div>
         {% endifequal %}

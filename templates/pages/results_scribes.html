@@ -95,7 +95,7 @@
     <div class='container'>
       <p><a class='btn btn-success' id='show_filters'>Show Graphs Filters</a></p>
     </div>
-    <form class="form-inline panel" id='filtersform' method="GET" action="/graph">
+    <form class="form-inline panel" id='filtersform' method="GET" action="/digipal/search/graph">
       <h5 class='header5'>Show Graphs filtered by:</h5>
       <div class='container'>
       {{ drilldownform.as_ul }}
@@ -120,12 +120,10 @@
         <td>{{ result.date }}</td>
         <td>{{ result.scriptorium.name }}</td>
         <td>
-            <ul class="inline">
                 {% if request.user.is_superuser %}
-                <li><a class="ctrl add" href="/admin/digipal/scribe/{{ result.id }}">Edit</a></li>
+                <a class="btn" href="/admin/digipal/scribe/{{ result.id }}">Edit</a>
                 {% endif %}
-                <li><a class="ctrl view" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a></li>
-            </ul>
+                <a class="btn btn-primary" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
         </td>
     </tr>
     {% endfor %}

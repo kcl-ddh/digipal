@@ -8,18 +8,13 @@
       <link rel="shortcut icon"
       href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
       <link rel="stylesheet" type="text/css"
-      href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/ui-lightness/jquery-ui.css" />
-      <link rel="stylesheet" type="text/css"
-      href="{{ STATIC_URL }}digipal/styles/annotation.css"/>
-      <link rel="stylesheet" type="text/css"
       href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
-              <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
-
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     {% endblock %}
 
     {% block extra_js %}
       <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
-      <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
       <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
@@ -27,6 +22,7 @@
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+
       <script type="text/javascript">
 
       $(document).ready(function() {
@@ -40,7 +36,7 @@
          annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
         '{{ page.image.url }}', {{ width }}, {{ height }},
         '{{ image_server_url }}', isAdmin);
-          annotator.toolbarPanel.defaultControl['Modify']
+
           $('#id_allograph').change(function() {
             updateFeatureSelect();
           });
@@ -75,19 +71,11 @@
     annotator.vectorLayer.events.remove('moveend');
               }
           });
-           function goFullscreen(id) {
-              var element = document.getElementById(id);
+           
 
-              if (element.mozRequestFullScreen) {
-
-                element.mozRequestFullScreen();
-              } else if (element.webkitRequestFullScreen) {
-
-                element.webkitRequestFullScreen();
-             }
-            }
-  
+        
           {% endif %}
+
       });
     </script>
     {% endblock %}
@@ -95,34 +83,125 @@
 {% block annotations %}
 <div class='container'>
 {% if page.image %}
-<h2 class='header5'>{{page|capfirst}}</h2>
+<h2 class='header1'>{{page|capfirst}}</h2>            
 <form action="" id="frmAnnotation" method="get" name="frmAnnotation">
     {% csrf_token %}
     <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+  <div class='row'>
+    <div class='span7'>
         <ul class='nav nav-tabs'>
           <li class='active'><a>View Manuscript</a></li>
-          <li><a class="annotationLink" href="#"
-            onclick="window.open('allographs/',
-            ''); return false;">Annotations by Allograph</a></li>
-            <li><a href=''>View Metadata</a></li>
+          <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
+          <li><a href='metadata/'>View Metadata</a></li>
+          <li><a href=''>Image Copyright</a></li>
         </ul>
-        
+    </div>
+    <div class='span3 pull-right'>
+      <span id='showImages' class="alert alert-success" style='line-height:3;cursor:pointer;'>This record has {{ page.item_part.pages.count }}
+       {% if page.item_part.pages.count == 1 %} 
+        <span style='font-weight:bold'>image</span></span>
+        {% else %}
+        <span style='font-weight:bold'>images</span></span>
+        {% endif %}          
+          <div id='popupImages' class="row-fluid">
+            <div id='titlePopup'><p>Manuscript Images</p></div>
+            <div class='span12' id='imagesBoxcontent'>
+              {% for p in page.item_part.pages.all %}
+                {% if page.item_part.pages.count < 3 %}
+                    <a title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
+                      </a>
+                {% else %}
+                  {% if forloop.counter|divisibleby:3 %}
+                     <div class='row'>
+                    <a title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                    </div>
+                {% else %}
+                  <div class='row'>
+                    <a title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                  </div>
+              {% endif %}
+              {% endif %}
+          {% endfor %}  
+          </div>                  
+        </div>
+      </div>
+    </div>
+        <div class='panel' id='panelImageBox'>
+
+          <span><b>Annotations</b>: <span class="badge badge-important">{{ annotations }}</span></span>
+          <span><b>Hands</b>: <span class="badge badge-success">{{ hands }}</span>
+          <span><b>Turn Annotations:</b>
+            <div id="toggle-state-switch" class="switch switch-small">
+              <input type="checkbox">
+            </div>
+            <span>
+      </div>
+
+      </div>
         <div class='container'>
             <div id="map"></div>
             <div id="toolbar" class="olControlEditingToolbar"></div>
+
         </div>
-          <div style='display:none;'>
+        </div>
+         <div style='display:none;'>
             {% for field in form %}
               {{ field }}
             {% endfor %}
           </div>
-        </div>
   </form>
+  <div id='annotations'></div>
 </body>
 </html>
 {% else %}
 <p>No image available.</p>
 {% endif %}
 </div>
+      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+      <script src="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.js"></script>
+
+<script>
+
+              $('#map').css('border','1px solid #efefef');
+              $('#map').css('border-radius','3px');
+
+              $('#toggle-state-switch').bootstrapSwitch('toggleState');
+
+
+            $('#popupImages').hide();
+            var showImages = 0;
+            $('#showImages').click(function(){
+              if(showImages == 0){
+                position = $(this).position();
+                $('#popupImages').css('top', position['top'] + 40);
+                $('#popupImages').css('left', position['left'] - 80);
+                $('#popupImages').fadeIn();
+                showImages = 1;
+              } else {
+                $('#popupImages').fadeOut();
+                showImages = 0;
+              }
+            });            
+
+
+    window.prettyPrint && prettyPrint();
+    $('#mySwitch').on('switch-change', function (e, data) {
+        var $el = $(data.el)
+                , value = data.value;
+        console.log(e, $el, value);
+    });
+
+    $('#toggle-state-switch').on('click', function () {
+        $('#toggle-state-switch').bootstrapSwitch('toggleState');
+    });
+              $('#toggle-state-switch').on('switch-change', function (e, data) {
+                  if($(this).bootstrapSwitch('status')){
+                    annotator.vectorLayer.setVisibility(true)
+                  } else {
+                    annotator.vectorLayer.setVisibility(false)
+                  }
+              });
+            </script>
+
 {% endblock %}
 

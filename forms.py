@@ -158,7 +158,7 @@ class FilterManuscripts(forms.Form):
 
 class FilterManuscriptsImages(forms.Form):
 
-    town_or_ciry = forms.ModelChoiceField(
+    town_or_city = forms.ModelChoiceField(
         queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'town-select'}),
         label = "Town or City",

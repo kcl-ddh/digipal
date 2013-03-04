@@ -5,70 +5,100 @@
 {% block record_title %}{{ scribe.name }}{% endblock %}
 
 {% block details %}
-    <h3>Location</h3>
+<div class='tabbable'>
+    <div id='myTabContent' class='tab-content'>
+        <div class='tab-pane fade active in' id='data'>
+            <h3>Location</h3>
 
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>Name</th>
-                <td>{{ scribe.name }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td>{{ scribe.date }}</td>
-            </tr>
-        </tbody>
-    </table>
-    <h3>Description</h3>
-
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>Scriptorium</th>
-                <td>{{ scribe.scriptorium }}</td>
-            </tr>
-            <tr>
-                <th>Town or City</th>
-                <td>{{ scribe.scriptorium.place }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>Hands</h3>
-    <table class="table table-condensed">
-        <tbody>
-            <tr>
-                <th>Hand</th>
-                <td>{{scribe.hand_set.all}}</td>
-            </tr>
-        </tbody>
-    </table>
-{% endblock %}
-{% block idiograph_components %}
-{% regroup idiograph_components by idiograph as idiograph_component %}
-<div class="list">
-    <br /><br /><br />
-    {% for ic in idiograph_component %}
-    <ul>
-        <li class="idiograph"><span class="expand">+&nbsp;<u>Idiograph</u>:&nbsp;{{ ic.grouper.display_label }} (Allograph: {{ ic.grouper.allograph.name }}) <a href="{% url hand.search_views.allographHandSearch %}?allograph={{ ic.grouper.allograph.id }}&amp;terms={{ terms }}">Go to Graph</a></span>
-            <ul class="initial">
-                {% for idiograph_component in ic.list %}
-                    <li class="idiograph"><span class="expand">+&nbsp;Component:&nbsp;{{ idiograph_component.component.name }}</span>
-                        <ul class="initial">
-                            {% for each_feature in idiograph_component.features.all %}
-                                <li class="idiograph"><strong>Feature:</strong>&nbsp;{{ each_feature.name }}</li>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ scribe.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td>{{ scribe.date }}</td>
+                    </tr>
+                    <tr>
+                        <th>Scriptorium</th>
+                        <td>{{ scribe.scriptorium }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+            <div class='tab-pane fade' id='hands'>
+                <h3>Hands</h3>
+                    <div class='row-fluid'>
+                        <table class="table table-condensed">
+                            <tr>
+                                <th>Hand</th>
+                            </tr>
+                            {% for hand in scribe.hand_set.all %}
+                                {% if hand %}
+                                    <tr>
+                                        <td>{{hand.item_part}}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td><div class="alert alert-block"><h4>No hands available</h4></div></td>
+                                    </tr>
+                                {% endif %}
                             {% endfor %}
-                        </ul>
-                    </li>
-                {% endfor %}
-            </ul>
-        </li>
-    </ul>
-    {% endfor %}
 
-</div>
+                        </table>
+                    </div>
+            
+            </div>
+            <div class='tab-pane fade' id='pages'>
+                <h3>Pages</h3> 
+                    <table class='table table-condensed'>
+                        <tr>
+                            <th>Page</th>
+                            <th>Hand</td>
+                            <th>Image</th>
+                        </tr>
+                        {% for hand in scribe.hand_set.all %}
+                            {% for page in hand.pages.all %}
+                            <tr>
+                                <td>
+                                    <p><a href='../page/{{ page.id }}/'>{{ page}}</a></p>
 
-{% endblock idiograph_components %}
-{% block graphs %}
-    Unused.
-{% endblock graphs %}
+                                </td>
+                                <td>
+                                    <p>{{ hand }}</p>
+                                </td>
+                                <td style='padding:1%'>
+                                    <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                        {{ page.thumbnail  }}
+                                    </a>
+                                </td>
+                               
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                </table>
+            </div>
+            <div class='tab-pane fade' id='idiographs'>
+                <h3>Idiographs</h3>
+                {% if idiograph_components %}
+                    <table class="table table-condensed">
+                        <tr>
+                            <th>Idiographs</th>
+                        </tr>
+                        {% for idiograph in idiograph_components %}
+                                <tr>
+                                    <td>{{idiograph.allograph}}</td>
+                                </tr>
+                        {% endfor %}
+
+                    </table>
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No Idiographs available</h4>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

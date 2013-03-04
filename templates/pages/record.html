@@ -20,32 +20,13 @@
                     <li><a href="#pages" data-toggle="tab">Pages</a></li>
                     <li><a href="#graphs" data-toggle="tab">Graphs</a></li>
                     {% elif type == "scribes" %}
-                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
-                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
                     <li><a href="#hands" data-toggle="tab">Hands</a></li>
+                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
                     <li><a href="#idiographs" data-toggle="tab">Idiographs</a></li>
                     {% endif %}
                 </ul>
-                    
-                    <section id="item">
-                        <div class="line">
-                            <div class="unit size2of3 mod recordDetail">
-                                {% block idiograph_components %}{% endblock %}
-                            </div>
-                        </div>
-                    </section>
-                    <section id="magnify">
-                   
-                    </section> 
-                    <section id="menu">
-                        <div class="line">
-                            <div class="unit size2of3 mod recordDetail">
-                                {% block graphs %}{% endblock %}
-                            </div>
-                        </div>
-                    </section>
-                </div>
-        <div class='span5 pull-right'>
+        </div>
+        <div class='span5 pull-right offset2'>
             {% for result in results %}
                 {% ifequal result.id|safe id %}
                     {% with prevRec=forloop.counter|add:"-1" %}

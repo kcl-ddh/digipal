@@ -123,10 +123,9 @@ def searchDB(request):
                 context['graphs'] = scribe_details(request)[1]
             if searchtype == 'hands':
                 p = Hand.objects.get(id=context['id'])
-                c = Page.objects.filter(item_part=p.id)
-                annotation_list = Annotation.objects.filter(page=c.values('id'))
+                c = p.graph_set.model.objects.get(id=p.id)
+                annotation_list = Annotation.objects.filter(page=c.id)
                 data = SortedDict()
-
                 for annotation in annotation_list:
                     hand = annotation.graph.hand
                     allograph_name = annotation.graph.idiograph.allograph
@@ -221,11 +220,20 @@ def scribe_details(request):
     Get Idiograph, Graph, and Page data for a Scribe,
     for display in a record view
     """
+    #scribe = Scribe.objects.get(id=request.GET.get('id'))
+    #idiograph_components = IdiographComponent.objects.filter(
+    #    idiograph__in=Scribe.objects.get(
+    #        id=scribe.id).idiograph_set.distinct()).order_by('idiograph').all()
+    #idiographs = list(set([ic.idiograph for ic in idiograph_components]))
+    #graphs = Graph.objects.filter(
+    #    idiograph__in=idiographs)
+    #return idiograph_components, graphs
+
+
     scribe = Scribe.objects.get(id=request.GET.get('id'))
-    idiograph_components = IdiographComponent.objects.filter(
-        idiograph__in=Scribe.objects.get(
-            id=scribe.id).idiograph_set.distinct()).order_by('idiograph').all()
-    idiographs = list(set([ic.idiograph for ic in idiograph_components]))
+    idiographs = Idiograph.objects.filter(scribe=scribe.id)
     graphs = Graph.objects.filter(
         idiograph__in=idiographs)
-    return idiograph_components, graphs
+    return idiographs, graphs
+
+

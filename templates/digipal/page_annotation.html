@@ -97,31 +97,37 @@
         </ul>
     </div>
     <div class='span3 pull-right'>
-      <span id='showImages' class="alert alert-success" style='line-height:3;cursor:pointer;'>This record has {{ page.item_part.pages.count }}
+      <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This record has {{ page.item_part.pages.count }}
        {% if page.item_part.pages.count == 1 %} 
         <span style='font-weight:bold'>image</span></span>
         {% else %}
         <span style='font-weight:bold'>images</span></span>
         {% endif %}          
           <div id='popupImages' class="row-fluid">
-            <div id='titlePopup'><p>Manuscript Images</p></div>
+            <div class='arrow'></div>
+            <div id='titlePopup'><p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'>X</span></p> </div>
             <div class='span12' id='imagesBoxcontent'>
               {% for p in page.item_part.pages.all %}
-                {% if page.item_part.pages.count < 3 %}
-                    <a title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
+              {% if page.item_part.pages.count == 1 %}
+                <p>
+                  <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">{{ p.thumbnail|safe }}
+                      </a>
+                    </p>
+                {% elif page.item_part.pages.count < 3 %}
+                    <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
                       </a>
                 {% else %}
                   {% if forloop.counter|divisibleby:3 %}
-                     <div class='row'>
-                    <a title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                    <div class='row'>
+
+                     <a style='margin-left:1.1%;' data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
                     </div>
                 {% else %}
-                  <div class='row'>
-                    <a title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
-                  </div>
+                    <a  data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+   
               {% endif %}
               {% endif %}
-          {% endfor %}  
+          {% endfor %}
           </div>                  
         </div>
       </div>
@@ -167,14 +173,19 @@
 
               $('#toggle-state-switch').bootstrapSwitch('toggleState');
 
+            $('.imagesBoximage').tooltip({
+              'title': $(this).data('annotations'),
+              'placement': 'left',
+              'trigger': 'hover'
+              });
 
-            $('#popupImages').hide();
+            
             var showImages = 0;
             $('#showImages').click(function(){
               if(showImages == 0){
                 position = $(this).position();
                 $('#popupImages').css('top', position['top'] + 40);
-                $('#popupImages').css('left', position['left'] - 80);
+                $('#popupImages').css('left', position['left'] - 40);
                 $('#popupImages').fadeIn();
                 showImages = 1;
               } else {
@@ -183,6 +194,9 @@
               }
             });            
 
+            $('#closeBox').click(function(){
+              $('#popupImages').fadeOut();
+            });
 
     window.prettyPrint && prettyPrint();
     $('#mySwitch').on('switch-change', function (e, data) {

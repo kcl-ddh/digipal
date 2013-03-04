@@ -105,6 +105,13 @@
             <input type='reset' class='btn' />
         </div>
     </form> 
+    <div class='breadcrumb'>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+      {% if request.GET.scribes %}| <span><b>Scribes: </b></span><span> {{ request.GET.scribes }}</span>{% endif %}
+      {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
+      {% if request.GET.place %}| <span><b>Place: </b></span><span>{{ request.GET.place }}</b></span>{% endif %}
+      {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
+    </div>
     </div>
       <h2 class='header1'>Results for <i>Hands</i></h2>
     <table class="table table-condensed">

@@ -56,6 +56,30 @@
                             labelFilters.html(label);
                             container.html(content);
                        });
+
+                    $('#filtersform').hide();
+                var filter = 0;
+                options = {
+                  'title': 'Show Graph Filters',
+                  'content': 'Click this button to explore and filter graphs',
+                  'trigger': 'hover'
+                }
+                $('#show_filters').popover(options)
+                $('#show_filters').click(function(){
+                  if(filter == 0){
+                    $('#filtersform').slideDown();
+                    $('#show_filters').attr('class', 'btn');
+                    $('#show_filters').text('Hide Graphs Filters');
+                    filter = 1;
+                  } else {
+                    $('#filtersform').slideUp();
+                    $('#show_filters').attr('class', 'btn btn-success');
+                    $('#show_filters').text('Show Graphs Filters');
+                    filter = 0;
+                  }
+
+                });
+
                     });
                 </script>
              <div class='container'>
@@ -68,6 +92,9 @@
             </div>
 
         </form>
+        <div class='container'>
+      <p><a class='btn btn-success' id='show_filters'>Show Graphs Filters</a></p>
+    </div>
     <form class="form-inline panel" id='filtersform' method="GET" action="/digipal/search/graph">
       <h5 class='header5'>Show Graphs filtered by:</h5>
       <div class='container'>
@@ -77,7 +104,13 @@
             <input type="submit" value="Show Graphs" class='btn btn-primary' />
             <input type='reset' class='btn' />
         </div>
-    </form> 
+    </form>
+    <div class='breadcrumb'>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+      {% if request.GET.index %}| <span><b>Index: </b></span><span> {{ request.GET.index }}</span>{% endif %}
+      {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
+      {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
+    </div>  
     <h2 class='header1'>Results for <i>Manuscripts</i></h2>
     <table class="table table-condensed">
         <tr>

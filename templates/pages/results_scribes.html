@@ -104,7 +104,13 @@
             <input type="submit" value="Show Graphs" class='btn btn-primary' />
             <input type='reset' class='btn' />
         </div>
-    </form> 
+    </form>
+    <div class='breadcrumb'>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+      {% if request.GET.name %}| <span><b>Name: </b></span><span> {{ request.GET.name }}</span>{% endif %}
+      {% if request.GET.scriptorium %}| <span><b>Scriptorium: </b></span><span>{{ request.GET.scriptorium }}</span>{% endif %}
+      {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
+    </div> 
     <h2 class='header1'>Results for <i>Scribes</i></h2>
     <table class="table table-condensed">
     <tr>

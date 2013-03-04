@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
         GraphComponent, Graph, Component, Feature, Idiograph, Page
@@ -158,6 +160,42 @@ def page_metadata(request, page_id):
     return render_to_response('pages/record_pages.html',
             context,
             context_instance=RequestContext(request))
+
+def page_list(request):
+    pages = Page.objects.all()
+    
+    # Get Buttons
+
+    town_or_city = request.GET.get('town_or_city', '')
+    repository = request.GET.get('repository', '')
+    date = request.GET.get('date', '')
+
+    # Applying filters
+    if town_or_city:
+        pages = pages.filter(hand__assigned_place__name = town_or_city)
+    if repository:
+        pages = pages.filter(item_part__current_item__repository__name = repository)
+    if date:
+        pages = pages.filter(hand__assigned_date__date = date)
+
+    paginator = Paginator(pages, 24)
+    page = request.GET.get('page')
+    filterImages = FilterManuscriptsImages()
+
+    try:
+        page_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        page_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        page_list = paginator.page(paginator.num_pages)
+
+    context = {}
+    context['page_list'] = page_list
+    context['filterImages'] = filterImages
+
+    return render_to_response('digipal/page_list.html', context, context_instance=RequestContext(request))
 
 
 

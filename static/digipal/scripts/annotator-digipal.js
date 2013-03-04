@@ -126,18 +126,18 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 /**
  * Updates the feature select according to the currently selected allograph.
  */
-function updateFeatureSelect(currentFeatures, e) {    
-    id = Math.random().toString(36).substring(7)
+function updateFeatureSelect(currentFeatures) {  
+    id = Math.random().toString(36).substring(7);
     $.getJSON('allograph/' + $('#id_allograph option:selected').val() + '/features/',
                 function(data) {
         $('#annotations').append('<div id="dialog' + id + '"></div>');
-        
-            $('#dialog' + id).dialog({
-                draggable: true,
-                height: 270, 
-                title: $('#id_allograph option:selected').text()
-            });
 
+        $('#dialog' + id).dialog({
+            draggable: true,
+            height: 270, 
+            title: $('#id_allograph option:selected').text(),
+            position: [250 + Math.floor(Math.random() * 150), 130 + Math.floor(Math.random() * 150)]
+        });
         $.each(data, function(idx) {
 
             component = data[idx].name;

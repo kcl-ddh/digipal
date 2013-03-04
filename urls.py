@@ -4,10 +4,11 @@ from models import Page
 from views.facet import facet_search
 
 urlpatterns = patterns('digipal.views.annotation',
-                       (r'^page/$', ListView.as_view(
-                           model=Page, paginate_by=24,
-                           context_object_name='page_list',
-                       )),
+                       #(r'^page/$', ListView.as_view(
+                           #model=Page, paginate_by=24,
+                           #context_object_name='page_list',
+                       #)),
+                       (r'^page/$', 'page_list'),
                        (r'^page/(?P<page_id>\d+)/$', 'page'),
                        (r'^page/(?P<page_id>\d+)/vectors/$', 'page_vectors'),
                        (r'^page/(?P<page_id>\d+)/annotations/$', 'page_annotations'),
@@ -19,6 +20,7 @@ urlpatterns = patterns('digipal.views.annotation',
                         'save'),
                        (r'^page/(?P<page_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
+
                        )
 
 urlpatterns += patterns('digipal.views.search',

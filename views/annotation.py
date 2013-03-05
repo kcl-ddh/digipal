@@ -161,6 +161,13 @@ def page_metadata(request, page_id):
             context,
             context_instance=RequestContext(request))
 
+def page_copyright(request, page_id):
+    context = {}
+    page = Page.objects.get(id=page_id)
+    context['page'] = page
+    return render_to_response('pages/copyright.html', context,
+            context_instance=RequestContext(request))
+
 def page_list(request):
     pages = Page.objects.all()
     

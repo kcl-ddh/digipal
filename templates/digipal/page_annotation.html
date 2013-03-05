@@ -10,7 +10,7 @@
       <link rel="stylesheet" type="text/css"
       href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
       <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+      <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     {% endblock %}
 
     {% block extra_js %}
@@ -22,6 +22,8 @@
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+      <script src="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.js"></script>
 
       <script type="text/javascript">
 
@@ -164,8 +166,6 @@
 <p>No image available.</p>
 {% endif %}
 </div>
-      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-      <script src="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.js"></script>
 
 <script>
 

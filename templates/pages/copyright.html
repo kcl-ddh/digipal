@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block main %}
+<h2 class='header1'>{{ page|capfirst }}</h2>
+
+  <ul class='nav nav-tabs'  id='top'>
+          <li><a href='../'>View Manuscript</a></li>
+          <li><a>Annotations by Allograph</a></li>
+          <li><a href='../metadata/'>View Metadata</a></li>
+          <li class='active'><a href='../copyright/'>Image Copyright</a></li>
+  </ul>
+
+<div class="alert alert-block">
+         <h4>&copy; THE BRITISH LIBRARY BOARD. ALL RIGHTS RESERVED.</h4>
+         <p>Any copyright or database right that subsist in the Work remains the property either of the British Library Board or individual persons. The Work may not be used, sold, licensed, transferred, copied or reproduced in whole or in part in any manner or form or in or on any media to any person without the prior written consent of the British Library. See further About.</p>
+</div>
+{% endblock %}

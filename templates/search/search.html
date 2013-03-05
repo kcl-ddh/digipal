@@ -2,9 +2,17 @@
 {% load hand_filters %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags keyword_tags %}
-{% block main %}
+
+{% block extra_js %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"></style>
+{% endblock %}
+
+{% block main %}
+
 <form id='searchform' class="form-inline panel" method="GET" action=".">
     <div class='row-fluid'>
     {# {% csrf_token %} #}

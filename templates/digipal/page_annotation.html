@@ -27,15 +27,16 @@
 
       $(document).ready(function() {
 
-        {% if isAdmin %}
-          isAdmin = true
-        {% else %}
-          isAdmin = false
-        {% endif %}
-
          annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
         '{{ page.image.url }}', {{ width }}, {{ height }},
-        '{{ image_server_url }}', isAdmin);
+        '{{ image_server_url }}');
+
+
+          {% if not isAdmin %}
+          annotator.toolbarPanel.controls.pop();
+          annotator.toolbarPanel.controls.splice(0, 6);
+          annotator.toolbarPanel.redraw()
+          {% endif %}
 
           $('#id_allograph').change(function() {
             updateFeatureSelect();

@@ -70,46 +70,60 @@
                 </table>
         </div>
         <div class='tab-pane fade' id='pages'>
-        <h3 class='header5'>Pages</h3>
-
-            {% if pages %}
+            <h3 class='header5'>Pages</h3>
             <div class='row-fluid'> 
-                <div class='span12'>
-                {% for page in pages %} 
-                    {% if page.thumbnail %}
-                        <div class='span4' style='width:21%;'>
-                            <dl class="imageDatabase">
-                                <dt>
-                                    <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                {{ page.thumbnail }}
-                                </a>
-                              </dt>
-                              <dd>
-                                <p>{{ page }}</p>
-                                </dd>
-                            </dl>
-                     </div>
-                </div>
-            </div>
-                    {% endif %}
-                {% endfor %}
+            {% if pages %}
+                    {% for page in pages %} 
+                        {% if forloop.counter|divisibleby:4 %}
+                            {% if page.thumbnail %}
+                                <div class='row'>
+                                    <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
+                                        <dl class="imageDatabase">
+                                            <dt>
+                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                            {{ page.thumbnail }}
+                                            </a>
+                                          </dt>
+                                          <dd>
+                                            <p>{{ page }}</p>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
+                                        <dl class="imageDatabase">
+                                            <dt>
+                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                            {{ page.thumbnail }}
+                                            </a>
+                                          </dt>
+                                          <dd>
+                                            <p>{{ page }}</p>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                        {% endif %}
+                    {% endfor %}
                 {% else %}
+
                     <div class="alert alert-block">
                         <h4>No Images available</h4>
                     </div>
-
-        {% endif %}
+            {% endif %}
+            </div>
     </div>
     <div class='tab-pane fade' id='hands'>
         <h3 class='header5'>Hands</h3>
         <div class='row-fluid'>
-        {% if result.hand %}
-            {{ result.hand }}
-        {% else %}
-            <div class="alert alert-block">
-                <h4>No hands available</h4>
-            </div>
-        {% endif %}
+            {% if result.hand %}
+                {{ result.hand }}
+            {% else %}
+                <div class="alert alert-block">
+                    <h4>No hands available</h4>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

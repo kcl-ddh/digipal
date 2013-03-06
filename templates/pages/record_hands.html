@@ -54,9 +54,10 @@
             </div>       
         </div>
         <div class='tab-pane fade' id='pages'>
-              <h3 class='header5'>Pages</h3>
-            {% if pages %}                  
-                    {% for page in pages %}
+            <h3 class='header5'>Pages</h3>
+            {% for page in result.pages.all %}
+                {% if page %}                  
+    
                         {% if forloop.counter|divisibleby:4 %}
                             <div class='row-fluid'> 
                              {% if page.thumbnail %}
@@ -74,12 +75,12 @@
                                     </a>
                                 </div>
                         {% endif %}
-                    {% endfor %}
             {% else %}
                     <div class="alert alert-block">
                         <h4>No Images available</h4>
                     </div>
             {% endif %}
+        {% endfor %}
     </div>
     <div class='tab-pane fade' id='graphs'>
     <h3 class = 'header5'>Graphs</h3>

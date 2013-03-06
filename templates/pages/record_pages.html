@@ -35,16 +35,20 @@
                 {{ page.locus }}
             </td>
         </tr>
-        {% for hand in page.hand_set.all %}
-        <tr>
+        
+    </tbody>
+</table>
+<table class='table table-condensed'>
+    <tr>
             <th>Hands</th>
-            
+    </tr>
+    {% for hand in page.hand_set.all %}
+        <tr>
             <td>
-                {{ hand.item_part.display_label }}
+                {{ hand.display_label }}
             </td>
             
         </tr>
         {% endfor %}
-    </tbody>
 </table>
 {% endblock %}

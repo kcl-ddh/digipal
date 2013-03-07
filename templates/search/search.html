@@ -20,23 +20,20 @@
             <div id='radio'>
                 <h3 class='header5'>Search</h3>
                 {{ searchform }}
-                 <script>
-                    $('#radio ul').contents().unwrap();
-                    $('#radio li').contents().unwrap();
-                    // Then move the input to outside of the label
-                    $('#radio > label > input').each(function() {
-                        $(this).parent().before(this);
-                    });
-                    // Then apply the jQuery UI buttonset
-                    $("#radio").buttonset();
-                    $('#radio .ui-button-text').css('padding','3px 7px');
-                </script>  
-                     
             </div>
         </div>
     </div>
          <script>
-            $(document).ready(function() {
+            $(document).ready(function(){
+                $('#radio ul').contents().unwrap();
+                $('#radio li').contents().unwrap();
+                // Then move the input to outside of the label
+                $('#radio > label > input').each(function() {
+                    $(this).parent().before(this);
+                });
+                // Then apply the jQuery UI buttonset
+                $("#radio").buttonset();
+                $('#radio .ui-button-text').css('padding','3px 7px');
                 var radio = $("#searchform input[type='radio']");
                 // Setting default radio
                 var container = $('#containerFilters');
@@ -46,8 +43,9 @@
                 var labelFilters = $('#labelFilters');
                 var label = "<h5 class='header5'>Show Hands filtered by:</h5>";
                 labelFilters.html(label);
-                advancedSearch = 0;
 
+
+                advancedSearch = 0;
                 $('#advanced').click(function(){
                     if(advancedSearch == 0){
                         $('#advancedSearch').slideDown();
@@ -88,7 +86,6 @@
         </div>
         <div class='container'>
                 <input type="submit" value="Search" class='btn btn-primary' />
-                <input type='reset' class='btn' />
             </div>
         </form>
     </div>

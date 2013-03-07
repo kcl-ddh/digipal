@@ -103,14 +103,12 @@
                     <div id='containerFilters'></div>
                 </div>
         </div>
-        <div class='container'>
+        <div class='container' id='buttonsBox'>
           <input type="submit" value="Search" class='btn btn-primary' />
-          <input type='reset' class='btn' />
+           <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
         </div>
     </form>
-    <div class='container'>
-      <p><a class='btn btn-success' id='show_filters'>Show Graphs Filters</a></p>
-    </div>
+  
     <form class="form-inline panel" id='filtersform' method="GET" action="/digipal/search/graph">
       <h5 class='header5'>Show Graphs filtered by:</h5>
       <div class='container'>

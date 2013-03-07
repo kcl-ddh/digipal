@@ -6,6 +6,7 @@ from digipal.models import *
 from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes
 
 
+
 def searchDB(request):
     """
     View for search page

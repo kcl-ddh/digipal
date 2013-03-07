@@ -33,7 +33,7 @@
         '{{ page.image.url }}', {{ width }}, {{ height }},
         '{{ image_server_url }}');
 
-
+         
           {% if not isAdmin %}
           annotator.toolbarPanel.controls.pop();
           annotator.toolbarPanel.controls.splice(0, 6);
@@ -77,6 +77,19 @@
            
 
         
+          {% endif %}
+
+          {% if request.GET.vector_id %}
+            $.getJSON('annotations/', function(data) {
+        annotator.annotations = data;
+        //showAnnotationsOverview(data);
+
+        if (annotator.selectedFeature) {
+            annotator.showAnnotation(annotator.selectedFeature);
+        }
+    });
+          {% else %}
+            console.log(false)
           {% endif %}
 
       });

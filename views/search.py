@@ -122,7 +122,7 @@ def searchDB(request):
                 context['idiograph_components'] = scribe_details(request)[0]
                 context['graphs'] = scribe_details(request)[1]
             if searchtype == 'hands':
-                p = Hand.objects.get(id=context['id'])
+                p = Hand.objects.get(id=request.GET.get('id', ''))
                 c = p.graph_set.model.objects.get(id=p.id)
                 annotation_list = Annotation.objects.filter(page=c.id)
                 data = SortedDict()
@@ -139,6 +139,7 @@ def searchDB(request):
 
                     data[hand][allograph_name].append(annotation)
                     context['data'] = data
+                context['result'] = p
 
             return render_to_response(
                 'pages/record_' + searchtype +'.html',

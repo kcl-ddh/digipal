@@ -226,7 +226,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			this.zoomBoxFeature, this.saveButton ]);
 
 	// sets the default control to be the drag feature
-	this.toolbarPanel.defaultControl = this.dragFeature;
+	this.toolbarPanel.defaultControl = this.selectFeature;
 
 	// adds the toolbar panel to the map
 	this.map.addControl(this.toolbarPanel);

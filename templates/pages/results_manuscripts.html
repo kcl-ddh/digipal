@@ -57,7 +57,18 @@
                             container.html(content);
                        });
 
-                    $('#filtersform').hide();
+                    advancedSearch = 0;
+                $('#advanced').click(function(){
+                    if(advancedSearch == 0){
+                        $('#advancedSearch').slideDown();
+                        $('#advanced').text('Hide Advanced Search');
+                        advancedSearch = 1;
+                    } else {
+                        $('#advancedSearch').slideUp();
+                        $('#advanced').text('Advanced Search');
+                        advancedSearch = 0;
+                    }
+                });
                 var filter = 0;
                 options = {
                   'title': 'Show Graph Filters',
@@ -83,8 +94,11 @@
                     });
                 </script>
              <div class='container'>
+                <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;' value=''>Advanced Search</a>
+                <div id='advancedSearch'>
                     <div id='labelFilters'></div>
                     <div id='containerFilters'></div>
+                </div>
             </div>             
             <div class='container'>
                 <input type="submit" value="Search" class='btn btn-primary' />

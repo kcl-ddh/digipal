@@ -105,6 +105,7 @@ class SearchForm(forms.Form):
         required=False,
         label='ordering',
         widget=HiddenInput(attrs={'id':'active_ordering'}))
+
     years = forms.CharField(
         initial='1000-1300',
         required=False,

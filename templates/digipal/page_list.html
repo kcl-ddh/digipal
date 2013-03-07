@@ -3,6 +3,14 @@
 {% block main %}
 <h1 class='header1'>Manuscript Images</h1>
 <div class='container'>
+        <div id='formFilters'>
+            <form id='searchform' class="form-inline panel">
+                <h3 class='header5'>Filter Manuscripts Images</h3>
+                <p>{{ filterImages.as_ul }}</p>
+                <p><input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn' /></p>
+        </div>
+    </div>
+<div class='container'>
     {% if page_list.paginator.count > 24 %}
         {% load i18n %}
         <div class="pagination span4">
@@ -24,35 +32,9 @@
      </div> 
     {% endif %}
 
-    <div class='span3' style='line-height: 4;'>
-        <button class='btn btn-success' id='filterImages'>Show Filters Manuscripts</button>
-    </div>
 </div>
-    <div class='container'>
-        <div id='formFilters'>
-            <form id='searchform' class="form-inline panel">
-                <h3 class='header5'>Filter Manuscripts Images</h3>
-                <p>{{ filterImages.as_ul }}</p>
-                <p><input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn' /></p>
+    
 
-        </div>
-    </div>
-    <script>
-        show_filters = 0
-        $('#filterImages').click(function(){
-            if(show_filters == 0){
-                $('#formFilters').slideDown();
-                $('#filterImages').text('Hide Filters Manuscripts');
-                $('#filterImages').attr('class', 'btn');
-                show_filters = 1;
-            } else {
-              $('#formFilters').slideUp();
-              $('#filterImages').text('Show Filters Manuscripts');
-              $('#filterImages').attr('class', 'btn btn-success');
-              show_filters = 0;
-            }
-        });
-    </script>
     <!--
     <div class='pull-right' style='line-height:4;'>
         <input type='button' class='btn btn-success' id='show_filters' value='Filter Manuscript Images' />

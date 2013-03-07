@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
-{% block extra_js %}
-<script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>{% endblock %}
-{% block head %}
 
+{% block extra_js %}
+<script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>
+{% endblock %}
+
+{% block head %}
 <h1 class='header1'><span>Full Record:</span> {% block record_title %}{% endblock %} </h1>
 <div class='container'>
     <div class='span12'>
+
         <div class='span4'>
                 <ul class="nav nav-tabs" id='myTab'>
                     <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>

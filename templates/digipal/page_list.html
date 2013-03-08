@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% load mezzanine_tags pagination_tags %}
+
+{% block extra_js %}
+<script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
+{% endblock %}
+
+
 {% block main %}
 <h1 class='header1'>Manuscript Images</h1>
 <div class='container'>
@@ -9,6 +15,9 @@
                 <p>{{ filterImages.as_ul }}</p>
                 <p><input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn' /></p>
         </div>
+        <script>
+            $('select').chosen();
+        </script>
     </div>
 <div class='container'>
     {% if page_list.paginator.count > 24 %}
@@ -69,6 +78,14 @@
                 })
             </script>
         -->
+    {% if request.GET.town_orc_city or request.GET.repository or request.GET.date %}
+    <div class='breadcrumb'>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+      {% if request.GET.town_or_city %}| <span><b>Town or City: </b></span><span> {{ request.GET.town_or_city }}</span>{% endif %}
+      {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
+      {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
+    </div>
+    {% endif %}
     {% if page_list %}
     <div class='container'>
         {% for page in page_list %}

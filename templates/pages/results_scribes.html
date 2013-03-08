@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
+{% block extra_js %}
+<script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
+{% endblock %}
 {% block main %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"></style>
@@ -56,6 +59,7 @@
                         }
                     labelFilters.html(label);
                     container.html(content);
+                    $('select').chosen();
                });
 
                 advancedSearch = 0;
@@ -69,6 +73,7 @@
                         $('#advanced').text('Advanced Search');
                         advancedSearch = 0;
                     }
+                    $('select').chosen();
                 });
 
 
@@ -92,6 +97,7 @@
                     $('#show_filters').text('Show Graphs Filters');
                     filter = 0;
                   }
+                  $('select').chosen();
 
                 });
 
@@ -109,16 +115,18 @@
          <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
         </div>
     </form>
-    <form class="form-inline panel" id='filtersform' method="GET" action="/digipal/search/graph">
+    <div class="panel" id='filtersform'>
       <h5 class='header5'>Show Graphs filtered by:</h5>
-      <div class='container'>
-      {{ drilldownform.as_ul }}
-    </div>
+      <form class="container form-inline"  method="GET" action="/digipal/search/graph">
+      {{ drilldownform }}
       <div class='container'>
             <input type="submit" value="Show Graphs" class='btn btn-primary' />
             <input type='reset' class='btn' />
         </div>
     </form>
+    </div>
+
+</div>
     <div class='breadcrumb'>
       <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
       {% if request.GET.name %}| <span><b>Name: </b></span><span> {{ request.GET.name }}</span>{% endif %}
@@ -150,4 +158,7 @@
     {% endfor %}
     {% paginate %}
     </table>
+<script>
+$('select').chosen();
+</script>
 {% endblock main %}

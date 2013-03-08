@@ -34,7 +34,6 @@ def searchDB(request):
             index_manuscript = request.GET.get('index', '')
             date = request.GET.get('date', '')
 
-
             # Filter scribes
             manuscripts = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(

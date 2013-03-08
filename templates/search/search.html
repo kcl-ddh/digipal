@@ -5,6 +5,7 @@
 
 {% block extra_js %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
 {% endblock %}
 
 {% block extra_css %}
@@ -19,7 +20,7 @@
       <div class='span9'>
             <div id='radio'>
                 <h3 class='header5'>Search</h3>
-                {{ searchform }}
+                {{ searchform.as_ul }}
             </div>
         </div>
     </div>
@@ -56,6 +57,7 @@
                         $('#advanced').text('Advanced Search');
                         advancedSearch = 0;
                     }
+                    $('select').chosen();
                 });
 
                 // event onchange on radios
@@ -74,6 +76,7 @@
                     }
                     labelFilters.html(label);
                     container.html(content);
+                    $('select').chosen();
                });
             });
         </script>
@@ -81,7 +84,7 @@
             <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;' value=''>Advanced Search</a>
             <div id='advancedSearch'>
                 <div id='labelFilters'></div>
-                <div id='containerFilters'></div>
+                <div id='containerFilters' class'form-inline'></div>
             </div>
         </div>
         <div class='container'>

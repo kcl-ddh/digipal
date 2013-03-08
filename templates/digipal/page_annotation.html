@@ -15,8 +15,6 @@
 
     {% block extra_js %}
       <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
-      <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
-      <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
@@ -44,9 +42,6 @@
             updateFeatureSelect();
           });
 
-          $("#id_feature").multiselect({noneSelectedText: 'Select features',
-            selectedList: 10
-          });
 
           $(document).keypress(function(event) {
             annotator.activateKeyboardShortcuts();

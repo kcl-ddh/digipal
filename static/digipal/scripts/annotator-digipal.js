@@ -448,9 +448,9 @@ DigipalAnnotator.prototype.loadVectors = function() {
             f.id = id;
             $.getJSON('annotations/', function(annotations){
                 $.each(annotations, function(index) {
-                    allograph = annotations[index]['allograph'];
+                    allograph = annotations[index]['feature'];
                     if(f.id == annotations[index]['vector_id']){
-                        f['allograph'] = allograph;
+                        f['feature'] = allograph;
                     }
                    
                 });

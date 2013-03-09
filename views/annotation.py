@@ -107,6 +107,8 @@ def page_annotations(request, page_id):
         data[a.id]['allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
             a.graph.idiograph.allograph.name)
 
+        data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
+
         if a.after:
             data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
 

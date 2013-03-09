@@ -153,7 +153,7 @@
 
           <td>{{ result.scribe.name }}
           {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}#pages' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' /></a> ({{result.pages.count}})
+            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' /></a> ({{result.pages.count}})
           {% endif %}</td>
           <td>{{ result.assigned_place.name }}</td>
           <td>{{ result.assigned_date.date }}</td>

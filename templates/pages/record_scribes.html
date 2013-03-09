@@ -5,6 +5,17 @@
 {% block record_title %}{{ scribe.name }}{% endblock %}
 
 {% block details %}
+{% if request.GET.from_image == "true" %}
+<script>
+    $(document).ready(function($) {
+        $('#data').removeClass('active');
+        $('#myTab li[class=active]').removeClass('active');
+        $('#myTab li a[href=#pages]').parent().addClass('active')
+        $('#pages').addClass('in');
+        $('#pages').addClass('active');
+    });
+</script>
+{% endif %}
 <div class='tabbable'>
     <div id='myTabContent' class='tab-content'>
         <div class='tab-pane fade active in' id='data'>

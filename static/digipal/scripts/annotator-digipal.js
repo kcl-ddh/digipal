@@ -446,6 +446,15 @@ DigipalAnnotator.prototype.loadVectors = function() {
         $.each(data, function(id, vector) {
             var f = format.read(vector)[0];
             f.id = id;
+            $.getJSON('annotations/', function(annotations){
+                $.each(annotations, function(index) {
+                    allograph = annotations[index]['allograph'];
+                    if(f.id == annotations[index]['vector_id']){
+                        f['allograph'] = allograph;
+                    }
+                   
+                });
+            });
             features.push(f);
         });
 

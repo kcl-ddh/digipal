@@ -31,7 +31,6 @@
         '{{ page.image.url }}', {{ width }}, {{ height }},
         '{{ image_server_url }}');
 
-         
           {% if not isAdmin %}
           annotator.toolbarPanel.controls.pop();
           annotator.toolbarPanel.controls.splice(0, 6);
@@ -41,6 +40,7 @@
           $('#id_allograph').change(function() {
             updateFeatureSelect();
           });
+
 
 
           $(document).keypress(function(event) {
@@ -66,7 +66,7 @@
               } else {
                 clearInterval(interval);
                 annotator.selectFeatureByIdAndZoom('{{ vector_id }}');
-    annotator.vectorLayer.events.remove('moveend');
+                annotator.vectorLayer.events.remove('moveend');
               }
           });
            
@@ -74,20 +74,22 @@
         
           {% endif %}
 
+
           {% if request.GET.vector_id %}
             $.getJSON('annotations/', function(data) {
-        annotator.annotations = data;
-        //showAnnotationsOverview(data);
+                annotator.annotations = data;
+                //showAnnotationsOverview(data);
 
-        if (annotator.selectedFeature) {
-            annotator.showAnnotation(annotator.selectedFeature);
-        }
-    });
+                if (annotator.selectedFeature) {
+                    annotator.showAnnotation(annotator.selectedFeature);
+                }
+            });
           {% else %}
             console.log(false)
           {% endif %}
-
       });
+
+
     </script>
     {% endblock %}
 
@@ -144,15 +146,100 @@
       </div>
     </div>
         <div class='panel' id='panelImageBox'>
-
           <span><b>Annotations</b>: <span class="badge badge-important">{{ annotations }}</span></span>
           <span><b>Hands</b>: <span class="badge badge-success">{{ hands }}</span>
           <span><b>Turn Annotations:</b>
             <div id="toggle-state-switch" class="switch switch-small">
               <input type="checkbox">
             </div>
-            <span>
+          </span>
+          <span>
+            <b>Filter Annotations:</b>
+            <a class='btn' id='filterAllographs'>Filter</a>
+          </span>
+          <div id='allographs_filtersBox'></div>
       </div>
+       <div id='loadingFilters'>
+            <div><b>Loading Features...</b></div>
+            <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+        </div>
+       <script>
+            function removeDuplicate(element, attribute, text){
+              var seen = {};
+              $(element).each(function() {
+                  if(text == true){
+                    var txt = $(this).text();
+                    attribute = null;
+                  } else {
+                    var txt = $(this).attr(attribute);
+                  }
+                  if (seen[txt])
+                      $(this).remove();
+                  else
+                      seen[txt] = true;
+              });
+            }
+
+            allographs_box = 0;
+            allographs_loaded = false;
+            $('#filterAllographs').click(function(){
+              if (allographs_box == 0){
+                  $.ajax({
+                    dataType: "json",
+                    url: 'annotations/',
+                    success: function(data){
+                      checkOutput = '<ul>';
+                      annotations = data;
+                      for (i in annotations){
+                          checkOutput += "<li data-annotation = '" + annotations[i]['allograph'] + "'><label>" + annotations[i]['allograph'] + "" +
+                          "<input value = '" + annotations[i]['allograph'] + "' class='checkVectors' id='" + annotations[i]['vector_id'] + "' type='checkbox' /></label></li>";
+                      }
+                      checkOutput += "</ul>";
+                      $('#allographs_filtersBox').dialog({
+                        draggable: true,
+                        height: 270, 
+                        title: "Filter Features",
+                        close: function(event, ui){
+                          allographs_box = 0;
+                        }
+                      });
+         
+                    },
+                    beforeSend: function(){
+                       $('#loadingFilters').fadeIn();
+                    },
+                    complete: function(){
+                      $('#loadingFilters').fadeOut();
+                      removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
+                      $('#allographs_filtersBox').html(checkOutput)
+                      removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
+                      (function(){
+                        $('input[type=checkbox]').change(function(){
+                          features = annotator.vectorLayer.features;
+                          for(i in features){
+                            if($(this).is(':checked')){
+                              console.log($(this).val());
+                              console.log(features[i].allograph)
+                              if($(this).val() == features[i].allograph){
+                                features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
+                                annotator.vectorLayer.redraw();
+                              }
+                            } else {
+                              if($(this).val() == features[i].allograph){
+                                features[i].style = '';
+                                annotator.vectorLayer.redraw();
+                              }
+                            }
+                          }
+                        });
+                      }());
+                    }
+                  });
+               }
+             allographs_box = 1;
+            });
+  
+      </script>
 
       </div>
         <div class='container'>
@@ -177,10 +264,10 @@
 
 <script>
 
-              $('#map').css('border','1px solid #efefef');
-              $('#map').css('border-radius','3px');
+            $('#map').css('border','1px solid #efefef');
+            $('#map').css('border-radius','3px');
 
-              $('#toggle-state-switch').bootstrapSwitch('toggleState');
+            $('#toggle-state-switch').bootstrapSwitch('toggleState');
 
             $('.imagesBoximage').tooltip({
               'title': $(this).data('annotations'),
@@ -207,24 +294,28 @@
               $('#popupImages').fadeOut();
             });
 
-    window.prettyPrint && prettyPrint();
-    $('#mySwitch').on('switch-change', function (e, data) {
-        var $el = $(data.el)
-                , value = data.value;
-        console.log(e, $el, value);
-    });
+            window.prettyPrint && prettyPrint();
+            $('#mySwitch').on('switch-change', function (e, data) {
+                var $el = $(data.el)
+                        , value = data.value;
+                console.log(e, $el, value);
+            });
 
-    $('#toggle-state-switch').on('click', function () {
-        $('#toggle-state-switch').bootstrapSwitch('toggleState');
-    });
-              $('#toggle-state-switch').on('switch-change', function (e, data) {
-                  if($(this).bootstrapSwitch('status')){
-                    annotator.vectorLayer.setVisibility(true)
-                  } else {
-                    annotator.vectorLayer.setVisibility(false)
-                  }
-              });
-            </script>
+            $('#toggle-state-switch').on('click', function () {
+                $('#toggle-state-switch').bootstrapSwitch('toggleState');
+            });
+
+
+            $('#toggle-state-switch').on('switch-change', function (e, data) {
+                if($(this).bootstrapSwitch('status')){
+                  annotator.vectorLayer.setVisibility(true)
+                } else {
+                  annotator.vectorLayer.setVisibility(false)
+                }
+            });
+
+
+</script>
 
 {% endblock %}
 

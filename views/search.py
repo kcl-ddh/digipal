@@ -18,11 +18,14 @@ def searchDB(request):
     """
     searchform = SearchForm(request.GET)
     if searchform.is_valid():
-        term = searchform.cleaned_data['terms']
-        searchtype = searchform.cleaned_data['basic_search_type']
         context = {}
+        term = searchform.cleaned_data['terms']
+        if term:
+            context['terms'] = term
+        else:
+            context['terms'] = ' '
+        searchtype = searchform.cleaned_data['basic_search_type']
         context['type'] = searchtype
-        context['terms'] = term
         # re-populate form with previous selections
         context['searchform'] = searchform
         # Distinguish between search types

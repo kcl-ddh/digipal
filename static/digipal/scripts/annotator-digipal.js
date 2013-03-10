@@ -139,10 +139,8 @@ function updateFeatureSelect(currentFeatures) {
             position: [250 + Math.floor(Math.random() * 150), 130 + Math.floor(Math.random() * 150)]
         });
         $.each(data, function(idx) {
-
             component = data[idx].name;
             component_id = data[idx].id;
-
             features = data[idx].features;
             $.each(features, function(idx) {
                 var value = component_id + '::' + features[idx].id;
@@ -439,10 +437,8 @@ DigipalAnnotator.prototype.loadVectors = function() {
     var map = this.map;
     var layer = this.vectorLayer;
     var format = this.format;
-
     $.getJSON('vectors/', function(data) {
         var features = [];
-
         $.each(data, function(id, vector) {
             var f = format.read(vector)[0];
             f.id = id;
@@ -452,7 +448,6 @@ DigipalAnnotator.prototype.loadVectors = function() {
                     if(f.id == annotations[index]['vector_id']){
                         f['feature'] = allograph;
                     }
-                   
                 });
             });
             features.push(f);

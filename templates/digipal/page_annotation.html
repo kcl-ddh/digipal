@@ -14,15 +14,11 @@
     {% endblock %}
 
     {% block extra_js %}
-      <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
-      <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.hotkeys.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
       <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-      <script src="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.js"></script>
-      
+      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>      
     {% endblock %}
 
 {% block annotations %}
@@ -132,12 +128,9 @@
             updateFeatureSelect();
           });
 
-
-
           $(document).keypress(function(event) {
             annotator.activateKeyboardShortcuts();
           });
-
 
           {% if vector_id %}
           // vectorLayer event moveend is triggered on first load so flag this
@@ -160,11 +153,8 @@
                 annotator.vectorLayer.events.remove('moveend');
               }
           });
-           
-
-        
+                   
           {% endif %}
-
 
           {% if request.GET.vector_id %}
             $.getJSON('annotations/', function(data) {
@@ -176,7 +166,22 @@
                 }
             });
           {% endif %}
-          
+      
+      vectors = annotator.vectorLayer.features;
+      format = annotator.format;
+      $.each(vectors, function(id, vector) {
+          var f = format.read(vector);
+          f.id = id;
+          $.getJSON('annotations/', function(annotations){
+              $.each(annotations, function(index) {
+                  allograph = annotations[index]['feature'];
+                  if(f.id == annotations[index]['vector_id']){
+                      f['feature'] = allograph;
+                  }
+              });
+          });
+          features.push(f);
+      });
       function removeDuplicate(element, attribute, text){
               var seen = {};
               $(element).each(function() {
@@ -204,6 +209,8 @@
                     dataType: "json",
                     url: 'annotations/',
                     success: function(data){
+                      
+                      
                       checkOutput = '<ul>';
                       annotations = data;
                       if(!isEmpty(annotations)){
@@ -218,7 +225,7 @@
                       $('#allographs_filtersBox').dialog({
                         draggable: true,
                         height: 270, 
-                        title: "Filter Features",
+                        title: "Filter Annotations",
                         close: function(event, ui){
                           allographs_box = 0;
                         }

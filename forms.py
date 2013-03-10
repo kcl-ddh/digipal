@@ -82,11 +82,10 @@ class SearchForm(forms.Form):
     """ Represents the input form on the search page """
     terms = forms.CharField(
         label='',
-        required=True,
+        required=False,
         error_messages={'required': 'Please enter at least one search term'},
         widget=TextInput(attrs={
             'class':'textEntry',
-            'required': 'required',
             'placeholder': 'Enter search terms'}))
     basic_search_type = forms.ChoiceField(
         label='',

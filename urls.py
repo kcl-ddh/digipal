@@ -1,6 +1,4 @@
 from django.conf.urls.defaults import patterns, url
-from django.views.generic import ListView
-from models import Page
 from views.facet import facet_search
 
 urlpatterns = patterns('digipal.views.annotation',
@@ -17,6 +15,8 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<page_id>\d+)/copyright/$', 'page_copyright'),
                        (r'^page/(?P<page_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
                         'allograph_features'),
+                       (r'^page/(?P<page_id>\d+)/(?P<graph_id>\d+)/features/$', 'get_features'),
+
                        (r'^page/(?P<page_id>\d+)/save/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'save'),
                        (r'^page/(?P<page_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',

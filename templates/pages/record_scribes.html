@@ -92,23 +92,29 @@
             </div>
             <div class='tab-pane fade' id='idiographs'>
                 <h3>Idiographs</h3>
+                <div id='idiographsView'>
                 {% if idiograph_components %}
-                    <table class="table table-condensed">
-                        <tr>
-                            <th>Idiographs</th>
-                        </tr>
                         {% for idiograph in idiograph_components %}
-                                <tr>
-                                    <td>{{idiograph.allograph}}</td>
-                                </tr>
-                        {% endfor %}
+                            <div class='panel'>
+                               <h4 class='header5'>{{idiograph.allograph}}</h4>
+                                    {% for component in idiograph.allograph.allographcomponent_set.all %}
+                                    <div class='divComponent'>
+                                        <p style='border-bottom:1px dotted #efefef;padding-bottom:0.5%;'><b>Component</b> : {{ component.component }}</b></p>
+                                        <p style='border-bottom:1px dotted #efefef;padding-bottom:0.5%;'><b>Features</b> : </p>
+                                            {% for feature in component.component.features.values %}
 
-                    </table>
+                                                <p>{{feature.name}}</p>
+                                            {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                            </div>
+                        {% endfor %}
                 {% else %}
                     <div class="alert alert-block">
                         <h4>No Idiographs available</h4>
                     </div>
                 {% endif %}
+            </div>
             </div>
         </div>
     </div>

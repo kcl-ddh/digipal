@@ -46,22 +46,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
  */
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
     this.selectedFeature = event.feature;
-
-    if ($('#id_hide').prop('checked')) {
-        var layer = this.vectorLayer;
-
-        for (var i = 0; i < layer.features.length; i++) {
-            var f = layer.features[i];
-
-            if (event.feature.id != f.id) {
-                f.style = {};
-                f.style.display = 'none';
-            }
-        }
-
-        layer.redraw();
-    }
-
     this.showAnnotation(event.feature);
 };
 
@@ -98,57 +82,74 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 DigipalAnnotator.prototype.showAnnotation = function(feature) {
     if (this.annotations) {
         var annotation = null;
-
         for (var idx in this.annotations) {
             annotation = this.annotations[idx];
-
+            features = []
+             $.getJSON(annotation.graph + '/features', function(data){
+                features.push(data)
+            });
             if (annotation.vector_id == feature.id) {
                 break;
             } else {
                 annotation = null;
             }
         }
-
-        if (annotation) {
-            $('#id_hand').val(annotation.hand_id);
-            $('#id_status').val(annotation.status_id);
-            $('#id_before').val(getKeyFromObjField(annotation, 'before'));
-            $('#id_allograph').val(getKeyFromObjField(annotation, 'allograph'));
-            $('#id_after').val(getKeyFromObjField(annotation, 'after'));
-            $('#id_display_note').val(annotation.display_note);
-            $('#id_internal_note').val(annotation.internal_note);
-
-            updateFeatureSelect(annotation.features);
-        }
+        
     }
+    if(annotation){
+        url = annotation.graph + '/features/';
+        showBox(annotation, url);
+    }
+    
 };
 
+isEmpty = function(obj) {
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) return false;
+    }
+    return true;
+};
+
+
+function showBox(selectedFeature, url){
+
+     id = Math.random().toString(36).substring(7);
+     $('#annotations').append('<div id="dialog' + id + '"></div>');
+     $('#dialog' + id).dialog({
+        draggable: true,
+        height: 270, 
+        title: selectedFeature.feature,
+        position: [250 + Math.floor(Math.random() * 150), 130 + Math.floor(Math.random() * 150)]
+    });
+    
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        cache: false,
+        type: 'GET',
+        async: true,
+        success:function(data){
+            s = '<ul>';
+            if(!isEmpty(data)){
+                for(i = 0; i < data.length; i++){
+                    component = data[i]['name'];
+                    s += "<li class='component'><b>" + component + "</b></li>"
+                    for (j = 0; j < data[i]['feature'].length; j++){
+                        s += "<li class='feature'>" + (data[i]['feature'][j]) + "</li>";
+                    }
+                }
+            } else {
+                s += "<li class='component'>No Features available</li>"
+            }
+            s += "</ul>";
+            $('#dialog' + id).append(s);
+            console.log(s)
+        }
+    });
+}
 /**
  * Updates the feature select according to the currently selected allograph.
  */
-function updateFeatureSelect(currentFeatures) {  
-    id = Math.random().toString(36).substring(7);
-    $.getJSON('allograph/' + $('#id_allograph option:selected').val() + '/features/',
-                function(data) {
-        $('#annotations').append('<div id="dialog' + id + '"></div>');
-
-        $('#dialog' + id).dialog({
-            draggable: true,
-            height: 270, 
-            title: $('#id_allograph option:selected').text(),
-            position: [250 + Math.floor(Math.random() * 150), 130 + Math.floor(Math.random() * 150)]
-        });
-        $.each(data, function(idx) {
-            component = data[idx].name;
-            component_id = data[idx].id;
-            features = data[idx].features;
-            $.each(features, function(idx) {
-                var value = component_id + '::' + features[idx].id;
-                $('#dialog' + id).append("<p>" + ("<b>" + component + '</b>: ' + features[idx].name) + "</p>");
-            });
-        });
-    });
-}
 
 /**
  * Some fields are stored in the database as key:value. This function returns
@@ -188,6 +189,7 @@ function getValueFromObjField(obj, field) {
  *              The values to update the element with.
  */
 function updateSelectOptions(elementId, values) {
+    
     $('#' + elementId + ' :selected').removeAttr('selected');
 
     var detail = '';
@@ -445,8 +447,10 @@ DigipalAnnotator.prototype.loadVectors = function() {
             $.getJSON('annotations/', function(annotations){
                 $.each(annotations, function(index) {
                     allograph = annotations[index]['feature'];
+                    graph = annotations[index]['graph'];
                     if(f.id == annotations[index]['vector_id']){
                         f['feature'] = allograph;
+                        f['graph'] = graph;
                     }
                 });
             });
@@ -471,11 +475,8 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
     $.getJSON('annotations/', function(data) {
         _self.annotations = data;
         //showAnnotationsOverview(data);
-
-        if (selectedFeature) {
-            _self.showAnnotation(selectedFeature);
-        }
     });
+    
 };
 
 /**
@@ -524,6 +525,7 @@ function showAnnotationsOverview(data) {
         $('#overview').append(li);
     });
 }
+
 
 /**
  * Turns on keyboard shortcuts for the controls.
@@ -582,3 +584,4 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
         return false;
     });
 };
+

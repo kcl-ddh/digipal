@@ -87,10 +87,7 @@
           </span>
           <div id='allographs_filtersBox'></div>
       </div>
-       <div id='loadingFilters'>
-            <div><b>Loading Features...</b></div>
-            <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
-        </div>
+      
       </div>
         <div class='container'>
             <div id="map"></div>
@@ -111,7 +108,10 @@
 <p>No image available.</p>
 {% endif %}
 </div>
-
+ <div id='loadingFilters'>
+            <div><b>Loading Features...</b></div>
+            <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+        </div>
 <script>
   $(document).ready(function() {
          annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
@@ -154,10 +154,8 @@
               }
           });
                    
-          {% endif %}
 
-          {% if request.GET.vector_id %}
-            $.getJSON('annotations/', function(data) {
+          $.getJSON('annotations/', function(data) {
                 annotator.annotations = data;
                 //showAnnotationsOverview(data);
 
@@ -166,6 +164,8 @@
                 }
             });
           {% endif %}
+
+            
       
       vectors = annotator.vectorLayer.features;
       format = annotator.format;
@@ -197,10 +197,6 @@
                       seen[txt] = true;
               });
             }
-            function isEmpty(ob){
-               for(var i in ob){ return false;}
-               return true;
-            }
             allographs_box = 0;
             allographs_loaded = false;
             $('#filterAllographs').click(function(){
@@ -209,8 +205,6 @@
                     dataType: "json",
                     url: 'annotations/',
                     success: function(data){
-                      
-                      
                       checkOutput = '<ul>';
                       annotations = data;
                       if(!isEmpty(annotations)){
@@ -288,13 +282,6 @@
               $('#popupImages').fadeOut();
             });
 
-            window.prettyPrint && prettyPrint();
-            $('#mySwitch').on('switch-change', function (e, data) {
-                var $el = $(data.el)
-                        , value = data.value;
-                console.log(e, $el, value);
-            });
-
             $('#toggle-state-switch').on('click', function () {
                 $('#toggle-state-switch').bootstrapSwitch('toggleState');
             });
@@ -311,8 +298,9 @@
 
             $('.imagesBoximage').tooltip({
               'title': $(this).attr('data-title'),
-              'placement': 'left',
-              'trigger': 'hover'
+              'placement': 'bottom',
+              'trigger': 'hover',
+              'container': 'body'
             });
       });
 </script>

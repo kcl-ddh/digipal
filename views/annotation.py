@@ -13,9 +13,22 @@ from digipal.models import Allograph, AllographComponent, Annotation, \
         GraphComponent, Graph, Component, Feature, Idiograph, Page
 import ast
 from django import template
-from django.views.generic import DetailView
 
 register = template.Library()
+
+
+def get_features(request, page_id, graph_id):
+    dict_features = []
+    graph_components = GraphComponent.objects.filter(graph_id = graph_id)
+    for component in graph_components.values_list('id', flat=True):
+        name_component = Component.objects.filter(graphcomponent=component)
+        dict_features.append({'id': component, 'name': name_component.values('name')[0]['name'], 'feature': []})
+    for feature in dict_features:
+        features = Feature.objects.filter(graphcomponent = feature['id']).values_list('name',  flat=True)
+        feature['feature'].append(features)
+        for f in feature['feature']:
+            feature['feature'] = list(f)
+    return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
 
 def allograph_features(request, page_id, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
@@ -80,12 +93,11 @@ def page(request, page_id):
 def page_vectors(request, page_id):
     """Returns a JSON of all the vectors for the requested page."""
     annotation_list = Annotation.objects.filter(page=page_id)
-
     data = {}
 
     for a in annotation_list:
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
-
+        data[a.vector_id]['graph'] = a.graph_id
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
@@ -108,6 +120,7 @@ def page_annotations(request, page_id):
             a.graph.idiograph.allograph.name)
 
         data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
+        data[a.id]['graph'] = '%s' % (a.graph.id)
 
         if a.after:
             data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
@@ -176,12 +189,13 @@ def page_list(request):
     # Get Buttons
 
     town_or_city = request.GET.get('town_or_city', '')
+    print request.GET.get('town_or_city', '')
     repository = request.GET.get('repository', '')
     date = request.GET.get('date', '')
 
     # Applying filters
     if town_or_city:
-        pages = pages.filter(hand__assigned_place__name = town_or_city)
+        pages = pages.filter(item_part__current_item__repository__place__name = town_or_city)
     if repository:
         pages = pages.filter(item_part__current_item__repository__name = repository)
     if date:

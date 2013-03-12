@@ -91,7 +91,9 @@ def searchDB(request):
             name = request.GET.get('name', '')
             scriptorium = request.GET.get('scriptorium', '')
             date = request.GET.get('date', '')
-
+            character = request.GET.get('character', '')
+            component = request.GET.get('component', '')
+            feature = request.GET.get('feature', '')
             # Filter Scribes
             resultpage = "pages/results_scribes.html"
             scribes = Scribe.objects.filter(
@@ -105,6 +107,13 @@ def searchDB(request):
             if date:
                 scribes = Scribe.objects.filter(
                 date=date).order_by('name')
+            if character:
+                scribes = Scribe.objects.filter(idiographs__allograph__character__name=character)
+            if component:
+                scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__name=component)
+            if feature:
+                scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__features__name=feature)
+
 
             context['results'] = scribes
 
@@ -114,6 +123,7 @@ def searchDB(request):
         context['filterScribes'] = FilterScribes()
         # Distinguish between requests for one record, and full results
         if request.GET.get('record', ''):
+            context['searchform'] = False
             context['id'] = request.GET.get('id', '')
             context['pages'] = Page.objects.filter(item_part=(
                 request.GET.get('id')))

@@ -572,6 +572,9 @@ class Place(models.Model):
         return u'%s' % (self.name)
 
 
+
+
+
 # Libraries in legacy db
 class Repository(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -679,7 +682,7 @@ class Scribe(models.Model):
     name = models.CharField(max_length=128, unique=True)
     date = models.CharField(max_length=128, blank=True, null=True)
     scriptorium = models.ForeignKey(Institution, blank=True, null=True)
-    reference = models.ManyToManyField(Reference, blank=True, null=True)
+    reference = models.ManyToManyField(Reference, blank=True, null=True)    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -1185,6 +1188,7 @@ class PlaceEvidence(models.Model):
 
     def __unicode__(self):
         return u'%s. %s. %s' % (self.hand, self.place, self.reference)
+
 
 
 # MeasurementText in legacy db

@@ -31,7 +31,7 @@
         </div>
         <div class='span5 pull-right offset2'>
             {% for result in results %}
-                {% ifequal result.id|safe id %}
+                {% ifequal result.id|safe request.GET.id %}
                     {% with prevRec=forloop.counter|add:"-1" %}
                         <ul class="nav nav-pills">
                         <li class="active"><a href='#'>Record {{ forloop.counter }} of {{ results|length }}</a></li>
@@ -43,22 +43,26 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
-                {% with nextRec=forloop.counter|add:"1" %}
-                    {% ifnotequal results|length|safe  forloop.counter|safe %}
-                        {% for n in results %}
-                            {% ifequal forloop.counter|safe nextRec|safe %}
-                                <li><a class="ctrl resultsBrowse next" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ n.id }}&amp;record={{ forloop.counter|add:"1" }}">Next</a></li>
-                            {% endifequal %}
-                        {% endfor %}
-                    {% endifnotequal %}
-                {% endwith %}
-                <li><a class="ctrl resultsBrowse last" href="?terms={{ terms }}&amp;basic_search_type={{ type }}">Return to record view</a></li>
-                </ul>
-            </div>
+                    {% with nextRec=forloop.counter|add:"1" %}
+                        {% ifnotequal results|length|safe  forloop.counter|safe %}
+                            {% for n in results %}
+                                {% ifequal forloop.counter|safe nextRec|safe %}
+                                    <li><a class="ctrl resultsBrowse next" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ n.id }}&amp;record={{ forloop.counter|add:"1" }}">Next</a></li>
+                                {% endifequal %}
+                            {% endfor %}
+                        {% endifnotequal %}
+                    {% endwith %}
+                    <li><a class="ctrl resultsBrowse last" href="?terms={{ terms }}&amp;basic_search_type={{ type }}">Return to record view</a></li>
+                    </ul>
+                {% endifequal %}
+            {% endfor %}
         </div>
+    </div>
+</div>
 
+{% endblock %}
+{% block main %}
+    <div class='row-fluid'>
         {% block details %}{% endblock %}
     </div>
-        {% endifequal %}
-    {% endfor %}
 {% endblock %}

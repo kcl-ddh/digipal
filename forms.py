@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select
 from django.utils.safestring import mark_safe
-from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place, Date, HistoricalItem
+from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
 from models import Script, CurrentItem
 from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
@@ -166,14 +166,14 @@ class FilterManuscripts(forms.Form):
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
-        queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Place.objects.filter(repository__currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat=True),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "Medieval Town or City",
         empty_label = "Choose a Town or City",
         required = False)
 
     repository = forms.ModelChoiceField(
-        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Repository.objects.filter(currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat = True),
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "Repository",
         empty_label = "Choose a Repository",
@@ -195,7 +195,7 @@ class FilterScribes(forms.Form):
         required = False)
 
     scriptorium = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('scriptorium', flat=True).order_by('scriptorium').distinct(),
+        queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'scriptorium-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
         empty_label = "Choose a Scriptorium",
         required = False)
@@ -205,6 +205,27 @@ class FilterScribes(forms.Form):
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
         label = "Date",
         empty_label = "Choose a Date",
+        required = False)
+
+    character = forms.ModelChoiceField(
+        queryset = Character.objects.values_list('name', flat=True).order_by('name').distinct(),
+        widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
+        label = "character",
+        empty_label = "Choose a Character",
+        required = False)
+
+    component = forms.ModelChoiceField(
+        queryset = Component.objects.values_list('name', flat=True).order_by('name').distinct(),
+        widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
+        label = "Component",
+        empty_label = "Choose a Component",
+        required = False)
+
+    feature = forms.ModelChoiceField(
+        queryset = Feature.objects.values_list('name', flat=True).order_by('name').distinct(),
+        widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
+        label = "Feature",
+        empty_label = "Choose a Feature",
         required = False)
 
 class DrilldownForm(forms.Form):

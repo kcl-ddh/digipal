@@ -128,8 +128,15 @@
     <div class='tab-pane fade' id='hands'>
         <h3 class='header5'>Hands</h3>
         <div class='row-fluid'>
-            {% if result.hand %}
-                {{ result.hand }}
+            {% if result.hand_set %}
+                <table class='table table-condensed'>
+                    <tbody>
+                    <tr><th>Hands</th></tr>
+                {% for hand in result.hand_set.all %}
+                    <tr><td>{{ hand }}</td><tr>
+                {% endfor %}
+                 <tbody>
+                </table>
             {% else %}
                 <div class="alert alert-block">
                     <h4>No hands available</h4>

@@ -60,6 +60,12 @@
                     $('select').chosen();
                 });
 
+                {% if request.GET.from_link %}
+                    $('#advancedSearch').show();
+                    advancedSearch = 1;
+                    $('select').chosen();
+                {% endif %}
+
                 // event onchange on radios
                 radio.change(function(){
                     content = '';

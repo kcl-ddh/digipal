@@ -64,7 +64,6 @@
         </div>
         <div class='tab-pane fade' id='pages'>
             <h3 class='header5'>Pages</h3>
-            {{result.pages.all}}
             {% if result.pages.all %}
                 {% for page in result.pages.all %}    
                         {% if forloop.counter|divisibleby:4 %}

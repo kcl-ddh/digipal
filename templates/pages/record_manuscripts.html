@@ -25,16 +25,16 @@
                 <tbody>
                     <tr>
                         <th>Repository</th>
-                        <td>{{ result.current_item.repository.name }}</td>
+                        <td>{{ item_part.current_item.repository.name }}</td>
                     </tr>
                     <tr>
                         <th>Town or City</th>
-                        <td>{{ result.current_item.repository.place }}</td>
+                        <td>{{ item_part.current_item.repository.place }}</td>
                     </tr>
                     <tr>
                         <th>Shelfmark</th>
                         <td>
-                            {{ result.current_item.shelfmark }}
+                            {{ item_part.current_item.shelfmark }}
                         </td>
                     </tr>
                 </tbody>
@@ -45,11 +45,11 @@
                 <tbody>
                     <tr>
                         <th>Date</th>
-                        <td>{{ result.historical_item.date }}</td>
+                        <td>{{ item_part.historical_item.date }}</td>
                     </tr>
                     <tr>
                         <th>Origin</th>
-                        <td>{% for data in result.historical_item.itemorigin_set.all %}
+                        <td>{% for data in item_part.historical_item.itemorigin_set.all %}
                         <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
                          {% endfor %}
                         </td>
@@ -63,16 +63,16 @@
                     <tbody>
                         <tr>
                             <th>MS Name</th>
-                            <td>{{ result.historical_item.name }} </td>
+                            <td>{{ item_part.historical_item.name }} </td>
                         </tr>
                         <tr>
                             <th>Index</th>
-                            <td>{{ result.historical_item.catalogue_number }}</td>
+                            <td>{{ item_part.historical_item.catalogue_number }}</td>
                         </tr>
                         <tr>
                             <th>MS Description</th>
                             <td>
-                                {% for desc in result.historical_item.description_set.all %}
+                                {% for desc in item_part.historical_item.description_set.all %}
                                     {{ desc.description }}
                                 {% endfor %}
                             </td>

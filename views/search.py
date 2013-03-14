@@ -103,7 +103,7 @@ def searchDB(request):
                 name=name).order_by('name')
             if scriptorium:
                 scribes = Scribe.objects.filter(
-                scriptorium=scriptorium).order_by('name')
+                scriptorium__name=scriptorium).order_by('name')
             if date:
                 scribes = Scribe.objects.filter(
                 date=date).order_by('name')

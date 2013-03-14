@@ -15,7 +15,7 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<page_id>\d+)/copyright/$', 'page_copyright'),
                        (r'^page/(?P<page_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
                         'allograph_features'),
-                       (r'^page/(?P<page_id>\d+)/(?P<graph_id>\d+)/features/$', 'get_features'),
+                       (r'^page/(?P<page_id>\d+)/graph/(?P<graph_id>\d+)/features/$', 'get_features'),
 
                        (r'^page/(?P<page_id>\d+)/save/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'save'),

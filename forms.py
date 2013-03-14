@@ -78,38 +78,7 @@ class InlineForm(forms.ModelForm):
         self.fields['edit_link'].widget = InlineLinkWidget(self.instance)
 
 
-class SearchForm(forms.Form):
-    """ Represents the input form on the search page """
-    terms = forms.CharField(
-        label='',
-        required=False,
-        error_messages={'required': 'Please enter at least one search term'},
-        widget=TextInput(attrs={
-            'class':'textEntry',
-            'placeholder': 'Enter search terms'}))
-    basic_search_type = forms.ChoiceField(
-        label='',
-        required=True,
-        error_messages={'required': 'Please select something to search for'},
-        widget=forms.RadioSelect(attrs={
-            'required': 'required'}),
-        choices = [
-            ('hands', 'Hands'),
-            ('manuscripts', 'Manuscripts'),
-            ('scribes', 'Scribes')],
-        initial='hands'
-        )
-    ordering = forms.CharField(
-        initial="default",
-        required=False,
-        label='ordering',
-        widget=HiddenInput(attrs={'id':'active_ordering'}))
 
-    years = forms.CharField(
-        initial='1000-1300',
-        required=False,
-        label='years',
-        widget=HiddenInput(attrs={'id':'active_years'}))
 
 class FilterHands(forms.Form):
     scribes = forms.ModelChoiceField(
@@ -227,6 +196,44 @@ class FilterScribes(forms.Form):
         label = "Feature",
         empty_label = "Choose a Feature",
         required = False)
+
+class SearchForm(forms.Form):
+    """ Represents the input form on the search page """
+
+    terms = forms.CharField(
+        label='',
+        required=False,
+        error_messages={'required': 'Please enter at least one search term'},
+        widget=TextInput(attrs={
+            'class':'textEntry',
+            'placeholder': 'Enter search terms'}))
+    basic_search_type = forms.ChoiceField(
+        label='',
+        required=True,
+        error_messages={'required': 'Please select something to search for'},
+        widget=forms.RadioSelect(attrs={
+            'required': 'required'}),
+        choices = [
+            ('hands', 'Hands'),
+            ('manuscripts', 'Manuscripts'),
+            ('scribes', 'Scribes')],
+        initial='hands'
+        )
+    ordering = forms.CharField(
+        initial="default",
+        required=False,
+        label='ordering',
+        widget=HiddenInput(attrs={'id':'active_ordering'}))
+
+    years = forms.CharField(
+        initial='1000-1300',
+        required=False,
+        label='years',
+        widget=HiddenInput(attrs={'id':'active_years'}))
+
+
+
+
 
 class DrilldownForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """

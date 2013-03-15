@@ -27,6 +27,8 @@
   {% if data %}
   {% for key, allographs in data.items %}
   <div class="scribe">
+    
+    <h2 class='header1' style='padding-top: 1.5%'><b>Hand</b>: {{ key }}</h2>
     <div class='panel'>
     {% for key, annotations in allographs.items %}
 
@@ -34,11 +36,10 @@
 
     {% endfor %}
     </div>
-    <h3 class='header1'>{{ key }}</h3>
     {% for key, annotations in allographs.items %}
 
     <div>
-      <h4 class='header5' id='{{key}}'>{{ key }}</h4>
+      <h5 class='header5' style='font-size:14px;' id='{{key}}'>{{ key }}</h5>
       <ul>
         {% for annotation in annotations %}
         <li>
@@ -61,7 +62,7 @@
   </div>
   {% endfor %}
 </div>
-<div><a id='ontop' href='#top' title='On Top'></a></div>
+<div><a id='ontop' href='#top' title='Back to Top'></a></div>
 {% else %}
 <div class='alert alert-warning'>No annotations available.</p>
 {% endif %}

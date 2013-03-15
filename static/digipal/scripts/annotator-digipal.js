@@ -63,6 +63,59 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
     this.showAnnotation(event.feature);
 };
 
+DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text){
+    var seen = {};
+    $(element).each(function() {
+        if(text == true){
+          var txt = $(this).text();
+          attribute = null;
+        } else {
+          var txt = $(this).attr(attribute);
+        }
+        if (seen[txt])
+            $(this).remove();
+        else
+            seen[txt] = true;
+    });
+  }
+
+ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes){
+    var _self = this;
+    features = _self.vectorLayer.features;
+    for(i in features){
+        if(!($(checkboxes).is(':checked'))){
+          if($(checkboxes).val() == features[i].feature){
+            features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
+            _self.vectorLayer.redraw();
+          }
+        } else {
+          if($(checkboxes).val() == features[i].feature){
+            features[i].style = '';
+            _self.vectorLayer.redraw();
+          }
+        }
+    }
+};
+
+DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check){
+    var _self = this;
+    if(check == 'check'){
+        $(checkboxes).attr('checked', true);
+        features = _self.vectorLayer.features;
+        for(i = 0; i < features.length; i++){
+            features[i].style = '';
+            _self.vectorLayer.redraw();
+        }
+    } else if(check == 'uncheck'){
+        $(checkboxes).attr('checked', false);
+        features = _self.vectorLayer.features;
+        for(i = 0; i < features.length; i++){
+            
+            features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
+            _self.vectorLayer.redraw();
+        }
+    }
+};
 /**
  * Function that is called after a feature is unselected.
  *
@@ -540,6 +593,28 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
     
 };
 
+/* FullScreen Mode */
+
+DigipalAnnotator.prototype.full_Screen = function(){
+    if(!(this.fullScreen.active) || (this.fullScreen.active == null) || (this.fullScreen.active == undefined)){
+        $('#map').css({'width': '100%', 'height': '100%', 'position': 'absolute', 'top': 0, 'left': 0, 'z-index': 1000,
+'background-color': 'rgba(0, 0, 0, 0.95)'});
+        this.fullScreen.active = true;
+        $(document).keyup(function(e){
+            if(e.keyCode == 27){
+                 $('#map').attr('style', null);
+                 this.fullScreen.active = null;
+            }
+        });
+    } else {
+        $('#map').attr('style', null);
+        this.fullScreen.active = null;
+
+    }
+}
+
+/* End FullScreen Mode */
+
 /**
  * Displays annotations overview.
  *
@@ -600,6 +675,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
         _self.deleteFeature.activate();
         return false;
     });
+    
     $(document).bind('keydown', 'ctrl+m', function(event) {
         activeControls[activeControls.length - 1].deactivate();
         _self.modifyFeature.activate();

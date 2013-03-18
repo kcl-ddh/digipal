@@ -792,7 +792,7 @@ class LatinStyle(models.Model):
 
 
 class Page(models.Model):
-    item_part = models.ForeignKey(ItemPart, related_name='pages')
+    item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
     locus = models.CharField(max_length=64)
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
@@ -814,7 +814,11 @@ class Page(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s: %s' % (self.item_part, self.locus)
+        # TODO: shouldn't this be turned into a method instead of resetting each time? 
+        if (self.item_part):
+            self.display_label = u'%s: %s' % (self.item_part, self.locus)
+        else:
+            self.display_label = u''
         super(Page, self).save(*args, **kwargs)
 
     def path(self):

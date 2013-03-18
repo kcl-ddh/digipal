@@ -61,6 +61,23 @@ class Command(BaseCommand):
 
 		db_settings = settings.DATABASES[options['db']]
 		
+		if command == 'fixseq':
+			# fix the sequence number for auto incremental fields (e.g. id)
+			# Unfortunately posgresql import does not update them so we have to run this after an import 
+			known_command = True
+			
+			from django.db import connection
+			cursor = connection.cursor()
+
+			from django.contrib.contenttypes.models import ContentType
+			types = ContentType.objects.all()
+			for type in types:
+				model = type.model_class()
+				if model and model._meta.auto_field and model._meta.auto_field.column == 'id':
+					print model
+					cmd = "select setval('%(table_name)s_%(seq_field)s_seq', (select max(%(seq_field)s) from %(table_name)s) )" % {'table_name': model._meta.db_table, 'seq_field': model._meta.auto_field.column}
+					cursor.execute(cmd)
+		
 		if command == 'list':
 			known_command = True
 			from os import listdir

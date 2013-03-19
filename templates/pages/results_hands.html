@@ -5,8 +5,9 @@
 <script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
 {% endblock %}
 {% block main %}
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"></style>
+{% block extra_css %}
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+{% endblock %}
 <form id='searchform' class="form-inline panel" method="GET" action=".">
     <div class='row-fluid'>
     {# {% csrf_token %} #}
@@ -146,14 +147,11 @@
         </tr> 
         {% autopaginate results 9 %}
         {% for result in results %}
-        
-
-        
         <tr class="{% cycle 'bgColour' '' %}">
 
           <td>{{ result.scribe.name }}
           {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' /></a> ({{result.pages.count}})
+            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
           {% endif %}</td>
           <td>{{ result.assigned_place.name }}</td>
           <td>{{ result.assigned_date.date }}</td>

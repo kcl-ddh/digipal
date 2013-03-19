@@ -101,7 +101,7 @@ class Ontograph(models.Model):
 
 
 class Character(models.Model):
-    name = name = models.CharField(max_length=128, unique=True)
+    name =  models.CharField(max_length=128, unique=True)
     unicode_point = models.CharField(max_length=32, unique=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
@@ -589,13 +589,17 @@ class Repository(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Repositories'
 
     def __unicode__(self):
-        return u'%s' % (self.short_name or self.name)
+        return u'%s, %s' % (self.place.name, self.short_name or self.name)
+
+    def human_readable():
+        return u'%s, %s' % (self.place.name, self.short_name or self.name)
+
+
 
 
 class CurrentItem(models.Model):

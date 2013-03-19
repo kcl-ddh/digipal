@@ -89,11 +89,15 @@ class FilterHands(forms.Form):
         required = False)
 
     repository = forms.ModelChoiceField(
-        queryset =  Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select'}),
-        label = "Repository",
-        empty_label = "Choose a Repository",
-        required = False)
+        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct()
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(FilterHands, self).__init__(*args, **kwargs)
+        self.fields['repository'].label = "Repository"
+        self.fields['repository'].empty_label = "Choose a Repository"
+        self.fields['repository'].required = False
+
 
     place = forms.ModelChoiceField(
         queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
@@ -203,10 +207,14 @@ class SearchForm(forms.Form):
     terms = forms.CharField(
         label='',
         required=False,
-        error_messages={'required': 'Please enter at least one search term'},
+        error_messages={
+        'required': 'Please enter at least one search term',
+        'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
+            'id': 'textEntry',
             'class':'textEntry',
-            'placeholder': 'Enter search terms'}))
+            'placeholder': 'Enter search terms',
+            "autocomplete":"off"}))
     basic_search_type = forms.ChoiceField(
         label='',
         required=True,
@@ -231,38 +239,50 @@ class SearchForm(forms.Form):
         label='years',
         widget=HiddenInput(attrs={'id':'active_years'}))
 
-
+class QuickSearch(forms.Form):
+    terms = forms.CharField(
+        label='Quick Search',
+        required=True,
+        error_messages={
+        'required': 'Please enter at least one search term',
+        'invalid': 'Enter a valid value'},
+        widget=TextInput(attrs={
+            'id': 'input',
+            'class':'textEntry',
+            'placeholder': 'Enter search terms',
+            'required': 'required',
+            "autocomplete":"off"}))
 
 
 
 class DrilldownForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
     script_select = forms.ModelChoiceField(
-        queryset=Script.objects.all(),
+        queryset=Script.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'script-select', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
         label="Script",
         empty_label = "Choose a Script",
         required=False)
     character_select = forms.ModelChoiceField(
-        queryset=Character.objects.order_by('name').all(),
+        queryset=Character.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label='Character',
         empty_label = "Choose a Character",
         required=False)
     allograph_select = forms.ModelChoiceField(
-        queryset=Allograph.objects.order_by('name').distinct(),
+        queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='Allograph',
         empty_label = "Choose a Allograph",
         required=False)
     component_select = forms.ModelChoiceField(
-        queryset=Component.objects.order_by('name').all(),
+        queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
         empty_label = "Choose a Component",
         label='Component',
         required=False)
     feature_select = forms.ModelChoiceField(
-        queryset=Feature.objects.order_by('name').all(),
+        queryset=Feature.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
         empty_label = "Choose a Feature",
         label='Feature',

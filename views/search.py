@@ -3,9 +3,91 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 from digipal.models import *
-from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes
+from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, QuickSearch
+from itertools import islice, chain
 
+class QuerySetChain(object):
+    """
+    Chains multiple subquerysets (possibly of different models) and behaves as
+    one queryset.  Supports minimal methods needed for use with
+    django.core.paginator.
+    """
 
+    def __init__(self, *subquerysets):
+        self.querysets = subquerysets
+
+    def count(self):
+        """
+        Performs a .count() for all subquerysets and returns the number of
+        records as an integer.
+        """
+        return sum(qs.count() for qs in self.querysets)
+
+    def _clone(self):
+        "Returns a clone of this queryset chain"
+        return self.__class__(*self.querysets)
+
+    def _all(self):
+        "Iterates records in all subquerysets"
+        return chain(*self.querysets)
+
+    def __getitem__(self, ndx):
+        """
+        Retrieves an item or slice from the chained set of results from all
+        subquerysets.
+        """
+        if type(ndx) is slice:
+            return list(islice(self._all(), ndx.start, ndx.stop, ndx.step or 1))
+        else:
+            return islice(self._all(), ndx, ndx+1).next()
+
+def quickSearch(request, search_type):
+    searchform = QuickSearch(request.GET)
+    if searchform.is_valid():
+        context = {}
+        term = searchform.cleaned_data['terms']
+        result_page = 'search/quicksearch_results.html'
+        context['terms'] = term
+        context['search_type'] = search_type
+        if search_type == 'manuscripts':
+            query = ItemPart.objects.order_by(
+                'historical_item__catalogue_number','id').filter(
+                    Q(locus__contains=term) | \
+                    Q(current_item__shelfmark__icontains=term) | \
+                    Q(current_item__repository__name__icontains=term) | \
+                    Q(historical_item__catalogue_number__icontains=term) | \
+                    Q(historical_item__description__description__icontains=term))
+        elif search_type == 'hands':
+            query = Hand.objects.distinct().order_by(
+                'scribe__name','id').filter(
+                    Q(scribe__name__icontains=term) | \
+                    Q(assigned_place__name__icontains=term) | \
+                    Q(assigned_date__date__icontains=term) | \
+                    Q(item_part__current_item__shelfmark__icontains=term) | \
+                    Q(item_part__current_item__repository__name__icontains=term) | \
+                    Q(item_part__historical_item__catalogue_number__icontains=term))
+        else:
+            query = Scribe.objects.filter(
+                name__icontains=term).order_by('name')
+        context['results'] = query
+        context['searchform'] = SearchForm()
+        context['drilldownform'] = DrilldownForm({'terms': term})
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+        return render_to_response(result_page, context, context_instance=RequestContext(request))
+
+    else:
+        context = {}
+        term = ''
+        context['quicksearchform'] = QuickSearch()
+        context['searchform'] = SearchForm()
+        context['drilldownform'] = DrilldownForm({'terms': term})
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+        result_page = 'search/quicksearch_results.html'
+        return render_to_response(result_page, context, context_instance=RequestContext(request))
 
 def searchDB(request):
     """
@@ -158,6 +240,7 @@ def searchDB(request):
                 'pages/record_' + searchtype +'.html',
                 context,
                 context_instance=RequestContext(request))
+
         else :
             return render_to_response(
                 resultpage,
@@ -204,23 +287,23 @@ def allographHandSearch(request):
 
     if allograph:
         graphs = graphs.filter(
-            idiograph__allograph__id=allograph).order_by('hand')
-        context['allograph'] = Allograph.objects.get(id=allograph)
+            idiograph__allograph__name=allograph).order_by('hand')
+        context['allograph'] = Allograph.objects.get(name=allograph)
     if feature:
         graphs = graphs.filter(
-            graph_components__features__id=feature).order_by('hand')
-        context['feature'] = Feature.objects.get(id=feature)
+            graph_components__features__name=feature).order_by('hand')
+        context['feature'] = Feature.objects.get(name=feature)
     if character:
         graphs = graphs.filter(
-            idiograph__allograph__character__id=character).order_by('hand')
-        context['character'] = Character.objects.get(id=character)
+            idiograph__allograph__character__name=character).order_by('hand')
+        context['character'] = Character.objects.get(name=character)
     if component:
         graphs = graphs.filter(
-            graph_components__component__id=component).order_by('hand')
-        context['component'] = Component.objects.get(id=component)
+            graph_components__component__name=component).order_by('hand')
+        context['component'] = Component.objects.get(name=component)
 
     graphs = graphs.order_by('hand__scribe__name','hand__id')
-
+    context['drilldownform'] = DrilldownForm()
     context['graphs'] = graphs
 
     return render_to_response(

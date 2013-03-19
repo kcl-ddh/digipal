@@ -144,7 +144,7 @@
         {% for result in results %}
         <tr class="{% cycle 'bgColour' '' %}">
             <td>{{ result.historical_item.catalogue_number }} {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' /></a> ({{result.pages.count}}){% endif %}</td>
+            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
             
             <td>{{ result.current_item.repository.name }}</td>
             <td>{{ result.current_item.shelfmark }}</td>

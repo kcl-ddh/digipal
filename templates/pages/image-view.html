@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
-
+{% block extra_js %}
+<script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+{% endblock %}
 {% block main %}
 <div class="row-fluid">
 
@@ -11,9 +16,10 @@
             {% endwith %}
             {% else %}
             <h1 class='header1'>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
+
         {% endifnotequal %}
+
         {% ifequal style "list" %} <!-- Display list view, of course -->
-        
             <table class="table table-condensed">
                 <thead>
                     <tr>
@@ -68,6 +74,25 @@
             {{ g.hand.id }}
             {% endfor %}
             </p>-->
+        <div class="panel" id='filtersform' style='display:block;'>
+              <h5 class='header5'>Show Graphs filtered by:</h5>
+              <form class="container form-inline"  method="GET" action="/digipal/search/graph">
+                {{ drilldownform }}
+                <div class='container'>
+                    <input type="submit" value="Show Graphs" class='btn btn-primary' />
+                    <input type='reset' class='btn' />
+                </div>
+                </form> 
+             </div>
+        <div class='breadcrumb'>
+          <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+          {% if request.GET.script_select %}| <span><b>Script: </b></span><span> {{ request.GET.script_select }}</span>{% endif %}
+          {% if request.GET.character_select %}| <span><b>Character: </b></span><span> {{ request.GET.character_select }}</span>{% endif %}
+          {% if request.GET.component_select %}| <span><b>Component: </b></span><span>{{ request.GET.component_select }}</span>{% endif %}
+          {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</b></span>{% endif %}
+          {% if request.GET.allograph_select %}| <span><b>Allograph: </b></span><span>{{ request.GET.allograph_select }}</span>{% endif %}
+        </div>
+
             {% regroup graphs by hand as handlist %}
             <table class="table table-condensed">
                 <tr>
@@ -102,4 +127,9 @@
             {% endifequal %}
 </div>
 </div>
+<script>
+$(document).ready(function(){
+ $('select').chosen();
+});
+</script>
 {% endblock %}

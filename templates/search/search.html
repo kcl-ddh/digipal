@@ -4,12 +4,10 @@
 {% load mezzanine_tags keyword_tags %}
 
 {% block extra_js %}
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 <script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"></style>
 {% endblock %}
 
 {% block main %}
@@ -20,7 +18,7 @@
       <div class='span9'>
             <div id='radio'>
                 <h3 class='header5'>Search</h3>
-                {{ searchform.as_ul }}
+                <ul>{{ searchform.as_ul }}</ul>
             </div>
         </div>
     </div>
@@ -85,11 +83,17 @@
                     $('select').chosen();
                });
 
+                  tags = {{ suggestions|safe }}
+                    $("#textEntry").typeahead({
+                        source:tags,
+                        items: 8,
+                        minLength: 0
+                    })
 
             });
         </script>
         <div class='container'>
-            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;' value=''>Advanced Search</a>
+            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
             <div id='advancedSearch'>
                 <div id='labelFilters'></div>
                 <div id='containerFilters' class'form-inline'></div>
@@ -97,9 +101,10 @@
         </div>
         <div class='container'>
                 <input type="submit" value="Search" id='search' class='btn btn-primary' />
-            </div>
+        </div>
         </form>
     </div>
+
 
 
 <!--

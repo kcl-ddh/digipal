@@ -424,33 +424,33 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 .olControlEditingToolbar .olControlZoomBoxItemInactive {
     background-image: url(img/zoom_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 .olControlEditingToolbar .olControlZoomBoxItemActive  {
     background-image: url(img/zoom_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemInactive{
     background-image: url(img/rectangle_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemActive {
     background-image: url(img/rectangle_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemInactive{
     background-image: url(img/delete_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemActive {
     background-image: url(img/delete_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: 0 1px;
 }
 .olControlEditingToolbar .olControlDuplicateFeatureItemInactive{
     background-image: url(img/clone_off.png);

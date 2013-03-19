@@ -478,11 +478,15 @@ class PageAdmin(reversion.VersionAdmin):
 
     exclude = ['image']
     inlines = [HandsInline]
-    list_display = ['item_part', 'locus', 'thumbnail_with_link', 'caption',
-            'created', 'modified']
-    list_display_links = ['item_part', 'locus', 'caption', 'created',
-            'modified']
-    search_fields = ['locus']
+    list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
+            'caption', 'created', 'modified', 'iipimage']
+    list_display_links = list_display
+    search_fields = ['folio_side', 'folio_number', 'caption', 
+            'item_part__display_label', 'iipimage']
+    
+    def get_locus_label(self, obj):
+        return obj.get_locus_label()
+    get_locus_label.short_description = 'Locus' 
 
 
 class PersonAdmin(reversion.VersionAdmin):

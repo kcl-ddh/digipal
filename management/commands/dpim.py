@@ -22,6 +22,8 @@ class Command(BaseCommand):
 		list
 	
 		upload
+		
+		update
 	
 	"""
 	
@@ -51,7 +53,9 @@ class Command(BaseCommand):
 	Commands:
 	
 		upload:
-			convert new images and create Page records	
+			convert new images and create Page records
+		update
+			update the Page records	
 		list:
 			list the images on disk and if they are already uploaded
 		deldb
@@ -107,7 +111,7 @@ class Command(BaseCommand):
 		
 		self.options = options
 		
-		if command in ('list', 'upload', 'deldb'):
+		if command in ('list', 'upload', 'deldb', 'update'):
 			from digipal.models import Page
 			pages = Page.objects.all()
 			page_paths = {}
@@ -134,11 +138,11 @@ class Command(BaseCommand):
 						file_relative = os.path.relpath(file, settings.IMAGE_SERVER_ROOT)
 						all_files.append(file_relative)
 						found_message = ''
-						if not page_paths.has_key(os.path.normcase(file_relative)):
+						if not page_paths.has_key(os.path.normcase(file_relative)) or command == 'update':
 							found_message = '[OFFLINE]'
 							filtered_files.append(file_relative)
 							
-							if command == 'upload':
+							if command in ('upload', 'update'):
 								file_path, basename = os.path.split(file_relative)		
 								new_file_name = os.path.join(file_path, re.sub(r'(\s|,)+', '_' , basename.lower()))
 								
@@ -146,22 +150,27 @@ class Command(BaseCommand):
 									found_message = '[UPLOAD FAILED: please remove spaces and commas from the directory names]'
 								else:
 									found_message = '[JUST UPLOADED]'
+									if command in ('update',):
+										found_message = '[JUST UPDATED]'
+										page = Page.objects.get(id=page_paths[os.path.normcase(file_relative)])
+									else:
+										page = Page()
+										page.iipimage = file_relative
 									
-									# upload the page
 									page = Page()
-									page.iipimage = file_relative
 									page.image = 'x'
 									page.caption = os.path.basename(file_relative)
 									# todo: which rules should we apply here?
 									page.display_label = os.path.basename(file_relative)
 
 									# cpnvert the image to jp2
-									error_message = self.convert_image(page)
-									if error_message:
-										found_message += ' ' + error_message
-									else:
-										found_message += ' [JUST CONVERTED]'
-										page.save()
+									if command == 'upload':
+										error_message = self.convert_image(page)
+										if error_message:
+											found_message += ' ' + error_message
+										else:
+											found_message += ' [JUST CONVERTED]'
+											page.save()
 								
 								# force the conversion to jp2
 						elif command == 'deldb':

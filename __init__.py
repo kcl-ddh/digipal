@@ -6,6 +6,10 @@ add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 # patch the iipimage to correct a bug (.image was hardcoded)
 from iipimage import storage
 
+# PATCH 1:
+# The name of the iipimage field was hardcoded.
+# Changed to iipimage to match Page model.
+
 def get_image_path (instance, filename):
     """Returns the upload path for a page image.
 
@@ -49,6 +53,10 @@ def get_image_path (instance, filename):
 
 storage.get_image_path = get_image_path
 
+# PATCH 2:
+# subprocess.check_call(shlex.split(command.encode('ascii')))
+# Didn't work on Windows. Changed to a cross-platform implementation.
+
 def _call_image_conversion (self, command, input_path):
     """Run the supplied image conversion `command`.
 
@@ -66,4 +74,23 @@ def _call_image_conversion (self, command, input_path):
         # whether the conversion is successful or not.
         os.remove(input_path)
 
-#storage.image_storage._call_image_conversion = _call_image_conversion
+storage.image_storage._call_image_conversion = _call_image_conversion
+
+from iipimage import fields
+
+# Patch 3:
+# The order of the query string arguments do matter, 
+# if CVT appears before HEI, the resizing will fail on some iip image server implementations 
+
+def thumbnail_url (self, height=None, width=None):
+    try:
+        height = '&HEI=%s' % str(int(height))
+    except (TypeError, ValueError):
+        height = ''
+    try:
+        width = '&WID=%s' % str(int(width))
+    except (TypeError, ValueError):
+        width = ''
+    return '%s%s%s&CVT=JPEG' % (self.full_base_url, height, width)
+
+fields.ImageFieldFile.thumbnail_url = thumbnail_url

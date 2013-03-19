@@ -763,6 +763,7 @@ class ItemPart(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    pagination = models.BooleanField(blank=False, null=False, default=False)
 
     class Meta:
         ordering = ['display_label']
@@ -812,6 +813,26 @@ class Page(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def get_locus_label(self):
+        ret = ''
+        if self.folio_number:
+            ret = ret + self.folio_number
+        if self.folio_side:
+            ret = ret + self.folio_side
+        
+        if ret == '0r':
+            ret = 'face'
+        if ret == '0v':
+            ret = 'dorse'
+        
+        if ret and self.folio_number and self.folio_number != '0':
+            unit = 'f.'
+            if self.item_part and self.item_part.pagination:
+                unit = 'p.'
+            ret = unit + ret
+            
+        return ret
 
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time? 
@@ -878,7 +899,11 @@ class Page(models.Model):
         ret = ''
         path = ''
         if self.iipimage:
-            path = self.iipimage.full_base_url()
+            #path = self.iipimage.full_base_url
+            path = settings.IMAGE_SERVER_FULL % \
+                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
+                            self.path())
+            
         return path
     
 #        if self.path():

@@ -5,6 +5,7 @@ add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 
 # patch the iipimage to correct a bug (.image was hardcoded)
 from iipimage import storage
+from iipimage.storage import generate_new_image_path
 
 # PATCH 1:
 # The name of the iipimage field was hardcoded.
@@ -57,7 +58,9 @@ storage.get_image_path = get_image_path
 # subprocess.check_call(shlex.split(command.encode('ascii')))
 # Didn't work on Windows. Changed to a cross-platform implementation.
 
-def _call_image_conversion (self, command, input_path):
+import os
+
+def _call_image_conversion (command, input_path):
     """Run the supplied image conversion `command`.
 
     Tidy up by removing the original image at `input_path`.

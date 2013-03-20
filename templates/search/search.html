@@ -11,10 +11,13 @@
 {% endblock %}
 
 {% block main %}
-
+<div class='row-fluid'>
+<h3>Please type in keyword to search for 'Hands', 'Manuscript' or 'Scribes' and use filters to narrow down your search results</h3>
+</div>
 <form id='searchform' class="form-inline panel" method="GET" action=".">
     <div class='row-fluid'>
     {# {% csrf_token %} #}
+
       <div class='span9'>
             <div id='radio'>
                 <h3 class='header5'>Search</h3>
@@ -69,18 +72,31 @@
                     content = '';
                     label = '';                       
                     if($("#searchform input[type='radio']:checked").val() == 'hands'){
-                        content += '{{ filterHands.as_ul|escapejs }}';
+                        content += "{{ filterHands.as_ul|escapejs }}";
                         label += "<h5 class='header5'>Show Hands filtered by:</h5>";
                     } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
-                        content += '{{filterManuscripts.as_ul|escapejs}}';
+                        content += "{{filterManuscripts.as_ul|escapejs}}";
                         label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
                     } else {
-                        content += '{{filterScribes.as_ul|escapejs}}';
+                        content += "{{filterScribes.as_ul|escapejs}}";
                         label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
                     }
                     labelFilters.html(label);
                     container.html(content);
                     $('select').chosen();
+                        $('select').change(function(){
+                        result = false; 
+                        for(i = 0; i < $(this).length; i++){
+                            if(($(this)[i].value != '')){
+                                result = true;
+                            }
+                        }
+                        if(!result){
+                            $('#textEntry').attr('required', 'required');
+                        } else {
+                            $('#textEntry').attr('required', false);
+                        }
+                    });
                });
 
                   tags = {{ suggestions|safe }}
@@ -88,22 +104,38 @@
                         source:tags,
                         items: 8,
                         minLength: 0
-                    })
+                    });
 
-            });
+
+
+                $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
+
+
+        });
         </script>
         <div class='container'>
             <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
             <div id='advancedSearch'>
                 <div id='labelFilters'></div>
-                <div id='containerFilters' class'form-inline'></div>
+                <div id='containerFilters' class = "form-inline"></div>
             </div>
         </div>
         <div class='container'>
                 <input type="submit" value="Search" id='search' class='btn btn-primary' />
         </div>
-        </form>
-    </div>
+</form>
 
 
 

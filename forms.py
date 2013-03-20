@@ -214,6 +214,7 @@ class SearchForm(forms.Form):
             'id': 'textEntry',
             'class':'textEntry',
             'placeholder': 'Enter search terms',
+            'required': 'required',
             "autocomplete":"off"}))
     basic_search_type = forms.ChoiceField(
         label='',

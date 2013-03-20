@@ -1,5 +1,5 @@
 from digipal.forms import QuickSearch
-from digipal.models import Hand, Scribe, ItemPart
+from digipal.models import Scribe, ItemPart
 from itertools import chain
 from django.utils import simplejson
 from django.db.models import Q
@@ -27,7 +27,6 @@ def suggestions(request):
                     Q(historical_item__catalogue_number__isnull=False) | \
                     Q(historical_item__description__description__isnull=False)).values_list('current_item__repository__name',flat=True).distinct()
 	result = list(set(chain(hands, scribes, itemParts)))
-	result = result[0:1800]
 	context = {'suggestions': simplejson.dumps(result)}
 	return context
 

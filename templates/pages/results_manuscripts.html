@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+{% load mezzanine_tags pagination_tags html_escape %}
 {% block extra_js %}
 <script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
 {% endblock %}
@@ -94,16 +94,44 @@
                     filter = 0;
                   }
                   $('select').chosen();
+                  $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
 
+                });
+                    
+
+                $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
                 });
 
                     });
                 </script>
              <div class='container'>
-                <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;' value=''>Advanced Search</a>
+                <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
                 <div id='advancedSearch'>
                     <div id='labelFilters'></div>
-                    <div id='containerFilters'></div>
+                    <div id='containerFilters' class='form-inline'></div>
                 </div>
             </div>             
             <div class='container' id='buttonsBox'>
@@ -142,9 +170,9 @@
         </tr>
         {% autopaginate results 9 %}
         {% for result in results %}
-        <tr class="{% cycle 'bgColour' '' %}">
+        <tr>
             <td>{{ result.historical_item.catalogue_number }} {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+            <a class='imageIcon' href='?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
             
             <td>{{ result.current_item.repository.name }}</td>
             <td>{{ result.current_item.shelfmark }}</td>
@@ -158,7 +186,7 @@
                     {% if request.user.is_superuser %}
                     <a class="btn" href="/admin/digipal/itempart/{{ result.id }}">Edit</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a>
+                    <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a>
             </td>
         </tr>
         {% endfor %}

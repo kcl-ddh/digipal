@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags html_escape %}
+{% block extra_js %}
+<script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
+{% endblock %}
+{% block main %}
+<form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
+    <div class='row-fluid'>
+    {# {% csrf_token %} #}
+      <div class='span9'>
+            <div id='radio'>
+                <h3 class='header5'>Search</h3>
+                <ul>{{ searchform.as_ul }}</ul>
+                 <script>
+                    $('#radio ul').contents().unwrap();
+                    $('#radio li').contents().unwrap();
+                    // Then move the input to outside of the label
+                    $('#radio > label > input').each(function() {
+                        $(this).parent().before(this);
+                    });
+                    // Then apply the jQuery UI buttonset
+                    $("#radio").buttonset();
+                    $('#radio .ui-button-text').css('padding','.2em 1em');
+                </script>  
+                     
+            </div>
+        </div>
+    </div>
+         <script>
+            $(document).ready(function() {
+                var radio = $("#searchform input[type='radio']");
+
+                // Setting default radio
+                var container = $('#containerFilters');
+                var content = $('{{ filterHands.as_ul|escapejs }}');
+                container.html(content);
+
+                // Setting default label
+                var labelFilters = $('#labelFilters');
+                var label = "<h5 class='header5'>Show Hands filtered by:</h5>";
+                labelFilters.html(label);
+
+                // event onchange on radios
+                radio.change(function(){
+                    content = '';
+                    label = '';                       
+                    if($("#searchform input[type='radio']:checked").val() == 'hands'){
+                            content += '{{ filterHands.as_ul|escapejs }}';
+                            label += "<h5 class='header5'>Show Hands filtered by:</h5>";
+                        } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
+                            content += '{{filterManuscripts.as_ul|escapejs}}';
+                            label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
+                        } else {
+                            content += '{{filterScribes.as_ul|escapejs}}';
+                            label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
+                        }
+                    labelFilters.html(label);
+                    container.html(content);
+                    $('select').chosen();
+               });
+
+                advancedSearch = 0;
+                $('#advanced').click(function(){
+                    if(advancedSearch == 0){
+                        $('#advancedSearch').slideDown();
+                        $('#advanced').text('Hide Advanced Search');
+                        advancedSearch = 1;
+                    } else {
+                        $('#advancedSearch').slideUp();
+                        $('#advanced').text('Advanced Search');
+                        advancedSearch = 0;
+                    }
+                    $('select').chosen();
+                });
+
+                $('#filtersform').hide();
+                var filter = 0;
+                options = {
+                  'title': 'Show Graph Filters',
+                  'content': 'Click this button to explore and filter graphs',
+                  'trigger': 'hover'
+                }
+                $('#show_filters').popover(options)
+                $('#show_filters').click(function(){
+                  if(filter == 0){
+                    $('#filtersform').slideDown();
+                    $('#show_filters').attr('class', 'btn');
+                    $('#show_filters').text('Hide Graphs Filters');
+                    filter = 1;
+                  } else {
+                    $('#filtersform').slideUp();
+                    $('#show_filters').attr('class', 'btn btn-success');
+                    $('#show_filters').text('Show Graphs Filters');
+                    filter = 0;
+                  }
+                  $('select').chosen();
+                })
+
+                $('[data-toggle="tooltip"]').tooltip();
+
+                tags = {{ suggestions|safe }}
+                    $("#textEntry").typeahead({
+                        source:tags,
+                        items: 8,
+                        minLength: 0
+                    })
+
+            });
+        </script>
+        <div class='container'>
+            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
+                <div id='advancedSearch'>
+                    <div id='labelFilters'></div>
+                    <div id='containerFilters' class='form-inline'></div>
+                </div>
+        </div>
+        <div class='container' id='buttonsBox'>
+          <input type="submit" value="Search" class='btn btn-primary' />
+           <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
+        </div>
+    </form>
+  
+    <div class="panel" id='filtersform'>
+      <h5 class='header5'>Show Graphs filtered by:</h5>
+      <form class="container form-inline"  method="GET" action="/digipal/search/graph">
+        <ul>{{ drilldownform.as_ul }}</ul>
+   
+        <div class='container'>
+            <input type="submit" value="Show Graphs" class='btn btn-primary' />
+            <input type='reset' class='btn' />
+        </div>
+    </form> 
+     </div>
+    <div class='breadcrumb'>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+     </div>
+
+ <div class='container'>
+    <ul class="nav nav-tabs" id='myTab'>
+    	{% if search_type == 'hands' %}
+        <li class="active"><a>Hands</a></li>
+        {% else %}
+        <li><a href="/digipal/quicksearch/hands/?terms={{terms|spacify}}">Hands</a></li>
+        {% endif %}
+        {% if search_type == 'manuscripts' %}
+        <li class='active'><a>Manuscripts</a></li>
+        {% else %}
+        <li><a href="/digipal/quicksearch/manuscripts/?terms={{terms|spacify}}">Manuscripts</a></li>
+        {% endif %}
+        {% if search_type == 'scribes' %}
+        <li class='active'><a>Scribes</a></li>
+        {% else %}
+ 		<li><a href="/digipal/quicksearch/scribes/?terms={{terms|spacify}}">Scribes</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% if results %}
+    {% if search_type == 'hands' %}
+     <table class="table table-condensed">
+            <tr>
+                <th>Scribe</th>
+                <th>Place</th>
+                <th>Date</th>
+                <th>Repository</th>
+                <th>Shelfmark</th>
+                <th>Catalogue Number</th>
+                <th>Actions</th>
+            </tr> 
+            {% autopaginate results 9 %}
+            {% for result in results %}
+            <tr class="{% cycle 'bgColour' '' %}">
+
+              <td>{{ result.scribe.name }}
+              {% if result.pages.all %}
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
+              {% endif %}</td>
+              <td>{{ result.assigned_place.name }}</td>
+              <td>{{ result.assigned_date.date }}</td>
+              <td>{{ result.item_part.current_item.repository.name }}</td>
+              <td>{{ result.item_part.current_item.shelfmark }}</td>
+              <td>{{ result.item_part.historical_item.catalogue_number }}</td>
+              <td>
+                      {% if request.user.is_superuser %}
+                      <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
+                      {% endif %}
+                      <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+              </td>
+          </tr>
+          {% endfor %}
+          {% paginate %}
+        </table>
+     {% elif search_type == 'manuscripts' %}
+    <table class="table table-condensed">
+            <tr>
+                <th>Index</th>
+                <th>Repository</th>
+                <th>Shelfmark</th>
+                <th>Folio(s)</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+            {% autopaginate results 9 %}
+            {% for result in results %}
+            <tr class="{% cycle 'bgColour' '' %}">
+                <td>{{ result.historical_item.catalogue_number }} {% if result.pages.all %}
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+                
+                <td>{{ result.current_item.repository.name }}</td>
+                <td>{{ result.current_item.shelfmark }}</td>
+                <td>{{ result.locus }}</td>
+                <td>
+                    {% for desc in result.historical_item.description_set.all %}
+                    {{ desc.description|truncatewords:15 }} ..
+                    {% endfor %}
+                </td>
+                <td>
+                        {% if request.user.is_superuser %}
+                        <a class="btn" href="/admin/digipal/itempart/{{ result.id }}">Edit</a>
+                        {% endif %}
+                        <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% paginate %}
+        </table>
+     {% else %}
+     <table class="table table-condensed">
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Scriptorium</th>
+            <th>Actions</th>
+        </tr>
+        {% autopaginate results 9 %}
+        {% for result in results %}
+        <tr class="{% cycle 'bgColour' '' %}">
+            <td>{{ result.name }} {% if result.pages.all %}
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+            <td>{{ result.date }}</td>
+            <td>{{ result.scriptorium.name }}</td>
+            <td>
+                    {% if request.user.is_superuser %}
+                    <a class="btn" href="/admin/digipal/scribe/{{ result.id }}">Edit</a>
+                    {% endif %}
+                    <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+        {% paginate %}
+        </table>
+    {% endif %}
+{% else %}
+<div class='alert alert-warning'><h4>No results found</h4></div>
+ {% endif %}
+
+{% endblock main %}

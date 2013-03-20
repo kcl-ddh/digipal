@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+{% load mezzanine_tags pagination_tags html_escape %}
 {% block extra_js %}
 <script type="text/javascript" src="https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.js"></script>
 {% endblock %}
@@ -60,6 +60,19 @@
                     labelFilters.html(label);
                     container.html(content);
                     $('select').chosen();
+                    $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
                });
 
                 advancedSearch = 0;
@@ -101,13 +114,28 @@
 
                 });
 
+                $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
+
+
             });
         </script>
         <div class='container'>
-            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;' value=''>Advanced Search</a>
+            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
                 <div id='advancedSearch'>
                     <div id='labelFilters'></div>
-                    <div id='containerFilters'></div>
+                    <div id='containerFilters' class='form-inline'></div>
                 </div>
         </div>
         <div class='container' id='buttonsBox'>
@@ -135,24 +163,25 @@
     </div> 
     <h2 class='header1'>Results for <i>Scribes</i></h2>
     <table class="table table-condensed">
-    <tr>
-        <th>Name</th>
-        <th>Date</th>
-        <th>Scriptorium</th>
-        <th>Actions</th>
-    </tr>
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Scriptorium</th>
+            <th>Actions</th>
+        </tr>
+
     {% autopaginate results 9 %}
     {% for result in results %}
-    <tr class="{% cycle 'bgColour' '' %}">
+    <tr>
         <td>{{ result.name }} {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+            <a class='imageIcon' href='?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
         <td>{{ result.date }}</td>
         <td>{{ result.scriptorium.name }}</td>
         <td>
                 {% if request.user.is_superuser %}
                 <a class="btn" href="/admin/digipal/scribe/{{ result.id }}">Edit</a>
                 {% endif %}
-                <a class="btn btn-primary" href="?terms={{ terms }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+                <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
         </td>
     </tr>
     {% endfor %}

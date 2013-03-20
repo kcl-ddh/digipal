@@ -13,9 +13,9 @@
             <form id='searchform' class="form-inline panel">
                 <h3 class='header5'>Filter Manuscripts Images</h3>
                 <ul>{{ filterImages.as_ul }}</ul>
-                <p>
-                    <input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn' />
-                </p>
+                <div>
+                    <input type='submit' value='Filter Images' class='btn btn-primary'>
+                </div>
             </form>
         </div>
         <script>
@@ -29,15 +29,15 @@
         <div class="pagination span4">
             <ul>
             {% if page_list.has_previous %}
-                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
-                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="prev">{{ page_list.previous_page_number }}</a></li>
+                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="prev">{{ page_list.previous_page_number }}</a></li>
             {% else %}
                 <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
             {% endif %}
             <li class="active"><a href='#'>Page {{ page_list.number }} of {{ page_list.paginator.num_pages}}</a></li>
             {% if page_list.has_next %}
-                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="next">{{ page_list.next_page_number }} &rsaquo;&rsaquo;</a></li>
-                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="next">{{ page_list.next_page_number }} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
             {% else %}
                 <li class="next disabled"><a href='#'>{% trans "next" %} &rsaquo;&rsaquo;</a></li>
         {% endif %}
@@ -47,10 +47,10 @@
     <div class='span2 pull-right' id='myTab'>
      <ul class="nav nav-pills">
       <li class="active">
-        <a href="#images">Images</a>
+        <a data-toggle="tooltip" title='Change Manuscripts View to Images' href="#images">Images</a>
       </li>
       <li>
-        <a href="#list">List</a>
+        <a data-toggle="tooltip" title='Change Manuscripts View to List' href="#list">List</a>
     </li>
     </ul>
 </div>
@@ -92,7 +92,7 @@
             </script>
         -->
 
-    {% if request.GET.town_orc_city or request.GET.repository or request.GET.date %}
+    {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
     <div class='breadcrumb'>
       <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
       {% if request.GET.town_or_city %}| <span><b>Town or City: </b></span><span> {{ request.GET.town_or_city }}</span>{% endif %}
@@ -111,11 +111,11 @@
                     <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                         <p class='imageDetails'>
                             {% ifequal page.annotation_set.all.count 0 %}
-                            <span class='label'>View Annotations</span>
+                            <span data-toggle="tooltip" title="View Image Annotations" class='label'>View Annotations</span>
                             {% else %}
-                            <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                            <a data-toggle="tooltip" title="View Image Annotations" href='{{ page.id }}/' class='label label-info'>View Annotations</a>
                             {% endifequal %}
-                            <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                            <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
                             <p style='line-height:1'>
                                 <span>Annotations: 
                                 <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
@@ -124,7 +124,7 @@
                         </p>
                         <dl class="imageDatabase">
                             <dt>
-                                 <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe }}</a>
+                                 <a href="{{ page.id }}/">{{ page.thumbnail|safe }}</a>
                             </dt>
                             <dd>
                                 <p><b>{{ page }}</b></p>
@@ -136,11 +136,11 @@
                 <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
                         {% ifequal page.annotation_set.all.count 0 %}
-                        <span class='label'>View Annotations</span>
+                        <span data-toggle="tooltip" title="View Image Annotations" class='label'>View Annotations</span>
                         {% else %}
-                        <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                        <a data-toggle="tooltip" title="View Image Annotations" href='{{ page.id }}/' class='label label-info'>View Annotations</a>
                         {% endifequal %}
-                        <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                        <a data-toggle="tooltip" title="View Image Annotations" class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
                         <p style='line-height:1'>
                             <span>Annotations: 
                             <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
@@ -149,7 +149,7 @@
                     </p>
                     <dl class="imageDatabase">
                         <dt>
-                             <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe}}</a>
+                             <a title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe}}</a>
                         </dt>
                         <dd>
                             <p><b>{{ page }}</b></p>
@@ -181,7 +181,6 @@
                     <th>Hands</th>
                     <th>View</th>
                 </tr>
-                <tr>
                 {% for page in page_list %}
                     <tr>
                         <td><a href='{{ page.id }}/'>{{page}}</a></td>
@@ -192,7 +191,6 @@
                         <td><a class='btn btn-primary' href='{{ page.id }}/'>View</a></td>
                     </tr>
                 {% endfor %}
-            </tr>
             </tbody>
         </table>
 
@@ -225,6 +223,9 @@
 $('#myTab a').click(function (e) {
   e.preventDefault();
   $(this).tab('show');
-})
+});
+
+                $('[data-toggle="tooltip"]').tooltip();
+
 </script>
 {% endblock %}

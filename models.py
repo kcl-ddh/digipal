@@ -10,7 +10,7 @@ import os
 import re
 import string
 import unicodedata
-
+import cgi
 
 # Aspect on legacy db
 class Appearance(models.Model):
@@ -594,10 +594,10 @@ class Repository(models.Model):
         verbose_name_plural = 'Repositories'
 
     def __unicode__(self):
-        return u'%s, %s' % (self.place.name, self.short_name or self.name)
+        return u'%s' % (self.short_name or self.name)
 
-    def human_readable():
-        return u'%s, %s' % (self.place.name, self.short_name or self.name)
+    def human_readable(self):
+        return u'%s, %s' % (self.place, self.short_name or self.name)
 
 
 
@@ -872,7 +872,7 @@ class Page(models.Model):
             src = settings.IMAGE_SERVER_THUMBNAIL % \
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
-            return mark_safe(u'<img src="%s" />' % (src))
+            return mark_safe(u'<img alt="%s manuscript image" src="%s" />' % (self.display_label, cgi.escape(src)))
         elif self.image:
             return thumbnail(self.image)
 
@@ -1165,10 +1165,10 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
     def thumbnail(self):
-        return mark_safe(u'<img src="%s" />' % (self.cutout))
+        return mark_safe(u'<img alt="%s" src="%s" />' % (self.page, cgi.escape(self.cutout)))
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (self.cutout,
+        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.cutout),
             self.thumbnail()))
 
     thumbnail.short_description = 'Thumbnail'

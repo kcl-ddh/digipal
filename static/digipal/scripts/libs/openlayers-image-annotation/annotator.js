@@ -219,13 +219,38 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass : 'olControlSaveFeatures'
 	});
 
-	// adds all the control features to the toolbar panel
-	this.toolbarPanel.addControls([ this.deleteFeature, this.modifyFeature,
-			this.transformFeature, this.duplicateFeature, this.polygonFeature,
-			this.rectangleFeature, this.selectFeature, this.dragFeature,
-			this.zoomBoxFeature, this.saveButton ]);
+	/* FullScreen Mode */
 
-	// sets the default control to be the drag feature
+
+	/* End FullScreen Mode */	
+
+
+	// Full screen feature
+
+	FullScreen = OpenLayers.Class(OpenLayers.Control, {
+		initialize : function(layer, options) {
+			OpenLayers.Control.prototype.initialize.apply(this, [ options ]);
+			this.layer = layer;
+		},
+		
+		CLASS_NAME : 'OpenLayers.Control.FullScreen'
+	});
+
+	this.fullScreen = new OpenLayers.Control.Button({
+		displayClass : 'olControlFullScreenFeature',
+		title : 'Full Screen',
+		trigger : function() {
+			_self.full_Screen();
+		}
+	});
+
+	// adds all the control features to the toolbar panel
+	this.toolbarPanel.addControls([ this.fullScreen, this.selectFeature, this.dragFeature,
+			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.modifyFeature,
+			this.transformFeature, this.duplicateFeature, this.polygonFeature,
+			this.rectangleFeature,]);
+
+	// sets the default control to be the drag feature 
 	this.toolbarPanel.defaultControl = this.selectFeature;
 
 	// adds the toolbar panel to the map
@@ -252,6 +277,8 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 Annotator.SAVED = 1;
 Annotator.SAVED_ATTRIBUTE = 'saved';
 Annotator.UNSAVED = 0;
+
+
 
 /**
  * Function that is called after a feature is selected.
@@ -393,3 +420,5 @@ Annotator.prototype.setSavedAttribute = function(feature, saved, redraw) {
 		this.vectorLayer.drawFeature(feature, 'default');
 	}
 }
+
+

@@ -9,16 +9,17 @@
       href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
       <link rel="stylesheet" type="text/css"
       href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
-      <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css">
       <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     {% endblock %}
 
     {% block extra_js %}
-      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
-      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-      <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-      <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>      
+    <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
+    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>    
+<script src="http://openlayers.org/dev/OpenLayers.js"></script>    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+
     {% endblock %}
 
 {% block annotations %}
@@ -73,19 +74,28 @@
         </div>
       </div>
     </div>
-        <div class='panel' id='panelImageBox'>
+        <div class='panel' id='panelImageBox' style='padding:1%;'>
           <span><b>Annotations</b>: <span class="badge badge-important">{{ annotations }}</span></span>
           <span><b>Hands</b>: <span class="badge badge-success">{{ hands }}</span>
+          {% if annotations > 0 %}
           <span><b>Turn Annotations:</b>
             <div id="toggle-state-switch" class="switch switch-small">
               <input type="checkbox">
             </div>
           </span>
+
           <span>
             <b>Filter Annotations:</b>
             <a class='btn' id='filterAllographs'>Filter</a>
           </span>
-          <div id='allographs_filtersBox'></div>
+          {% endif %}
+          {% if request.user.is_superuser %}
+          <b>Edit graph</b>
+          <span id='buttonEdit'><a href="#myModal" role="button" data-toggle="modal" class="btn" id="editGraph">Edit</a></span>
+          {% endif %}
+      </div>
+      <div>
+        <p id='status'></p>
       </div>
       
       </div>
@@ -95,11 +105,21 @@
 
         </div>
         </div>
-         <div style='display:none;'>
-            {% for field in form %}
-              {{ field }}
-            {% endfor %}
+        <div id="myModal" class="modal hide">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 class='header5' id="myModalLabel">Edit Features</h3>
           </div>
+          <div class="modal-body">
+                {% for field in form %}
+                    <p>
+                    {{ field.label_tag }}
+                    {{ field }}
+                    </p>
+                  {% endfor %}
+              </div>
+          </div>
+        </div>
   </form>
   <div id='annotations'></div>
 </body>
@@ -108,19 +128,25 @@
 <p>No image available.</p>
 {% endif %}
 </div>
- <div id='loadingFilters'>
-            <div><b>Loading Features...</b></div>
-            <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
-        </div>
-<script>
+<div id='loadingFilters'>
+    <div><b>Loading Features ...</b></div>
+    <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+</div>
+<div id='loadingGraph'>
+    <div><b>Loading Graph ...</b></div>
+    <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+</div>
+
+          <div id='allographs_filtersBox'></div> 
+<!-- Modal -->
+    <script>
   $(document).ready(function() {
          annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
         '{{ page.image.url }}', {{ width }}, {{ height }},
         '{{ image_server_url }}');
 
           {% if not isAdmin %}
-          annotator.toolbarPanel.controls.pop();
-          annotator.toolbarPanel.controls.splice(0, 6);
+          annotator.toolbarPanel.controls.splice(4, 9);
           annotator.toolbarPanel.redraw()
           {% endif %}
 
@@ -128,9 +154,14 @@
             updateFeatureSelect();
           });
 
+          $("#id_feature").multiselect({noneSelectedText: 'Select features',
+            selectedList: 10
+          });
+
           $(document).keypress(function(event) {
             annotator.activateKeyboardShortcuts();
           });
+          
 
           {% if vector_id %}
           // vectorLayer event moveend is triggered on first load so flag this
@@ -154,16 +185,26 @@
               }
           });
                    
-
-          $.getJSON('annotations/', function(data) {
-                annotator.annotations = data;
-                //showAnnotationsOverview(data);
-
+          $.ajax({
+            url: 'annotations/',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data){
+              annotator.annotations = data;
                 if (annotator.selectedFeature) {
                     annotator.showAnnotation(annotator.selectedFeature);
                 }
-            });
-          {% endif %}
+            },
+            beforeSend: function(){
+              $('#loadingGraph').fadeIn();
+            },
+            complete: function(){
+              $('#loadingGraph').fadeOut();
+            }
+
+          });
+
+      {% endif %}
 
             
       
@@ -182,128 +223,128 @@
           });
           features.push(f);
       });
-      function removeDuplicate(element, attribute, text){
-              var seen = {};
-              $(element).each(function() {
-                  if(text == true){
-                    var txt = $(this).text();
-                    attribute = null;
-                  } else {
-                    var txt = $(this).attr(attribute);
+
+
+      allographs_box = 0;
+      allographs_loaded = false;
+      $('#filterAllographs').click(function(){
+        if(allographs_loaded == false){
+          if (allographs_box == 0){
+            $.ajax({
+              dataType: "json",
+              url: 'annotations/',
+              success: function(data){
+                checkOutput = '<ul><span class="btn btn-link pull-left" id="checkAll">Check all</span> <span class="btn btn-link pull-right" id="unCheckAll">Uncheck all</span><br clear="all" />';       
+                annotations = data;
+                if(!isEmpty(annotations)){
+                  for (i in annotations){
+                      checkOutput += "<li data-annotation = '" + annotations[i]['feature'] + "'><label>" + annotations[i]['feature'] + "" +
+                      "<input checked='true' value = '" + annotations[i]['feature'] + "' class='checkVectors' id='" + annotations[i]['vector_id'] + "' type='checkbox' /></label></li>";
                   }
-                  if (seen[txt])
-                      $(this).remove();
-                  else
-                      seen[txt] = true;
-              });
-            }
-            allographs_box = 0;
-            allographs_loaded = false;
-            $('#filterAllographs').click(function(){
-              if (allographs_box == 0){
-                  $.ajax({
-                    dataType: "json",
-                    url: 'annotations/',
-                    success: function(data){
-                      checkOutput = '<ul>';
-                      annotations = data;
-                      if(!isEmpty(annotations)){
-                        for (i in annotations){
-                            checkOutput += "<li data-annotation = '" + annotations[i]['feature'] + "'><label>" + annotations[i]['feature'] + "" +
-                            "<input value = '" + annotations[i]['feature'] + "' class='checkVectors' id='" + annotations[i]['vector_id'] + "' type='checkbox' /></label></li>";
-                        }
-                      } else { 
-                        checkOutput += "<li>No annotations to filter</li>";
-                      } 
-                      checkOutput += "</ul>";
-                      $('#allographs_filtersBox').dialog({
-                        draggable: true,
-                        height: 270, 
-                        title: "Filter Annotations",
-                        close: function(event, ui){
-                          allographs_box = 0;
-                        }
-                      });
-         
-                    },
-                    beforeSend: function(){
-                       $('#loadingFilters').fadeIn();
-                    },
-                    complete: function(){
-                      $('#loadingFilters').fadeOut();
-                      removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
-                      $('#allographs_filtersBox').html(checkOutput)
-                      removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
-                      (function(){
-                        $('input[type=checkbox]').change(function(){
-                          features = annotator.vectorLayer.features;
-                          for(i in features){
-                            if($(this).is(':checked')){
-                              if($(this).val() == features[i].feature){
-                                features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
-                                annotator.vectorLayer.redraw();
-                              }
-                            } else {
-                              if($(this).val() == features[i].feature){
-                                features[i].style = '';
-                                annotator.vectorLayer.redraw();
-                              }
-                            }
-                          }
-                        });
-                      }());
-                    }
-                  });
-               }
-             allographs_box = 1;
-            });
-
-            $('#map').css('border','1px solid #efefef');
-            $('#map').css('border-radius','3px');
-
-            $('#toggle-state-switch').bootstrapSwitch('toggleState');
-
-            
-            var showImages = 0;
-            $('#showImages').click(function(){
-              if(showImages == 0){
-                position = $(this).position();
-                $('#popupImages').css('top', position['top'] + 40);
-                $('#popupImages').css('left', position['left'] - 40);
-                $('#popupImages').fadeIn();
-                showImages = 1;
-              } else {
-                $('#popupImages').fadeOut();
-                showImages = 0;
+                } else { 
+                  checkOutput += "<li>No annotations to filter</li>";
+                } 
+                checkOutput += "</ul>";
+                $('#allographs_filtersBox').dialog({
+                  draggable: true,
+                  height: 270, 
+                  title: "Filter Annotations",
+                  close: function(event, ui){
+                    allographs_box = 0;
+                  }
+                });
+                annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
+                $('#allographs_filtersBox').html(checkOutput)
+                annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
+              },
+              beforeSend: function(){
+                 $('#loadingFilters').fadeIn();
+              },
+              complete: function(){
+                $('#loadingFilters').fadeOut();
+                allographs_box = 1;
+                allographs_loaded = true;
+                $('.checkVectors').change(function(){
+                  annotator.filterAnnotation($(this));
+                });
+                $('#checkAll').click(function(){
+                  annotator.filterCheckboxes('input[type=checkbox]', 'check');
+                });
+                $('#unCheckAll').click(function(){
+                  annotator.filterCheckboxes('input[type=checkbox]', 'uncheck');
+                });
               }
-            });            
-
-            $('#closeBox').click(function(){
-              $('#popupImages').fadeOut();
             });
-
-            $('#toggle-state-switch').on('click', function () {
-                $('#toggle-state-switch').bootstrapSwitch('toggleState');
+          }
+       } else {
+        if(allographs_box == 0){
+            $('#allographs_filtersBox').dialog({
+                  draggable: true,
+                  height: 270, 
+                  title: "Filter Annotations",
+                  close: function(event, ui){
+                    allographs_box = 0;
+                  }
+                });
+            allographs_loaded = true;
+            allographs_box = 1;
+            $('.checkVectors').change(function(){
+              annotator.filterAnnotation($(this));
             });
-
-
-            $('#toggle-state-switch').on('switch-change', function (e, data) {
-                if($(this).bootstrapSwitch('status')){
-                  annotator.vectorLayer.setVisibility(true)
-                } else {
-                  annotator.vectorLayer.setVisibility(false)
-                }
+            $('#checkAll').click(function(){
+              annotator.filterCheckboxes('.checkVectors', 'check');
             });
-
-
-            $('.imagesBoximage').tooltip({
-              'title': $(this).attr('data-title'),
-              'placement': 'bottom',
-              'trigger': 'hover',
-              'container': 'body'
+            $('#unCheckAll').click(function(){
+              annotator.filterCheckboxes('.checkVectors', 'uncheck');
             });
+          }
+        }
+        
+      });
+
+      $('#map').css('border','1px solid #efefef');
+      $('#map').css('border-radius','3px');
+
+      $('#toggle-state-switch').bootstrapSwitch('toggleState');
+
+      
+      var showImages = 0;
+      $('#showImages').click(function(){
+        if(showImages == 0){
+          position = $(this).position();
+          $('#popupImages').css('top', position['top'] + 40);
+          $('#popupImages').css('left', position['left'] - 40);
+          $('#popupImages').fadeIn();
+          showImages = 1;
+        } else {
+          $('#popupImages').fadeOut();
+          showImages = 0;
+        }
+      });            
+
+      $('#closeBox').click(function(){
+        $('#popupImages').fadeOut();
+      });
+
+      $('#toggle-state-switch').on('click', function () {
+          $('#toggle-state-switch').bootstrapSwitch('toggleState');
+      });
+
+
+      $('#toggle-state-switch').on('switch-change', function (e, data) {
+          if($(this).bootstrapSwitch('status')){
+            annotator.vectorLayer.setVisibility(true)
+          } else {
+            annotator.vectorLayer.setVisibility(false)
+          }
+      });
+
+      {% if request.GET.annotations == "false" %}
+        $('#toggle-state-switch').bootstrapSwitch('toggleState');
+      {% endif %}
+    
+          
       });
 </script>
-
 {% endblock %}
 

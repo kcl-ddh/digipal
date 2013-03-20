@@ -35,7 +35,7 @@
                 <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="next">{{ page_list.next_page_number }} &rsaquo;&rsaquo;</a></li>
                 <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
             {% else %}
-                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
+                <li class="next disabled"><a href='#'>{% trans "next" %} &rsaquo;&rsaquo;</a></li>
         {% endif %}
          </ul>
      </div> 
@@ -98,7 +98,7 @@
                     {% else %}
                     <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
                     {% endifequal %}
-                    <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
+                    <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
                     <p style='line-height:1'>
                         <span>Annotations: 
                         <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
@@ -123,7 +123,7 @@
                     {% else %}
                     <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
                     {% endifequal %}
-                    <a class='label label-info' href="{{ page.id }}/">View Image</a></p>
+                    <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
                     <p style='line-height:1'>
                         <span>Annotations: 
                         <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>

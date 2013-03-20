@@ -13,13 +13,15 @@ class Command(BaseCommand):
 	
 	Commands:
 	
-		backup [BACKUP_NAME]
-		
-			--table TABLE_NAME
+		backup [--table TABLE_NAME] [BACKUP_NAME]
 	
-		restore name
+		restore BACKUP_NAME
 	
 		list
+		
+		fixseq
+			Fix the postgresql sequences. 
+			Useful when you get a duplicate key violation on insert after restoring a database.  
 	
 	Options:
 	

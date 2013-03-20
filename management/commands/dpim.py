@@ -54,9 +54,12 @@ class Command(BaseCommand):
 	Commands:
 	
 		upload:
-			convert new images and create Page records
+			convert new images to JPEG 2000 and create the corresponding 
+			Page records
+			
 		list:
 			list the images on disk and if they are already uploaded
+			
 		unstage
 			remove the images from the database (but leave them on disk)
 	
@@ -72,6 +75,22 @@ class Command(BaseCommand):
 
 		--missing
 			select only the images which are on the DB and not on disk
+	
+	Examples:
+	
+		python manage.py dpim --filter canterbury upload
+			upload all the images which contain 'test' in their name
+			
+		python manage.py dpim --filter canterbury unstage
+			remove from the database the Page records which point to
+			an image with 'canterbury' in its name.
+			
+		python manage.py dpim --offline list
+			list all the image which are only on disk and not in the DB
+			
+		python manage.py dpim --missing --filter canterbury list
+			list all the image which are only in the database and not 
+			on disk and which name contains 'canterbury'
 	
 	----------------------------------------------------------------------
 	

@@ -13,8 +13,12 @@
     <script src="http://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
     <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>    
+<<<<<<< HEAD
     <script src="http://openlayers.org/dev/OpenLayers.js"></script>    
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+=======
+<script src="http://openlayers.org/dev/OpenLayers.js"></script>    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+>>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
 
@@ -22,6 +26,7 @@
 
 {% block annotations %}
 <div class='container'>
+<<<<<<< HEAD
   {% if page.image %}
   <h2 class='header1'>{{page|capfirst}}</h2>            
   <form id="frmAnnotation" method="get" name="frmAnnotation">
@@ -356,13 +361,336 @@
           }
       });
 
+=======
+{% if page.image %}
+<h2 class='header1'>{{page|capfirst}}</h2>            
+<form action="" id="frmAnnotation" method="get" name="frmAnnotation">
+    {% csrf_token %}
+    <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+  <div class='row'>
+    <div class='span7'>
+        <ul class='nav nav-tabs'>
+          <li class='active'><a>View Manuscript</a></li>
+          <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
+          <li><a href='metadata/'>View Metadata</a></li>
+          <li><a href='copyright/'>Image Copyright</a></li>
+        </ul>
+    </div>
+    <div class='span3 pull-right'>
+      <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This record has {{ page.item_part.pages.count }}
+       {% if page.item_part.pages.count == 1 %} 
+        <span style='font-weight:bold'>image</span></span>
+        {% else %}
+        <span style='font-weight:bold'>images</span></span>
+        {% endif %}          
+          <div id='popupImages' class="row-fluid">
+            <div class='arrow'></div>
+            <div id='titlePopup'><p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'>X</span></p> </div>
+            <div class='span12' id='imagesBoxcontent'>
+              {% for p in page.item_part.pages.all %}
+              {% if page.item_part.pages.count == 1 %}
+                <p>
+                  <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">{{ p.thumbnail|safe }}
+                      </a>
+                    </p>
+                {% elif page.item_part.pages.count < 3 %}
+                    <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
+                      </a>
+                {% else %}
+                  {% if forloop.counter|divisibleby:3 %}
+                    <div class='row'>
+
+                     <a style='margin-left:1.1%;' data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                    </div>
+                {% else %}
+                    <a  data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+   
+              {% endif %}
+              {% endif %}
+          {% endfor %}
+          </div>                  
+        </div>
+      </div>
+    </div>
+        <div class='panel' id='panelImageBox' style='padding:1%;'>
+          <span><b>Annotations</b>: <span class="badge badge-important">{{ annotations }}</span></span>
+          <span><b>Hands</b>: <span class="badge badge-success">{{ hands }}</span>
+          {% if annotations > 0 %}
+          <span><b>Turn Annotations:</b>
+            <div id="toggle-state-switch" class="switch switch-small">
+              <input type="checkbox">
+            </div>
+          </span>
+
+          <span>
+            <b>Filter Annotations:</b>
+            <a class='btn' id='filterAllographs'>Filter</a>
+          </span>
+          {% endif %}
+          {% if request.user.is_superuser %}
+          <b>Edit graph</b>
+          <span id='buttonEdit'><a href="#myModal" role="button" data-toggle="modal" class="btn" id="editGraph">Edit</a></span>
+          {% endif %}
+      </div>
+      <div>
+        <p id='status'></p>
+      </div>
+      
+      </div>
+        <div class='container'>
+            <div id="map"></div>
+            <div id="toolbar" class="olControlEditingToolbar"></div>
+
+        </div>
+        </div>
+        <div id="myModal" class="modal hide">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 class='header5' id="myModalLabel">Edit Features</h3>
+          </div>
+          <div class="modal-body">
+                {% for field in form %}
+                    <p>
+                    {{ field.label_tag }}
+                    {{ field }}
+                    </p>
+                  {% endfor %}
+              </div>
+          </div>
+        </div>
+  </form>
+  <div id='annotations'></div>
+</body>
+</html>
+{% else %}
+<p>No image available.</p>
+{% endif %}
+</div>
+<div id='loadingFilters'>
+    <div><b>Loading Features ...</b></div>
+    <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+</div>
+<div id='loadingGraph'>
+    <div><b>Loading Graph ...</b></div>
+    <div><img src='/static/digipal/images/ajax-loader.gif' /></div>
+</div>
+
+          <div id='allographs_filtersBox'></div> 
+<!-- Modal -->
+    <script>
+  $(document).ready(function() {
+         annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+        '{{ page.image.url }}', {{ width }}, {{ height }},
+        '{{ image_server_url }}');
+
+          {% if not isAdmin %}
+          annotator.toolbarPanel.controls.splice(4, 9);
+          annotator.toolbarPanel.redraw()
+          {% endif %}
+
+          $('#id_allograph').change(function() {
+            updateFeatureSelect();
+          });
+
+          $("#id_feature").multiselect({noneSelectedText: 'Select features',
+            selectedList: 10
+          });
+
+          $(document).keypress(function(event) {
+            annotator.activateKeyboardShortcuts();
+          });
+          
+
+          {% if vector_id %}
+          // vectorLayer event moveend is triggered on first load so flag this
+          initialLoad = true;
+
+          // tries to centre the map every 1/2 second
+          interval = setInterval(function() {
+              annotator.selectFeatureByIdAndCentre('{{ vector_id }}');
+          }, 500);
+
+          // listen for the moveend event
+          annotator.vectorLayer.events.register('moveend', 
+              annotator.vectorLayer, function() {
+              // checks if it is a first load, if not kill the interval
+              if (initialLoad) {
+                initialLoad=false
+              } else {
+                clearInterval(interval);
+                annotator.selectFeatureByIdAndZoom('{{ vector_id }}');
+                annotator.vectorLayer.events.remove('moveend');
+              }
+          });
+                   
+          $.ajax({
+            url: 'annotations/',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data){
+              annotator.annotations = data;
+                if (annotator.selectedFeature) {
+                    annotator.showAnnotation(annotator.selectedFeature);
+                }
+            },
+            beforeSend: function(){
+              $('#loadingGraph').fadeIn();
+            },
+            complete: function(){
+              $('#loadingGraph').fadeOut();
+            }
+
+          });
+
+      {% endif %}
+
+            
+      
+      vectors = annotator.vectorLayer.features;
+      format = annotator.format;
+      $.each(vectors, function(id, vector) {
+          var f = format.read(vector);
+          f.id = id;
+          $.getJSON('annotations/', function(annotations){
+              $.each(annotations, function(index) {
+                  allograph = annotations[index]['feature'];
+                  if(f.id == annotations[index]['vector_id']){
+                      f['feature'] = allograph;
+                  }
+              });
+          });
+          features.push(f);
+      });
+
+
+      allographs_box = 0;
+      allographs_loaded = false;
+      $('#filterAllographs').click(function(){
+        if(allographs_loaded == false){
+          if (allographs_box == 0){
+            $.ajax({
+              dataType: "json",
+              url: 'annotations/',
+              success: function(data){
+                checkOutput = '<ul><span class="btn btn-link pull-left" id="checkAll">Check all</span> <span class="btn btn-link pull-right" id="unCheckAll">Uncheck all</span><br clear="all" />';       
+                annotations = data;
+                if(!isEmpty(annotations)){
+                  for (i in annotations){
+                      checkOutput += "<li data-annotation = '" + annotations[i]['feature'] + "'><label>" + annotations[i]['feature'] + "" +
+                      "<input checked='true' value = '" + annotations[i]['feature'] + "' class='checkVectors' id='" + annotations[i]['vector_id'] + "' type='checkbox' /></label></li>";
+                  }
+                } else { 
+                  checkOutput += "<li>No annotations to filter</li>";
+                } 
+                checkOutput += "</ul>";
+                $('#allographs_filtersBox').dialog({
+                  draggable: true,
+                  height: 270, 
+                  title: "Filter Annotations",
+                  close: function(event, ui){
+                    allographs_box = 0;
+                  }
+                });
+                annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
+                $('#allographs_filtersBox').html(checkOutput)
+                annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
+              },
+              beforeSend: function(){
+                 $('#loadingFilters').fadeIn();
+              },
+              complete: function(){
+                $('#loadingFilters').fadeOut();
+                allographs_box = 1;
+                allographs_loaded = true;
+                $('.checkVectors').change(function(){
+                  annotator.filterAnnotation($(this));
+                });
+                $('#checkAll').click(function(){
+                  annotator.filterCheckboxes('input[type=checkbox]', 'check');
+                });
+                $('#unCheckAll').click(function(){
+                  annotator.filterCheckboxes('input[type=checkbox]', 'uncheck');
+                });
+              }
+            });
+          }
+       } else {
+        if(allographs_box == 0){
+            $('#allographs_filtersBox').dialog({
+                  draggable: true,
+                  height: 270, 
+                  title: "Filter Annotations",
+                  close: function(event, ui){
+                    allographs_box = 0;
+                  }
+                });
+            allographs_loaded = true;
+            allographs_box = 1;
+            $('.checkVectors').change(function(){
+              annotator.filterAnnotation($(this));
+            });
+            $('#checkAll').click(function(){
+              annotator.filterCheckboxes('.checkVectors', 'check');
+            });
+            $('#unCheckAll').click(function(){
+              annotator.filterCheckboxes('.checkVectors', 'uncheck');
+            });
+          }
+        }
+        
+      });
+
+      $('#map').css('border','1px solid #efefef');
+      $('#map').css('border-radius','3px');
+
+      $('#toggle-state-switch').bootstrapSwitch('toggleState');
+
+      
+      var showImages = 0;
+      $('#showImages').click(function(){
+        if(showImages == 0){
+          position = $(this).position();
+          $('#popupImages').css('top', position['top'] + 40);
+          $('#popupImages').css('left', position['left'] - 40);
+          $('#popupImages').fadeIn();
+          showImages = 1;
+        } else {
+          $('#popupImages').fadeOut();
+          showImages = 0;
+        }
+      });            
+
+      $('#closeBox').click(function(){
+        $('#popupImages').fadeOut();
+      });
+
+      $('#toggle-state-switch').on('click', function () {
+          $('#toggle-state-switch').bootstrapSwitch('toggleState');
+      });
+
+
+      $('#toggle-state-switch').on('switch-change', function (e, data) {
+          if($(this).bootstrapSwitch('status')){
+            annotator.vectorLayer.setVisibility(true)
+          } else {
+            annotator.vectorLayer.setVisibility(false)
+          }
+      });
+
+>>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
       {% if request.GET.annotations == "false" %}
         $('#toggle-state-switch').bootstrapSwitch('toggleState');
       {% endif %}
     
+<<<<<<< HEAD
       $('[data-toggle="tooltip"]').tooltip();
       
       });
 </script>          
+=======
+          
+      });
+</script>
+>>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
 {% endblock %}
 

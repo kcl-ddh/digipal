@@ -34,6 +34,10 @@ urlpatterns += patterns('digipal.views.image',
                        (r'^image-display/', 'image'),
                        )
 
+urlpatterns += patterns('digipal.views.admin.page',
+                       (r'admin/page/bulk_edit', 'page_bulk_edit'),
+                       )
+
 urlpatterns += patterns('haystack.views',
                         url(
                             r'^facets/(?P<model>\D+)/$',

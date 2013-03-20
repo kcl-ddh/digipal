@@ -110,6 +110,10 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check){
         $(checkboxes).attr('checked', false);
         features = _self.vectorLayer.features;
         for(i = 0; i < features.length; i++){
+<<<<<<< HEAD
+=======
+            
+>>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
             features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
             _self.vectorLayer.redraw();
         }

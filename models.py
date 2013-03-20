@@ -11,6 +11,11 @@ import re
 import string
 import unicodedata
 import cgi
+import iipimage.fields
+import iipimage.storage
+
+import logging
+dplog = logging.getLogger( 'digipal_debugger')
 
 # Aspect on legacy db
 class Appearance(models.Model):
@@ -763,6 +768,7 @@ class ItemPart(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    pagination = models.BooleanField(blank=False, null=False, default=False)
 
     class Meta:
         ordering = ['display_label']
@@ -792,11 +798,16 @@ class LatinStyle(models.Model):
 
 
 class Page(models.Model):
-    item_part = models.ForeignKey(ItemPart, related_name='pages')
+    item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
     locus = models.CharField(max_length=64)
+    # r|v|vr|n=none|NULL=unspecified
+    folio_side = models.CharField(max_length=4, blank=True, null=True)
+    folio_number = models.CharField(max_length=8, blank=True, null=True)
     caption = models.CharField(max_length=256)
     image = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True,
             null=True)
+    iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path, 
+            blank=True, null=True, storage=iipimage.storage.image_storage)
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -807,74 +818,124 @@ class Page(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def get_locus_label(self):
+        ret = ''
+        if self.folio_number:
+            ret = ret + self.folio_number
+        if self.folio_side:
+            ret = ret + self.folio_side
+        
+        if ret == '0r':
+            ret = 'face'
+        if ret == '0v':
+            ret = 'dorse'
+        
+        if ret and self.folio_number and self.folio_number != '0':
+            unit = 'f.'
+            if self.item_part and self.item_part.pagination:
+                unit = 'p.'
+            ret = unit + ret
+            
+        return ret
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s: %s' % (self.item_part, self.locus)
+        # TODO: shouldn't this be turned into a method instead of resetting each time? 
+        if (self.item_part):
+            self.display_label = u'%s: %s' % (self.item_part, self.locus)
+        else:
+            self.display_label = u''
         super(Page, self).save(*args, **kwargs)
 
     def path(self):
         """Returns the path of the image on the image server. The server path
         is composed by combining repository/shelfmark/locus."""
-        path = None
+        #raise RuntimeError('deprecated, partial URL is encapsulated by the iipimage field.')
+        #dplog.debug(self.iipimage.storage.base_url)
+        #print dir(self.iipimage.storage)
+        return self.iipimage.name
 
-        repository = self.item_part.current_item.repository.short_name
-        shelfmark = self.item_part.current_item.shelfmark
-
-        if repository and shelfmark:
-            repository = normalize_string(repository)
-            shelfmark = normalize_string(shelfmark)
-            locus = normalize_string(self.locus)
-
-            path = u'%s/%s/%s/%s.%s' % (settings.IMAGE_SERVER_ROOT,
-                    repository, shelfmark, locus, settings.IMAGE_SERVER_EXT)
-
-        return path
+#        repository = self.item_part.current_item.repository.short_name
+#        shelfmark = self.item_part.current_item.shelfmark
+#
+#        if repository and shelfmark:
+#            repository = normalize_string(repository)
+#            shelfmark = normalize_string(shelfmark)
+#            locus = normalize_string(self.locus)
+#
+#            path = u'%s/%s/%s/%s.%s' % (settings.IMAGE_SERVER_WEB_ROOT,
+#                    repository, shelfmark, locus, settings.IMAGE_SERVER_EXT)
+#
+#        return path
 
     def dimensions(self):
         """Returns a tuple with the image width and height."""
+        # TODO: review the performances of this: 
+        # a http request for each image seems prohibitive.
         width = 0
         height = 0
-
-        if self.path():
-            h = httplib.HTTPConnection(settings.IMAGE_SERVER_HOST)
-            h.request('GET', settings.IMAGE_SERVER_METADATA % \
-                    (settings.IMAGE_SERVER_PATH, self.path()))
-            response = h.getresponse()
-
-            if response:
-                message = response.read().strip()
-                matches = re.match(settings.IMAGE_SERVER_METADATA_REGEX,
-                        message)
-
-                if matches:
-                    width = matches.group(1)
-                    height = matches.group(2)
-        elif self.image:
-            width = self.image.width
-            height = self.image.height
-
+        
+        if self.iipimage:
+            width, height = self.iipimage._get_image_dimensions()
+        
         return int(width), int(height)
+#        if self.path():
+#            h = httplib.HTTPConnection(settings.IMAGE_SERVER_HOST)
+#            h.request('GET', settings.IMAGE_SERVER_METADATA % \
+#                    (settings.IMAGE_SERVER_PATH, self.path()))
+#            response = h.getresponse()
+#
+#            if response:
+#                message = response.read().strip()
+#                matches = re.match(settings.IMAGE_SERVER_METADATA_REGEX,
+#                        message)
+#
+#                if matches:
+#                    width = matches.group(1)
+#                    height = matches.group(2)
+#        elif self.image:
+#            width = self.image.width
+#            height = self.image.height
+#
+#        return int(width), int(height)
 
     def full(self):
         """Returns the URL for the full size image."""
-        if self.path():
-            src = settings.IMAGE_SERVER_FULL % \
+        ret = ''
+        path = ''
+        if self.iipimage:
+            #path = self.iipimage.full_base_url
+            path = settings.IMAGE_SERVER_FULL % \
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
-        elif self.image:
-            src = self.image.url
-
-        return src
+            
+        return path
+    
+#        if self.path():
+#            src = settings.IMAGE_SERVER_FULL % \
+#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
+#                            self.path())
+#        elif self.image:
+#            src = self.image.url
+#
+#        return src
 
     def thumbnail(self):
         """Returns HTML to display the page image as a thumbnail."""
-        if self.path():
-            src = settings.IMAGE_SERVER_THUMBNAIL % \
-                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-                            self.path())
-            return mark_safe(u'<img alt="%s manuscript image" src="%s" />' % (self.display_label, cgi.escape(src)))
-        elif self.image:
-            return thumbnail(self.image)
+        ret = ''
+        if self.iipimage:
+            src = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src))
+        return ret
+                
+#        dplog.debug('thmb')
+#        if self.path():
+#            src = settings.IMAGE_SERVER_THUMBNAIL % \
+#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
+#                            self.path())
+#            return mark_safe(u'<img src="%s" />' % (src))
+#        elif self.image:
+#            return thumbnail(self.image)
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
@@ -882,12 +943,17 @@ class Page(models.Model):
     def thumbnail_with_link(self):
         """Returns HTML to display the page image as a thumbnail with a link to
         view the image."""
-        if self.path():
-            return mark_safe(u'<a href="%s">%s</a>' % \
-                    (self.full(), self.thumbnail()))
-        elif self.image:
-            return mark_safe(u'<a href="%s">%s</a>' % (self.image.url,
-                thumbnail(self.image)))
+        ret = ''
+        ret = mark_safe(u'<a href="%s">%s</a>' % \
+                (self.full(), self.thumbnail()))
+        return ret
+        
+#        if self.path():
+#            return mark_safe(u'<a href="%s">%s</a>' % \
+#                    (self.full(), self.thumbnail()))
+#        elif self.image:
+#            return mark_safe(u'<a href="%s">%s</a>' % (self.image.url,
+#                thumbnail(self.image)))
 
     thumbnail_with_link.short_description = 'Thumbnail'
     thumbnail_with_link.allow_tags = True
@@ -901,6 +967,7 @@ class Page(models.Model):
             zoomify = settings.IMAGE_SERVER_ZOOMIFY % \
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
+        
 
         return zoomify
 

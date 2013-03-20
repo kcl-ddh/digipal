@@ -20,6 +20,8 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Scribe, Script, ScriptComponent, Source, Status
 import reversion
 
+import logging
+dplog = logging.getLogger( 'digipal_debugger')
 
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
@@ -478,11 +480,24 @@ class PageAdmin(reversion.VersionAdmin):
 
     exclude = ['image']
     inlines = [HandsInline]
-    list_display = ['item_part', 'locus', 'thumbnail_with_link', 'caption',
-            'created', 'modified']
-    list_display_links = ['item_part', 'locus', 'caption', 'created',
-            'modified']
-    search_fields = ['locus']
+    list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
+            'caption', 'created', 'modified', 'iipimage']
+    list_display_links = list_display
+    search_fields = ['id', 'folio_side', 'folio_number', 'caption', 
+            'item_part__display_label', 'iipimage']
+    
+    actions = ['bulk_editing', 'bulk_natural_sorting']
+
+    def bulk_editing(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('digipal.views.admin.page.page_bulk_edit') + '?ids=' + ','.join(selected) )
+    bulk_editing.short_description = 'Bulk edit'
+    
+    def get_locus_label(self, obj):
+        return obj.get_locus_label()
+    get_locus_label.short_description = 'Locus' 
 
 
 class PersonAdmin(reversion.VersionAdmin):

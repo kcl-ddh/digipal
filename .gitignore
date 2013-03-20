@@ -1,6 +1,6 @@
 .DS_Store
 *.log
-*migrations/
+# *migrations/
 *.pot
 *.pyc
 local_settings.py

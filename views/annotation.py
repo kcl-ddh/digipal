@@ -217,6 +217,7 @@ def page_list(request):
     context = {}
     context['page_list'] = page_list
     context['filterImages'] = filterImages
+    context['view'] = request.COOKIES['view']
 
     return render_to_response('digipal/page_list.html', context, context_instance=RequestContext(request))
 

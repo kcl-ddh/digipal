@@ -7,10 +7,11 @@
 
 
 {% block main %}
-<h1 class='header1'>Manuscript Images </h1>
+<h1 class='header1'>Manuscript Images</h1>
+            <form id='searchform3' class="form-inline panel" action='.'></form>
 <div class='container'>
         <div id='formFilters'>
-            <form id='searchform' class="form-inline panel">
+            <form id='searchform' class="form-inline panel" action='.'>
                 <h3 class='header5'>Filter Manuscripts Images</h3>
                 <ul>{{ filterImages.as_ul }}</ul>
                 <div>
@@ -46,10 +47,18 @@
     {% endif %}
     <div class='span2 pull-right' id='myTab'>
      <ul class="nav nav-pills">
+      {% if view == 'Images' %}
       <li class="active">
+       {% else %}
+       <li>
+       {% endif %}
         <a data-toggle="tooltip" title='Change Manuscripts View to Images' href="#images">Images</a>
       </li>
-      <li>
+      {% if view == 'List' %}
+      <li class="active">
+        {% else %}
+       <li>
+       {% endif %}
         <a data-toggle="tooltip" title='Change Manuscripts View to List' href="#list">List</a>
     </li>
     </ul>
@@ -101,13 +110,19 @@
     </div>
     {% endif %}
     {% if page_list %}
+
     <div class='container'>
         <div class="tab-content">
+            {% if view == 'Images' %}
             <div class="tab-pane fade active in" id="images">
-
+            {% else %}
+            <div class="tab-pane fade" id="images">
+            {% endif %}
+                     
             {% for page in page_list %}
             {% if forloop.counter|divisibleby:4 %}
                 <div class='row-fluid'>
+                   
                     <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                         <p class='imageDetails'>
                             {% ifequal page.annotation_set.all.count 0 %}
@@ -169,8 +184,12 @@
                     <h3>No Images available</h3>
                 </div>
         {% endif %}
-    </div>      
+    </div> 
+    {% if view == 'List' %}
+    <div class="tab-pane fade active in" id="list">
+    {% else %}     
      <div class="tab-pane fade" id="list">
+    {% endif %}
         <table class='table table-condensed'>
             <tbody>
                 <tr>
@@ -220,12 +239,19 @@
     {% endif %}
 </div>
 <script>
+  function setCookie(c_name,value,exdays){
+    var exdate=new Date();
+    exdate.setDate(exdate.getDate() + exdays);
+    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+    document.cookie=c_name + "=" + c_value;}
+
 $('#myTab a').click(function (e) {
   e.preventDefault();
   $(this).tab('show');
+  setCookie('view', this.innerHTML, '-1');
 });
 
-                $('[data-toggle="tooltip"]').tooltip();
+$('[data-toggle="tooltip"]').tooltip();
 
 </script>
 {% endblock %}

@@ -925,7 +925,7 @@ class Page(models.Model):
         ret = ''
         if self.iipimage:
             src = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src))
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src)))
         return ret
                 
 #        dplog.debug('thmb')

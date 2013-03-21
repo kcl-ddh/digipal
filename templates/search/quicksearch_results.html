@@ -58,6 +58,19 @@
                     labelFilters.html(label);
                     container.html(content);
                     $('select').chosen();
+                    $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
                });
 
                 advancedSearch = 0;
@@ -106,6 +119,19 @@
                         minLength: 0
                     })
 
+            $('select').change(function(){
+                    result = false; 
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+                    if(!result){
+                        $('#textEntry').attr('required', 'required');
+                    } else {
+                        $('#textEntry').attr('required', false);
+                    }
+                });
             });
         </script>
         <div class='container'>
@@ -133,7 +159,7 @@
     </form> 
      </div>
     <div class='breadcrumb'>
-      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}} by <b><i>{{ search_type|capfirst }}</i></b></span>
      </div>
 
  <div class='container'>

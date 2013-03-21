@@ -127,6 +127,13 @@
                         $('#textEntry').attr('required', false);
                     }
                 });
+
+              tags = {{ suggestions|safe }}
+                    $("#textEntry").typeahead({
+                        source:tags,
+                        items: 8,
+                        minLength: 0
+                    })
             });
         </script>
         <div class='container'>

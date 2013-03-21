@@ -88,8 +88,8 @@ class FilterHands(forms.Form):
         empty_label = "Choose a Scribe",
         required = False)
 
-    repository = forms.ModelChoiceField(
-        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct()
+    repository = forms.ChoiceField(
+        [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()]
     )
 
     def __init__(self, *args, **kwargs):

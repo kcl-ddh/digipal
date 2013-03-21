@@ -28,5 +28,6 @@ def suggestions(request):
                     Q(historical_item__description__description__isnull=False)).values_list('current_item__repository__name',flat=True).distinct()
 	result = list(set(chain(hands, scribes, itemParts)))
 	context = {'suggestions': simplejson.dumps(result)}
+
 	return context
 

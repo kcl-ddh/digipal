@@ -19,12 +19,12 @@ DigipalAnnotator.prototype.constructor = DigipalAnnotator;
 function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
                                                     imageServerUrl, isAdmin) {
     if (imageServerUrl && imageServerUrl != 'None' && imageServerUrl.length > 0) {
-        Annotator.call(this, imageServerUrl, imageWidth, imageHeight, true, isAdmin);
+        Annotator.call(this, imageServerUrl, imageWidth, imageHeight, true);
     } else {
-        Annotator.call(this, imageUrl, imageWidth, imageHeight, false, isAdmin);
+        Annotator.call(this, imageUrl, imageWidth, imageHeight, false);
     }
-
     this.annotations = null;
+    this.isAdmin = isAdmin;
     this.mediaUrl = mediaUrl;
     this.deleteFeature.panel_div.title = 'Delete (ctrl + d)';
     this.modifyFeature.panel_div.title = 'Modify (ctrl + m)';
@@ -44,6 +44,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
  * @param event
  *              The select event.
  */
+
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
     this.selectedFeature = event.feature;
     if ($('#id_hide').prop('checked')) {
@@ -110,10 +111,6 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check){
         $(checkboxes).attr('checked', false);
         features = _self.vectorLayer.features;
         for(i = 0; i < features.length; i++){
-<<<<<<< HEAD
-=======
-            
->>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
             features[i].style = {'fillOpacity': 0, 'strokeOpacity': 0};
             _self.vectorLayer.redraw();
         }
@@ -232,7 +229,16 @@ function showBox(selectedFeature){
     $('#dialog' + id).dialog({
         draggable: true,
         height: 270, 
-        title: selectedFeature.feature,
+        title: function(){
+            if(annotator.isAdmin == "True"){
+                title = selectedFeature.feature +
+                 " <a style='position:absolute;right:35px;top:2px;' class='btn' href='/admin/digipal/graph/" +
+                 selectedFeature.graph + "/'>Edit</a>";
+            } else {
+                title = selectedFeature.feature;
+            }
+            return title;
+        },
         position: [250 + Math.floor(Math.random() * 150), 130 + Math.floor(Math.random() * 150)]
     });
     $.ajax({

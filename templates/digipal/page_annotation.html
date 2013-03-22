@@ -23,7 +23,8 @@
 {% block annotations %}
 <div class='container'>
   {% if page.image %}
-  <h2 class='header1'>{{page|capfirst}}</h2>            
+  <h2 class='header1'>{{page|capfirst}}</h2>
+  <form></form>            
   <form id="frmAnnotation" method="get" name="frmAnnotation">
       {% csrf_token %}
       <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />

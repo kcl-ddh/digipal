@@ -14,7 +14,6 @@ def quickSearch(request):
         term = searchform.cleaned_data['terms']
         result_page = 'search/quicksearch_results.html'
         context['terms'] = term
-        query = ''
         query_manuscripts = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(
                     Q(locus__contains=term) | \
@@ -61,8 +60,10 @@ def quickSearch(request):
         else:
             if count_m >= 1:
                 search_type = 'manuscripts'
-            else:
+            elif count_m == 0 and count_s >= 1:
                 search_type = 'scribes'
+            else:
+                search_type = False
 
 
         context['search_type'] = search_type

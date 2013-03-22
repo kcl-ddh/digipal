@@ -15,7 +15,7 @@
             <h1 class='header1'>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
             {% endwith %}
             {% else %}
-            <h1 class='header1'>Examples of allograph <i>"{% ifnotequal character allograph%}{{ character }}, {% endifnotequal %}{{ allograph }}"</i> for Hands matching search term "{{ term }}" </h1>
+            <h1 class='header1'>Results for <i>Graphs</i></h1>
 
         {% endifnotequal %}
 
@@ -68,16 +68,11 @@
             </ul>
         {% endifequal %}
         {% ifequal style "allograph_list" %} <!-- Display list view, of course -->
-            <!--<p>
-            Testing Graph context object
-            {% for g in graphs %}
-            {{ g.hand.id }}
-            {% endfor %}
-            </p>-->
         <div class="panel" id='filtersform' style='display:block;'>
               <h5 class='header5'>Show Graphs filtered by:</h5>
-              <form class="container form-inline"  method="GET" action="/digipal/search/graph">
-                {{ drilldownform }}
+              <form></form>
+              <form id='filterGraphs' class='container form-inline'  method="GET" action="/digipal/search/graph">
+                <ul>{{ drilldownform.as_ul }}</ul>
                 <div class='container'>
                     <input type="submit" value="Show Graphs" class='btn btn-primary' />
                     <input type='reset' class='btn' />
@@ -85,7 +80,7 @@
                 </form> 
              </div>
         <div class='breadcrumb'>
-          <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+          <span>You are searching for: </span><span><b>Term</b>: {{term}}</span>
           {% if request.GET.script_select %}| <span><b>Script: </b></span><span> {{ request.GET.script_select }}</span>{% endif %}
           {% if request.GET.character_select %}| <span><b>Character: </b></span><span> {{ request.GET.character_select }}</span>{% endif %}
           {% if request.GET.component_select %}| <span><b>Component: </b></span><span>{{ request.GET.component_select }}</span>{% endif %}

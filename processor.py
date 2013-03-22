@@ -25,7 +25,7 @@ def suggestions(request):
                     Q(current_item__shelfmark__isnull=False) | \
                     Q(current_item__repository__name__isnull=False) | \
                     Q(historical_item__catalogue_number__isnull=False) | \
-                    Q(historical_item__description__description__isnull=False)).values_list('current_item__repository__name',flat=True).distinct()
+                    Q(historical_item__description__description__isnull=False)).values_list('current_item__repository__place__name',flat=True).distinct()
 	result = list(set(chain(hands, scribes, itemParts)))
 	context = {'suggestions': simplejson.dumps(result)}
 

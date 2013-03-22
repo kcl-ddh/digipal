@@ -182,7 +182,7 @@
         {% endif %}
         {% if scribes == "False" %}
         <li class='disabled'><a href="#scribes">Scribes (0)</a></li>
-        {% else %}
+        {% elif scribes != "False" and search_type != "scribes" %}
  		<li><a href="#scribes">Scribes ({{scribes.count}})</a></li>
         {% endif %}
     {% else %}
@@ -255,11 +255,13 @@
                 <th>Description</th>
                 <th>Actions</th>
             </tr>
+
             {% autopaginate manuscripts 9 %}
             {% for result in manuscripts %}
+
             <tr>
                 <td>{{ result.historical_item.catalogue_number }} {% if result.pages.all %}
-                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
                 
                 <td>{{ result.current_item.repository.name }}</td>
                 <td>{{ result.current_item.shelfmark }}</td>
@@ -300,7 +302,7 @@
         {% for result in scribes %}
         <tr class="{% cycle 'bgColour' '' %}">
             <td>{{ result.name }} {% if result.pages.all %}
-                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
             <td>{{ result.date }}</td>
             <td>{{ result.scriptorium.name }}</td>
             <td>

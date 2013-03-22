@@ -159,65 +159,94 @@
     </form> 
      </div>
     <div class='breadcrumb'>
-      <span>You are searching for: </span><span><b>Term</b>: {{terms}} by <b><i>{{ search_type|capfirst }}</i></b></span>
+      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
      </div>
 
  <div class='container'>
     <ul class="nav nav-tabs" id='myTab'>
+    {% if hands or scribes or manuscripts %}
     	{% if search_type == 'hands' %}
-        <li class="active"><a>Hands</a></li>
+        <li class="active"><a href='#hands'>Hands ({{hands.count}})</a></li>
         {% else %}
-        <li><a href="/digipal/quicksearch/hands/?terms={{terms|spacify}}">Hands</a></li>
+        <li class='disabled'><a href="#hands">Hands (0)</a></li>
         {% endif %}
         {% if search_type == 'manuscripts' %}
-        <li class='active'><a>Manuscripts</a></li>
-        {% else %}
-        <li><a href="/digipal/quicksearch/manuscripts/?terms={{terms|spacify}}">Manuscripts</a></li>
+        <li class='active'><a href='#manuscripts'>Manuscripts ({{manuscripts.count}})</a></li>
+        {% elif searc_type != "manuscripts" and manuscripts != "False" %}
+        <li><a href='#manuscripts'>Manuscripts ({{manuscripts.count}})</a></li>
+        {% elif manuscripts == "False" %}
+        <li class='disabled'><a href="#manuscripts">Manuscripts (0)</a></li>
         {% endif %}
         {% if search_type == 'scribes' %}
-        <li class='active'><a>Scribes</a></li>
-        {% else %}
- 		<li><a href="/digipal/quicksearch/scribes/?terms={{terms|spacify}}">Scribes</a></li>
+        <li class='active'><a href='#scribes'>Scribes ({{scribes.count}})</a></li>
         {% endif %}
+        {% if scribes == "False" %}
+        <li class='disabled'><a href="#scribes">Scribes (0)</a></li>
+        {% else %}
+ 		<li><a href="#scribes">Scribes ({{scribes.count}})</a></li>
+        {% endif %}
+    {% else %}
+        <li class='disabled'><a href="#hands">Hands (0)</a></li>
+        <li class='disabled'><a href="#manuscripts">Manuscripts (0)</a></li>
+        <li class='disabled'><a href="#scribes">Scribes (0)</a></li>
+    {% endif %}
     </ul>
 </div>
-{% if results %}
-    {% if search_type == 'hands' %}
-     <table class="table table-condensed">
-            <tr>
-                <th>Scribe</th>
-                <th>Place</th>
-                <th>Date</th>
-                <th>Repository</th>
-                <th>Shelfmark</th>
-                <th>Catalogue Number</th>
-                <th>Actions</th>
-            </tr> 
-            {% autopaginate results 9 %}
-            {% for result in results %}
-            <tr class="{% cycle 'bgColour' '' %}">
 
-              <td>{{ result.scribe.name }}
-              {% if result.pages.all %}
-                <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
-              {% endif %}</td>
-              <td>{{ result.assigned_place.name }}</td>
-              <td>{{ result.assigned_date.date }}</td>
-              <td>{{ result.item_part.current_item.repository.name }}</td>
-              <td>{{ result.item_part.current_item.shelfmark }}</td>
-              <td>{{ result.item_part.historical_item.catalogue_number }}</td>
-              <td>
-                      {% if request.user.is_superuser %}
-                      <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
-                      {% endif %}
-                      <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
-              </td>
-          </tr>
-          {% endfor %}
-          {% paginate %}
-        </table>
-     {% elif search_type == 'manuscripts' %}
-    <table class="table table-condensed">
+
+{% if hands or scribes or manuscripts %}
+<div class='tabbable'>
+    <div id='myTabContent' class='tab-content'>
+    {% if search_type == 'hands' %}
+        <div class='tab-pane fade active in' id='hands'>
+         <table class="table table-condensed">
+                <tr>
+                    <th>Scribe</th>
+                    <th>Place</th>
+                    <th>Date</th>
+                    <th>Repository</th>
+                    <th>Shelfmark</th>
+                    <th>Catalogue Number</th>
+                    <th>Actions</th>
+                </tr> 
+                {% autopaginate hands 9 %}
+                {% for result in hands %}
+                <tr class="{% cycle 'bgColour' '' %}">
+
+                  <td>{{ result.scribe.name }}
+                  {% if result.pages.all %}
+                    <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
+                  {% endif %}</td>
+                  <td>{{ result.assigned_place.name }}</td>
+                  <td>{{ result.assigned_date.date }}</td>
+                  <td>{{ result.item_part.current_item.repository.name }}</td>
+                  <td>{{ result.item_part.current_item.shelfmark }}</td>
+                  <td>{{ result.item_part.historical_item.catalogue_number }}</td>
+                  <td>
+                          {% if request.user.is_superuser %}
+                          <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
+                          {% endif %}
+                          <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+                  </td>
+              </tr>
+              {% endfor %}
+
+              {% paginate %}
+            </table>
+                </div>
+
+         {% else %}
+                <div class='tab-pane fade' id='hands'>
+                    <div class='alert alert-warning'><h4>No results found for <b>Hands</b></h4></div>
+                </div>
+      {% endif %}
+     {% if search_type == 'manuscripts' %}
+    <div class='tab-pane fade active in' id='manuscripts'>
+    {% else %}
+    <div class='tab-pane fade' id='manuscripts'>
+    {% endif %}
+        {% if manuscripts != "False" %}
+            <table class="table table-condensed">
             <tr>
                 <th>Index</th>
                 <th>Repository</th>
@@ -226,9 +255,9 @@
                 <th>Description</th>
                 <th>Actions</th>
             </tr>
-            {% autopaginate results 9 %}
-            {% for result in results %}
-            <tr class="{% cycle 'bgColour' '' %}">
+            {% autopaginate manuscripts 9 %}
+            {% for result in manuscripts %}
+            <tr>
                 <td>{{ result.historical_item.catalogue_number }} {% if result.pages.all %}
                 <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
                 
@@ -250,7 +279,16 @@
             {% endfor %}
             {% paginate %}
         </table>
-     {% else %}
+        {% else %}
+            <div class='alert alert-warning'><h4>No results found for <b>Manuscripts</b></h4></div>
+        {% endif %}
+    </div>
+     {% if search_type == 'scribes' %}
+     <div class='tab-pane fade active in' id='scribes'>
+    {% else %}
+    <div class='tab-pane fade' id='scribes'>
+    {% endif %}
+    {% if scribes != "False" %}
      <table class="table table-condensed">
         <tr>
             <th>Name</th>
@@ -258,8 +296,8 @@
             <th>Scriptorium</th>
             <th>Actions</th>
         </tr>
-        {% autopaginate results 9 %}
-        {% for result in results %}
+        {% autopaginate scribes 9 %}
+        {% for result in scribes %}
         <tr class="{% cycle 'bgColour' '' %}">
             <td>{{ result.name }} {% if result.pages.all %}
                 <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
@@ -275,9 +313,19 @@
         {% endfor %}
         {% paginate %}
         </table>
+    {% else %}
+         <div class='alert alert-warning'><h4>No results found for <b>Scribes</b></h4></div>
     {% endif %}
+    </div>
+    </div>
+</div>
 {% else %}
 <div class='alert alert-warning'><h4>No results found</h4></div>
  {% endif %}
-
+<script>
+$('#myTab a').click(function (e) {
+  e.preventDefault();
+  $(this).tab('show');
+});
+</script>
 {% endblock main %}

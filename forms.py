@@ -89,14 +89,12 @@ class FilterHands(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()]
+        choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        label = "Repository",
+        required = False,
+        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
+        initial = "Choose a Repository",
     )
-
-    def __init__(self, *args, **kwargs):
-        super(FilterHands, self).__init__(*args, **kwargs)
-        self.fields['repository'].label = "Repository"
-        self.fields['repository'].empty_label = "Choose a Repository"
-        self.fields['repository'].required = False
 
 
     place = forms.ModelChoiceField(
@@ -122,12 +120,13 @@ class FilterManuscripts(forms.Form):
         empty_label = "Choose an Index",
         required = False)
 
-    repository = forms.ModelChoiceField(
-        queryset = Repository.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
+    repository = forms.ChoiceField(
+        choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "Repository",
-        empty_label = "Choose a Repository",
-        required = False)
+        required = False,
+        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
+        initial = "Choose a Repository",
+    )
 
     date = forms.ModelChoiceField(
         queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
@@ -145,6 +144,7 @@ class FilterManuscriptsImages(forms.Form):
         empty_label = "Choose a Town or City",
         required = False)
 
+    
     repository = forms.ModelChoiceField(
         queryset = Repository.objects.filter(currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat = True),
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),

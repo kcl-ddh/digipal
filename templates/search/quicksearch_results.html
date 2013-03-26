@@ -226,7 +226,7 @@
                           {% if request.user.is_superuser %}
                           <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
                           {% endif %}
-                          <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+                          <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type=hands&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
                   </td>
               </tr>
               {% endfor %}
@@ -275,7 +275,7 @@
                         {% if request.user.is_superuser %}
                         <a class="btn" href="/admin/digipal/itempart/{{ result.id }}">Edit</a>
                         {% endif %}
-                        <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a>
+                        <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type=manuscripts&amp;id={{ result.id }}&amp;amp;record={{ forloop.counter }}">View</a>
                 </td>
             </tr>
             {% endfor %}
@@ -309,7 +309,7 @@
                     {% if request.user.is_superuser %}
                     <a class="btn" href="/admin/digipal/scribe/{{ result.id }}">Edit</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+                    <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;basic_search_type=scribes&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
             </td>
         </tr>
         {% endfor %}

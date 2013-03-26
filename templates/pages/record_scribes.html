@@ -43,12 +43,14 @@
                     <div class='row-fluid'>
                         <table class="table table-condensed">
                             <tr>
+                                <th>Item Part</th>
                                 <th>Hand</th>
                             </tr>
                             {% for hand in scribe.hand_set.all %}
                                 {% if hand %}
                                     <tr>
-                                        <td>{{hand.item_part}}</td>
+                                        <td>{{hand.item_part}}</td> 
+                                        <td><a href='/digipal/search/?terms={{terms}}&amp;basic_search_type=hands&amp;id={{hand.id}}&amp;record=1'>{{hand}}</a></td>
                                     </tr>
                                 {% else %}
                                     <tr>

@@ -270,11 +270,11 @@ class DrilldownForm(forms.Form):
         label='Character',
         empty_label = "Choose a Character",
         required=False)
-    allograph_select = forms.ModelChoiceField(
-        queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
+    allograph_select = forms.ChoiceField(
+        choices = [("", "Choose an Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().order_by('name').distinct()],
+        #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='Allograph',
-        empty_label = "Choose a Allograph",
         required=False)
     component_select = forms.ModelChoiceField(
         queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),

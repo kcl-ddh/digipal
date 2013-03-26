@@ -165,7 +165,7 @@
       {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
       {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
     </div>  
-    <h2 class='header1'>Results for <i>Manuscripts</i></h2>
+    <h2 class='header1'>Results for <i>Manuscripts</i> <span style='font-size:12.5px;'>({{results.count}} results)</span></h2>
     <table class="table table-condensed">
         <tr>
             <th>Index</th>

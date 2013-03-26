@@ -138,6 +138,12 @@ class Allograph(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (self.character.name, self.name)
 
+    def human_readable(self):
+        if unicode(self.character.name) != unicode(self.name):
+            return u'%s, %s' % (self.character, self.name)
+        else:
+            return u'%s' % (self.name)
+
 
 class AllographComponent(models.Model):
     allograph = models.ForeignKey(Allograph)

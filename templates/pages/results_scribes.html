@@ -171,7 +171,7 @@
       {% if request.GET.scriptorium %}| <span><b>Scriptorium: </b></span><span>{{ request.GET.scriptorium }}</span>{% endif %}
       {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
     </div> 
-    <h2 class='header1'>Results for <i>Scribes</i></h2>
+    <h2 class='header1'>Results for <i>Scribes</i> <span style='font-size:12.5px;'>({{results.count}} results)</span></h2>
     <table class="table table-condensed">
         <tr>
             <th>Name</th>

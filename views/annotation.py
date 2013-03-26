@@ -7,6 +7,7 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import sys
 
 from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
@@ -189,7 +190,6 @@ def page_list(request):
     # Get Buttons
 
     town_or_city = request.GET.get('town_or_city', '')
-    print request.GET.get('town_or_city', '')
     repository = request.GET.get('repository', '')
     date = request.GET.get('date', '')
 
@@ -269,13 +269,14 @@ def save(request, page_id, vector_id):
 
             if idiograph_list:
                 idiograph = idiograph_list[0]
+                idiograph.id
             else:
                 idiograph = Idiograph(allograph=allograph, scribe=scribe)
                 idiograph.save()
 
             graph.idiograph = idiograph
             graph.hand = hand
-            graph.save()
+            graph.save() # error is here
 
             feature_list = get_data.getlist('feature')
 
@@ -314,6 +315,8 @@ def save(request, page_id, vector_id):
         data.update({'success': False})
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
+        tb = sys.exc_info()[2]
+        print tb.tb_lineno
 
         return HttpResponse(simplejson.dumps(data),
                 mimetype='application/json')

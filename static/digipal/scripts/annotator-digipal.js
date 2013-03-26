@@ -511,7 +511,7 @@ function save(url, feature, data) {
         url : url + '/' + id + '/?geo_json=' + geoJson,
         data : data,
         error : function(xhr, textStatus, errorThrown) {
-            $('#status').addClass('alert alert-error');
+            $('#status').attr('class', 'alert alert-error');
             updateStatus(textStatus);
             annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
         },
@@ -520,7 +520,7 @@ function save(url, feature, data) {
             if (data.success === false) {
                 handleErrors(data);
             } else {
-                $('#status').addClass('alert alert-success');
+                $('#status').attr('class', 'alert alert-success');
                 updateStatus('Saved annotation.');
             }
         }
@@ -534,7 +534,7 @@ function save(url, feature, data) {
  *              Object with errors.
  */
 function handleErrors(data){
-    $('#status').addClass('alert alert-error');
+    $('#status').attr('class', 'alert alert-error');
     errors = '';
     for ( var e in data.errors) {
         errors += e;

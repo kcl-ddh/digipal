@@ -155,16 +155,7 @@ div.olControlMousePosition {
    background-position: -24px -24px;
 }
 
-div.olControlSaveFeaturesItemActive {
-    background-image: url(img/save_features_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-div.olControlSaveFeaturesItemInactive {
-    background-image: url(img/save_features_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
+
 
 .olHandlerBoxZoomBox {
     border: 2px solid red;
@@ -532,6 +523,16 @@ div.olControlZoom a {
     background: #130085; /* fallback for IE - IE6 requires background shorthand*/
     background: rgba(0, 60, 136, 0.5);
     filter: alpha(opacity=80);
+}
+div.olControlSaveFeaturesItemActive {
+    background-image: url(img/save_features_on.png)!important;
+    background-repeat: no-repeat!important;
+    background-position: 0 1px!important;
+}
+div.olControlSaveFeaturesItemInactive {
+    background-image: url(img/save_features_off.png)!important;
+    background-repeat: no-repeat!important;
+    background-position: 0 1px!important;
 }
 div.olControlZoom a:hover {
     background: #130085; /* fallback for IE */

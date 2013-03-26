@@ -84,31 +84,31 @@ class FilterHands(forms.Form):
     scribes = forms.ModelChoiceField(
         queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
-        label = "Scribes",
-        empty_label = "Choose a Scribe",
+        label = "",
+        empty_label = "Scribe",
         required = False)
 
     repository = forms.ChoiceField(
         choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
-        label = "Repository",
+        label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Choose a Repository",
+        initial = "Repository",
     )
 
 
     place = forms.ModelChoiceField(
         queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Place"}),
-        label = "Place",
-        empty_label = "Choose a Place",
+        label = "",
+        empty_label = "Place",
         required = False)
 
     date = forms.ModelChoiceField(
         queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "Date",
-        empty_label = "Choose a Date",
+        label = "",
+        empty_label = "Date",
         required = False)
 
 class FilterManuscripts(forms.Form):
@@ -116,23 +116,23 @@ class FilterManuscripts(forms.Form):
     index = forms.ModelChoiceField(
         queryset = HistoricalItem.objects.values_list('catalogue_number', flat=True).distinct(),
         widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
-        label = "Index",
-        empty_label = "Choose an Index",
+        label = "",
+        empty_label = "Index",
         required = False)
 
     repository = forms.ChoiceField(
         choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
-        label = "Repository",
+        label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Choose a Repository",
+        initial = "Repository",
     )
 
     date = forms.ModelChoiceField(
         queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "Date",
-        empty_label = "Choose a Date",
+        label = "",
+        empty_label = "Date",
         required = False)
 
 class FilterManuscriptsImages(forms.Form):
@@ -140,65 +140,66 @@ class FilterManuscriptsImages(forms.Form):
     town_or_city = forms.ModelChoiceField(
         queryset = Place.objects.filter(repository__currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat=True),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
-        label = "Medieval Town or City",
-        empty_label = "Choose a Town or City",
+        label = "",
+        empty_label = "Medieval Town or City",
         required = False)
 
     
     repository = forms.ModelChoiceField(
         queryset = Repository.objects.filter(currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat = True),
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        label = "Repository",
-        empty_label = "Choose a Repository",
+        label = "",
+        empty_label = "Repository",
         required = False)
 
     date = forms.ModelChoiceField(
         queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "Date",
-        empty_label = "Choose a Date",
+        label = "",
+        empty_label = "Date",
         required = False)
 
 class FilterScribes(forms.Form):
     name = forms.ModelChoiceField(
         queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'name-select', 'class':'chzn-select', 'data-placeholder':"Choose a Name"}),
-        label = "Name",
-        empty_label = "Choose a Name",
+        label = "",
+        empty_label = "Name",
         required = False)
 
     scriptorium = forms.ModelChoiceField(
         queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'scriptorium-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
-        empty_label = "Choose a Scriptorium",
+        empty_label = "Scriptorium",
+        label = "",
         required = False)
 
     date = forms.ModelChoiceField(
         queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "Date",
-        empty_label = "Choose a Date",
+        label = "",
+        empty_label = "Date",
         required = False)
 
     character = forms.ModelChoiceField(
         queryset = Character.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
-        label = "character",
-        empty_label = "Choose a Character",
+        label = "",
+        empty_label = "Character",
         required = False)
 
     component = forms.ModelChoiceField(
         queryset = Component.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
-        label = "Component",
-        empty_label = "Choose a Component",
+        label = "",
+        empty_label = "Component",
         required = False)
 
     feature = forms.ModelChoiceField(
         queryset = Feature.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
-        label = "Feature",
-        empty_label = "Choose a Feature",
+        label = "",
+        empty_label = "Feature",
         required = False)
 
 class SearchForm(forms.Form):
@@ -261,32 +262,32 @@ class DrilldownForm(forms.Form):
     script_select = forms.ModelChoiceField(
         queryset=Script.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'script-select', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
-        label="Script",
-        empty_label = "Choose a Script",
+        label="",
+        empty_label = "Script",
         required=False)
     character_select = forms.ModelChoiceField(
         queryset=Character.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
-        label='Character',
-        empty_label = "Choose a Character",
+        label='',
+        empty_label = "Character",
         required=False)
     allograph_select = forms.ChoiceField(
-        choices = [("", "Choose an Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().order_by('name').distinct()],
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().order_by('name').distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
-        label='Allograph',
+        label='',
         required=False)
     component_select = forms.ModelChoiceField(
         queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
-        empty_label = "Choose a Component",
-        label='Component',
+        empty_label = "Component",
+        label='',
         required=False)
     feature_select = forms.ModelChoiceField(
         queryset=Feature.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
-        empty_label = "Choose a Feature",
-        label='Feature',
+        empty_label = "Feature",
+        label='',
         required=False)
     # hidden field which we populate with the existing search term in the view
     terms = forms.CharField(

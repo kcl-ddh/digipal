@@ -139,7 +139,7 @@ class Allograph(models.Model):
         return u'%s, %s' % (self.character.name, self.name)
 
     def human_readable(self):
-        if unicode(self.character.name) != unicode(self.name):
+        if unicode(self.character) != unicode(self.name):
             return u'%s, %s' % (self.character, self.name)
         else:
             return u'%s' % (self.name)

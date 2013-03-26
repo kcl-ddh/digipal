@@ -285,7 +285,7 @@ def allographHandSearch(request):
     if allograph:
         graphs = graphs.filter(
             idiograph__allograph__name=allograph).order_by('hand')
-        context['allograph'] = Allograph.objects.get(name=allograph)
+        context['allograph'] = Allograph.objects.filter(name=allograph)
     if feature:
         graphs = graphs.filter(
             graph_components__features__name=feature).order_by('hand')

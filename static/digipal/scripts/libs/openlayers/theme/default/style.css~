@@ -155,16 +155,7 @@ div.olControlMousePosition {
    background-position: -24px -24px;
 }
 
-div.olControlSaveFeaturesItemActive {
-    background-image: url(img/save_features_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-div.olControlSaveFeaturesItemInactive {
-    background-image: url(img/save_features_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
+
 
 .olHandlerBoxZoomBox {
     border: 2px solid red;
@@ -373,18 +364,6 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 .olControlEditingToolbar {
     margin: 5px 5px 0 0;
 }
-<<<<<<< HEAD
-=======
-.olControlNavToolbar div,
-.olControlEditingToolbar div {
-    background-image: url("img/editing_tool_bar.png");
-    background-repeat: no-repeat;
-    margin: 0 0 5px 5px;
-    width: 24px;
-    height: 22px;
-    cursor: pointer
-}
->>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
 /* positions */
 .olControlEditingToolbar {
     right: 0;
@@ -436,52 +415,33 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 .olControlEditingToolbar .olControlZoomBoxItemInactive {
     background-image: url(img/zoom_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlZoomBoxItemActive  {
     background-image: url(img/zoom_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
-<<<<<<< HEAD
 
-=======
-.olControlEditingToolbar .olControlDrawFeaturePointItemInactive {
-    background-position: -77px -1px;
-}
-.olControlEditingToolbar .olControlDrawFeaturePointItemActive {
-    background-position: -77px -24px;
-}
-.olControlEditingToolbar .olControlDrawFeaturePathItemInactive {
-    background-image: url(img/polygon_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlDrawFeaturePathItemActive {
-    background-image: url(img/polygon_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
->>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemInactive{
     background-image: url(img/rectangle_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemActive {
     background-image: url(img/rectangle_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemInactive{
     background-image: url(img/delete_off.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemActive {
     background-image: url(img/delete_on.png);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDuplicateFeatureItemInactive{
     background-image: url(img/clone_off.png);
@@ -534,11 +494,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     background-position: 0 1px;
 }
 
-<<<<<<< HEAD
 .olControlEditingToolbar .olControlFullScreenFeatureItemInactive{
-=======
-.olControlEditingToolbar .olControlFullScreenFeature{
->>>>>>> 44f28bdf0a7778af7155211caefc47fed0fef505
 	background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
@@ -567,6 +523,16 @@ div.olControlZoom a {
     background: #130085; /* fallback for IE - IE6 requires background shorthand*/
     background: rgba(0, 60, 136, 0.5);
     filter: alpha(opacity=80);
+}
+div.olControlSaveFeaturesItemActive {
+    background-image: url(img/save_features_on.png)!important;
+    background-repeat: no-repeat!important;
+    background-position: 0 1px!important;
+}
+div.olControlSaveFeaturesItemInactive {
+    background-image: url(img/save_features_off.png)!important;
+    background-repeat: no-repeat!important;
+    background-position: 0 1px!important;
 }
 div.olControlZoom a:hover {
     background: #130085; /* fallback for IE */

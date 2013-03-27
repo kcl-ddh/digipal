@@ -8,13 +8,12 @@
 
 {% block main %}
 <h1 class='header1'>Manuscript Images</h1>
-            <form id='searchform3' class="form-inline panel" action='.'></form>
 <div class='container'>
         <div id='formFilters'>
             <form id='searchform' class="form-inline panel" action='.'>
                 <h3 class='header5'>Filter Manuscripts Images</h3>
                 <ul>{{ filterImages.as_ul }}</ul>
-                <div>
+                <div class='container'>
                     <input type='submit' value='Filter Images' class='btn btn-primary'>
                 </div>
             </form>

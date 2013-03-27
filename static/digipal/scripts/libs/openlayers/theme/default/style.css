@@ -499,6 +499,11 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     background-repeat: no-repeat;
     background-position: 0 1px;
 }
+.olControlEditingToolbar .olControlFullScreenFeatureItemInactive:hover, .olControlEditingToolbar .olControlFullScreenFeatureItemActive{
+	background-image: url(img/fullscreen_on.gif);
+    background-repeat: no-repeat;
+    background-position: 0 1px;
+}
 div.olControlZoom {
     position: absolute;
     top: 8px;

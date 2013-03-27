@@ -194,7 +194,7 @@
 </div>
 
 
-{% if hands or scribes or manuscripts %}
+{% if hands != "False" or scribes != "False" or manuscripts != "False" %}
 <div class='tabbable'>
     <div id='myTabContent' class='tab-content'>
     {% if search_type == 'hands' %}

@@ -616,13 +616,12 @@ DigipalAnnotator.prototype.full_Screen = function(){
             }
         });
         $('.olControlFullScreenFeatureItemInactive').css('background-image', 'url(/static/digipal/scripts/libs/openlayers/theme/default/img/fullscreen_on.gif)');
-        $('.olControlFullScreenFeatureItemInactive').attr('title','Activate Full Screen')
+        $('.olControlFullScreenFeatureItemInactive').attr('title','Deactivate Full Screen')
     } else {
         $('#map').attr('style', null);
         this.fullScreen.active = null;
         $('.olControlFullScreenFeatureItemInactive').css('background-image', 'url(/static/digipal/scripts/libs/openlayers/theme/default/img/fullscreen.gif)');
-        $('.olControlFullScreenFeatureItemInactive').attr('title','Deactivate Full Screen')
-
+        $('.olControlFullScreenFeatureItemInactive').attr('title','Activate Full Screen')
     }
 }
 

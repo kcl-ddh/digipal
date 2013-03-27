@@ -56,8 +56,8 @@
                                 content += '{{filterScribes.as_ul|escapejs}}';
                                 label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
                             }
-                            labelFilters.html(label);
-                            container.html(content);
+                            labelFilters.html(label).hide().fadeIn(500);
+                            container.html(content).hide().fadeIn(500);
                             $('select').chosen();
                        });
 

@@ -1,5 +1,4 @@
 from django import template
-from collections import OrderedDict
 
 register = template.Library()
 

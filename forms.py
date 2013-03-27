@@ -89,7 +89,7 @@ class FilterHands(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
@@ -121,7 +121,7 @@ class FilterManuscripts(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Choose a Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
@@ -243,7 +243,7 @@ class SearchForm(forms.Form):
 
 class QuickSearch(forms.Form):
     terms = forms.CharField(
-        label='Quick Search',
+        label='',
         required=True,
         error_messages={
         'required': 'Please enter at least one search term',

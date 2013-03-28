@@ -145,11 +145,10 @@ class FilterManuscriptsImages(forms.Form):
         required = False)
 
     
-    repository = forms.ModelChoiceField(
-        queryset = Repository.objects.filter(currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat = True),
+    repository = forms.ChoiceField(
+        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
-        empty_label = "Repository",
         required = False)
 
     date = forms.ModelChoiceField(

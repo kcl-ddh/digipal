@@ -608,7 +608,7 @@ class Repository(models.Model):
         return u'%s' % (self.short_name or self.name)
 
     def human_readable(self):
-        return u'%s, %s' % (self.place, self.short_name or self.name)
+        return u'%s, %s' % (self.place, self.name)
 
 
 

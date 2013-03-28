@@ -11,7 +11,7 @@ import sys
 
 from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
-        GraphComponent, Graph, Component, Feature, Idiograph, Page
+        GraphComponent, Graph, Component, Feature, Idiograph, Page, Repository
 import ast
 from django import template
 
@@ -180,9 +180,12 @@ def page_metadata(request, page_id):
 def page_copyright(request, page_id):
     context = {}
     page = Page.objects.get(id=page_id)
+    copyright = Repository.objects.filter(currentitem__itempart__pages=page_id)
+    context['copyright'] = copyright.values_list('copyright_notice', flat = True)
     context['page'] = page
     return render_to_response('pages/copyright.html', context,
             context_instance=RequestContext(request))
+    #page -> currentitem -> itempart -> repository.copyright_notice
 
 def page_list(request):
     pages = Page.objects.all()

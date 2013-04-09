@@ -12,6 +12,7 @@ class Migration(DataMigration):
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
         # split locus into side and number
         # eg. 7v => 7, v
+        c = 0
         for page in orm['digipal.Page'].objects.all():
             num_side = page.locus.strip()
 
@@ -29,6 +30,8 @@ class Migration(DataMigration):
             if page.folio_side and re.match('(?i)dorse', page.folio_side): page.folio_side = 'v'
             #print '%s => %s, %s' % (num_side, page.folio_number, page.folio_side)
             page.save()            
+            c = c + 1
+        print '%d records modified.' % c
 
     def backwards(self, orm):
         "Write your backwards methods here."

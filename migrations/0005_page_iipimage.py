@@ -10,12 +10,16 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
+        c = 0
         for page in orm['digipal.Page'].objects.all():
-            print page.id
+            #print page.id
             page.iipimage = self.path(page)
-            print page.iipimage
+            #print page.iipimage
             page.save()
+            c = c + 1
             #orm['digipal.Page'].objects.raw('UPDATE digipal_page SET iipimage = %s WHERE id = %s', [page.iipimage, page.id])
+        
+        print '%d records modified.' % c
         
         #raise RuntimeError("fake error.")
 
@@ -39,7 +43,7 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "Write your backwards methods here."
-        raise RuntimeError("Cannot reverse this migration.")
+        #raise RuntimeError("Cannot reverse this migration.")
 
     models = {
         'auth.group': {

@@ -52,7 +52,10 @@ class Command(BaseCommand):
 			help='Name of the table to backup'),
 		) 
 
+	migrations = ['0004_page_number_and_side', '0005_page_iipimage']
+	
 	def handle(self, *args, **options):
+		
 		self.log_level = 3
 		
 		if len(args) < 1:
@@ -61,12 +64,36 @@ class Command(BaseCommand):
 		
 		known_command = False
 
-#		if not in settings.DATABASES:
-#			raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
-
 		if command == 'hand':
 			known_command = True
 			self.migrateHandRecords(options)
+			self.reapplyDataMigrations()
+	
+	def reapplyDataMigrations(self):
+		'''
+			We have to re-apply the data migrations only.
+			
+			Why? 
+			
+			Because pouring data from an old datatabase structure to a new one is already a hack.
+			
+			It leaves the schema migration applied but reverses the data migrations.
+			South does not allow you to reapply single data migration without reversing olders and this will
+			break anyway as they are not necessarily reversible.
+			So we hack it further and re-apply the two data migrations we know of:
+				0004: foliation and numbering
+				0005: new iipimage
+		'''
+		from digipal.models import Page
+		orm = {'digipal.Page': Page}
+
+		import importlib
+		for migration_name in Command.migrations:
+			self.log('Reapply the data migrations %s.' % migration_name, 2)
+			migmodule = importlib.import_module('digipal.migrations.%s' % migration_name)
+			mig = migmodule.Migration()
+			mig.forwards(orm)
+			self.log('done.', 2)
 	
 	def migrateHandRecords(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

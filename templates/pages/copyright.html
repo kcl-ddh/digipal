@@ -10,6 +10,10 @@
   </ul>
 
 <div class="alert alert-block">
-         {{copyright|safe}}
+    {% for repository in repositories %}
+        <p>
+            {{ repository.copyright_notice }}
+        </p>
+    {% endfor %}
 </div>
 {% endblock %}

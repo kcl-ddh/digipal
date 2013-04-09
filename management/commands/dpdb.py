@@ -103,6 +103,35 @@ class Command(BaseCommand):
 			cmd = 'psql -q -U %s -h %s %s < %s > tmp' % (db_settings['USER'], db_settings['HOST'], db_settings['NAME'], file)
 			self.run_shell_command(cmd)
 			
+		if command == 'user':
+			# user: list the users
+			# user USERNAME pass: reset the password to 'pass'
+			known_command = True
+			
+			from django.contrib.auth.models import User
+			
+			if len(args) == 1:
+				for user in User.objects.all():
+					print '%s\t%s' % (user.id, user.username)
+
+			if len(args) == 3:
+				username = args[2]
+				pwd = 'pass'
+				if args[1] == 'pass':
+					users = User.objects.filter(username=username)
+					if users.count():
+						user = users[0]
+					else:
+						user = User()
+					user.username = username
+					user.set_password(pwd)
+					user.is_active = True
+					user.is_staff = True
+					user.is_superuser = True
+					user.save
+					
+					print 'User %s. Password reset to "%s".' % (username, pwd) 
+			
 		if command == 'backup':
 			# backup
 			known_command = True

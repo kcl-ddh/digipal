@@ -73,7 +73,9 @@ class Command(BaseCommand):
 
 		con_src = connections[options.get('src')]
 		con_dst = connections[options.get('db')]
-		#con_dst.commit_unless_managed()
+		
+		con_dst.enter_transaction_management()
+		con_dst.managed()
 
 		self.log('MIGRATE Hands from "%s" DB to "%s" DB.' % (con_src.alias, con_dst.alias), 2)
 		
@@ -99,7 +101,8 @@ class Command(BaseCommand):
 					#break
 			src_tables = []
 		
-		#con_dst.commit()
+		con_dst.commit()
+		con_dst.leave_transaction_management()
 	
 	def copyTable(self, con_src, src_table, con_dst, dst_table):
 		ret = True

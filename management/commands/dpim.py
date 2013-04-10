@@ -10,6 +10,10 @@ from os import listdir
 from os.path import isfile, join
 from digipal.models import Page
 
+def get_originals_path():
+	ret = join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), getattr(settings, 'IMAGE_SERVER_ORIGINALS_ROOT', ''))
+	return ret
+
 def get_image_path():
 	ret = join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), getattr(settings, 'IMAGE_SERVER_UPLOAD_ROOT', ''))
 	return ret
@@ -29,72 +33,101 @@ class Command(BaseCommand):
 	"""
 	
 	args = 'list|upload'
-	help = '''Manage the Digipal images
-	
-	----------------------------------------------------------------------
-	
-	To upload your document images in the database:
-	
-	1. copy your images to:
-		"%s" 
-		(see settings.py:IMAGE_SERVER_UPLOAD_ROOT)
-	2. python manage.py dpim -v 2 upload
-	
-	This command will automatically convert new images to jp2 and create
-	a new Page record in the database for it.
-	
-	Note that the converted images will replace the original images so 
-	make sure you have a copy of your images somewhere else.
-	
-	The folders containing the images should not contain spaces or commas
-	please remove them or replace them before uploading the images.
-	
-	----------------------------------------------------------------------
-	
-	Commands:
-	
-		upload:
-			convert new images to JPEG 2000 and create the corresponding 
-			Page records
-			
-		list:
-			list the images on disk and if they are already uploaded
-			
-		unstage
-			remove the images from the database (but leave them on disk)
-	
-	Options:
-	
-		--filter X
-			select the images to be uploaded/listed/deleted by applying
-			a filter on their name. Only files with X in their path or 
-			filename will be selected.
+	help = ''' Manage the Digipal images
 
-		--offline
-			select only the images which are on disk an not in the DB
+----------------------------------------------------------------------
 
-		--missing
-			select only the images which are on the DB and not on disk
+ ORIGINAL images are found under:
+
+  %s
+
+ IMAGE STORE (converted images) is found under:
+
+  %s
+
+----------------------------------------------------------------------
+
+ To upload your document images in the database:
+
+ 1. manually copy your original images somewhere under the ORIGINAL folder:
 	
-	Examples:
+ 2. copy the original images to the IMAGE STORE (image files managed by the 
+    image server) with this command:
 	
-		python manage.py dpim --filter canterbury upload
-			upload all the images which contain 'test' in their name
+    python manage.py dpim copy
+	
+ 3. convert your images in the image store to the JPEG 2000 and upload them
+    into the database:
+	
+    python manage.py dpim upload
+	
+ Image files can be processed selectively. Read the documentation below for 
+ more details.
+
+ WARNING: please do not leave your original images in the IMAGE STORE, they 
+    might be deleted. Use the ORIGINAL folder instead (see above).
+
+----------------------------------------------------------------------
+
+ Commands:
+
+    Working with the image store:
+
+        list
+            Lists the images on disk and if they are already uploaded
+
+        upload
+            Converts new images to JPEG 2000 and create the corresponding 
+            Page records
+		
+        unstage
+            Removes the images from the database (but leave them on disk)
+	
+    Dealing with orignal images:
+	
+        copy
+            Copies the all the original images to the image store.
+            Also converts the names so they are compatible with the image 
+            server.
+            Selection is made with the --filter option.
+            Recommended to use 'originals' comamnd to test the selection.
 			
-		python manage.py dpim --filter canterbury unstage
-			remove from the database the Page records which point to
-			an image with 'canterbury' in its name.
-			
-		python manage.py dpim --offline list
-			list all the image which are only on disk and not in the DB
-			
-		python manage.py dpim --missing --filter canterbury list
-			list all the image which are only in the database and not 
-			on disk and which name contains 'canterbury'
-	
-	----------------------------------------------------------------------
-	
-	''' % get_image_path()
+        originals
+            list all the original images,
+            Selection is made with the --filter option.
+
+ Options:
+
+    --filter X
+        Select the images to be uploaded/listed/deleted by applying
+        a filter on their name. Only files with X in their path or 
+        filename will be selected.
+
+    --offline
+        Select only the images which are on disk an not in the DB
+
+    --missing
+        Select only the images which are on the DB and not on disk
+		
+ Examples:
+
+    python manage.py dpim --filter canterbury upload
+        upload all the images which contain 'canterbury' in their name
+		
+    python manage.py dpim --filter canterbury unstage
+        remove from the database the Page records which point to
+        an image with 'canterbury' in its name.
+		
+    python manage.py dpim --offline list
+        list all the image which are only on disk and not in the DB
+		
+    python manage.py dpim --missing --filter canterbury list
+        list all the image which are only in the database and not 
+        on disk and which name contains 'canterbury'
+
+----------------------------------------------------------------------
+
+	''' % (get_originals_path(), get_image_path())
 	
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -288,9 +321,91 @@ class Command(BaseCommand):
 				
 			print '%s pages in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
 			
+		if command in ['copy', 'originals']:
+			known_command = True
+			self.processOriginals(args, options)
+
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
 	
+	def processOriginals(self, args, options):
+		''' List or copy the original images. '''
+		import shutil
+		command = args[0]
+		
+		original_path = get_originals_path()
+		jp2_path = get_image_path()
+		
+		all_files = []
+		
+		# scan the originals folder to find all the image files there
+		files = [join(original_path, f) for f in listdir(original_path)]
+		while files:
+			file = files.pop(0)
+			
+			file = join(original_path, file)
+			
+			if isfile(file):
+				(file_base_name, extension) = os.path.splitext(file)
+				if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
+					file_relative = os.path.relpath(file, original_path)
+
+					info = {
+							'disk': 1,
+							'path': file_relative
+							}
+					
+					all_files.append(info)
+			elif isdir(file):
+				files.extend([join(file, f) for f in listdir(file)])
+
+		# list or copy the files
+		for file_info in all_files:
+			file_relative = file_info['path']
+			if options['filter'].lower() not in file_relative.lower():
+				continue
+
+			file_relative_normalised = self.getNormalisedPath(file_relative)
+			(file_relative_base, extension) = os.path.splitext(file_relative)
+			(file_relative_normalised_base, extension) = os.path.splitext(file_relative_normalised)
+			
+			copied = False
+			
+			target = join(jp2_path, file_relative_normalised_base + extension)
+			
+			if isfile(target) or \
+				isfile(join(jp2_path, file_relative_normalised_base + 'jp2')) \
+				:
+				copied = True
+
+			status = ''
+			if copied: status = 'COPIED'				
+			print '[%6s] %s' % (status, file_relative)
+
+			if command  == 'copy':
+				# create the folders
+				path = os.path.dirname(target)
+				print '\tCopy to %s' % target
+				if not os.path.exists(path):
+					os.makedirs(path)
+				# copy the file
+				shutil.copyfile(join(original_path, file_relative), target)
+		
+		ret = True
+		
+		if command  == 'originals':
+			pass
+		if command  == 'copy':
+			pass
+	
+	def getNormalisedPath(self, path):
+		''' Turn the path and file names into something the image server won't complain about
+			Extension is preserved.'''
+		(file_base_name, extension) = os.path.splitext(path)
+		file_base_name = re.sub(r'\s|\.|,', '_', file_base_name)
+		file_base_name = re.sub(r'_+', '_', file_base_name)
+		return file_base_name + extension
+
 	def is_verbose(self):
 		return self.options['verbosity'] >= 2
 	

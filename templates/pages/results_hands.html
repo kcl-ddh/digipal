@@ -170,7 +170,7 @@
       <h2 class='header1'>Results for <i>Hands</i> <span style='font-size:12.5px;'>({{results.count}} results)</span></h2>
     <table class="table table-condensed">
         <tr>
-            <th>Scribe</th>
+            <th>Hand</th>
             <th>Place</th>
             <th>Date</th>
             <th>Repository</th>
@@ -182,7 +182,7 @@
         {% for result in results %}
         <tr>
 
-          <td>{{ result.scribe.name }}
+          <td>{{ result.hand.description }}
           {% if result.pages.all %}
             <a class='imageIcon' href='?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
           {% endif %}</td>

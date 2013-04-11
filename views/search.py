@@ -45,8 +45,13 @@ def quickSearch(request):
             context['hands'] = "False"
             count_h = 0
 
-        query_scribes = Scribe.objects.filter(
-                name__icontains=term).order_by('name')
+        query_scribes = Scribe.objects.order_by('name').filter(
+                    Q(name__icontains=term) | \
+                    Q(scriptorium__name__icontains=term) | \
+                    Q(date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
 
         if query_scribes.count() >= 1:
             context['scribes'] = query_scribes
@@ -117,7 +122,7 @@ def searchDB(request):
             index_manuscript = request.GET.get('index', '')
             date = request.GET.get('date', '')
 
-            # Filter scribes
+            # Filter manuscripts
             manuscripts = ItemPart.objects.order_by(
                 'historical_item__catalogue_number','id').filter(
                     Q(locus__contains=term) | \
@@ -177,8 +182,13 @@ def searchDB(request):
             feature = request.GET.get('feature', '')
             # Filter Scribes
             resultpage = "pages/results_scribes.html"
-            scribes = Scribe.objects.filter(
-                name__icontains=term).order_by('name')
+            scribes = Scribe.objects.order_by('name').filter(
+                    Q(name__icontains=term) | \
+                    Q(scriptorium__name__icontains=term) | \
+                    Q(date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
             if name:
                 scribes = Scribe.objects.filter(
                 name=name).order_by('name')

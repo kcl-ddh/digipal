@@ -234,7 +234,7 @@ class Command(BaseCommand):
 		
 		known_command = False
 		counts = {'online': 0, 'disk': 0, 'disk_only': 0, 'missing': 0}
-		if command in ('list', 'upload', 'unstage', 'update'):
+		if command in ('list', 'upload', 'unstage', 'update', 'remove'):
 			known_command = True
 
 			for file_info in self.get_all_files(root):
@@ -307,6 +307,16 @@ class Command(BaseCommand):
 							page.save()
 							pageid = page.id
 						
+				if command == 'remove' and file_info['disk']:
+					file_abs_path = join(settings.IMAGE_SERVER_ROOT, file_relative)
+					print file_abs_path
+					if os.path.exists(file_abs_path):
+						os.unlink(file_abs_path)
+						found_message = '[REMOVED FROM DISK]'
+					else:
+						found_message = '[NOT FOUND]'
+					processed = True
+					
 				if command == 'unstage' and online:
 					processed = True
 					
@@ -391,19 +401,14 @@ class Command(BaseCommand):
 				# copy the file
 				shutil.copyfile(join(original_path, file_relative), target)
 		
-		ret = True
-		
-		if command  == 'originals':
-			pass
-		if command  == 'copy':
-			pass
 	
 	def getNormalisedPath(self, path):
 		''' Turn the path and file names into something the image server won't complain about
 			Extension is preserved.'''
 		(file_base_name, extension) = os.path.splitext(path)
-		file_base_name = re.sub(r'\s|\.|,', '_', file_base_name)
+		file_base_name = re.sub(r'(?i)[^a-z0-9\\/]', '_', file_base_name)
 		file_base_name = re.sub(r'_+', '_', file_base_name)
+		file_base_name = re.sub(r'_?(/|\\)_?', r'\1', file_base_name)
 		return file_base_name + extension
 
 	def is_verbose(self):

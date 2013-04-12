@@ -105,7 +105,7 @@ class Command(BaseCommand):
 			
 		if command == 'user':
 			# user: list the users
-			# user USERNAME pass: reset the password to 'pass'
+			# user pass USERNAME: reset the password to 'pass'
 			known_command = True
 			
 			from django.contrib.auth.models import User
@@ -128,7 +128,7 @@ class Command(BaseCommand):
 					user.is_active = True
 					user.is_staff = True
 					user.is_superuser = True
-					user.save
+					user.save()
 					
 					print 'User %s. Password reset to "%s".' % (username, pwd) 
 			

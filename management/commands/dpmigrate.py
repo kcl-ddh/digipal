@@ -18,6 +18,11 @@ class Command(BaseCommand):
 		
 			Copy all the records from SRC_DB_ALIAS.hand_* to DB_ALIAS.digipal_*
 			Existing records are removed. Preexisting table structures are preserved.
+
+		copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER]
+		
+			Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER* to DB_ALIAS.*TABLE_FILTER*
+			Existing records are removed. Preexisting table structures are preserved.
 			
 	Options:
 	
@@ -28,6 +33,8 @@ class Command(BaseCommand):
 		--src SRC_DB_ALIAS
 			The alias of the database you are migrating from
 			'hand' if unspecified
+		
+		--table TABLE_FILTER
 
 		The aliases refer to the entries in your DATABASE dict in your django settings. 
 	

@@ -14,10 +14,17 @@ class Command(BaseCommand):
 	Commands:
 	
 		backup [--table TABLE_NAME] [BACKUP_NAME]
+			Backup a database into a file.
 	
 		restore BACKUP_NAME
+			Restores a database from a backup. 
 	
 		list
+			Lists backup files.
+		
+		tables
+			Lists the tables in the database, their size and most recent change
+			Use --table PATTERN to select which table to display 			
 		
 		fixseq
 			Fix the postgresql sequences. 
@@ -29,7 +36,7 @@ class Command(BaseCommand):
 	
 	"""
 	
-	args = 'backup|restore|list'
+	args = 'backup|restore|list|tables|fixseq'
 	help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -43,6 +50,103 @@ class Command(BaseCommand):
 			default='',
 			help='Name of the table to backup'),
 		) 
+	
+	def showTables(self, options):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		
+		table_filter = options.get('table', '')
+		
+		if table_filter == 'ALL': table_filter = ''
+
+		con = connections[options.get('db')]
+		
+		# 1. find all the remote tables starting with the prefix
+		tables = con.introspection.table_names()
+		tables.sort()
+		
+		cursor = con.cursor()
+		
+		date_fields = ['last_login', 'modified', 'publish_date', 'submit_date', 'action_time', 'entry_time', 'applied']
+		
+		print '%10s%20s %s' % ('count(*)', 'Most recent', 'Table')
+		
+		table_displays = {}
+		
+		c = 0
+		for table in tables:
+			if re.search(r'%s' % table_filter, table):
+				c += 1 
+				count = self.sqlSelectCount(con, table)
+				# find datetime field
+				table_desc = con.introspection.get_table_description(cursor, table)
+				max_date = ''
+				table_key = ''
+				for field in table_desc:
+					#field_type = con.introspection.data_types_reverse.get(field[1], '')
+					#if re.search('(?i)datetime', field_type):
+					#	print field[0]
+					field_name = field[0]
+					if field_name in date_fields:
+						max_date = self.sqlSelectMaxDate(con, table, field_name)
+						if max_date:
+							table_key = max_date.strftime("%Y%m%d%H%M%S")
+							max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
+						else:
+							max_date = ''
+							 
+						#print '%s = %s' % (field_name, max_date)
+				table_display = '%10s%20s %s' % (count, max_date, table)
+				print table_display
+				
+				if table_key:
+					table_displays[table_key] = table_display
+				
+		print '\n%s tables' % c
+
+		print '\nMost recently changed:'
+		
+		top_size = 0
+		if c > 1:
+			top_size = 1
+		if c > 3:
+			top_size = 3
+		if c > 10:
+			top_size = 10
+			
+		table_keys = table_displays.keys()
+		table_keys.sort()
+		for table_key in (table_keys[::-1])[0:top_size]:
+			print table_displays[table_key]
+		
+		cursor.close()
+
+	def sqlSelect(self, wrapper, command, arguments=[]):
+		''' return a cursor,
+			caller need to call .close() on the returned cursor 
+		'''
+		cur = wrapper.cursor()
+		cur.execute(command, arguments)
+		
+		return cur
+
+	def sqlSelectMaxDate(self, con, table, field):
+		ret = None
+		cur = self.sqlSelect(con, 'select max(%s) from %s' % (field, table))
+		rec = cur.fetchone()
+		if rec and rec[0]:
+			ret = rec[0]
+		cur.close()
+		
+		return ret
+
+	def sqlSelectCount(self, con, table):
+		ret = 0
+		cur = self.sqlSelect(con, 'select count(*) from %s' % table)
+		rec = cur.fetchone()
+		ret = rec[0]
+		cur.close()
+		
+		return ret
 
 	def handle(self, *args, **options):
 		
@@ -63,6 +167,10 @@ class Command(BaseCommand):
 
 		db_settings = settings.DATABASES[options['db']]
 		
+		if command == 'tables':
+			known_command = True
+			self.showTables(options)
+			
 		if command == 'fixseq':
 			# fix the sequence number for auto incremental fields (e.g. id)
 			# Unfortunately posgresql import does not update them so we have to run this after an import 

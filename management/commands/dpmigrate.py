@@ -57,6 +57,11 @@ class Command(BaseCommand):
 			dest='table',
 			default='',
 			help='Name of the table to backup'),
+		make_option('--dry-run',
+			action='store_true',
+			dest='dry-run',
+			default=False,
+			help='Dry run, don\'t change any data.'),
 		) 
 
 	migrations = ['0004_page_number_and_side', '0005_page_iipimage']
@@ -64,6 +69,8 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		
 		self.log_level = 3
+		
+		self.options = options
 		
 		if len(args) < 1:
 			raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
@@ -74,7 +81,51 @@ class Command(BaseCommand):
 		if command == 'hand':
 			known_command = True
 			self.migrateHandRecords(options)
-			self.reapplyDataMigrations()
+			if not self.is_dry_run():
+				self.reapplyDataMigrations()
+
+		if command == 'copy':
+			known_command = True
+			self.migrateRecords(options)
+		
+		if self.is_dry_run():
+			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+	
+	def is_dry_run(self):
+		return self.options.get('dry-run', False)
+	
+	def migrateRecords(self, options):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		
+		table_filter = options.get('table', '')
+		if not table_filter:
+			raise CommandError('Please provide a table filter using the --table option. To copy all tables, use --table ALL')
+		if table_filter == 'ALL': table_filter = ''
+
+		con_src = connections[options.get('src')]
+		con_dst = connections[options.get('db')]
+		
+		con_dst.enter_transaction_management()
+		con_dst.managed()
+
+		self.log('MIGRATE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
+		
+		# 1. find all the remote tables starting with the prefix
+		src_tables = con_src.introspection.table_names()
+		dst_tables = con_dst.introspection.table_names()
+		
+		con_dst.disable_constraint_checking()
+		
+		for src_table in src_tables:
+			if re.search(r'%s' % table_filter, src_table):
+				if src_table in dst_tables:
+					self.sqlDeleteAll(con_dst, src_table)
+					self.copyTable(con_src, src_table, con_dst, src_table)
+				else:
+					self.log('Table not found in destination (%s)' % src_table, 1)
+		
+		con_dst.commit()
+		con_dst.leave_transaction_management()
 	
 	def reapplyDataMigrations(self):
 		'''
@@ -122,18 +173,14 @@ class Command(BaseCommand):
 		
 		con_dst.disable_constraint_checking()
 		
-		while len(src_tables):
-			for src_table in src_tables:
-				table_treated = True
-				dst_table = re.sub(r'^'+table_prefix_src, table_prefix_dst, src_table)
-				if dst_table != src_table:
-					if dst_table in dst_tables:
-						self.sqlDeleteAll(con_dst, dst_table)
-						self.copyTable(con_src, src_table, con_dst, dst_table)
-					else:
-						self.log('Table not found in destination (%s)' % dst_table, 1)
-					#break
-			src_tables = []
+		for src_table in src_tables:
+			dst_table = re.sub(r'^'+table_prefix_src, table_prefix_dst, src_table)
+			if dst_table != src_table:
+				if dst_table in dst_tables:
+					self.sqlDeleteAll(con_dst, dst_table)
+					self.copyTable(con_src, src_table, con_dst, dst_table)
+				else:
+					self.log('Table not found in destination (%s)' % dst_table, 1)
 		
 		con_dst.commit()
 		con_dst.leave_transaction_management()
@@ -162,7 +209,7 @@ class Command(BaseCommand):
 		params_str = ', '.join(['%s' for i in common])
 
 		# hack...
-		if dst_table == 'digipal_itempart':
+		if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
 			common_str_dst = common_str_dst + ', pagination'
 			params_str = params_str + ', %s'
 			
@@ -173,7 +220,7 @@ class Command(BaseCommand):
 			rec_src = recs_src.fetchone()
 			if rec_src is None: break
 			# hack...
-			if dst_table == 'digipal_itempart':
+			if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
 				rec_src = list(rec_src)
 				rec_src.append(False)
 			self.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src)
@@ -196,12 +243,13 @@ class Command(BaseCommand):
 		return ret
 	
 	def sqlWrite(self, wrapper, command, arguments=[]):
-		cur = wrapper.cursor()
-
-		#print command
-		cur.execute(command, arguments)
-		#wrapper.commit()
-		cur.close()
+		if not self.is_dry_run():
+			cur = wrapper.cursor()
+	
+			#print command
+			cur.execute(command, arguments)
+			#wrapper.commit()
+			cur.close()
 
 	def sqlSelect(self, wrapper, command, arguments=[]):
 		''' return a cursor,

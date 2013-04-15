@@ -201,11 +201,12 @@
         <div class='tab-pane fade active in' id='hands'>
          <table class="table table-condensed">
                 <tr>
-                    <th>Scribe</th>
-                    <th>Place</th>
-                    <th>Date</th>
+                    <!--<th>Scribe</th>-->
                     <th>Repository</th>
                     <th>Shelfmark</th>
+                    <th>Hand</th>
+                    <th>Place</th>
+                    <th>Date</th>
                     <th>Catalogue Number</th>
                     <th>Actions</th>
                 </tr> 
@@ -213,14 +214,14 @@
                 {% for result in hands %}
                 <tr class="{% cycle 'bgColour' '' %}">
 
-                  <td>{{ result.scribe.name }}
+                  <td>{{ result.item_part.current_item.repository.name }}</td>
+                  <td>{{ result.item_part.current_item.shelfmark }}</td>
+                  <td>{{ result.description }}
                   {% if result.pages.all %}
                     <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
                   {% endif %}</td>
                   <td>{{ result.assigned_place.name }}</td>
                   <td>{{ result.assigned_date.date }}</td>
-                  <td>{{ result.item_part.current_item.repository.name }}</td>
-                  <td>{{ result.item_part.current_item.shelfmark }}</td>
                   <td>{{ result.item_part.historical_item.catalogue_number }}</td>
                   <td>
                           {% if request.user.is_superuser %}

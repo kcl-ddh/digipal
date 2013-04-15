@@ -17,6 +17,37 @@ import iipimage.storage
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
+def get_list_as_string(*parts):
+    '''
+        Takes a list of items and separators and returns this list as a string.
+        If an item is None or converts to an empty string it won't be included in the output.
+        
+        >> get_list_as_string('1', ': ', '2', ', ', '3') 
+        u'1: 2, 3'
+        
+        >> get_list_as_string('1', ': ', '', ', ', '3')
+        u'1: 3'
+    '''
+    ret = u''
+    if parts:
+        parts = list(parts)
+        waiting_sep = u''
+        while parts:
+            item = parts.pop(0)
+            sep = ''
+            if parts: sep = parts.pop(0)
+            if item is None:
+                continue
+            item_str = (u'%s' % item).strip()
+            if not item_str:
+                continue
+            
+            if len(waiting_sep) and ret.endswith(waiting_sep[0]):
+                ret = ret[:-1]
+            ret += waiting_sep + item_str
+            waiting_sep = sep
+    return ret
+
 # Aspect on legacy db
 class Appearance(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -102,8 +133,8 @@ class Ontograph(models.Model):
         unique_together = ['name', 'ontograph_type']
 
     def __unicode__(self):
-        return u'%s: %s' % (self.name, self.ontograph_type)
-
+        #return u'%s: %s' % (self.name, self.ontograph_type)
+        return get_list_as_string(self.name, ': ', self.ontograph_type)
 
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
@@ -136,11 +167,12 @@ class Allograph(models.Model):
         unique_together = ['name', 'character']
 
     def __unicode__(self):
-        return u'%s, %s' % (self.character.name, self.name)
+        #return u'%s, %s' % (self.character.name, self.name)
+        return self.human_readable()
 
     def human_readable(self):
         if unicode(self.character) != unicode(self.name):
-            return u'%s, %s' % (self.character, self.name)
+            return get_list_as_string(self.character, ', ', self.name)
         else:
             return u'%s' % (self.name)
 
@@ -157,7 +189,8 @@ class AllographComponent(models.Model):
         ordering = ['allograph', 'component']
 
     def __unicode__(self):
-        return u'%s. %s' % (self.allograph, self.component)
+        #return u'%s. %s' % (self.allograph, self.component)
+        return get_list_as_string(self.allograph, '. ', self.component)
 
 
 class Script(models.Model):
@@ -187,7 +220,8 @@ class ScriptComponent(models.Model):
         ordering = ['script', 'component']
 
     def __unicode__(self):
-        return u'%s. %s' % (self.script, self.component)
+        #return u'%s. %s' % (self.script, self.component)
+        return get_list_as_string(self.script, '. ', self.component)
 
 
 # References in legacy db
@@ -206,7 +240,8 @@ class Reference(models.Model):
         unique_together = ['name', 'name_index']
 
     def __unicode__(self):
-        return u'%s%s' % (self.name, self.name_index or '')
+        #return u'%s%s' % (self.name, self.name_index or '')
+        return get_list_as_string(self.name, '', self.name_index)
 
 
 # MsOwners in legacy db
@@ -228,8 +263,10 @@ class Owner(models.Model):
         ordering = ['date']
 
     def __unicode__(self):
-        return u'%s: %s. %s' % (self.content_type, self.content_object,
-                self.date)
+        #return u'%s: %s. %s' % (self.content_type, self.content_object, 
+        #        self.date)
+        return get_list_as_string(self.content_type, ': ', self.content_object,
+                '. ', self.date)
 
 
 # DateText in legacy db
@@ -365,8 +402,10 @@ class HistoricalItem(models.Model):
 
     def save(self, *args, **kwargs):
         self.set_catalogue_number()
-        self.display_label = u'%s %s %s' % (self.historical_item_type,
-                self.catalogue_number, self.name or '')
+        #self.display_label = u'%s %s %s' % (self.historical_item_type,
+        #        self.catalogue_number, self.name or '')
+        self.display_label = get_list_as_string(self.historical_item_type, 
+                ' ', self.catalogue_number, ' ', self.name)
         super(HistoricalItem, self).save(*args, **kwargs)
 
 
@@ -400,7 +439,8 @@ class CatalogueNumber(models.Model):
         unique_together = ['source', 'number']
 
     def __unicode__(self):
-        return u'%s %s' % (self.source, self.number)
+        #return u'%s %s' % (self.source, self.number)
+        return get_list_as_string(self.source, ' ', self.number) 
 
 
 # Manuscripts in legacy db
@@ -458,7 +498,8 @@ class Description(models.Model):
         ordering = ['historical_item']
 
     def __unicode__(self):
-        return u'%s %s' % (self.historical_item, self.source)
+        #return u'%s %s' % (self.historical_item, self.source)
+        return get_list_as_string(self.historical_item, ' ', self.source) 
 
 
 # Manuscripts in legacy db
@@ -505,9 +546,10 @@ class ItemOrigin(models.Model):
         ordering = ['historical_item']
 
     def __unicode__(self):
-        return u'%s: %s %s' % (self.content_type, self.content_object,
-                self.historical_item)
-
+        #return u'%s: %s %s' % (self.content_type, self.content_object,
+        #        self.historical_item)
+        return get_list_as_string(self.content_type, ': ', 
+                self.content_object, ' ', self.historical_item)
 
 # MsOrigin in legacy db
 class Archive(models.Model):
@@ -525,8 +567,10 @@ class Archive(models.Model):
         ordering = ['historical_item']
 
     def __unicode__(self):
-        return u'%s: %s. %s' % (self.content_type, self.content_object,
-                self.historical_item)
+        #return u'%s: %s. %s' % (self.content_type, self.content_object,
+        #        self.historical_item)
+        return get_list_as_string(self.content_type, ': ', 
+                self.content_object, '. ', self.historical_item)
 
 
 class Region(models.Model):
@@ -608,9 +652,8 @@ class Repository(models.Model):
         return u'%s' % (self.short_name or self.name)
 
     def human_readable(self):
-        return u'%s, %s' % (self.place, self.name)
-
-
+        #return u'%s, %s' % (self.place, self.name)
+        return get_list_as_string(self.place, ', ', self.name) 
 
 
 class CurrentItem(models.Model):
@@ -631,7 +674,8 @@ class CurrentItem(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s; %s' % (self.repository, self.shelfmark)
+        #self.display_label = u'%s %s' % (self.repository, self.shelfmark)
+        self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark) 
         super(CurrentItem, self).save(*args, **kwargs)
 
 
@@ -706,7 +750,8 @@ class Scribe(models.Model):
         ordering = ['name']
 
     def __unicode__(self):
-        return u'%s. %s' % (self.name, self.date or '')
+        #return u'%s. %s' % (self.name, self.date or '')
+        return get_list_as_string(self.name, '. ', self.date) 
 
 
 class Idiograph(models.Model):
@@ -725,7 +770,8 @@ class Idiograph(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s. %s' % (self.allograph, self.scribe)
+        #self.display_label = u'%s. %s' % (self.allograph, self.scribe)
+        self.display_label = get_list_as_string(self.allograph, '. ', self.scribe) 
         super(Idiograph, self).save(*args, **kwargs)
 
 
@@ -761,7 +807,8 @@ class HistoricalItemDate(models.Model):
         ordering = ['date']
 
     def __unicode__(self):
-        return u'%s. %s' % (self.historical_item, self.date)
+        #return u'%s. %s' % (self.historical_item, self.date)
+        return get_list_as_string(self.historical_item, '. ', self.date) 
 
 
 # Manuscripts and Charters in legacy db
@@ -784,9 +831,9 @@ class ItemPart(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
+        #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
+        self.display_label = get_list_as_string(self.current_item, ', ', self.locus) 
         super(ItemPart, self).save(*args, **kwargs)
-
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
@@ -848,7 +895,8 @@ class Page(models.Model):
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time? 
         if (self.item_part):
-            self.display_label = u'%s: %s' % (self.item_part, self.locus)
+            #self.display_label = u'%s: %s' % (self.item_part, self.locus)
+            self.display_label = get_list_as_string(self.item_part, ': ', self.locus) 
         else:
             self.display_label = u''
         super(Page, self).save(*args, **kwargs)
@@ -1061,7 +1109,7 @@ class Hand(models.Model):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
     def __unicode__(self):
-        return u'%s' % (self.description)
+        return u'%s' % (self.description or '')
 
 
 class Alphabet(models.Model):
@@ -1095,8 +1143,9 @@ class DateEvidence(models.Model):
         ordering = ['date']
 
     def __unicode__(self):
-        return u'%s. %s. %s' % (self.hand, self.date, self.date_description)
-
+        #return u'%s. %s. %s' % (self.hand, self.date, self.date_description)
+        return get_list_as_string(self.hand, '. ', self.date, '. ', self.date_description)
+     
 
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
@@ -1114,7 +1163,8 @@ class Graph(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        self.display_label = u'%s. %s' % (self.idiograph, self.hand)
+        #self.display_label = u'%s. %s' % (self.idiograph, self.hand)
+        self.display_label = get_list_as_string(self.idiograph, '. ', self.hand)
         super(Graph, self).save(*args, **kwargs)
 
 
@@ -1264,8 +1314,8 @@ class PlaceEvidence(models.Model):
         ordering = ['place']
 
     def __unicode__(self):
-        return u'%s. %s. %s' % (self.hand, self.place, self.reference)
-
+        #return u'%s. %s. %s' % (self.hand, self.place, self.reference)
+        return get_list_as_string(self.hand, '. ', self.place, '. ', self.reference)
 
 
 # MeasurementText in legacy db
@@ -1299,4 +1349,5 @@ class Proportion(models.Model):
         ordering = ['hand', 'measurement']
 
     def __unicode__(self):
-        return u'%s. %s' % (self.hand, self.measurement)
+        #return u'%s. %s' % (self.hand, self.measurement)
+        return get_list_as_string(self.hand, '. ', self.measurement)

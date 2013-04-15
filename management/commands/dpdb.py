@@ -36,7 +36,7 @@ class Command(BaseCommand):
 	
 	"""
 	
-	args = 'backup|restore|list|tables|fixseq'
+	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1'
 	help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -119,6 +119,120 @@ class Command(BaseCommand):
 			print table_displays[table_key]
 		
 		cursor.close()
+		
+	def checkData1(self, options):
+		print 'Checkup after tidy up operations (See Mantis issue #5532)'
+		# ----------------------------------------------
+		
+		print '3b. Detect unnecessary commas from display labels (HistoricalItem, Scribe, ItemPart, Allograph and derived models)'
+	
+		import digipal.models
+		model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
+
+		c = 0
+		for model_class_name in model_class_names:
+			c += 1 
+			model_class = getattr(digipal.models, model_class_name)
+			models = model_class.objects.all().order_by('id')
+			print '\t(%d / %d, %d records)\t%s' % (c, len(model_class_names), len(models), model_class._meta.object_name)
+			for model in models:
+				try:
+					name = u'%s' % model
+					if re.search(ur'(;\s*$)|(;\s*;)', name):
+						print u'%d %s' % (model.id, model)
+					if re.search(ur'(:\s*$)|(:\s*:)', name):
+						print u'%d %s' % (model.id, model)
+					if re.search(ur'(,\s*$)|(,\s*,)', name):
+						print u'%d %s' % (model.id, model)
+					if re.search('(\.\s*\.)', name):
+						print u'%d %s' % (model.id, model)
+				except:
+					# encoding error, ignore for now
+					continue
+		
+	def tidyUp1(self, options):
+		print 'Tidy up operations (See Mantis issue #5532)'
+		
+		# ----------------------------------------------
+		
+		print 'B. Remove incorrect \'face\' value in ItemPart.'
+		from digipal.models import ItemPart
+		c = 0
+		for model in ItemPart.objects.filter(locus='face'):
+			model.locus = ''
+			model.save()
+			c += 1
+		print '\t%d records changed' % c
+
+		# ----------------------------------------------
+		
+#		print '1. CurrentItem.display_label, replace the ; between repo and shelfmark with a space.'
+#		from digipal.models import CurrentItem, Page, ItemPart
+#		for model_class in [CurrentItem, ItemPart, Page]:
+#			print '\tResave %s' % model_class._meta.object_name
+#			for model in model_class.objects.all():
+#				model.save()
+		
+		# ----------------------------------------------
+		
+		print '2a. fix \'abbrev.stroke,\' => \'abbrev. stroke\' in Character to match the Allograph.name otherwise we\'ll still have plenty of duplicates.'
+
+		# fix 'abbrev.stroke,' => 'abbrev. stroke' otherwise we'll still have duplicates
+		from digipal.models import Character
+		try:
+			character = Character.objects.get(name='abbrev.stroke')
+			character.name = 'abbrev. stroke'
+			character.save()
+		except Character.DoesNotExist:
+			pass
+		
+		# ----------------------------------------------
+		
+		print '1., 2b., 3a. Save all models to fix various labelling errors.'		
+		import digipal.models
+
+		#model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
+		
+		# These model classes are in order of dependency of the display_label 
+		# (B depends from A => A listed before B).
+		model_class_names = '''
+			Ontograph
+			Allograph
+			AllographComponent
+			ScriptComponent
+			Reference
+			Owner
+			CatalogueNumber
+			HistoricalItem
+			Description
+			ItemOrigin
+			Archive
+			Repository
+			CurrentItem
+			Scribe
+			Idiograph
+			HistoricalItemDate
+			ItemPart
+			Page
+			DateEvidence
+			Graph
+			PlaceEvidence
+			Proportion
+			'''
+		model_class_names = re.findall('(\S+)', model_class_names)
+		
+		c = 0
+		for model_class_name in model_class_names:
+			c += 1 
+			model_class = getattr(digipal.models, model_class_name)
+			models = model_class.objects.all().order_by('id')
+			print '\t(%d / %d, %d records)\t%s' % (c, len(model_class_names), len(models), model_class._meta.object_name)
+			for model in models:
+				model.save()
+
+		print 'WARNING: A. to be implemented when the pagination field contains the correct value.'
+		
+		print 'Done'
 
 	def sqlSelect(self, wrapper, command, arguments=[]):
 		''' return a cursor,
@@ -167,6 +281,14 @@ class Command(BaseCommand):
 
 		db_settings = settings.DATABASES[options['db']]
 		
+		if command == 'checkdata1':
+			known_command = True
+			self.checkData1(options)
+		
+		if command == 'tidyup1':
+			known_command = True
+			self.tidyUp1(options)
+
 		if command == 'tables':
 			known_command = True
 			self.showTables(options)

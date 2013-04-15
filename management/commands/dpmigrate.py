@@ -10,35 +10,24 @@ from django.db import IntegrityError
 
 class Command(BaseCommand):
 	help = """
-	Digipal database migration tools.
+Digipal database migration tools.
 	
-	Commands:
+Commands:
 	
-		hand [--db DB_ALIAS] [--src SRC_DB_ALIAS]
+  hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
 		
-			Copy all the records from SRC_DB_ALIAS.hand_* to DB_ALIAS.digipal_*
-			Existing records are removed. Preexisting table structures are preserved.
+                        Copy all the records from SRC_DB_ALIAS.hand_* to 
+                        DB_ALIAS.digipal_*
+                        Existing records are removed. Preexisting table 
+                        structures are preserved.
 
-		copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER]
+  copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER] [--dry-run]
 		
-			Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER* to DB_ALIAS.*TABLE_FILTER*
-			Existing records are removed. Preexisting table structures are preserved.
-			
-	Options:
-	
-		--db DATABASE_ALIAS
-			The alias of the database you are migrating to
-			'default' if unspecified
-			
-		--src SRC_DB_ALIAS
-			The alias of the database you are migrating from
-			'hand' if unspecified
-		
-		--table TABLE_FILTER
-
-		The aliases refer to the entries in your DATABASE dict in your django settings. 
-	
-	"""
+                        Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER* 
+                        to DB_ALIAS.*TABLE_FILTER*
+                        Existing records are removed. Preexisting table 
+                        structures are preserved.
+"""
 	
 	args = 'hand'
 	option_list = BaseCommand.option_list + (
@@ -46,17 +35,17 @@ class Command(BaseCommand):
             action='store',
             dest='db',
             default='default',
-            help='Name of the database configuration'),
+            help='Name of the target database configuration (\'default\' if unspecified)'),
 		make_option('--src',
 			action='store',
 			dest='src',
 			default='hand',
-			help='Name of the database configuration'),
+			help='Name of the source database configuration (\'hand\' if unspecified)'),
 		make_option('--table',
 			action='store',
 			dest='table',
 			default='',
-			help='Name of the table to backup'),
+			help='Name of the tables to backup. This acts as a name filter.'),
 		make_option('--dry-run',
 			action='store_true',
 			dest='dry-run',

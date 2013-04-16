@@ -28,7 +28,20 @@ class Command(BaseCommand):
 		
 		fixseq
 			Fix the postgresql sequences. 
-			Useful when you get a duplicate key violation on insert after restoring a database.  
+			Useful when you get a duplicate key violation on insert after restoring a database.
+			
+		tidyup1
+			Tidy up the data in the digipal tables (See Mantis issue #5532)
+			Refresh all the display_labels fields.
+		
+		checkdata1
+			Check for issues in the data (See Mantis issue #5532)
+		
+		cleanlocus ITEMPARTID1 ITEMPARTID2 ... [--force]
+			Remove the v/r from the Page.locus field.
+			For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
+			Use --force to also change Page.item_part.pagination to true.
+			Use checkdata1 to list the id of the pages and item_parts records.
 	
 	Options:
 	
@@ -44,6 +57,11 @@ class Command(BaseCommand):
             dest='db',
             default='default',
             help='Name of the database configuration'),
+		make_option('--force',
+			action='store_true',
+			dest='force',
+			default=False,
+			help='Force changes despite warnings'),
 		make_option('--table',
 			action='store',
 			dest='table',
@@ -122,9 +140,31 @@ class Command(BaseCommand):
 		
 	def checkData1(self, options):
 		print 'Checkup after tidy up operations (See Mantis issue #5532)'
+		
 		# ----------------------------------------------
 		
-		print '3b. Detect unnecessary commas from display labels (HistoricalItem, Scribe, ItemPart, Allograph and derived models)'
+		print 'A. Remove \'f\' and \'r\' from Page.locus when page.item_part.pagination = true.'
+		print 'To remove the f/v from the Page.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
+		
+		print 
+		from digipal.models import Page
+		from django.db.models import Q
+		pages = Page.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
+		if not pages:
+			print 'No problem found.'
+		for page in pages:
+			if page.item_part:
+				item_part_name = '[Encoding error]'
+				try:
+					item_part_name = u'%s' % page.item_part
+					item_part_name = item_part_name.encode('ascii', 'xmlcharrefreplace')
+				except:
+					pass
+				print 'Page# %-5s: %-8s (ItemPart #%s: %s)' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'), page.item_part.id, item_part_name)
+		
+		# ----------------------------------------------
+		
+		print '3. Detect unnecessary commas from display labels (HistoricalItem, Scribe, ItemPart, Allograph and derived models)'
 	
 		import digipal.models
 		model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
@@ -149,9 +189,66 @@ class Command(BaseCommand):
 				except:
 					# encoding error, ignore for now
 					continue
+				
+	def cleanlocus(self, item_partids, options):
+		if len(item_partids) < 1:
+			raise CommandError('Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
+		from digipal.models import Page 
+		pages = Page.objects.filter(item_part__in = item_partids).order_by('id')
+		c = 0
+		for page in pages:
+			page.locus = re.sub(ur'(.*)(r|v)$', ur'\1', page.locus)
+			print 'Page #%s, locus = %s' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'))
+			if not page.item_part.pagination:
+				if options.get('force', False):
+					page.item_part.pagination = True
+					page.item_part.save()
+					print 'WARNING: forced page.item_part.pagination = true (item part %s)' % page.item_part.id
+				else:
+					print 'WARNING: Not saved as page.item_part.pagination = false (item part %s)' % page.item_part.id 
+				continue
+			page.save()
+			c += 1
+		print '%s loci modified.' % c
 		
 	def tidyUp1(self, options):
 		print 'Tidy up operations (See Mantis issue #5532)'
+		
+		print 'C. Import Evidence and Reference fields from legacy database.'
+		
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections['legacy']
+		
+		tables = con.introspection.table_names()
+		tables.sort()
+		
+		cursor = con.cursor()
+		
+		migrate_fields = ['evidence', 'reference']
+		
+		for table in tables:
+			table_desc = con.introspection.get_table_description(cursor, table)
+			for field in table_desc:
+				#field_type = con.introspection.data_types_reverse.get(field[1], '')
+				#if re.search('(?i)datetime', field_type):
+				#	print field[0]
+				field_name = field[0]
+				if re.search('(?i)(reference|evidence)', field_name):
+					print '%-20s%s' % (table, field_name)
+#				if field_name in date_fields:
+#					max_date = self.sqlSelectMaxDate(con, table, field_name)
+#					if max_date:
+#						table_key = max_date.strftime("%Y%m%d%H%M%S")
+#						max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
+#					else:
+#						max_date = ''
+#						 
+#					#print '%s = %s' % (field_name, max_date)
+#			table_display = '%10s%20s %s' % (count, max_date, table)
+#			print table_display
+		
+		
+		return
 		
 		# ----------------------------------------------
 		
@@ -188,7 +285,7 @@ class Command(BaseCommand):
 		
 		# ----------------------------------------------
 		
-		print '1., 2b., 3a. Save all models to fix various labelling errors.'		
+		print '1., 2b., 3. Save all models to fix various labelling errors.'		
 		import digipal.models
 
 		#model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
@@ -292,6 +389,12 @@ class Command(BaseCommand):
 		if command == 'tables':
 			known_command = True
 			self.showTables(options)
+		
+		if command == 'cleanlocus':
+			known_command = True
+			args = list(args)
+			args.pop(0)
+			self.cleanlocus(args, options)			
 			
 		if command == 'fixseq':
 			# fix the sequence number for auto incremental fields (e.g. id)

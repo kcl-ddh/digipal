@@ -67,6 +67,11 @@ class Command(BaseCommand):
 			dest='table',
 			default='',
 			help='Name of the table to backup'),
+		make_option('--dry-run',
+			action='store_true',
+			dest='dry-run',
+			default=False,
+			help='Dry run, don\'t change any data.'),
 		) 
 	
 	def showTables(self, options):
@@ -205,7 +210,7 @@ class Command(BaseCommand):
 					page.item_part.save()
 					print 'WARNING: forced page.item_part.pagination = true (item part %s)' % page.item_part.id
 				else:
-					print 'WARNING: Not saved as page.item_part.pagination = false (item part %s)' % page.item_part.id 
+					print 'WARNING: Not saved as page.item_part.pagination = false (item part %s)' % page.item_part.id
 				continue
 			page.save()
 			c += 1
@@ -218,13 +223,36 @@ class Command(BaseCommand):
 		
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 		con = connections['legacy']
+		con_dst = connections[options.get('db', 'default')]
+		con_dst.enter_transaction_management()
+		con_dst.managed()
+		con_dst.disable_constraint_checking()
 		
 		tables = con.introspection.table_names()
 		tables.sort()
 		
 		cursor = con.cursor()
+		cursor_dst = con_dst.cursor()
 		
 		migrate_fields = ['evidence', 'reference']
+		table_mapping = {
+							'charters': 		'digipal_historicalitem', # ref is a char (folio number)
+							'date evidence': 	'digipal_dateevidence', # reference is a FK to reference, evidence char(128)
+							'facsimiles': 		'', # ??? no table in dst
+							'ms dates': 		'digipal_date', # evidence char
+							'ms origins': 		'digipal_itemorigin', # evidence char
+							'ms owners': 		'digipal_owner', # evidence char
+							'place evidence': 	'digipal_placeevidence', # ref FK, evidence char
+							'references': 		'', # 'digipal_reference', already imported 
+							'scribes': 			'digipal_scribe', # ref char => legacy_reference
+						}
+		
+		# NEW_DIGIPAL_REFERENCE_ID = reference_mapping[LEGACY_REFERENCE_ID]
+		reference_mapping = {}		
+		cur_dst = self.sqlSelect(con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
+		for ref in cur_dst.fetchall():
+			reference_mapping[ref[1]] = ref[0]
+		cur_dst.close()
 		
 		for table in tables:
 			table_desc = con.introspection.get_table_description(cursor, table)
@@ -234,22 +262,83 @@ class Command(BaseCommand):
 				#	print field[0]
 				field_name = field[0]
 				if re.search('(?i)(reference|evidence)', field_name):
-					print '%-20s%s' % (table, field_name)
-#				if field_name in date_fields:
-#					max_date = self.sqlSelectMaxDate(con, table, field_name)
-#					if max_date:
-#						table_key = max_date.strftime("%Y%m%d%H%M%S")
-#						max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
-#					else:
-#						max_date = ''
-#						 
-#					#print '%s = %s' % (field_name, max_date)
-#			table_display = '%10s%20s %s' % (count, max_date, table)
-#			print table_display
-		
-		
-		return
-		
+					print 'LEGACY.%s.%s' % (table, field_name)
+					table_dst = table_mapping.get(table, '')
+					if not table_dst:
+						print 'WARNING: not mapping found in new Digipal database.'
+						continue
+					
+					field_name_dst = field_name.lower()
+					
+					table_dest_desc = con_dst.introspection.get_table_description(cursor_dst, table_dst)
+					table_dest_field_names = [f[0] for f in table_dest_desc]
+					
+					if field_name_dst == 'reference':
+						if 'legacy_reference' in table_dest_field_names:
+							field_name_dst = 'legacy_reference'
+						if 'reference_id' in table_dest_field_names:
+							field_name_dst = 'reference_id'
+					
+					if field_name_dst not in table_dest_field_names:
+						print 'WARNING: target field not found (%s.%s)' % (table_dst, field_name_dst)
+						
+					print '\tcopy to %s.%s' % (table_dst, field_name_dst)
+					
+					# scan all the legacy records
+					cur_src = self.sqlSelect(con, 'select id, `%s` from `%s` order by id' % (field_name, table))
+					recs_src = cur_src.fetchall()
+					
+					missing = 0
+					written = 0
+					
+					if recs_src:
+						select = 'select id, legacy_id, %s from %s where legacy_id > 0'
+						if table_dst == 'digipal_historicalitem':
+							select += ' and historical_item_type_id = 1'
+						cur_dst = self.sqlSelect(con_dst, select % (field_name_dst, table_dst))
+						recs_dst = {}
+						for rec_dst in cur_dst.fetchall():
+							if rec_dst[1] in recs_dst:
+								print 'More than one record with the same legacy_id %s %s' % (rec_dst[1], table_dst)
+								exit()
+							recs_dst[rec_dst[1]] = rec_dst
+							
+						if not recs_dst:
+							print '\tWARNING: target table has no legacy records'
+							continue
+						
+						for rec in recs_src:
+							if rec[0] not in recs_dst:
+								#'print '\tWARNING: records is missing (legacy_id #%s)' % rec[0]
+								missing += 1
+								continue
+							(rec_dst_id, rec_dst_legacy_id, rec_dst_value) = recs_dst[rec[0]]
+							
+							#if rec_dst[2] and (u'%s' % rec_dst[2]).strip().lower() != (u'%s' % rec[1]).strip().lower():
+							new_value = rec[1]
+							if field_name_dst == 'reference_id':
+								new_value = reference_mapping.get(new_value, None)
+							else:
+								if new_value is None:
+									new_value = ''
+							#print value_src
+							
+							if rec_dst_value and (rec_dst_value != new_value):
+								print '\tWARNING: value is different (legacy_id #%s, "%s" <> "%s")' % (rec[0], rec[1], rec_dst_value)
+								continue
+							
+							self.sqlWrite(con_dst, ('update %s set %s = ' % (table_dst, field_name_dst)) + (' %s WHERE id = %s '), [new_value, rec_dst_id])
+							#print 'update %s set %s = %s WHERE id = %s ' % (table_dst, field_name_dst, new_value, rec_dst_id)
+							written += 1
+						
+						print '\t%s records changed. %s missing legacy records ' % (written, missing)
+							
+					cur_src.close()
+					cur_dst.close()
+				
+		con_dst.commit()
+		con_dst.leave_transaction_management()
+					
 		# ----------------------------------------------
 		
 		print 'B. Remove incorrect \'face\' value in ItemPart.'
@@ -261,15 +350,6 @@ class Command(BaseCommand):
 			c += 1
 		print '\t%d records changed' % c
 
-		# ----------------------------------------------
-		
-#		print '1. CurrentItem.display_label, replace the ; between repo and shelfmark with a space.'
-#		from digipal.models import CurrentItem, Page, ItemPart
-#		for model_class in [CurrentItem, ItemPart, Page]:
-#			print '\tResave %s' % model_class._meta.object_name
-#			for model in model_class.objects.all():
-#				model.save()
-		
 		# ----------------------------------------------
 		
 		print '2a. fix \'abbrev.stroke,\' => \'abbrev. stroke\' in Character to match the Allograph.name otherwise we\'ll still have plenty of duplicates.'
@@ -331,6 +411,18 @@ class Command(BaseCommand):
 		
 		print 'Done'
 
+	def is_dry_run(self):
+		return self.options.get('dry-run', False)
+
+	def sqlWrite(self, wrapper, command, arguments=[]):
+		if not self.is_dry_run():
+			cur = wrapper.cursor()
+	
+			#print command
+			cur.execute(command, arguments)
+			#wrapper.commit()
+			cur.close()
+
 	def sqlSelect(self, wrapper, command, arguments=[]):
 		''' return a cursor,
 			caller need to call .close() on the returned cursor 
@@ -360,6 +452,8 @@ class Command(BaseCommand):
 		return ret
 
 	def handle(self, *args, **options):
+		
+		self.options = options
 		
 		path = self.get_backup_path()
 		if not path:

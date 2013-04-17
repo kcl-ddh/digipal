@@ -258,7 +258,7 @@ class Owner(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-
+    
     class Meta:
         ordering = ['date']
 
@@ -284,6 +284,8 @@ class Date(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
+    evidence = models.CharField(max_length=255, blank=True, null=False, default='')
 
     class Meta:
         ordering = ['sort_order']
@@ -386,6 +388,7 @@ class HistoricalItem(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
 
     class Meta:
         ordering = ['display_label', 'date', 'name']
@@ -745,6 +748,7 @@ class Scribe(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
 
     class Meta:
         ordering = ['name']
@@ -1134,7 +1138,7 @@ class DateEvidence(models.Model):
     date = models.ForeignKey(Date, blank=True, null=True)
     date_description = models.CharField(max_length=128, blank=True, null=True)
     reference = models.ForeignKey(Reference, blank=True, null=True)
-    evidence = models.CharField(max_length=128)
+    evidence = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

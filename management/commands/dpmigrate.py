@@ -72,10 +72,13 @@ Commands:
 			self.migrateHandRecords(options)
 			if not self.is_dry_run():
 				self.reapplyDataMigrations()
+				self.fixSequences()
 
 		if command == 'copy':
 			known_command = True
 			self.migrateRecords(options)
+			if not self.is_dry_run():
+				self.fixSequences()
 		
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
@@ -286,4 +289,31 @@ Commands:
 				print u'[%s] %s%s' % (timestamp, prefixes[log_level], message)
 			except UnicodeEncodeError:
 				print '???'
-	
+
+	def fixSequences(self):
+		from django.db import connections
+		con = connections[self.options.get('db', 'default')]
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+
+		#from django.db import connection
+		print '> Fix all sequences in the database'
+		cursor = con.cursor()
+
+		from django.contrib.contenttypes.models import ContentType
+		types = ContentType.objects.all()
+		c = 0
+		for type in types:
+			model = type.model_class()
+			if model and model._meta.auto_field and model._meta.auto_field.column == 'id':
+				c += 1
+				#print model
+				cmd = "select setval('%(table_name)s_%(seq_field)s_seq', (select max(%(seq_field)s) from %(table_name)s) )" % {'table_name': model._meta.db_table, 'seq_field': model._meta.auto_field.column}
+				cursor.execute(cmd)
+
+		con.commit()
+		con.leave_transaction_management()
+
+		print '\t%s sequences fixed' % c
+		

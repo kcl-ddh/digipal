@@ -67,7 +67,7 @@ sub {
 }
 
 img {
-  width: auto\9;
+  width: auto;
   height: auto;
   max-width: 100%;
   vertical-align: middle;
@@ -815,11 +815,12 @@ blockquote {
   padding: 0 0 0 15px;
   margin: 0 0 20px;
   border-left: 5px solid #eeeeee;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 blockquote p {
   margin-bottom: 0;
-  font-size: 16px;
+  #font-size: 16px;
   font-weight: 300;
   line-height: 25px;
 }

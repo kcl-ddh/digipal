@@ -17,7 +17,7 @@ Commands:
   reformat
                         Fix the formatting errors after a Wordpress import 
 
-  importtags
+  importtags [PATH_TO_WORDPRESS_EXPORT_XML_FILE]
                         Import the tags from a Wordpress export 
 
 """
@@ -210,6 +210,13 @@ Commands:
 				if new_url != url: warning = ''
 				
 				print '\t%s%s => %s' % (warning, url, new_url)
+				
+# 				if warning:
+# 					print '> ' + filename
+# # 					for f in uploaded_files.keys():
+# # 						print '%-50s %s' % (f, uploaded_files[f])
+# 					return
+				
 				content = content.replace(url, new_url)
 			#content = re.sub(ur'(?ui)https?://[^\'"]+', '', content)
 			
@@ -439,15 +446,15 @@ Commands:
 			
 			if isfile(file):
 				(file_base_name, extension) = os.path.splitext(file)
-				if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
-					file_relative = os.path.relpath(file, original_path)
+				#if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
+				file_relative = os.path.relpath(file, original_path)
 
-					info = {
-							'disk': 1,
-							'path': file_relative
-							}
-					
-					all_files.append(info)
+				info = {
+						'disk': 1,
+						'path': file_relative
+						}
+				
+				all_files.append(info)
 			elif isdir(file):
 				files.extend([join(file, f) for f in listdir(file)])
 		return all_files		

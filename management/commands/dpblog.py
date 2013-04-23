@@ -81,7 +81,8 @@ Commands:
 		
 		# load and parse the xml file
 		tags = {}
-		namespaces = {'wp': 'http://wordpress.org/export/1.2/'}
+		#namespaces = {'wp': 'http://wordpress.org/export/1.2/'}
+		wp_name_space = '{http://wordpress.org/export/1.2/}'
 		try:
 			import lxml.etree as ET
 			tree = ET.parse(xml_file)
@@ -113,13 +114,14 @@ Commands:
 		
 		# load all the WP tag names and ids
 		# add the category if it doesn't already exists
-		xml_tags = root.findall('.//wp:tag', namespaces)
+		#xml_tags = root.findall('.//%stag' % wp_name_space, namespaces)
+		xml_tags = root.findall('.//%stag' % wp_name_space)
 		for xml_tag in xml_tags:
-			xml_tag.findall('.//wp:tag', namespaces)
+			xml_tag.findall('.//%stag' % wp_name_space)
 			tag = {
-					'id': 	xml_tag.find('wp:term_id', namespaces).text,
-					'slug': xml_tag.find('wp:tag_slug', namespaces).text,
-					'name': xml_tag.find('wp:tag_name', namespaces).text,
+					'id': 	xml_tag.find('%sterm_id' % wp_name_space).text,
+					'slug': xml_tag.find('%stag_slug' % wp_name_space).text,
+					'name': xml_tag.find('%stag_name' % wp_name_space).text,
 					}
 			tags[tag['id']] = tag
 			
@@ -140,7 +142,7 @@ Commands:
 		#	<category domain="post_tag" nicename="about-digipal"><![CDATA[About DigiPal]]></category>
 		#
 		xml_items = {}
-		for xml_item in tree.findall('.//item', namespaces):
+		for xml_item in tree.findall('.//item'):
 			xml_items[xml_item.find('title').text] = xml_item
 		
 		tag_count = 0

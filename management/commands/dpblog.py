@@ -83,7 +83,7 @@ Commands:
 		tags = {}
 		namespaces = {'wp': 'http://wordpress.org/export/1.2/'}
 		try:
-			import xml.etree.ElementTree as ET
+			import lxml.etree as ET
 			tree = ET.parse(xml_file)
 			#tree.register_namespace('wp', 'http://wordpress.org/export/1.2/')
 			root = tree.getroot()

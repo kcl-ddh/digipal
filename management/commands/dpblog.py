@@ -17,19 +17,12 @@ Commands:
   reformat
                         Fix the formatting errors after a Wordpress import 
 
-                        DB_ALIAS.digipal_*
-                        Existing records are removed. Preexisting table 
-                        structures are preserved.
+  importtags
+                        Import the tags from a Wordpress export 
 
-  copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER] [--dry-run]
-		
-                        Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER* 
-                        to DB_ALIAS.*TABLE_FILTER*
-                        Existing records are removed. Preexisting table 
-                        structures are preserved.
 """
 	
-	args = 'hand'
+	args = 'reformat|importtags'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
             action='store',
@@ -68,9 +61,118 @@ Commands:
 		if command == 'reformat':
 			known_command = True
 			self.reformat(options)
+			
+		if command == 'importtags':
+			known_command = True
+			self.importTags(args, options)
 
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+	
+	def importTags(self, args, options, as_categories=False):
+		# if as_categories is True, the tags will be imported as Mezzanine categories rather than keywords
+		
+		# <wp:tag><wp:term_id>20</wp:term_id><wp:tag_slug>about-digipal</wp:tag_slug><wp:tag_name><![CDATA[About DigiPal]]></wp:tag_name></wp:tag>
+		
+		if len(args) < 2:
+			raise CommandError('Please provide the path of XML file as the first argument.')
+		
+		xml_file = args[1]
+		
+		# load and parse the xml file
+		tags = {}
+		namespaces = {'wp': 'http://wordpress.org/export/1.2/'}
+		try:
+			import xml.etree.ElementTree as ET
+			tree = ET.parse(xml_file)
+			#tree.register_namespace('wp', 'http://wordpress.org/export/1.2/')
+			root = tree.getroot()
+		except Exception, e:
+			raise CommandError('Cannot parse %s: %s' % (xml_file, e))
+		
+		# get the mezzanine categories
+		from mezzanine.blog.models import BlogPost
+		from mezzanine.generic.models import AssignedKeyword
+		if as_categories:
+			from mezzanine.blog.models import BlogCategory as CatOrKwd
+		else:
+			from mezzanine.generic.models import Keyword as CatOrKwd
+		
+		categories = {}
+		for category in CatOrKwd.objects.all():
+			categories[category.slug] = category
+		
+		model_name = CatOrKwd._meta.object_name
+		if model_name == 'BlogCategory': model_name = 'Category'
+		model_field_name = 'keywords'
+		if as_categories: model_field_name = 'categories'
+		category_domain = 'post_tag'
+		if as_categories: category_domain = 'category'
+			
+		print '%d %s in Mezzanine' % (len(categories), model_name)
+		
+		# load all the WP tag names and ids
+		# add the category if it doesn't already exists
+		xml_tags = root.findall('.//wp:tag', namespaces)
+		for xml_tag in xml_tags:
+			xml_tag.findall('.//wp:tag', namespaces)
+			tag = {
+					'id': 	xml_tag.find('wp:term_id', namespaces).text,
+					'slug': xml_tag.find('wp:tag_slug', namespaces).text,
+					'name': xml_tag.find('wp:tag_name', namespaces).text,
+					}
+			tags[tag['id']] = tag
+			
+			# add the category if it doesn't already exists
+			if tag['slug'] not in categories:
+				print '\tAdd new %s to Mezzanine: %s' % (model_name, tag['slug'], )
+				category = CatOrKwd(slug=tag['slug'], title=tag['name'], site_id=1)
+				if not self.is_dry_run():
+					category.save()
+				categories[category.slug] = category
+				
+		print '%d tags in Wordpress' % len(xml_tags)
+			
+		# Tag the posts
+		#
+		# <item>
+		#	<title>Text, Image and the Digital Research Environment</title>
+		#	<category domain="post_tag" nicename="about-digipal"><![CDATA[About DigiPal]]></category>
+		#
+		xml_items = {}
+		for xml_item in tree.findall('.//item', namespaces):
+			xml_items[xml_item.find('title').text] = xml_item
+		
+		tag_count = 0
+		modified_posts = {}
+		for post in BlogPost.objects.all().order_by('id'):
+			if post.title not in xml_items:
+				print '\tWARNING: blog post #%s not found in Wordpress dump' % (post.id,)
+				continue
+			
+			xml_item = xml_items[post.title]
+			
+			for xml_tag_slug in [c.get('nicename') for c in xml_item.findall('category[@domain=\'%s\']' % category_domain)]:
+				#print getattr(post, model_field_name).all()
+				
+				if xml_tag_slug not in [c.slug for c in getattr(post, model_name.lower() + '_list')()]:
+					object_to_add = categories[xml_tag_slug]
+# 					keyword_id = Keyword.objects.get_or_create(title=keyword)[0].id
+# 					page.keywords.add(AssignedKeyword(keyword_id=keyword_id))
+					if not as_categories:
+						object_to_add = AssignedKeyword(keyword=categories[xml_tag_slug])
+					getattr(post, model_field_name).add(object_to_add)
+					#print categories[xml_tag_slug].slug
+					print '\tAdd %s %s to post %s' % (model_name, xml_tag_slug, post.slug)
+					if not self.is_dry_run():
+						post.save()
+					tag_count += 1
+					modified_posts[post.slug] = 1
+		
+		print 'Added %d %s to %d posts.' % (tag_count, model_name, len(modified_posts.keys()))
+			#post.categories
+			#xml_items = tree.findall('.//item[title/text()=\'%s\']' % (post.title,), namespaces)
+			#print len(xml_items)
 	
 	def reformat(self, options):
 		# e.g. https://digipal2.cch.kcl.ac.uk/blog/anglo-saxon-mss-online-ii-copenhagen-roy-lib-and-bav/
@@ -93,9 +195,6 @@ Commands:
 				content = re.sub(ur'(?ui)<p/>', '', content)
 				content = re.sub(ur'(?ui)<p>\s*</p>', '', content)
 		
-			#self.log('1. fix image references', 2)
-			
-			#self.log('2. fix link to old site', 2)
 			#self.log('3. fix tables', 2)
 			urls = re.findall(ur'(?ui)(?:["\'])(https?://www.digipal.eu[^\'"]+)', content)
 			for url in urls:

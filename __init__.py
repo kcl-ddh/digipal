@@ -7,6 +7,9 @@ add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 from iipimage import storage
 from iipimage.storage import generate_new_image_path
 
+import logging
+dplog = logging.getLogger( 'digipal_debugger')
+
 # PATCH 1:
 # The name of the iipimage field was hardcoded.
 # Changed to iipimage to match Page model.
@@ -97,3 +100,59 @@ def thumbnail_url (self, height=None, width=None):
     return '%s%s%s&CVT=JPEG' % (self.full_base_url, height, width)
 
 fields.ImageFieldFile.thumbnail_url = thumbnail_url
+
+# Patch 4:
+# Fix Mezzanine case-insensitive keyword issue
+# See https://github.com/stephenmcd/mezzanine/issues/647
+from django.contrib.admin.views.decorators import staff_member_required
+# from django.contrib.messages import error
+# from django.contrib.comments.signals import comment_was_posted
+# from django.core.urlresolvers import reverse
+# from django.db.models import get_model, ObjectDoesNotExist
+# from django.shortcuts import redirect
+# from django.utils.translation import ugettext_lazy as _
+# 
+# from mezzanine.conf import settings
+# from mezzanine.generic.fields import RatingField
+# from mezzanine.generic.forms import ThreadedCommentForm
+
+from django.http import HttpResponse, HttpResponseRedirect
+from mezzanine.generic.models import Keyword, Rating
+
+# from mezzanine.utils.cache import add_cache_bypass
+# from mezzanine.utils.email import send_mail_template
+# from mezzanine.utils.views import render, set_cookie, is_spam
+
+@staff_member_required
+def admin_keywords_submit(request):
+    """
+    Adds any new given keywords from the custom keywords field in the
+    admin, and returns their IDs for use when saving a model with a
+    keywords field.
+    """
+    ids, titles = [], []
+    for title in request.POST.get("text_keywords", "").split(","):
+        title = "".join([c for c in title if c.isalnum() or c in "- "])
+        title = title.strip()
+        if title:
+            keywords = Keyword.objects.filter(title__iexact=title)
+            
+            # pick a case-sensitive match if it exists.
+            # otherwise pick any other match.
+            for keyword in keywords:
+                if keyword.title == title:
+                    break
+            
+            # no match at all, create a new keyword.
+            if not keywords.count():
+                keyword = Keyword(title=title)
+                keyword.save()                
+            
+            id = str(keyword.id)
+            if id not in ids:
+                ids.append(id)
+                titles.append(title)
+    return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
+
+import mezzanine.generic.views
+mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit

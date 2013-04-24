@@ -105,23 +105,8 @@ fields.ImageFieldFile.thumbnail_url = thumbnail_url
 # Fix Mezzanine case-insensitive keyword issue
 # See https://github.com/stephenmcd/mezzanine/issues/647
 from django.contrib.admin.views.decorators import staff_member_required
-# from django.contrib.messages import error
-# from django.contrib.comments.signals import comment_was_posted
-# from django.core.urlresolvers import reverse
-# from django.db.models import get_model, ObjectDoesNotExist
-# from django.shortcuts import redirect
-# from django.utils.translation import ugettext_lazy as _
-# 
-# from mezzanine.conf import settings
-# from mezzanine.generic.fields import RatingField
-# from mezzanine.generic.forms import ThreadedCommentForm
-
 from django.http import HttpResponse, HttpResponseRedirect
 from mezzanine.generic.models import Keyword, Rating
-
-# from mezzanine.utils.cache import add_cache_bypass
-# from mezzanine.utils.email import send_mail_template
-# from mezzanine.utils.views import render, set_cookie, is_spam
 
 @staff_member_required
 def admin_keywords_submit(request):

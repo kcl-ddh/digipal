@@ -18,7 +18,11 @@ Commands:
                         Fix the formatting errors after a Wordpress import 
 
   importtags [PATH_TO_WORDPRESS_EXPORT_XML_FILE]
-                        Import the tags from a Wordpress export 
+                        Import the tags from a Wordpress export
+                        
+  fixdqpaths
+                        Fix the Disqus comment paths from the old WP site to 
+                        the new one  
 
 """
 	
@@ -65,9 +69,67 @@ Commands:
 		if command == 'importtags':
 			known_command = True
 			self.importTags(args, options)
+		
+		if command == 'geturlmapping':
+			known_command = True
+			self.getUrlMapping(args, options)
 
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+	
+	def getDQComments(self):
+		# http://disqus.com/api/docs/posts/list/
+		# https://github.com/disqus/disqus-python
+ 		from disqusapi import DisqusAPI
+ 		from mezzanine.conf import settings
+ 		settings.use_editable()
+ 		
+ 		disqus = DisqusAPI(settings.COMMENTS_DISQUS_API_SECRET_KEY, settings.COMMENTS_DISQUS_API_PUBLIC_KEY)
+ 		posts = disqus.forums.listPosts(forum='digipal')
+ 		for post in posts:
+ 			print post
+ 		print posts
+		
+	
+	def getUrlMapping(self, args, options, as_categories=False):
+		# Two modes: 
+		#	1. convert from WP to Django / Mezzanine blog with all the correct urls and paths
+		#		Just leave old_domain = '' or None
+		#	2. convert from one Django / Mezzanine blog to another (simple domain mapping)
+		#		Set old_domain to the source django domain
+		
+		old_domain = ur'digipal2-dev.cch.kcl.ac.uk'
+		#old_domain = ''
+		new_domain = ur'www.digipal.eu'
+		
+		# no way to update the posts using the API as of May 2013		
+		if len(args) < 2:
+			raise CommandError('Please provide the path of XML file as the first argument.')
+		
+		xml_file = args[1]
+		
+		# load and parse the xml file
+		wp_name_space = '{http://wordpress.org/export/1.2/}'
+		try:
+			import lxml.etree as ET
+			tree = ET.parse(xml_file)
+		except Exception, e:
+			raise CommandError('Cannot parse %s: %s' % (xml_file, e))
+
+		from digipal_django.redirects import get_redirected_url
+		for link in tree.findall('//item/link'):
+			old_url = link.text
+			if re.search(r'/attachment/|\?', old_url): continue
+			if re.search(r'\?', old_url):
+				continue
+			
+			new_url = get_redirected_url(old_url, True, True)
+			
+			new_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % new_domain, new_url)
+			if old_domain:
+				old_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % old_domain, new_url)
+			
+			print ur'%s, %s' % (old_url, new_url)
 	
 	def importTags(self, args, options, as_categories=False):
 		# if as_categories is True, the tags will be imported as Mezzanine categories rather than keywords

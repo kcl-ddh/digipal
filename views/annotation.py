@@ -71,25 +71,22 @@ def page(request, page_id):
     width, height = page.dimensions()
     image_server_url = page.zoomify
 
-    if request.user.is_superuser:
-        isAdmin = True
-    else:
-        isAdmin = False
+    is_admin = request.user.is_superuser
 
+    context = {
+               'form': form, 'page': page, 'height': height, 'width': width,
+               'image_server_url': image_server_url,
+               'page_link': page_link, 'annotations': annotations, 
+               'hands': hands, 'is_admin': is_admin,
+               'no_image_reason': page.get_media_unavailability_reason(request.user)
+               }
+ 
     if vector_id:
-        return render_to_response('digipal/page_annotation.html',
-                {'vector_id': vector_id, 'form': form, 'page': page,
-                    'height': height, 'width': width,
-                    'image_server_url': image_server_url,
-                    'page_link': page_link, 'annotations': annotations, 'hands': hands, 'isAdmin': isAdmin},
-                context_instance=RequestContext(request))
-    else:
-        return render_to_response('digipal/page_annotation.html',
-                {'form': form, 'page': page, 'height': height, 'width': width,
-                    'image_server_url': image_server_url,
-                    'page_link': page_link, 'annotations': annotations, 'hands': hands, 'isAdmin': isAdmin},
-                context_instance=RequestContext(request))
+        context['vector_id'] = vector_id
 
+    return render_to_response('digipal/page_annotation.html', context, 
+                              context_instance=RequestContext(request))
+    
 
 def page_vectors(request, page_id):
     """Returns a JSON of all the vectors for the requested page."""

@@ -939,11 +939,6 @@ class Page(models.Model):
         '''
         ret = ''
         
-        dplog.debug('------')
-        dplog.debug(self.full())
-        dplog.debug(self.image.url)
-        dplog.debug(self.iipimage.name)
-        
         if not self.iipimage:
             # image is missing, default message
             ret = 'The image was not found'

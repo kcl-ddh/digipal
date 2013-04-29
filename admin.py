@@ -17,7 +17,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Ontograph, OntographType, Owner, \
         Page, Person, Place, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
-        Scribe, Script, ScriptComponent, Source, Status
+        Scribe, Script, ScriptComponent, Source, Status, MediaPermission
 import reversion
 
 import logging
@@ -452,7 +452,6 @@ class CharacterInline(admin.StackedInline):
 
     filter_horizontal = ['components']
 
-
 class OntographAdmin(reversion.VersionAdmin):
     model = Ontograph
 
@@ -481,7 +480,9 @@ class PageAdmin(reversion.VersionAdmin):
     exclude = ['image']
     inlines = [HandsInline]
     list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
-            'caption', 'created', 'modified', 'iipimage']
+            ##'caption', 'media_permission__label', 'created', 'modified',
+            'caption', 'created', 'modified', 
+            'iipimage']
     list_display_links = list_display
     search_fields = ['id', 'folio_side', 'folio_number', 'caption', 
             'item_part__display_label', 'iipimage']
@@ -630,6 +631,9 @@ class LogEntryAdmin(reversion.VersionAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+class MediaPermissionAdmin(reversion.VersionAdmin):
+    list_display = ['label', 'display_message', 'is_private']
+    ordering = ['label']
 
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
@@ -680,3 +684,4 @@ admin.site.register(Scribe, ScribeAdmin)
 admin.site.register(Script, ScriptAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Status, StatusAdmin)
+admin.site.register(MediaPermission, MediaPermissionAdmin)

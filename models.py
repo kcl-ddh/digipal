@@ -48,6 +48,23 @@ def get_list_as_string(*parts):
             waiting_sep = sep
     return ret
 
+class MediaPermission(models.Model):
+    label = models.CharField(max_length=64, blank=False, null=False,
+        help_text='''An short label describing the type of permission. For internal use only.''')
+    is_private = models.BooleanField(null=False, default=False, 
+        help_text='''If ticked the image the following message will be displayed instead of the image.''')
+    display_message = models.TextField(blank=True, null=False, default='',
+        help_text='''If Private is ticked the image the message will be displayed instead of the image.''')
+    
+    class Meta:
+        ordering = ['label']
+
+    def __unicode__(self):
+        status = 'Public'
+        if self.is_private:
+            status = 'Private'
+        return ur'%s [%s]' % (self.label, status)
+
 # Aspect on legacy db
 class Appearance(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -644,9 +661,16 @@ class Repository(models.Model):
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
     copyright_notice = models.TextField(blank=True, null=True)
+    media_permission = models.ForeignKey(MediaPermission, null=True, 
+            blank=True, default=None,
+            help_text='''The default permission scheme for images originating from this repository.<br/>
+            If left empty, the image is assumed to be publicly accessible.<br/>
+            The Pages can override the repository default permission.
+            ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Repositories'
@@ -657,6 +681,16 @@ class Repository(models.Model):
     def human_readable(self):
         #return u'%s, %s' % (self.place, self.name)
         return get_list_as_string(self.place, ', ', self.name) 
+
+    def get_media_permission(self):
+        return self.media_permission
+    
+    def is_media_private(self):
+        ret = False
+        permission = self.get_media_permission()
+        if permission and permission.is_private:
+            ret = True
+        return ret
 
 
 class CurrentItem(models.Model):
@@ -822,10 +856,10 @@ class ItemPart(models.Model):
     locus = models.CharField(max_length=64, blank=True, null=True,
             default=settings.ITEM_PART_DEFAULT_LOCUS)
     display_label = models.CharField(max_length=128, editable=False)
+    pagination = models.BooleanField(blank=False, null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    pagination = models.BooleanField(blank=False, null=False, default=False)
 
     class Meta:
         ordering = ['display_label']
@@ -861,11 +895,20 @@ class Page(models.Model):
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
     caption = models.CharField(max_length=256)
+    
+    # Legacy field, deprecated. 
+    # PLEASE USE IIPIMAGE INSTEAD.
+    # eg. self.image.url => self.iipimage.name
     image = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True,
             null=True)
     iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path, 
             blank=True, null=True, storage=iipimage.storage.image_storage)
+    
     display_label = models.CharField(max_length=128, editable=False)
+    media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
+            help_text='''This field determine whether the image is publicly visible and the reason if not.<br/>
+            If left empty the repository permission is used.<br/>
+            ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -875,6 +918,43 @@ class Page(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def get_media_permission(self):
+        ret = self.media_permission
+        if ret is None and self.item_part.current_item and self.item_part.current_item.repository:
+            # inherit from repository 
+            ret = self.item_part.current_item.repository.media_permission
+        return ret
+    
+    def is_media_private(self):
+        ret = False
+        permission = self.get_media_permission()
+        if permission and permission.is_private:
+            ret = True
+        return ret
+
+    def get_media_unavailability_reason(self, user=None):
+        '''Returns an empty string if the media can be viewed by the user.
+           Returns a message explaining the reason otherwise. 
+        '''
+        ret = ''
+        
+        dplog.debug('------')
+        dplog.debug(self.full())
+        dplog.debug(self.image.url)
+        dplog.debug(self.iipimage.name)
+        
+        if not self.iipimage:
+            # image is missing, default message
+            ret = 'The image was not found'
+        else:
+            if (user is None) or (not user.is_superuser):
+                permission = self.get_media_permission()
+                if permission and permission.is_private:
+                    ret = permission.display_message
+                    # default message if no reason specified
+                    if not ret: ret = 'The image is not available'
+        return ret
     
     def get_locus_label(self):
         ret = ''
@@ -958,7 +1038,9 @@ class Page(models.Model):
 #        return int(width), int(height)
 
     def full(self):
-        """Returns the URL for the full size image."""
+        """Returns the URL for the full size image.
+           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG 
+        """
         ret = ''
         path = ''
         if self.iipimage:
@@ -1355,3 +1437,4 @@ class Proportion(models.Model):
     def __unicode__(self):
         #return u'%s. %s' % (self.hand, self.measurement)
         return get_list_as_string(self.hand, '. ', self.measurement)
+

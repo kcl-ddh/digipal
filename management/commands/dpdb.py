@@ -8,55 +8,50 @@ import re
 from optparse import make_option
 
 class Command(BaseCommand):
-	"""
-	Digipal database management tools.
-	
-	Commands:
-	
-		backup [--table TABLE_NAME] [BACKUP_NAME]
-			Backup a database into a file.
-	
-		restore BACKUP_NAME
-			Restores a database from a backup. 
-	
-		list
-			Lists backup files.
-		
-		tables
-			Lists the tables in the database, their size and most recent change
-			Use --table PATTERN to select which table to display 			
-		
-		fixseq
-			Fix the postgresql sequences. 
-			Useful when you get a duplicate key violation on insert after restoring a database.
-			
-		tidyup1
-			Tidy up the data in the digipal tables (See Mantis issue #5532)
-			Refresh all the display_labels fields.
-		
-		checkdata1
-			Check for issues in the data (See Mantis issue #5532)
-		
-		cleanlocus ITEMPARTID1 ITEMPARTID2 ... [--force]
-			Remove the v/r from the Page.locus field.
-			For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
-			Use --force to also change Page.item_part.pagination to true.
-			Use checkdata1 to list the id of the pages and item_parts records.
-	
-	Options:
-	
-		--db DATABASE_SETTINGS_NAME
-	
+	help = """
+Digipal database management tools.
+
+Commands:
+
+  backup [--table TABLE_NAME] [BACKUP_NAME]
+                        Backup a database into a file.
+
+  restore BACKUP_NAME
+                        Restores a database from a backup. 
+
+  list 
+                        Lists backup files.
+  
+  tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]  
+                        Lists the tables in the database, their size and most recent change
+                        Use --table PATTERN to select which table to display                           
+  
+  fixseq
+                        Fix the postgresql sequences. 
+                        Useful when you get a duplicate key violation on insert after restoring a database.
+                        
+  tidyup1 [--db=DATABASE_ALIAS]
+                        Tidy up the data in the digipal tables (See Mantis issue #5532)
+                        Refresh all the display_labels fields.
+  
+  checkdata1
+                        Check for issues in the data (See Mantis issue #5532)
+  
+  cleanlocus ITEMPARTID1 [ITEMPARTID2 ...] [--force]
+                        Remove the v/r from the Page.locus field.
+                        For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
+                        Use --force to also change Page.item_part.pagination to true.
+                        Use checkdata1 to list the id of the pages and item_parts records.
 	"""
 	
 	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1'
-	help = 'Manage the Digipal database'
+	#help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
             action='store',
             dest='db',
             default='default',
-            help='Name of the database configuration'),
+            help='Database alias'),
 		make_option('--force',
 			action='store_true',
 			dest='force',

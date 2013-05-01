@@ -647,9 +647,6 @@ class Place(models.Model):
         return u'%s' % (self.name)
 
 
-
-
-
 # Libraries in legacy db
 class Repository(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -663,9 +660,10 @@ class Repository(models.Model):
     copyright_notice = models.TextField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True, 
             blank=True, default=None,
-            help_text='''The default permission scheme for images originating from this repository.<br/>
-            If left empty, the image is assumed to be publicly accessible.<br/>
-            The Pages can override the repository default permission.
+            help_text='''The default permission scheme for images originating 
+            from this repository.<br/> If left empty, the image is assumed to 
+            be privately accessible only.<br/> The Pages can override the 
+            repository default permission.
             ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -682,15 +680,18 @@ class Repository(models.Model):
         #return u'%s, %s' % (self.place, self.name)
         return get_list_as_string(self.place, ', ', self.name) 
 
+    @staticmethod
+    def get_default_media_permission():
+        return MediaPermission(label='Unspecified', 
+                               display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE, 
+                               is_private=True)
+
     def get_media_permission(self):
-        return self.media_permission
+        # this function will always return a mdia_permission object
+        return self.media_permission or Repository.get_default_media_permission()
     
     def is_media_private(self):
-        ret = False
-        permission = self.get_media_permission()
-        if permission and permission.is_private:
-            ret = True
-        return ret
+        return get_media_permission().is_private
 
 
 class CurrentItem(models.Model):
@@ -906,9 +907,7 @@ class Page(models.Model):
     
     display_label = models.CharField(max_length=128, editable=False)
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
-            help_text='''This field determine whether the image is publicly visible and the reason if not.<br/>
-            If left empty the repository permission is used.<br/>
-            ''')
+            help_text='''This field determines if the image is publicly visible and the reason if not.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -919,19 +918,25 @@ class Page(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
     
+    def get_repository(self):
+        ret = None
+        if self.item_part and self.item_part.current_item and self.item_part.current_item:
+            ret = self.item_part.current_item.repository
+        return ret
+    
     def get_media_permission(self):
+        '''Returns the media permission of the page or inherited from repo'''
         ret = self.media_permission
-        if ret is None and self.item_part.current_item and self.item_part.current_item.repository:
-            # inherit from repository 
-            ret = self.item_part.current_item.repository.media_permission
+        if not ret:
+            repo = self.get_repository()
+            if repo:
+                ret = repo.get_media_permission()
+        if not ret:
+            ret = Repository.get_default_media_permission()
         return ret
     
     def is_media_private(self):
-        ret = False
-        permission = self.get_media_permission()
-        if permission and permission.is_private:
-            ret = True
-        return ret
+        return self.get_media_permission().is_private
 
     def get_media_unavailability_reason(self, user=None):
         '''Returns an empty string if the media can be viewed by the user.
@@ -945,10 +950,11 @@ class Page(models.Model):
         else:
             if (user is None) or (not user.is_superuser):
                 permission = self.get_media_permission()
-                if permission and permission.is_private:
+                if permission.is_private: 
                     ret = permission.display_message
-                    # default message if no reason specified
-                    if not ret: ret = 'The image is not available'
+                    if not ret:
+                        ret = settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE
+                        
         return ret
     
     def get_locus_label(self):

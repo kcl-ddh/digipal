@@ -1,0 +1,11 @@
+{% extends "admin/change_form.html" %}
+
+<!-- LOADING -->
+{% load i18n future admin_modify adminmedia grp_tags grp_csrf %}
+
+{% block javascripts %}
+    {{ block.super }}
+
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/admin/digipal-edit-related-objects.js"></script>
+
+{% endblock %}

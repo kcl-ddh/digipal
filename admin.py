@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes import generic
+from django import forms
+from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
         CatalogueNumber, Category, Character, Collation, Component, County, \
@@ -474,8 +476,35 @@ class HandsInline(admin.StackedInline):
     model = Hand.pages.through
 
 
+class PageForm(forms.ModelForm):
+
+    class Meta:
+        model = Page    
+
+    def __init__(self, *args, **kwargs):
+        # we change the label of the default value for the media_permission 
+        # field so it displays the actual permission on the repository object.
+        #
+        # We also add a link to the repository in the help message under the 
+        # field
+        super(PageForm, self).__init__(*args, **kwargs)
+        page = getattr(self, 'instance', None)
+        permission_field = self.fields['media_permission']
+        if page:
+            # TODO: remove code duplication in the functions
+            repository = page.get_repository()
+            if repository:
+                permission = repository.get_media_permission()
+                repository_url = reverse("admin:digipal_repository_change", 
+                                         args=[repository.id])
+                permission_field.empty_label = 'Inherited: %s' % permission
+                permission_field.help_text += ur'''<br/>To inherit from the 
+                    default permission set in the 
+                    <a target="_blank" href="%s">repository</a>, please 
+                    select the first option.<br/>''' % repository_url
+
 class PageAdmin(reversion.VersionAdmin):
-    model = Page
+    form = PageForm
 
     exclude = ['image']
     inlines = [HandsInline]
@@ -486,6 +515,8 @@ class PageAdmin(reversion.VersionAdmin):
     list_display_links = list_display
     search_fields = ['id', 'folio_side', 'folio_number', 'caption', 
             'item_part__display_label', 'iipimage']
+    
+    list_filter = ['media_permission__label']
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 
@@ -570,6 +601,7 @@ class RepositoryAdmin(reversion.VersionAdmin):
     list_display = ['name', 'short_name', 'place', 'created', 'modified']
     list_display_links = ['name', 'short_name', 'place', 'created', 'modified']
     search_fields = ['legacy_id', 'name', 'short_name', 'place__name']
+    list_filter = ['media_permission__label']
 
 
 class ScribeAdmin(reversion.VersionAdmin):

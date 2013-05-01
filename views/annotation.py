@@ -72,7 +72,7 @@ def page(request, page_id):
     image_server_url = page.zoomify
 
     is_admin = request.user.is_superuser
-
+    
     context = {
                'form': form, 'page': page, 'height': height, 'width': width,
                'image_server_url': image_server_url,

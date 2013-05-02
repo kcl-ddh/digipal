@@ -246,7 +246,7 @@ class Reference(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=128)
     name_index = models.CharField(max_length=1, blank=True, null=True)
-    legacy_reference = models.CharField(max_length=128, blank=True, null=True)
+    legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
     full_reference = models.TextField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -301,8 +301,8 @@ class Date(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
-    evidence = models.CharField(max_length=255, blank=True, null=False, default='')
+    legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
+    evidence = models.CharField(max_length=255, blank=True, null=True, default='')
 
     class Meta:
         ordering = ['sort_order']
@@ -405,7 +405,7 @@ class HistoricalItem(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
+    legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
 
     class Meta:
         ordering = ['display_label', 'date', 'name']
@@ -556,7 +556,7 @@ class ItemOrigin(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey()
     historical_item = models.ForeignKey(HistoricalItem)
-    evidence = models.TextField(blank=True, null=True)
+    evidence = models.TextField(blank=True, null=True, default='')
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -783,7 +783,7 @@ class Scribe(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    legacy_reference = models.CharField(max_length=128, blank=True, null=False, default='')
+    legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
 
     class Meta:
         ordering = ['name']
@@ -1221,7 +1221,7 @@ class DateEvidence(models.Model):
     date = models.ForeignKey(Date, blank=True, null=True)
     date_description = models.CharField(max_length=128, blank=True, null=True)
     reference = models.ForeignKey(Reference, blank=True, null=True)
-    evidence = models.CharField(max_length=255)
+    evidence = models.CharField(max_length=255, blank=True, null=True, default='')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

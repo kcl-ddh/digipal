@@ -593,9 +593,19 @@ class RegionAdmin(reversion.VersionAdmin):
 class CurrentItemInline(admin.StackedInline):
     model = CurrentItem
 
+class RepositoryForm(forms.ModelForm):
+
+    class Meta:
+        model = Repository
+
+    def __init__(self, *args, **kwargs):
+        # we change the label of the default value for the media_permission 
+        # field so it displays the actual permission (public/private)
+        super(RepositoryForm, self).__init__(*args, **kwargs)
+        self.fields['media_permission'].empty_label = '%s' % Repository.get_default_media_permission()
 
 class RepositoryAdmin(reversion.VersionAdmin):
-    model = Repository
+    form = RepositoryForm
 
     inlines = [CurrentItemInline]
     list_display = ['name', 'short_name', 'place', 'created', 'modified']

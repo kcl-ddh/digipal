@@ -661,8 +661,7 @@ class Repository(models.Model):
     media_permission = models.ForeignKey(MediaPermission, null=True, 
             blank=True, default=None,
             help_text='''The default permission scheme for images originating 
-            from this repository.<br/> If left empty, the image is assumed to 
-            be privately accessible only.<br/> The Pages can override the 
+            from this repository.<br/> The Pages can override the 
             repository default permission.
             ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)

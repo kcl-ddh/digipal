@@ -40,8 +40,8 @@
                 <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
             {% else %}
                 <li class="next disabled"><a href='#'>{% trans "next" %} &rsaquo;&rsaquo;</a></li>
-        {% endif %}
-         </ul>
+            {% endif %}
+             </ul>
      </div> 
     {% endif %}
     <div class='span2 pull-right' id='myTab'>
@@ -221,17 +221,17 @@
         <div class="pagination">
             <ul>
             {% if page_list.has_previous %}
-                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
-                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">{{ page_list.previous_page_number }}</a></li>
+                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
+                <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="prev">{{ page_list.previous_page_number }}</a></li>
             {% else %}
                 <li class="previous disabled"><a href='#'>&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
             {% endif %}
             <li class="active"><a href='#'>Page {{ page_list.number }} of {{page_list.paginator.num_pages}}</a></li>
             {% if page_list.has_next %}
-                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{{ page_list.next_page_number }} &rsaquo;&rsaquo;</a></li>
-                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="next">{{ page_list.next_page_number }} &rsaquo;&rsaquo;</a></li>
+                <li><a href="?page={{ page_list.next_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="next">{% trans "next" %} &rsaquo;&rsaquo;</a></li>
             {% else %}
-                <li class="next disabled">{% trans "next" %} &rsaquo;&rsaquo;</li>
+                <li class="next disabled"><a href='#'>{% trans "next" %} &rsaquo;&rsaquo;</a></li>
         {% endif %}
          </ul>
     </div>

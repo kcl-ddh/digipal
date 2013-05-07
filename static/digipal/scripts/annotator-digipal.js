@@ -258,7 +258,7 @@ function showBox(selectedFeature){
                     }
                 }
             } else {
-                s += "<li class='component'>No Features available</li>"
+                s += "<li class='component'>This graph has not yet been described.</li>"
             }
             s += "</ul>";
             $('#dialog' + id).html(s);

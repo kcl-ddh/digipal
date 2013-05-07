@@ -9,6 +9,7 @@ from iipimage.storage import generate_new_image_path
 from django.conf import settings
 
 import logging
+import re
 dplog = logging.getLogger( 'digipal_debugger')
 
 # PATCH 1:
@@ -184,3 +185,36 @@ if 'mezzanine.blog' in settings.INSTALLED_APPS:
         return ret
     
     BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
+
+# Patch 5: bar permissions to some application models in the admin
+# Why not doing it with django permissions and groups?
+# Because we want to keep the data migration scripts simple and
+# therefore we copy all the django records from  STG to the other 
+# servers. This means that we can't have different permissions and
+# user groups across our servers.
+# 
+# setings.HIDDEN_ADMIN_APPS = ('APP_LABEL_1', )
+#
+
+import django.contrib.auth.models 
+
+_user_has_module_perms_old = django.contrib.auth.models._user_has_module_perms
+
+def _user_has_module_perms(user, app_label):
+    if user and not user.is_superuser and user.is_active and \
+        app_label in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
+        return False
+    return _user_has_module_perms_old(user, app_label)
+
+django.contrib.auth.models._user_has_module_perms = _user_has_module_perms
+
+_user_has_perm_old = django.contrib.auth.models._user_has_perm
+def _user_has_perm(user, perm, obj):
+    # perm =  'digipal.add_allograph'
+    if user and not user.is_superuser and user.is_active and perm and \
+        re.sub(ur'\..*$', '', '%s' % perm) in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
+        return False
+    return _user_has_perm_old(user, perm, obj)
+
+django.contrib.auth.models._user_has_perm = _user_has_perm
+

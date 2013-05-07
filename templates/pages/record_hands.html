@@ -119,7 +119,7 @@
                             {% for annotation in annotations %}
                                 <li>
                                 <p><a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
-                                {% if request.user.is_superuser %}
+                                {% if can_edit %}
                                 <span> | </span>
                                 <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
                                 {% else %}

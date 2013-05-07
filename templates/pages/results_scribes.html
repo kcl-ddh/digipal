@@ -186,7 +186,7 @@
         <td>{{ result.date }}</td>
         <td>{{ result.scriptorium.name }}</td>
         <td>
-                {% if request.user.is_superuser %}
+                {% if can_edit %}
                 <a class="btn" href="/admin/digipal/scribe/{{ result.id }}">Edit</a>
                 {% endif %}
                 <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>

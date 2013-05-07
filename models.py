@@ -17,6 +17,20 @@ import iipimage.storage
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
+def has_edit_permission(request, model):
+    '''Returns True if the user of the current HTTP request
+        can edit a model. False otherwise.
+        
+        model is a model class
+        request is a django request
+    '''
+    ret = False
+    if model and request and request.user:
+        perm = model._meta.app_label + '.' + model._meta.get_change_permission()
+        ret = request.user.has_perm(perm)
+        
+    return ret
+
 def get_list_as_string(*parts):
     '''
         Takes a list of items and separators and returns this list as a string.

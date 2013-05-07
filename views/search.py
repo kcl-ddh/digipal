@@ -78,6 +78,7 @@ def quickSearch(request):
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()
+        context['can_edit'] = has_edit_permission(request, Hand)
         return render_to_response(result_page, context, context_instance=RequestContext(request))
 
     else:
@@ -89,6 +90,7 @@ def quickSearch(request):
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()
+        context['can_edit'] = has_edit_permission(request, Hand)
         result_page = 'search/quicksearch_results.html'
         return render_to_response(result_page, context, context_instance=RequestContext(request))
 
@@ -104,6 +106,9 @@ def searchDB(request):
     searchform = SearchForm(request.GET)
     if searchform.is_valid():
         context = {}
+
+        context['can_edit'] = has_edit_permission(request, Annotation)
+
         term = searchform.cleaned_data['terms']
         if term:
             context['terms'] = term
@@ -212,6 +217,7 @@ def searchDB(request):
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()
+        
         # Distinguish between requests for one record, and full results
         if request.GET.get('record', ''):
             context['searchform'] = False

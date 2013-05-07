@@ -93,7 +93,7 @@
                   <a class='btn' id='filterAllographs'>Filter</a>
                 </span>
                 {% endif %}
-                {% if request.user.is_superuser %}
+                {% if can_edit %}
                 <b>Edit graph</b>
                 <span id='buttonEdit'><a href="#myModal" role="button" data-toggle="modal" class="btn" id="editGraph">Edit</a></span>
                 {% endif %}
@@ -108,7 +108,7 @@
               </div>
               <div id="myModal" class="modal hide">
                 <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
                   <h3 class='header5' id="myModalLabel">Edit Features</h3>
                 </div>
                 <div class="modal-body">

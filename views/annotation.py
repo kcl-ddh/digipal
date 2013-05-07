@@ -11,7 +11,8 @@ import sys
 
 from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
-        GraphComponent, Graph, Component, Feature, Idiograph, Page, Repository
+        GraphComponent, Graph, Component, Feature, Idiograph, Page, Repository, \
+        has_edit_permission
 import ast
 from django import template
 
@@ -71,14 +72,16 @@ def page(request, page_id):
     width, height = page.dimensions()
     image_server_url = page.zoomify
 
-    is_admin = request.user.is_superuser
+    #is_admin = request.user.is_superuser
+    is_admin = has_edit_permission(request, Page)
     
     context = {
                'form': form, 'page': page, 'height': height, 'width': width,
                'image_server_url': image_server_url,
                'page_link': page_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
-               'no_image_reason': page.get_media_unavailability_reason(request.user)
+               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'can_edit': has_edit_permission(request, Annotation)
                }
  
     if vector_id:
@@ -160,7 +163,8 @@ def page_allographs(request, page_id):
         data[hand][allograph_name].append(annotation)
 
     return render_to_response('digipal/page_allograph.html',
-            {'page': page, 'data': data},
+            {'page': page, 'data': data, 
+             'can_edit': has_edit_permission(request, Annotation)},
             context_instance=RequestContext(request))
 
 def page_metadata(request, page_id):

@@ -194,7 +194,7 @@
           <td>{{ result.assigned_date.date }}</td>
           <td>{{ result.item_part.historical_item.catalogue_number }}</td>
           <td>
-                  {% if request.user.is_superuser %}
+                  {% if can_edit %}
                   <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
                   {% endif %}
                   <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>

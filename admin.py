@@ -21,6 +21,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission
 import reversion
+import django_admin_customisations
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -676,7 +677,7 @@ class LogEntryAdmin(reversion.VersionAdmin):
 class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
-
+    
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
 admin.site.register(Annotation, AnnotationAdmin)

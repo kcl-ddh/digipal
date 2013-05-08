@@ -26,7 +26,9 @@ urlpatterns = patterns('digipal.views.annotation',
 
 urlpatterns += patterns('digipal.views.search',
                        (r'^search/graph/$', 'allographHandSearch'),
+                       (r'^graphs/graph/$', 'allographHandSearchGraphs'),
                        (r'^search/$', 'searchDB'),
+                       (r'^graphs/$', 'graphsSearch'),
                        (r'^quicksearch/$', 'quickSearch'),
                        )
 

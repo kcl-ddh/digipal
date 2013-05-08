@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import re
 from optparse import make_option
+import utils  
 
 class Command(BaseCommand):
 	help = """
@@ -94,7 +95,7 @@ Commands:
 		for table in tables:
 			if re.search(r'%s' % table_filter, table):
 				c += 1 
-				count = self.sqlSelectCount(con, table)
+				count = utils.sqlSelectCount(con, table)
 				# find datetime field
 				table_desc = con.introspection.get_table_description(cursor, table)
 				max_date = ''
@@ -105,7 +106,7 @@ Commands:
 					#	print field[0]
 					field_name = field[0]
 					if field_name in date_fields:
-						max_date = self.sqlSelectMaxDate(con, table, field_name)
+						max_date = utils.sqlSelectMaxDate(con, table, field_name)
 						if max_date:
 							table_key = max_date.strftime("%Y%m%d%H%M%S")
 							max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
@@ -244,7 +245,7 @@ Commands:
 		
 		# NEW_DIGIPAL_REFERENCE_ID = reference_mapping[LEGACY_REFERENCE_ID]
 		reference_mapping = {}		
-		cur_dst = self.sqlSelect(con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
+		cur_dst = utils.sqlSelect(con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
 		for ref in cur_dst.fetchall():
 			reference_mapping[ref[1]] = ref[0]
 		cur_dst.close()
@@ -280,7 +281,7 @@ Commands:
 					print '\tcopy to %s.%s' % (table_dst, field_name_dst)
 					
 					# scan all the legacy records
-					cur_src = self.sqlSelect(con, 'select id, `%s` from `%s` order by id' % (field_name, table))
+					cur_src = utils.sqlSelect(con, 'select id, `%s` from `%s` order by id' % (field_name, table))
 					recs_src = cur_src.fetchall()
 					
 					missing = 0
@@ -290,7 +291,7 @@ Commands:
 						select = 'select id, legacy_id, %s from %s where legacy_id > 0'
 						if table_dst == 'digipal_historicalitem':
 							select += ' and historical_item_type_id = 1'
-						cur_dst = self.sqlSelect(con_dst, select % (field_name_dst, table_dst))
+						cur_dst = utils.sqlSelect(con_dst, select % (field_name_dst, table_dst))
 						recs_dst = {}
 						for rec_dst in cur_dst.fetchall():
 							if rec_dst[1] in recs_dst:
@@ -322,7 +323,7 @@ Commands:
 								print '\tWARNING: value is different (legacy_id #%s, "%s" <> "%s")' % (rec[0], rec[1], rec_dst_value)
 								continue
 							
-							self.sqlWrite(con_dst, ('update %s set %s = ' % (table_dst, field_name_dst)) + (' %s WHERE id = %s '), [new_value, rec_dst_id])
+							utils.sqlWrite(con_dst, ('update %s set %s = ' % (table_dst, field_name_dst)) + (' %s WHERE id = %s '), [new_value, rec_dst_id], self.is_dry_run())
 							#print 'update %s set %s = %s WHERE id = %s ' % (table_dst, field_name_dst, new_value, rec_dst_id)
 							written += 1
 						
@@ -409,43 +410,6 @@ Commands:
 	def is_dry_run(self):
 		return self.options.get('dry-run', False)
 
-	def sqlWrite(self, wrapper, command, arguments=[]):
-		if not self.is_dry_run():
-			cur = wrapper.cursor()
-	
-			#print command
-			cur.execute(command, arguments)
-			#wrapper.commit()
-			cur.close()
-
-	def sqlSelect(self, wrapper, command, arguments=[]):
-		''' return a cursor,
-			caller need to call .close() on the returned cursor 
-		'''
-		cur = wrapper.cursor()
-		cur.execute(command, arguments)
-		
-		return cur
-
-	def sqlSelectMaxDate(self, con, table, field):
-		ret = None
-		cur = self.sqlSelect(con, 'select max(%s) from %s' % (field, table))
-		rec = cur.fetchone()
-		if rec and rec[0]:
-			ret = rec[0]
-		cur.close()
-		
-		return ret
-
-	def sqlSelectCount(self, con, table):
-		ret = 0
-		cur = self.sqlSelect(con, 'select count(*) from %s' % table)
-		rec = cur.fetchone()
-		ret = rec[0]
-		cur.close()
-		
-		return ret
-
 	def handle(self, *args, **options):
 		
 		self.options = options
@@ -490,18 +454,9 @@ Commands:
 			# Unfortunately posgresql import does not update them so we have to run this after an import 
 			known_command = True
 			
-			from django.db import connection
-			cursor = connection.cursor()
+			c = utils.fix_sequences(options.get('db', 'default'), True)
+			print "%d sequences fixed." % c
 
-			from django.contrib.contenttypes.models import ContentType
-			types = ContentType.objects.all()
-			for type in types:
-				model = type.model_class()
-				if model and model._meta.auto_field and model._meta.auto_field.column == 'id':
-					print model
-					cmd = "select setval('%(table_name)s_%(seq_field)s_seq', (select max(%(seq_field)s) from %(table_name)s) )" % {'table_name': model._meta.db_table, 'seq_field': model._meta.auto_field.column}
-					cursor.execute(cmd)
-		
 		if command == 'list':
 			known_command = True
 			from os import listdir

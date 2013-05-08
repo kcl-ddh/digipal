@@ -7,6 +7,7 @@ import subprocess
 import re
 from optparse import make_option
 from django.db import IntegrityError
+import utils  
 
 class Command(BaseCommand):
 	help = """
@@ -71,14 +72,15 @@ Commands:
 			known_command = True
 			self.migrateHandRecords(options)
 			if not self.is_dry_run():
-				self.reapplyDataMigrations()
-				self.fixSequences()
+				c = utils.fix_sequences(options.get('db'), True)
+				self.log('%s sequences fixed' % c)
 
 		if command == 'copy':
 			known_command = True
 			self.migrateRecords(options)
 			if not self.is_dry_run():
-				self.fixSequences()
+				c = utils.fix_sequences(options.get('db'), True)
+				self.log('%s sequences fixed' % c)
 		
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
@@ -111,7 +113,7 @@ Commands:
 		for src_table in src_tables:
 			if re.search(r'%s' % table_filter, src_table):
 				if src_table in dst_tables:
-					self.sqlDeleteAll(con_dst, src_table)
+					utils.sqlDeleteAll(con_dst, src_table, self.is_dry_run())
 					self.copyTable(con_src, src_table, con_dst, src_table)
 				else:
 					self.log('Table not found in destination (%s)' % src_table, 1)
@@ -169,7 +171,7 @@ Commands:
 			dst_table = re.sub(r'^'+table_prefix_src, table_prefix_dst, src_table)
 			if dst_table != src_table:
 				if dst_table in dst_tables:
-					self.sqlDeleteAll(con_dst, dst_table)
+					utils.sqlDeleteAll(con_dst, dst_table, self.is_dry_run())
 					self.copyTable(con_src, src_table, con_dst, dst_table)
 				else:
 					self.log('Table not found in destination (%s)' % dst_table, 1)
@@ -206,7 +208,7 @@ Commands:
 			params_str = params_str + ', %s'
 			
 		# 2 copy all the records over
-		recs_src = self.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
+		recs_src = utils.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
 		c = 0
 		while True:
 			rec_src = recs_src.fetchone()
@@ -215,7 +217,7 @@ Commands:
 			if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
 				rec_src = list(rec_src)
 				rec_src.append(False)
-			self.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src)
+			utils.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src, self.is_dry_run())
 			c = c + 1
 			#break
 		self.log('Copied %s records' % c, 2)
@@ -223,44 +225,6 @@ Commands:
 		
 		return ret
 			
-	def sqlDeleteAll(self, con, table):
-		ret = True
-		
-		try:
-			self.sqlWrite(con, 'delete from %s' % table)
-		except IntegrityError, e:
-			print e
-			ret = False
-			
-		return ret
-	
-	def sqlWrite(self, wrapper, command, arguments=[]):
-		if not self.is_dry_run():
-			cur = wrapper.cursor()
-	
-			#print command
-			cur.execute(command, arguments)
-			#wrapper.commit()
-			cur.close()
-
-	def sqlSelect(self, wrapper, command, arguments=[]):
-		''' return a cursor,
-			caller need to call .close() on the returned cursor 
-		'''
-		cur = wrapper.cursor()
-		cur.execute(command, arguments)
-		
-		return cur
-
-	def sqlSelectCount(self, con, table):
-		ret = 0
-		cur = self.sqlSelect(con, 'select count(*) from %s' % table)
-		rec = cur.fetchone()
-		ret = rec[0]
-		cur.close()
-		
-		return ret
-	
 	def run_shell_command(self, command):
 		ret = True
 		try:
@@ -289,31 +253,4 @@ Commands:
 				print u'[%s] %s%s' % (timestamp, prefixes[log_level], message)
 			except UnicodeEncodeError:
 				print '???'
-
-	def fixSequences(self):
-		from django.db import connections
-		con = connections[self.options.get('db', 'default')]
-		con.enter_transaction_management()
-		con.managed()
-		con.disable_constraint_checking()
-
-		#from django.db import connection
-		print '> Fix all sequences in the database'
-		cursor = con.cursor()
-
-		from django.contrib.contenttypes.models import ContentType
-		types = ContentType.objects.all()
-		c = 0
-		for type in types:
-			model = type.model_class()
-			if model and model._meta.auto_field and model._meta.auto_field.column == 'id':
-				c += 1
-				#print model
-				cmd = "select setval('%(table_name)s_%(seq_field)s_seq', (select max(%(seq_field)s) from %(table_name)s) )" % {'table_name': model._meta.db_table, 'seq_field': model._meta.auto_field.column}
-				cursor.execute(cmd)
-
-		con.commit()
-		con.leave_transaction_management()
-
-		print '\t%s sequences fixed' % c
 		

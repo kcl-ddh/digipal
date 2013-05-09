@@ -70,6 +70,8 @@ def sqlSelectCount(con, table):
 
 def sqlDeleteAll(con, table, dry_run=False):
     ret = True
+    
+    from django.db import IntegrityError
 
     try:
         sqlWrite(con, 'delete from %s' % table, [], dry_run)

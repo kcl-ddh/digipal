@@ -1452,3 +1452,34 @@ class Proportion(models.Model):
         #return u'%s. %s' % (self.hand, self.measurement)
         return get_list_as_string(self.hand, '. ', self.measurement)
 
+# Import of Stewart's database
+class StewartRecord(models.Model): 
+    scragg = models.CharField(max_length=300)
+    repository = models.CharField(max_length=300)
+    shelf_mark = models.CharField(max_length=300)
+    stokes = models.CharField(max_length=300)
+    fols = models.CharField(max_length=300)
+    gneuss = models.CharField(max_length=300)
+    ker = models.CharField(max_length=300)
+    sp = models.CharField(max_length=300)
+    ker = models.CharField(max_length=300)
+    hand = models.CharField(max_length=300)
+    locus = models.CharField(max_length=300)
+    selected = models.CharField(max_length=300)
+    adate = models.CharField(max_length=300)
+    location = models.CharField(max_length=300)
+    surrogates = models.CharField(max_length=300)
+    contents = models.CharField(max_length=300)
+    notes = models.CharField(max_length=300)
+    em = models.CharField(max_length=300)
+    glosses = models.CharField(max_length=300)
+    minor = models.CharField(max_length=300)
+    charter = models.CharField(max_length=300)
+    cartulary = models.CharField(max_length=300)
+    eel = models.CharField(max_length=300)
+
+    class Meta:
+        ordering = ['scragg']
+
+    def __unicode__(self):
+        return ur'S%s K%s G%s D%s' % (self.scragg, self.ker, self.gneuss, self.stokes)

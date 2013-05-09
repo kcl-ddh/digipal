@@ -6,7 +6,6 @@ import shlex
 import subprocess
 import re
 from optparse import make_option
-from django.db import IntegrityError
 import utils  
 
 class Command(BaseCommand):
@@ -28,6 +27,11 @@ Commands:
                         to DB_ALIAS.*TABLE_FILTER*
                         Existing records are removed. Preexisting table 
                         structures are preserved.
+                        
+  stewart_import --src=CSV_FILE_PATH [--db DB_ALIAS] [--dry-run]
+
+  stewart_integrate [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
+
 """
 	
 	args = 'hand'
@@ -81,9 +85,45 @@ Commands:
 			if not self.is_dry_run():
 				c = utils.fix_sequences(options.get('db'), True)
 				self.log('%s sequences fixed' % c)
+				
+		if command == 'stewart_import':
+			known_command = True
+			self.importStewart(options)
+
+		if command == 'stewart_integrate':
+			pass
 		
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+
+	def importStewart(self, options):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+
+		csv_path = options.get('src', '')
+		if not csv_path or csv_path in ['default', 'hand']:
+			raise CommandError('Please provide the path to a source CSV file with --src=PATH .')
+
+		import csv
+		
+		dst_table = 'digipal_stewartrecord'
+		
+		with open(csv_path, 'rb') as csvfile:
+			#line = csv.reader(csvfile, delimiter=' ', quotechar='|')
+			csvreader = csv.reader(csvfile)
+			
+			con_dst = connections[options.get('db')]
+			utils.sqlDeleteAll(con_dst, dst_table, self.is_dry_run())
+			
+			columns = None
+			records = []
+			for line in csvreader:
+				if not columns:
+					columns = line 
+					continue
+				records.append(zip(columns, line))
+			
+			self.copyTable(None, csv_path, con_dst, dst_table, records)
+				
 	
 	def is_dry_run(self):
 		return self.options.get('dry-run', False)
@@ -179,13 +219,16 @@ Commands:
 		con_dst.commit()
 		con_dst.leave_transaction_management()
 	
-	def copyTable(self, con_src, src_table, con_dst, dst_table):
+	def copyTable(self, con_src, src_table, con_dst, dst_table, src_records=[]):
 		ret = True
 		
 		self.log('Copy from %s to %s ' %  (src_table, dst_table), 2)
 		
 		# 1 find all fields in source and destinations
-		fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
+		if con_src: 
+			fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
+		else:
+			fields_src = src_records[0].keys()
 		fields_dst = con_dst.introspection.get_table_description(con_dst.cursor(), dst_table)
 
 		fnames_src = [f[0] for f in fields_src]
@@ -198,7 +241,9 @@ Commands:
 			self.log('Missing fields (%s)' % ', '.join(missings), 1)
 		if additionals:
 			self.log('Additional fields (%s)' % ', '.join(additionals), 1)
-		common_str_src = ', '.join([con_src.ops.quote_name(i) for i in common])
+		common_str_src = ''
+		if con_src:
+			common_str_src = ', '.join([con_src.ops.quote_name(i) for i in common])
 		common_str_dst = ', '.join([con_dst.ops.quote_name(i) for i in common])
 		params_str = ', '.join(['%s' for i in common])
 
@@ -208,20 +253,31 @@ Commands:
 			params_str = params_str + ', %s'
 			
 		# 2 copy all the records over
-		recs_src = utils.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
+		recs_src = None
+		if con_src:
+			recs_src = utils.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
 		c = 0
+		l = -1
 		while True:
-			rec_src = recs_src.fetchone()
+			l += 1
+			if recs_src:
+				rec_src = recs_src.fetchone()
+			else:
+				rec_src = [src_records[l][fn] for fn in common]
 			if rec_src is None: break
+			
 			# hack...
 			if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
 				rec_src = list(rec_src)
 				rec_src.append(False)
+				
 			utils.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src, self.is_dry_run())
 			c = c + 1
 			#break
+			
 		self.log('Copied %s records' % c, 2)
-		recs_src.close()
+		if recs_src:
+			recs_src.close()
 		
 		return ret
 			

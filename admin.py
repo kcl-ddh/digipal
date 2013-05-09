@@ -19,7 +19,8 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Ontograph, OntographType, Owner, \
         Page, Person, Place, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
-        Scribe, Script, ScriptComponent, Source, Status, MediaPermission
+        Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
+        StewartRecord
 import reversion
 import django_admin_customisations
 
@@ -677,6 +678,12 @@ class LogEntryAdmin(reversion.VersionAdmin):
 class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
+
+class StewartRecordAdmin(reversion.VersionAdmin):
+    model = StewartRecord
+    
+    list_display = ['scragg', 'ker', 'gneuss', 'stokes', 'repository', 'shelf_mark']
+    list_display_links = list_display
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
@@ -728,3 +735,4 @@ admin.site.register(Script, ScriptAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Status, StatusAdmin)
 admin.site.register(MediaPermission, MediaPermissionAdmin)
+admin.site.register(StewartRecord, StewartRecordAdmin)

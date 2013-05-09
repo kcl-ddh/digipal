@@ -5,6 +5,7 @@ from django.utils.datastructures import SortedDict
 from digipal.models import *
 from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, QuickSearch
 from itertools import islice, chain
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def quickSearch(request):
@@ -284,7 +285,7 @@ def allographHandSearch(request):
     component = request.GET.get('component_select', '')
 
     context = {}
-    context['style']='allograph_list'
+    context['style']= 'allograph_list'
     context['term'] = term
 
     hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id').filter(
@@ -322,8 +323,106 @@ def allographHandSearch(request):
     context['drilldownform'] = DrilldownForm()
     context['graphs'] = graphs
 
+    page = request.GET.get('page')
+  
+    paginator = Paginator(graphs, 24)
+
+    try:
+        page_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        page_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        page_list = paginator.page(paginator.num_pages)
+
+    context['page_list'] = page_list
+
+    try:
+        context['view'] = request.COOKIES['view']
+    except:
+        context['view'] = 'Images'
+
     return render_to_response(
-        'pages/image-view.html',
+        'pages/new-image-view.html',
+        context,
+        context_instance=RequestContext(request))
+
+
+def allographHandSearchGraphs(request):
+    """ View for Hand record drill-down """
+    allograph = request.GET.get('allograph_select', '')
+    character = request.GET.get('character_select', '')
+    # Adding 2 new filter values...
+    feature = request.GET.get('feature_select', '')
+    component = request.GET.get('component_select', '')
+
+    context = {}
+    context['style']= 'allograph_list'
+    
+    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id')
+    
+    handlist = []
+    for h in hand_ids:
+        handlist.insert(0, h.id)
+
+    graphs = Graph.objects.filter(hand__in=handlist).order_by('hand')
+
+    if allograph:
+        graphs = graphs.filter(
+            idiograph__allograph__name=allograph).order_by('hand')
+        context['allograph'] = Allograph.objects.filter(name=allograph)
+    if feature:
+        graphs = graphs.filter(
+            graph_components__features__name=feature).order_by('hand')
+        context['feature'] = Feature.objects.get(name=feature)
+    if character:
+        graphs = graphs.filter(
+            idiograph__allograph__character__name=character).order_by('hand')
+        context['character'] = Character.objects.get(name=character)
+    if component:
+        graphs = graphs.filter(
+            graph_components__component__name=component).order_by('hand')
+        context['component'] = Component.objects.get(name=component)
+
+    graphs = graphs.order_by('hand__scribe__name','hand__id')
+    context['drilldownform'] = DrilldownForm()
+    context['graphs'] = graphs
+
+    page = request.GET.get('page')
+  
+    paginator = Paginator(graphs, 24)
+
+    try:
+        page_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        page_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        page_list = paginator.page(paginator.num_pages)
+
+    context['page_list'] = page_list
+
+    try:
+        context['view'] = request.COOKIES['view']
+    except:
+        context['view'] = 'Images'
+
+    return render_to_response(
+        'pages/graphs-list.html',
+        context,
+        context_instance=RequestContext(request))
+
+def graphsSearch(request):
+    context = {}
+
+    context['style']= 'allograph_list'
+    
+    context['drilldownform'] = DrilldownForm()
+
+    return render_to_response(
+        'pages/graphs.html',
         context,
         context_instance=RequestContext(request))
 

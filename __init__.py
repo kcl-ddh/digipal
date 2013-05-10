@@ -5,7 +5,6 @@ add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 
 # patch the iipimage to correct a bug (.image was hardcoded)
 from iipimage import storage
-from iipimage.storage import generate_new_image_path
 from django.conf import settings
 
 import logging
@@ -13,9 +12,20 @@ import re
 dplog = logging.getLogger( 'digipal_debugger')
 
 # PATCH 1:
+
+# prefix the upload dir with IMAGE_SERVER_ADMIN_UPLOAD_DIR
+def generate_new_image_path():
+    ret = storage.generate_new_image_path()
+    # GN: prefix the path with settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR
+    try:
+        import os
+        ret = os.path.join(settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR, ret)
+    except Exception:
+        pass
+    return ret
+
 # The name of the iipimage field was hardcoded.
 # Changed to iipimage to match Page model.
-
 def get_image_path (instance, filename):
     """Returns the upload path for a page image.
 
@@ -39,6 +49,7 @@ def get_image_path (instance, filename):
     :rtype: `str`
 
     """
+    
     if instance.id:
         # Reuse the existing filename. Unfortunately,
         # instance.image.name gives the filename of the image being
@@ -52,9 +63,11 @@ def get_image_path (instance, filename):
         else:
             # The original image file must be deleted or else the save
             # will add a suffix to `image_path`.
+            # GN: iipimage
             original.iipimage.delete(save=False)
     else:
         image_path = generate_new_image_path()
+    
     return image_path
 
 storage.get_image_path = get_image_path

@@ -80,3 +80,8 @@ def sqlDeleteAll(con, table, dry_run=False):
         ret = False
 
     return ret
+
+def dropTable(con, table_name, dry_run=False):
+    if dry_run: return
+
+    sqlWrite(con, 'DROP TABLE %s CASCADE' % table_name, [], dry_run)

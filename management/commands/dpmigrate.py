@@ -31,6 +31,8 @@ Commands:
   stewart_import --src=CSV_FILE_PATH [--db DB_ALIAS] [--dry-run]
 
   stewart_integrate [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
+  
+  stokes_catalogue_import --src=XML_FILE_PATH
 
 """
 	
@@ -93,8 +95,71 @@ Commands:
 		if command == 'stewart_integrate':
 			pass
 		
+		if command == 'stokes_catalogue_import':
+			known_command = True
+			self.importStokesCatalogue(options)
+		
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+
+	def importStokesCatalogue(self, options):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		
+		xml_file = options.get('src', '')
+		
+		# <p><label>G.4-2</label>. Hand 2 (5r). This large, very rotund hand was written 
+		# with a thick pen held quite flat and with a great deal of shading. Ascenders 
+		# are thick, straight
+
+		content = utils.readFile(xml_file)
+		hand_infos = re.findall(ur'(?ui)<p><label>\s*(.*?)\s*</label>\s*(.*)\s*(\(.*?\))\s*(.*?)\s*</p>', content)
+		print hand_infos[0]
+		
+		# load and parse the xml file
+# 		wp_name_space = '{http://www.tei-c.org/ns/1.0}'
+# 		try:
+# 			import lxml.etree as ET
+# 			tree = ET.parse(xml_file)
+# 		except Exception, e:
+# 			raise CommandError('Cannot parse %s: %s' % (xml_file, e))
+
+# 		for p in tree.findall(u'//%sdiv[@type="div2"]/%sp' % (wp_name_space, wp_name_space)):
+		
+			#p.tostring(html)
+			#print dir(p)
+			#break
+			
+			# Extract all the fields:
+			# 
+			# 	label (4-2) => gneuss
+			#	hand (2) => Hand.num
+			#
+			#	loci (5r)
+			#	Hand.description => Hand.label
+			#		report if loci <> Hand.label
+			#	desc (This large [...]) => Hand.description
+			#		transform the markup
+			# 
+			
+			
+			
+			
+
+# 		for link in tree.findall('//div[type="div2"]'):
+# 			print link
+# 			old_url = link.text
+# 			if re.search(r'/attachment/|\?', old_url): continue
+# 			if re.search(r'\?', old_url):
+# 				continue
+# 			
+# 			new_url = get_redirected_url(old_url, True, True)
+# 			
+# 			new_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % new_domain, new_url)
+# 			if old_domain:
+# 				old_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % old_domain, new_url)
+# 			
+# 			print ur'%s, %s' % (old_url, new_url)
+				
 
 	def importStewart(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

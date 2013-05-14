@@ -80,3 +80,12 @@ def sqlDeleteAll(con, table, dry_run=False):
         ret = False
 
     return ret
+
+def readFile(filepath):
+    import codecs
+    f = codecs.open(filepath, 'r', "utf-8")
+    ret = f.read()
+    f.close()
+    
+    return ret
+    

@@ -85,3 +85,12 @@ def dropTable(con, table_name, dry_run=False):
     if dry_run: return
 
     sqlWrite(con, 'DROP TABLE %s CASCADE' % table_name, [], dry_run)
+
+def readFile(filepath):
+    import codecs
+    f = codecs.open(filepath, 'r', "utf-8")
+    ret = f.read()
+    f.close()
+    
+    return ret
+

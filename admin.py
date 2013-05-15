@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes import generic
+from django.db.models import Avg, Max, Min, Count
 from django import forms
 from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
@@ -26,6 +28,68 @@ import django_admin_customisations
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
+
+#########################
+#                       #
+#   Advanced Filters    #
+#                       #
+#########################
+
+class PageAnnotationNumber(SimpleListFilter):
+    title = ('Annotations')
+
+    parameter_name = ('Annot')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', ('At least five annotations')),
+            ('2', ('Fewer than five annotations')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.annotate(num_annot = Count('annotation__page__item_part')).exclude(num_annot__lt = 5)
+        if self.value() == '2':
+            return queryset.annotate(num_annot = Count('annotation__page__item_part')).filter(num_annot__lt = 5)
+            
+            #working
+            #q = Page.objects.annotate(num_annot = Count('annotation__page__item_part')).filter(num_annot__lt = 5)
+            
+            #Not working
+            #q = Page.objects.annotate(num_annot = Count('annotation__page__item_part')).exclude(num_annot = 1)
+            
+            #Attempts
+            #b = Page.objects.filter(annotation__page__locus = "face")
+            #k = Page.objects.exclude(annotation__page__locus = "face")
+            #a = Page.objects.all().aggregate('annotation__page__display_label')
+            #j = Page.objects.filter(annotation__page__locus)
+            #f = queryset.annotate(num_annot = Count('annotation__page__item_part'))
+
+class PageWithFeature(SimpleListFilter):
+    title = ('Associated Features')
+
+    parameter_name = ('WithFeat')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('With them')),
+            ('no', ('Without them')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(annotation__graph__graph_components__features__id__gt = 0).distinct()
+        if self.value() == 'no':
+            return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
+           
+
+#########################
+#                       #
+#     Admin Tables      #
+#     Visualization     #
+#                       #
+#########################
+
 
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
@@ -512,13 +576,12 @@ class PageAdmin(reversion.VersionAdmin):
     inlines = [HandsInline]
     list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
             ##'caption', 'media_permission__label', 'created', 'modified',
-            'caption', 'created', 'modified', 
-            'iipimage']
+            'caption', 'iipimage']
     list_display_links = list_display
     search_fields = ['id', 'folio_side', 'folio_number', 'caption', 
             'item_part__display_label', 'iipimage']
     
-    list_filter = ['media_permission__label']
+    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature]
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 

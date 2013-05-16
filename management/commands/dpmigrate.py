@@ -66,6 +66,8 @@ Commands:
 	
 	def handle(self, *args, **options):
 		
+		self.logger = utils.Logger()
+		
 		self.log_level = 3
 		
 		self.options = options
@@ -118,15 +120,28 @@ Commands:
 		hand_infos = re.findall(ur'(?uis)<p><label>\s*(.*?)\s*</label>(?:\s|\.)*(.*?)\s*(?:\((.*?)\)|\.)\s*(.*?)\s*</p>', content)
 		
 		updated_hands = {}
+		modified_hands = []
+		tags = []
 		
 		for info in hand_infos:
+			
+			migrated = False
+			
+			self.logger.resetWarning()
+			
 			# G.65.5-1 => [G, 65.5, 1]
 			hand_id, hand_label, loci, description = info
 			label_parts = re.findall(ur'^(\w)\.([^-]+)(?:-(.*))?$', info[0])
 			if label_parts:
-				self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
+				#self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
 				
 				description = (re.sub(ur'^(\s|\.)*', '', description)).strip()
+				
+				if len(label_parts[0]) > 30: 
+					self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
+					self.log(u'Labels is too long (%s)' % label_parts[0], Logger.WARNING, 1)
+					continue
+				
 				loci = loci.strip()
 				catalogue, doc_number, hand_number = label_parts[0]
  				if not hand_number: 
@@ -141,12 +156,13 @@ Commands:
 				hands = Hand.objects.filter(num=hand_number_parts[0], item_part__historical_item__catalogue_numbers__number=doc_number, item_part__historical_item__catalogue_numbers__source__label='%s.' % catalogue)
 				
 				# 2. validation
-   				if hand_number_parts[1]:
-   					self.log('non numeric hand number', Logger.WARNING, 1)
+#    				if hand_number_parts[1]:
+#    					self.log('non numeric hand number', Logger.WARNING, 1)
    			  	
    			  	# 3 advanced matching:
    			  	# 3.1 No match at all
   				if not hands:
+  					self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
   					self.log('Hand record not found', Logger.WARNING, 1)
   					# now try to find the description in the Hand records
   					same_hands = Hand.objects.filter(description__icontains=loci)
@@ -164,6 +180,7 @@ Commands:
  					
    			  	# 3.2 More than one match
   				if len(hands) > 1:
+  					self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
 					self.log('more than one matching Hand record', Logger.WARNING, 1)
   					same_hands = []
   					for hand in hands:
@@ -187,8 +204,8 @@ Commands:
 
  					new_desc_short = hand_label.lower().strip()
  					
- 					if hand_desc_short != new_desc_short:
- 						self.log(u'%s <> %s' % (hand.description, new_description), Logger.WARNING, 1)
+#  					if hand_desc_short != new_desc_short:
+#  						self.log(u'%s <> %s' % (hand.description, new_description), Logger.WARNING, 1)
  					
  					# 3. update the Hand record
  						
@@ -198,16 +215,26 @@ Commands:
  					else:
  						hand.label = hand.description
 
- 					self.log(u'Update Hand #%s' % hand.id, Logger.INFO, 1)
  					existing_hand_id = updated_hands.get(hand.id, '')
  					if existing_hand_id:
- 						self.log(u'Hand already updated from %s' % existing_hand_id, Logger.WARNING, 1) 					
- 					updated_hands[hand.id] = hand_id
- 						
- 					# hand.description = xml description
- 					hand.description = re.sub(ur'(?iu)\s+', ' ', description).strip()
- 				 	if not self.is_dry_run():
- 					 	hand.save()
+ 						self.log(u'Hand #%s already updated from %s' % (hand.id, existing_hand_id), Logger.WARNING, 1)
+ 					else:
+ 						if self.logger.hasWarning():
+ 						 	self.log(u'Update Hand #%s' % hand.id, Logger.INFO, 1)
+	 					# hand.description = xml description
+	 					hand.description = re.sub(ur'(?iu)\s+', ' ', description).strip()
+	 					
+ 					 	modified_hands.append(hand)
+ 					 	updated_hands[hand.id] = hand_id
+	 					migrated = True
+ 				
+ 				if not migrated:
+					self.log('DESCRIPTION NOT MIGRATED', Logger.WARNING, 1)
+
+		# save only afterward sso there is no risk of messing things up during the migration
+		if not self.is_dry_run():
+			for hand in modified_hands:
+				hand.save()
 
 	def importStewart(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -408,6 +435,4 @@ Commands:
 			pass
 
 	def log(self, *args, **kwargs):
-		if not hasattr(self, 'logger'):
-			self.logger = utils.Logger()
 		self.logger.log(*args, **kwargs)

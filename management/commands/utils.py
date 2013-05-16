@@ -103,12 +103,22 @@ class Logger(object):
     
     def __init__(self, log_level=None):
         self.setLogLevel(log_level)
+        self.resetWarning()
                         
     def setLogLevel(self, log_level=None):
         self.log_level = log_level
         if self.log_level is None: self.log_level = Logger.DEBUG
+        
+    def resetWarning(self):
+        self.warning_count = 0
+
+    def hasWarning(self):
+        return self.warning_count
 
     def log(self, message, log_level=3, indent=0):
+        if log_level < Logger.INFO:
+            self.warning_count += 1
+        
         if log_level <= self.log_level:
             prefixes = ['ERROR: ', 'WARNING: ', '', ''] 
             from datetime import datetime

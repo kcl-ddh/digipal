@@ -216,7 +216,7 @@
 
                   <td>{{ result.item_part.current_item.repository.name }}</td>
                   <td>{{ result.item_part.current_item.shelfmark }}</td>
-                  <td>{{ result.description }}
+                  <td>{{ result.label }}
                   {% if result.pages.all %}
                     <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ search_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
                   {% endif %}</td>

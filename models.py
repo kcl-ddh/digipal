@@ -1209,7 +1209,10 @@ class Hand(models.Model):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
     def __unicode__(self):
-        return u'%s' % (self.description or '')
+        #return u'%s' % (self.description or '')
+        # GN: See Jira ticket DIGIPAL-76, 
+        # hand.reference has moved to hand.label
+        return u'%s' % (self.label or '')
 
 
 class Alphabet(models.Model):

@@ -6,7 +6,9 @@ import shlex
 import subprocess
 import re
 from optparse import make_option
-import utils  
+import utils
+from utils import Logger  
+  
 
 class Command(BaseCommand):
 	help = """
@@ -112,54 +114,100 @@ Commands:
 		# are thick, straight
 
 		content = utils.readFile(xml_file)
-		hand_infos = re.findall(ur'(?ui)<p><label>\s*(.*?)\s*</label>\s*(.*)\s*(\(.*?\))\s*(.*?)\s*</p>', content)
-		print hand_infos[0]
+		#hand_infos = re.findall(ur'(?uis)<p><label>\s*(.*?)\s*</label>(?:\s|\.)*(.*?)\s*\((.*?)\)\s*(.*?)\s*</p>', content)
+		hand_infos = re.findall(ur'(?uis)<p><label>\s*(.*?)\s*</label>(?:\s|\.)*(.*?)\s*(?:\((.*?)\)|\.)\s*(.*?)\s*</p>', content)
 		
-		# load and parse the xml file
-# 		wp_name_space = '{http://www.tei-c.org/ns/1.0}'
-# 		try:
-# 			import lxml.etree as ET
-# 			tree = ET.parse(xml_file)
-# 		except Exception, e:
-# 			raise CommandError('Cannot parse %s: %s' % (xml_file, e))
-
-# 		for p in tree.findall(u'//%sdiv[@type="div2"]/%sp' % (wp_name_space, wp_name_space)):
+		updated_hands = {}
 		
-			#p.tostring(html)
-			#print dir(p)
-			#break
-			
-			# Extract all the fields:
-			# 
-			# 	label (4-2) => gneuss
-			#	hand (2) => Hand.num
-			#
-			#	loci (5r)
-			#	Hand.description => Hand.label
-			#		report if loci <> Hand.label
-			#	desc (This large [...]) => Hand.description
-			#		transform the markup
-			# 
-			
-			
-			
-			
-
-# 		for link in tree.findall('//div[type="div2"]'):
-# 			print link
-# 			old_url = link.text
-# 			if re.search(r'/attachment/|\?', old_url): continue
-# 			if re.search(r'\?', old_url):
-# 				continue
-# 			
-# 			new_url = get_redirected_url(old_url, True, True)
-# 			
-# 			new_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % new_domain, new_url)
-# 			if old_domain:
-# 				old_url = re.sub(ur'^([^/]+://)[^/]+(.*)$', r'\1%s\2' % old_domain, new_url)
-# 			
-# 			print ur'%s, %s' % (old_url, new_url)
+		for info in hand_infos:
+			# G.65.5-1 => [G, 65.5, 1]
+			hand_id, hand_label, loci, description = info
+			label_parts = re.findall(ur'^(\w)\.([^-]+)(?:-(.*))?$', info[0])
+			if label_parts:
+				self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
 				
+				description = (re.sub(ur'^(\s|\.)*', '', description)).strip()
+				loci = loci.strip()
+				catalogue, doc_number, hand_number = label_parts[0]
+ 				if not hand_number: 
+#  					print '\tWARNING: no hand number.'
+ 					hand_number = '1'
+				
+				# 1. find the Hand record
+				from digipal.models import Hand
+				
+				hand_number_parts = (re.findall(ur'^(\d+)(.*)$', hand_number))[0]
+				
+				hands = Hand.objects.filter(num=hand_number_parts[0], item_part__historical_item__catalogue_numbers__number=doc_number, item_part__historical_item__catalogue_numbers__source__label='%s.' % catalogue)
+				
+				# 2. validation
+   				if hand_number_parts[1]:
+   					self.log('non numeric hand number', Logger.WARNING, 1)
+   			  	
+   			  	# 3 advanced matching:
+   			  	# 3.1 No match at all
+  				if not hands:
+  					self.log('Hand record not found', Logger.WARNING, 1)
+  					# now try to find the description in the Hand records
+  					same_hands = Hand.objects.filter(description__icontains=loci)
+  					for hand in same_hands[:10]:
+						same = 'SAME '
+  						self.log('%5s#%s, %s (%s)' % (same, hand.id, hand.description, hand.item_part.historical_item.catalogue_number), Logger.DEBUG, 1)
+  					if same_hands.count() > 10:
+  						self.log('     [...]', Logger.DEBUG, 1)
+  					if same_hands.count() == 0:
+  						self.log('no similar record', Logger.WARNING, 1)
+  					if same_hands.count() > 1:
+  						self.log('more than one similar record.', Logger.WARNING, 1)
+  					if same_hands.count() == 1:
+  						hands = same_hands
+ 					
+   			  	# 3.2 More than one match
+  				if len(hands) > 1:
+					self.log('more than one matching Hand record', Logger.WARNING, 1)
+  					same_hands = []
+  					for hand in hands:
+  						same = ''
+  						if hand.description.lower().find(loci.lower()) != -1: 
+  							same = 'SAME '
+  							same_hands.append(hand)
+  						self.log(u'%5s#%s, %s (%s)' % (same, hand.id, hand.description, hand.item_part.historical_item.catalogue_number), Logger.DEBUG, 1)
+  					hands = same_hands
+  					if len(hands) == 0:
+  						self.log('no similar record', Logger.WARNING, 1)
+  					if len(hands) > 1:
+  						self.log('more than one similar record.', Logger.WARNING, 1)
+ 						
+				# 4. update the Hand record
+ 				for hand in hands:
+ 					new_description = hand_label
+ 					if loci: new_description += u' (%s)' % loci
+ 					
+ 					hand_desc_short = re.sub(ur'\(.*', '', hand.description.lower()).strip()
+
+ 					new_desc_short = hand_label.lower().strip()
+ 					
+ 					if hand_desc_short != new_desc_short:
+ 						self.log(u'%s <> %s' % (hand.description, new_description), Logger.WARNING, 1)
+ 					
+ 					# 3. update the Hand record
+ 						
+ 					# hand.label = hand_description
+ 					if hand.label:
+ 						self.log(u'label is not empty: %s' % hand.label, Logger.WARNING, 1)
+ 					else:
+ 						hand.label = hand.description
+
+ 					self.log(u'Update Hand #%s' % hand.id, Logger.INFO, 1)
+ 					existing_hand_id = updated_hands.get(hand.id, '')
+ 					if existing_hand_id:
+ 						self.log(u'Hand already updated from %s' % existing_hand_id, Logger.WARNING, 1) 					
+ 					updated_hands[hand.id] = hand_id
+ 						
+ 					# hand.description = xml description
+ 					hand.description = re.sub(ur'(?iu)\s+', ' ', description).strip()
+ 				 	if not self.is_dry_run():
+ 					 	hand.save()
 
 	def importStewart(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -359,19 +407,7 @@ Commands:
 			#os.remove(input_path)
 			pass
 
-	def log(self, message, log_level=3):
-		''' log_level:
-				0: fatal error
-				1: warning
-				2: info
-				3: debug
-		'''
-		if log_level <= self.log_level:
-			prefixes = ['ERROR: ', 'WARNING: ', '', ''] 
-			from datetime import datetime
-			timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
-			try:
-				print u'[%s] %s%s' % (timestamp, prefixes[log_level], message)
-			except UnicodeEncodeError:
-				print '???'
-		
+	def log(self, *args, **kwargs):
+		if not hasattr(self, 'logger'):
+			self.logger = utils.Logger()
+		self.logger.log(*args, **kwargs)

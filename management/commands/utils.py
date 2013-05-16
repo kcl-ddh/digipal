@@ -94,3 +94,28 @@ def readFile(filepath):
     
     return ret
 
+class Logger(object):
+    
+    FATAL   = 0
+    WARNING = 1
+    INFO    = 2
+    DEBUG   = 3
+    
+    def __init__(self, log_level=None):
+        self.setLogLevel(log_level)
+                        
+    def setLogLevel(self, log_level=None):
+        self.log_level = log_level
+        if self.log_level is None: self.log_level = Logger.DEBUG
+
+    def log(self, message, log_level=3, indent=0):
+        if log_level <= self.log_level:
+            prefixes = ['ERROR: ', 'WARNING: ', '', ''] 
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+            try:
+                indent_str = '    ' * indent
+                print (u'[%s] %s%s%s' % (timestamp, indent_str, prefixes[log_level], message)).encode('utf-8')
+            except UnicodeEncodeError:
+                print '???'
+            

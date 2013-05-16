@@ -77,4 +77,16 @@ def multiply(value, arg):
     val = float(value) * float(arg)
     return int(val)
 
+# TEI conversion
+
+@register.filter()
+def tei(value):
+    "Convert TEI field into XML"
+    import re
+    value = re.sub(ur'<\s*([^/])\s*>', ur'<span class="tei-\1">', value)
+    value = re.sub(ur'<\s*/([^/])\s*>', ur'</span>', value)
+    value = re.sub(ur'\r?\n', ur'<br/>', value)
+    value = mark_safe(value)
+    return value
+
 

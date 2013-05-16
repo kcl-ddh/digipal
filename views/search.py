@@ -235,7 +235,8 @@ def searchDB(request):
             if searchtype == 'hands':
                 p = Hand.objects.get(id=request.GET.get('id', ''))
                 c = p.graph_set.model.objects.get(id=p.id)
-                annotation_list = Annotation.objects.filter(page=c.id)
+                #annotation_list = Annotation.objects.filter(page=c.id)
+                annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
                 data = SortedDict()
                 for annotation in annotation_list:
                     hand = annotation.graph.hand
@@ -251,7 +252,7 @@ def searchDB(request):
                     data[hand][allograph_name].append(annotation)
                     context['data'] = data
                 context['result'] = p
-
+                
             return render_to_response(
                 'pages/record_' + searchtype +'.html',
                 context,

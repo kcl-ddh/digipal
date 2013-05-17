@@ -550,6 +550,16 @@ function handleErrors(data){
  */
 function updateStatus(msg) {
     $('#status').text(msg);
+    //
+    // GN: bugfix, JIRA 77
+    // The message will push the openlayer div down and cause
+    // the drawing symbol to appear below the mosue cursor.
+    // To avoid this we force a render on the OL map to tell it 
+    // to refresh it internal location variable.
+    //
+    if (typeof annotator !== 'undefined') {
+    	annotator.map.render(annotator.map.div);
+    }
 }
 
 /**

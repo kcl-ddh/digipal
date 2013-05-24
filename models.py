@@ -1212,8 +1212,7 @@ class Hand(models.Model):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76, 
         # hand.reference has moved to hand.label
-        return u'%s' % (self.label or '')
-
+        return u'%s' % (self.label or '')    
 
 class Alphabet(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -1457,32 +1456,44 @@ class Proportion(models.Model):
 
 # Import of Stewart's database
 class StewartRecord(models.Model): 
-    scragg = models.CharField(max_length=300)
-    repository = models.CharField(max_length=300)
-    shelf_mark = models.CharField(max_length=300)
-    stokes = models.CharField(max_length=300)
-    fols = models.CharField(max_length=300)
-    gneuss = models.CharField(max_length=300)
-    ker = models.CharField(max_length=300)
-    sp = models.CharField(max_length=300)
-    ker = models.CharField(max_length=300)
-    hand = models.CharField(max_length=300)
-    locus = models.CharField(max_length=300)
-    selected = models.CharField(max_length=300)
-    adate = models.CharField(max_length=300)
-    location = models.CharField(max_length=300)
-    surrogates = models.CharField(max_length=300)
-    contents = models.CharField(max_length=300)
-    notes = models.CharField(max_length=300)
-    em = models.CharField(max_length=300)
-    glosses = models.CharField(max_length=300)
-    minor = models.CharField(max_length=300)
-    charter = models.CharField(max_length=300)
-    cartulary = models.CharField(max_length=300)
-    eel = models.CharField(max_length=300)
+    scragg = models.CharField(max_length=300, null=True, blank=True, default='')
+    repository = models.CharField(max_length=300, null=True, blank=True, default='')
+    shelf_mark = models.CharField(max_length=300, null=True, blank=True, default='')
+    stokes_db = models.CharField(max_length=300, null=True, blank=True, default='')
+    fols = models.CharField(max_length=300, null=True, blank=True, default='')
+    gneuss = models.CharField(max_length=300, null=True, blank=True, default='')
+    ker = models.CharField(max_length=300, null=True, blank=True, default='')
+    sp = models.CharField(max_length=300, null=True, blank=True, default='')
+    ker_hand = models.CharField(max_length=300, null=True, blank=True, default='')
+    locus = models.CharField(max_length=300, null=True, blank=True, default='')
+    selected = models.CharField(max_length=300, null=True, blank=True, default='')
+    adate = models.CharField(max_length=300, null=True, blank=True, default='')
+    location = models.CharField(max_length=300, null=True, blank=True, default='')
+    surrogates = models.CharField(max_length=300, null=True, blank=True, default='')
+    contents = models.CharField(max_length=500, null=True, blank=True, default='')
+    notes = models.CharField(max_length=600, null=True, blank=True, default='')
+    em = models.CharField(max_length=800, null=True, blank=True, default='')
+    glosses = models.CharField(max_length=300, null=True, blank=True, default='')
+    minor = models.CharField(max_length=300, null=True, blank=True, default='')
+    charter = models.CharField(max_length=300, null=True, blank=True, default='')
+    cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
+    eel = models.CharField(max_length=1000, null=True, blank=True, default='')
+    hand = models.ForeignKey(Hand, null=True, blank=False)
 
     class Meta:
         ordering = ['scragg']
 
     def __unicode__(self):
-        return ur'S%s K%s G%s D%s' % (self.scragg, self.ker, self.gneuss, self.stokes)
+        return ur'S%s K%s G%s D%s' % (self.scragg, self.ker, self.gneuss, self.stokes_db)
+    
+    def get_ids(self):
+        ret = []
+        if self.scragg: ret.append(u'S. %s' % self.scragg)
+        if self.gneuss: ret.append(u'G. %s' % self.gneuss)
+        if self.ker: 
+            ret.append(u'K. %s' % self.ker)
+            if self.ker_hand:
+                ret.append(u'.%s' % self.ker_hand)
+        if self.stokes_db: ret.append(u'D. %s' % self.stokes_db)
+        return ', '.join(ret)
+        

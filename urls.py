@@ -40,6 +40,10 @@ urlpatterns += patterns('digipal.views.admin.page',
                        (r'admin/page/bulk_edit', 'page_bulk_edit'),
                        )
 
+urlpatterns += patterns('digipal.views.admin.stewart',
+                       (r'admin/stewartrecord/import', 'stewart_import'),
+                       )
+
 urlpatterns += patterns('haystack.views',
                         url(
                             r'^facets/(?P<model>\D+)/$',

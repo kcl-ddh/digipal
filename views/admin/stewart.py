@@ -10,10 +10,12 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy, ugettext as _ 
 from django.utils.safestring import mark_safe
 import htmlentitydefs
+from django.db.models import Q
 
 from django.http import HttpResponse, Http404
 
 import logging
+from django.utils.datastructures import SortedDict
 dplog = logging.getLogger( 'digipal_debugger')
 
 @staff_member_required
@@ -22,112 +24,21 @@ def stewart_import(request, url=None):
     record_ids = request.GET.get('ids', '').split(',')
     context['records'] = StewartRecord.objects.filter(id__in=record_ids)
     
+    for record in context['records']:
+        record.import_steward_record()
+            
+    from django.shortcuts import render
+    return render(request, 'admin/stewartrecord/import.html', context)
+
+@staff_member_required
+def stewart_match(request, url=None):
+    context = {}
+    record_ids = request.GET.get('ids', '').split(',')
+    context['records'] = StewartRecord.objects.filter(id__in=record_ids)
+    
     action = request.POST.get('action', '').strip()
         
-    #context['manuscripts'] = ItemPart.objects.all().order_by('display_label')
-    #context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
-    
-#     manuscript = request.POST.get('manuscript', None)
-#     if manuscript == '0': manuscript = None
-#     if manuscript:
-#         manuscript = ItemPart.objects.get(id=manuscript)
-#     
-#     page = request.POST.get('page_number', '').strip()
-#     if page != '':
-#         page = int(page)
-#         
-#     folio_number = request.POST.get('folio_number', '').strip()
-#     if folio_number != '':
-#         folio_number = int(folio_number)
-    #folio_side = Folio_Side.objects.get(id=request.POST.get('folio_side', '1'))
-    #folio_side = request.POST.get('folio_side', '1').strip()
-    #folio_sides = {}
-    
-#    for s in Folio_Side.objects.all():
-#        folio_sides[s.id] = s
-    
-#     recto = 'r'
-#     verso = 'v'
-#     unspecified_side = ''
-#     
-#     action = request.POST.get('action', '').strip()
-# 
-#     #if action == 'operations':
-# 
-#     
-#     if len(action):
-#         for folio in context['folios']:
-#             modified = False
-#             
-#             if action == 'operations':
-#                 number = re.findall(r'(?i)0*(\d{1,3})\D*$', folio.iipimage.name)
-#                 if str(request.POST.get('manuscript_set', '0')) == '1':
-#                     folio.item_part = manuscript
-#                     modified = True
-#                 if str(request.POST.get('page_set', '0')) == '1':
-#                     folio.page = page
-#                     if page != '':
-#                         page = page + 1
-#                     modified = True
-#                 if str(request.POST.get('folio_set', '0')) == '1':
-#                     folio.folio_number = folio_number
-#                     if folio_number != '' and folio_side in (verso, ''):
-#                         folio_number = folio_number + 1
-#                     folio.folio_side = folio_side
-#                     if folio_side == recto: 
-#                         folio_side = verso
-#                     elif folio_side == verso:
-#                         folio_side = recto
-#                     modified = True
-#                 if str(request.POST.get('folio_number_set', '0')) == '1':
-#                     if len(number) > 0:
-#                         folio.folio_number = number[0]
-#                     else:
-#                         folio.folio_number = ''
-#                     modified = True
-#                 if str(request.POST.get('folio_side_set', '0')) == '1':
-#                     if re.search('(?i)[^a-z]r$', folio.iipimage.name): 
-#                         folio.folio_side = recto
-#                     elif re.search('(?i)[^a-z]v$', folio.iipimage.name): 
-#                         folio.folio_side = verso
-#                     else: 
-#                         folio.folio_side = recto
-#                         #folio.folio_side = unspecified_side
-#                     modified = True
-#                 if str(request.POST.get('page_number_set', '0')) == '1':
-#                     if len(number) > 0:
-#                         folio.page = number[0]
-#                     else:
-#                         folio.page = ''
-#                     modified = True
-#                 if str(request.POST.get('archived_set', '0')) == '1':
-#                     folio.archived = True
-#                     modified = True
-#                 if str(request.POST.get('unarchived_set', '0')) == '1':
-#                     folio.archived = False
-#                     modified = True
-#             
-#             if action == 'change_values':
-# 
-#                 '''
-#                         <input class="txt-folio-number" type="text" name="fn-{{folio.id}}" value="{{folio.folio_number}}" />
-#                         <input type="radio" id="fs-{{folio.id}}-id" name="fs-{{folio.id}}" {% ifequal folio.folio_side.id side.id %}checked="checked"{% endifequal %} >
-#                         <input class="txt-folio-number" type="text" name="pn-{{folio.id}}" value="{{folio.page}}" />
-#                         <input type="checkbox" name="arch-{{folio.id}}" {% if folio.archived %}checked="checked"{% endif %} />
-#                         <textarea class="txta-folio-note" name="inotes-{{folio.id}}">{{ folio.internal_notes }}</textarea>
-#                 '''                
-#                 
-#                 folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
-#                 #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
-#                 folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()
-#                 #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
-#                 #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
-#                 #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
-#                 modified = True            
-#             
-#             if modified: folio.save()
-
-    default_hand = Hand(label='No match')
+    default_hand = Hand(label='No matching hand')
 
     for record in context['records']:
         if action == 'change_matching':
@@ -136,11 +47,64 @@ def stewart_import(request, url=None):
             record.hand_id = new_id 
             record.save()
         
-        record.dhands = [h for h in Hand.objects.all()[0:10]]
+        record.dhands = get_best_matches(record)
         record.dhands.insert(0, default_hand)
-        record.dhands_selected_id = record.hand_id
+        record.hands_count = len(record.dhands) - 1
             
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     from django.shortcuts import render
-    return render(request, 'admin/stewartrecord/import.html', context)
+    return render(request, 'admin/stewartrecord/match.html', context)
 
+def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=False):
+    reasons = ''
+    hand = result.get(hand.id, hand)
+    hand.match_reason = getattr(hand, 'match_reason', '') + reason
+    if highlight:
+        hand.highlighted = highlight
+    elif steward_record.locus and hand.label and re.search(ur'\W%s\W' % steward_record.locus.replace(u'\u2013', u'-'), hand.label.replace(u'\u2013', u'-')): 
+        hand.highlighted = True
+    elif steward_record.locus and hand.description and re.search(ur'\W%s\W' % steward_record.locus.replace(u'\u2013', u'-'), hand.description.replace(u'\u2013', u'-')): 
+        hand.highlighted = True
+    result[hand.id] = hand
+
+def get_best_matches(record):
+    ret = SortedDict()
+    
+    record.documents = {}
+    
+    # Match based on legacy id (record.stokes_db)
+    hand_id = record.stokes_db.strip()
+    if hand_id:
+        hands = Hand.objects.filter(legacy_id=hand_id)
+        for hand in hands:
+            add_matching_hand_to_result(ret, record, hand, 'L', True)
+        
+    # Match based on K ids
+    sources = ['ker', 'gneuss', 'scragg', 'sp']
+    for source in sources:
+        document_id = getattr(record, source, '').strip()
+        if document_id:
+            source_dp = source
+            if source == 'sp':
+                source_dp = 'sawyer'
+                document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
+                if document_id_p != document_id: 
+                    document_id = document_id_p
+                    source_dp = 'pelteret'
+            document_ids = re.split('\s*,\s*', document_id)
+            documents = ItemPart.objects.filter(historical_item__catalogue_numbers__source__name=source_dp,
+                                                historical_item__catalogue_numbers__number__in=document_ids).distinct()
+            for doc in documents: record.documents[doc.id] = doc
+            hands = Hand.objects.filter(Q(pages__item_part__in=documents) | Q(item_part__in=documents)).order_by('id')
+            for hand in hands:
+                add_matching_hand_to_result(ret, record, hand, source.upper()[0])
+            
+    # find best matches based on the historical item
+    
+    # Existing match (record.hand)
+    if record.hand:
+        add_matching_hand_to_result(ret, record, record.hand, 'M')
+    
+    record.documents = record.documents.values()
+    
+    return [h for h in ret.values()]

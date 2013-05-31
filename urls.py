@@ -41,7 +41,8 @@ urlpatterns += patterns('digipal.views.admin.page',
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',
-                       (r'admin/stewartrecord/import', 'stewart_import'),
+                       (r'admin/digipal/stewartrecord/match', 'stewart_match'),
+                       (r'admin/digipal/stewartrecord/import', 'stewart_import'),
                        )
 
 urlpatterns += patterns('haystack.views',

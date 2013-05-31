@@ -1,0 +1,142 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Page</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+{{ block.super }}
+
+<style type="text/css">
+table.bulk_options {width: 100%;}
+table.bulk_options tr {width: 100%;}
+tr.section_last td {border-bottom: 3px solid #DDDDDD}
+.txt-folio-number {width:3em;}
+#tbl-selected-folios {border: 1px solid lightgrey}
+.txta-folio-note {width: 8em; height: 6em;}
+#container input.sbm-change {float: left;}
+#option-title {border: 2px solid orange; background-color: lightyellow; position: fixed; display: none; left: 0px; top: 0px; z-index:2000; padding: 1em; width: auto; margin: 3px;}
+.hand-highlight {background-color: lightgreen;}
+</style>
+
+<script>
+    $(function(){
+      $(document).on('mouseenter mouseleave', '.hand-tooltip',
+         function(event) {
+            var container = $('#option-title');
+            if (event.type!='mouseleave') {
+                var $target = $(this);
+                container.html($target.attr('data-title'));
+                var pos = $(this).offset();
+                container.width(pos.left - 50);
+                this.bgcolor = $(this).css('background-color');
+            }
+            $(this).css('background-color', (event.type!='mouseleave') ? 'lightyellow' : this.bgcolor);
+            container.toggle(event.type!='mouseleave');
+          } 
+         );
+    });
+</script>
+
+{% endblock %}
+
+
+{% block content %}
+
+<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+
+{% if perms_lacking %}
+    <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+    <ul>
+    {% for obj in perms_lacking %}
+        <li>{{ obj }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <form id="form-hands" action="" method="post">
+    {% csrf_token %}
+    
+    <h2>Selected records ({{ records.count }})</h2>
+	<table id="tbl-selected-folios" cellspacing="0">
+		<thead>
+			<tr>
+		    	<th>Record ID</th>
+                <th>Catalogue nbs</th>
+		    	<th>MS</th>
+		    	<th>Contents</th>
+                <th>Matching DP Hand</th>
+		    </tr>
+		</thead>
+		<tbody>
+		    {% for record in records %}
+			    <tr class="{% cycle 'row1' 'row2' %}">
+			    	<td><a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.id}}</a></td>
+			    	<td>{{record.get_ids}}</td>
+			    	<td>{{record.repository}}, {{record.shelf_mark}}, {{record.locus}}</td>
+                    <td class="ms-desc hand-tooltip" data-title="Place: {{ record.location }} <br/>Description: {{record.contents}}">
+                        <a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.contents|truncatechars:50}}</a>
+                    </td>
+                    <td>
+                        {% if record.hands_count %}
+                            <ul>
+                                {% for dhand in record.dhands %}
+                                    <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %}" 
+                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Description:{{ dhand.description }}">
+                                        <input id="shand_{{ record.id }}_{{dhand.id}}"
+                                            type="radio" name="shand_{{ record.id }}" 
+                                            value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
+                                            {% if dhand.id = record.hand.id %}checked="checked"{% endif %} 
+                                        />
+                                        <label for="shand_{{ record.id }}_{{dhand.id}}">
+                                            {% if dhand.id > 0 %}
+                                                [#{{ dhand.id }} - {{ dhand.match_reason }}]  
+                                                {{ dhand.item_part }}, {{ dhand.num }}                               
+                                                - <a href="/admin/digipal/hand/{{ dhand.id }}">view</a>
+                                                {{ dhand.label }}
+                                            {% else %}
+                                                No matching hand
+                                            {% endif %}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            No matching hand
+                        {% endif %}
+                        
+                        {% for document in record.documents %}
+                            <br/>
+                            <a href="/admin/digipal/itempart/{{ document.id }}">
+                            [{{ document.historical_item }}] {{ document }}
+                            </a>
+                        {% endfor %}
+                    </td>
+			    </tr>
+			{% endfor %}
+			<tr>
+				<td>
+					<input type="hidden" name="action" value="change_matching" />
+					<input type="submit" name="_save" class="default" value="Change" />
+				</td>
+				<td colspan="7">
+					&nbsp;
+				</td>
+			</tr>
+		</tbody>
+    </table>
+    </form>
+    
+    <div id="option-title">
+        test
+    </div>
+
+{% endif %}
+{% endblock %} 

@@ -61,10 +61,12 @@ def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=
     hand.match_reason = getattr(hand, 'match_reason', '') + reason
     if highlight:
         hand.highlighted = highlight
-    elif steward_record.locus and hand.label and re.search(ur'\W%s\W' % steward_record.locus.replace(u'\u2013', u'-'), hand.label.replace(u'\u2013', u'-')): 
-        hand.highlighted = True
-    elif steward_record.locus and hand.description and re.search(ur'\W%s\W' % steward_record.locus.replace(u'\u2013', u'-'), hand.description.replace(u'\u2013', u'-')): 
-        hand.highlighted = True
+    if steward_record.locus:
+        locus = steward_record.locus.replace(u'\u2013', u'-').strip('[] ')
+        if hand.label and re.search(ur'\W%s\W' % locus, hand.label.replace(u'\u2013', u'-')): 
+            hand.highlighted = True
+        if hand.description and re.search(ur'\W%s\W' % locus, hand.description.replace(u'\u2013', u'-')): 
+            hand.highlighted = True
     result[hand.id] = hand
 
 def get_best_matches(record):

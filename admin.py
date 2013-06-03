@@ -254,13 +254,13 @@ class HandAdmin(reversion.VersionAdmin):
 
     filter_horizontal = ['pages']
     list_display = ['label', 'num', 'item_part', 'script', 'scribe',
-            'assigned_date', 'assigned_place', 'scragg', 'created',
+            'assigned_date', 'assigned_place', 'created',
             'modified']
-    list_display_links = ['description', 'num', 'item_part', 'script',
-            'scribe', 'assigned_date', 'assigned_place', 'scragg',
+    list_display_links = ['label', 'num', 'item_part', 'script',
+            'scribe', 'assigned_date', 'assigned_place',
             'created', 'modified']
-    search_fields = ['description', 'num', 'scragg', 'scragg_description',
-            'em_title', 'em_description', 'mancass_description', 'label',
+    search_fields = ['label', 'num', 
+            'em_title', 'mancass_description', 'label',
             'display_note', 'internal_note']
 
 

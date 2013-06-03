@@ -535,7 +535,6 @@ class Description(models.Model):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source) 
 
-
 # Manuscripts in legacy db
 class Layout(models.Model):
     historical_item = models.ForeignKey(HistoricalItem)
@@ -1194,6 +1193,11 @@ class Hand(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    locus = models.CharField(max_length=300, null=True, blank=True, default='')
+    # TODO: migrate to Cat Num (From Brookes DB)
+    surrogates = models.CharField(max_length=50, null=True, blank=True, default='')
+    # From Brookes DB
+    selected_locus = models.CharField(max_length=100, null=True, blank=True, default='')
 
     def idiographs(self):
         if self.scribe:
@@ -1212,7 +1216,50 @@ class Hand(models.Model):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76, 
         # hand.reference has moved to hand.label
-        return u'%s' % (self.label or '')    
+        return u'%s' % (self.label or '')
+
+    def set_description(self, source_name, description=None):
+        ''' Set the description of a hand according to a source (e.g. ker, sawyer).
+            Create the source if it doesn't exist yet.
+            Update description if it exists, add it otherwise.
+        '''
+        if description is None: return
+        # TODO: opt: cache the sources
+        sources = Source.objects.filter(name=source_name)
+        source = None
+        if sources:
+            source = sources[0]
+        else:
+            source = Source(name=source_name, label=source_name.upper())
+            source.save()
+        
+        hand_description = None
+        for hand_description in self.descriptions.all():
+            if hand_description.source == source:
+                break
+            hand_description = None
+        if hand_description is None:
+            hand_description = HandDescription(hand=self, source=source)
+            
+        hand_description.description = description
+        hand_description.save()
+                    
+        self.descriptions.add(hand_description)
+
+class HandDescription(models.Model):
+    hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
+    source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
+    description = models.TextField()
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['hand']
+
+    def __unicode__(self):
+        #return u'%s %s' % (self.historical_item, self.source)
+        return get_list_as_string(self.hand, ' ', self.source) 
 
 class Alphabet(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -1479,21 +1526,145 @@ class StewartRecord(models.Model):
     cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
     eel = models.CharField(max_length=1000, null=True, blank=True, default='')
     hand = models.ForeignKey(Hand, null=True, blank=False)
+    import_messages = models.TextField(null=True, blank=True, default='')
 
     class Meta:
         ordering = ['scragg']
 
     def __unicode__(self):
-        return ur'S%s K%s G%s D%s' % (self.scragg, self.ker, self.gneuss, self.stokes_db)
+        return ur'Scr%s K%s G%s D%s SP %s' % (self.scragg, self.ker, self.gneuss, self.stokes_db, self.sp)
     
     def get_ids(self):
         ret = []
-        if self.scragg: ret.append(u'S. %s' % self.scragg)
+        if self.scragg: ret.append(u'Scr. %s' % self.scragg)
         if self.gneuss: ret.append(u'G. %s' % self.gneuss)
         if self.ker: 
-            ret.append(u'K. %s' % self.ker)
+            ker = u'K. %s' % self.ker
             if self.ker_hand:
-                ret.append(u'.%s' % self.ker_hand)
-        if self.stokes_db: ret.append(u'D. %s' % self.stokes_db)
+                ker += '.%s' % self.ker_hand
+            ret.append(ker)
+        if self.sp: ret.append(u'SP. %s' % self.sp)
+        if self.stokes_db: ret.append(u'L. %s' % self.stokes_db)
         return ', '.join(ret)
+    
+    def import_field(self, src_field, dst_obj, dst_field, append=False):
+        ret = ''
+        def normalise_value(value):
+            return (u'%s' % value).strip()
         
+        src_value = normalise_value(getattr(self, src_field, ''))
+        dst_value = normalise_value(getattr(dst_obj, dst_field, ''))
+        
+        if src_value:
+            if (not append) or (dst_value.find(src_value) == -1):
+                if (not append) and (dst_value and src_value != dst_value):
+                    ret = u'Different values: #%s.%s = "%s" <> %s.#%s = "%s"' % (self.id, src_field, src_value, dst_obj.__class__.__name__, dst_obj.id, dst_value)
+            
+                if not ret:
+                    if append:
+                        src_value = dst_value + '\n' + src_value
+                    setattr(dst_obj, dst_field, src_value)
+                    dst_obj.save()
+
+        if ret: ret += '\n'
+        
+        return ret
+    
+    @classmethod
+    def get_sources(self):
+        sources = getattr(self.__class__, 'sources', {})
+        if not sources:
+            sources = {}
+            for source in Source.objects.all():
+                sources[source.name] = source
+        
+            self.__class__.sources = sources
+             
+        return self.sources
+    
+    def import_steward_record(self):
+        '''
+            TODO: transfer (Scragg_Description, EM_Description)
+        
+            ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
+            sp -> 
+            
+            [DONE] scragg -> hand.scragg 
+            [DONE] Locus -> hand.+locus
+            [DONE] Selected -> Page (Use this to generate a new Page record)
+            [DONE] Notes      Hand.InternalNote
+            
+            * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
+            [DONE] Contents      Scragg_Description
+            EM      Hand.EM_Description (Use description + Source model.)
+            EEL      MISSING. Use Description + Source model
+            Surrogates      Use Source Model
+
+            Date      Hand.AssignedDate
+            Location      Hand.AssignedPlace
+
+            () Glosses      Hand.GlossOnly      
+            () Minor      Hand.ScribbleOnly
+        '''
+        if self.hand is None:
+            return
+        
+        from datetime import datetime
+        now = datetime.now()
+        
+        hand = self.hand
+        
+        messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
+        
+        # 1. Simple TEXT fields
+        
+        messages += self.import_field('notes', hand, 'internal_note', True)
+        # Why here and not at the doc level?
+        messages += self.import_field('scragg', hand, 'scragg')
+        messages += self.import_field('locus', hand, 'locus')
+        messages += self.import_field('selected', hand, 'selected_locus')
+
+        # 2. Description fields
+
+        hand.set_description('scragg', self.contents)
+        hand.set_description('ker', self.ker_hand)
+        hand.set_description('eel', self.eel)
+        hand.set_description('em1060-1220', self.em)
+        
+        # 3. Related objects
+        
+        # TODO: import by creating a new date?
+        ##messages += self.import_field('adate', hand, 'assigned_date')
+        # TODO: import by creating a new place?
+        ##messages += self.import_field('location', hand, 'assigned_place')
+        
+        # 4. Catalogue numbers
+        # Ker, S/P  
+        if self.ker or self.sp:
+            sources = self.get_sources()
+            
+            cat_nums = {} 
+            
+            historical_item = hand.item_part.historical_item
+            for cat_num in historical_item.catalogue_numbers.all():
+                cat_nums[cat_num.source.name] = cat_num.number
+             
+            if self.ker and 'ker' not in cat_nums:
+                historical_item.catalogue_numbers.add(CatalogueNumber(source=sources['ker'], number=self.ker))
+
+            if self.sp:
+                source_dp = 'sawyer'
+                document_id = self.sp
+                document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
+                if document_id_p != document_id: 
+                    document_id = document_id_p
+                    source_dp = 'pelteret'
+                
+                if source_dp not in cat_nums:                
+                    historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
+        
+        # TODO: transform into cat numbers
+        messages += self.import_field('surrogates', hand, 'surrogates')
+
+        self.import_messages += messages
+        self.save()

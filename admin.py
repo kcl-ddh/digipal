@@ -20,7 +20,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Page, Person, Place, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord
+        StewartRecord, HandDescription
 import reversion
 import django_admin_customisations
 
@@ -246,13 +246,14 @@ class PlaceEvidenceInline(admin.StackedInline):
 class ProportionInline(admin.StackedInline):
     model = Proportion
 
+class HandDescriptionInline(admin.StackedInline):
+    model = HandDescription
 
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
 
     filter_horizontal = ['pages']
-    inlines = [DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
-    list_display = ['description', 'num', 'item_part', 'script', 'scribe',
+    list_display = ['label', 'num', 'item_part', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'scragg', 'created',
             'modified']
     list_display_links = ['description', 'num', 'item_part', 'script',
@@ -263,6 +264,9 @@ class HandAdmin(reversion.VersionAdmin):
             'display_note', 'internal_note']
 
 
+    inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
+    exclude = (scragg_description, em_description)
+    
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber
 
@@ -679,9 +683,41 @@ class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
 
-class StewartRecordFilterHand(admin.SimpleListFilter):
-    title = 'Matched'
+class StewartRecordFilterMatched(admin.SimpleListFilter):
+    title = 'Match'
     parameter_name = 'matched'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'matched'),
+                    ('0', 'not matched'),
+                )
+    
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(hand_id__isnull=(self.value() == '0'))
+
+class StewartRecordFilterLegacy(admin.SimpleListFilter):
+    title = 'Legacy'
+    parameter_name = 'legacy'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'has legacy id'),
+                    ('0', 'no legacy id'),
+                )
+    
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        q = Q(stokes_db__isnull=True) | Q(stokes_db__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
+
+class StewartRecordFilterImported(admin.SimpleListFilter):
+    title = 'Already Imported'
+    parameter_name = 'imported'
     
     def lookups(self, request, model_admin):
         return (
@@ -690,16 +726,21 @@ class StewartRecordFilterHand(admin.SimpleListFilter):
                 )
     
     def queryset(self, request, queryset):
-        return queryset.filter(hand_id__isnull=self.value() == '0')
+        from django.db.models import Q
+        q = Q(import_messages__isnull=True) | Q(import_messages__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
 
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
     list_display = ['field_hand', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = list_display
-    list_filter = [StewartRecordFilterHand]
+    list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterImported]
     
-    actions = ['match_and_import']
+    actions = ['match_hands', 'import_matched']
     
     def field_hand(self, record):
         ret = ''
@@ -710,13 +751,19 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         return ret
     field_hand.short_description = 'Matched hand'
 
-    def match_and_import(self, request, queryset):
+    def match_hands(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_match') + '?ids=' + ','.join(selected) )
+    match_hands.short_description = 'Match with DigiPal hand records'
+    
+    def import_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         from django.core.urlresolvers import reverse
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
-    match_and_import.short_description = 'Match and import'
-    
+    import_matched.short_description = 'Import records into their matched hand records'
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)

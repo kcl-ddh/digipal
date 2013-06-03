@@ -413,7 +413,7 @@ class HandAdmin(reversion.VersionAdmin):
     list_filter = [HandItempPartFilter]
 
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
-    exclude = (scragg_description, em_description)
+    exclude = ('scragg_description', 'em_description')
     
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber

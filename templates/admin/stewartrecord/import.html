@@ -1,0 +1,221 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Page</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+{{ block.super }}
+
+<style type="text/css">
+table.bulk_options {width: 100%;}
+table.bulk_options tr {width: 100%;}
+tr.section_last td {border-bottom: 3px solid #DDDDDD}
+.txt-folio-number {width:3em;}
+#tbl-selected-folios {border: 1px solid lightgrey}
+.txta-folio-note {width: 8em; height: 6em;}
+#container input.sbm-change {float: left;}
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+
+{% if perms_lacking %}
+    <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+    <ul>
+    {% for obj in perms_lacking %}
+        <li>{{ obj }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+	<h1>Match</h1>
+	
+    {% if 0 %}
+    <form action="" method="post">
+        {% csrf_token %}
+		<fieldset class="module aligned ">
+		    <h2>Edit the selected records</h2>
+	    	<table class="bulk_options">
+	    		<thead>
+		    		<tr>
+		    			<th>Operation</th>
+		    			<th>Options</th>
+		    		</tr>
+	    		</thead>
+	    		<tbody>
+		    		<tr class="section_last">
+		    			<td>
+		    				<input type="checkbox" name="manuscript_set" id="manuscript_set_id" value="1" />
+		    				<label for="manuscript_set_id">Set item part</label>
+		    			</td>
+		    			<td>
+		    				<select name="manuscript">
+                                <option value="0">Unspecified</option>
+					    		{% for manuscript in manuscripts %}
+						    		<option value="{{ manuscript.id }}">{{ manuscript.display_label }}</option>
+					    		{% endfor %}
+					    	</select>
+		    			</td>
+		    		</tr>
+		    		<tr>
+		    			<td>
+		    				<input type="checkbox" name="folio_set" id="folio_set_id" value="1" />
+		    				<label for="folio_set_id">Set side and number in sequence</label>
+		    			</td>
+		    			<td>
+		    				Starting from number 
+                                <input type="text" name="folio_number" value=""  class="txt-folio-number" />
+		    				&nbsp;
+		    				and side
+                                <input type="text" name="folio_side" value=""  class="folio_side" />
+		    			</td>
+		    		</tr>
+		    		<tr>
+		    			<td>
+		    				<input type="checkbox" name="folio_number_set" id="folio_number_set_id" value="1" />
+		    				<label for="folio_number_set_id">Set number from file name</label>
+		    			</td>
+		    			<td>
+		    				The folio number will be set from the number found in the file name. e.g. ff.49v => folio 49
+		    			</td>
+		    		</tr>
+		    		<tr class="section_last">
+		    			<td>
+		    				<input type="checkbox" name="folio_side_set" id="folio_side_set_id" value="1" />
+		    				<label for="folio_side_set_id">Set folio side from file name</label>
+		    			</td>
+		    			<td>
+		    				The folio side will be set from the side found in the file name. e.g. ff.49v => Verso
+		    			</td>
+		    		</tr>
+                    {% if 0 %}
+    		    		<tr>
+    		    			<td>
+    		    				<input type="checkbox" name="page_set" id="page_set_id" value="1" />
+    		    				<label for="page_set_id">Set page number in sequence</label>
+    		    			</td>
+    		    			<td>
+    		    				Starting from page number
+    		    				<input type="text" name="page_number" value=""  class="txt-folio-number" />
+    		    			</td>
+    		    		</tr>
+    		    		<tr class="section_last">
+    		    			<td>
+    		    				<input type="checkbox" name="page_number_set" id="page_number_set_id" value="1" />
+    		    				<label for="page_number_set_id">Set page number from file name</label>
+    		    			</td>
+    		    			<td>
+    		    				The page number will be set from the number found in the file name. e.g. page_58 => page 58
+    		    			</td>
+    		    		</tr>
+                    {% endif %}
+                    {% if 0 %}
+    		    		<tr>
+    		    			<td>
+    		    				<input type="checkbox" name="archived_set" id="archived_id" value="1" />
+    		    				<label for="archived_id">Archive the images</label>
+    		    			</td>
+    		    			<td>
+    		    				Archived images won't be displayed on the website.
+    		    			</td>
+    		    		</tr>
+    		    		<tr class="section_last">
+    		    			<td>
+    		    				<input type="checkbox" name="unarchived_set" id="unarchived_id" value="1" />
+    		    				<label for="unarchived_id">Unarchive the images</label>
+    		    			</td>
+    		    			<td>
+    		    				&nbsp;
+    		    			</td>
+    		    		</tr>
+                    {% endif %}
+		    		<tr  class="section_last">
+		    			<td>
+		    				<input type="checkbox" name="thumbnails_set" id="thumbnails_id" value="1" {% if show_thumbnails %}checked="checked"{% endif %} />
+		    				<label for="thumbnails_id">Show thumbnails</label>
+		    			</td>
+		    			<td>
+		    				Thick this box and click 'Change' to display all the image thumbnails.
+		    			</td>
+		    		</tr>
+					<tr>
+						<td>
+							<input type="hidden" name="action" value="operations" />
+							<input type="submit" name="_save" class="default sbm-change" value="Change">
+						</td>
+						<td>
+							&nbsp;
+						</td>
+					</tr>
+				</tbody>
+	    	</table>
+	    </fieldset>
+    </form>
+    {% endif %}    
+    
+    <form action="" method="post">
+    {% csrf_token %}
+    
+    <h2>Selected records ({{ records.count }})</h2>
+	<table id="tbl-selected-folios" cellspacing="0">
+		<thead>
+			<tr>
+		    	<th>ID</th>
+                <th>Other ids</th>
+		    	<th>MS</th>
+		    	<th>Contents</th>
+                <th>Matching D. Hand</th>
+		    </tr>
+		</thead>
+		<tbody>
+		    {% for record in records %}
+			    <tr class="{% cycle 'row1' 'row2' %}">
+			    	<td><a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.id}}</a></td>
+			    	<td>{{record.get_ids}}</td>
+			    	<td>{{record.repository}}, {{record.shelf_mark}}, {{record.locus}}</td>
+                    <td title="{{record.contents}}">{{record.contents|truncatechars:50}}</td>
+                    <td>
+                        <select name="shand_{{ record.id }}">
+                            {% for dhand in record.dhands %}
+                                <option 
+                                    value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
+                                    {% if record.dhands_selected_id = dhand.id %}selected="selected"{% endif %}
+                                >
+                                    {% if dhand.id > 0 %}
+                                        #{{ dhand.id }}
+                                    {% endif %}
+                                    {{ dhand }}
+                                </option>                            
+                            {% endfor %}
+                        </select>
+                    </td>
+			    </tr>
+			{% endfor %}
+			<tr>
+				<td>
+					<input type="hidden" name="action" value="change_matching" />
+					<input type="submit" name="_save" class="default" value="Change" />
+				</td>
+				<td colspan="7">
+					&nbsp;
+				</td>
+			</tr>
+		</tbody>
+    </table>
+    </form>
+
+
+{% endif %}
+{% endblock %} 

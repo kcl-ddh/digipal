@@ -679,11 +679,44 @@ class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
 
+class StewartRecordFilterHand(admin.SimpleListFilter):
+    title = 'Matched'
+    parameter_name = 'matched'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'yes'),
+                    ('0', 'no'),
+                )
+    
+    def queryset(self, request, queryset):
+        return queryset.filter(hand_id__isnull=self.value() == '0')
+
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
-    list_display = ['scragg', 'ker', 'gneuss', 'stokes', 'repository', 'shelf_mark']
+    list_display = ['field_hand', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = list_display
+    list_filter = [StewartRecordFilterHand]
+    
+    actions = ['match_and_import']
+    
+    def field_hand(self, record):
+        ret = ''
+        if record.hand:
+            ret += u'#%s' % record.hand.id
+            ret += u', %s' % record.hand.scribe
+            ret += u', %s' % record.hand.item_part
+        return ret
+    field_hand.short_description = 'Matched hand'
+
+    def match_and_import(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
+    match_and_import.short_description = 'Match and import'
+    
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)

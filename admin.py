@@ -398,6 +398,24 @@ class ProportionInline(admin.StackedInline):
 class HandDescriptionInline(admin.StackedInline):
     model = HandDescription
 
+class HandFilterSurrogates(admin.SimpleListFilter):
+    title = 'Surrogates'
+    parameter_name = 'surrogates'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'with surrogates'),
+                    ('0', 'without surrogates'),
+                )
+    
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        q = Q(surrogates__isnull=True) | Q(surrogates__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
+
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
 
@@ -411,7 +429,7 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['label', 'num', 
             'em_title', 'mancass_description', 'label',
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates]
 
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
     exclude = ('scragg_description', 'em_description')

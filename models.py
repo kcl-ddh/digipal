@@ -1167,15 +1167,24 @@ class Hand(models.Model):
     scribe = models.ForeignKey(Scribe, blank=True, null=True)
     assigned_date = models.ForeignKey(Date, blank=True, null=True)
     assigned_place = models.ForeignKey(Place, blank=True, null=True)
+    # This is an absolute hand (or scribe) number, so we can
+    # have multiple Hand records with the same scragg.
     scragg = models.CharField(max_length=6, blank=True, null=True)
+    # This is a hand (or scribe) number, relative to the ker 
+    # cat number for the historical item (added 04/06/2011)
+    ker = models.CharField(max_length=10, blank=True, null=True)
+    # TODO: move to HandDescription
     scragg_description = models.TextField(blank=True, null=True)
     em_title = models.CharField(max_length=256, blank=True, null=True)
+    # TODO: move to HandDescription
     em_description = models.TextField(blank=True, null=True)
+    # TODO: move to HandDescription
     mancass_description = models.TextField(blank=True, null=True)
     label = models.TextField(blank=True, null=True)
     display_note = models.TextField(blank=True, null=True)
     internal_note = models.TextField(blank=True, null=True)
     appearance = models.ForeignKey(Appearance, blank=True, null=True)
+    # TODO: move to HandDescription
     description = models.TextField(blank=True, null=True)
     relevant = models.NullBooleanField()
     latin_only = models.NullBooleanField()
@@ -1193,6 +1202,7 @@ class Hand(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    # Imported from Brookes DB
     locus = models.CharField(max_length=300, null=True, blank=True, default='')
     # TODO: migrate to Cat Num (From Brookes DB)
     surrogates = models.CharField(max_length=50, null=True, blank=True, default='')
@@ -1550,6 +1560,7 @@ class StewartRecord(models.Model):
     def import_field(self, src_field, dst_obj, dst_field, append=False):
         ret = ''
         def normalise_value(value):
+            if value is None: value = ''
             return (u'%s' % value).strip()
         
         src_value = normalise_value(getattr(self, src_field, ''))
@@ -1558,7 +1569,7 @@ class StewartRecord(models.Model):
         if src_value:
             if (not append) or (dst_value.find(src_value) == -1):
                 if (not append) and (dst_value and src_value != dst_value):
-                    ret = u'Different values: #%s.%s = "%s" <> %s.#%s = "%s"' % (self.id, src_field, src_value, dst_obj.__class__.__name__, dst_obj.id, dst_value)
+                    ret = u'Different values: #%s.%s = "%s" <> %s.#%s.%s = "%s"' % (self.id, src_field, src_value, dst_obj.__class__.__name__, dst_obj.id, dst_field, dst_value)
             
                 if not ret:
                     if append:
@@ -1586,25 +1597,29 @@ class StewartRecord(models.Model):
         '''
             TODO: transfer (Scragg_Description, EM_Description)
         
-            ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
-            sp -> 
+            [DONE] ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
+            [DONE] sp -> 
             
+            # hand number
             [DONE] scragg -> hand.scragg 
             [DONE] Locus -> hand.+locus
             [DONE] Selected -> Page (Use this to generate a new Page record)
             [DONE] Notes      Hand.InternalNote
             
-            * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
+            [DONE] * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
             [DONE] Contents      Scragg_Description
-            EM      Hand.EM_Description (Use description + Source model.)
-            EEL      MISSING. Use Description + Source model
-            Surrogates      Use Source Model
+            [DONE] EM      Hand.EM_Description (Use description + Source model.)
+            [DONE] EEL      MISSING. Use Description + Source model
+            # Format is too messy to be imported into the catalogue num
+            # we import it into the surrogates field and add a filter
+            
+            [DONE~] Surrogates      Use Source Model
 
             Date      Hand.AssignedDate
             Location      Hand.AssignedPlace
 
-            () Glosses      Hand.GlossOnly      
-            () Minor      Hand.ScribbleOnly
+            [DONE] Glosses      Hand.GlossOnly      
+            [DONE] Minor      Hand.ScribbleOnly
         '''
         hands = self.hands.all()
         if not hands:
@@ -1618,28 +1633,39 @@ class StewartRecord(models.Model):
             
             # 1. Simple TEXT fields
             
-            messages += self.import_field('notes', hand, 'internal_note', True)
-            # Why here and not at the doc level?
+            # hand number
             messages += self.import_field('scragg', hand, 'scragg')
+            messages += self.import_field('ker_hand', hand, 'ker')
+            
             messages += self.import_field('locus', hand, 'locus')
             messages += self.import_field('selected', hand, 'selected_locus')
+            messages += self.import_field('notes', hand, 'internal_note', True)
+            
+            if hand.gloss_only is None and self.glosses == 'Yes':
+                hand.gloss_only = True
+            if hand.scribble_only is None and self.minor == 'Yes':
+                hand.scribble_only = True
     
+            # This should be imported as a cat num but format is too inconsistent
+            # EEMF, ASMMF, BL Fiche
+            messages += self.import_field('surrogates', hand, 'surrogates')
+
             # 2. Description fields
     
             hand.set_description('scragg', self.contents)
-            hand.set_description('ker', self.ker_hand)
             hand.set_description('eel', self.eel)
             hand.set_description('em1060-1220', self.em)
             
             # 3. Related objects
             
+            # 3470
             # TODO: import by creating a new date?
             ##messages += self.import_field('adate', hand, 'assigned_date')
             # TODO: import by creating a new place?
             ##messages += self.import_field('location', hand, 'assigned_place')
             
             # 4. Catalogue numbers
-            # Ker, S/P  
+            # Ker, S/P (NOT Scragg, b/c its a hand number)
             if self.ker or self.sp:
                 sources = self.get_sources()
                 
@@ -1663,8 +1689,5 @@ class StewartRecord(models.Model):
                     if source_dp not in cat_nums:                
                         historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
             
-            # TODO: transform into cat numbers
-            messages += self.import_field('surrogates', hand, 'surrogates')
-    
             self.import_messages += messages
             self.save()

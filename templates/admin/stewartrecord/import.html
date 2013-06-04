@@ -58,7 +58,7 @@ h2 {margin-top:1em; margin-bottom:1em; }
                         -&gt; 
                         {% for hand in record.hands.all %}
                             {% if not forloop.first %} AND {% endif %}
-                            <a href="/admin/digipal/hand/{{ record.hand.id }}">
+                            <a href="/admin/digipal/hand/{{ hand.id }}">
                                 Hand #{{ hand.id }}, {{ hand }}
                             </a>
                         {% endfor %}

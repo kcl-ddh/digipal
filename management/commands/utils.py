@@ -81,6 +81,11 @@ def sqlDeleteAll(con, table, dry_run=False):
 
     return ret
 
+def dropTable(con, table_name, dry_run=False):
+    if dry_run: return
+
+    sqlWrite(con, 'DROP TABLE %s CASCADE' % table_name, [], dry_run)
+
 def readFile(filepath):
     import codecs
     f = codecs.open(filepath, 'r', "utf-8")
@@ -88,4 +93,39 @@ def readFile(filepath):
     f.close()
     
     return ret
+
+class Logger(object):
     
+    FATAL   = 0
+    WARNING = 1
+    INFO    = 2
+    DEBUG   = 3
+    
+    def __init__(self, log_level=None):
+        self.setLogLevel(log_level)
+        self.resetWarning()
+                        
+    def setLogLevel(self, log_level=None):
+        self.log_level = log_level
+        if self.log_level is None: self.log_level = Logger.DEBUG
+        
+    def resetWarning(self):
+        self.warning_count = 0
+
+    def hasWarning(self):
+        return self.warning_count
+
+    def log(self, message, log_level=3, indent=0):
+        if log_level < Logger.INFO:
+            self.warning_count += 1
+        
+        if log_level <= self.log_level:
+            prefixes = ['ERROR: ', 'WARNING: ', '', ''] 
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
+            try:
+                indent_str = '    ' * indent
+                print (u'[%s] %s%s%s' % (timestamp, indent_str, prefixes[log_level], message)).encode('utf-8')
+            except UnicodeEncodeError:
+                print '???'
+            

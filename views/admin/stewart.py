@@ -69,9 +69,9 @@ def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=
         hand.highlighted = highlight
     if steward_record.locus:
         locus = steward_record.locus.replace(u'\u2013', u'-').strip('[] ')
-        if hand.label and re.search(ur'\W%s\W' % locus, hand.label.replace(u'\u2013', u'-')): 
+        if hand.label and re.search(ur'(?i)\W%s\W' % locus, hand.label.replace(u'\u2013', u'-')): 
             hand.highlighted = True
-        if hand.description and re.search(ur'\W%s\W' % locus, hand.description.replace(u'\u2013', u'-')): 
+        if hand.description and re.search(ur'(?i)\W%s\W' % locus, hand.description.replace(u'\u2013', u'-')): 
             hand.highlighted = True
     result[hand.id] = hand
     
@@ -88,9 +88,16 @@ def get_best_matches(record):
         hands = Hand.objects.filter(legacy_id=hand_id)
         for hand in hands:
             add_matching_hand_to_result(ret, record, hand, 'L', True)
+
+    # Match based on scragg id (record.scragg, hand.scragg)
+    hand_id = record.scragg.strip()
+    if hand_id:
+        hands = Hand.objects.filter(scragg=hand_id)
+        for hand in hands:
+            add_matching_hand_to_result(ret, record, hand, 'Scr', True)
         
     # Match based on K ids
-    sources = ['ker', 'gneuss', 'scragg', 'sp']
+    sources = ['ker', 'gneuss', 'sp']
     for source in sources:
         document_id = getattr(record, source, '').strip()
         if document_id:
@@ -105,7 +112,7 @@ def get_best_matches(record):
             documents = ItemPart.objects.filter(historical_item__catalogue_numbers__source__name=source_dp,
                                                 historical_item__catalogue_numbers__number__in=document_ids).distinct()
             for doc in documents: record.documents[doc.id] = doc
-            hands = Hand.objects.filter(Q(pages__item_part__in=documents) | Q(item_part__in=documents)).order_by('id')
+            hands = Hand.objects.filter(Q(pages__item_part__in=documents) | Q(item_part__in=documents)).distinct().order_by('id')
             for hand in hands:
                 add_matching_hand_to_result(ret, record, hand, source.upper()[0])
             

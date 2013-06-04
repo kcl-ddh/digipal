@@ -1234,7 +1234,8 @@ class Hand(models.Model):
             Create the source if it doesn't exist yet.
             Update description if it exists, add it otherwise.
         '''
-        if description is None: return
+        if description is None or not description.strip(): return
+        
         # TODO: opt: cache the sources
         sources = Source.objects.filter(name=source_name)
         source = None

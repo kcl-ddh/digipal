@@ -281,7 +281,7 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['label', 'num', 
             'em_title', 'mancass_description', 'label',
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter, HandFilterSurrogates]
+    list_filter = [HandFilterSurrogates]
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
     exclude = ('scragg_description', 'em_description')
     

@@ -23,6 +23,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         StewartRecord, HandDescription
 import reversion
 import django_admin_customisations
+from django.utils.safestring import mark_safe
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -694,8 +695,10 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
                 )
     
     def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(hand_id__isnull=(self.value() == '0'))
+        if self.value() == '1':
+            return queryset.filter(hands__id__gt=0).distinct()
+        if self.value() == '0':
+            return queryset.all().exclude(hands__id__gt=0).distinct()
 
 class StewartRecordFilterLegacy(admin.SimpleListFilter):
     title = 'Legacy'
@@ -715,9 +718,9 @@ class StewartRecordFilterLegacy(admin.SimpleListFilter):
         if self.value() == '1':
             return queryset.exclude(q)
 
-class StewartRecordFilterImported(admin.SimpleListFilter):
-    title = 'Already Imported'
-    parameter_name = 'imported'
+class StewartRecordFilterMerged(admin.SimpleListFilter):
+    title = 'Already Merged'
+    parameter_name = 'merged'
     
     def lookups(self, request, model_admin):
         return (
@@ -736,20 +739,22 @@ class StewartRecordFilterImported(admin.SimpleListFilter):
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
-    list_display = ['field_hand', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    list_display = ['id', 'field_hands', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = list_display
-    list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterImported]
+    list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterMerged]
+    search_fields = ['id', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     
-    actions = ['match_hands', 'import_matched']
+    actions = ['match_hands', 'merge_matched']
     
-    def field_hand(self, record):
+    def field_hands(self, record):
         ret = ''
-        if record.hand:
-            ret += u'#%s' % record.hand.id
-            ret += u', %s' % record.hand.scribe
-            ret += u', %s' % record.hand.item_part
+        for hand in record.hands.all():
+            if ret: ret += ' ; '
+            ret += u'Hand #%s' % hand.id
+            ret += u', %s' % hand.scribe
+            ret += u', %s' % hand.item_part
         return ret
-    field_hand.short_description = 'Matched hand'
+    field_hands.short_description = 'Matched hand'
 
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
@@ -758,12 +763,12 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_match') + '?ids=' + ','.join(selected) )
     match_hands.short_description = 'Match with DigiPal hand records'
     
-    def import_matched(self, request, queryset):
+    def merge_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         from django.core.urlresolvers import reverse
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
-    import_matched.short_description = 'Import records into their matched hand records'
+    merge_matched.short_description = 'Merge records into their matched hand records'
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)

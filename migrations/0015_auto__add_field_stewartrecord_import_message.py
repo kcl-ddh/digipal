@@ -11,8 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'HandDescription'
         db.create_table('digipal_handdescription', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'])),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Source'])),
+            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='descriptions', null=True, to=orm['digipal.Hand'])),
+            ('source', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='hand_descriptions', null=True, to=orm['digipal.Source'])),
             ('description', self.gf('django.db.models.fields.TextField')()),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
@@ -34,6 +34,14 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(default='', max_length=100, null=True, blank=True),
                       keep_default=False)
 
+        # Adding field 'Hand.stewart_record'
+        db.add_column('digipal_hand', 'stewart_record',
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='hands', null=True, to=orm['digipal.StewartRecord']),
+                      keep_default=False)
+
+        # Deleting field 'StewartRecord.hand'
+        db.delete_column('digipal_stewartrecord', 'hand_id')
+
         # Adding field 'StewartRecord.import_messages'
         db.add_column('digipal_stewartrecord', 'import_messages',
                       self.gf('django.db.models.fields.TextField')(default='', null=True, blank=True),
@@ -52,6 +60,14 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Hand.selected_locus'
         db.delete_column('digipal_hand', 'selected_locus')
+
+        # Deleting field 'Hand.stewart_record'
+        db.delete_column('digipal_hand', 'stewart_record_id')
+
+        # Adding field 'StewartRecord.hand'
+        db.add_column('digipal_stewartrecord', 'hand',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'], null=True),
+                      keep_default=False)
 
         # Deleting field 'StewartRecord.import_messages'
         db.delete_column('digipal_stewartrecord', 'import_messages')
@@ -369,16 +385,17 @@ class Migration(SchemaMigration):
             'scribe': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Scribe']", 'null': 'True', 'blank': 'True'}),
             'script': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Script']", 'null': 'True', 'blank': 'True'}),
             'selected_locus': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'stewart_record': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'hands'", 'null': 'True', 'to': "orm['digipal.StewartRecord']"}),
             'surrogates': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '50', 'null': 'True', 'blank': 'True'})
         },
         'digipal.handdescription': {
             'Meta': {'ordering': "['hand']", 'object_name': 'HandDescription'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']"}),
+            'hand': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'descriptions'", 'null': 'True', 'to': "orm['digipal.Hand']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'source': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Source']"})
+            'source': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'hand_descriptions'", 'null': 'True', 'to': "orm['digipal.Source']"})
         },
         'digipal.historicalitem': {
             'Meta': {'ordering': "['display_label', 'date', 'name']", 'object_name': 'HistoricalItem'},
@@ -716,7 +733,6 @@ class Migration(SchemaMigration):
             'fols': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '300', 'null': 'True', 'blank': 'True'}),
             'glosses': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '300', 'null': 'True', 'blank': 'True'}),
             'gneuss': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '300', 'null': 'True', 'blank': 'True'}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']", 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'import_messages': ('django.db.models.fields.TextField', [], {'default': "''", 'null': 'True', 'blank': 'True'}),
             'ker': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '300', 'null': 'True', 'blank': 'True'}),

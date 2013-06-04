@@ -85,15 +85,16 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                         <a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.contents|truncatechars:50}}</a>
                     </td>
                     <td>
-                        {% if record.hands_count %}
+                        <input type="hidden" name="shand_{{ record.id }}_count" value="{{ record.dhands|length }}" />
+                        {% if record.dhands %}
                             <ul>
                                 {% for dhand in record.dhands %}
                                     <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %}" 
                                         data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Description:{{ dhand.description }}">
                                         <input id="shand_{{ record.id }}_{{dhand.id}}"
-                                            type="radio" name="shand_{{ record.id }}" 
+                                            type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
                                             value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
-                                            {% if dhand.id = record.hand.id %}checked="checked"{% endif %} 
+                                            {% if dhand.selected %}checked="checked"{% endif %} 
                                         />
                                         <label for="shand_{{ record.id }}_{{dhand.id}}">
                                             {% if dhand.id > 0 %}

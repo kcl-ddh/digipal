@@ -47,7 +47,7 @@ h2 {margin-top:1em; margin-bottom:1em; }
     </ul>
 {% else %}
     <div class="import-log">
-        <h2>Imported {{ records|length }} records</h2>
+        <h2>Merged {{ records|length }} record(s)</h2>
         <ul>
             {% for record in records %}
                 <li>
@@ -56,9 +56,12 @@ h2 {margin-top:1em; margin-bottom:1em; }
                             Record #{{ record.id }}, {{ record }}
                         </a> 
                         -&gt; 
-                        <a href="/admin/digipal/hand/{{ record.hand.id }}">
-                            Hand #{{ record.hand.id }}, {{ record.hand }}
-                        </a>
+                        {% for hand in record.hands.all %}
+                            {% if not forloop.first %} AND {% endif %}
+                            <a href="/admin/digipal/hand/{{ record.hand.id }}">
+                                Hand #{{ hand.id }}, {{ hand }}
+                            </a>
+                        {% endfor %}
                     </span>
                     <pre>{{ record.import_messages  }}</pre>
                 </li>

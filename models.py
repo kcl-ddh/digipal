@@ -1198,6 +1198,7 @@ class Hand(models.Model):
     surrogates = models.CharField(max_length=50, null=True, blank=True, default='')
     # From Brookes DB
     selected_locus = models.CharField(max_length=100, null=True, blank=True, default='')
+    stewart_record = models.ForeignKey('StewartRecord', null=True, blank=False, related_name='hands')
 
     def idiographs(self):
         if self.scribe:
@@ -1525,7 +1526,6 @@ class StewartRecord(models.Model):
     charter = models.CharField(max_length=300, null=True, blank=True, default='')
     cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
     eel = models.CharField(max_length=1000, null=True, blank=True, default='')
-    hand = models.ForeignKey(Hand, null=True, blank=False)
     import_messages = models.TextField(null=True, blank=True, default='')
 
     class Meta:
@@ -1606,65 +1606,65 @@ class StewartRecord(models.Model):
             () Glosses      Hand.GlossOnly      
             () Minor      Hand.ScribbleOnly
         '''
-        if self.hand is None:
+        hands = self.hands.all()
+        if not hands:
             return
         
         from datetime import datetime
         now = datetime.now()
         
-        hand = self.hand
-        
-        messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
-        
-        # 1. Simple TEXT fields
-        
-        messages += self.import_field('notes', hand, 'internal_note', True)
-        # Why here and not at the doc level?
-        messages += self.import_field('scragg', hand, 'scragg')
-        messages += self.import_field('locus', hand, 'locus')
-        messages += self.import_field('selected', hand, 'selected_locus')
-
-        # 2. Description fields
-
-        hand.set_description('scragg', self.contents)
-        hand.set_description('ker', self.ker_hand)
-        hand.set_description('eel', self.eel)
-        hand.set_description('em1060-1220', self.em)
-        
-        # 3. Related objects
-        
-        # TODO: import by creating a new date?
-        ##messages += self.import_field('adate', hand, 'assigned_date')
-        # TODO: import by creating a new place?
-        ##messages += self.import_field('location', hand, 'assigned_place')
-        
-        # 4. Catalogue numbers
-        # Ker, S/P  
-        if self.ker or self.sp:
-            sources = self.get_sources()
+        for hand in hands:
+            messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
             
-            cat_nums = {} 
+            # 1. Simple TEXT fields
             
-            historical_item = hand.item_part.historical_item
-            for cat_num in historical_item.catalogue_numbers.all():
-                cat_nums[cat_num.source.name] = cat_num.number
-             
-            if self.ker and 'ker' not in cat_nums:
-                historical_item.catalogue_numbers.add(CatalogueNumber(source=sources['ker'], number=self.ker))
-
-            if self.sp:
-                source_dp = 'sawyer'
-                document_id = self.sp
-                document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
-                if document_id_p != document_id: 
-                    document_id = document_id_p
-                    source_dp = 'pelteret'
+            messages += self.import_field('notes', hand, 'internal_note', True)
+            # Why here and not at the doc level?
+            messages += self.import_field('scragg', hand, 'scragg')
+            messages += self.import_field('locus', hand, 'locus')
+            messages += self.import_field('selected', hand, 'selected_locus')
+    
+            # 2. Description fields
+    
+            hand.set_description('scragg', self.contents)
+            hand.set_description('ker', self.ker_hand)
+            hand.set_description('eel', self.eel)
+            hand.set_description('em1060-1220', self.em)
+            
+            # 3. Related objects
+            
+            # TODO: import by creating a new date?
+            ##messages += self.import_field('adate', hand, 'assigned_date')
+            # TODO: import by creating a new place?
+            ##messages += self.import_field('location', hand, 'assigned_place')
+            
+            # 4. Catalogue numbers
+            # Ker, S/P  
+            if self.ker or self.sp:
+                sources = self.get_sources()
                 
-                if source_dp not in cat_nums:                
-                    historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
-        
-        # TODO: transform into cat numbers
-        messages += self.import_field('surrogates', hand, 'surrogates')
-
-        self.import_messages += messages
-        self.save()
+                cat_nums = {} 
+                
+                historical_item = hand.item_part.historical_item
+                for cat_num in historical_item.catalogue_numbers.all():
+                    cat_nums[cat_num.source.name] = cat_num.number
+                 
+                if self.ker and 'ker' not in cat_nums:
+                    historical_item.catalogue_numbers.add(CatalogueNumber(source=sources['ker'], number=self.ker))
+    
+                if self.sp:
+                    source_dp = 'sawyer'
+                    document_id = self.sp
+                    document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
+                    if document_id_p != document_id: 
+                        document_id = document_id_p
+                        source_dp = 'pelteret'
+                    
+                    if source_dp not in cat_nums:                
+                        historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
+            
+            # TODO: transform into cat numbers
+            messages += self.import_field('surrogates', hand, 'surrogates')
+    
+            self.import_messages += messages
+            self.save()

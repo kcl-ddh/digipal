@@ -38,18 +38,24 @@ def stewart_match(request, url=None):
     
     action = request.POST.get('action', '').strip()
         
-    default_hand = Hand(label='No matching hand')
-
     for record in context['records']:
+        #default_hand = Hand(label='No matching hand')
+        
         if action == 'change_matching':
-            new_id = int(request.POST.get('shand_%s' % record.id, '0').strip())
-            if new_id == 0: new_id = None
-            record.hand_id = new_id 
+            record.hands.clear()
+            i = 0
+            count = int(request.POST.get('shand_%s_count' % (record.id,), 0))
+            hand_ids = [id for id in [request.POST.get('shand_%s_%s' % (record.id, i), None) for i in range(0, count)] if id]
+            for hand in Hand.objects.filter(id__in = hand_ids):
+                record.hands.add(hand)
             record.save()
         
         record.dhands = get_best_matches(record)
-        record.dhands.insert(0, default_hand)
-        record.hands_count = len(record.dhands) - 1
+
+        #default_hand.selected = not any([getattr(h, 'selected', False) for h in record.dhands])
+        #record.dhands.insert(0, default_hand)
+        
+        record.hands_count = len(record.dhands)
             
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     from django.shortcuts import render
@@ -68,6 +74,8 @@ def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=
         if hand.description and re.search(ur'\W%s\W' % locus, hand.description.replace(u'\u2013', u'-')): 
             hand.highlighted = True
     result[hand.id] = hand
+    
+    return hand
 
 def get_best_matches(record):
     ret = SortedDict()
@@ -104,8 +112,9 @@ def get_best_matches(record):
     # find best matches based on the historical item
     
     # Existing match (record.hand)
-    if record.hand:
-        add_matching_hand_to_result(ret, record, record.hand, 'M')
+    for hand in record.hands.all():
+        hand = add_matching_hand_to_result(ret, record, hand, 'M')
+        hand.selected = True
     
     record.documents = record.documents.values()
     

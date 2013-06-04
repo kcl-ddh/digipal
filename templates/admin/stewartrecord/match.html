@@ -81,7 +81,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 			    	<td><a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.id}}</a></td>
 			    	<td>{{record.get_ids}}</td>
 			    	<td>{{record.repository}}, {{record.shelf_mark}}, {{record.locus}}</td>
-                    <td class="ms-desc hand-tooltip" data-title="Place: {{ record.location }} <br/>Description: {{record.contents}}">
+                    <td class="ms-desc hand-tooltip" data-title="Place: {{ record.location }}  <br/> Date: {{ record.adate }} <br/>Description: {{record.contents}}">
                         <a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.contents|truncatechars:50}}</a>
                     </td>
                     <td>
@@ -90,7 +90,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                             <ul>
                                 {% for dhand in record.dhands %}
                                     <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %}" 
-                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Description:{{ dhand.description }}">
+                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Date: {{ dhand.assigned_date }} <br/> Description:{{ dhand.description }}">
                                         <input id="shand_{{ record.id }}_{{dhand.id}}"
                                             type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
                                             value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"

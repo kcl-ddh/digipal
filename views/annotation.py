@@ -83,6 +83,7 @@ def page(request, page_id):
                'no_image_reason': page.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation)
                }
+    print context
  
     if vector_id:
         context['vector_id'] = vector_id

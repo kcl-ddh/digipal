@@ -83,7 +83,6 @@ def page(request, page_id):
                'no_image_reason': page.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation)
                }
-    print context
  
     if vector_id:
         context['vector_id'] = vector_id
@@ -322,7 +321,6 @@ def save(request, page_id, vector_id):
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
         tb = sys.exc_info()[2]
-        print tb.tb_lineno
 
         return HttpResponse(simplejson.dumps(data),
                 mimetype='application/json')

@@ -74,7 +74,7 @@ def page(request, page_id):
 
     #is_admin = request.user.is_superuser
     is_admin = has_edit_permission(request, Page)
-    
+        
     context = {
                'form': form, 'page': page, 'height': height, 'width': width,
                'image_server_url': image_server_url,

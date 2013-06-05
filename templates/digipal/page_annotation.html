@@ -22,7 +22,7 @@
 
 {% block annotations %}
 <div class='container'>
-    {% if no_image_reason %}
+    {% if no_image_reason and not can_edit %}
         <h2 class='header1'>{{page|capfirst}}</h2>
         <p>
             {{ no_image_reason }}

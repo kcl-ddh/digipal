@@ -1227,7 +1227,7 @@ class Hand(models.Model):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76, 
         # hand.reference has moved to hand.label
-        return u'%s' % (self.label or '')
+        return u'%s' % (self.label or self.description or '')[0:50]
 
     def set_description(self, source_name, description=None):
         ''' Set the description of a hand according to a source (e.g. ker, sawyer).

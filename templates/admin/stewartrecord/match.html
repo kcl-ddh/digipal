@@ -90,7 +90,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                             <ul>
                                 {% for dhand in record.dhands %}
                                     <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %}" 
-                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Date: {{ dhand.assigned_date }} <br/> Description:{{ dhand.description }}">
+                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Date: {{ dhand.assigned_date }} <br/> Description:{{ dhand.description }} <br/> Comments:{{ dhand.comments }}">
                                         <input id="shand_{{ record.id }}_{{dhand.id}}"
                                             type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
                                             value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"

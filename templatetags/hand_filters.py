@@ -78,3 +78,31 @@ def multiply(value, arg):
     return int(val)
 
 
+@register.filter()
+def tei(value):
+    "Convert TEI field into XML"
+    import re
+    
+    # tei text transform
+    value = re.sub(ur'(<title level="a">)(.*?)(</title>)', ur"'\1\2\3'", value)
+
+    #     value = re.sub(ur'<\s*([^/])\s*>', ur'<span class="tei-\1">', value)
+    # >>> re.findall(ur'(<\s*(\S+)' + ur'\s*(?:(\S+)="([^"]*)")?' * 5 + '>)', r' <t a1="v1" a2="v2">')
+    # [('<t a1="v1" a2="v2">', 't', 'a1', 'v1', 'a2', 'v2', '', '', '', '', '', '')]
+    elements = re.findall(ur'(<\s*(\w+)' + ur'\s*(?:(\S+)="([^"]*)")?' * 5 + '>)', value)
+    for element in elements:
+        if element[1][0] == '/': continue
+        element_html = '<span class="tei-' + element[1]
+        i = 2
+        while i < len(element):
+            if not element[i]: break
+            element_html += ' tei-a-%s__%s' % (element[i], element[i+1])
+            i += 2
+        element_html += '">'
+        value = value.replace(element[0], element_html)
+        
+    value = re.sub(ur'<\s*/[^>]*>', ur'</span>', value)
+    value = re.sub(ur'\r?\n', ur'<br/>', value)
+    value = mark_safe(value)
+    
+    return value

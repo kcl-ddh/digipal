@@ -1174,18 +1174,18 @@ class Hand(models.Model):
     # cat number for the historical item (added 04/06/2011)
     ker = models.CharField(max_length=10, blank=True, null=True)
     # TODO: move to HandDescription
-    scragg_description = models.TextField(blank=True, null=True)
+    ##scragg_description = models.TextField(blank=True, null=True)
     em_title = models.CharField(max_length=256, blank=True, null=True)
     # TODO: move to HandDescription
-    em_description = models.TextField(blank=True, null=True)
+    ##em_description = models.TextField(blank=True, null=True)
     # TODO: move to HandDescription
-    mancass_description = models.TextField(blank=True, null=True)
+    ##mancass_description = models.TextField(blank=True, null=True)
     label = models.TextField(blank=True, null=True)
     display_note = models.TextField(blank=True, null=True)
     internal_note = models.TextField(blank=True, null=True)
     appearance = models.ForeignKey(Appearance, blank=True, null=True)
     # TODO: move to HandDescription
-    description = models.TextField(blank=True, null=True)
+    ##description = models.TextField(blank=True, null=True)
     relevant = models.NullBooleanField()
     latin_only = models.NullBooleanField()
     gloss_only = models.NullBooleanField()
@@ -1227,14 +1227,34 @@ class Hand(models.Model):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76, 
         # hand.reference has moved to hand.label
-        return u'%s' % (self.label or self.description or '')[0:50]
+        return u'%s' % (self.label or self.description or '')[0:80]
 
-    def set_description(self, source_name, description=None):
+    # self.description is an alias for hd.description 
+    # with hd = self.HandDescription.description such that 
+    # hd.source.name = 'digipal'.
+    def __getattr__(self, name):
+        if name == 'description':
+            ret = ''
+            for description in self.descriptions.filter(source__name='digipal'):
+                ret = description.description
+        else:
+            ret = super(Hand, self).__getattr__(name)
+        return ret 
+
+    def __setattr__(self, name, value):
+        if name == 'description':
+            self.set_description('digipal', value, True)
+        else:
+            super(Hand, self).__setattr__(name, value)
+
+    def set_description(self, source_name, description=None, remove_if_empty=False):
         ''' Set the description of a hand according to a source (e.g. ker, sawyer).
             Create the source if it doesn't exist yet.
             Update description if it exists, add it otherwise.
+            Null or blank description field are ignored. Unless remove_if_empty = True
         '''
-        if description is None or not description.strip(): return
+        empty_value = description is None or not description.strip()
+        if empty_value and not remove_if_empty: return
         
         # TODO: opt: cache the sources
         sources = Source.objects.filter(name=source_name)
@@ -1245,18 +1265,23 @@ class Hand(models.Model):
             source = Source(name=source_name, label=source_name.upper())
             source.save()
         
-        hand_description = None
-        for hand_description in self.descriptions.all():
-            if hand_description.source == source:
-                break
+        if empty_value:
+            # remove a desc
+            self.descriptions.filter(source=source).delete()
+        else:
+            # add or change the desc
             hand_description = None
-        if hand_description is None:
-            hand_description = HandDescription(hand=self, source=source)
-            
-        hand_description.description = description
-        hand_description.save()
+            for hand_description in self.descriptions.all():
+                if hand_description.source == source:
+                    break
+                hand_description = None
+            if hand_description is None:
+                hand_description = HandDescription(hand=self, source=source)
+                
+            hand_description.description = description
+            hand_description.save()
                     
-        self.descriptions.add(hand_description)
+            self.descriptions.add(hand_description)
 
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)

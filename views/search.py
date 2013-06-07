@@ -30,8 +30,8 @@ def quickSearch(request):
             count_m = 0
 
         query_hands = Hand.objects.distinct().order_by(
-                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id').filter(
-                    Q(description__icontains=term) | \
+                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
+                    Q(descriptions__description__icontains=term) | \
                     Q(scribe__name__icontains=term) | \
                     Q(assigned_place__name__icontains=term) | \
                     Q(assigned_date__date__icontains=term) | \
@@ -154,8 +154,8 @@ def searchDB(request):
             date = request.GET.get('date', '')
             # Filters Hands
             hands = Hand.objects.distinct().order_by(
-                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id').filter(
-                    Q(description__icontains=term) | \
+                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
+                    Q(descriptions__description__icontains=term) | \
                     Q(scribe__name__icontains=term) | \
                     Q(assigned_place__name__icontains=term) | \
                     Q(assigned_date__date__icontains=term) | \
@@ -288,8 +288,8 @@ def allographHandSearch(request):
     context['style']= 'allograph_list'
     context['term'] = term
 
-    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id').filter(
-            Q(description__icontains=term) | \
+    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
+            Q(descriptions__description__icontains=term) | \
             Q(scribe__name__icontains=term) | \
             Q(assigned_place__name__icontains=term) | \
             Q(assigned_date__date__icontains=term) | \

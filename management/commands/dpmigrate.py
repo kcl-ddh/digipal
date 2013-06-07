@@ -165,7 +165,7 @@ Commands:
                     self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
                     self.log('Hand record not found', Logger.WARNING, 1)
                     # now try to find the description in the Hand records
-                    same_hands = Hand.objects.filter(description__icontains=loci)
+                    same_hands = Hand.objects.filter(descriptions__description__icontains=loci)
                     for hand in same_hands[:10]:
                         same = 'SAME '
                         self.log('%5s#%s, %s (%s)' % (same, hand.id, hand.description, hand.item_part.historical_item.catalogue_number), Logger.DEBUG, 1)
@@ -210,7 +210,7 @@ Commands:
                     # 3. update the Hand record
                         
                     # hand.label = hand_description
-                    if hand.label:
+                    if hand.label and hand.label.strip() != hand.description.strip():
                         self.log(u'label is not empty: %s' % hand.label, Logger.WARNING, 1)
                     else:
                         hand.label = hand.description

@@ -283,7 +283,7 @@ class HandAdmin(reversion.VersionAdmin):
             'display_note', 'internal_note']
     list_filter = [HandFilterSurrogates]
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
-    exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
+    #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
     
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber

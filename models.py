@@ -1619,6 +1619,52 @@ class StewartRecord(models.Model):
              
         return self.sources
     
+    def import_related_object(self, hand, related_name, related_model, related_label_field, value):
+        ret = ''
+        related_object = getattr(hand, related_name, None)
+        if related_object:
+            existing_value = getattr(related_object, related_label_field)
+            if existing_value != value:
+                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)' % (related_name, existing_value, value)
+            #else:
+                #ret = u'Already set' 
+        else:
+            # does it exists?
+            query = {related_label_field+'__iexact': value.lower().strip()}
+            related_objects = related_model.objects.filter(**query)
+            if related_objects.count():
+                # yes, just find it
+                related_object = related_objects[0]
+                #ret = u'Found %s' % related_object.id
+            else:
+                # no, then create it
+                # but only if it does not have a ? at the end
+                if value.strip()[-1] == '?':
+                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)' % (related_name, value)
+                    if hand.internal_note:
+                        hand.internal_note += '\n' + ret
+                    else:                         
+                        hand.internal_note = ret
+                else:
+                    query = {related_label_field: value.strip()}
+                    related_object = related_model(**query)
+                    if related_model == Date:
+                        related_object.weight = 0.0
+                    related_object.save()
+                    #ret = u'Created %s' % related_object.id
+            # create link
+            setattr(hand, related_name, related_object)
+            hand.save()
+        
+        if ret:
+            if hand.internal_note:
+                hand.internal_note += '\n' + ret
+            else:                         
+                hand.internal_note = ret
+            hand.save()
+        
+        return ret
+    
     def import_steward_record(self):
         '''
             TODO: transfer (Scragg_Description, EM_Description)
@@ -1688,7 +1734,10 @@ class StewartRecord(models.Model):
             # TODO: import by creating a new date?
             ##messages += self.import_field('adate', hand, 'assigned_date')
             # TODO: import by creating a new place?
-            ##messages += self.import_field('location', hand, 'assigned_place')
+            if self.location:
+                messages += self.import_related_object(hand, 'assigned_place', Place, 'name', self.location)
+            if self.adate:
+                messages += self.import_related_object(hand, 'assigned_date', Date, 'date', re.sub(ur'\s*(?:' + u'\xd7' + ur'|x)\s*', u'\xd7', self.adate))
             
             # 4. Catalogue numbers
             # Ker, S/P (NOT Scragg, b/c its a hand number)
@@ -1717,3 +1766,4 @@ class StewartRecord(models.Model):
             
             self.import_messages += messages
             self.save()
+        

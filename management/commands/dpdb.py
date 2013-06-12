@@ -414,14 +414,12 @@ Commands:
 		print 'TEST'
 		from digipal.models import *
 		
+		# ST.id=253 => H.id=1150
 		
-		h = Hand.objects.get(id=1377)
+		rec = StewartRecord.objects.get(id=253)
+		rec.import_steward_record()
 		
-		print 'h.desc', h.description		
-		#h.set_description('digipal', 'yo2')
-		h.description = ''
-		
-		print Hand.objects.filter(descriptions__description__contains='sema').count()
+		#print Hand.objects.filter(descriptions__description__contains='sema').count()
 		
 
 	def handle(self, *args, **options):

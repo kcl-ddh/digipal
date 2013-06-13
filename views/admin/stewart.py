@@ -30,8 +30,11 @@ def stewart_import(request, url=None):
     from django.shortcuts import render
     return render(request, 'admin/stewartrecord/import.html', context)
 
-def get_new_hand_from_stewart_record(record):
+def get_new_hand_from_stewart_record(record, item_part_id=0):
+    if not item_part_id: return None
     ret = Hand(num='10000')
+    ret.item_part_id = item_part_id
+    ret.internal_note = (ret.internal_note or '') + '\nNew Hand created from Brookes record #%s' % record.id
     record.import_steward_record(ret)
     return ret
 
@@ -54,8 +57,9 @@ def stewart_match(request, url=None):
             count = int(request.POST.get('shand_%s_count' % (record.id,), 0))
             hand_ids = [id for id in [request.POST.get('shand_%s_%s' % (record.id, i), None) for i in range(0, count)] if id]
             if '0' in hand_ids:
-                hand = get_new_hand_from_stewart_record(record)
-                hand_ids.append(hand.id)
+                hand = get_new_hand_from_stewart_record(record, request.POST.get('shand_%s_item_part' % record.id, 0))
+                if hand:
+                    hand_ids.append(hand.id)
             for hand in Hand.objects.filter(id__in = hand_ids):
                 record.hands.add(hand)
             record.save()

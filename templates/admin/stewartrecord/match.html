@@ -31,10 +31,9 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
     $(function(){
       $(document).on('change', '.select-item-part',
          function(event) {
-                
+                $('.select-item-part:first').parents('li').find('input').attr('checked', 'checked');
             }
          );
-      });
       $(document).on('mouseenter mouseleave', '.hand-tooltip',
          function(event) {
             var container = $('#option-title');
@@ -114,8 +113,8 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                                         </label>
                                         {% if not dhand.id > 0 %}
                                             <div class="select-item-part" style="margin-left:2em;">
-                                                Select the Item Part it will belong to:
                                                 <select name="shand_{{ record.id }}_item_part">
+                                                    <option value="0">-- Select an Item Part for this new Hand --</option>
                                                     {% for item in item_parts %}
                                                         <option value="{{ item.id }}">{{ item }}</option>
                                                     {% endfor %}

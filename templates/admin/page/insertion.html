@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ScriptPage.css" />
+
+
+{% endblock %}
+
+{% block content %}
+
+<p><a href="/admin/digipal/page">Back to Page list.</a></p>
+
+<div id="generalContent">
+	<h1>Scribe Entries v1.0</h1>
+
+
+{% block annotations %}
+<div class='container'>
+  <h1>Done it!</h1>
+  {{ insertedElements|safe }}
+</div>
+
+{% endblock %}
+
+</div>
+
+{% endblock %} 

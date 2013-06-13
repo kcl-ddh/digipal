@@ -38,6 +38,8 @@ urlpatterns += patterns('digipal.views.image',
 
 urlpatterns += patterns('digipal.views.admin.page',
                        (r'admin/page/bulk_edit', 'page_bulk_edit'),
+                       (r'admin/newscriptentry', 'newScriptEntry'),
+                       (r'admin/Scribeinserted', 'inserting'),
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',

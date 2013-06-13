@@ -1,0 +1,106 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ScriptPage.css" />
+{% endblock %}
+
+
+{% block content %}
+
+<p><a href="/admin/digipal/page">Back to Page list.</a></p>
+
+<div id="generalContent">
+	<h1>Scribe Entries v1.0</h1>
+
+
+{% block annotations %}
+<div class='container'>
+  <form id="frmAnnotation" method="POST" name="frmAnnotation" action="digipal/admin/Scribeinserted/">
+      {% csrf_token %}
+
+        {{ scribeForm }}
+        <div id="listElems">
+        {% for elem in formset %}
+          <div class="listElem">
+        
+          {{ elem }}
+          </div>
+        {% endfor %}
+          <div id="appendHere"></div>
+          <input type="hidden" name="addedrows" id="hiddenAdded" value="0">
+          <input type='submit' class='btn' value='Submit' id="subButton" disabled/>
+          <span id="errorSpan">You must select a Scribe to continue</span>
+          
+    </form>
+    <form id="linesAdder">
+        <label>Add some rows</label>
+        <input type="text" name="rowAdder" id="addRowNum" />
+        <input type='button' id="addrowbutton" class='btn' value='Add rows' />
+    </form>
+</div>
+
+<script type="text/javascript">
+  $(document).ready( function() {
+    var index = 11
+    $("#addrowbutton").click(function(){
+      var regexp = /^(\d)*$/
+      var inputNum = $("#addRowNum").val()
+      if(inputNum.search(regexp) == -1 ){
+        alert("Inserted value not valid, this form must contains only numbers")
+      } else{
+          var k = $("#hiddenAdded").val()
+          f = parseInt(k) + parseInt(inputNum)
+          $("#hiddenAdded").val(f)
+
+          var div = $(".listElem")
+          var dummyCopy = $(div[0]).clone()
+          var dummyChildrenCopy = dummyCopy.children()
+
+          for(var i = 0; i < inputNum; i++){
+            var toInsert = dummyCopy.clone()
+            for(var j = 0; j < dummyChildrenCopy.length; j++){
+              
+              if((toInsert.children()[j]) == "[object HTMLLabelElement]" ){
+                var str = $(toInsert.children()[j]).attr("for")
+                var newStr = str.replace("0", index)
+                $(toInsert.children()[j]).attr("for", newStr)
+              } else {
+
+                var str = $(toInsert.children()[j]).attr("id")
+                var newStr = str.replace("0", index)
+                $(toInsert.children()[j]).attr("id", newStr)
+
+                var str2 = $(toInsert.children()[j]).attr("name")
+                var newstr2 = str2.replace("0", index)
+                $(toInsert.children()[j]).attr("name", newstr2)
+
+              }
+            }
+
+            $("#appendHere").append(toInsert)
+            index += 1;
+        }
+      }
+    })
+  })
+
+</script>
+<script type="text/javascript">
+$("#id_scribe").change(function(){
+  if($("#id_scribe option:selected").val() != ""){
+    $("#subButton").removeAttr("disabled")
+    $("#errorSpan").html("")
+
+  } else{
+    $("#subButton").attr("disabled", true);
+    $("#errorSpan").html("You must select a Scribe to continue")
+  }
+});
+
+</script>
+{% endblock %}
+
+</div>
+
+{% endblock %} 

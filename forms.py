@@ -1,13 +1,31 @@
 from django import forms
-from django.forms.widgets import Textarea, TextInput, HiddenInput, Select
+from django.forms import ModelForm
+from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.utils.safestring import mark_safe
-from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from models import Allograph, Hand, Status, Character, Feature, Component, Aspect, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
 from models import Script, CurrentItem
 from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
 from haystack.inputs import Exact, AutoQuery
 import urllib2
 
+class OnlyScribe(forms.Form):
+    status_list = Status.objects.filter(default=True)
+    scribe = forms.ModelChoiceField(queryset = Scribe.objects.all())
+
+class ScribeAdminForm(forms.Form):
+
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
+    component = forms.ModelChoiceField(queryset=Component.objects.all())
+    feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
+
+
+class ContactForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField()
+    sender = forms.EmailField()
+    cc_myself = forms.BooleanField(required=False)
 
 class PageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)

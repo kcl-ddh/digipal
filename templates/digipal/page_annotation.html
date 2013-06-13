@@ -22,13 +22,13 @@
 
 {% block annotations %}
 <div class='container'>
+    <h2 class='header1'>{{page|capfirst}}</h2>
     {% if no_image_reason %}
-        <h2 class='header1'>{{page|capfirst}}</h2>
         <p>
             {{ no_image_reason }}
         </p>
-    {% else %}
-      <h2 class='header1'>{{page|capfirst}}</h2>
+    {% endif %}
+    {% if not no_image_reason or can_edit %}
       <form></form>            
       <form id="frmAnnotation" method="get" name="frmAnnotation">
           {% csrf_token %}
@@ -127,7 +127,7 @@
 </div>
 
 
-{% if not no_image_reason %}
+{% if not no_image_reason or can_edit %}
     
     <div id='loadingFilters'>
         <div><b>Loading Features ...</b></div>

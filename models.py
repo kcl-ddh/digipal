@@ -535,7 +535,6 @@ class Description(models.Model):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source) 
 
-
 # Manuscripts in legacy db
 class Layout(models.Model):
     historical_item = models.ForeignKey(HistoricalItem)
@@ -1168,16 +1167,25 @@ class Hand(models.Model):
     scribe = models.ForeignKey(Scribe, blank=True, null=True)
     assigned_date = models.ForeignKey(Date, blank=True, null=True)
     assigned_place = models.ForeignKey(Place, blank=True, null=True)
+    # This is an absolute hand (or scribe) number, so we can
+    # have multiple Hand records with the same scragg.
     scragg = models.CharField(max_length=6, blank=True, null=True)
-    scragg_description = models.TextField(blank=True, null=True)
+    # This is a hand (or scribe) number, relative to the ker 
+    # cat number for the historical item (added 04/06/2011)
+    ker = models.CharField(max_length=10, blank=True, null=True)
+    # TODO: move to HandDescription
+    ##scragg_description = models.TextField(blank=True, null=True)
     em_title = models.CharField(max_length=256, blank=True, null=True)
-    em_description = models.TextField(blank=True, null=True)
-    mancass_description = models.TextField(blank=True, null=True)
+    # TODO: move to HandDescription
+    ##em_description = models.TextField(blank=True, null=True)
+    # TODO: move to HandDescription
+    ##mancass_description = models.TextField(blank=True, null=True)
     label = models.TextField(blank=True, null=True)
     display_note = models.TextField(blank=True, null=True)
     internal_note = models.TextField(blank=True, null=True)
     appearance = models.ForeignKey(Appearance, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+    # TODO: move to HandDescription
+    ##description = models.TextField(blank=True, null=True)
     relevant = models.NullBooleanField()
     latin_only = models.NullBooleanField()
     gloss_only = models.NullBooleanField()
@@ -1194,6 +1202,13 @@ class Hand(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    # Imported from Brookes DB
+    locus = models.CharField(max_length=300, null=True, blank=True, default='')
+    # TODO: migrate to Cat Num (From Brookes DB)
+    surrogates = models.CharField(max_length=50, null=True, blank=True, default='')
+    # From Brookes DB
+    selected_locus = models.CharField(max_length=100, null=True, blank=True, default='')
+    stewart_record = models.ForeignKey('StewartRecord', null=True, blank=False, related_name='hands')
 
     def idiographs(self):
         if self.scribe:
@@ -1212,8 +1227,76 @@ class Hand(models.Model):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76, 
         # hand.reference has moved to hand.label
-        return u'%s' % (self.label or '')
+        return u'%s' % (self.label or self.description or '')[0:80]
 
+    # self.description is an alias for hd.description 
+    # with hd = self.HandDescription.description such that 
+    # hd.source.name = 'digipal'.
+    def __getattr__(self, name):
+        if name == 'description':
+            ret = ''
+            for description in self.descriptions.filter(source__name='digipal'):
+                ret = description.description
+        else:
+            ret = super(Hand, self).__getattr__(name)
+        return ret 
+
+    def __setattr__(self, name, value):
+        if name == 'description':
+            self.set_description('digipal', value, True)
+        else:
+            super(Hand, self).__setattr__(name, value)
+
+    def set_description(self, source_name, description=None, remove_if_empty=False):
+        ''' Set the description of a hand according to a source (e.g. ker, sawyer).
+            Create the source if it doesn't exist yet.
+            Update description if it exists, add it otherwise.
+            Null or blank description field are ignored. Unless remove_if_empty = True
+        '''
+        empty_value = description is None or not description.strip()
+        if empty_value and not remove_if_empty: return
+        
+        # TODO: opt: cache the sources
+        sources = Source.objects.filter(name=source_name)
+        source = None
+        if sources:
+            source = sources[0]
+        else:
+            source = Source(name=source_name, label=source_name.upper())
+            source.save()
+        
+        if empty_value:
+            # remove a desc
+            self.descriptions.filter(source=source).delete()
+        else:
+            # add or change the desc
+            hand_description = None
+            for hand_description in self.descriptions.all():
+                if hand_description.source == source:
+                    break
+                hand_description = None
+            if hand_description is None:
+                hand_description = HandDescription(hand=self, source=source)
+                
+            hand_description.description = description
+            hand_description.save()
+                    
+            self.descriptions.add(hand_description)
+
+class HandDescription(models.Model):
+    hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
+    source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
+    description = models.TextField()
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['hand']
+
+    def __unicode__(self):
+        #return u'%s %s' % (self.historical_item, self.source)
+        return get_list_as_string(self.hand, ' ', self.source) 
 
 class Alphabet(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -1457,32 +1540,230 @@ class Proportion(models.Model):
 
 # Import of Stewart's database
 class StewartRecord(models.Model): 
-    scragg = models.CharField(max_length=300)
-    repository = models.CharField(max_length=300)
-    shelf_mark = models.CharField(max_length=300)
-    stokes = models.CharField(max_length=300)
-    fols = models.CharField(max_length=300)
-    gneuss = models.CharField(max_length=300)
-    ker = models.CharField(max_length=300)
-    sp = models.CharField(max_length=300)
-    ker = models.CharField(max_length=300)
-    hand = models.CharField(max_length=300)
-    locus = models.CharField(max_length=300)
-    selected = models.CharField(max_length=300)
-    adate = models.CharField(max_length=300)
-    location = models.CharField(max_length=300)
-    surrogates = models.CharField(max_length=300)
-    contents = models.CharField(max_length=300)
-    notes = models.CharField(max_length=300)
-    em = models.CharField(max_length=300)
-    glosses = models.CharField(max_length=300)
-    minor = models.CharField(max_length=300)
-    charter = models.CharField(max_length=300)
-    cartulary = models.CharField(max_length=300)
-    eel = models.CharField(max_length=300)
+    scragg = models.CharField(max_length=300, null=True, blank=True, default='')
+    repository = models.CharField(max_length=300, null=True, blank=True, default='')
+    shelf_mark = models.CharField(max_length=300, null=True, blank=True, default='')
+    stokes_db = models.CharField(max_length=300, null=True, blank=True, default='')
+    fols = models.CharField(max_length=300, null=True, blank=True, default='')
+    gneuss = models.CharField(max_length=300, null=True, blank=True, default='')
+    ker = models.CharField(max_length=300, null=True, blank=True, default='')
+    sp = models.CharField(max_length=300, null=True, blank=True, default='')
+    ker_hand = models.CharField(max_length=300, null=True, blank=True, default='')
+    locus = models.CharField(max_length=300, null=True, blank=True, default='')
+    selected = models.CharField(max_length=300, null=True, blank=True, default='')
+    adate = models.CharField(max_length=300, null=True, blank=True, default='')
+    location = models.CharField(max_length=300, null=True, blank=True, default='')
+    surrogates = models.CharField(max_length=300, null=True, blank=True, default='')
+    contents = models.CharField(max_length=500, null=True, blank=True, default='')
+    notes = models.CharField(max_length=600, null=True, blank=True, default='')
+    em = models.CharField(max_length=800, null=True, blank=True, default='')
+    glosses = models.CharField(max_length=300, null=True, blank=True, default='')
+    minor = models.CharField(max_length=300, null=True, blank=True, default='')
+    charter = models.CharField(max_length=300, null=True, blank=True, default='')
+    cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
+    eel = models.CharField(max_length=1000, null=True, blank=True, default='')
+    import_messages = models.TextField(null=True, blank=True, default='')
 
     class Meta:
         ordering = ['scragg']
 
     def __unicode__(self):
-        return ur'S%s K%s G%s D%s' % (self.scragg, self.ker, self.gneuss, self.stokes)
+        return ur'Scr%s K%s G%s D%s SP %s' % (self.scragg, self.ker, self.gneuss, self.stokes_db, self.sp)
+    
+    def get_ids(self):
+        ret = []
+        if self.scragg: ret.append(u'Scr. %s' % self.scragg)
+        if self.gneuss: ret.append(u'G. %s' % self.gneuss)
+        if self.ker: 
+            ker = u'K. %s' % self.ker
+            if self.ker_hand:
+                ker += '.%s' % self.ker_hand
+            ret.append(ker)
+        if self.sp: ret.append(u'SP. %s' % self.sp)
+        if self.stokes_db: ret.append(u'L. %s' % self.stokes_db)
+        return ', '.join(ret)
+    
+    def import_field(self, src_field, dst_obj, dst_field, append=False):
+        ret = ''
+        def normalise_value(value):
+            if value is None: value = ''
+            return (u'%s' % value).strip()
+        
+        src_value = normalise_value(getattr(self, src_field, ''))
+        dst_value = normalise_value(getattr(dst_obj, dst_field, ''))
+        
+        if src_value:
+            if (not append) or (dst_value.find(src_value) == -1):
+                if (not append) and (dst_value and src_value != dst_value):
+                    ret = u'Different values: #%s.%s = "%s" <> %s.#%s.%s = "%s"' % (self.id, src_field, src_value, dst_obj.__class__.__name__, dst_obj.id, dst_field, dst_value)
+            
+                if not ret:
+                    if append:
+                        src_value = dst_value + '\n' + src_value
+                    setattr(dst_obj, dst_field, src_value)
+                    dst_obj.save()
+
+        if ret: ret += '\n'
+        
+        return ret
+    
+    @classmethod
+    def get_sources(self):
+        sources = getattr(self.__class__, 'sources', {})
+        if not sources:
+            sources = {}
+            for source in Source.objects.all():
+                sources[source.name] = source
+        
+            self.__class__.sources = sources
+             
+        return self.sources
+    
+    def import_related_object(self, hand, related_name, related_model, related_label_field, value):
+        ret = ''
+        related_object = getattr(hand, related_name, None)
+        if related_object:
+            existing_value = getattr(related_object, related_label_field)
+            if existing_value != value:
+                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)' % (related_name, existing_value, value)
+            #else:
+                #ret = u'Already set' 
+        else:
+            # does it exists?
+            query = {related_label_field+'__iexact': value.lower().strip()}
+            related_objects = related_model.objects.filter(**query)
+            if related_objects.count():
+                # yes, just find it
+                related_object = related_objects[0]
+                #ret = u'Found %s' % related_object.id
+            else:
+                # no, then create it
+                # but only if it does not have a ? at the end
+                if value.strip()[-1] == '?':
+                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)' % (related_name, value)
+                    if hand.internal_note:
+                        hand.internal_note += '\n' + ret
+                    else:                         
+                        hand.internal_note = ret
+                else:
+                    query = {related_label_field: value.strip()}
+                    related_object = related_model(**query)
+                    if related_model == Date:
+                        related_object.weight = 0.0
+                    related_object.save()
+                    #ret = u'Created %s' % related_object.id
+            # create link
+            setattr(hand, related_name, related_object)
+            hand.save()
+        
+        if ret:
+            if hand.internal_note:
+                hand.internal_note += '\n' + ret
+            else:                         
+                hand.internal_note = ret
+            hand.save()
+        
+        return ret
+    
+    def import_steward_record(self):
+        '''
+            TODO: transfer (Scragg_Description, EM_Description)
+        
+            [DONE] ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
+            [DONE] sp -> 
+            
+            # hand number
+            [DONE] scragg -> hand.scragg 
+            [DONE] Locus -> hand.+locus
+            [DONE] Selected -> Page (Use this to generate a new Page record)
+            [DONE] Notes      Hand.InternalNote
+            
+            [DONE] * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
+            [DONE] Contents      Scragg_Description
+            [DONE] EM      Hand.EM_Description (Use description + Source model.)
+            [DONE] EEL      MISSING. Use Description + Source model
+            # Format is too messy to be imported into the catalogue num
+            # we import it into the surrogates field and add a filter
+            
+            [DONE~] Surrogates      Use Source Model
+
+            Date      Hand.AssignedDate
+            Location      Hand.AssignedPlace
+
+            [DONE] Glosses      Hand.GlossOnly      
+            [DONE] Minor      Hand.ScribbleOnly
+        '''
+        hands = self.hands.all()
+        if not hands:
+            return
+        
+        from datetime import datetime
+        now = datetime.now()
+        
+        for hand in hands:
+            messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
+            
+            # 1. Simple TEXT fields
+            
+            # hand number
+            messages += self.import_field('scragg', hand, 'scragg')
+            messages += self.import_field('ker_hand', hand, 'ker')
+            
+            messages += self.import_field('locus', hand, 'locus')
+            messages += self.import_field('selected', hand, 'selected_locus')
+            messages += self.import_field('notes', hand, 'internal_note', True)
+            
+            if hand.gloss_only is None and self.glosses == 'Yes':
+                hand.gloss_only = True
+            if hand.scribble_only is None and self.minor == 'Yes':
+                hand.scribble_only = True
+    
+            # This should be imported as a cat num but format is too inconsistent
+            # EEMF, ASMMF, BL Fiche
+            messages += self.import_field('surrogates', hand, 'surrogates')
+
+            # 2. Description fields
+    
+            hand.set_description('scragg', self.contents)
+            hand.set_description('eel', self.eel)
+            hand.set_description('em1060-1220', self.em)
+            
+            # 3. Related objects
+            
+            # 3470
+            # TODO: import by creating a new date?
+            ##messages += self.import_field('adate', hand, 'assigned_date')
+            # TODO: import by creating a new place?
+            if self.location:
+                messages += self.import_related_object(hand, 'assigned_place', Place, 'name', self.location)
+            if self.adate:
+                messages += self.import_related_object(hand, 'assigned_date', Date, 'date', re.sub(ur'\s*(?:' + u'\xd7' + ur'|x)\s*', u'\xd7', self.adate))
+            
+            # 4. Catalogue numbers
+            # Ker, S/P (NOT Scragg, b/c its a hand number)
+            if self.ker or self.sp:
+                sources = self.get_sources()
+                
+                cat_nums = {} 
+                
+                historical_item = hand.item_part.historical_item
+                for cat_num in historical_item.catalogue_numbers.all():
+                    cat_nums[cat_num.source.name] = cat_num.number
+                 
+                if self.ker and 'ker' not in cat_nums:
+                    historical_item.catalogue_numbers.add(CatalogueNumber(source=sources['ker'], number=self.ker))
+    
+                if self.sp:
+                    source_dp = 'sawyer'
+                    document_id = self.sp
+                    document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
+                    if document_id_p != document_id: 
+                        document_id = document_id_p
+                        source_dp = 'pelteret'
+                    
+                    if source_dp not in cat_nums:                
+                        historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
+            
+            self.import_messages += messages
+            self.save()
+        

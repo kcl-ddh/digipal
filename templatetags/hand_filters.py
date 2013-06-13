@@ -106,6 +106,4 @@ def tei(value):
     value = re.sub(ur'\r?\n', ur'<br/>', value)
     value = mark_safe(value)
     
-    print value
-    
     return value

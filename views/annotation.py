@@ -74,7 +74,7 @@ def page(request, page_id):
 
     #is_admin = request.user.is_superuser
     is_admin = has_edit_permission(request, Page)
-    
+        
     context = {
                'form': form, 'page': page, 'height': height, 'width': width,
                'image_server_url': image_server_url,
@@ -321,7 +321,6 @@ def save(request, page_id, vector_id):
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
         tb = sys.exc_info()[2]
-        print tb.tb_lineno
 
         return HttpResponse(simplejson.dumps(data),
                 mimetype='application/json')

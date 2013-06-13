@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Page</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+{{ block.super }}
+
+<style type="text/css">
+table.bulk_options {width: 100%;}
+table.bulk_options tr {width: 100%;}
+tr.section_last td {border-bottom: 3px solid #DDDDDD}
+.txt-folio-number {width:3em;}
+#tbl-selected-folios {border: 1px solid lightgrey}
+.txta-folio-note {width: 8em; height: 6em;}
+#container input.sbm-change {float: left;}
+#option-title {border: 2px solid orange; background-color: lightyellow; position: fixed; display: none; left: 0px; top: 0px; z-index:2000; padding: 1em; width: auto; margin: 3px;}
+.hand-highlight {background-color: lightgreen;}
+
+.import-log ul {margin-left: 3em;}
+.record-description {margin-left: -2em; font-size: larger;}
+h2 {margin-top:1em; margin-bottom:1em; }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+
+{% if perms_lacking %}
+    <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+    <ul>
+    {% for obj in perms_lacking %}
+        <li>{{ obj }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <div class="import-log">
+        <h2>Merged {{ records|length }} record(s)</h2>
+        <ul>
+            {% for record in records %}
+                <li>
+                    <span class="record-description">
+                        <a href="/admin/digipal/stewartrecord/{{ record.id }}">
+                            Record #{{ record.id }}, {{ record }}
+                        </a> 
+                        -&gt; 
+                        {% for hand in record.hands.all %}
+                            {% if not forloop.first %} AND {% endif %}
+                            <a href="/admin/digipal/hand/{{ hand.id }}">
+                                Hand #{{ hand.id }}, {{ hand }}
+                            </a>
+                        {% endfor %}
+                    </span>
+                    <pre>{{ record.import_messages  }}</pre>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% endblock %} 

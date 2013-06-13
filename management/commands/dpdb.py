@@ -438,6 +438,18 @@ Commands:
 
 	def is_dry_run(self):
 		return self.options.get('dry-run', False)
+	
+	def test(self, options):
+		print 'TEST'
+		from digipal.models import *
+		
+		# ST.id=253 => H.id=1150
+		
+		rec = StewartRecord.objects.get(id=253)
+		rec.import_steward_record()
+		
+		#print Hand.objects.filter(descriptions__description__contains='sema').count()
+		
 
 	def handle(self, *args, **options):
 		
@@ -459,6 +471,10 @@ Commands:
 			raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
 
 		db_settings = settings.DATABASES[options['db']]
+		
+		if command == 'test':
+			known_command = True
+			self.test(options)
 		
 		if command == 'drop_tables':
 			known_command = True

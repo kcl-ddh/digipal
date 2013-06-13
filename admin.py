@@ -22,9 +22,10 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Page, Person, Place, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord
+        StewartRecord, HandDescription
 import reversion
 import django_admin_customisations
+from django.utils.safestring import mark_safe
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -394,23 +395,45 @@ class PlaceEvidenceInline(admin.StackedInline):
 class ProportionInline(admin.StackedInline):
     model = Proportion
 
+class HandDescriptionInline(admin.StackedInline):
+    model = HandDescription
+
+class HandFilterSurrogates(admin.SimpleListFilter):
+    title = 'Surrogates'
+    parameter_name = 'surrogates'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'with surrogates'),
+                    ('0', 'without surrogates'),
+                )
+    
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        q = Q(surrogates__isnull=True) | Q(surrogates__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
 
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
 
     filter_horizontal = ['pages']
-    inlines = [DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
     list_display = ['label', 'num', 'item_part', 'script', 'scribe',
-            'assigned_date', 'assigned_place', 'scragg', 'created',
+            'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = ['label', 'num', 'item_part', 'script',
-            'scribe', 'assigned_date', 'assigned_place', 'scragg',
+            'scribe', 'assigned_date', 'assigned_place',
             'created', 'modified']
-    search_fields = ['description', 'num', 'scragg', 'scragg_description',
-            'em_title', 'em_description', 'mancass_description', 'label',
+    search_fields = ['label', 'num', 
+            'em_title', 'mancass_description', 'label',
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates]
 
+    inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
+    #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
+    
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber
 
@@ -826,11 +849,91 @@ class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
 
+class StewartRecordFilterMatched(admin.SimpleListFilter):
+    title = 'Match'
+    parameter_name = 'matched'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'matched'),
+                    ('0', 'not matched'),
+                )
+    
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(hands__id__gt=0).distinct()
+        if self.value() == '0':
+            return queryset.all().exclude(hands__id__gt=0).distinct()
+
+class StewartRecordFilterLegacy(admin.SimpleListFilter):
+    title = 'Legacy'
+    parameter_name = 'legacy'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'has legacy id'),
+                    ('0', 'no legacy id'),
+                )
+    
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        q = Q(stokes_db__isnull=True) | Q(stokes_db__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
+
+class StewartRecordFilterMerged(admin.SimpleListFilter):
+    title = 'Already Merged'
+    parameter_name = 'merged'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('1', 'yes'),
+                    ('0', 'no'),
+                )
+    
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        q = Q(import_messages__isnull=True) | Q(import_messages__exact='')
+        if self.value() == '0':
+            return queryset.filter(q)
+        if self.value() == '1':
+            return queryset.exclude(q)
+
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
-    list_display = ['scragg', 'ker', 'gneuss', 'stokes', 'repository', 'shelf_mark']
+    list_display = ['id', 'field_hands', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = list_display
+    list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterMerged]
+    search_fields = ['id', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    
+    actions = ['match_hands', 'merge_matched']
+    
+    def field_hands(self, record):
+        ret = ''
+        for hand in record.hands.all():
+            if ret: ret += ' ; '
+            ret += u'Hand #%s' % hand.id
+            ret += u', %s' % hand.scribe
+            ret += u', %s' % hand.item_part
+        return ret
+    field_hands.short_description = 'Matched hand'
+
+    def match_hands(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_match') + '?ids=' + ','.join(selected) )
+    match_hands.short_description = 'Match with DigiPal hand records'
+    
+    def merge_matched(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
+    merge_matched.short_description = 'Merge records into their matched hand records'
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)

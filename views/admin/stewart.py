@@ -30,6 +30,11 @@ def stewart_import(request, url=None):
     from django.shortcuts import render
     return render(request, 'admin/stewartrecord/import.html', context)
 
+def get_new_hand_from_stewart_record(record):
+    ret = Hand(num='10000')
+    record.import_steward_record(ret)
+    return ret
+
 @staff_member_required
 def stewart_match(request, url=None):
     context = {}
@@ -37,6 +42,8 @@ def stewart_match(request, url=None):
     context['records'] = StewartRecord.objects.filter(id__in=record_ids)
     
     action = request.POST.get('action', '').strip()
+        
+    context['item_parts'] = ItemPart.objects.all().order_by('display_label')
         
     for record in context['records']:
         #default_hand = Hand(label='No matching hand')
@@ -46,6 +53,9 @@ def stewart_match(request, url=None):
             i = 0
             count = int(request.POST.get('shand_%s_count' % (record.id,), 0))
             hand_ids = [id for id in [request.POST.get('shand_%s_%s' % (record.id, i), None) for i in range(0, count)] if id]
+            if '0' in hand_ids:
+                hand = get_new_hand_from_stewart_record(record)
+                hand_ids.append(hand.id)
             for hand in Hand.objects.filter(id__in = hand_ids):
                 record.hands.add(hand)
             record.save()
@@ -57,6 +67,9 @@ def stewart_match(request, url=None):
         
         record.hands_count = len(record.dhands)
             
+#     <select name="shand_{{ record.id }}_item_part">
+#         {% for item in item_parts %}
+
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     from django.shortcuts import render
     return render(request, 'admin/stewartrecord/match.html', context)
@@ -122,6 +135,9 @@ def get_best_matches(record):
     for hand in record.hands.all():
         hand = add_matching_hand_to_result(ret, record, hand, 'M')
         hand.selected = True
+        
+    # New Hand
+    add_matching_hand_to_result(ret, record, Hand(), 'New')
     
     record.documents = record.documents.values()
     

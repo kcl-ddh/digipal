@@ -1665,7 +1665,7 @@ class StewartRecord(models.Model):
         
         return ret
     
-    def import_steward_record(self):
+    def import_steward_record(self, single_hand=None):
         '''
             TODO: transfer (Scragg_Description, EM_Description)
         
@@ -1693,7 +1693,10 @@ class StewartRecord(models.Model):
             [DONE] Glosses      Hand.GlossOnly      
             [DONE] Minor      Hand.ScribbleOnly
         '''
-        hands = self.hands.all()
+        if single_hand:
+            hands = [single_hand]
+        else:
+            hands = self.hands.all()
         if not hands:
             return
         

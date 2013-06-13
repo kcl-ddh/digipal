@@ -29,6 +29,12 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 
 <script>
     $(function(){
+      $(document).on('change', '.select-item-part',
+         function(event) {
+                
+            }
+         );
+      });
       $(document).on('mouseenter mouseleave', '.hand-tooltip',
          function(event) {
             var container = $('#option-title');
@@ -103,9 +109,19 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                                                 - <a href="/admin/digipal/hand/{{ dhand.id }}">view</a>
                                                 {{ dhand.label }}
                                             {% else %}
-                                                No matching hand
+                                                No match, create a new Hand from this record<br/>
                                             {% endif %}
                                         </label>
+                                        {% if not dhand.id > 0 %}
+                                            <div class="select-item-part" style="margin-left:2em;">
+                                                Select the Item Part it will belong to:
+                                                <select name="shand_{{ record.id }}_item_part">
+                                                    {% for item in item_parts %}
+                                                        <option value="{{ item.id }}">{{ item }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        {% endif %}
                                     </li>
                                 {% endfor %}
                             </ul>

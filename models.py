@@ -912,6 +912,7 @@ class Page(models.Model):
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
+    # no longer used, to be removed.
     caption = models.CharField(max_length=256)
     
     # Legacy field, deprecated. 
@@ -1213,7 +1214,7 @@ class Hand(models.Model):
     surrogates = models.CharField(max_length=50, null=True, blank=True, default='')
     # From Brookes DB
     selected_locus = models.CharField(max_length=100, null=True, blank=True, default='')
-    stewart_record = models.ForeignKey('StewartRecord', null=True, blank=False, related_name='hands')
+    stewart_record = models.ForeignKey('StewartRecord', null=True, blank=True, related_name='hands')
 
     def idiographs(self):
         if self.scribe:

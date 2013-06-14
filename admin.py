@@ -423,11 +423,9 @@ class HandAdmin(reversion.VersionAdmin):
     list_display = ['label', 'num', 'item_part', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
-    list_display_links = ['label', 'num', 'item_part', 'script',
-            'scribe', 'assigned_date', 'assigned_place',
-            'created', 'modified']
-    search_fields = ['label', 'num', 
-            'em_title', 'mancass_description', 'label',
+    list_display_links = list_display
+    search_fields = ['id', 'label', 'num', 
+            'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
     list_filter = [HandItempPartFilter, HandFilterSurrogates]
 
@@ -679,13 +677,14 @@ class PageForm(forms.ModelForm):
 class PageAdmin(reversion.VersionAdmin):
     form = PageForm
 
-    exclude = ['image']
+    exclude = ['image', 'caption']
     inlines = [HandsInline]
     list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
             ##'caption', 'media_permission__label', 'created', 'modified',
-            'caption', 'iipimage']
+            #'caption', 
+            'iipimage']
     list_display_links = list_display
-    search_fields = ['id', 'folio_side', 'folio_number', 'caption', 
+    search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
     
     list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature]
@@ -702,7 +701,6 @@ class PageAdmin(reversion.VersionAdmin):
     def get_locus_label(self, obj):
         return obj.get_locus_label()
     get_locus_label.short_description = 'Locus' 
-
 
 class PersonAdmin(reversion.VersionAdmin):
     model = Person

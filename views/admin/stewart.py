@@ -92,6 +92,8 @@ def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=
             hand.highlighted = True
     result[hand.id] = hand
     
+    if hand.num == 10000: hand.isnew = True
+    
     return hand
 
 def get_best_matches(record):

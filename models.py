@@ -426,6 +426,10 @@ class HistoricalItem(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def get_descriptions(self):
+        ret = Description.objects.filter(historical_item=self).distinct()
+        return ret
 
     def set_catalogue_number(self):
         if self.catalogue_numbers:
@@ -522,6 +526,7 @@ class Decoration(models.Model):
 
 class Description(models.Model):
     historical_item = models.ForeignKey(HistoricalItem)
+    #historical_item = models.ForeignKey(HistoricalItem)
     source = models.ForeignKey(Source)
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -533,8 +538,8 @@ class Description(models.Model):
 
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
-        return get_list_as_string(self.historical_item, ' ', self.source) 
-
+        return get_list_as_string(self.historical_item, ' ', self.source)
+    
 # Manuscripts in legacy db
 class Layout(models.Model):
     historical_item = models.ForeignKey(HistoricalItem)
@@ -1745,6 +1750,10 @@ class StewartRecord(models.Model):
             # 4. Catalogue numbers
             # Ker, S/P (NOT Scragg, b/c its a hand number)
             if self.ker or self.sp:
+                def add_catalogue_number(historical_item, source, number):
+                    if CatalogueNumber.objects.filter(source=source, number=number).count() == 0:
+                        historical_item.catalogue_numbers.add(CatalogueNumber(source=source, number=number))
+                
                 sources = self.get_sources()
                 
                 cat_nums = {} 
@@ -1752,9 +1761,9 @@ class StewartRecord(models.Model):
                 historical_item = hand.item_part.historical_item
                 for cat_num in historical_item.catalogue_numbers.all():
                     cat_nums[cat_num.source.name] = cat_num.number
-                 
+                
                 if self.ker and 'ker' not in cat_nums:
-                    historical_item.catalogue_numbers.add(CatalogueNumber(source=sources['ker'], number=self.ker))
+                    add_catalogue_number(historical_item, sources['ker'], self.ker)
     
                 if self.sp:
                     source_dp = 'sawyer'
@@ -1765,7 +1774,7 @@ class StewartRecord(models.Model):
                         source_dp = 'pelteret'
                     
                     if source_dp not in cat_nums:                
-                        historical_item.catalogue_numbers.add(CatalogueNumber(source=sources[source_dp], number=document_id))
+                        add_catalogue_number(historical_item, sources[source_dp], document_id)
             
             self.import_messages += messages
             self.save()

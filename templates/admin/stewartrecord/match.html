@@ -25,6 +25,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 #container input.sbm-change {float: left;}
 #option-title {border: 2px solid orange; background-color: lightyellow; position: fixed; display: none; left: 0px; top: 0px; z-index:2000; padding: 1em; width: auto; margin: 3px;}
 .hand-highlight {background-color: lightgreen;}
+.new-hand {border: 1px solid brown; margin: 1px;}
 </style>
 
 <script>
@@ -94,8 +95,9 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                         {% if record.dhands %}
                             <ul>
                                 {% for dhand in record.dhands %}
-                                    <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %}" 
-                                        data-title="Label: {{ dhand.label }} <br/> Place: {{ dhand.assigned_place }} <br/> Date: {{ dhand.assigned_date }} <br/> Description:{{ dhand.description }} <br/> Comments:{{ dhand.comments }}">
+                                    <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %} {% if dhand.isnew %}new-hand{% endif %}" 
+                                        data-title=" * Label: {{ dhand.label }} <br/> * Place: {{ dhand.assigned_place }} <br/> * Date: {{ dhand.assigned_date }} <br/> * Description:{{ dhand.description }} <br/> * Comments:{{ dhand.comments }} {% for desc in dhand.item_part.historical_item.get_descriptions %}<br/> * {{desc.source.name}}: {{ desc.description }}{% endfor%}"
+                                        >
                                         <input id="shand_{{ record.id }}_{{dhand.id}}"
                                             type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
                                             value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"

@@ -142,9 +142,9 @@
         <script>
       $(document).ready(function() {
              annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-            '{{ page.image.url }}', {{ width }}, {{ height }},
-            '{{ image_server_url }}', "{{is_admin}}");
-    
+                                              'x', {{ width }}, {{ height }},
+                                              '{{ image_server_url }}', "{{is_admin}}");
+
              {% if not is_admin %}
             annotator.toolbarPanel.controls.splice(4, 9);
             annotator.toolbarPanel.redraw();

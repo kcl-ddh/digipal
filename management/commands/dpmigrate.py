@@ -430,7 +430,7 @@ Commands:
         if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
             common_str_dst = common_str_dst + ', pagination'
             params_str = params_str + ', %s'
-        if dst_table == 'blog_blogpost' and src_table == 'blog_blogpost':
+        if 0 and dst_table == 'blog_blogpost' and src_table == 'blog_blogpost':
             common_str_dst = common_str_dst + ', rating_sum'
             params_str = params_str + ', 0'
         if dst_table == 'generic_threadedcomment' and src_table == 'generic_threadedcomment':

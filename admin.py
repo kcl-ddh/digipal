@@ -531,7 +531,7 @@ class PageAdmin(reversion.VersionAdmin):
     exclude = ['image', 'caption']
     inlines = [HandsInline]
     list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
-            'media_permission__label', 'created', 'modified',
+            'media_permission', 'created', 'modified',
             #'caption', 
             'iipimage']
     list_display_links = list_display

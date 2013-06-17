@@ -443,10 +443,18 @@ Commands:
 		print 'TEST'
 		from digipal.models import *
 		
+		for hd in HandDescription.objects.all():
+			desc = hd.description
+#			if re.search(ur'^[^(]*\)', desc):
+			if re.search(ur'^[^A-Z]', desc):
+				print '-' * 80
+				print 'HD: # %s, H: # %s' % (hd.id, hd.hand_id)
+				print desc.encode('utf8')
+					
 		# ST.id=253 => H.id=1150
 		
-		rec = StewartRecord.objects.get(id=253)
-		rec.import_steward_record()
+		#rec = StewartRecord.objects.get(id=253)
+		#rec.import_steward_record()
 		
 		#print Hand.objects.filter(descriptions__description__contains='sema').count()
 		

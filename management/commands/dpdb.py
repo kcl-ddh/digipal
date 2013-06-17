@@ -442,14 +442,16 @@ Commands:
 	def test(self, options):
 		print 'TEST'
 		from digipal.models import *
-		
-		for hd in HandDescription.objects.all():
-			desc = hd.description
-#			if re.search(ur'^[^(]*\)', desc):
-			if re.search(ur'^[^A-Z]', desc):
-				print '-' * 80
-				print 'HD: # %s, H: # %s' % (hd.id, hd.hand_id)
-				print desc.encode('utf8')
+		from django.template.defaultfilters import slugify
+		from digipal.templatetags.html_escape import anchorify
+
+		slugs = {}
+		for allograph in Allograph.objects.all():
+			s = anchorify(u'%s' % allograph)
+			if s in slugs:
+				print '>>>>>>>>>> ALREADY EXISTS'
+			slugs[s] = 1
+			print s, (u'%s' % allograph).encode('utf-8')
 					
 		# ST.id=253 => H.id=1150
 		

@@ -29,6 +29,9 @@
                 </ul>
         </div>
         <div class='span5 pull-right offset2'>
+            {% comment %}
+                TODO: move this to the server side, view should remain simple and avoid scanning the entire result set!
+            {% endcomment %}
             {% for result in results %}
                 {% ifequal result.id|safe request.GET.id %}
                     {% with prevRec=forloop.counter|add:"-1" %}
@@ -51,7 +54,9 @@
                             {% endfor %}
                         {% endifnotequal %}
                     {% endwith %}
+                    
                     <li><a class="ctrl resultsBrowse last" href="?terms={{ terms }}&amp;basic_search_type={{ type }}">Return to record view</a></li>
+                    
                     </ul>
                 {% endifequal %}
             {% endfor %}

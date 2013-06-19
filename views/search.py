@@ -3,9 +3,424 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 from digipal.models import *
-from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, QuickSearch
+#from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, QuickSearch
+from digipal.forms import DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, SearchPageForm
 from itertools import islice, chain
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+import logging
+dplog = logging.getLogger( 'digipal_debugger')
+
+def search_page(request):
+    searchform = SearchPageForm(request.GET)
+    context = {}
+    template = 'search/search_page_results.html'
+    context['submitted'] = 'terms' in request.GET
+    context['advanced_search_expanded'] = 'from_link' in request.GET
+
+    if context['submitted'] and searchform.is_valid():
+        
+        
+        # TODO: if we are on the record page, don't do all the searches, only one
+        # TODO: review the phrase search to make more flexible 
+        
+        # Read the inputs
+        # - term
+        term = searchform.cleaned_data['terms']
+        context['terms'] = term or ' '
+        
+        # - content type
+        searchtype = searchform.cleaned_data['basic_search_type']
+        context['type'] = searchtype
+        
+        # Manuscript search
+        
+        query_manuscripts = ItemPart.objects.order_by(
+            'historical_item__catalogue_number','id').filter(
+                Q(locus__contains=term) | \
+                Q(current_item__shelfmark__icontains=term) | \
+                Q(current_item__repository__name__icontains=term) | \
+                Q(historical_item__catalogue_number__icontains=term) | \
+                Q(historical_item__description__description__icontains=term))
+        
+        repository = request.GET.get('repository', '')
+        index_manuscript = request.GET.get('index', '')
+        date = request.GET.get('date', '')
+        
+        context['advanced_search_expanded'] = context['advanced_search_expanded'] or repository or index_manuscript or date
+
+        if date:
+            query_manuscripts = query_manuscripts.filter(historical_item__date=date)
+        if repository:
+            query_manuscripts = query_manuscripts.filter(current_item__repository__name=repository)
+        if index_manuscript:
+            query_manuscripts = query_manuscripts.filter(historical_item__catalogue_number=index_manuscript)
+        context['manuscripts'] = query_manuscripts
+        
+        if query_manuscripts.count() >= 1:
+            context['manuscripts'] = query_manuscripts
+            count_m = query_manuscripts.count()
+        else:
+            context['manuscripts'] = "False"
+            count_m = 0
+        
+        dplog.debug(context['manuscripts'])
+
+        # Hand search
+        query_hands = Hand.objects.distinct().order_by(
+                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
+                    Q(descriptions__description__icontains=term) | \
+                    Q(scribe__name__icontains=term) | \
+                    Q(assigned_place__name__icontains=term) | \
+                    Q(assigned_date__date__icontains=term) | \
+                    Q(item_part__current_item__shelfmark__icontains=term) | \
+                    Q(item_part__current_item__repository__name__icontains=term) | \
+                    Q(item_part__historical_item__catalogue_number__icontains=term))
+
+        scribes = request.GET.get('scribes', '')
+        repository = request.GET.get('repository', '')
+        place = request.GET.get('place', '')
+        date = request.GET.get('date', '')
+        
+        context['advanced_search_expanded'] = context['advanced_search_expanded'] or repository or scribes or place or date
+
+        if scribes:
+            query_hands = query_hands.filter(scribe__name=scribes).order_by(
+            'scribe__name','id')
+        if repository:
+            query_hands = query_hands.filter(item_part__current_item__repository__name=repository).order_by(
+            'scribe__name','id')
+        if place:
+            query_hands = query_hands.filter(assigned_place__name=place).order_by(
+            'scribe__name','id')
+        if date:
+            query_hands = query_hands.filter(assigned_date__date=date).order_by(
+            'scribe__name','id')
+
+        if query_hands.count() >= 1:
+            context['hands'] = query_hands
+            count_h = query_hands.count()
+        else:
+            context['hands'] = "False"
+            count_h = 0
+
+        # Scribe search
+        query_scribes = Scribe.objects.order_by('name').filter(
+                    Q(name__icontains=term) | \
+                    Q(scriptorium__name__icontains=term) | \
+                    Q(date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
+
+        name = request.GET.get('name', '')
+        scriptorium = request.GET.get('scriptorium', '')
+        date = request.GET.get('date', '')
+        character = request.GET.get('character', '')
+        component = request.GET.get('component', '')
+        feature = request.GET.get('feature', '')
+        
+        context['advanced_search_expanded'] = context['advanced_search_expanded'] or name or scriptorium or date or character or component or feature
+        
+        # TODO: the filters should be additive rather than replacing the previous one
+        if name:
+            query_scribes = Scribe.objects.filter(
+            name=name).order_by('name')
+        if scriptorium:
+            query_scribes = Scribe.objects.filter(
+            scriptorium__name=scriptorium).order_by('name')
+        if date:
+            query_scribes = Scribe.objects.filter(
+            date=date).order_by('name')
+        if character:
+            query_scribes = Scribe.objects.filter(idiographs__allograph__character__name=character)
+        if component:
+            query_scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__name=component)
+        if feature:
+            query_scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__features__name=feature)
+
+        # TODO: remove that (and same above)
+        if query_scribes.count() >= 1:
+            context['scribes'] = query_scribes
+            count_s = query_scribes.count()
+        else:
+            context['scribes'] = "False"
+            count_s = 0
+
+        # TODO: auto-select tab only if not in GET
+        search_type = False
+        if count_h >= 1:
+            search_type = 'hands'
+        else:
+            if count_m >= 1:
+                search_type = 'manuscripts'
+            elif count_m == 0 and count_s >= 1:
+                search_type = 'scribes'
+            else:
+                search_type = False
+        
+        # Populate the context
+        context['search_type'] = search_type
+        context['searchform'] = searchform
+        context['drilldownform'] = DrilldownForm({'terms': term})
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+        context['can_edit'] = has_edit_permission(request, Hand)
+
+        # Distinguish between requests for one record, and full results
+        if request.GET.get('record', ''):
+            context['searchform'] = False
+            context['id'] = request.GET.get('id', '')
+            context['pages'] = Page.objects.filter(item_part=(
+                request.GET.get('id')))
+            context['item_part'] = ItemPart.objects.get(
+                pk=(request.GET.get('id')))
+            context['record'] = request.GET.get('record', '')
+            context['results'] = context[searchtype]
+            if searchtype == 'scribes':
+                context['scribe'] = Scribe.objects.get(id=context['id'])
+                context['idiograph_components'] = scribe_details(request)[0]
+                context['graphs'] = scribe_details(request)[1]
+            if searchtype == 'hands':
+                p = Hand.objects.get(id=request.GET.get('id', ''))
+                c = p.graph_set.model.objects.get(id=p.id)
+                #annotation_list = Annotation.objects.filter(page=c.id)
+                annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
+                data = SortedDict()
+                for annotation in annotation_list:
+                    hand = annotation.graph.hand
+                    allograph_name = annotation.graph.idiograph.allograph
+
+                    if hand in data:
+                        if allograph_name not in data[hand]:
+                            data[hand][allograph_name] = []
+                    else:
+                        data[hand] = SortedDict()
+                        data[hand][allograph_name] = []
+
+                    data[hand][allograph_name].append(annotation)
+                    context['data'] = data
+                context['result'] = p
+            
+            template = 'pages/record_' + searchtype +'.html'
+        
+    else:
+        dplog.debug('HERE')
+        term = ''
+        context['search_page_form'] = searchform
+        context['searchform'] = searchform
+        context['drilldownform'] = DrilldownForm({'terms': term})
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+        context['can_edit'] = has_edit_permission(request, Hand)
+    
+    return render_to_response(template, context, context_instance=RequestContext(request))
+
+def searchDB(request):
+    """
+    View for search page
+    Returns a blank page, or search results
+    The first level can return
+    - Manuscript data
+    - Hand data
+    - Scribe data
+    """
+    searchform = SearchForm(request.GET)
+    if searchform.is_valid():
+        context = {}
+
+        context['can_edit'] = has_edit_permission(request, Annotation)
+
+        term = searchform.cleaned_data['terms']
+        if term:
+            context['terms'] = term
+        else:
+            context['terms'] = ' '
+        
+        searchtype = searchform.cleaned_data['basic_search_type']
+        
+        context['type'] = searchtype
+        # re-populate form with previous selections
+        context['searchform'] = searchform
+        # Distinguish between search types
+        if searchtype == 'manuscripts':
+            resultpage = "pages/results_manuscripts.html"
+
+            # Get forms
+            repository = request.GET.get('repository', '')
+            index_manuscript = request.GET.get('index', '')
+            date = request.GET.get('date', '')
+
+            # Filter manuscripts
+            manuscripts = ItemPart.objects.order_by(
+                'historical_item__catalogue_number','id').filter(
+                    Q(locus__contains=term) | \
+                    Q(current_item__shelfmark__icontains=term) | \
+                    Q(current_item__repository__name__icontains=term) | \
+                    Q(historical_item__catalogue_number__icontains=term) | \
+                    Q(historical_item__description__description__icontains=term))
+            if date:
+                manuscripts = manuscripts.filter(historical_item__date=date)
+            if repository:
+                manuscripts = manuscripts.filter(current_item__repository__name=repository)
+            if index_manuscript:
+                manuscripts = manuscripts.filter(historical_item__catalogue_number=index_manuscript)
+            context['results'] = manuscripts
+
+        elif searchtype == 'hands':
+            resultpage = "pages/results_hands.html"
+
+            # Filters Hands
+            hands = Hand.objects.distinct().order_by(
+                'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
+                    Q(descriptions__description__icontains=term) | \
+                    Q(scribe__name__icontains=term) | \
+                    Q(assigned_place__name__icontains=term) | \
+                    Q(assigned_date__date__icontains=term) | \
+                    Q(item_part__current_item__shelfmark__icontains=term) | \
+                    Q(item_part__current_item__repository__name__icontains=term) | \
+                    Q(item_part__historical_item__catalogue_number__icontains=term))
+            # Get forms
+            scribes = request.GET.get('scribes', '')
+            repository = request.GET.get('repository', '')
+            place = request.GET.get('place', '')
+            date = request.GET.get('date', '')
+
+            if scribes:
+                hands = hands.filter(scribe__name=scribes).order_by(
+                'scribe__name','id')
+            if repository:
+                hands = hands.filter(item_part__current_item__repository__name=repository).order_by(
+                'scribe__name','id')
+            if place:
+                hands = hands.filter(assigned_place__name=place).order_by(
+                'scribe__name','id')
+            if date:
+                hands = hands.filter(assigned_date__date=date).order_by(
+                'scribe__name','id')
+
+            context['results'] = hands
+            
+        elif searchtype == 'scribes':
+
+            # Get forms
+            # Filter Scribes
+            resultpage = "pages/results_scribes.html"
+            scribes = Scribe.objects.order_by('name').filter(
+                    Q(name__icontains=term) | \
+                    Q(scriptorium__name__icontains=term) | \
+                    Q(date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
+            name = request.GET.get('name', '')
+            scriptorium = request.GET.get('scriptorium', '')
+            date = request.GET.get('date', '')
+            character = request.GET.get('character', '')
+            component = request.GET.get('component', '')
+            feature = request.GET.get('feature', '')
+            if name:
+                scribes = Scribe.objects.filter(
+                name=name).order_by('name')
+            if scriptorium:
+                scribes = Scribe.objects.filter(
+                scriptorium__name=scriptorium).order_by('name')
+            if date:
+                scribes = Scribe.objects.filter(
+                date=date).order_by('name')
+            if character:
+                scribes = Scribe.objects.filter(idiographs__allograph__character__name=character)
+            if component:
+                scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__name=component)
+            if feature:
+                scribes = Scribe.objects.filter(idiographs__allograph__allographcomponent__component__features__name=feature)
+
+
+            context['results'] = scribes
+
+        context['drilldownform'] = DrilldownForm({'terms': term})
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+
+        dplog.debug(context)
+        
+        # Distinguish between requests for one record, and full results
+        if request.GET.get('record', ''):
+            context['searchform'] = False
+            context['id'] = request.GET.get('id', '')
+            context['pages'] = Page.objects.filter(item_part=(
+                request.GET.get('id')))
+            context['item_part'] = ItemPart.objects.get(
+                pk=(request.GET.get('id')))
+            context['record'] = request.GET.get('record', '')
+            if searchtype == 'scribes':
+                context['scribe'] = Scribe.objects.get(id=context['id'])
+                context['idiograph_components'] = scribe_details(request)[0]
+                context['graphs'] = scribe_details(request)[1]
+            if searchtype == 'hands':
+                p = Hand.objects.get(id=request.GET.get('id', ''))
+                c = p.graph_set.model.objects.get(id=p.id)
+                #annotation_list = Annotation.objects.filter(page=c.id)
+                annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
+                data = SortedDict()
+                for annotation in annotation_list:
+                    hand = annotation.graph.hand
+                    allograph_name = annotation.graph.idiograph.allograph
+
+                    if hand in data:
+                        if allograph_name not in data[hand]:
+                            data[hand][allograph_name] = []
+                    else:
+                        data[hand] = SortedDict()
+                        data[hand][allograph_name] = []
+
+                    data[hand][allograph_name].append(annotation)
+                    context['data'] = data
+                context['result'] = p
+                
+            return render_to_response(
+                'pages/record_' + searchtype +'.html',
+                context,
+                context_instance=RequestContext(request))
+
+        else :
+            return render_to_response(
+                resultpage,
+                context,
+                context_instance=RequestContext(request))
+    else:
+        # Failed validation, or initial request. Just return a blank form
+        context = {}
+        context['searchform'] = SearchForm()
+        context['filterHands'] = FilterHands()
+        context['filterManuscripts'] = FilterManuscripts()
+        context['filterScribes'] = FilterScribes()
+        return render_to_response(
+            'search/search.html',
+            context,
+            context_instance=RequestContext(request))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def quickSearch(request):
@@ -80,6 +495,9 @@ def quickSearch(request):
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()
         context['can_edit'] = has_edit_permission(request, Hand)
+        
+        dplog.debug(context)
+        
         return render_to_response(result_page, context, context_instance=RequestContext(request))
 
     else:
@@ -218,6 +636,8 @@ def searchDB(request):
         context['filterHands'] = FilterHands()
         context['filterManuscripts'] = FilterManuscripts()
         context['filterScribes'] = FilterScribes()
+
+        dplog.debug(context)
         
         # Distinguish between requests for one record, and full results
         if request.GET.get('record', ''):

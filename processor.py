@@ -1,4 +1,4 @@
-from digipal.forms import QuickSearch
+from digipal.forms import SearchPageForm
 from digipal.models import Scribe, ItemPart
 from itertools import chain
 from django.utils import simplejson
@@ -6,8 +6,10 @@ from django.db.models import Q
 
 
 def quick_search(request):
-	quicksearchform = QuickSearch()
-	context = {'quicksearchform': quicksearchform}
+	#quicksearchform = QuickSearch()
+	#context = {'quicksearchform': quicksearchform}
+	search_page_form = SearchPageForm()
+	context = {'search_page_form': search_page_form}
 	return context
 
 def suggestions(request):

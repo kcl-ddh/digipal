@@ -3,7 +3,6 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 from digipal.models import *
-#from digipal.forms import SearchForm, DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, QuickSearch
 from digipal.forms import DrilldownForm, FilterHands, FilterManuscripts, FilterScribes, SearchPageForm
 from itertools import islice, chain
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -11,31 +10,35 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
-#def search_page_manuscripts(context):
-
 def search_page(request):
-    searchform = SearchPageForm(request.GET)
-    context = {}
+    advanced_search_form = SearchPageForm(request.GET)
     template = 'search/search_page_results.html'
+    types = ['hands', 'manuscripts', 'scribes']
+    
+    context = {}
+    context['terms'] = ''
     context['submitted'] = 'terms' in request.GET
     context['advanced_search_expanded'] = 'from_link' in request.GET
-    types = ['hands', 'manuscripts', 'scribes']
+    context['can_edit'] = has_edit_permission(request, Hand)
+    context['types'] = types
+    for type in types:
+        add_sub_form(type, request, context) 
+    record_type = ''
 
-    if context['submitted'] and searchform.is_valid():
+    if context['submitted'] and advanced_search_form.is_valid():
         # TODO: if we are on the record page, don't do all the searches, only one
         # TODO: review the phrase search to make more flexible 
         
         # Read the inputs
         # - term
-        term = searchform.cleaned_data['terms']
+        term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
         
         # - search type
-        search_type = searchform.cleaned_data['basic_search_type']
+        search_type = advanced_search_form.cleaned_data['basic_search_type']
         context['type'] = search_type
         
         # - specific record
-        record_type = ''
         if request.GET.get('record', '') or request.GET.get('id', ''):
             record_type = search_type
         
@@ -62,63 +65,86 @@ def search_page(request):
         
         # Populate the context
         context['selected_tab'] = selected_tab
-        context['searchform'] = searchform
-        context['drilldownform'] = DrilldownForm({'terms': term})
-        context['filterHands'] = FilterHands()
-        context['filterManuscripts'] = FilterManuscripts()
-        context['filterScribes'] = FilterScribes()
-        context['can_edit'] = has_edit_permission(request, Hand)
 
-        # Distinguish between requests for one record, and full results
-        if record_type:
-            context['searchform'] = False
-            context['id'] = request.GET.get('id', '')
-            context['record'] = request.GET.get('record', '')
-            context['results'] = context[record_type]
-            
-            context['pages'] = Page.objects.filter(item_part=(request.GET.get('id')))
-            context['item_part'] = ItemPart.objects.get(id=context['id'])
+    # Distinguish between requests for one record, and full results
+    if record_type:
+        context['results'] = context[record_type]
 
-            if record_type == 'scribes':
-                context['scribe'] = Scribe.objects.get(id=context['id'])
-                context['idiograph_components'] = scribe_details(request)[0]
-                context['graphs'] = scribe_details(request)[1]
-                
-            if record_type == 'hands':
-                p = Hand.objects.get(id=request.GET.get('id', ''))
-                c = p.graph_set.model.objects.get(id=p.id)
-                annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
-                data = SortedDict()
-                for annotation in annotation_list:
-                    hand = annotation.graph.hand
-                    allograph_name = annotation.graph.idiograph.allograph
-
-                    if hand in data:
-                        if allograph_name not in data[hand]:
-                            data[hand][allograph_name] = []
-                    else:
-                        data[hand] = SortedDict()
-                        data[hand][allograph_name] = []
-
-                    data[hand][allograph_name].append(annotation)
-                    context['data'] = data
-                context['result'] = p
-            
-            template = 'pages/record_' + record_type +'.html'
+        context['id'] = request.GET.get('id', '')
+        context['record'] = request.GET.get('record', '')
         
-    else:
-        term = ''
-        context['search_page_form'] = searchform
-        context['searchform'] = searchform
-        context['drilldownform'] = DrilldownForm({'terms': term})
-        context['filterHands'] = FilterHands()
-        context['filterManuscripts'] = FilterManuscripts()
-        context['filterScribes'] = FilterScribes()
-        context['can_edit'] = has_edit_permission(request, Hand)
+        context['pages'] = Page.objects.filter(item_part=(request.GET.get('id')))
+        context['item_part'] = ItemPart.objects.get(id=context['id'])
+
+        if record_type == 'scribes':
+            context['scribe'] = Scribe.objects.get(id=context['id'])
+            context['idiograph_components'] = scribe_details(request)[0]
+            context['graphs'] = scribe_details(request)[1]
+            
+        if record_type == 'hands':
+            p = Hand.objects.get(id=request.GET.get('id', ''))
+            c = p.graph_set.model.objects.get(id=p.id)
+            annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
+            data = SortedDict()
+            for annotation in annotation_list:
+                hand = annotation.graph.hand
+                allograph_name = annotation.graph.idiograph.allograph
+
+                if hand in data:
+                    if allograph_name not in data[hand]:
+                        data[hand][allograph_name] = []
+                else:
+                    data[hand] = SortedDict()
+                    data[hand][allograph_name] = []
+
+                data[hand][allograph_name].append(annotation)
+                context['data'] = data
+            context['result'] = p
+        
+        template = 'pages/record_' + record_type +'.html'
+        
+    if not record_type:         
+        context['advanced_search_form'] = advanced_search_form
+        context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
+        add_search_page_json(context)
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
+def add_search_page_json(context):
+    from django.utils import simplejson
+
+    filters = {}
+    for type in context['types']:
+        filter_name = 'filter_%s' % type
+        if filter_name in context:
+            html = context[filter_name].as_ul()
+        else:
+            html = ''
+        filters[type] = {
+                         'html': html,
+                         'label': type.title()
+                         }        
+    
+    ret = {
+        'advanced_search_expanded': bool(context['advanced_search_expanded']),
+        'filters': filters,
+    };
+    
+    context['search_page_options_json'] = simplejson.dumps(ret)
+
+def add_sub_form(type, request, context):
+    name = 'Filter%s' % type.title()
+    if name in globals():
+        cls = globals()[name]
+    if cls:
+        context['filter_%s' % type] = cls()
+    else:
+        raise Exception('function %s() not found' % name)
+
 def get_query(type, request, context):
+    # Add a query set to the context.  
+    # The query set correspond to one result of the advanced search.
+    # Delegate the call to anothe function called get_query_[type]()
     name = 'get_query_%s' % type
     if name in globals():
         function = globals()[name]
@@ -161,6 +187,8 @@ def get_query_hands(type, request, context):
     else:
         context[type] = context[type].order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
 
+    context['filter_%s' % type] = FilterHands()
+
 def get_query_manuscripts(type, request, context):
     term = context['terms']
     query_manuscripts = ItemPart.objects.filter(
@@ -185,6 +213,8 @@ def get_query_manuscripts(type, request, context):
         
     context[type] = query_manuscripts.distinct().order_by('historical_item__catalogue_number', 'id')
     
+    context['filter_%s' % type] = FilterManuscripts()
+
 def get_query_scribes(type, request, context):
     term = context['terms']
     query_scribes = Scribe.objects.filter(
@@ -220,6 +250,7 @@ def get_query_scribes(type, request, context):
 
     context[type] = query_scribes.distinct().order_by('name')
 
+    context['filter_%s' % type] = FilterScribes()
 
 
 

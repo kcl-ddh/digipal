@@ -6,11 +6,9 @@ from django.db.models import Q
 
 
 def quick_search(request):
-	#quicksearchform = QuickSearch()
-	#context = {'quicksearchform': quicksearchform}
-	search_page_form = SearchPageForm()
-	context = {'search_page_form': search_page_form}
-	return context
+    # We need this form for the quick search box 
+    # on to of every page
+	return {'quick_search_form': SearchPageForm()}
 
 def suggestions(request):
 	hands = ItemPart.objects.filter(

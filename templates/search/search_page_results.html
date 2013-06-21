@@ -3,12 +3,12 @@
 {% load mezzanine_tags pagination_tags html_escape %}
 
 {% block extra_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
-<script type="text/javascript">
-    init_search_page({{ search_page_options_json|safe }});
-</script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
+    <script type="text/javascript">
+        init_search_page({{ search_page_options_json|safe }});
+    </script>
 {% endblock %}
 
 {% block main %}
@@ -22,11 +22,12 @@
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
         <div class='row-fluid'>
             {# {% csrf_token %} #}
-          <div class='span9'>
+            <div class='span9'>
                 <div id='radio'>
                     <h3 class='header5'>Search</h3>
                     <ul>{{ advanced_search_form.as_ul }}</ul>
-                     <script>
+                    <script>
+                        // TODO: move this into search_page.js
                         $('#radio ul').contents().unwrap();
                         $('#radio li').contents().unwrap();
                         // Then move the input to outside of the label
@@ -37,28 +38,29 @@
                         $("#radio").buttonset();
                         $('#radio .ui-button-text').css('padding','.2em 1em');
                     </script>  
-                         
                 </div>
             </div>
         </div>
-            <div class='container'>
-                <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
-                    <div id='advancedSearch'>
-                        <div id='labelFilters'></div>
-                        <div id='containerFilters' class='form-inline'></div>
-                    </div>
+        
+        <div class='container'>
+            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
+            <div id='advancedSearch'>
+                <div id='labelFilters'></div>
+                <div id='containerFilters' class='form-inline'></div>
             </div>
-            <div class='container' id='buttonsBox'>
-              <input type="submit" value="Search" class='btn btn-primary' />
-               <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
-            </div>
-        </form>
+        </div>
+
+        <div class='container' id='buttonsBox'>
+            <input type="submit" value="Search" class='btn btn-primary' />
+            <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
+        </div>
+    </form>
       
-        <div class="panel" id='filtersform'>
-          <h5 class='header5'>Show Graphs filtered by:</h5>
-          <form class="container form-inline"  method="GET" action="/digipal/search/graph">
+    <div class="panel" id='filtersform'>
+        <h5 class='header5'>Show Graphs filtered by:</h5>
+        <form class="container form-inline"  method="GET" action="/digipal/search/graph">
             <ul>{{ drilldownform.as_ul }}</ul>
-       
+           
             <div class='container'>
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
                 <input type='reset' class='btn' />
@@ -75,14 +77,14 @@
     
         <div class='container'>
             <ul class="nav nav-tabs" id='myTab'>
-                <li class="{% if selected_tab == 'hands' %}active{% else %}disabled{% endif %}">
-                    <a href='#hands'>Hands ({{hands.count|default:'0'}})</a>
+                <li class="{% if result_type == 'hands' %}active{% else %}disabled{% endif %}">
+                    <a href='#hands' data-content-type="hands">Hands ({{hands.count|default:'0'}})</a>
                 </li>
-                <li class="{% if selected_tab == 'manuscripts' %}active{% else %}disabled{% endif %}">
-                    <a href='#manuscripts'>Manuscripts ({{manuscripts.count|default:'0'}})</a>
+                <li class="{% if result_type == 'manuscripts' %}active{% else %}disabled{% endif %}">
+                    <a href='#manuscripts' data-content-type="manuscripts">Manuscripts ({{manuscripts.count|default:'0'}})</a>
                 </li>
-                <li class="{% if selected_tab == 'scribes' %}active{% else %}disabled{% endif %}">
-                    <a href='#scribes'>Scribes ({{scribes.count|default:'0'}})</a>
+                <li class="{% if result_type == 'scribes' %}active{% else %}disabled{% endif %}">
+                    <a href='#scribes' data-content-type="scribes">Scribes ({{scribes.count|default:'0'}})</a>
                 </li>
             </ul>
         </div>
@@ -92,7 +94,7 @@
             <div class='tabbable'>
                 <div id='myTabContent' class='tab-content'>
                     
-                    <div class='tab-pane fade {% if selected_tab == 'hands' %}active in{% endif %}' id='hands'>
+                    <div class='tab-pane fade {% if result_type == 'hands' %}active in{% endif %}' id='hands'>
                         {% if hands %}
                             <table class="table table-condensed">
                                 <tr>
@@ -115,7 +117,7 @@
                                       <td>{{ result.item_part.current_item.shelfmark }}</td>
                                       <td>{{ result.label }}
                                       {% if result.pages.all %}
-                                        <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ selected_tab }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
+                                        <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;basic_search_type={{ result_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
                                       {% endif %}</td>
                                       <td>{{ result.assigned_place.name }}</td>
                                       <td>{{ result.assigned_date.date }}</td>
@@ -136,7 +138,7 @@
                         {% endif %}
                     </div>
                 
-                    <div class='tab-pane fade {% if selected_tab == 'manuscripts' %}active in{% endif %}' id='manuscripts'>
+                    <div class='tab-pane fade {% if result_type == 'manuscripts' %}active in{% endif %}' id='manuscripts'>
                     
                         {% if manuscripts %}
                             <table class="table table-condensed">
@@ -155,7 +157,7 @@
                                     <tr>
                                         <td>{{ result.historical_item.catalogue_number }} 
                                             {% if result.pages.all %}
-                                                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ selected_tab }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'>
+                                                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ result_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'>
                                                     <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{result.pages.count}} images' />
                                                 </a> 
                                                 ({{result.pages.count}})
@@ -190,7 +192,7 @@
                         {% endif %}
                     </div>
                     
-                    <div class='tab-pane fade {% if selected_tab == 'scribes' %}active in{% endif %}' id='scribes'>
+                    <div class='tab-pane fade {% if result_type == 'scribes' %}active in{% endif %}' id='scribes'>
                         
                         {% if scribes %}
                             <table class="table table-condensed">
@@ -206,7 +208,7 @@
                                 {% for result in scribes %}
                                     <tr class="{% cycle 'bgColour' '' %}">
                                         <td>{{ result.name }} {% if result.pages.all %}
-                                            <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ selected_tab }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
+                                            <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;basic_search_type={{ result_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}}){% endif %}</td>
                                         <td>{{ result.date }}</td>
                                         <td>{{ result.scriptorium.name }}</td>
                                         <td>

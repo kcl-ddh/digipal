@@ -53,18 +53,16 @@ def search_page(request):
         #     if none we select the first type
         #
 
-        # TODO = ...
-        selected_tab = request.GET.get('tab', '')
-        selected_tab = selected_tab or search_type
-        if not selected_tab:
+        result_type = request.GET.get('result_type', '') or search_type
+        if not result_type:
             for type in types:
-                if type in context and context.type.count():
-                    selected_tab = type
+                if type in context and context[type].count():
+                    result_type = type
                     break
-        selected_tab = selected_tab or types[0]
+        result_type = result_type or types[0]
         
         # Populate the context
-        context['selected_tab'] = selected_tab
+        context['result_type'] = result_type
 
     # Distinguish between requests for one record, and full results
     if record_type:
@@ -113,17 +111,17 @@ def search_page(request):
 def add_search_page_json(context):
     from django.utils import simplejson
 
-    filters = {}
+    filters = []
     for type in context['types']:
         filter_name = 'filter_%s' % type
         if filter_name in context:
             html = context[filter_name].as_ul()
         else:
             html = ''
-        filters[type] = {
+        filters.append({
                          'html': html,
                          'label': type.title()
-                         }        
+                         })        
     
     ret = {
         'advanced_search_expanded': bool(context['advanced_search_expanded']),

@@ -264,14 +264,18 @@ class SearchPageForm(forms.Form):
         required=False,
         label='ordering',
         widget=HiddenInput(attrs={'id':'active_ordering'})
-    )
- 
+    ) 
     years = forms.CharField(
         initial='1000-1300',
         required=False,
         label='years',
-        widget=HiddenInput(attrs={'id':'active_years'}))
- 
+        widget=HiddenInput(attrs={'id':'active_years'})
+    ) 
+    result_type = forms.CharField(
+        initial='',
+        required=False,
+        widget=HiddenInput()
+    )
 
 
 # class SearchForm(forms.Form):

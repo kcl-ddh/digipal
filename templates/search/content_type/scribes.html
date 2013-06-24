@@ -1,0 +1,24 @@
+{% load mezzanine_tags pagination_tags html_escape %}
+
+<table class="table table-condensed">
+    <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Scriptorium</th>
+        <th>Actions</th>
+    </tr>
+    {% for scribe in records %}
+        <tr class="{% cycle 'bgColour' '' %}">
+            <td>{{ scribe.name }} {% if scribe.pages.all %}
+                <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;result_type={{ template_type }}&amp;id={{ scribe.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.pages.count}} images' /></a> ({{scribe.pages.count}}){% endif %}</td>
+            <td>{{ scribe.date }}</td>
+            <td>{{ scribe.scriptorium.name }}</td>
+            <td>
+                {% if can_edit %}
+                    <a class="btn" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
+                {% endif %}
+                <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;result_type={{template_type}}&amp;id={{ scribe.id }}&amp;record={{ forloop.counter }}">View</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>

@@ -188,7 +188,7 @@
           <td>{{ result.item_part.current_item.shelfmark }}</td>
           <td>{{ result }}
           {% if result.pages.all %}
-            <a class='imageIcon' href='?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
+            <a class='imageIcon' href='?terms={{ terms|spacify }}&amp;result_type={{ result_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' title='This record contains {{result.pages.count}} images' /></a> ({{result.pages.count}})
           {% endif %}</td>
           <td>{{ result.assigned_place.name }}</td>
           <td>{{ result.assigned_date.date }}</td>
@@ -197,7 +197,7 @@
                   {% if can_edit %}
                   <a class="btn" href="/admin/digipal/hand/{{ result.id }}">Edit</a>
                   {% endif %}
-                  <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;basic_search_type={{ type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
+                  <a class="btn btn-primary" href="?terms={{ terms|spacify }}&amp;result_type={{ result_type }}&amp;id={{ result.id }}&amp;record={{ forloop.counter }}">View</a>
           </td>
       </tr>
       {% endfor %}

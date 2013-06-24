@@ -43,6 +43,8 @@ Commands:
                         For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
                         Use --force to also change Page.item_part.pagination to true.
                         Use checkdata1 to list the id of the pages and item_parts records.
+  
+  drop_tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]
 	"""
 	
 	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1'
@@ -70,6 +72,33 @@ Commands:
 			help='Dry run, don\'t change any data.'),
 		) 
 	
+	def dropTables(self, options):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections[options.get('db')]
+		table_filter = options.get('table', '')
+		if not table_filter:
+			raise CommandError('Please provide a table filter using the --table option.')
+		#if table_filter == 'ALL': table_filter = ''
+		
+		tables = con.introspection.table_names()
+		tables.sort()
+		
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+
+		c = 0
+		for table in tables:
+			if re.search(r'%s' % table_filter, table):
+				print 'DROP %s' % table
+				utils.dropTable(con, table, self.is_dry_run())
+				c += 1
+
+		con.commit()
+		con.leave_transaction_management()
+
+		print '\n%s tables' % c
+			
 	def showTables(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 		
@@ -413,14 +442,16 @@ Commands:
 	def test(self, options):
 		print 'TEST'
 		from digipal.models import *
-		
-		for hd in HandDescription.objects.all():
-			desc = hd.description
-#			if re.search(ur'^[^(]*\)', desc):
-			if re.search(ur'^[^A-Z]', desc):
-				print '-' * 80
-				print 'HD: # %s, H: # %s' % (hd.id, hd.hand_id)
-				print desc.encode('utf8')
+		from django.template.defaultfilters import slugify
+		from digipal.templatetags.html_escape import anchorify
+
+		slugs = {}
+		for allograph in Allograph.objects.all():
+			s = anchorify(u'%s' % allograph)
+			if s in slugs:
+				print '>>>>>>>>>> ALREADY EXISTS'
+			slugs[s] = 1
+			print s, (u'%s' % allograph).encode('utf-8')
 					
 		# ST.id=253 => H.id=1150
 		
@@ -454,6 +485,10 @@ Commands:
 		if command == 'test':
 			known_command = True
 			self.test(options)
+		
+		if command == 'drop_tables':
+			known_command = True
+			self.dropTables(options)
 		
 		if command == 'checkdata1':
 			known_command = True

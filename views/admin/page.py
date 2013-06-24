@@ -2,6 +2,7 @@
 from digipal.models import *
 import re
 from django import http, template
+from django.shortcuts import render
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.admin.views.decorators import staff_member_required
@@ -10,13 +11,27 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy, ugettext as _ 
 from django.utils.safestring import mark_safe
 import htmlentitydefs
+from django.core import urlresolvers
+from digipal.forms import ScribeAdminForm, OnlyScribe
+from django.forms.formsets import formset_factory
 
 from django.http import HttpResponse, Http404
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
+
+#########
+
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.forms import ModelForm
+from django import forms
+
+#####
+
+
 @staff_member_required
+
 def page_bulk_edit(request, url=None):
     context = {}
     context['folios'] = Page.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
@@ -134,6 +149,138 @@ def page_bulk_edit(request, url=None):
 
             
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
-    from django.shortcuts import render
     return render(request, 'admin/page/bulk_edit.html', context)
 
+@staff_member_required
+
+def newScriptEntry (request):
+    page_id = 34
+    """Returns a page annotation form."""
+    page = Page.objects.get(id=page_id)
+    annotations = page.annotation_set.values('graph').count()
+    
+    page_link = urlresolvers.reverse('admin:digipal_page_change', args=(page.id,))
+    form = ScribeAdminForm()
+    scribeField = OnlyScribe()
+
+    width, height = page.dimensions()
+    image_server_url = page.zoomify
+
+    #is_admin = request.user.is_superuser
+    is_admin = has_edit_permission(request, Page)
+    
+    context = {
+               'form': form, 'page': page, 'height': height, 'width': width,
+               'image_server_url': image_server_url,
+               'page_link': page_link, 'annotations': annotations, 
+               #'hands': hands, 'is_admin': is_admin,
+               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'can_edit': has_edit_permission(request, Annotation)
+               }
+
+    formsetScribe = formset_factory(ScribeAdminForm, extra=10)
+
+    formset = formsetScribe()
+        
+    onlyScribeForm = OnlyScribe()
+
+    newContext = {
+               'form': form, 'page': page, 'height': height, 'width': width,
+               'image_server_url': image_server_url, 'scribe': scribeField,
+               'page_link': page_link, 'annotations': annotations, 
+               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'can_edit': has_edit_permission(request, Annotation), 'formset': formset,
+               'scribeForm': onlyScribeForm
+               }
+
+    return render_to_response('admin/page/ScriptForm.html', newContext, 
+                              context_instance=RequestContext(request))
+    
+@staff_member_required
+
+def inserting (request):
+
+    newContext = {}
+    d = request.POST
+
+    
+    length = 10
+
+    if(not(d['addedrows'])):
+        print("a")
+    else:
+        length = length + int(d['addedrows'])
+        
+    array = [""] * length
+
+    for elem in range(0,len(array)):
+        array[elem] = ["","",[]]
+
+    scribeVar = ""
+
+    if(d['scribe']):
+        scribeVar = d['scribe']
+
+    for elem in d:
+        if(not(elem == "csrfmiddlewaretoken") and not(elem == "scribe") and not (elem == "addedrows")):
+            #print elem + " = " + d[elem]r
+            numRegex = re.search("[0-9]", elem, flags = 0)
+            typeRegex = re.search( "((allograph$)|(component$)|(feature$))", elem, flags = 0)
+            #print(elem)
+            if(typeRegex):
+                if(typeRegex.group() == "allograph"):
+                    array[int(numRegex.group())][0] = d[elem]
+                elif(typeRegex.group() == "component") :
+                    array[int(numRegex.group())][1] = d[elem]
+                elif(typeRegex.group() == "feature"):
+                    string = "form-"+numRegex.group()+"-feature"
+                    arr = request.POST.getlist(string)
+                    for index in arr:
+                        array[int(numRegex.group())][2].append(index)
+    newContext['insertedElements'] = "<table>"
+
+    for row in array:
+        if(row[0] != "" and row[1] != "" and len(row[2]) != 0):
+
+            newContext['insertedElements'] += "<tr>"
+            newContext['insertedElements'] += "<td>" + row[0] + "</td>" + "<td>" + row[1] + "</td>"
+            newContext['insertedElements'] += "<td><ul>"
+           
+            for element in row[2]:
+                "<li>" + element + "</li>"  
+
+            newContext['insertedElements'] += "</ul></td>"
+    
+            newContext['insertedElements'] += "</tr>"
+
+            
+            results = Idiograph.objects.filter(allograph__id = row[0], scribe__id = scribeVar)
+
+            if(not(results)):
+                globalObj = Idiograph(allograph_id = row[0], scribe_id = scribeVar)    
+                globalObj.save()
+
+                idiogComp = IdiographComponent(idiograph = globalObj, component_id = row[1])
+                idiogComp.save()
+                for randomindex in row[2]:
+                    idiogComp.features.add(randomindex)
+
+            else:
+                
+                idiogCompResults = IdiographComponent.objects.filter(idiograph_id = results[0], component_id = row[1])
+                
+                if(not(idiogCompResults)):
+                    idiogComp = IdiographComponent(idiograph = results[0], component_id = row[1])
+                    idiogComp.save()
+                    for randomindex in row[2]:
+                        idiogComp.features.add(randomindex)
+                else:
+                    for randomindex in row[2]:
+                        if(randomindex not in idiogCompResults[0].features.all()):
+                            print(randomindex)
+                            idiogCompResults[0].features.add(int(randomindex))
+
+    newContext['insertedElements'] += "</table>"
+
+    return render_to_response('admin/page/insertion.html', newContext, 
+                              context_instance=RequestContext(request))

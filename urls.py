@@ -27,9 +27,9 @@ urlpatterns = patterns('digipal.views.annotation',
 urlpatterns += patterns('digipal.views.search',
                        (r'^search/graph/$', 'allographHandSearch'),
                        (r'^graphs/graph/$', 'allographHandSearchGraphs'),
-                       (r'^search/$', 'searchDB'),
+                       (r'^search/$', 'search_page'),
                        (r'^graphs/$', 'graphsSearch'),
-                       (r'^quicksearch/$', 'quickSearch'),
+                       #(r'^quicksearch/$', 'search_page'),
                        )
 
 urlpatterns += patterns('digipal.views.image',
@@ -38,6 +38,13 @@ urlpatterns += patterns('digipal.views.image',
 
 urlpatterns += patterns('digipal.views.admin.page',
                        (r'admin/page/bulk_edit', 'page_bulk_edit'),
+                       (r'admin/newscriptentry', 'newScriptEntry'),
+                       (r'admin/Scribeinserted', 'inserting'),
+                       )
+
+urlpatterns += patterns('digipal.views.admin.stewart',
+                       (r'admin/digipal/stewartrecord/match', 'stewart_match'),
+                       (r'admin/digipal/stewartrecord/import', 'stewart_import'),
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',

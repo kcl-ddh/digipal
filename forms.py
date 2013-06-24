@@ -1,13 +1,31 @@
 from django import forms
-from django.forms.widgets import Textarea, TextInput, HiddenInput, Select
+from django.forms import ModelForm
+from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.utils.safestring import mark_safe
-from models import Allograph, Hand, Status, Character, Feature, Component, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from models import Allograph, Hand, Status, Character, Feature, Component, Aspect, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
 from models import Script, CurrentItem
 from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
 from haystack.inputs import Exact, AutoQuery
 import urllib2
 
+class OnlyScribe(forms.Form):
+    status_list = Status.objects.filter(default=True)
+    scribe = forms.ModelChoiceField(queryset = Scribe.objects.all())
+
+class ScribeAdminForm(forms.Form):
+
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
+    component = forms.ModelChoiceField(queryset=Component.objects.all())
+    feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
+
+
+class ContactForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField()
+    sender = forms.EmailField()
+    cc_myself = forms.BooleanField(required=False)
 
 class PageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)
@@ -77,64 +95,6 @@ class InlineForm(forms.ModelForm):
         # instance is always available, it just does or doesn't have pk.
         self.fields['edit_link'].widget = InlineLinkWidget(self.instance)
 
-
-
-
-class FilterHands(forms.Form):
-    scribes = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
-        label = "",
-        empty_label = "Scribe",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
-        label = "",
-        required = False,
-        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Repository",
-    )
-
-
-    place = forms.ModelChoiceField(
-        queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Place"}),
-        label = "",
-        empty_label = "Place",
-        required = False)
-
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        empty_label = "Date",
-        required = False)
-
-class FilterManuscripts(forms.Form):
-
-    index = forms.ModelChoiceField(
-        queryset = HistoricalItem.objects.values_list('catalogue_number', flat=True).distinct(),
-        widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
-        label = "",
-        empty_label = "Index",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
-        label = "",
-        required = False,
-        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Repository",
-    )
-
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        empty_label = "Date",
-        required = False)
-
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
@@ -158,52 +118,20 @@ class FilterManuscriptsImages(forms.Form):
         empty_label = "Date",
         required = False)
 
-class FilterScribes(forms.Form):
-    name = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'name-select', 'class':'chzn-select', 'data-placeholder':"Choose a Name"}),
-        label = "",
-        empty_label = "Name",
-        required = False)
-
-    scriptorium = forms.ModelChoiceField(
-        queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'scriptorium-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
-        empty_label = "Scriptorium",
-        label = "",
-        required = False)
-
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        empty_label = "Date",
-        required = False)
-
-    character = forms.ModelChoiceField(
-        queryset = Character.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
-        label = "",
-        empty_label = "Character",
-        required = False)
-
-    component = forms.ModelChoiceField(
-        queryset = Component.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
-        label = "",
-        empty_label = "Component",
-        required = False)
-
-    feature = forms.ModelChoiceField(
-        queryset = Feature.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
-        label = "",
-        empty_label = "Feature",
-        required = False)
-
-class SearchForm(forms.Form):
+class SearchPageForm(forms.Form):
     """ Represents the input form on the search page """
-
+    
+    def __init__(self, *args, **kwargs):
+        # set basic_search_type: 'hands' by default if not selected
+        if not args:
+            args = [{}]
+        else:
+            args = list(args)[:]
+            args[0] = args[0].copy()
+        if 'basic_search_type' not in args[0]:
+            args[0]['basic_search_type'] = 'hands'
+        super(SearchPageForm, self).__init__(*args, **kwargs)
+ 
     terms = forms.CharField(
         label='',
         required=False,
@@ -211,48 +139,96 @@ class SearchForm(forms.Form):
         'required': 'Please enter at least one search term',
         'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
-            'id': 'textEntry',
+            'id': 'search-terms', 
             'class':'textEntry',
             'placeholder': 'Enter search terms',
             'required': 'required',
-            "autocomplete":"off"}))
+            "autocomplete":"off"})
+    )
     basic_search_type = forms.ChoiceField(
         label='',
-        required=True,
-        error_messages={'required': 'Please select something to search for'},
-        widget=forms.RadioSelect(attrs={
-            'required': 'required'}),
+        #required=True,
+        #error_messages={'required': 'Please select something to search for'},
+        required=False,
+        widget=forms.RadioSelect(),
         choices = [
-            ('hands', 'Hands'),
-            ('manuscripts', 'Manuscripts'),
-            ('scribes', 'Scribes')],
-        initial='hands'
-        )
+                ('hands', 'Hands'),
+                ('manuscripts', 'Manuscripts'),
+                ('scribes', 'Scribes')],
+        initial='hands',
+#             attrs={'required': 'required'}),
+    )
     ordering = forms.CharField(
         initial="default",
         required=False,
         label='ordering',
-        widget=HiddenInput(attrs={'id':'active_ordering'}))
-
+        widget=HiddenInput(attrs={'id':'active_ordering'})
+    ) 
     years = forms.CharField(
         initial='1000-1300',
         required=False,
         label='years',
-        widget=HiddenInput(attrs={'id':'active_years'}))
+        widget=HiddenInput(attrs={'id':'active_years'})
+    ) 
+    result_type = forms.CharField(
+        initial='',
+        required=False,
+        widget=HiddenInput()
+    )
 
-class QuickSearch(forms.Form):
-    terms = forms.CharField(
-        label='',
-        required=True,
-        error_messages={
-        'required': 'Please enter at least one search term',
-        'invalid': 'Enter a valid value'},
-        widget=TextInput(attrs={
-            'id': 'input',
-            'class':'textEntry',
-            'placeholder': 'Enter search terms',
-            'required': 'required',
-            "autocomplete":"off"}))
+
+# class SearchForm(forms.Form):
+#     """ Represents the input form on the search page """
+# 
+#     terms = forms.CharField(
+#         label='',
+#         required=False,
+#         error_messages={
+#         'required': 'Please enter at least one search term',
+#         'invalid': 'Enter a valid value'},
+#         widget=TextInput(attrs={
+#             'id': 'textEntry',
+#             'class':'textEntry',
+#             'placeholder': 'Enter search terms',
+#             'required': 'required',
+#             "autocomplete":"off"}))
+#     basic_search_type = forms.ChoiceField(
+#         label='',
+#         required=True,
+#         error_messages={'required': 'Please select something to search for'},
+#         widget=forms.RadioSelect(attrs={
+#             'required': 'required'}),
+#         choices = [
+#             ('hands', 'Hands'),
+#             ('manuscripts', 'Manuscripts'),
+#             ('scribes', 'Scribes')],
+#         initial='hands'
+#         )
+#     ordering = forms.CharField(
+#         initial="default",
+#         required=False,
+#         label='ordering',
+#         widget=HiddenInput(attrs={'id':'active_ordering'}))
+# 
+#     years = forms.CharField(
+#         initial='1000-1300',
+#         required=False,
+#         label='years',
+#         widget=HiddenInput(attrs={'id':'active_years'}))
+# 
+# class QuickSearch(forms.Form):
+#     terms = forms.CharField(
+#         label='',
+#         required=True,
+#         error_messages={
+#         'required': 'Please enter at least one search term',
+#         'invalid': 'Enter a valid value'},
+#         widget=TextInput(attrs={
+#             'id': 'input',
+#             'class':'textEntry',
+#             'placeholder': 'Enter search terms',
+#             'required': 'required',
+#             "autocomplete":"off"}))
 
 
 

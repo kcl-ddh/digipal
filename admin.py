@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes import generic
+from django.db.models import Avg, Max, Min, Count
 from django import forms
 from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
@@ -27,6 +29,152 @@ from django.utils.safestring import mark_safe
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
+
+#########################
+#                       #
+#   Advanced Filters    #
+#                       #
+#########################
+
+class PageAnnotationNumber(SimpleListFilter):
+    title = ('Annotations')
+
+    parameter_name = ('Annot')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', ('At least five annotations')),
+            ('2', ('Fewer than five annotations')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.annotate(num_annot = Count('annotation__page__item_part')).exclude(num_annot__lt = 5)
+        if self.value() == '2':
+            return queryset.annotate(num_annot = Count('annotation__page__item_part')).filter(num_annot__lt = 5)
+            
+
+class PageWithFeature(SimpleListFilter):
+    title = ('Associated Features')
+
+    parameter_name = ('WithFeat')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('With them')),
+            ('no', ('Without them')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(annotation__graph__graph_components__features__id__gt = 0).distinct()
+        if self.value() == 'no':
+            return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
+           
+
+class DescriptionFilter(SimpleListFilter):
+    title = ('To Fix or Check')
+
+    parameter_name = ('toFixOrCheck')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('toFix', ('Needs to be fixed')),
+            ('toCheck', ('Needs to be checked')),
+            ('goodlikethis', ('No needs to be checked or fixed')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'toFix':
+            return queryset.filter(description__contains = "FIX")
+        if self.value() == 'toCheck':
+            return queryset.filter(description__contains = "CHECK")
+        if self.value() == 'goodlikethis':
+            q = queryset.exclude(description__contains = "CHECK")
+            k = q.exclude(description__contains = "FIX")
+            return k
+
+
+class HistoricalItemDescriptionFilter(SimpleListFilter):
+    title = ('To Fix or Check')
+
+    parameter_name = ('toFixOrCheck')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('toFix', ('Needs to be fixed')),
+            ('toCheck', ('Needs to be checked')),
+            ('goodlikethis', ('No needs to be checked or fixed')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'toFix':
+            return queryset.filter(description__description__contains = "FIX")
+        if self.value() == 'toCheck':
+            return queryset.filter(description__description__contains = "CHECK")
+        if self.value() == 'goodlikethis':
+            q = queryset.exclude(description__description__contains = "CHECK")
+            k = q.exclude(description__description__contains = "FIX")
+            return k
+
+class HistoricalItemKerFilter(SimpleListFilter):
+    title = ('Ker')
+
+    parameter_name = ('ker')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Contains Ker')),
+            ('no', ('Not contains Ker')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(description__description__contains = "Ker")
+        if self.value() == 'no':
+            return queryset.exclude(description__description__contains = "Ker")
+
+class HistoricalItemGneussFilter(SimpleListFilter):
+    title = ('Gneuss')
+
+    parameter_name = ('gneuss')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Contains Gneuss Number')),
+            ('no', ('Not contains Gneuss Number')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(catalogue_numbers__source__label='G.')
+        if self.value() == 'no':
+            return queryset.exclude(catalogue_numbers__source__label='G.')
+
+class HandItempPartFilter(SimpleListFilter):
+    title = ('numbers of ItemParts')
+
+    parameter_name = ('morethanoneItemPart')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Has more than one Item Part')),
+            ('no', ('Has not more than one Item Part')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return Hand.objects.filter(item_part__historical_item__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
+        if self.value() == 'no':
+            return Hand.objects.filter(item_part__historical_item__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
+
+#########################
+#                       #
+#     Admin Tables      #
+#     Visualization     #
+#                       #
+#########################
+
 
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
@@ -68,7 +216,7 @@ class AnnotationAdmin(reversion.VersionAdmin):
             'after', 'created', 'modified']
     search_fields = ['vector_id', 'page__display_label',
             'graph__idiograph__allograph__character__name']
-
+    list_filter = ['graph__idiograph__allograph__character__name']
 
 class AppearanceAdmin(reversion.VersionAdmin):
     model = Appearance
@@ -196,10 +344,10 @@ class DecorationAdmin(reversion.VersionAdmin):
 class DescriptionAdmin(reversion.VersionAdmin):
     model = Description
 
-    list_display = ['historical_item', 'source', 'created', 'modified']
+    list_display = ['historical_item', 'source', 'created', 'modified', 'description']
     list_display_links = ['historical_item', 'source', 'created', 'modified']
     search_fields = ['description']
-
+    list_filter = [DescriptionFilter]
 
 class FeatureAdmin(reversion.VersionAdmin):
     model = Feature
@@ -279,7 +427,8 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = [HandFilterSurrogates]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates]
+
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
     #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
     
@@ -328,7 +477,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
             'catalogue_number', 'date', 'name', 'created', 'modified']
     readonly_fields = ['catalogue_number']
     search_fields = ['catalogue_number', 'date', 'name']
-
+    list_filter = [HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter]
 
 class HistoricalItemTypeAdmin(reversion.VersionAdmin):
     model = HistoricalItemType
@@ -538,7 +687,7 @@ class PageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
     
-    list_filter = ['media_permission__label']
+    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature]
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 
@@ -664,9 +813,9 @@ class ScriptAdmin(reversion.VersionAdmin):
 class SourceAdmin(reversion.VersionAdmin):
     model = Source
 
-    list_display = ['name', 'created', 'modified']
-    list_display_links = ['name', 'created', 'modified']
-    search_fields = ['name']
+    list_display = ['name', 'created', 'modified', 'label']
+    list_display_links = ['name', 'created', 'modified', 'label']
+    search_fields = ['name', 'label']
 
 
 class StatusAdmin(reversion.VersionAdmin):

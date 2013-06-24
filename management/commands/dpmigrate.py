@@ -10,6 +10,7 @@ import utils
 from utils import Logger  
 from django.utils.datastructures import SortedDict
   
+
 class Command(BaseCommand):
     help = """
 Digipal database migration tools.

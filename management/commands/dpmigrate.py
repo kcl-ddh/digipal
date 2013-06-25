@@ -434,7 +434,7 @@ Commands:
         if 0 and dst_table == 'blog_blogpost' and src_table == 'blog_blogpost':
             common_str_dst = common_str_dst + ', rating_sum'
             params_str = params_str + ', 0'
-        if dst_table == 'generic_threadedcomment' and src_table == 'generic_threadedcomment':
+        if 0 and dst_table == 'generic_threadedcomment' and src_table == 'generic_threadedcomment':
             common_str_dst = common_str_dst + ', rating_average, rating_count, rating_sum'
             params_str = params_str + ', 0, 0, 0'
             

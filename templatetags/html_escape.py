@@ -94,4 +94,6 @@ def update_query_string(url, updates):
     parts[4] = urlencode(query_dict, True)
     
     # Place the query string back into the URL
-    return urlunparse(parts)
+    ret = urlunparse(parts)
+
+    return ret

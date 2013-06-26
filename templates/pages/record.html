@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+{% load mezzanine_tags pagination_tags html_escape %}
 
 {% block extra_js %}
 {% endblock %}
@@ -29,39 +29,21 @@
                     {% endif %}
                 </ul>
         </div>
-        <div class='span5 pull-right offset2'>
-            {% comment %}
-                TODO: move this to the server side, view should remain simple and avoid scanning the entire result set!
-            {% endcomment %}
-            {% for result in results %}
-                {% ifequal result.id|safe request.GET.id %}
-                    {% with prevRec=forloop.counter|add:"-1" %}
-                        <ul class="nav nav-pills">
-                        <li class="active"><a href='#'>Record {{ forloop.counter }} of {{ results|length }}</a></li>
-                        {% if forloop.counter|safe > 1|safe %}
-                            {% for p in results %}
-                                {% ifequal forloop.counter|safe prevRec|safe %}
-                                    <li class="prev"><a class="ctrl resultsBrowse prev" href="?terms={{ terms }}&amp;result_type={{ result_type }}&amp;id={{ p.id }}&amp;record={{ forloop.counter|add:"-1" }}">Previous</a></li>
-                                {% endifequal %}
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-                    {% with nextRec=forloop.counter|add:"1" %}
-                        {% ifnotequal results|length|safe  forloop.counter|safe %}
-                            {% for n in results %}
-                                {% ifequal forloop.counter|safe nextRec|safe %}
-                                    <li><a class="ctrl resultsBrowse next" href="?terms={{ terms }}&amp;result_type={{ result_type }}&amp;id={{ n.id }}&amp;record={{ forloop.counter|add:"1" }}">Next</a></li>
-                                {% endifequal %}
-                            {% endfor %}
-                        {% endifnotequal %}
-                    {% endwith %}
-                    
-                    <li><a class="ctrl resultsBrowse last" href="?terms={{ terms }}&amp;result_type={{ result_type }}">Return to record view</a></li>
-                    
-                    </ul>
-                {% endifequal %}
-            {% endfor %}
-        </div>
+        
+        {% if pagination %}
+            <div class='span5 pull-right offset2'>
+                <ul class="nav nav-pills">
+                    <li class="active"><a href='#'>Record {{ pagination.index1 }} of {{ pagination.total }}</a></li>
+                    {% if pagination.previous_url %}
+                        <li class="prev"><a class="ctrl resultsBrowse prev" href="{{ pagination.previous_url }}">Previous</a></li>
+                    {% endif %}
+                    {% if pagination.next_url %}
+                        <li><a class="ctrl resultsBrowse next" href="{{ pagination.next_url }}">Next</a></li>
+                    {% endif %}
+                    <li><a class="ctrl resultsBrowse last" href="{{ pagination.no_record_url }}">Return to record view</a></li>
+                </ul>
+            </div>
+        {% endif %}
     </div>
 </div>
 

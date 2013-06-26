@@ -29,3 +29,31 @@ class SearchContentType(object):
         if self.queryset: ret = self.queryset.count() == 0
         return ret
 
+    def set_record_view_pagination_context(self, context, request):
+        from digipal.templatetags.html_escape import update_query_string
+
+        # TODO: optimise this, we should not have to retrieve the whole result 
+        # to find prev and next record ids
+        ret = {}
+        base_url = '?' + request.META['QUERY_STRING']
+        ret['total'] = context['results'].count()
+        
+        # index
+        index = 0
+        for r in context['results']:
+            if ('%s' % r.id) == ('%s' % context['id']): break
+            index += 1
+        
+        # prev
+        if index > 0:
+            ret['previous_url'] = update_query_string(base_url, 'id=%s' % context['results'][index - 1].id)
+        
+        # next
+        if index < (ret['total'] - 1):
+            ret['next_url'] = update_query_string(base_url, 'id=%s' % context['results'][index + 1].id)
+        
+        ret['no_record_url'] = update_query_string(base_url, 'id=')
+        ret['index1'] = index + 1
+        
+        context['pagination'] = ret 
+        

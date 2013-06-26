@@ -8,8 +8,10 @@ class SearchScribes(SearchContentType):
 
     def set_record_view_context(self, context):
         context['scribe'] = Scribe.objects.get(id=context['id'])
-        context['idiograph_components'] = scribe_details(request)[0]
-        context['graphs'] = scribe_details(request)[1]
+        # TODO: naming is confusing here, check if the code still work
+        context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
+        # No longer needed?
+        #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
     
     @property
     def form(self):
@@ -103,3 +105,23 @@ class FilterScribes(forms.Form):
         empty_label = "Feature",
         required = False)
 
+def scribe_details(request):
+    """
+    Get Idiograph, Graph, and Page data for a Scribe,
+    for display in a record view
+    """
+    #scribe = Scribe.objects.get(id=request.GET.get('id'))
+    #idiograph_components = IdiographComponent.objects.filter(
+    #    idiograph__in=Scribe.objects.get(
+    #        id=scribe.id).idiograph_set.distinct()).order_by('idiograph').all()
+    #idiographs = list(set([ic.idiograph for ic in idiograph_components]))
+    #graphs = Graph.objects.filter(
+    #    idiograph__in=idiographs)
+    #return idiograph_components, graphs
+
+
+    scribe = Scribe.objects.get(id=request.GET.get('id'))
+    idiographs = Idiograph.objects.filter(scribe=scribe.id)
+    graphs = Graph.objects.filter(
+        idiograph__in=idiographs)
+    return idiographs, graphs

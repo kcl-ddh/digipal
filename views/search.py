@@ -59,7 +59,8 @@ def search_page(request):
         context['search_type'] = search_type
         
         # - specific record
-        if request.GET.get('record', '') or request.GET.get('id', ''):
+        #if request.GET.get('record', '') or request.GET.get('id', ''):
+        if request.GET.get('id', ''):
             record_type = request.GET.get('result_type', '')
         
         # Searches by content types
@@ -86,18 +87,16 @@ def search_page(request):
     # Distinguish between requests for one record and search results
     if record_type:
         context['id'] = request.GET.get('id', '')
-        context['record'] = request.GET.get('record', '')
-        
-        # TODO: check if this is always needed!
-        #context['pages'] = Page.objects.filter(item_part=(request.GET.get('id')))
+        #context['record'] = request.GET.get('record', '')
         
         for type in context['types']:
             if type.key == record_type:
                 type.set_record_view_context(context)
+                type.set_record_view_pagination_context(context, request)
         
         template = 'pages/record_' + record_type +'.html'
         
-    if not record_type:         
+    if not record_type:
         from django.utils import simplejson
         context['advanced_search_form'] = advanced_search_form
         context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})

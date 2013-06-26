@@ -54,6 +54,23 @@ class PageAnnotationNumber(SimpleListFilter):
             return queryset.annotate(num_annot = Count('annotation__page__item_part')).filter(num_annot__lt = 5)
             
 
+class PageFilterNoItemPart(SimpleListFilter):
+    title = 'Item Part'
+
+    parameter_name = ('item_part')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('with', ('With Item Part')),
+            ('without', ('Without Item Part')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'with':
+            return queryset.filter(item_part_id__gt = 0).distinct()
+        if self.value() == 'without':
+            return queryset.exclude(item_part_id__gt = 0).distinct()
+
 class PageWithFeature(SimpleListFilter):
     title = ('Associated Features')
 
@@ -674,6 +691,7 @@ class PageForm(forms.ModelForm):
                     <a target="_blank" href="%s">repository</a>, please 
                     select the first option.<br/>''' % repository_url
 
+
 class PageAdmin(reversion.VersionAdmin):
     form = PageForm
 
@@ -687,7 +705,7 @@ class PageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
     
-    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature]
+    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature, PageFilterNoItemPart]
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 

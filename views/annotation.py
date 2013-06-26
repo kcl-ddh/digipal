@@ -205,6 +205,8 @@ def page_list(request):
         pages = pages.filter(item_part__current_item__repository__name = repository)
     if date:
         pages = pages.filter(hand__assigned_date__date = date)
+        
+    pages = pages.filter(item_part_id__gt = 0)
 
     paginator = Paginator(pages, 24)
     page = request.GET.get('page')

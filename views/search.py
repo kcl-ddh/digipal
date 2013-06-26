@@ -80,7 +80,7 @@ def search_page(request):
                     if type.key == search_type:
                         break
                     
-        result_type = result_type or types[0]
+        result_type = result_type or context['types'][0].key
         context['result_type'] = result_type
 
     # Distinguish between requests for one record and search results

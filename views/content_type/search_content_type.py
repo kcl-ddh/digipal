@@ -2,11 +2,14 @@ class SearchContentType(object):
     
     def set_record_view_context(self, context):
         context['type'] = self.key
-        pass
 
     def __init__(self):
         self.is_advanced = False
         self._queryset = []
+    
+    @property
+    def result_type_qs(self):
+        return "result_type=%s" % self.key
     
     @property
     def template_path(self):

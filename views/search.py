@@ -69,16 +69,17 @@ def search_page(request):
 
         # Tab Selection Logic =
         #     we pick the tab the user has selected
-        #     if none, we pick the type of the advanced search
-        #     if none, we select the first type with non empty result
+        #     if none, we select a tab with non empty result
+        #        with preference for already selected tab 
         #     if none we select the first type
-        #
-        result_type = request.GET.get('result_type', '') or search_type
+        result_type = request.GET.get('result_type', '')
         if not result_type:
             for type in context['types']:
                 if not type.is_empty:
                     result_type = type.key
-                    break
+                    if type.key == search_type:
+                        break
+                    
         result_type = result_type or types[0]
         context['result_type'] = result_type
 

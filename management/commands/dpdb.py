@@ -438,20 +438,26 @@ Commands:
 
 	def is_dry_run(self):
 		return self.options.get('dry-run', False)
-	
-	def test(self, options):
-		print 'TEST'
-		from digipal.models import *
-		from django.template.defaultfilters import slugify
-		from digipal.templatetags.html_escape import anchorify
 
-		slugs = {}
-		for allograph in Allograph.objects.all():
-			s = anchorify(u'%s' % allograph)
-			if s in slugs:
-				print '>>>>>>>>>> ALREADY EXISTS'
-			slugs[s] = 1
-			print s, (u'%s' % allograph).encode('utf-8')
+	def test(self, options):
+		#from digipal.models import *
+		from django.template.defaultfilters import slugify
+		from digipal.templatetags.html_escape import update_query_string
+		
+		content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
+		updates = '''k2=&k5=v5'''
+		print content
+		print update_query_string(content, updates)
+
+# 		slugs = {}
+# 		for allograph in Allograph.objects.all():
+# 			s = anchorify(u'%s' % allograph)
+# 			if s in slugs:
+# 				print '>>>>>>>>>> ALREADY EXISTS'
+# 			slugs[s] = 1
+# 			print s, (u'%s' % allograph).encode('utf-8')
+# 			
+# 		update_query_string(content, updates)
 					
 		# ST.id=253 => H.id=1150
 		

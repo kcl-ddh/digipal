@@ -77,9 +77,10 @@ def multiply(value, arg):
     val = float(value) * float(arg)
     return int(val)
 
+
 # TEI conversion
 
-@register.filter()
+@register.filter
 def tei(value):
     "Convert TEI field into XML"
     import re

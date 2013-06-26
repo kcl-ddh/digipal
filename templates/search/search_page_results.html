@@ -94,11 +94,17 @@
                                 <div class='alert alert-warning'><h4>No results found for <b>{{type.label}}</b></h4></div>
                             {% else %}
                                 {% autopaginate type.queryset 9 as records%}
-                                {% paginate %}
+                                
+                                {% filter update_query_strings:type.result_type_qs%}
+                                    {% paginate %}
+                                {% endfilter %}
                                 
                                 {% include type.template_path with template_type=type.key%}
                                 
-                                {% paginate %}
+                                {% filter update_query_strings:type.result_type_qs%}
+                                    {% paginate %}
+                                {% endfilter %}
+                                
                             {% endif %}
                         </div>
                     {% endfor %}

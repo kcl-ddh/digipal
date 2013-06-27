@@ -36,7 +36,7 @@ def search_page(request):
     
     context = {}
     context['terms'] = ''
-    context['submitted'] = 'terms' in request.GET
+    context['submitted'] = 'basic_search_type' in request.GET
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     context['search_types_display'] = get_search_types_display(context['types'])
@@ -272,27 +272,4 @@ def graphsSearch(request):
         'pages/graphs.html',
         context,
         context_instance=RequestContext(request))
-
-
-def scribe_details(request):
-    """
-    Get Idiograph, Graph, and Page data for a Scribe,
-    for display in a record view
-    """
-    #scribe = Scribe.objects.get(id=request.GET.get('id'))
-    #idiograph_components = IdiographComponent.objects.filter(
-    #    idiograph__in=Scribe.objects.get(
-    #        id=scribe.id).idiograph_set.distinct()).order_by('idiograph').all()
-    #idiographs = list(set([ic.idiograph for ic in idiograph_components]))
-    #graphs = Graph.objects.filter(
-    #    idiograph__in=idiographs)
-    #return idiograph_components, graphs
-
-
-    scribe = Scribe.objects.get(id=request.GET.get('id'))
-    idiographs = Idiograph.objects.filter(scribe=scribe.id)
-    graphs = Graph.objects.filter(
-        idiograph__in=idiographs)
-    return idiographs, graphs
-
 

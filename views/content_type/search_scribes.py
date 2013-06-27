@@ -119,7 +119,6 @@ def scribe_details(request):
     #    idiograph__in=idiographs)
     #return idiograph_components, graphs
 
-
     scribe = Scribe.objects.get(id=request.GET.get('id'))
     idiographs = Idiograph.objects.filter(scribe=scribe.id)
     graphs = Graph.objects.filter(

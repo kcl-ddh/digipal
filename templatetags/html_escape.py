@@ -31,6 +31,13 @@ def anchorify(value):
 
 @register.filter(is_safe=True)
 def update_query_strings(content, updates):
+    return update_query_strings_internal(content, updates)
+
+@register.filter(is_safe=True)
+def update_query_strings_in_filter(content, updates):
+    return update_query_strings_internal(content, updates, True)
+
+def update_query_strings_internal(content, updates, url_wins=False):
     '''
         Update the query strings found in an HTML fragment.
         
@@ -54,11 +61,11 @@ def update_query_strings(content, updates):
     
     # update all the urls found in content    
     for url in sorted(parts, key=lambda e: len(e), reverse=True):
-        content = content.replace(url, update_query_string(url, updates))
+        content = content.replace(url, update_query_string(url, updates, url_wins))
         
     return content
 
-def update_query_string(url, updates):
+def update_query_string(url, updates, url_wins=False):
     '''
         Replace parameter values in the query string of the given URL.
         
@@ -72,19 +79,23 @@ def update_query_string(url, updates):
     '''
     ret = url.strip()
     if ret and ret[0] == '#': return ret
-    
-    updates_dict = updates
 
     from urlparse import urlparse, urlunparse, parse_qs
-    from urllib import urlencode
     
     # Convert string format into a dictionary
     if isinstance(updates, basestring):
         updates_dict = parse_qs(updates, True)
+    else:
+        from copy import deepcopy
+        updates_dict = deepcopy(updates)
     
     parts = [p for p in urlparse(url)]
     query_dict = parse_qs(parts[4])
-    query_dict.update(updates_dict)
+    if url_wins:
+        updates_dict.update(query_dict)
+        query_dict = updates_dict
+    else:
+        query_dict.update(updates_dict)
     
     # Now query_dict is our updated query string as a dictionary 
     # Parse and unparse it again to remove the empty values
@@ -96,4 +107,19 @@ def update_query_string(url, updates):
     # Place the query string back into the URL
     ret = urlunparse(parts)
 
+    return ret
+
+def urlencode(dict, doseq=0):
+    ''' This is a unicode-compatible wrapper around urllib.urlencode()
+        See http://stackoverflow.com/questions/3121186/error-with-urlencode-in-python
+    '''
+    import urllib
+    d = {}
+    for k,v in dict.iteritems():
+        d[k] = []
+        for v2 in dict[k]:
+            if isinstance(v2, unicode):
+                v2 = v2.encode('utf=8')
+            d[k].append(v2)
+    ret = urllib.urlencode(d, doseq)
     return ret

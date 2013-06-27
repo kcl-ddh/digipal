@@ -30,6 +30,10 @@ class SearchContentType(object):
         return ret
 
     def set_record_view_pagination_context(self, context, request):
+        '''
+            set context['navigation'] = {'total': , 'index1': , 'previous_url': , 'next_url':, 'no_record_url': }
+            This entries are used by the record.html template to show the navigation above the record details
+        '''
         from digipal.templatetags.html_escape import update_query_string
 
         # TODO: optimise this, we should not have to retrieve the whole result 

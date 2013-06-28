@@ -6,6 +6,7 @@ from digipal.models import *
 from digipal.forms import DrilldownForm, SearchPageForm
 from itertools import islice, chain
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.conf import settings
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -40,6 +41,7 @@ def search_page(request):
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     context['search_types_display'] = get_search_types_display(context['types'])
+    context['is_empty'] = True
     record_type = ''
 
     advanced_search_form = SearchPageForm(request.GET)
@@ -80,10 +82,17 @@ def search_page(request):
                     result_type = type.key
                     if type.key == search_type:
                         break
-                    
+        
         result_type = result_type or context['types'][0].key
         context['result_type'] = result_type
 
+        # no result at all?
+        for type in context['types']:
+            if not type.is_empty:
+                context['is_empty'] = False
+        if context['is_empty']:
+            context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+                    
     # Distinguish between requests for one record and search results
     if record_type:
         context['id'] = request.GET.get('id', '')
@@ -119,8 +128,11 @@ def get_search_page_js_data(content_types, expanded_search=False):
     
     return ret
 
-
-
+def get_cms_url_from_slug(slug):
+    from mezzanine.pages.models import Page as MPage 
+    for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
+        return page.get_absolute_url()
+    return u'/%s' % slug
 
 def allographHandSearch(request):
     """ View for Hand record drill-down """

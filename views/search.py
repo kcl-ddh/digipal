@@ -36,7 +36,7 @@ def search_page(request):
     
     context = {}
     context['terms'] = ''
-    context['submitted'] = 'basic_search_type' in request.GET
+    context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     context['search_types_display'] = get_search_types_display(context['types'])

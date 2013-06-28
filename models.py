@@ -1524,7 +1524,6 @@ class Measurement(models.Model):
     def __unicode__(self):
         return u'%s' % (self.label)
 
-
 # Proportions in legacy db
 class Proportion(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -1780,3 +1779,13 @@ class StewartRecord(models.Model):
             self.import_messages += messages
             self.save()
         
+class RequestLog(models.Model):
+    request = models.CharField(max_length=300, null=True, blank=True, default='')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    result_count = models.IntegerField(blank=False, null=False, default=0) 
+
+    @classmethod
+    def save_request(cls, request, count=0):
+        path = request.build_absolute_uri()
+        rl = cls(result_count=count, request=path)
+        rl.save()

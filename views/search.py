@@ -110,6 +110,9 @@ def search_page(request):
         context['advanced_search_form'] = advanced_search_form
         context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
         context['search_page_options_json'] = simplejson.dumps(get_search_page_js_data(context['types'], 'from_link' in request.GET))
+        
+        from digipal.models import RequestLog
+        RequestLog.save_request(request, sum([type.count for type in context['types']]))
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 

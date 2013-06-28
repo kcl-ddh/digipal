@@ -25,8 +25,12 @@ class SearchContentType(object):
     
     @property
     def is_empty(self):
-        ret = True
-        if self.queryset: ret = self.queryset.count() == 0
+        return self.count == 0
+
+    @property
+    def count(self):
+        ret = 0
+        if self.queryset: ret = self.queryset.count()
         return ret
 
     def set_record_view_pagination_context(self, context, request):

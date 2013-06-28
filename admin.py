@@ -22,7 +22,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Page, Person, Place, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord, HandDescription
+        StewartRecord, HandDescription, RequestLog
 import reversion
 import django_admin_customisations
 from django.utils.safestring import mark_safe
@@ -951,6 +951,13 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
     
+class RequestLogAdmin(admin.ModelAdmin):
+    model = RequestLog
+    list_display = ['id', 'request', 'result_count', 'created']
+    list_display_links = list_display
+    search_fields = list_display
+    ordering = ['-id']    
+    
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
 admin.site.register(Annotation, AnnotationAdmin)
@@ -1002,3 +1009,4 @@ admin.site.register(Source, SourceAdmin)
 admin.site.register(Status, StatusAdmin)
 admin.site.register(MediaPermission, MediaPermissionAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
+admin.site.register(RequestLog, RequestLogAdmin)

@@ -41,6 +41,8 @@ def update_query_strings_internal(content, updates, url_wins=False):
     '''
         Update the query strings found in an HTML fragment.
         
+        See update_query_string()
+        
         E.g.
         
         >> update_query_string('href="http://www.mysite.com/path/?k1=v1&k2=v2" href="/home"', 'k2=&k5=v5')
@@ -68,6 +70,7 @@ def update_query_strings_internal(content, updates, url_wins=False):
 def update_query_string(url, updates, url_wins=False):
     '''
         Replace parameter values in the query string of the given URL.
+        If url_wins is True, the query string values in [url] will always supercede the values from [updates].
         
         E.g.
         
@@ -76,6 +79,7 @@ def update_query_string(url, updates, url_wins=False):
 
         >> _update_query_string('http://www.mysite.com/about?category=staff&country=UK', {'who': ['bill'], 'country': ['US']})
         'http://www.mysite.com/about?category=staff&who=bill&country=US'
+        
     '''
     ret = url.strip()
     if ret and ret[0] == '#': return ret

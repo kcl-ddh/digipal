@@ -1786,6 +1786,15 @@ class RequestLog(models.Model):
 
     @classmethod
     def save_request(cls, request, count=0):
-        path = request.build_absolute_uri()
-        rl = cls(result_count=count, request=path)
-        rl.save()
+        last = None
+        # Don't log two consecutive queries if they have the same count
+        # TODO: improve this algorithm, it is to naive
+        if count > 0:
+            try:
+                last = cls.objects.latest('id')
+            except cls.DoesNotExist:
+                pass
+        if not last or last.result_count != count:
+            path = request.build_absolute_uri()
+            rl = cls(result_count=count, request=path)
+            rl.save()

@@ -26,6 +26,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
 import reversion
 import django_admin_customisations
 from django.utils.safestring import mark_safe
+import re
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -951,12 +952,40 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
     
+class RequestLogFilterEmpty(admin.SimpleListFilter):
+    title = 'Result size'
+    parameter_name = 'result_size'
+    
+    def lookups(self, request, model_admin):
+        return (
+                    ('0', 'empty'),
+                    ('1', 'not empty'),
+                )
+    
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(result_count__gt=0).distinct()
+        if self.value() == '0':
+            return queryset.filter(result_count=0).distinct()
+
 class RequestLogAdmin(admin.ModelAdmin):
     model = RequestLog
-    list_display = ['id', 'request', 'result_count', 'created']
-    list_display_links = list_display
-    search_fields = list_display
-    ordering = ['-id']    
+    list_display = ['id', 'request_hyperlink', 'field_terms', 'result_count', 'created']
+    list_display_links = ['id', 'field_terms', 'result_count', 'created']
+    search_fields = ['id', 'request', 'result_count', 'created']
+    ordering = ['-id']
+
+    list_filter = [RequestLogFilterEmpty]
+
+    def field_terms(self, record):
+        return re.sub('^.*terms=([^&#?]*).*$', r'\1', record.request)
+    field_terms.short_description = 'Terms'
+
+    def request_hyperlink(self, record):
+        ret = '<a href="%s">%s</a>' % (record.request, record.request)
+        return ret
+    request_hyperlink.short_description = 'Request'
+    request_hyperlink.allow_tags = True
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)

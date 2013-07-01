@@ -186,6 +186,40 @@ class HandItempPartFilter(SimpleListFilter):
         if self.value() == 'no':
             return Hand.objects.filter(item_part__historical_item__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
 
+class HandGlossNumFilter(SimpleListFilter):
+    title = ('number of Glossing Hands')
+
+    parameter_name = ('glosshandwithnum')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Has Num. Glossing hands')),
+            ('no', ('Not has Num. Glossing hands')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return Hand.objects.filter(gloss_only=True).filter(num_glosses__isnull=False)
+        if self.value() == 'no':
+            return Hand.objects.filter(gloss_only=True).filter(num_glosses__isnull=True)
+
+class HandGlossTextFilter(SimpleListFilter):
+    title = ('has Glossing Text')
+
+    parameter_name = ('glosshandwithtext')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Has Glossed Text')),
+            ('no', ('Not has Glossed text')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=False)
+        if self.value() == 'no':
+            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True) 
+
 #########################
 #                       #
 #     Admin Tables      #
@@ -445,7 +479,7 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter, HandFilterSurrogates]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter]
 
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
     #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')

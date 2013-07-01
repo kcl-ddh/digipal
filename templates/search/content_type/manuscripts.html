@@ -25,9 +25,12 @@
             <td>{{ manuscript.current_item.shelfmark }}</td>
             <td>{{ manuscript.locus }}</td>
             <td>
-                {% for desc in manuscript.historical_item.description_set.all %}
-                    {{ desc.description|truncatewords:15 }}
-                {% endfor %}
+                {% with description=manuscript.historical_item.get_display_description %}
+                    {% if description %}
+                        {{ description.description|truncatewords:15 }}
+                        ({{ description.source.label }})
+                    {% endif %}
+                {% endwith %}
             </td>
             <td>
                 {% if can_edit %}

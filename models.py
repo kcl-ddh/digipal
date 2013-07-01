@@ -446,6 +446,27 @@ class HistoricalItem(models.Model):
                 ' ', self.catalogue_number, ' ', self.name)
         super(HistoricalItem, self).save(*args, **kwargs)
 
+    def get_display_description(self):
+        ret = None
+        ret_priority = 10
+        is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
+        # See JIRA 95
+        for desc in  self.get_descriptions():
+            if desc.source.name == 'digipal':
+                ret = desc
+                break
+            if is_charter and desc.source.name in ['sawyer'] and ret_priority > 1:
+                ret = desc
+                ret_priority = 1
+            if is_charter and desc.source.name in ['pelteret'] and ret_priority > 2:
+                ret = desc
+                ret_priority = 2
+            if not is_charter and desc.source.name in ['gneuss'] and ret_priority > 3:
+                ret = desc
+                ret_priority = 3
+            if ret_priority == 10:
+                ret = desc
+        return ret
 
 class Source(models.Model):
     name = models.CharField(max_length=128, unique=True)

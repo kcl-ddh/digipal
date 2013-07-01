@@ -446,8 +446,13 @@ Commands:
 		
 		content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
 		updates = '''k2=&k5=v5'''
-		print content
-		print update_query_string(content, updates)
+		#print content
+		#print update_query_string(content, updates)
+		from digipal.models import ItemPart
+		for ip in ItemPart.objects.all():
+			desc = ip.historical_item.get_display_description()
+			if desc:
+				print ip.id, desc.source.name
 
 # 		slugs = {}
 # 		for allograph in Allograph.objects.all():

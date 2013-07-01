@@ -73,7 +73,11 @@
                             <th>MS Description</th>
                             <td>
                                 {% for desc in item_part.historical_item.description_set.all %}
-                                    {{ desc.description }}
+                                    <p>
+                                        {{ desc.description }}
+                                        <br/>
+                                        {{ desc.source.label }}
+                                    </p>
                                 {% endfor %}
                             </td>
                         </tr>

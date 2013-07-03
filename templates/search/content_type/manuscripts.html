@@ -28,7 +28,7 @@
                 {% with description=manuscript.historical_item.get_display_description %}
                     {% if description %}
                         {{ description.description|truncatewords:15 }}
-                        ({{ description.source.label }})
+                        ({{ description.source.get_authors_short }})
                     {% endif %}
                 {% endwith %}
             </td>

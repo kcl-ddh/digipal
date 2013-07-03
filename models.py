@@ -478,6 +478,18 @@ class Source(models.Model):
 
     class Meta:
         ordering = ['name']
+        
+    def get_authors_short(self):
+        ''' Used by the front-end to display the source as a shorthand '''
+        return self.label
+
+    def get_authors_long(self):
+        ''' Used by the front-end to display the authors of the source '''
+        return self.name.title()
+    
+    def get_display_reference(self):
+        ''' Used by the front-end to display the source as a reference '''
+        return self.get_authors_long()
 
     def __unicode__(self):
         return u'%s' % (self.label or self.name)

@@ -1,4 +1,28 @@
+from django.conf import settings
+
 class SearchContentType(object):
+    
+    def get_fields_info(self):
+        return {}
+    
+    def write_index(self, writer):
+        fields = self.get_fields_info()
+        query = (self.get_model)().objects.all().values(*fields.keys())
+        ret = query.count()
+        for record in query:
+            document = {}
+            for path, val in record.iteritems():
+                if val is not None:
+                    document[fields[path]['whoosh']['name']] = u'%s' % val
+            if document:
+                writer.add_document(**document)
+        
+        return ret
+        
+    def get_model(self):
+        import digipal.models
+        ret = getattr(digipal.models, self.label[:-1])
+        return ret
     
     def set_record_view_context(self, context):
         context['type'] = self.key
@@ -64,4 +88,21 @@ class SearchContentType(object):
         ret['index1'] = index + 1
         
         context['pagination'] = ret 
+
+    def build_queryset(self, request, term):
+        # TODO: single search for all types
+        from whoosh.index import open_dir
+        import os
+        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
+        with index.searcher() as searcher:
+            from whoosh.qparser import MultifieldParser
+            
+            field_names = [field['whoosh']['name'] for field in self.get_fields_info().values()]
+            
+            parser = MultifieldParser(field_names, index.schema)
+            query = parser.parse(term)            
+            results = searcher.search(query, limit=None)
+            resultids = [result['id'] for result in results]
+        
+            self._queryset = (self.get_model()).objects.filter(id__in=resultids)
         

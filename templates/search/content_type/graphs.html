@@ -1,0 +1,42 @@
+{% load mezzanine_tags pagination_tags html_escape %}
+
+{% comment %}
+    TODO: migrate old graph template into this one
+{% endcomment %}
+
+<table class="table table-condensed">
+    <tr>
+        <!--<th>Scribe</th>-->
+        <th>Repository</th>
+        <th>Shelfmark</th>
+        <th>Hand</th>
+        <th>Place</th>
+        <th>Date</th>
+        <th>Catalogue Number</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for hand in records %}
+        <tr class="{% cycle 'bgColour' '' %}">
+            <td>{{ hand.item_part.current_item.repository.name }}</td>
+            <td>{{ hand.item_part.current_item.shelfmark }}</td>
+            <td>{{ hand.label }}
+                {% if hand.pages.all %}
+                    <a class="imageIcon" href="{% filter update_query_strings_in_filter:request.META.QUERY_STRING %}?id={{ hand.id }}&result_type={{template_type}}&from_image=true{% endfilter %}" title='{{page}}'>
+                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.pages.count}} images' />
+                    </a> 
+                    ({{hand.pages.count}})
+                {% endif %}
+            </td>
+            <td>{{ hand.assigned_place.name }}</td>
+            <td>{{ hand.assigned_date.date }}</td>
+            <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+            <td>
+                {% if can_edit %}
+                    <a class="btn" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
+                {% endif %}
+                <a class="btn btn-primary" href="{% filter update_query_strings_in_filter:request.META.QUERY_STRING %}?id={{ hand.id }}&result_type={{template_type}}{% endfilter %}">View</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>

@@ -4,20 +4,11 @@ from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
 
-class SearchHands(SearchContentType):
+'''
+    TODO: to be implemented. See the allographHandSearch(Graphs)() view. 
+'''
 
-    def get_fields_info(self):
-        from whoosh.fields import TEXT, ID
-        ret = {}
-        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id'}}
-        ret['descriptions__description'] = {'whoosh': {'type': TEXT, 'name': 'description'}}
-        ret['scribe__name'] = {'whoosh': {'type': TEXT, 'name': 'scribes'}, 'advanced': True}
-        ret['assigned_place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
-        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT, 'name': 'shelfmark'}}
-        ret['item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'catnum'}}
-        ret['assigned_date__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
-        return ret
+class SearchGraphs(SearchContentType):
 
     def set_record_view_context(self, context):
         from django.utils.datastructures import SortedDict
@@ -42,19 +33,17 @@ class SearchHands(SearchContentType):
     
     @property
     def form(self):
-        return FilterHands()
+        return FilterGraphs()
     
     @property
     def key(self):
-        return 'hands'
+        return 'graphs'
     
     @property
     def label(self):
-        return 'Hands'
+        return 'Graphs'
 
     def build_queryset(self, request, term):
-        if True:
-            return super(SearchHands, self).build_queryset(request, term)
         type = self.key
         query_hands = Hand.objects.filter(
                     Q(descriptions__description__icontains=term) | \
@@ -92,7 +81,7 @@ class SearchHands(SearchContentType):
         
         return self._queryset
 
-class FilterHands(forms.Form):
+class FilterGraphs(forms.Form):
     scribes = forms.ModelChoiceField(
         queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
         widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
@@ -105,7 +94,9 @@ class FilterHands(forms.Form):
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Repository",)
+        initial = "Repository",
+    )
+
 
     place = forms.ModelChoiceField(
         queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),

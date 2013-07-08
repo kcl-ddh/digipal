@@ -101,6 +101,19 @@ class SearchContentType(object):
         
         return ret
         
+    def get_parser(self, index):
+        from whoosh.qparser import MultifieldParser
+        
+        term_fields = []
+        boosts = {}
+        for field in self.get_fields_info().values():
+            if not field['whoosh'].get('ignore', False):
+                name = field['whoosh']['name']
+                term_fields.append(name)
+                boosts[name] = field['whoosh'].get('boost', 1.0)
+        parser = MultifieldParser(term_fields, index.schema, boosts)
+        return parser
+        
     def build_queryset(self, request, term):
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
@@ -115,12 +128,8 @@ class SearchContentType(object):
         import os
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
         with index.searcher() as searcher:
-            from whoosh.qparser import MultifieldParser
-            
-            term_fields = [field['whoosh']['name'] for field in self.get_fields_info().values() if not field['whoosh'].get('ignore', False)]
-            
             # TODO: custom weight, e.g. less for description
-            parser = MultifieldParser(term_fields, index.schema)
+            parser = self.get_parser(index)
             
             # teardrop-shaped worcester saec xi2
             # add the advanced fields

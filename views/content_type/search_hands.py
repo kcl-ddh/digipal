@@ -9,14 +9,17 @@ class SearchHands(SearchContentType):
     def get_fields_info(self):
         from whoosh.fields import TEXT, ID
         ret = super(SearchHands, self).get_fields_info()
+        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer
+        stem_ana = StemmingAnalyzer()        
+        simp_ana = SimpleAnalyzer()
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': TEXT, 'name': 'label'}}
-        ret['descriptions__description'] = {'whoosh': {'type': TEXT, 'name': 'description'}}
+        ret['descriptions__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana), 'name': 'description'}}
         ret['scribe__name'] = {'whoosh': {'type': TEXT, 'name': 'scribes'}, 'advanced': True}
         ret['assigned_place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
-        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT, 'name': 'shelfmark'}}
+        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
         ret['item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'index'}}
+        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'index', 'boost': 2.0}}
         ret['assigned_date__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
         return ret
 

@@ -80,7 +80,7 @@ class SearchContentType(object):
     def get_fields_info(self):
         from whoosh.fields import TEXT, ID
         ret = {}
-        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id'}}
+        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'ignore': True}}
         ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type'}}
         return ret
     
@@ -161,7 +161,8 @@ class SearchContentType(object):
 
             t02 = datetime.now()
             
-            records = []
+            #records = []
+            records = QuerySetAsList()
             if django_filters or term == '':
                 # additional django filters
                 records_django = (self.get_model()).objects.filter(**django_filters)
@@ -179,7 +180,15 @@ class SearchContentType(object):
                 for id in resultids:
                     records.append(records_dict[int(id)])
             self._queryset = records
+            # TODO: this is not always the most efficient way of doing it
+            # If we have a queryset it's better to use count()
             #self._queryset.count = lambda :len(self._queryset)
             
         t1 = datetime.now()
         #print t1 - t0, t01 - t0, t02 - t01, t1 - t02
+        
+        return self._queryset
+    
+class QuerySetAsList(list):
+    def count(self):
+        return len(self) 

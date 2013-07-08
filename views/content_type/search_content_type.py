@@ -148,36 +148,38 @@ class SearchContentType(object):
                         if info['whoosh'].get('ignore', False):
                             django_filters['%s__iexact' % field_path] = val
                         else:
-                            query_advanced += ' %s:%s' % (name, val)
+                            query_advanced += ' %s:"%s"' % (name, val)
 
             # filter the type
             results = []
-            if term:
-                query = '%s %s type:%s' % (term, query_advanced, self.key)
+            from django.utils.datastructures import SortedDict
+            records_dict = SortedDict()
+            use_whoosh = term or query_advanced
+            if use_whoosh:
+                query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
                 query = parser.parse(query)
                         
                 #ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
                 
                 results = searcher.search(query, limit=None)
             
-            t01 = datetime.now()
+                t01 = datetime.now()
+                
+                # get all the ids in the right order and only once
+                for result in results:
+                    records_dict[result['id']] = 1
             
-            # get all the ids in the right order and only once
-            from django.utils.datastructures import SortedDict
-            records_dict = SortedDict()
-            for result in results:
-                records_dict[result['id']] = 1
             resultids = records_dict.keys()
-
+    
             t02 = datetime.now()
             
             #records = []
             records = QuerySetAsList()
-            if django_filters or term == '':
+            if django_filters or not use_whoosh:
                 # additional django filters
                 records_django = (self.get_model()).objects.filter(**django_filters)
                 #print django_filters, records_django.count()
-                if term:
+                if resultids:
                     records_django = records_django.filter(id__in=resultids)
                 for record in records_django:
                     records_dict[unicode(record.id)] = record

@@ -84,16 +84,17 @@ Commands:
         from digipal.views.content_type.search_hands import SearchHands
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
         from digipal.views.content_type.search_scribes import SearchScribes
-        #types = [SearchHands(), SearchManuscripts(), SearchScribes()]
-        types = [SearchHands()]
+        types = [SearchHands(), SearchManuscripts(), SearchScribes()]
+        #types = [SearchHands(), SearchManuscripts()]
         
         # build a single schema from the fields exposed by the different search types
         print 'Schema:' 
         fields = {}
         for type in types:
             for info in type.get_fields_info().values():
-                print '\t%s' % info
-                fields[info['whoosh']['name']] = info['whoosh']['type']
+                if info['whoosh']['name'] not in fields:
+                    print '\t%s' % info
+                    fields[info['whoosh']['name']] = info['whoosh']['type']
         
         from whoosh.fields import Schema
         schema = Schema(**fields)

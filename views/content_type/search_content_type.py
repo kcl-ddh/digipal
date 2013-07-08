@@ -2,23 +2,6 @@ from django.conf import settings
 
 class SearchContentType(object):
     
-    def get_fields_info(self):
-        return {}
-    
-    def write_index(self, writer):
-        fields = self.get_fields_info()
-        query = (self.get_model)().objects.all().values(*fields.keys())
-        ret = query.count()
-        for record in query:
-            document = {}
-            for path, val in record.iteritems():
-                if val is not None:
-                    document[fields[path]['whoosh']['name']] = u'%s' % val
-            if document:
-                writer.add_document(**document)
-        
-        return ret
-        
     def get_model(self):
         import digipal.models
         ret = getattr(digipal.models, self.label[:-1])
@@ -54,7 +37,12 @@ class SearchContentType(object):
     @property
     def count(self):
         ret = 0
-        if self.queryset: ret = self.queryset.count()
+        if self.queryset:
+            if isinstance(self.queryset, list):
+                ret = len(self.queryset)
+            else: 
+                # assume query set
+                ret = self.queryset.count()
         return ret
 
     def set_record_view_pagination_context(self, context, request):
@@ -89,20 +77,109 @@ class SearchContentType(object):
         
         context['pagination'] = ret 
 
+    def get_fields_info(self):
+        from whoosh.fields import TEXT, ID
+        ret = {}
+        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id'}}
+        ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type'}}
+        return ret
+    
+    def write_index(self, writer):
+        fields = self.get_fields_info()
+        
+        django_fields = [k for k in fields if k != 'type' and not fields[k]['whoosh'].get('ignore', False)]
+        query = (self.get_model()).objects.all().values(*django_fields).distinct()
+        ret = query.count()
+        
+        for record in query:
+            document = {'type': u'%s' % self.key}
+            for path, val in record.iteritems():
+                if val is not None:
+                    document[fields[path]['whoosh']['name']] = u'%s' % val
+            if document:
+                writer.add_document(**document)
+        
+        return ret
+        
     def build_queryset(self, request, term):
-        # TODO: single search for all types
+        # TODO: single search for all types.
+        # TODO: optimisation: do the pagination here so we load only the records we show.
+        # TODO: don't search for ID and type
+        # TODO: if no search phrase then apply default sorting order
+        term = term.strip()
+         
+        from datetime import datetime
+        t0 = datetime.now()
+        
         from whoosh.index import open_dir
         import os
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
         with index.searcher() as searcher:
             from whoosh.qparser import MultifieldParser
             
-            field_names = [field['whoosh']['name'] for field in self.get_fields_info().values()]
+            term_fields = [field['whoosh']['name'] for field in self.get_fields_info().values() if not field['whoosh'].get('ignore', False)]
             
-            parser = MultifieldParser(field_names, index.schema)
-            query = parser.parse(term)            
-            results = searcher.search(query, limit=None)
-            resultids = [result['id'] for result in results]
-        
-            self._queryset = (self.get_model()).objects.filter(id__in=resultids)
-        
+            # TODO: custom weight, e.g. less for description
+            parser = MultifieldParser(term_fields, index.schema)
+            
+            # teardrop-shaped worcester saec xi2
+            # add the advanced fields
+            query_advanced = ''
+            # django_filters is used for post-whoosh filtering using django queryset
+            django_filters = {}
+            infos = self.get_fields_info()
+            for field_path in self.get_fields_info():
+                info = infos[field_path]
+                if info.get('advanced', False):
+                    name = info['whoosh']['name']
+                    val = request.GET.get(name, '')
+                    if val:
+                        self.is_advanced = True
+                        if info['whoosh'].get('ignore', False):
+                            django_filters['%s__iexact' % field_path] = val
+                        else:
+                            query_advanced += ' %s:%s' % (name, val)
+
+            # filter the type
+            results = []
+            if term:
+                query = '%s %s type:%s' % (term, query_advanced, self.key)
+                query = parser.parse(query)
+                        
+                #ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
+                
+                results = searcher.search(query, limit=None)
+            
+            t01 = datetime.now()
+            
+            # get all the ids in the right order and only once
+            from django.utils.datastructures import SortedDict
+            records_dict = SortedDict()
+            for result in results:
+                records_dict[result['id']] = 1
+            resultids = records_dict.keys()
+
+            t02 = datetime.now()
+            
+            records = []
+            if django_filters or term == '':
+                # additional django filters
+                records_django = (self.get_model()).objects.filter(**django_filters)
+                #print django_filters, records_django.count()
+                if term:
+                    records_django = records_django.filter(id__in=resultids)
+                for record in records_django:
+                    records_dict[unicode(record.id)] = record
+                for k in records_dict:
+                    if not isinstance(records_dict[k], int):
+                        records.append(records_dict[k])
+            else:
+                # get all the records in one go 
+                records_dict = (self.get_model()).objects.in_bulk(resultids)
+                for id in resultids:
+                    records.append(records_dict[int(id)])
+            self._queryset = records
+            #self._queryset.count = lambda :len(self._queryset)
+            
+        t1 = datetime.now()
+        #print t1 - t0, t01 - t0, t02 - t01, t1 - t02

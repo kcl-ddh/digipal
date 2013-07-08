@@ -85,7 +85,7 @@
                 <ul class="nav nav-tabs" id='myTab'>
                     {% for type in types %}
                         <li class="{% if result_type == type.key %}active{% else %}disabled{% endif %}">
-                            <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.queryset.count|default:'0'}})</a>
+                            <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.count|default:'0'}})</a>
                         </li>
                     {% endfor %}
                 </ul>

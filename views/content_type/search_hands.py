@@ -8,14 +8,15 @@ class SearchHands(SearchContentType):
 
     def get_fields_info(self):
         from whoosh.fields import TEXT, ID
-        ret = {}
-        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id'}}
+        ret = super(SearchHands, self).get_fields_info()
+        # TODO: new search field
+        ret['label'] = {'whoosh': {'type': TEXT, 'name': 'label'}}
         ret['descriptions__description'] = {'whoosh': {'type': TEXT, 'name': 'description'}}
         ret['scribe__name'] = {'whoosh': {'type': TEXT, 'name': 'scribes'}, 'advanced': True}
         ret['assigned_place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT, 'name': 'shelfmark'}}
         ret['item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'catnum'}}
+        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'index'}}
         ret['assigned_date__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
         return ret
 
@@ -52,9 +53,7 @@ class SearchHands(SearchContentType):
     def label(self):
         return 'Hands'
 
-    def build_queryset(self, request, term):
-        if True:
-            return super(SearchHands, self).build_queryset(request, term)
+    def build_queryset_django(self, request, term):
         type = self.key
         query_hands = Hand.objects.filter(
                     Q(descriptions__description__icontains=term) | \

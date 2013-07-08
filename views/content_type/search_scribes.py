@@ -6,6 +6,24 @@ from django.db.models import Q
 
 class SearchScribes(SearchContentType):
 
+    def get_fields_info(self):
+        from whoosh.fields import TEXT, ID
+        ret = super(SearchScribes, self).get_fields_info()
+        ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': TEXT, 'name': 'scriptorium'}, 'advanced': True}
+        ret['date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
+        ret['hand__item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT, 'name': 'shelfmark'}}
+        ret['hand__item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}}
+        ret['hand__item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'index'}}
+        # ret['historical_item__description__description'] = {'whoosh': {'type': TEXT, 'name': 'description'}}
+
+        # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
+        # filtering is done using the DB
+        ret['idiographs__allograph__character__name'] = {'whoosh': {'type': ID, 'name': 'character', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allographcomponent__component__name'] = {'whoosh': {'type': TEXT, 'name': 'component', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allographcomponent__component__features__name'] = {'whoosh': {'type': TEXT, 'name': 'feature', 'ignore': True}, 'advanced': True}
+        return ret
+
     def set_record_view_context(self, context):
         context['scribe'] = Scribe.objects.get(id=context['id'])
         # TODO: naming is confusing here, check if the code still work
@@ -13,6 +31,9 @@ class SearchScribes(SearchContentType):
         # No longer needed?
         #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
     
+    def get_model(self):
+        return Scribe
+
     @property
     def form(self):
         return FilterScribes()
@@ -25,7 +46,7 @@ class SearchScribes(SearchContentType):
     def label(self):
         return 'Scribes'
     
-    def build_queryset(self, request, term):
+    def build_queryset_django(self, request, term):
         type = self.key
         query_scribes = Scribe.objects.filter(
                     Q(name__icontains=term) | \

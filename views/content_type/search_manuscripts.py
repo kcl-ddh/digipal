@@ -6,6 +6,17 @@ from django.db.models import Q
 
 class SearchManuscripts(SearchContentType):
 
+    def get_fields_info(self):
+        from whoosh.fields import TEXT, ID
+        ret = super(SearchManuscripts, self).get_fields_info()
+        ret['locus'] = {'whoosh': {'type': TEXT, 'name': 'locus'}}
+        ret['current_item__shelfmark'] = {'whoosh': {'type': TEXT, 'name': 'shelfmark'}}
+        ret['current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
+        ret['historical_item__catalogue_number'] = {'whoosh': {'type': TEXT, 'name': 'index'}, 'advanced': True}
+        ret['historical_item__description__description'] = {'whoosh': {'type': TEXT, 'name': 'description'}}
+        ret['historical_item__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
+        return ret
+
     def set_record_view_context(self, context):
         context['item_part'] = ItemPart.objects.get(id=context['id'])
     
@@ -20,8 +31,11 @@ class SearchManuscripts(SearchContentType):
     @property
     def label(self):
         return 'Manuscripts'
+    
+    def get_model(self):
+        return ItemPart
 
-    def build_queryset(self, request, term):
+    def build_queryset_django(self, request, term):
         type = self.key
         query_manuscripts = ItemPart.objects.filter(
                 Q(locus__contains=term) | \

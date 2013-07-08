@@ -80,7 +80,7 @@ class SearchContentType(object):
     def get_fields_info(self):
         from whoosh.fields import TEXT, ID
         ret = {}
-        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'ignore': True}}
+        ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'store_only': True}}
         ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type'}}
         return ret
     
@@ -107,11 +107,12 @@ class SearchContentType(object):
         term_fields = []
         boosts = {}
         for field in self.get_fields_info().values():
-            if not field['whoosh'].get('ignore', False):
+            if not field['whoosh'].get('ignore', False) and not field['whoosh'].get('store_only', False):
                 name = field['whoosh']['name']
                 term_fields.append(name)
                 boosts[name] = field['whoosh'].get('boost', 1.0)
-        parser = MultifieldParser(term_fields, index.schema, boosts)
+        #parser = MultifieldParser(term_fields, index.schema, boosts)
+        parser = MultifieldParser(term_fields, index.schema)
         return parser
         
     def build_queryset(self, request, term):

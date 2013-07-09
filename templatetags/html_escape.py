@@ -81,6 +81,8 @@ def update_query_string(url, updates, url_wins=False):
         'http://www.mysite.com/about?category=staff&who=bill&country=US'
         
     '''
+    show = url == '?page=2&amp;terms=%C3%86thelstan&amp;repository=&amp;ordering=&amp;years=&amp;place=&amp;basic_search_type=hands&amp;date=&amp;scribes=&amp;result_type=' and updates == 'result_type=manuscripts'
+    
     ret = url.strip()
     if ret and ret[0] == '#': return ret
 
@@ -93,8 +95,13 @@ def update_query_string(url, updates, url_wins=False):
         from copy import deepcopy
         updates_dict = deepcopy(updates)
     
+    # Merge the two query strings (url and updates)
+    # note that urlparse preserves the url encoding (%, &amp;)
     parts = [p for p in urlparse(url)]
-    query_dict = parse_qs(parts[4])
+    # note that parse_qs converts u'terms=%C3%86thelstan' into u'\xc3\x86thelstan'
+    # See http://stackoverflow.com/questions/16614695/python-urlparse-parse-qs-unicode-url
+    # for the reaon behind the call to encode('ASCII') 
+    query_dict = parse_qs(parts[4].encode('ASCII'))
     if url_wins:
         updates_dict.update(query_dict)
         query_dict = updates_dict
@@ -110,7 +117,7 @@ def update_query_string(url, updates, url_wins=False):
     
     # Place the query string back into the URL
     ret = urlunparse(parts)
-
+    
     return ret
 
 def urlencode(dict, doseq=0):

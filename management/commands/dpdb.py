@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from os.path import isdir
@@ -444,15 +445,24 @@ Commands:
 		from django.template.defaultfilters import slugify
 		from digipal.templatetags.html_escape import update_query_string
 		
-		content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
-		updates = '''k2=&k5=v5'''
+		
+		
+		#content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
+		#updates = '''k2=&k5=v5'''
 		#print content
 		#print update_query_string(content, updates)
-		from digipal.models import ItemPart
-		for ip in ItemPart.objects.all():
-			desc = ip.historical_item.get_display_description()
-			if desc:
-				print ip.id, desc.source.name
+# 		from digipal.models import ItemPart
+# 		for ip in ItemPart.objects.all():
+# 			desc = ip.historical_item.get_display_description()
+# 			if desc:
+# 				print ip.id, desc.source.name
+# 		url = '?id=93&result_type=scribes'
+# 		updates = 'terms=%C3%86thelstan&basic_search_type=hands&ordering=&years=&result_type=&scribes=&repository=&place=&date='
+# 		update_query_string(url, updates, True)
+
+		url = '?page=2&amp;terms=%C3%86thelstan&amp;repository=&amp;ordering=&amp;years=&amp;place=&amp;basic_search_type=hands&amp;date=&amp;scribes=&amp;result_type='
+		updates = 'result_type=manuscripts'
+		update_query_string(url, updates, False)
 
 # 		slugs = {}
 # 		for allograph in Allograph.objects.all():

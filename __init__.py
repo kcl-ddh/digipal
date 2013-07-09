@@ -231,3 +231,36 @@ def _user_has_perm(user, perm, obj):
 
 django.contrib.auth.models._user_has_perm = _user_has_perm
 
+# Patch 5: Whoosh ReadTooFar bug.
+# See Jira 115: ReadToFar Error on the search page 
+# See Whoosh Issue Tracker: 331
+#  https://bitbucket.org/mchaput/whoosh/issue/331/readtoofar-exception
+from whoosh.matching.combo import ArrayUnionMatcher
+    
+def array_union_matcher_skip_to(self, docnum):
+    if docnum < self._offset:
+        # We've already passed it
+        return
+    elif docnum < self._limit:
+        # It's in the current part
+        self._docnum = docnum
+        self._find_next()
+        return
+
+    # Advance all submatchers
+    submatchers = self._submatchers
+    active = False
+    for subm in submatchers:
+        # GN: patch for the ReadTooFar error.
+        if subm.is_active():
+            subm.skip_to(docnum)
+        active = active or subm.is_active()
+
+    if active:
+        # Rebuffer
+        self._docnum = self._min_id()
+        self._read_part()
+    else:
+        self._docnum = self._doccount
+    
+ArrayUnionMatcher.skip_to = array_union_matcher_skip_to

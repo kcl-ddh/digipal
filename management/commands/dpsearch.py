@@ -49,6 +49,10 @@ Commands:
             known_command = True
             self.index(options)
 
+        if command == 'schema':
+            known_command = True
+            self.schema(options)
+
         if command == 'test':
             known_command = True
             self.test(options)
@@ -76,6 +80,13 @@ Commands:
             #print results[0].highlights('recid')
             #print results[1].results
             #resultids = [result['recid'] for result in results]
+
+    def schema(self, options):
+        from whoosh.index import open_dir
+        import os
+        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
+        for item in index.schema.items():
+            print item      
 
     def index(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

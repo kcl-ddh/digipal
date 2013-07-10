@@ -8,7 +8,7 @@ class SearchContentType(object):
         return ret
     
     def set_record_view_context(self, context):
-        context['type'] = self.key
+        context['type'] = self
 
     def __init__(self):
         self.is_advanced = False

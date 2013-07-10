@@ -28,6 +28,7 @@ class SearchScribes(SearchContentType):
         return ret
 
     def set_record_view_context(self, context):
+        super(SearchScribes, self).set_record_view_context(context)
         context['scribe'] = Scribe.objects.get(id=context['id'])
         # TODO: naming is confusing here, check if the code still work
         context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
@@ -48,6 +49,10 @@ class SearchScribes(SearchContentType):
     @property
     def label(self):
         return 'Scribes'
+    
+    @property
+    def label_singular(self):
+        return 'Scribe'    
     
     def build_queryset_django(self, request, term):
         type = self.key

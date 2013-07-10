@@ -24,6 +24,8 @@ class SearchHands(SearchContentType):
         return ret
 
     def set_record_view_context(self, context):
+        super(SearchHands, self).set_record_view_context(context)
+
         from django.utils.datastructures import SortedDict
         p = Hand.objects.get(id=context['id'])
         c = p.graph_set.model.objects.get(id=p.id)
@@ -55,6 +57,10 @@ class SearchHands(SearchContentType):
     @property
     def label(self):
         return 'Hands'
+    
+    @property
+    def label_singular(self):
+        return 'Hand'
 
     def build_queryset_django(self, request, term):
         type = self.key

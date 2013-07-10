@@ -6,34 +6,36 @@
 {% endblock %}
 
 {% block head %}
-<h1 class='header1'><span>Full Record:</span> {% block record_title %}{% endblock %} </h1>
+<h1 class='header1'>{% block record_title %}{% endblock %} </h1>
 <div class='container'>
     <div class='span12'>
 
-        <div class='span4'>
+        <div class='span5'>
                 <ul class="nav nav-tabs" id='myTab'>
-                    <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
-                    {% comment %}TODO: move this to content type specific source code{% endcomment %}
-                    {% if result_type == "manuscripts" %}
-                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
-                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
-                    <li><a href="#hands" data-toggle="tab">Hands</a></li>
-                    {% elif result_type == "hands" %}
-                    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
-                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
-                    <li><a href="#graphs" data-toggle="tab">Graphs</a></li>
-                    {% elif result_type == "scribes" %}
-                    <li><a href="#hands" data-toggle="tab">Hands</a></li>
-                    <li><a href="#pages" data-toggle="tab">Pages</a></li>
-                    <li><a href="#idiographs" data-toggle="tab">Idiographs</a></li>
-                    {% endif %}
+                    {% block record_tabs %}
+                        <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
+                        {% comment %}TODO: move this to content type specific source code{% endcomment %}
+                        {% if result_type == "manuscripts" %}
+                            <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+                            <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                            <li><a href="#hands" data-toggle="tab">Hands</a></li>
+                        {% elif result_type == "hands" %}
+                            <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+                            <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                            <li><a href="#graphs" data-toggle="tab">Graphs</a></li>
+                        {% elif result_type == "scribes" %}
+                            <li><a href="#hands" data-toggle="tab">Hands</a></li>
+                            <li><a href="#pages" data-toggle="tab">Pages</a></li>
+                            <li><a href="#idiographs" data-toggle="tab">Idiographs</a></li>
+                        {% endif %}
+                    {% endblock %}
                 </ul>
         </div>
         
         {% if pagination %}
             <div class='span5 pull-right offset2'>
                 <ul class="nav nav-pills">
-                    <li class="active"><a href='#'>Record {{ pagination.index1 }} of {{ pagination.total }}</a></li>
+                    <li class="active"><a href='#'>{{ type.key }} {{ pagination.index1 }} of {{ pagination.total }}</a></li>
                     {% if pagination.previous_url %}
                         <li class="prev"><a class="ctrl resultsBrowse prev" href="{{ pagination.previous_url }}">Previous</a></li>
                     {% endif %}

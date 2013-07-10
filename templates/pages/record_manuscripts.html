@@ -2,8 +2,15 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
+{% block record_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
 
-{% block record_title %}{{ item_part.display_label }}{% endblock %}
+{% block record_tabs %}
+    <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
+    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li><a href="#pages" data-toggle="tab">Pages ({{ pages.count }})</a></li>
+    <li><a href="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+{% endblock %}
+
 {% block details %}
 {% if request.GET.from_image == "true" %}
 <script>
@@ -19,7 +26,6 @@
 <div class='tabbable'>
     <div id='myTabContent' class='tab-content'>
         <div class='tab-pane fade active in' id='data'>
-            <h3 class='header5'>Record Data</h3>
             <h3>Location</h3>
             <table class="table table-condensed">
                 <tbody>
@@ -58,96 +64,93 @@
             </table>
         </div>
         <div class='tab-pane fade' id='descriptions'>
-            <h3 class='header5'>Description</h3>
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>MS Name</th>
-                            <td>{{ item_part.historical_item.name }} </td>
-                        </tr>
-                        <tr>
-                            <th>Index</th>
-                            <td>{{ item_part.historical_item.catalogue_number }}</td>
-                        </tr>
-                        <tr>
-                            <th>MS Description</th>
-                            <td>
-                                {% for desc in item_part.historical_item.description_set.all %}
-                                    <p>
-                                        {{ desc.description }}
-                                        <br/>
-                                        {{ desc.source.get_display_reference }}
-                                    </p>
-                                {% endfor %}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <th>MS Name</th>
+                        <td>{{ item_part.historical_item.name }} </td>
+                    </tr>
+                    <tr>
+                        <th>Index</th>
+                        <td>{{ item_part.historical_item.catalogue_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>MS Description</th>
+                        <td>
+                            {% for desc in item_part.historical_item.description_set.all %}
+                                <p>
+                                    {{ desc.description }}
+                                    <br/>
+                                    {{ desc.source.get_display_reference }}
+                                </p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <div class='tab-pane fade' id='pages'>
-            <h3 class='header5'>Pages</h3>
             <div class='row-fluid'> 
             {% if pages %}
-                    {% for page in pages %} 
-                        {% if forloop.counter|divisibleby:4 %}
-                            {% if page.thumbnail %}
-                                <div class='row'>
-                                    <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                        <dl class="imageDatabase">
-                                            <dt>
-                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                            </a>
-                                          </dt>
-                                          <dd>
-                                            <p>{{ page }}</p>
-                                            </dd>
-                                        </dl>
-                                    </div>
+                {% for page in pages %} 
+                    {% if forloop.counter|divisibleby:4 %}
+                        {% if page.thumbnail %}
+                            <div class='row'>
+                                <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
+                                    <dl class="imageDatabase">
+                                        <dt>
+                                            <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                        {{ page.thumbnail }}
+                                        </a>
+                                      </dt>
+                                      <dd>
+                                        <p>{{ page }}</p>
+                                        </dd>
+                                    </dl>
                                 </div>
-                            {% endif %}
-                        {% else %}
-                            <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                        <dl class="imageDatabase">
-                                            <dt>
-                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                            </a>
-                                          </dt>
-                                          <dd>
-                                            <p>{{ page }}</p>
-                                            </dd>
-                                        </dl>
-                                    </div>
+                            </div>
                         {% endif %}
-                    {% endfor %}
-                {% else %}
-
-                    <div class="alert alert-block">
-                        <h4>No Images available</h4>
-                    </div>
-            {% endif %}
-            </div>
-    </div>
-    <div class='tab-pane fade' id='hands'>
-        <h3 class='header5'>Hands</h3>
-        <div class='row-fluid'>
-            {% if result.hand_set %}
-                <table class='table table-condensed'>
-                    <tbody>
-                    <tr><th>Hands</th></tr>
-                {% for hand in result.hand_set.all %}
-                    <tr><td>{{ hand }}</td><tr>
+                    {% else %}
+                        <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
+                                    <dl class="imageDatabase">
+                                        <dt>
+                                            <a class="imageDatabase" href="../page/{{ page.id }}/">
+                                        {{ page.thumbnail }}
+                                        </a>
+                                      </dt>
+                                      <dd>
+                                        <p>{{ page }}</p>
+                                        </dd>
+                                    </dl>
+                                </div>
+                    {% endif %}
                 {% endfor %}
-                 <tbody>
-                </table>
             {% else %}
+
                 <div class="alert alert-block">
-                    <h4>No hands available</h4>
+                    <h4>No Images available</h4>
                 </div>
             {% endif %}
+            </div>
+        </div>
+        <div class='tab-pane fade' id='hands'>
+            <div class='row-fluid'>
+                {% if hands.count %}
+                    <table class='table table-condensed'>
+                        <tbody>
+                            <tr><th>Hands</th></tr>
+                            {% for hand in hands %}
+                                <tr><td>{{ hand }}</td><tr>
+                            {% endfor %}
+                        <tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No hands available</h4>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
 </div>
 {% endblock %}

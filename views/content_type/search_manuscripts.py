@@ -22,6 +22,8 @@ class SearchManuscripts(SearchContentType):
 
     def set_record_view_context(self, context):
         context['item_part'] = ItemPart.objects.get(id=context['id'])
+        context['pages'] = context['item_part'].pages.all().order_by('locus')
+        context['hands'] = context['item_part'].hand_set.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
     
     @property
     def form(self):

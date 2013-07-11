@@ -268,7 +268,7 @@ class AnnotationAdmin(reversion.VersionAdmin):
             'after', 'created', 'modified']
     search_fields = ['vector_id', 'page__display_label',
             'graph__idiograph__allograph__character__name']
-    list_filter = ['graph__idiograph__allograph__character__name']
+    list_filter = ['author__username', 'graph__idiograph__allograph__character__name']
 
 class AppearanceAdmin(reversion.VersionAdmin):
     model = Appearance

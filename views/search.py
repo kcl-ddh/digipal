@@ -163,33 +163,33 @@ def allographHandSearch(request):
     for h in hand_ids:
         handlist.insert(0, h.id)
 
-    graphs = Graph.objects.filter(hand__in=handlist).order_by('hand')
+    graphs = Graph.objects.filter(hand__in=handlist)
 
-    if allograph:
-        graphs = graphs.filter(
-            idiograph__allograph__name=allograph).order_by('hand')
-        context['allograph'] = Allograph.objects.filter(name=allograph)
-    if feature:
-        graphs = graphs.filter(
-            graph_components__features__name=feature).order_by('hand')
-        context['feature'] = Feature.objects.get(name=feature)
     if character:
         graphs = graphs.filter(
-            idiograph__allograph__character__name=character).order_by('hand')
+            idiograph__allograph__character__name=character)
         context['character'] = Character.objects.get(name=character)
+    if allograph:
+        graphs = graphs.filter(
+            idiograph__allograph__name=allograph)
+        context['allograph'] = Allograph.objects.filter(name=allograph)
     if component:
         graphs = graphs.filter(
-            graph_components__component__name=component).order_by('hand')
+            graph_components__component__name=component)
         context['component'] = Component.objects.get(name=component)
+    if feature:
+        graphs = graphs.filter(
+            graph_components__features__name=feature)
+        context['feature'] = Feature.objects.get(name=feature)
 
-    graphs = graphs.order_by('hand__scribe__name','hand__id')
+    graphs = graphs.distinct().order_by('hand__scribe__name','hand__id')
     context['drilldownform'] = DrilldownForm()
     context['graphs'] = graphs
 
     page = request.GET.get('page')
   
     paginator = Paginator(graphs, 24)
-
+    
     try:
         page_list = paginator.page(page)
     except PageNotAnInteger:
@@ -271,7 +271,7 @@ def allographHandSearchGraphs(request):
         context['view'] = request.COOKIES['view']
     except:
         context['view'] = 'Images'
-
+    
     return render_to_response(
         'pages/graphs-list.html',
         context,
@@ -283,7 +283,7 @@ def graphsSearch(request):
     context['style']= 'allograph_list'
     
     context['drilldownform'] = DrilldownForm()
-
+    
     return render_to_response(
         'pages/graphs.html',
         context,

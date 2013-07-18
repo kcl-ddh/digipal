@@ -110,17 +110,37 @@ def tei(value):
     
     return value
 
-@register.assignment_tag
-def load_hands(hand_ids):
+@register.assignment_tag(takes_context=True)
+def load_hands(context, var_name):
     ''' 
         Usage:
             {% load_hands hand_ids as hands %}
         
         Loads all the Hand (and preload child graphs and annotations) into the hands template variable.
     '''
+    
+    hands_ids = context[var_name]
 
-    from digipal.models import Hand
-    ret = Hand.objects.filter(id__in=hand_ids).order_by('scribe__name', 'id').prefetch_related('graphs', 'graphs__annotation')
+    from digipal.models import Graph
+    # get all the graphs
+    #.prefetch_related('graphs', 'graphs__annotation')
+    # get all the graphs
+    graph_ids_current_page = []
+    for ids in hands_ids:
+        graph_ids_current_page.extend(ids[1:])
+    
+    # get all the graphs on this page
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'annotation').order_by('hand__scribe__name', 'hand__id')
+    
+    # now organise the output by hand and attach their graphs to it
+    ret = []
+    hand = None
+    for graph in graphs:
+        if not hand or graph.hand_id != hand.id:
+            hand = graph.hand
+            ret.append(hand)
+            hand.graphs_template = []
+        hand.graphs_template.append(graph)
         
     return ret
 

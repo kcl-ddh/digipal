@@ -77,7 +77,7 @@
                         {{ graphs_count }} Graphs grouped into {{ hand_ids|length }} Hands.
                         {% autopaginate hand_ids 18 %}
                         {% chrono "load graphs:" %}
-                        {% load_hands hand_ids as hands %}
+                        {% load_hands 'hand_ids' as hands %}
                         {% chrono ":load_graphs" %}
                     </div>
                     
@@ -115,7 +115,7 @@
                                                 <div class='span2 panel image' style='margin-left:0;padding-left:0;padding-top:0;margin-top:0;margin-bottom:0;padding-bottom:0;'>
                                                     <dl class="imageDatabase">
                                                         <dt>
-                                                            {% for graph in hand.graphs.all %}
+                                                            {% for graph in hand.graphs_template %}
                                                                 {% if forloop.counter < 10 %}
                                                                     <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                                         {{ graph.annotation.thumbnail }}
@@ -154,7 +154,7 @@
                                     {% for hand in hands %}
                                         <tr class="{% cycle 'bgColour' '' %}">
                                             <td>
-                                                {% for graph in hand.graphs.all %}
+                                                {% for graph in hand.graphs_template %}
                                                     <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                         {{ graph.annotation.thumbnail }}
                                                     </a>

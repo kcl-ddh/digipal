@@ -201,17 +201,26 @@ def allographHandSearch(request):
         
         t2 = datetime.now()
     
-        context['hand_ids'] = graphs.order_by('hand__scribe__name', 'hand__id')
+        #context['hand_ids'] = graphs.order_by('hand__scribe__name', 'hand__id')
+        graph_ids = graphs.distinct().order_by('hand__scribe__name', 'hand__id').values_list('id', 'hand_id')
+        
+        context['hand_ids'] = [[0]]
+        last = 0
+        for g in graph_ids:
+            if g[1] != context['hand_ids'][-1][0]:
+                context['hand_ids'].append([g[1]])
+            context['hand_ids'][-1].append(g[0])
+        del(context['hand_ids'][0])
 
         # Get the id of all the related Hands
         # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
         # That will be done after pagination in the template
         # Distinct is needed here.
-        context['hand_ids'] = context['hand_ids'].distinct().values_list('hand_id', flat=True)
+        #context['hand_ids'] = context['hand_ids'].distinct().values_list('hand_id', flat=True)
         
         t3 = datetime.now()
 
-        context['graphs_count'] = Graph.objects.filter(hand_id__in=context['hand_ids']).count()
+        context['graphs_count'] = len(graph_ids)
         
         t4 = datetime.now()
         

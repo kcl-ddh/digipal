@@ -1374,7 +1374,7 @@ class DateEvidence(models.Model):
 
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
-    hand = models.ForeignKey(Hand)
+    hand = models.ForeignKey(Hand, related_name='graphs')
     aspects = models.ManyToManyField(Aspect)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)

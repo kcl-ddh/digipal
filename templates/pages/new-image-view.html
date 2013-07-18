@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+{% load mezzanine_tags pagination_tags hand_filters %}
 
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -13,9 +13,7 @@
 {% endblock %}
 
 {% block main %}
-
-    {% regroup graphs by hand as handlist %}
-    {% autopaginate handlist 18 %}
+    {% chrono "start template:" %}
 
     <div class="row-fluid">
 
@@ -23,16 +21,17 @@
              {% with r=results|first %}
                 <h1 class='header1'>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
              {% endwith %}
-        {% else %}
-             <h1 class='header1'>Results for <i>Graphs</i></h1>
         {% endifnotequal %}
            
         {% ifequal style "allograph_list" %} 
-            <!-- Display list view -->
+            <h1 class='header1'>Results for <i>Graphs</i></h1>
         
             <div class="panel" id='filtersform' style='display:block;'>
                 <h5 class='header5'>Filter Graphs Attributes:</h5>
                 {% comment %}TODO: this empty form should be removed, find out why it is needed. {% endcomment %}
+                
+                {% chrono "form:" %}
+                
                 <form></form>
                 <form id='filterGraphs' class='container form-inline'  method="GET" action="/digipal/search/graph">
                     <ul id="drilldownformID">
@@ -41,11 +40,15 @@
                             |<div style="display: none; visibility: hidden;"><select name="terms" class="hidden" style="display: none; visibility: hidden;"><option selected="selected" value="{{ request.GET.terms }}">{{ request.GET.terms }}</option></select></div>
                         {% endif %}  
                     </ul>
-                    <div class='container'>
+                    <div>
+                        <input type="hidden" value="1" name="submitted" />
                         <input type="submit" value="Show Graphs" class='btn btn-primary' />
                         <input type='reset' class='btn' id="reset"/>
                     </div>
                 </form> 
+
+                {% chrono ":form" %}
+                
             </div>
             
             <div class="breadcrumb" style="margin-top:0;margin-bottom:5px;">
@@ -55,110 +58,136 @@
                 {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</b></span>{% endif %}
                 {% if request.GET.allograph_select %}| <span><b>Allograph: </b></span><span>{{ request.GET.allograph_select }}</span>{% endif %}
             </div>
+
+            {% chrono ":breadcrumb" %}
     
-            <div class='container'>
-                <div class='span2 pull-right' id='myTab'>
-                    <ul class="nav nav-pills">
-                        <li class="{% if view == 'Images' %}active{% endif %}">
-                            <a data-toggle="tooltip" title='Change Graphs View to Images' href="#images">Images</a>
-                        </li>
-                        <li class="{% if view == 'List' %}active{% endif %}">
-                            <a data-toggle="tooltip" title='Change Graphs View to List' href="#list">List</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-    
-            {% if page_list %}
-                <div class='container'>
-                    <div class="tab-content">
-                        <div class="tab-pane fade {% if view == 'Images' %}active in{% endif %}" id="images">
-                            
-                            {% paginate %}
-                            
-                            <div id="centering">
-        
-                                {% for hand in handlist %}
+            {% if submitted %}
                 
-                                    {% if forloop.counter|divisibleby:6 %}
-                                        <div class='row-fluid'>
-                                    {% endif %}
-                                            <div class='span2 panel image' style='margin-left:0;padding-left:0;padding-top:0;margin-top:0;margin-bottom:0;padding-bottom:0;'>
-                                                <dl class="imageDatabase">
-                                                    <dt>
-                                                        {% for graph in hand.list %}
-                                                            {% if forloop.counter < 10 %}
-                                                                <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">
-                                                                    {{ graph.annotation.thumbnail }}
-                                                                </a>
-                                                            {% endif %}
-                                                        {% endfor %}   
-                                                    </dt>
-                                                    <dd>
-                                                        <p><b>{{ hand.grouper }}</b></p>
-                                                    </dd>               
-                                                </dl>
-                                            </div>
-                                    {% if forloop.counter|divisibleby:6 %}
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            
+                {% chrono "submitted:" %}
+                
+                {% if not hand_ids %}
+                    <div class='alert alert-warning'>
+                        <h3>No result found</h3>
+                    </div>
+                {% else %}
+
+                    {% chrono "pagination and loading:" %}
+                
+                    <div class="container">
+                        {{ graphs_count }} Graphs grouped into {{ hand_ids|length }} Hands.
+                        {% autopaginate hand_ids 18 %}
+                        {% chrono "load graphs:" %}
+                        {% load_hands hand_ids as hands %}
+                        {% chrono ":load_graphs" %}
+                    </div>
+                    
+                    <div class="container">
+                        <div class="span10">
                             {% paginate %}
+                        </div>
+                        
+                        <div class='span2 pull-right'>
+                            <ul class="nav nav-pills" id='myTab'>
+                                <li class="{% if view == 'Images' %}active{% endif %}">
+                                    <a data-toggle="tooltip" title='Change Graphs View to Images' href="#images">Images</a>
+                                </li>
+                                <li class="{% if view == 'List' %}active{% endif %}">
+                                    <a data-toggle="tooltip" title='Change Graphs View to List' href="#list">List</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+        
+                    <div class='tabbable'>
+                        <div class="tab-content">
                             
-                        {% else %}
-                            <div class='alert alert-warning'>
-                                <h3>No Images available</h3>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="tab-pane fade {% if view == 'List' %}active in{% endif %}" id="list">
-                    
-                        {% paginate %}
+                            {% chrono "grid tab:" %}
                         
-                        <table class="table table-condensed">
-                            <tr>
-                                <th>Graphs</th>
-                                <th>Hand</th>
-                                <th>Scribe</th>
-                                <th>Place</th>
-                                <th>Date</th>
-                                <th>Repository</th>
-                                <th>Shelfmark</th>
-                                <th>Catalogue Number</th>
-                            </tr>
-                            {% for hand in handlist %}
-                                <tr class="{% cycle 'bgColour' '' %}">
-                                    <td>
-                                        {% for graph in hand.list %}
-                                            <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">
-                                                {{ graph.annotation.thumbnail }}
-                                            </a>
-                                        {% endfor %}
-                                    </td>
-                                    <td>{{ hand.grouper }}</td>
-                                    <td>{{ hand.grouper.scribe }}</td>
-                                    <td>{{ hand.grouper.assigned_place }}</td>
-                                    <td>{{ hand.grouper.assigned_date }}</td>
-                                    <td>{{ hand.grouper.item_part.current_item.repository.name }}</td>
-                                    <td>{{ hand.grouper.item_part.current_item.shelfmark }}</td>
-                                    <td>{{ hand.grouper.item_part.historical_item.catalogue_number }}</td>
-                                </tr>
-                            {% empty %} 
-                                <td>No records to display.<td>
-                            {% endfor %}
-                        </table>
-                        
-                        {% paginate %}
-                        
-                    </div>
-                </div>
-     
-                <!--SCARTO DUE -->
+                            <div class="tab-pane fade {% if view == 'Images' %}active in{% endif %}" id="images">
+                                
+                                <div id="centering">
             
-            </div>
+                                    {% for hand in hands %}
+                    
+                                        {% if forloop.counter|divisibleby:6 %}
+                                            <div class='row-fluid'>
+                                        {% endif %}
+                                                <div class='span2 panel image' style='margin-left:0;padding-left:0;padding-top:0;margin-top:0;margin-bottom:0;padding-bottom:0;'>
+                                                    <dl class="imageDatabase">
+                                                        <dt>
+                                                            {% for graph in hand.graphs.all %}
+                                                                {% if forloop.counter < 10 %}
+                                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                                        {{ graph.annotation.thumbnail }}
+                                                                    </a>
+                                                                {% endif %}
+                                                            {% endfor %}   
+                                                        </dt>
+                                                        <dd>
+                                                            <p><b>{{ hand }}</b></p>
+                                                        </dd>               
+                                                    </dl>
+                                                </div>
+                                        {% if forloop.counter|divisibleby:6 %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                
+                            </div>
+                        
+                            {% chrono "table tab:" %}
+                            
+                            <div class="tab-pane fade {% if view == 'List' %}active in{% endif %}" id="list">
+                            
+                                <table class="table table-condensed">
+                                    <tr>
+                                        <th>Graphs</th>
+                                        <th>Hand</th>
+                                        <th>Scribe</th>
+                                        <th>Place</th>
+                                        <th>Date</th>
+                                        <th>Repository</th>
+                                        <th>Shelfmark</th>
+                                        <th>Catalogue Number</th>
+                                    </tr>
+                                    {% for hand in hands %}
+                                        <tr class="{% cycle 'bgColour' '' %}">
+                                            <td>
+                                                {% for graph in hand.graphs.all %}
+                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                        {{ graph.annotation.thumbnail }}
+                                                    </a>
+                                                {% endfor %}
+                                            </td>
+                                            <td>{{ hand }}</td>
+                                            <td>{{ hand.scribe }}</td>
+                                            <td>{{ hand.assigned_place }}</td>
+                                            <td>{{ hand.assigned_date }}</td>
+                                            <td>{{ hand.item_part.current_item.repository.name }}</td>
+                                            <td>{{ hand.item_part.current_item.shelfmark }}</td>
+                                            <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+                                        </tr>
+                                    {% empty %} 
+                                        <td>No records to display.<td>
+                                    {% endfor %}
+                                </table>
+                                
+                            </div>
+                        
+                        </div>
+                        
+                        {% chrono ":table tab" %}
+                        
+                        <div class="span10">
+                            {% paginate %}
+                        </div>
+                        
+                    </div>
+                {% endif %}
+            
+            {% endif %}
+            
         {% endifequal %}
     </div>
     
@@ -190,4 +219,7 @@
         show_filters = 1;
     </script>
     
+    {% chrono ":end template" %}
+
 {% endblock %}
+

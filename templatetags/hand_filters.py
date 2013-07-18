@@ -23,6 +23,7 @@ from django.utils.text import normalize_newlines
 from django.template.defaultfilters import stringfilter
 from urllib import unquote
 from hashlib import sha1
+from datetime import datetime
 
 register = Library()
 
@@ -108,3 +109,35 @@ def tei(value):
     value = mark_safe(value)
     
     return value
+
+@register.assignment_tag
+def load_hands(hand_ids):
+    ''' 
+        Usage:
+            {% load_hands hand_ids as hands %}
+        
+        Loads all the Hand (and preload child graphs and annotations) into the hands template variable.
+    '''
+
+    from digipal.models import Hand
+    ret = Hand.objects.filter(id__in=hand_ids).order_by('scribe__name', 'id').prefetch_related('graphs', 'graphs__annotation')
+        
+    return ret
+
+@register.simple_tag
+def chrono(label):
+    '''
+        Used to measure how much time is spent rendering parts of any template
+         
+        Usage:
+            {% chrono:"before listing" %}
+        In debug mode it will print this on the std output:
+            before listing: CURRENT DATE TIME
+    '''
+    if getattr(settings, 'DEV_SERVER', False): 
+        t = datetime.now()
+        d = t - chrono.last_time
+        chrono.last_time = t
+        print '%40s %5.4f s.  (%s)' % (label, d.total_seconds(), t)
+    return''
+chrono.last_time = datetime.now()

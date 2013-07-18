@@ -140,76 +140,104 @@ def get_cms_url_from_slug(slug):
 
 def allographHandSearch(request):
     """ View for Hand record drill-down """
-    term = request.GET.get('terms', '')
-    allograph = request.GET.get('allograph_select', '')
-    character = request.GET.get('character_select', '')
-    # Adding 2 new filter values...
-    feature = request.GET.get('feature_select', '')
-    component = request.GET.get('component_select', '')
-
     context = {}
+
+    term = request.GET.get('terms', '').strip()
+    script = request.GET.get('script_select', '')
+    character = request.GET.get('character_select', '')
+    allograph = request.GET.get('allograph_select', '')
+    component = request.GET.get('component_select', '')
+    feature = request.GET.get('feature_select', '')
+    context['submitted'] = request.GET.get('submitted', '') or term or script or character or allograph or component or feature
     context['style']= 'allograph_list'
     context['term'] = term
-
-    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id').filter(
-            Q(descriptions__description__icontains=term) | \
-            Q(scribe__name__icontains=term) | \
-            Q(assigned_place__name__icontains=term) | \
-            Q(assigned_date__date__icontains=term) | \
-            Q(item_part__current_item__shelfmark__icontains=term) | \
-            Q(item_part__current_item__repository__name__icontains=term) | \
-            Q(item_part__historical_item__catalogue_number__icontains=term))
-    handlist = []
-    for h in hand_ids:
-        handlist.insert(0, h.id)
-
-    graphs = Graph.objects.filter(hand__in=handlist)
-
-    if character:
-        graphs = graphs.filter(
-            idiograph__allograph__character__name=character)
-        context['character'] = Character.objects.get(name=character)
-    if allograph:
-        graphs = graphs.filter(
-            idiograph__allograph__name=allograph)
-        context['allograph'] = Allograph.objects.filter(name=allograph)
-    if component:
-        graphs = graphs.filter(
-            graph_components__component__name=component)
-        context['component'] = Component.objects.get(name=component)
-    if feature:
-        graphs = graphs.filter(
-            graph_components__features__name=feature)
-        context['feature'] = Feature.objects.get(name=feature)
-
-    graphs = graphs.distinct().order_by('hand__scribe__name','hand__id')
-    context['drilldownform'] = DrilldownForm()
-    context['graphs'] = graphs
-
-    page = request.GET.get('page')
-  
-    paginator = Paginator(graphs, 24)
     
-    try:
-        page_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        page_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        page_list = paginator.page(paginator.num_pages)
+    from datetime import datetime
+    
+    t0 = datetime.now()
+    t4 = datetime.now()
+    
+    if context['submitted']:
+        # .order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+        # Although we are listing hands on the front-end, we search for graphs and not for hand.
+        # Two reasons: 
+        #    searching for character and allograh at the same time through a Hand model would generate two separate joins to graph
+        #        this would bring potentially invalid results and it is also much slower
+        #    it is faster than excluding all the hands without a graph (yet another expensive join)
+        #
+        if term:
+            graphs = Graph.objects.filter(
+                    Q(hand__descriptions__description__icontains=term) | \
+                    Q(hand__scribe__name__icontains=term) | \
+                    Q(hand__assigned_place__name__icontains=term) | \
+                    Q(hand__assigned_date__date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
+        else:
+            graphs = Graph.objects.all()
+            
+        t1 = datetime.now()
+    
+        if script:
+            graphs = graphs.filter(hand__script__name=script)
+            context['script'] = Script.objects.get(name=script)
+        if character:
+            graphs = graphs.filter(
+                idiograph__allograph__character__name=character)
+            context['character'] = Character.objects.get(name=character)
+        if allograph:
+            graphs = graphs.filter(
+                idiograph__allograph__name=allograph)
+            context['allograph'] = Allograph.objects.filter(name=allograph)
+        if component:
+            graphs = graphs.filter(
+                graph_components__component__name=component)
+            context['component'] = Component.objects.get(name=component)
+        if feature:
+            graphs = graphs.filter(
+                graph_components__features__name=feature)
+            context['feature'] = Feature.objects.get(name=feature)
+        
+        t2 = datetime.now()
+    
+        context['hand_ids'] = graphs.order_by('hand__scribe__name', 'hand__id')
 
-    context['page_list'] = page_list
+        # Get the id of all the related Hands
+        # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
+        # That will be done after pagination in the template
+        # Distinct is needed here.
+        context['hand_ids'] = context['hand_ids'].distinct().values_list('hand_id', flat=True)
+        
+        t3 = datetime.now()
+
+        context['graphs_count'] = Graph.objects.filter(hand_id__in=context['hand_ids']).count()
+        
+        t4 = datetime.now()
+        
+        #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
+        
+    context['drilldownform'] = DrilldownForm()
 
     try:
         context['view'] = request.COOKIES['view']
     except:
         context['view'] = 'Images'
 
-    return render_to_response(
+    t5 = datetime.now()
+    
+    ret = render_to_response(
         'pages/new-image-view.html',
         context,
         context_instance=RequestContext(request))
+    
+    t6 = datetime.now()
+    
+    #print 'hands values_list(id) %s' % (t5 - t4)
+    #print 'template %s' % (t6 - t5)
+    #print 'total %s' % (t6 - t0)
+
+    return ret
 
 
 def allographHandSearchGraphs(request):

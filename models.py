@@ -209,7 +209,7 @@ class Allograph(models.Model):
 
 
 class AllographComponent(models.Model):
-    allograph = models.ForeignKey(Allograph)
+    allograph = models.ForeignKey(Allograph, related_name="allograph_components")
     component = models.ForeignKey(Component)
     features = models.ManyToManyField(Feature, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)

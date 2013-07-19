@@ -130,9 +130,10 @@ def load_hands(context, var_name):
         graph_ids_current_page.extend(ids[1:])
     
     # get all the graphs on this page
-    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'annotation').order_by('hand__scribe__name', 'hand__id')
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'annotation').order_by('hand__scribe__name', 'hand__id', 'id')
     
     # now organise the output by hand and attach their graphs to it
+    # tbhis assumes that graphs are sorted by hand id
     ret = []
     hand = None
     for graph in graphs:

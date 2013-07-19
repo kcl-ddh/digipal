@@ -178,7 +178,10 @@ def allographHandSearch(request):
             graphs = Graph.objects.all()
             
         t1 = datetime.now()
+        
+        combine_component_and_feature = True
     
+        wheres = []
         if script:
             graphs = graphs.filter(hand__script__name=script)
             context['script'] = Script.objects.get(name=script)
@@ -191,19 +194,33 @@ def allographHandSearch(request):
                 idiograph__allograph__name=allograph)
             context['allograph'] = Allograph.objects.filter(name=allograph)
         if component:
-            graphs = graphs.filter(
-                graph_components__component__name=component)
+            wheres.append(Q(graph_components__component__name=component) | Q(idiograph__allograph__allograph_components__component__name=component))
             context['component'] = Component.objects.get(name=component)
         if feature:
-            graphs = graphs.filter(
-                graph_components__features__name=feature)
+            wheres.append(Q(graph_components__features__name=feature))
             context['feature'] = Feature.objects.get(name=feature)
+
+        # ANDs all the Q() where clauses together
+        if wheres:
+            where_and = wheres.pop(0)
+            for where in wheres:
+                where_and = where_and & where    
+            
+            graphs = graphs.filter(where_and)
         
         t2 = datetime.now()
     
-        #context['hand_ids'] = graphs.order_by('hand__scribe__name', 'hand__id')
-        graph_ids = graphs.distinct().order_by('hand__scribe__name', 'hand__id').values_list('id', 'hand_id')
+        # Get the graphs then id of all the related Hands
+        # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
+        # That will be done after pagination in the template
+        # Distinct is needed here.
+        graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id')
+        #print graphs.query
+        graph_ids = graphs.values_list('id', 'hand_id')
         
+        # Build a structure that groups all the graph ids by hand id
+        # context['hand_ids'] = [[1, 101, 102], [2, 103, 104]]
+        # In the above we have two hands: 1 and 2. For hand 1 we have Graph 101 and 102.
         context['hand_ids'] = [[0]]
         last = 0
         for g in graph_ids:
@@ -212,12 +229,6 @@ def allographHandSearch(request):
             context['hand_ids'][-1].append(g[0])
         del(context['hand_ids'][0])
 
-        # Get the id of all the related Hands
-        # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
-        # That will be done after pagination in the template
-        # Distinct is needed here.
-        #context['hand_ids'] = context['hand_ids'].distinct().values_list('hand_id', flat=True)
-        
         t3 = datetime.now()
 
         context['graphs_count'] = len(graph_ids)

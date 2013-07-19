@@ -22,7 +22,10 @@
 
 {% block annotations %}
 <div class='container'>
-    <h2 class='header1'>{{page|capfirst}}</h2>
+    <h2 class='header1'>
+        {% if page.item_part.pagination %}Page{% else %}Folio{% endif %}: 
+        {{page|capfirst}}
+    </h2>
     {% if no_image_reason %}
         <p>
             {{ no_image_reason }}
@@ -43,7 +46,7 @@
               </ul>
           </div>
           <div class='span3 pull-right'>
-            <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This record has {{ page.item_part.pages.count }}
+            <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ page.item_part.pages.count }}
              {% if page.item_part.pages.count == 1 %} 
               <span style='font-weight:bold'>image</span></span>
               {% else %}

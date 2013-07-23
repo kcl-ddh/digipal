@@ -11,7 +11,7 @@
         <tr class="{% cycle 'bgColour' '' %}">
             <td>{{ scribe.name }} 
                 {% if scribe.pages.all %}
-                    <a class='imageIcon' href="{% filter update_query_strings:request.META.QUERY_STRING %}?id={{ scribe.id }}&result_type={{template_type}}{% endfilter %}" title='{{page}}'>
+                    <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}&from_image=true{% endfilter %}" title='{{page}}'>
                         <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.pages.count}} images' />
                     </a> 
                     ({{scribe.pages.count}})
@@ -23,7 +23,7 @@
                 {% if can_edit %}
                     <a class="btn" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
                 {% endif %}
-                <a class="btn btn-primary" href="{% filter update_query_strings_in_filter:request.META.QUERY_STRING %}?id={{ scribe.id }}&result_type={{template_type}}{% endfilter %}">View</a>
+                <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
             </td>
         </tr>
     {% endfor %}

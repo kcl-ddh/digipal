@@ -7,8 +7,8 @@
 {% block record_tabs %}
     <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
     <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
-    <li><a href="#pages" data-toggle="tab">Pages ({{ result.pages.all.count }})</a></li>
-    <li><a href="#graphs" data-toggle="tab">Graphs ({{ result.graph_set.count }})</a></li>
+    <li><a href="#pages" data-toggle="tab">Pages ({{ result.pages.count }})</a></li>
+    <li><a href="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
 
 {% block details %}

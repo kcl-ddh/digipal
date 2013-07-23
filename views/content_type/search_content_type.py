@@ -55,24 +55,29 @@ class SearchContentType(object):
         # TODO: optimise this, we should not have to retrieve the whole result 
         # to find prev and next record ids
         ret = {}
-        base_url = '?' + request.META['QUERY_STRING']
+        if 'results' not in context:
+            return
+        
+        query_string = '?' + request.META['QUERY_STRING']
         ret['total'] = context['results'].count()
         
         # index
         index = 0
-        for r in context['results']:
-            if ('%s' % r.id) == ('%s' % context['id']): break
+        record = None
+        for record in context['results']:
+            if ('%s' % record.id) == ('%s' % context['id']): break
             index += 1
         
         # prev
         if index > 0:
-            ret['previous_url'] = update_query_string(base_url, 'id=%s' % context['results'][index - 1].id)
+            ret['previous_url'] = context['results'][index - 1].get_absolute_url() + query_string
         
         # next
         if index < (ret['total'] - 1):
-            ret['next_url'] = update_query_string(base_url, 'id=%s' % context['results'][index + 1].id)
+            ret['next_url'] = context['results'][index + 1].get_absolute_url() + query_string
         
-        ret['no_record_url'] = update_query_string(base_url, 'id=')
+        # TODO: the URL of the search page shoudn't be hard-coded here
+        ret['no_record_url'] = u'/digipal/search/' + query_string
         ret['index1'] = index + 1
         
         context['pagination'] = ret 

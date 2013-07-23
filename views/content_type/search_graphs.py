@@ -13,7 +13,7 @@ class SearchGraphs(SearchContentType):
     def set_record_view_context(self, context):
         from django.utils.datastructures import SortedDict
         p = Hand.objects.get(id=context['id'])
-        c = p.graph_set.model.objects.get(id=p.id)
+        #c = p.graph_set.model.objects.get(id=p.id)
         annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
         data = SortedDict()
         for annotation in annotation_list:

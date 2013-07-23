@@ -139,15 +139,6 @@ def scribe_details(request):
     Get Idiograph, Graph, and Page data for a Scribe,
     for display in a record view
     """
-    #scribe = Scribe.objects.get(id=request.GET.get('id'))
-    #idiograph_components = IdiographComponent.objects.filter(
-    #    idiograph__in=Scribe.objects.get(
-    #        id=scribe.id).idiograph_set.distinct()).order_by('idiograph').all()
-    #idiographs = list(set([ic.idiograph for ic in idiograph_components]))
-    #graphs = Graph.objects.filter(
-    #    idiograph__in=idiographs)
-    #return idiograph_components, graphs
-
     scribe = Scribe.objects.get(id=request.GET.get('id'))
     idiographs = Idiograph.objects.filter(scribe=scribe.id)
     graphs = Graph.objects.filter(

@@ -84,7 +84,7 @@
             <div class='container'>
                 <ul class="nav nav-tabs" id='myTab'>
                     {% for type in types %}
-                        <li class="{% if result_type == type.key %}active{% else %}disabled{% endif %}">
+                        <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
                             <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.count|default:'0'}})</a>
                         </li>
                     {% endfor %}
@@ -100,13 +100,13 @@
                             {% else %}
                                 {% autopaginate type.queryset 9 as records%}
                                 
-                                {% filter update_query_strings:type.result_type_qs%}
+                                {% filter update_query_params:type.result_type_qs%}
                                     {% paginate %}
                                 {% endfilter %}
                                 
                                 {% include type.template_path with template_type=type.key%}
                                 
-                                {% filter update_query_strings:type.result_type_qs%}
+                                {% filter update_query_params:type.result_type_qs%}
                                     {% paginate %}
                                 {% endfilter %}
                                 

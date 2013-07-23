@@ -924,6 +924,11 @@ class ItemPart(models.Model):
         self.display_label = get_list_as_string(self.current_item, ', ', self.locus) 
         super(ItemPart, self).save(*args, **kwargs)
 
+''' This is used to build the front-end URL of the item part objects
+    See set_models_absolute_urls()
+'''
+ItemPart.public_module_name = 'Manuscript'
+
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -1031,7 +1036,6 @@ class Page(models.Model):
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time? 
         if (self.item_part):
-            #self.display_label = u'%s: %s' % (self.item_part, self.locus)
             self.display_label = get_list_as_string(self.item_part, ': ', self.locus) 
         else:
             self.display_label = u''
@@ -1040,23 +1044,7 @@ class Page(models.Model):
     def path(self):
         """Returns the path of the image on the image server. The server path
         is composed by combining repository/shelfmark/locus."""
-        #raise RuntimeError('deprecated, partial URL is encapsulated by the iipimage field.')
-        #dplog.debug(self.iipimage.storage.base_url)
-        #print dir(self.iipimage.storage)
         return self.iipimage.name
-
-#        repository = self.item_part.current_item.repository.short_name
-#        shelfmark = self.item_part.current_item.shelfmark
-#
-#        if repository and shelfmark:
-#            repository = normalize_string(repository)
-#            shelfmark = normalize_string(shelfmark)
-#            locus = normalize_string(self.locus)
-#
-#            path = u'%s/%s/%s/%s.%s' % (settings.IMAGE_SERVER_WEB_ROOT,
-#                    repository, shelfmark, locus, settings.IMAGE_SERVER_EXT)
-#
-#        return path
 
     def dimensions(self):
         """Returns a tuple with the image width and height."""
@@ -1069,25 +1057,6 @@ class Page(models.Model):
             width, height = self.iipimage._get_image_dimensions()
         
         return int(width), int(height)
-#        if self.path():
-#            h = httplib.HTTPConnection(settings.IMAGE_SERVER_HOST)
-#            h.request('GET', settings.IMAGE_SERVER_METADATA % \
-#                    (settings.IMAGE_SERVER_PATH, self.path()))
-#            response = h.getresponse()
-#
-#            if response:
-#                message = response.read().strip()
-#                matches = re.match(settings.IMAGE_SERVER_METADATA_REGEX,
-#                        message)
-#
-#                if matches:
-#                    width = matches.group(1)
-#                    height = matches.group(2)
-#        elif self.image:
-#            width = self.image.width
-#            height = self.image.height
-#
-#        return int(width), int(height)
 
     def full(self):
         """Returns the URL for the full size image.
@@ -1102,15 +1071,6 @@ class Page(models.Model):
                             self.path())
             
         return path
-    
-#        if self.path():
-#            src = settings.IMAGE_SERVER_FULL % \
-#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-#                            self.path())
-#        elif self.image:
-#            src = self.image.url
-#
-#        return src
 
     def thumbnail(self):
         """Returns HTML to display the page image as a thumbnail."""
@@ -1119,15 +1079,6 @@ class Page(models.Model):
             src = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
             ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src)))
         return ret
-                
-#        dplog.debug('thmb')
-#        if self.path():
-#            src = settings.IMAGE_SERVER_THUMBNAIL % \
-#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-#                            self.path())
-#            return mark_safe(u'<img src="%s" />' % (src))
-#        elif self.image:
-#            return thumbnail(self.image)
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
@@ -1140,13 +1091,6 @@ class Page(models.Model):
                 (self.full(), self.thumbnail()))
         return ret
         
-#        if self.path():
-#            return mark_safe(u'<a href="%s">%s</a>' % \
-#                    (self.full(), self.thumbnail()))
-#        elif self.image:
-#            return mark_safe(u'<a href="%s">%s</a>' % (self.image.url,
-#                thumbnail(self.image)))
-
     thumbnail_with_link.short_description = 'Thumbnail'
     thumbnail_with_link.allow_tags = True
 
@@ -1162,6 +1106,10 @@ class Page(models.Model):
         
 
         return zoomify
+''' This is used to build the front-end URL of the item part objects
+    See set_models_absolute_urls()
+'''
+Page.public_module_name = 'Page'
 
 
 def normalize_string(s):
@@ -1831,3 +1779,19 @@ class RequestLog(models.Model):
             path = request.build_absolute_uri()
             rl = cls(result_count=count, request=path)
             rl.save()
+
+# Assign get_absolute_urls() for all models /digipal/MODEL_PLURAL/ID
+# E.g. /digipal/scribes/101
+def set_models_absolute_urls():
+    def model_get_absolute_url(self):
+        from utils import plural
+        # get custom label if defined in _meta, otehrwise stick to module name
+        public_label = getattr(self, 'public_module_name', self._meta.module_name)
+        return '/%s/%s/%s/' % (self._meta.app_label, plural(public_label.lower(), 2), self.id)
+    
+    for attribute in globals().values():
+        # Among all the symbols accessible here, filter the Model defined in this module  
+        if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
+            attribute.get_absolute_url = model_get_absolute_url
+
+set_models_absolute_urls()

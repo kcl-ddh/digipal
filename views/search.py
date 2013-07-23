@@ -33,25 +33,97 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
-def search_page(request):
-    template = 'search/search_page_results.html'
-    
+def record_view(request, content_type='', objectid=''):
     context = {}
+    
+    # We need to do a search to show the next and previous record
+    # Only when we come from the the search page.
+    set_search_results_to_context(request, allowed_type=content_type, context=context)
+    
+    for type in context['types']:
+        if type.key == content_type:
+            context['id'] = objectid
+            type.set_record_view_context(context)
+            type.set_record_view_pagination_context(context, request)
+            break
+    
+    template = 'pages/record_' + content_type +'.html'
+    
+    return render_to_response(template, context, context_instance=RequestContext(request))
+
+def search_page_view(request):
+    # Backward compatibility.
+    #
+    # Previously all the record pages would go through this search URL and view
+    # and their URL was: 
+    #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
+    # Now we redirect those requests to the record page
+    #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
+    qs_id = request.GET.get('id', '')
+    qs_result_type = request.GET.get('result_type', '')
+    if qs_id and qs_result_type:
+        from django.shortcuts import redirect
+        # TODO: get digipal from current project name or current URL
+        redirect_url = '/%s/%s/%s/?%s' % ('digipal', qs_result_type, qs_id, request.META['QUERY_STRING'])
+        return redirect(redirect_url)
+    
+    # Actually run the searches
+    context = {}
+    set_search_results_to_context(request, context=context)
+
+    # Tab Selection Logic =
+    #     we pick the tab the user has selected
+    #     if none, we select a tab with non empty result
+    #        with preference for already selected tab 
+    #     if none we select the first type
+    result_type = request.GET.get('result_type', '')
+    if not result_type:
+        for type in context['types']:
+            if not type.is_empty:
+                result_type = type.key
+                if type.key == search_type:
+                    break
+    
+    result_type = result_type or context['types'][0].key
+    context['result_type'] = result_type
+
+    # No result at all?
+    for type in context['types']:
+        if not type.is_empty:
+            context['is_empty'] = False
+    if context['is_empty']:
+        context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+
+    # Initialise the search forms 
+    from django.utils import simplejson
+    context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
+    context['search_page_options_json'] = simplejson.dumps(get_search_page_js_data(context['types'], 'from_link' in request.GET))
+    
+    from digipal.models import RequestLog
+    RequestLog.save_request(request, sum([type.count for type in context['types']]))
+
+    return render_to_response('search/search_page_results.html', context, context_instance=RequestContext(request))
+
+def set_search_results_to_context(request, context={}, allowed_type=None):
+    
+    # This variable is used to restrict the search to one content type only.
+    # This is useful when we display a specific record page and we only
+    # have to search for the related content type to show the previous/next links.
+    #allowed_type = kwargs.get('allowed_type', None)
+    #context = kwargs.get('context', {})
+    
     context['terms'] = ''
     context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True
-    record_type = ''
 
     advanced_search_form = SearchPageForm(request.GET)
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
+    context['advanced_search_form'] = advanced_search_form
 
     if context['submitted'] and advanced_search_form.is_valid():
-        # TODO: if we are on the record page, don't do all the searches, only one
-        # TODO: review the phrase search to make more flexible 
-        
         # Read the inputs
         # - term
         term = advanced_search_form.cleaned_data['terms']
@@ -61,61 +133,11 @@ def search_page(request):
         search_type = advanced_search_form.cleaned_data['basic_search_type']
         context['search_type'] = search_type
         
-        # - specific record
-        #if request.GET.get('record', '') or request.GET.get('id', ''):
-        if request.GET.get('id', ''):
-            record_type = request.GET.get('result_type', '')
-        
-        # Searches by content types
+        # Run a search for each allowed content type.
+        # If allowed_types is None, search for each supported content type.
         for type in context['types']:
-            if record_type in ['', type.key]:
+            if allowed_type in [None, type.key]:
                 context['results'] = type.build_queryset(request, term)
-
-        # Tab Selection Logic =
-        #     we pick the tab the user has selected
-        #     if none, we select a tab with non empty result
-        #        with preference for already selected tab 
-        #     if none we select the first type
-        result_type = request.GET.get('result_type', '')
-        if not result_type:
-            for type in context['types']:
-                if not type.is_empty:
-                    result_type = type.key
-                    if type.key == search_type:
-                        break
-        
-        result_type = result_type or context['types'][0].key
-        context['result_type'] = result_type
-
-        # no result at all?
-        for type in context['types']:
-            if not type.is_empty:
-                context['is_empty'] = False
-        if context['is_empty']:
-            context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
-                    
-    # Distinguish between requests for one record and search results
-    if record_type:
-        context['id'] = request.GET.get('id', '')
-        #context['record'] = request.GET.get('record', '')
-        
-        for type in context['types']:
-            if type.key == record_type:
-                type.set_record_view_context(context)
-                type.set_record_view_pagination_context(context, request)
-        
-        template = 'pages/record_' + record_type +'.html'
-        
-    if not record_type:
-        from django.utils import simplejson
-        context['advanced_search_form'] = advanced_search_form
-        context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
-        context['search_page_options_json'] = simplejson.dumps(get_search_page_js_data(context['types'], 'from_link' in request.GET))
-        
-        from digipal.models import RequestLog
-        RequestLog.save_request(request, sum([type.count for type in context['types']]))
-    
-    return render_to_response(template, context, context_instance=RequestContext(request))
 
 def get_search_page_js_data(content_types, expanded_search=False):
     filters = []
@@ -336,4 +358,4 @@ def graphsSearch(request):
         'pages/graphs.html',
         context,
         context_instance=RequestContext(request))
-
+    

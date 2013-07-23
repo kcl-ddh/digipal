@@ -30,14 +30,20 @@ def anchorify(value):
     return mark_safe(re.sub(u'[-\s]+', u'-', value))
 
 @register.filter(is_safe=True)
-def update_query_strings(content, updates):
-    return update_query_strings_internal(content, updates)
+def update_query_params(content, updates):
+    ''' The query strings in the content are updated by the filter.
+        In case of conflict, the parameters in the filter always win.
+    '''
+    return update_query_params_internal(content, updates)
 
 @register.filter(is_safe=True)
-def update_query_strings_in_filter(content, updates):
-    return update_query_strings_internal(content, updates, True)
+def add_query_params(content, updates):
+    ''' The query strings in the content are updated by the filter.
+        In case of conflict, the parameters in the content always win.
+    '''
+    return update_query_params_internal(content, updates, True)
 
-def update_query_strings_internal(content, updates, url_wins=False):
+def update_query_params_internal(content, updates, url_wins=False):
     '''
         Update the query strings found in an HTML fragment.
         
@@ -49,7 +55,6 @@ def update_query_strings_internal(content, updates, url_wins=False):
         'href="http://www.mysite.com/path/?k1=v1&k5=v5" href="/home?k5=v5"'
         
     '''
-    
     if len(content.strip()) == 0: return content
     
     # find all the URLs in content
@@ -70,7 +75,7 @@ def update_query_strings_internal(content, updates, url_wins=False):
 def update_query_string(url, updates, url_wins=False):
     '''
         Replace parameter values in the query string of the given URL.
-        If url_wins is True, the query string values in [url] will always supercede the values from [updates].
+        If url_wins is True, the query string values in [url] will always supersede the values from [updates].
         
         E.g.
         
@@ -135,3 +140,7 @@ def urlencode(dict, doseq=0):
     ret = urllib.urlencode(d, doseq)
     return ret
 
+@register.filter
+def plural(value, count=2):
+    from utils import plural
+    return plural(value, count)

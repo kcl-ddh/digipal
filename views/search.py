@@ -71,28 +71,29 @@ def search_page_view(request):
     context = {}
     set_search_results_to_context(request, context=context)
 
-    # Tab Selection Logic =
-    #     we pick the tab the user has selected
-    #     if none, we select a tab with non empty result
-    #        with preference for already selected tab 
-    #     if none we select the first type
-    result_type = request.GET.get('result_type', '')
-    if not result_type:
+    if context.get('results', None):
+        # Tab Selection Logic =
+        #     we pick the tab the user has selected
+        #     if none, we select a tab with non empty result
+        #        with preference for already selected tab 
+        #     if none we select the first type
+        result_type = request.GET.get('result_type', '')
+        if not result_type:
+            for type in context['types']:
+                if not type.is_empty:
+                    result_type = type.key
+                    if type.key == context['search_type']:
+                        break
+        
+        result_type = result_type or context['types'][0].key
+        context['result_type'] = result_type
+
+        # No result at all?
         for type in context['types']:
             if not type.is_empty:
-                result_type = type.key
-                if type.key == search_type:
-                    break
-    
-    result_type = result_type or context['types'][0].key
-    context['result_type'] = result_type
-
-    # No result at all?
-    for type in context['types']:
-        if not type.is_empty:
-            context['is_empty'] = False
-    if context['is_empty']:
-        context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+                context['is_empty'] = False
+        if context['is_empty']:
+            context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the search forms 
     from django.utils import simplejson
@@ -130,8 +131,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None):
         context['terms'] = term or ' '
         
         # - search type
-        search_type = advanced_search_form.cleaned_data['basic_search_type']
-        context['search_type'] = search_type
+        context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
         
         # Run a search for each allowed content type.
         # If allowed_types is None, search for each supported content type.

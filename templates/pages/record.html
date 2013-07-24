@@ -3,6 +3,18 @@
 {% load mezzanine_tags html_escape %}
 
 {% block extra_js %}
+    <script type="text/javascript">
+        $(function() {
+            // We select the tab according to the anchor in the URL
+            // e.g. /digipal/manuscripts/533/#pages will open the 'pages' tab
+            var url = window.location.href;
+            var idx = url.indexOf("#");
+            var hash = idx != -1 ? url.substring(idx+1) : "";
+            if (hash) {
+                $('a[href=#'+hash+']').click();
+            }
+        });
+    </script>
 {% endblock %}
 
 {% block head %}

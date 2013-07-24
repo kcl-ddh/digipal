@@ -12,104 +12,93 @@
 {% endblock %}
 
 {% block details %}
-{% if request.GET.from_image == "true" %}
-<script>
-    $(document).ready(function($) {
-        $('#data').removeClass('active');
-        $('#myTab li[class=active]').removeClass('active');
-        $('#myTab li a[href=#pages]').parent().addClass('active')
-        $('#pages').addClass('in');
-        $('#pages').addClass('active');
-    });
-</script>
-{% endif %}
-<div class='tabbable'>
-    <div id='myTabContent' class='tab-content'>
-        <div class='tab-pane fade active in' id='data'>
-            <h3>Location</h3>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Repository</th>
-                        <td>{{ item_part.current_item.repository.name }}</td>
-                    </tr>
-                    <tr>
-                        <th>Town or City</th>
-                        <td>{{ item_part.current_item.repository.place }}</td>
-                    </tr>
-                    <tr>
-                        <th>Shelfmark</th>
-                        <td>
-                            {{ item_part.current_item.shelfmark }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <h3>Data</h3>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Date</th>
-                        <td>{{ item_part.historical_item.date }}</td>
-                    </tr>
-                    <tr>
-                        <th>Origin</th>
-                        <td>{% for data in item_part.historical_item.itemorigin_set.all %}
-                        <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
-                         {% endfor %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class='tab-pane fade' id='descriptions'>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>MS Name</th>
-                        <td>{{ item_part.historical_item.name }} </td>
-                    </tr>
-                    <tr>
-                        <th>Index</th>
-                        <td>{{ item_part.historical_item.catalogue_number }}</td>
-                    </tr>
-                    <tr>
-                        <th>MS Description</th>
-                        <td>
-                            {% for desc in item_part.historical_item.description_set.all %}
-                                <p>
-                                    {{ desc.description }}
-                                    <br/>
-                                    {{ desc.source.get_display_reference }}
-                                </p>
-                            {% endfor %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        {% include "pages/tab_pages.html" %}
-
-        <div class='tab-pane fade' id='hands'>
-            <div class='row-fluid'>
-                {% if hands.count %}
-                    <table class='table table-condensed'>
-                        <tbody>
-                            <tr><th>Hands</th></tr>
-                            {% for hand in hands %}
-                                <tr><td>{{ hand }}</td><tr>
-                            {% endfor %}
-                        <tbody>
-                    </table>
-                {% else %}
-                    <div class="alert alert-block">
-                        <h4>No hands available</h4>
-                    </div>
-                {% endif %}
+    <div class='tabbable'>
+        <div id='myTabContent' class='tab-content'>
+            <div class='tab-pane fade active in' id='data'>
+                <h3>Location</h3>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>Repository</th>
+                            <td>{{ item_part.current_item.repository.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Town or City</th>
+                            <td>{{ item_part.current_item.repository.place }}</td>
+                        </tr>
+                        <tr>
+                            <th>Shelfmark</th>
+                            <td>
+                                {{ item_part.current_item.shelfmark }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Data</h3>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>Date</th>
+                            <td>{{ item_part.historical_item.date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Origin</th>
+                            <td>{% for data in item_part.historical_item.itemorigin_set.all %}
+                            <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
+                             {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='tab-pane fade' id='descriptions'>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>MS Name</th>
+                            <td>{{ item_part.historical_item.name }} </td>
+                        </tr>
+                        <tr>
+                            <th>Index</th>
+                            <td>{{ item_part.historical_item.catalogue_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>MS Description</th>
+                            <td>
+                                {% for desc in item_part.historical_item.description_set.all %}
+                                    <p>
+                                        {{ desc.description }}
+                                        <br/>
+                                        {{ desc.source.get_display_reference }}
+                                    </p>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    
+            {% include "pages/tab_pages.html" %}
+    
+            <div class='tab-pane fade' id='hands'>
+                <div class='row-fluid'>
+                    {% if hands.count %}
+                        <table class='table table-condensed'>
+                            <tbody>
+                                <tr><th>Hands</th></tr>
+                                {% for hand in hands %}
+                                    <tr><td>{{ hand }}</td><tr>
+                                {% endfor %}
+                            <tbody>
+                        </table>
+                    {% else %}
+                        <div class="alert alert-block">
+                            <h4>No hands available</h4>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

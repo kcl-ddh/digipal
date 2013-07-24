@@ -150,6 +150,9 @@ def tag_phrase_terms(value, phrase=''):
     '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
     import re
 
+    # remove punctuation characters (but keep spaces and alphanums)
+    phrase = re.sub(ur'[^\w\s]', u'', phrase)
+
     # get terms from the phrase
     terms = re.split(ur'\s+', phrase.lower().strip())
     

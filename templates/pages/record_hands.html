@@ -68,43 +68,9 @@
                 {{ result.description|tei }}
             </div>       
         </div>
-        <div class='tab-pane fade' id='pages'>
-            {% if result.pages.all %}
-                {% for page in result.pages.all %}    
-                        {% if forloop.counter|divisibleby:4 %}
-                            <div class='row-fluid'> 
-                             {% if page.thumbnail %}
-                                <div class='span3' style='width:21%;margin:2%;'>
-                                    <dt>
-                                        <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                        </a>
-                                    </dt>
-                                    <dd>
-                                        <b>{{page}}</b>
-                                    </dd>
-                                </div>
-                            {% endif %}
-                            </div>
-                            {% else %}
-                                <div class='span3' style='width:21%;margin:2%;'>
-                                    <dt>
-                                        <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                        </a>
-                                    </dd>
-                                    <dd>
-                                        <b>{{page}}</b>
-                                    </dd>
-                                </div>
-                        {% endif %}
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-block">
-                    <h4>No Images available</h4>
-                </div>
-            {% endif %}
-            </div>
+
+        {% include "pages/tab_pages.html" with pages=result.pages.all %}
+
         <div class='tab-pane fade' id='graphs'>
             <div class="scribe annotations">
              {% if data %}

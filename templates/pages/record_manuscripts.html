@@ -89,50 +89,9 @@
                 </tbody>
             </table>
         </div>
-        <div class='tab-pane fade' id='pages'>
-            <div class='row-fluid'> 
-            {% if pages %}
-                {% for page in pages %} 
-                    {% if forloop.counter|divisibleby:4 %}
-                        {% if page.thumbnail %}
-                            <div class='row'>
-                                <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                    <dl class="imageDatabase">
-                                        <dt>
-                                            <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                        {{ page.thumbnail }}
-                                        </a>
-                                      </dt>
-                                      <dd>
-                                        <p>{{ page }}</p>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                    <dl class="imageDatabase">
-                                        <dt>
-                                            <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                        {{ page.thumbnail }}
-                                        </a>
-                                      </dt>
-                                      <dd>
-                                        <p>{{ page }}</p>
-                                        </dd>
-                                    </dl>
-                                </div>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
 
-                <div class="alert alert-block">
-                    <h4>No Images available</h4>
-                </div>
-            {% endif %}
-            </div>
-        </div>
+        {% include "pages/tab_pages.html" %}
+
         <div class='tab-pane fade' id='hands'>
             <div class='row-fluid'>
                 {% if hands.count %}

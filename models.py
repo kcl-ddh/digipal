@@ -927,7 +927,7 @@ class ItemPart(models.Model):
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
-ItemPart.public_module_name = 'Manuscript'
+ItemPart.webpath_key = 'Manuscripts'
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
@@ -1109,7 +1109,7 @@ class Page(models.Model):
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
-Page.public_module_name = 'Page'
+Page.webpath_key = 'Page'
 
 
 def normalize_string(s):
@@ -1786,8 +1786,8 @@ def set_models_absolute_urls():
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
-        public_label = getattr(self, 'public_module_name', self._meta.module_name)
-        return '/%s/%s/%s/' % (self._meta.app_label, plural(public_label.lower(), 2), self.id)
+        webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
+        return '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
     
     for attribute in globals().values():
         # Among all the symbols accessible here, filter the Model defined in this module  

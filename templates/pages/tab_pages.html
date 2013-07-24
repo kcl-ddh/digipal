@@ -1,0 +1,30 @@
+<div class='tab-pane fade' id='pages'>
+    <div class='row-fluid'>
+     
+        {% for page in pages %}
+         
+            {% if 0 and forloop.counter|divisibleby:4 %}
+                <div class="row">
+            {% endif %}
+                    <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
+                        <dl class="imageDatabase">
+                            <dt>
+                                <a class="imageDatabase" href="{{ page.get_absolute_url }}">
+                                    {{ page.thumbnail }}
+                                </a>
+                            </dt>
+                            <dd>
+                                <p>{{ page }}</p>
+                            </dd>
+                        </dl>
+                    </div>
+            {% if 0 and forloop.counter|divisibleby:4 %}
+                </div>
+            {% endif %}
+        {% empty %}
+            <div class="alert alert-block">
+                <h4>No Images available</h4>
+            </div>
+        {% endfor %}
+    </div>
+</div>

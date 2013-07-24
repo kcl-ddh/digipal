@@ -144,3 +144,23 @@ def urlencode(dict, doseq=0):
 def plural(value, count=2):
     from utils import plural
     return plural(value, count)
+
+@register.filter
+def tag_phrase_terms(value, phrase=''):
+    '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
+    import re
+
+    # get terms from the phrase
+    terms = re.split(ur'\s+', phrase.lower().strip())
+    
+    # Surround the occurrences of those terms in the value with a span (class="found-term")
+    # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
+    # e.g. 'G*' should highlight g and the rest of the word
+    # Here we have a simple implementation that look for exact and complete matches only.
+    # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
+    #         or headings.
+    for term in terms:
+        value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
+        value = value[1:]
+    
+    return value

@@ -104,7 +104,9 @@
                                     {% paginate %}
                                 {% endfilter %}
                                 
-                                {% include type.template_path with template_type=type.key%}
+                                {% filter tag_phrase_terms:terms %}
+                                    {% include type.template_path with template_type=type.key %}
+                                {% endfilter %}
                                 
                                 {% filter update_query_params:type.result_type_qs%}
                                     {% paginate %}

@@ -1072,12 +1072,18 @@ class Page(models.Model):
             
         return path
 
+    def thumbnail_url(self):
+        """Returns HTML to display the page image as a thumbnail."""
+        ret = ''
+        if self.iipimage:
+            ret = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
+        return ret
+
     def thumbnail(self):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
         if self.iipimage:
-            src = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src)))
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url())))
         return ret
 
     thumbnail.short_description = 'Thumbnail'
@@ -1460,11 +1466,26 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
+    def get_cutout_url(self):
+        ''' Returns the URL of the cutout.
+            Call this function instead of self.cutout, see JIRA 149.
+        '''
+        # graft the query string of self.cutout to self.page.thumbnail_url
+        # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
+        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.page, cgi.escape(self.cutout)))
+        from utils import update_query_string
+        cutout_qs = re.sub(ur'^(.*)\?(.*)$', ur'\2', self.cutout)
+        # This technique doesn't work because of the encoding:
+        # cutout_url = update_query_string(self.page.thumbnail_url(), cutout_qs)
+        # Just concatenate things together instead
+        image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.page.thumbnail_url())
+        return u'%s?%s' % (image_url, cutout_qs)
+        
     def thumbnail(self):
-        return mark_safe(u'<img alt="%s" src="%s" />' % (self.page, cgi.escape(self.cutout)))
+        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url()))
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.cutout),
+        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.get_cutout_url()),
             self.thumbnail()))
 
     thumbnail.short_description = 'Thumbnail'

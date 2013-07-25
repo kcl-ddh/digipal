@@ -13,6 +13,14 @@
             if (hash) {
                 $('a[href=#'+hash+']').click();
             }
+            
+            // Update the hash in the address bar when the tab is changed
+            // See JIRA 155 
+            $('#myTab a').click(function (e) {
+              e.preventDefault();
+              $(this).tab('show');
+              window.location.hash = $(this).attr('href');
+            });
         });
     </script>
 {% endblock %}

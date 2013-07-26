@@ -96,3 +96,8 @@ def urlencode(dict, doseq=0):
     ret = urllib.urlencode(d, doseq)
     return ret
 
+def get_json_response(data):
+    '''Returns a HttpResponse with the given data variable encoded as json'''
+    import json
+    from django.http import HttpResponse 
+    return HttpResponse(json.dumps(data), mimetype="application/json")

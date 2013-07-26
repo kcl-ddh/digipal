@@ -11,7 +11,8 @@ def quick_search(request):
 	return {'quick_search_form': SearchPageForm()}
 
 def suggestions(request):
-    
+    context = {}
+    '''
     hands = ItemPart.objects.filter(
         Q(locus__isnull=False) | \
         Q(current_item__shelfmark__isnull=False) | \
@@ -32,6 +33,7 @@ def suggestions(request):
     result = list(set(chain(hands, scribes, itemParts)))
 	
     context = {'suggestions': simplejson.dumps(result)}
+    '''
 
     return context
 

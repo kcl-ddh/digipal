@@ -71,7 +71,8 @@ def search_page_view(request):
     context = {}
     set_search_results_to_context(request, context=context)
 
-    if context.get('results', None):
+    # check if the search was executed or not (e.g. form not submitted or invalid form)
+    if context.has_key('results'):
         # Tab Selection Logic =
         #     we pick the tab the user has selected
         #     if none, we select a tab with non empty result
@@ -106,8 +107,15 @@ def search_page_view(request):
     return render_to_response('search/search_page_results.html', context, context_instance=RequestContext(request))
 
 def set_search_results_to_context(request, context={}, allowed_type=None):
+    ''' Read the information posted through the search form and create the queryset
+        for each relevant type of content (e.g. MS, Hand) => context['results']
+        
+        If the form was not valid or submitted, context['results'] is left undefined.
+        
+        Other context variables used by the search template are also set.        
+    '''    
     
-    # This variable is used to restrict the search to one content type only.
+    # allowed_type: this variable is used to restrict the search to one content type only.
     # This is useful when we display a specific record page and we only
     # have to search for the related content type to show the previous/next links.
     #allowed_type = kwargs.get('allowed_type', None)
@@ -133,7 +141,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None):
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
         
-        # Run a search for each allowed content type.
+        # Create the queryset for each allowed content type.
         # If allowed_types is None, search for each supported content type.
         for type in context['types']:
             if allowed_type in [None, type.key]:
@@ -358,4 +366,10 @@ def graphsSearch(request):
         'pages/graphs.html',
         context,
         context_instance=RequestContext(request))
-    
+
+def search_suggestions(request):
+    from digipal.utils import get_json_response
+    from content_type.search_content_type import SearchContentType
+    query = request.GET.get('q', '')
+    suggestions = SearchContentType().get_suggestions(query)
+    return get_json_response(suggestions)

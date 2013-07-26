@@ -83,8 +83,8 @@ class SearchContentType(object):
         context['pagination'] = ret 
 
     def get_fields_info(self):
-        from whoosh.fields import TEXT, ID
         ret = {}
+        from whoosh.fields import TEXT, ID
         ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'store_only': True}}
         ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type'}}
         return ret
@@ -111,15 +111,63 @@ class SearchContentType(object):
         
         term_fields = []
         boosts = {}
-        for field in self.get_fields_info().values():
-            if not field['whoosh'].get('ignore', False) and not field['whoosh'].get('store_only', False):
-                name = field['whoosh']['name']
-                term_fields.append(name)
-                boosts[name] = field['whoosh'].get('boost', 1.0)
+        if self.__class__ == SearchContentType:
+            # return all the fields in the schema
+            # TODO: remove type and ID!
+            term_fields = index.schema.names()
+        else:
+            for field in self.get_fields_info().values():
+                if not field['whoosh'].get('ignore', False) and not field['whoosh'].get('store_only', False):
+                    name = field['whoosh']['name']
+                    term_fields.append(name)
+                    boosts[name] = field['whoosh'].get('boost', 1.0)
         #parser = MultifieldParser(term_fields, index.schema, boosts)
         parser = MultifieldParser(term_fields, index.schema)
         return parser
+    
+    def get_suggestions(self, query):
+        ret = []
+        if query:
+            query = ur'%s*' % query
+            results = self.search_whoosh(query, matched_terms=True)
+            terms = {}
+            if results.has_matched_terms():
+                # e.g. set([('scribes', 'hand'), ('label', 'hands'), ('type', 
+                # 'hands'), ('description', 'handbook'), ('description', 
+                # 'hand'), ('name', 'hand'), ('description', 'handsom'), 
+                # ('label', 'hand')])
+                for term_info in results.matched_terms():
+                    terms[term_info[1]] = 1
+            self.close_whoosh_searcher()
+            ret = terms.keys()
+            ret = sorted(ret, key=lambda e: len(e))
+        return ret
+    
+    def get_whoosh_index(self):
+        from whoosh.index import open_dir
+        import os
+        return open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
+    
+    def search_whoosh(self, query, matched_terms=False):
+        ret = []
         
+        self.close_whoosh_searcher()
+        index = self.get_whoosh_index()
+        self.searcher = index.searcher()
+        
+        # TODO: custom weight, e.g. less for description
+        parser = self.get_parser(index)
+        query = parser.parse(query)
+        ret = self.searcher.search(query, limit=None, terms=matched_terms)
+        
+        return ret
+    
+    def close_whoosh_searcher(self):
+        searcher = getattr(self, 'searcher', None)
+        if searcher:
+            searcher.close()
+            self.searcher = None
+    
     def build_queryset(self, request, term):
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
@@ -130,79 +178,86 @@ class SearchContentType(object):
         from datetime import datetime
         t0 = datetime.now()
         
-        from whoosh.index import open_dir
-        import os
-        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
-        with index.searcher() as searcher:
-            # TODO: custom weight, e.g. less for description
-            parser = self.get_parser(index)
-            
-            # teardrop-shaped worcester saec xi2
-            # add the advanced fields
-            query_advanced = ''
-            # django_filters is used for post-whoosh filtering using django queryset
-            django_filters = {}
-            infos = self.get_fields_info()
-            for field_path in self.get_fields_info():
-                info = infos[field_path]
-                if info.get('advanced', False):
-                    name = info['whoosh']['name']
-                    val = request.GET.get(name, '')
-                    if val:
-                        self.is_advanced = True
-                        if info['whoosh'].get('ignore', False):
-                            django_filters['%s__iexact' % field_path] = val
-                        else:
-                            query_advanced += ' %s:"%s"' % (name, val)
+        # add the advanced fields
+        query_advanced = ''
+        # django_filters is used for post-whoosh filtering using django queryset
+        django_filters = {}
+        infos = self.get_fields_info()
+        for field_path in self.get_fields_info():
+            info = infos[field_path]
+            if info.get('advanced', False):
+                name = info['whoosh']['name']
+                val = request.GET.get(name, '')
+                if val:
+                    self.is_advanced = True
+                    if info['whoosh'].get('ignore', False):
+                        django_filters['%s__iexact' % field_path] = val
+                    else:
+                        query_advanced += ' %s:"%s"' % (name, val)
 
-            # filter the type
-            results = []
-            from django.utils.datastructures import SortedDict
-            records_dict = SortedDict()
-            use_whoosh = term or query_advanced
-            if use_whoosh:
-                query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
-                query = parser.parse(query)
-                        
-                #ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
-                
-                results = searcher.search(query, limit=None)
+        # Run the Whoosh search (if needed)
+        results = []
+        from django.utils.datastructures import SortedDict
+        records_dict = SortedDict()
+        use_whoosh = term or query_advanced
+        if use_whoosh:
+            # Build the query
+            # filter the content type (e.g. manuscripts) and other whoosh fields
+            query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
+
+            # Run the search
+            results = self.search_whoosh(query)
+
+            t01 = datetime.now()
             
-                t01 = datetime.now()
-                
-                # get all the ids in the right order and only once
-                for result in results:
-                    records_dict[result['id']] = 1
+            # Get all the ids in the right order and only once
+            for hit in results:
+                records_dict[hit['id']] = hit
+        
+        resultids = records_dict.keys()
+
+        t02 = datetime.now()
+        
+        # Run the Django search (if needed) 
+        records = QuerySetAsList()
+        if django_filters or not use_whoosh:
+            # additional django filters
+            records_django = (self.get_model()).objects.filter(**django_filters)
+            #print django_filters, records_django.count()
+            if resultids:
+                # intersection with Whoosh result from above
+                records_django = records_django.filter(id__in=resultids)
             
-            resultids = records_dict.keys()
-    
-            t02 = datetime.now()
-            
-            #records = []
-            records = QuerySetAsList()
-            if django_filters or not use_whoosh:
-                # additional django filters
-                records_django = (self.get_model()).objects.filter(**django_filters)
-                #print django_filters, records_django.count()
-                if resultids:
-                    records_django = records_django.filter(id__in=resultids)
-                for record in records_django:
+            # Combine the Hits and the retrieved model instances
+            from django.db import models
+            for record in records_django:
+                # value can be None, a Hit or a model instance
+                value = records_dict.get(unicode(record.id), None)
+                if not isinstance(value, models.Model):
+                    if value is not None:
+                        # a Hit, we attach it to the record
+                        record.hit = value
+                    # set the record in the right place in the dict
                     records_dict[unicode(record.id)] = record
-                for k in records_dict:
-                    if not isinstance(records_dict[k], int):
-                        records.append(records_dict[k])
-            else:
-                # get all the records in one go 
-                records_dict = (self.get_model()).objects.in_bulk(resultids)
-                for id in resultids:
-                    records.append(records_dict[int(id)])
-            self._queryset = records
-            # TODO: this is not always the most efficient way of doing it
-            # If we have a queryset it's better to use count()
-            #self._queryset.count = lambda :len(self._queryset)
+                    
+            # List the model instances in the right order
+            for k in records_dict:
+                if isinstance(records_dict[k], models.Model):
+                    records.append(records_dict[k])
+        else:
+            # Get all the model instances in one go 
+            records_dict = (self.get_model()).objects.in_bulk(resultids)
+            # Convert the result set into a sorted list of model instances (records)
+            for id in resultids:
+                records.append(records_dict[int(id)])
+        
+        # Cache the result        
+        self._queryset = records
             
         t1 = datetime.now()
         #print t1 - t0, t01 - t0, t02 - t01, t1 - t02
+        
+        self.close_whoosh_searcher()
         
         return self._queryset
     

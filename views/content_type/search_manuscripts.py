@@ -16,7 +16,7 @@ class SearchManuscripts(SearchContentType):
         ret['current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
         ret['current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
         ret['historical_item__catalogue_number'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'index', 'boost': 2.0}, 'advanced': True}
-        ret['historical_item__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana), 'name': 'description'}}
+        ret['historical_item__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana), 'name': 'description'}, 'long_text': True}
         ret['historical_item__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
         return ret
 

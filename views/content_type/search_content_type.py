@@ -128,8 +128,8 @@ class SearchContentType(object):
     def get_suggestions(self, query):
         ret = []
         if query:
-            query = ur'%s*' % query
-            results = self.search_whoosh(query, matched_terms=True)
+            whoosh_query = ur'"%s"*' % query.lower()
+            results = self.search_whoosh(whoosh_query, matched_terms=True, index_name='autocomplete')
             terms = {}
             if results.has_matched_terms():
                 # e.g. set([('scribes', 'hand'), ('label', 'hands'), ('type', 
@@ -137,22 +137,30 @@ class SearchContentType(object):
                 # 'hand'), ('name', 'hand'), ('description', 'handsom'), 
                 # ('label', 'hand')])
                 for term_info in results.matched_terms():
-                    terms[term_info[1]] = 1
+                    terms[term_info[1].title()] = 1
             self.close_whoosh_searcher()
             ret = terms.keys()
-            ret = sorted(ret, key=lambda e: len(e))
+            
+            # sort the results by length then by character 
+            ql = len(query)
+            def key(k):
+                ret = len(k) * 100000
+                if len(k) > ql:
+                    ret += ord(k[ql])
+            ret = sorted(ret, key=key)
+            
         return ret
     
-    def get_whoosh_index(self):
+    def get_whoosh_index(self, index_name='unified'):
         from whoosh.index import open_dir
         import os
-        return open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
+        return open_dir(os.path.join(settings.SEARCH_INDEX_PATH, index_name))
     
-    def search_whoosh(self, query, matched_terms=False):
+    def search_whoosh(self, query, matched_terms=False, index_name='unified'):
         ret = []
         
         self.close_whoosh_searcher()
-        index = self.get_whoosh_index()
+        index = self.get_whoosh_index(index_name=index_name)
         self.searcher = index.searcher()
         
         # TODO: custom weight, e.g. less for description
@@ -171,7 +179,6 @@ class SearchContentType(object):
     def build_queryset(self, request, term):
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
-        # TODO: don't search for ID and type
         # TODO: if no search phrase then apply default sorting order
         term = term.strip()
          

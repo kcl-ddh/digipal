@@ -7,24 +7,28 @@
         <th>Scriptorium</th>
         <th>Actions</th>
     </tr>
-    {% for scribe in records %}
-        <tr class="{% cycle 'bgColour' '' %}">
-            <td>{{ scribe.name }} 
-                {% if scribe.pages.all %}
-                    <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}#pages{% endfilter %}" title='{{page}}'>
-                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.pages.count}} images' />
-                    </a> 
-                    ({{scribe.pages.count}})
-                {% endif %}
-            </td>
-            <td>{{ scribe.date }}</td>
-            <td>{{ scribe.scriptorium.name }}</td>
-            <td>
-                {% if can_edit %}
-                    <a class="btn" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
-                {% endif %}
-                <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
-            </td>
-        </tr>
-    {% endfor %}
+    
+    {% filter tag_phrase_terms:terms %}
+        {% for scribe in records %}
+            <tr class="{% cycle 'bgColour' '' %}">
+                <td>{{ scribe.name }} 
+                    {% if scribe.pages.all %}
+                        <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}#pages{% endfilter %}" title='{{page}}'>
+                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.pages.count}} images' />
+                        </a> 
+                        ({{scribe.pages.count}})
+                    {% endif %}
+                </td>
+                <td>{{ scribe.date }}</td>
+                <td>{{ scribe.scriptorium.name }}</td>
+                <td>
+                    {% if can_edit %}
+                        <a class="btn" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
+                    {% endif %}
+                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfilter %}
+    
 </table>

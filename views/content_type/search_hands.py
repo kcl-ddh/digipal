@@ -14,7 +14,7 @@ class SearchHands(SearchContentType):
         simp_ana = SimpleAnalyzer()
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': TEXT, 'name': 'label'}}
-        ret['descriptions__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana), 'name': 'description'}}
+        ret['descriptions__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana), 'name': 'description'}, 'long_text': True}
         ret['scribe__name'] = {'whoosh': {'type': TEXT, 'name': 'scribes'}, 'advanced': True}
         ret['assigned_place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}

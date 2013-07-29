@@ -47,11 +47,15 @@ Commands:
 
         if command == 'index':
             known_command = True
-            self.index(options)
+            self.index_all(options)
 
         if command == 'schema':
             known_command = True
             self.schema(options)
+
+        if command == 'info':
+            known_command = True
+            self.info(options)
 
         if command == 'test':
             known_command = True
@@ -59,6 +63,38 @@ Commands:
 
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+
+    def info(self, options):
+        import os
+        from datetime import datetime
+        for dir in os.listdir(settings.SEARCH_INDEX_PATH):
+            dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, dir)
+
+            print dir_abs
+            
+            if os.path.isdir(dir_abs):
+                # calculate the index size
+                size = 0.0
+                most_recent = 0
+                for file in os.listdir(dir_abs):
+                    try:
+                        file_abs = os.path.join(dir_abs, file)
+                        size += os.path.getsize(file_abs)
+                        most_recent = max(most_recent, os.path.getmtime(file_abs))
+                    except os.error:
+                        pass
+                size /= (1024.0 * 1024.0)
+                print '\t%.2f MB %s' % (size, datetime.fromtimestamp(most_recent))
+            
+                # print the schema
+                print
+                from whoosh.index import open_dir
+                index = open_dir(dir_abs)
+                for item in index.schema.items():
+                    print '\t%s' % repr(item)
+            
+            print
+            
 
     def test(self, options):
         print 'test'
@@ -81,16 +117,27 @@ Commands:
             #print results[1].results
             #resultids = [result['recid'] for result in results]
 
-    def schema(self, options):
-        from whoosh.index import open_dir
-        import os
-        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
-        for item in index.schema.items():
-            print item      
+    def index_all(self, options):
+        #self.index_unified(options)
+        self.index_autocomplete(options)
 
-    def index(self, options):
+    def index_autocomplete(self, options):
+        return self.index(options, True)
+        
+    def index_unified(self, options):
+        return self.index(options)
+        
+    def index(self, options, autocomplete=False):
+        index_name = 'unified'
+        if autocomplete: index_name = 'autocomplete'
+        
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
-        print 'Indexing...'
+        from whoosh.fields import TEXT, ID, NGRAM
+        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
+        from whoosh.analysis.filters import LowercaseFilter
+        stem_ana = StemmingAnalyzer()        
+        simp_ana = SimpleAnalyzer()
+        print 'Building %s index...' % index_name
         
         from digipal.views.content_type.search_hands import SearchHands
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
@@ -99,13 +146,24 @@ Commands:
         #types = [SearchHands(), SearchManuscripts()]
         
         # build a single schema from the fields exposed by the different search types
-        print 'Schema:' 
+        print '\tSchema:' 
         fields = {}
         for type in types:
             for info in type.get_fields_info().values():
-                if info['whoosh']['name'] not in fields:
-                    print '\t%s' % info
-                    fields[info['whoosh']['name']] = info['whoosh']['type']
+                if info['whoosh']['name'] not in fields and not info['whoosh'].get('ignore', False):
+                    print '\t\t%s' % info
+                    field_type = info['whoosh']['type']
+                    
+                    if autocomplete:                        
+                        if info.get('long_text', False):
+                            field_type = TEXT(analyzer=simp_ana)
+                            #field_type = ID()
+                        else:
+                            #field_type = ID(stored=True)
+                            field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
+                    #print dir(field_type)              
+                    print '\t\t%s' % field_type          
+                    fields[info['whoosh']['name']] = field_type
         
         from whoosh.fields import Schema
         schema = Schema(**fields)
@@ -116,21 +174,21 @@ Commands:
         path = settings.SEARCH_INDEX_PATH
         if not os.path.exists(path):
             os.mkdir(path)
-        path = os.path.join(path, 'unified')
+        path = os.path.join(path, index_name)
         if os.path.exists(path):
             import shutil
             shutil.rmtree(path)
         os.mkdir(path)
-        print 'Created index under "%s"' % path
+        print '\tCreated index under "%s"' % path
         # TODO: check if this REcreate the existing index
         index = create_in(path, schema)
         
         # Write the index
-        print 'Write indexes:'
+        print '\tWrite indexes:'
         writer = index.writer()
         for type in types:
             count = type.write_index(writer)
-            print '\t%s %s records indexed' % (count, type.get_model())
+            print '\t\t%s %s records indexed' % (count, type.get_model())
         
         writer.commit()
 

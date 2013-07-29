@@ -125,10 +125,34 @@ class SearchContentType(object):
         parser = MultifieldParser(term_fields, index.schema)
         return parser
     
-    def get_suggestions(self, query):
+    def get_suggestions(self, query, limit=8):
         ret = []
-        if query:
-            whoosh_query = ur'"%s"*' % query.lower()
+        query = query.lower()
+        query_parts = query.split()
+        
+        # Search Logic:
+        #
+        # If query = 'Wulfstan British L'
+        # We first try "Wulfstan British L"*
+        # Then, if we don't have [limit] results we try also "British L"*
+        # Then, ..., we also try "L"*
+        #
+        prefix = u''
+        while query_parts and len(ret) < limit:
+            query = u' '.join(query_parts)
+            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
+            if query_parts: 
+                prefix += query_parts.pop(0) + u' '
+        return ret
+
+    def get_suggestions_single_query(self, query, limit=8, prefix='u'):
+        ret = []
+        # TODO: set a time limit on the search.
+        # See http://pythonhosted.org/Whoosh/searching.html#time-limited-searches
+        if query and limit > 0:
+            
+            # Run a whoosh search
+            whoosh_query = ur'"%s"*' % query
             results = self.search_whoosh(whoosh_query, matched_terms=True, index_name='autocomplete')
             terms = {}
             if results.has_matched_terms():
@@ -146,9 +170,17 @@ class SearchContentType(object):
             def key(k):
                 ret = len(k) * 100000
                 if len(k) > ql:
-                    ret += ord(k[ql])
+                    ret += ord(k[ql]) * 10000
+                if len(k) > ql + 1:
+                    ret += ord(k[ql + 1])
+                return ret
             ret = sorted(ret, key=key)
+            if len(ret) > limit:
+                ret = ret[0:limit]
             
+            # Add the prefix to all the results
+            ret = [ur'%s%s' % (prefix, r.decode('utf8')) for r in ret]
+
         return ret
     
     def get_whoosh_index(self, index_name='unified'):

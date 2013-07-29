@@ -371,5 +371,9 @@ def search_suggestions(request):
     from digipal.utils import get_json_response
     from content_type.search_content_type import SearchContentType
     query = request.GET.get('q', '')
+    try:
+        limit = int(request.GET.get('l'))
+    except:
+        limit = 8
     suggestions = SearchContentType().get_suggestions(query)
     return get_json_response(suggestions)

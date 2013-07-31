@@ -26,11 +26,14 @@
                 <td>{{ manuscript.current_item.shelfmark }}</td>
                 <td>{{ manuscript.locus }}</td>
                 <td>
-                    {% with description=manuscript.historical_item.get_display_description %}
-                        {% if description %}
-                            {{ description.description|truncatewords:15 }}
-                        {% endif %}
-                    {% endwith %}
+                    {% comment %}
+                        {% with description=manuscript.historical_item.get_display_description %}
+                            {% if description %}
+                                {{ description.description|truncatewords:15 }}
+                            {% endif %}
+                        {% endwith %}
+                    {% endcomment %}
+                    {{ manuscript.description_snippet }}
                 </td>
                 <td>
                     {% if can_edit %}

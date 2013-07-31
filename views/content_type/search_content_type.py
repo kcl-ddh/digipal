@@ -127,7 +127,7 @@ class SearchContentType(object):
     
     def get_suggestions(self, query, limit=8):
         ret = []
-        query = query.lower()
+        #query = query.lower()
         query_parts = query.split()
         
         # Search Logic:
@@ -139,7 +139,7 @@ class SearchContentType(object):
         #
         prefix = u''
         while query_parts and len(ret) < limit:
-            query = u' '.join(query_parts)
+            query = u' '.join(query_parts).lower()
             ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
             if query_parts: 
                 prefix += query_parts.pop(0) + u' '
@@ -212,12 +212,16 @@ class SearchContentType(object):
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
         # TODO: if no search phrase then apply default sorting order
+        
         term = term.strip()
+        self.query_phrase = term
          
         from datetime import datetime
         t0 = datetime.now()
         
-        # add the advanced fields
+        # Convert the search fields into: 
+        # * Django query filters (django_filters)
+        # * Whoosh query (query_advanced)        
         query_advanced = ''
         # django_filters is used for post-whoosh filtering using django queryset
         django_filters = {}
@@ -234,10 +238,10 @@ class SearchContentType(object):
                     else:
                         query_advanced += ' %s:"%s"' % (name, val)
 
-        # Run the Whoosh search (if needed)
+        # Run the Whoosh search (if there is a query phrase or query_advanced)
         results = []
         from django.utils.datastructures import SortedDict
-        records_dict = SortedDict()
+        whoosh_dict = SortedDict()
         use_whoosh = term or query_advanced
         if use_whoosh:
             # Build the query
@@ -250,48 +254,32 @@ class SearchContentType(object):
             t01 = datetime.now()
             
             # Get all the ids in the right order and only once
+            # TODO: would it be faster to return the hits only?
             for hit in results:
-                records_dict[hit['id']] = hit
+                whoosh_dict[int(hit['id'])] = hit
+        self.whoosh_dict = whoosh_dict
         
-        resultids = records_dict.keys()
-
-        t02 = datetime.now()
-        
-        # Run the Django search (if needed) 
-        records = QuerySetAsList()
+        ret = []
         if django_filters or not use_whoosh:
-            # additional django filters
-            records_django = (self.get_model()).objects.filter(**django_filters)
-            #print django_filters, records_django.count()
-            if resultids:
-                # intersection with Whoosh result from above
-                records_django = records_django.filter(id__in=resultids)
+            # We need to search using Django
+            ret = (self.get_model()).objects.filter(**django_filters).values_list('id', flat=True).distinct()
+            # TODO: sort the django results! (if pure django search)
             
-            # Combine the Hits and the retrieved model instances
-            from django.db import models
-            for record in records_django:
-                # value can be None, a Hit or a model instance
-                value = records_dict.get(unicode(record.id), None)
-                if not isinstance(value, models.Model):
-                    if value is not None:
-                        # a Hit, we attach it to the record
-                        record.hit = value
-                    # set the record in the right place in the dict
-                    records_dict[unicode(record.id)] = record
-                    
-            # List the model instances in the right order
-            for k in records_dict:
-                if isinstance(records_dict[k], models.Model):
-                    records.append(records_dict[k])
+            if use_whoosh:
+                # Intersection between Whoosh results and Django results.
+                # We can't do .filter(id__in=whooshids) because it would 
+                # ignore the order stored in whooshids.
+                l = len(ret)
+                for i in range(l-1, -1, -1):
+                    if ret[i] not in self.whoosh_dict:
+                        del(ret[i])
         else:
-            # Get all the model instances in one go 
-            records_dict = (self.get_model()).objects.in_bulk(resultids)
-            # Convert the result set into a sorted list of model instances (records)
-            for id in resultids:
-                records.append(records_dict[int(id)])
-        
+            # Pure Whoosh search
+            ret = self.whoosh_dict.keys()
+         
         # Cache the result        
-        self._queryset = records
+        #self._queryset = records
+        self._queryset = ret
             
         t1 = datetime.now()
         #print t1 - t0, t01 - t0, t02 - t01, t1 - t02
@@ -299,6 +287,27 @@ class SearchContentType(object):
         self.close_whoosh_searcher()
         
         return self._queryset
+    
+    def get_records_from_ids(self, recordids):
+        # TODO: preload related objects?
+        # Fetch all the records from the DB
+        records = (self.get_model()).objects.in_bulk(recordids)
+        # Make sure they are in the desired order
+        ret = [records[id] for id in recordids]
+        return ret
+    
+    def get_whoosh_dict(self):
+        return getattr(self, 'whoosh_dict', None)
+
+    def _get_query_terms(self):
+        phrase = self.query_phrase
+        # remove punctuation characters (but keep spaces and alphanums)
+        import re
+        phrase = re.sub(ur'[^\w\s]', u'', phrase)
+    
+        # get terms from the phrase
+        terms = re.split(ur'\s+', phrase.lower().strip())
+        return terms
     
 class QuerySetAsList(list):
     def count(self):

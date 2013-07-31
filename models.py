@@ -428,7 +428,8 @@ class HistoricalItem(models.Model):
         return u'%s' % (self.display_label)
     
     def get_descriptions(self):
-        ret = Description.objects.filter(historical_item=self).distinct()
+        #ret = Description.objects.filter(historical_item=self).distinct()
+        ret = self.description_set.all()
         return ret
 
     def set_catalogue_number(self):
@@ -493,7 +494,6 @@ class Source(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.label or self.name)
-
 
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):

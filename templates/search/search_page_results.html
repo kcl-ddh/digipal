@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags html_escape %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -98,15 +98,17 @@
                             {% if type.is_empty %}
                                 <div class='alert alert-warning'><h4>No results found for <b>{{type.label}}</b></h4></div>
                             {% else %}
-                                {% autopaginate type.queryset 9 as records%}
+                                {% reset_recordids as recordids %}
+                                {% autopaginate type.queryset 9 as recordids %}
+                                {% get_records_from_ids type recordids as records %}
                                 
-                                {% filter update_query_params:type.result_type_qs%}
+                                {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}
                                 {% endfilter %}
                                 
                                 {% include type.template_path with template_type=type.key %}
                                 
-                                {% filter update_query_params:type.result_type_qs%}
+                                {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}
                                 {% endfilter %}
                                 

@@ -100,3 +100,30 @@ def tag_phrase_terms(value, phrase=''):
         value = value[1:]
     
     return value
+
+@register.assignment_tag
+def get_records_from_ids(search_type, recordids):
+    '''
+        Prepare the records before they are displayed on the search page
+         
+        Usage:
+            {% prepare_search_result search_type recordids %}
+    '''
+    return search_type.get_records_from_ids(recordids)
+    
+@register.assignment_tag
+def reset_recordids():
+    '''
+        Reset a variable to []
+        
+        Use this before autopaginate, e.g. 
+        
+        {% reset_recordids as recordids %}
+        {% autopaginate type.queryset 9 as recordids %}
+        
+        There is a bug in autopaginate. It won't reset recordids if we ask 
+        for an empty page. Without this the result will try to show record 
+        ids the previous tab. 
+    '''
+    return []
+    

@@ -101,3 +101,19 @@ def get_json_response(data):
     import json
     from django.http import HttpResponse 
     return HttpResponse(json.dumps(data), mimetype="application/json")
+
+def get_regexp_from_terms(terms):
+    ret = ''
+    if terms:
+        import re
+        # create a regexp
+        ret = []
+        for t in terms:
+            t = re.escape(t)
+            if len(t) > 1:
+                t += ur'?'
+            t = ur'\b%ss?\b' % t
+            ret.append(t)
+        ret = ur'|'.join(ret)
+        
+    return ret

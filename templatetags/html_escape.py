@@ -95,9 +95,22 @@ def tag_phrase_terms(value, phrase=''):
     # Here we have a simple implementation that look for exact and complete matches only.
     # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
     #         or headings.
-    for term in terms:
-        value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
-        value = value[1:]
+    from digipal.utils import get_regexp_from_terms
+    re_terms = get_regexp_from_terms(terms)
+    if re_terms:
+        # a trick to prevent recursive substitution
+        stop_keyword = 'AAAA'
+        # The loop here is necessary because the matches overlap therefore only the last occurence is found each time
+        while True:
+            l = len(value)
+            value = re.sub(ur'(?iu)(>[^<]*)('+re_terms+ur')', ur'\1<span class="found-term">\2' + stop_keyword + ur'</span>', u'>'+value)
+            value = value[1:]
+            if len(value) == l: break
+        value = value.replace(stop_keyword, '')
+        
+    #for term in terms:
+    #    value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
+    #    value = value[1:]
     
     return value
 

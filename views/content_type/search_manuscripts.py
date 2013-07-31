@@ -117,19 +117,18 @@ class SearchManuscripts(SearchContentType):
         '''
         desc = None
         location = 0
-        terms = [t.lower() for t in self._get_query_terms()]
-        if terms:
+        terms = [t.lower() for t in self._get_query_terms() if t not in [u'or', u'and', u'not']]
+        from digipal.utils import get_regexp_from_terms
+        re_terms = get_regexp_from_terms(terms)
+        
+        if re_terms:
+            # search the descriptions
             for adesc in descriptions:
-                text = adesc.description
-                for term in terms:
-                    if term in [u'or', u'and', u'not']: continue
-                    try:
-                        location = text.lower().index(term)
-                        desc = adesc
-                        break
-                    except ValueError:
-                        # not found
-                        pass
+                m = re.search(ur'(?ui)' + re_terms, adesc.description)
+                if m:
+                    location = m.start()
+                    desc = adesc
+                    break
         return desc, location
 
     def _truncate_text(self, text, location, snippet_length):

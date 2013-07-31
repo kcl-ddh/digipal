@@ -119,7 +119,7 @@ Commands:
 
     def index_all(self, options):
         self.index_unified(options)
-        #self.index_autocomplete(options)
+        self.index_autocomplete(options)
 
     def index_autocomplete(self, options):
         return self.index(options, True)

@@ -51,6 +51,7 @@ class SearchContentType(object):
             This entries are used by the record.html template to show the navigation above the record details
         '''
         from digipal.utils import update_query_string
+        import re
 
         # TODO: optimise this, we should not have to retrieve the whole result 
         # to find prev and next record ids
@@ -58,23 +59,20 @@ class SearchContentType(object):
         if 'results' not in context:
             return
         
+        web_path = request.META['PATH_INFO']
         query_string = '?' + request.META['QUERY_STRING']
-        ret['total'] = context['results'].count()
+        ret['total'] = self.count
         
         # index
-        index = 0
-        record = None
-        for record in context['results']:
-            if ('%s' % record.id) == ('%s' % context['id']): break
-            index += 1
+        index = context['results'].index(int(context['id']))
         
         # prev
         if index > 0:
-            ret['previous_url'] = context['results'][index - 1].get_absolute_url() + query_string
+            ret['previous_url'] = re.sub(ur'\d+', '%s' % context['results'][index - 1], web_path) + query_string
         
         # next
         if index < (ret['total'] - 1):
-            ret['next_url'] = context['results'][index + 1].get_absolute_url() + query_string
+            ret['next_url'] = re.sub(ur'\d+', '%s' % context['results'][index + 1], web_path) + query_string
         
         # TODO: the URL of the search page shoudn't be hard-coded here
         ret['no_record_url'] = u'/digipal/search/' + query_string

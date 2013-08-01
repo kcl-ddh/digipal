@@ -2,13 +2,14 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
+{% block meta_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
 {% block record_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="#descriptions" data-toggle="tab">Descriptions</a></li>
-    <li><a href="#pages" data-toggle="tab">Pages ({{ pages.count }})</a></li>
-    <li><a href="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+    <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ pages.count }})</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
 
 {% block details %}

@@ -58,19 +58,25 @@ def update_query_params_internal(content, updates, url_wins=False):
     if len(content.strip()) == 0: return content
     
     # find all the URLs in content
+    template = ur'%s'
+    matches = []
     if '"' in content or "'" in content:
+        template = ur'href="%s"'
         # we assume the content is HTML
-        parts = re.findall(ur'(?:src|href)="([^"]*?)"', content)
-        parts += re.findall(ur"(?:src|href)='([^']*?)'", content)
+        for m in re.finditer(ur'(?:src|href)\s*=\s*(?:"([^"]*?)"|\'([^\']*?)\')', content):
+            matches.append(m)
     else:
         # we assume the content is a single URL
-        parts = [content]
+        m = re.search(ur'^(.*)$', content)
+        if m:
+            matches.append(m)
     
-    # update all the urls found in content
     from digipal.utils import update_query_string
-    for url in sorted(parts, key=lambda e: len(e), reverse=True):
-        content = content.replace(url, update_query_string(url, updates, url_wins))
-        
+    for m in matches[::-1]:
+        url = max(m.groups())
+        new_url = update_query_string(url, updates, url_wins)
+        content = content[0:m.start()] + (template % new_url) + content[m.end():]
+            
     return content
 
 @register.filter

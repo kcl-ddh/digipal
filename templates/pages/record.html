@@ -5,21 +5,30 @@
 {% block extra_js %}
     <script type="text/javascript">
         $(function() {
-            // We select the tab according to the anchor in the URL
-            // e.g. /digipal/manuscripts/533/#pages will open the 'pages' tab
-            var url = window.location.href;
-            var idx = url.indexOf("#");
-            var hash = idx != -1 ? url.substring(idx+1) : "";
-            if (hash) {
-                $('a[href=#'+hash+']').click();
+            // We select the tab according to the webpath
+            // e.g. /digipal/manuscripts/533/pages will open the 'pages' tab
+            // get the last part in the web path
+            // 'http://localhost/digipal/manuscripts/1067/pages/' => 'pages'
+            var tab_key = window.location.href.replace(/[^#?]*\/([^/?#]+).*/, '$1');
+            if (tab_key) {
+                $('a[data-target=#'+tab_key+']').click();
             }
             
-            // Update the hash in the address bar when the tab is changed
-            // See JIRA 155 
+            // Update the webpath in the address bar when the tab is changed
+            // See JIRA 155, 140
             $('#myTab a').click(function (e) {
-              e.preventDefault();
-              $(this).tab('show');
-              window.location.hash = $(this).attr('href');
+                if (window.history && window.history.pushState) {
+                    e.preventDefault();
+                    $(this).tab('show');
+                    window.history.replaceState({foo: 'bat'}, '', $(this).attr('href'));
+                } else {
+                    {% comment %} 
+                        The browser does not support replaceState (e.g. IE 9), 
+                        we just load the page. 
+                    {% endcomment %} 
+                    window.location.href = $(this).attr('href');
+                    return true;
+                }
             });
         });
     </script>
@@ -31,10 +40,12 @@
         <div class='span12'>
     
             <div class='span5'>
-                    <ul class="nav nav-tabs" id='myTab'>
+                <ul class="nav nav-tabs" id='myTab'>
+                    {% filter add_query_params:request.META.QUERY_STRING %}
                         {% block record_tabs %}
                         {% endblock %}
-                    </ul>
+                    {% endfilter %}
+                </ul>
             </div>
             
             {% if pagination %}

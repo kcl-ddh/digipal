@@ -69,7 +69,7 @@ def search_page_view(request):
     
     # Actually run the searches
     context = {}
-    set_search_results_to_context(request, context=context)
+    set_search_results_to_context(request, context=context, show_advanced_search_form=True)
 
     # check if the search was executed or not (e.g. form not submitted or invalid form)
     if context.has_key('results'):
@@ -106,7 +106,7 @@ def search_page_view(request):
 
     return render_to_response('search/search_page_results.html', context, context_instance=RequestContext(request))
 
-def set_search_results_to_context(request, context={}, allowed_type=None):
+def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
         for each relevant type of content (e.g. MS, Hand) => context['results']
         
@@ -130,7 +130,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None):
 
     advanced_search_form = SearchPageForm(request.GET)
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
-    context['advanced_search_form'] = advanced_search_form
+    if show_advanced_search_form:
+        context['advanced_search_form'] = advanced_search_form
 
     if context['submitted'] and advanced_search_form.is_valid():
         # Read the inputs

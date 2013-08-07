@@ -271,6 +271,10 @@ class SearchContentType(object):
                 for i in range(l-1, -1, -1):
                     if ret[i] not in self.whoosh_dict:
                         del(ret[i])
+            else:
+                # Pure Django search
+                # We convert the result into a list
+                ret = list(ret)
         else:
             # Pure Whoosh search
             ret = self.whoosh_dict.keys()

@@ -88,36 +88,38 @@ def plural(value, count=2):
 def tag_phrase_terms(value, phrase=''):
     '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
     import re
-
+    
     # remove punctuation characters (but keep spaces and alphanums)
     phrase = re.sub(ur'[^\w\s]', u'', phrase)
+    
+    if len(phrase.strip()): 
 
-    # get terms from the phrase
-    terms = re.split(ur'\s+', phrase.lower().strip())
-    
-    # Surround the occurrences of those terms in the value with a span (class="found-term")
-    # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
-    # e.g. 'G*' should highlight g and the rest of the word
-    # Here we have a simple implementation that look for exact and complete matches only.
-    # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
-    #         or headings.
-    from digipal.utils import get_regexp_from_terms
-    re_terms = get_regexp_from_terms(terms)
-    if re_terms:
-        # a trick to prevent recursive substitution
-        stop_keyword = 'AAAA'
-        # The loop here is necessary because the matches overlap therefore only the last occurence is found each time
-        while True:
-            l = len(value)
-            value = re.sub(ur'(?iu)(>[^<]*)('+re_terms+ur')', ur'\1<span class="found-term">\2' + stop_keyword + ur'</span>', u'>'+value)
-            value = value[1:]
-            if len(value) == l: break
-        value = value.replace(stop_keyword, '')
+        # get terms from the phrase
+        terms = re.split(ur'\s+', phrase.lower().strip())
         
-    #for term in terms:
-    #    value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
-    #    value = value[1:]
-    
+        # Surround the occurrences of those terms in the value with a span (class="found-term")
+        # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
+        # e.g. 'G*' should highlight g and the rest of the word
+        # Here we have a simple implementation that look for exact and complete matches only.
+        # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
+        #         or headings.
+        from digipal.utils import get_regexp_from_terms
+        re_terms = get_regexp_from_terms(terms)
+        if re_terms:
+            # a trick to prevent recursive substitution
+            stop_keyword = 'AAAA'
+            # The loop here is necessary because the matches overlap therefore only the last occurence is found each time
+            while True:
+                l = len(value)
+                value = re.sub(ur'(?iu)(>[^<]*)('+re_terms+ur')', ur'\1<span class="found-term">\2' + stop_keyword + ur'</span>', u'>'+value)
+                value = value[1:]
+                if len(value) == l: break
+            value = value.replace(stop_keyword, '')
+            
+        #for term in terms:
+        #    value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
+        #    value = value[1:]
+        
     return value
 
 @register.assignment_tag

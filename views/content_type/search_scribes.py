@@ -13,7 +13,7 @@ class SearchScribes(SearchContentType):
         simp_ana = SimpleAnalyzer()
         ret = super(SearchScribes, self).get_fields_info()
         ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
-        ret['scriptorium__name'] = {'whoosh': {'type': TEXT, 'name': 'scriptorium'}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
         ret['date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
         ret['hand__item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
         ret['hand__item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}}
@@ -100,9 +100,10 @@ class FilterScribes(forms.Form):
         empty_label = "Name",
         required = False)
 
-    scriptorium = forms.ModelChoiceField(
+    # Was previously called 'scriptorium'
+    place = forms.ModelChoiceField(
         queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'scriptorium-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
+        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
         empty_label = "Scriptorium",
         label = "",
         required = False)

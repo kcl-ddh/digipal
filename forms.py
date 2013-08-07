@@ -101,7 +101,7 @@ class FilterManuscriptsImages(forms.Form):
         queryset = Place.objects.filter(repository__currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat=True),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "",
-        empty_label = "Medieval Town or City",
+        empty_label = "Town or City",
         required = False)
 
     

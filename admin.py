@@ -79,8 +79,8 @@ class PageWithFeature(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('yes', ('With them')),
-            ('no', ('Without them')),
+            ('yes', ('Has feature(s)')),
+            ('no', ('No features')),
         )        
 
     def queryset(self, request, queryset):
@@ -88,6 +88,23 @@ class PageWithFeature(SimpleListFilter):
             return queryset.filter(annotation__graph__graph_components__features__id__gt = 0).distinct()
         if self.value() == 'no':
             return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
+           
+class PageWithHand(SimpleListFilter):
+    title = ('Associated Hand')
+
+    parameter_name = ('WithHand')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', ('Has Hand(s)')),
+            ('no', ('No Hand')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(hand__isnull=False).distinct()
+        if self.value() == 'no':
+            return queryset.filter(hand__isnull=True).distinct()
            
 
 class DescriptionFilter(SimpleListFilter):
@@ -740,7 +757,7 @@ class PageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
     
-    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature, PageFilterNoItemPart]
+    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature, PageWithHand, PageFilterNoItemPart]
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 

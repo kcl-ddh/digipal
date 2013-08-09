@@ -7,18 +7,14 @@ from django.db.models import Q
 class SearchManuscripts(SearchContentType):
 
     def get_fields_info(self):
-        from whoosh.fields import TEXT, ID
-        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer
-        stem_ana = StemmingAnalyzer()        
-        simp_ana = SimpleAnalyzer()
         ret = super(SearchManuscripts, self).get_fields_info()
-        ret['locus'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'locus'}}
-        ret['current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
-        ret['current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
-        ret['historical_item__itemorigin__place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
-        ret['historical_item__catalogue_number'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'index', 'boost': 2.0}, 'advanced': True}
-        ret['historical_item__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
-        ret['historical_item__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
+        ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
+        ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['historical_item__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
+        ret['historical_item__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
+        ret['historical_item__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
     def set_record_view_context(self, context):

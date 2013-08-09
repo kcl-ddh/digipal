@@ -13,6 +13,33 @@ class SearchContentType(object):
     def __init__(self):
         self.is_advanced = False
         self._queryset = []
+        self._init_field_types()
+        
+    def _init_field_types(self):
+        '''
+        Defines Whoosh field types used to define the schemas.
+        See get_field_infos().
+        '''
+        
+        # see http://pythonhosted.org/Whoosh/api/analysis.html#analyzers
+        # see JIRA 165
+        
+        from whoosh.fields import TEXT, ID
+        # TODO: shall we use stop words? e.g. 'A and B' won't work? 
+        from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer
+        # ID: as is; SimpleAnalyzer: break into terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
+        # minsize=1 because we want to search for 'Scribe 2'
+        
+        # A paragraph or more. 
+        self.FT_LONG_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1))
+        # A few words.
+        self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1))
+        # A title (e.g. British Library)
+        self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None))
+        # A code (e.g. K. 402)
+        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer())
+        # An ID (e.g. 708-AB)
+        self.FT_ID = ID()
     
     @property
     def result_type_qs(self):
@@ -143,7 +170,7 @@ class SearchContentType(object):
                 prefix += query_parts.pop(0) + u' '
         return ret
 
-    def get_suggestions_single_query(self, query, limit=8, prefix='u'):
+    def get_suggestions_single_query(self, query, limit=8, prefix=u''):
         ret = []
         # TODO: set a time limit on the search.
         # See http://pythonhosted.org/Whoosh/searching.html#time-limited-searches
@@ -207,6 +234,7 @@ class SearchContentType(object):
             self.searcher = None
     
     def build_queryset(self, request, term):
+        
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
         # TODO: if no search phrase then apply default sorting order
@@ -247,7 +275,9 @@ class SearchContentType(object):
             query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
 
             # Run the search
-            results = self.search_whoosh(query)
+            ## TODO: uncomment
+            ##results = self.search_whoosh(query)
+            results = self.search_whoosh(query, True)
 
             t01 = datetime.now()
             
@@ -255,6 +285,8 @@ class SearchContentType(object):
             # TODO: would it be faster to return the hits only?
             for hit in results:
                 whoosh_dict[int(hit['id'])] = hit
+                terms = hit.matched_terms()
+                
         self.whoosh_dict = whoosh_dict
         
         ret = []
@@ -314,3 +346,4 @@ class SearchContentType(object):
 class QuerySetAsList(list):
     def count(self):
         return len(self) 
+

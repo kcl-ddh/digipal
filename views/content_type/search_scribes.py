@@ -7,25 +7,21 @@ from django.db.models import Q
 class SearchScribes(SearchContentType):
 
     def get_fields_info(self):
-        from whoosh.fields import TEXT, ID
-        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer
-        stem_ana = StemmingAnalyzer()        
-        simp_ana = SimpleAnalyzer()
         ret = super(SearchScribes, self).get_fields_info()
-        ret['name'] = {'whoosh': {'type': TEXT, 'name': 'name'}, 'advanced': True}
-        ret['scriptorium__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
-        ret['date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
-        ret['hand__item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
-        ret['hand__item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}}
-        ret['hand__item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'index', 'boost': 1.0}}
+        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name'}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['hand__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['hand__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}}
+        ret['hand__item_part__historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 1.0}}
         # TODO: display this field on the front-end
         #ret['historical_item__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
 
         # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
         # filtering is done using the DB
-        ret['idiographs__allograph__character__name'] = {'whoosh': {'type': ID, 'name': 'character', 'ignore': True}, 'advanced': True}
-        ret['idiographs__allograph__allographcomponent__component__name'] = {'whoosh': {'type': TEXT, 'name': 'component', 'ignore': True}, 'advanced': True}
-        ret['idiographs__allograph__allographcomponent__component__features__name'] = {'whoosh': {'type': TEXT, 'name': 'feature', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__character__name'] = {'whoosh': {'type': self.FT_ID, 'name': 'character', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allographcomponent__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allographcomponent__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         return ret
 
     def set_record_view_context(self, context):

@@ -90,7 +90,7 @@ def tag_phrase_terms(value, phrase=''):
     import re
     
     # remove punctuation characters (but keep spaces and alphanums)
-    phrase = re.sub(ur'[^\w\s]', u'', phrase)
+    phrase = re.sub(ur'[^\w\s]+', u' ', phrase)
     
     if len(phrase.strip()): 
 

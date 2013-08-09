@@ -143,7 +143,6 @@ Commands:
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
         from digipal.views.content_type.search_scribes import SearchScribes
         types = [SearchHands(), SearchManuscripts(), SearchScribes()]
-        #types = [SearchHands(), SearchManuscripts()]
         
         # build a single schema from the fields exposed by the different search types
         print '\tSchema:' 
@@ -154,14 +153,12 @@ Commands:
                     print '\t\t%s' % info
                     field_type = info['whoosh']['type']
                     
-                    if autocomplete:                        
+                    if autocomplete:
+                        # break the long text fields into terms, leave the others as single expression
                         if info.get('long_text', False):
                             field_type = TEXT(analyzer=simp_ana)
-                            #field_type = ID()
                         else:
-                            #field_type = ID(stored=True)
                             field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
-                    #print dir(field_type)              
                     print '\t\t%s' % field_type          
                     fields[info['whoosh']['name']] = field_type
         

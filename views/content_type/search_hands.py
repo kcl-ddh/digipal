@@ -7,20 +7,16 @@ from django.db.models import Q
 class SearchHands(SearchContentType):
 
     def get_fields_info(self):
-        from whoosh.fields import TEXT, ID
         ret = super(SearchHands, self).get_fields_info()
-        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer
-        stem_ana = StemmingAnalyzer()        
-        simp_ana = SimpleAnalyzer()
         # TODO: new search field
-        ret['label'] = {'whoosh': {'type': TEXT, 'name': 'label'}}
-        ret['descriptions__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
-        ret['scribe__name'] = {'whoosh': {'type': TEXT, 'name': 'scribes'}, 'advanced': True}
-        ret['assigned_place__name'] = {'whoosh': {'type': TEXT, 'name': 'place'}, 'advanced': True}
-        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'shelfmark'}}
-        ret['item_part__current_item__repository__name'] = {'whoosh': {'type': TEXT, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': TEXT(analyzer=simp_ana), 'name': 'index', 'boost': 2.0}}
-        ret['assigned_date__date'] = {'whoosh': {'type': TEXT, 'name': 'date'}, 'advanced': True}
+        ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
+        ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
+        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes'}, 'advanced': True}
+        ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
+        ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
     def set_record_view_context(self, context):

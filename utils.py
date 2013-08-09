@@ -117,3 +117,10 @@ def get_regexp_from_terms(terms):
         ret = ur'|'.join(ret)
         
     return ret
+
+def find_first(pattern, text, default=''):
+    import re
+    ret = default
+    matches = re.findall(pattern, text)
+    if matches: ret = matches[0]
+    return ret

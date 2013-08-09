@@ -36,6 +36,8 @@ Commands:
   stewart_integrate [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
   
   stokes_catalogue_import --src=XML_FILE_PATH
+  
+  parse_em_table --src=HTML_FILE_PATH
 
 """
     
@@ -64,7 +66,7 @@ Commands:
         ) 
 
     migrations = ['0004_page_number_and_side', '0005_page_iipimage']
-    
+
     def handle(self, *args, **options):
         
         self.logger = utils.Logger()
@@ -93,6 +95,14 @@ Commands:
                 c = utils.fix_sequences(options.get('db'), True)
                 self.log('%s sequences fixed' % c)
                 
+        if command == 'parse_em_table':
+            known_command = True
+            self.parse_em_table(options)
+            
+        if command == 'gen_em_table':
+            known_command = True
+            self.gen_em_table(options)
+
         if command == 'stewart_import':
             known_command = True
             self.importStewart(options)
@@ -107,6 +117,125 @@ Commands:
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
 
+    def gen_em_table(self, options):
+        query = ur'''
+                select distinct
+                    'http://www.digipal.eu/digipal/manuscripts/' || ip.id || '/pages/' as "Digipal URL",
+                    pc.page_count as "Pages",
+                    pl.name as "Place", 
+                    re.name as "Repository", 
+                    ci.shelfmark as "Shelf Mark", 
+                    ip.locus as "Locus", 
+                    '[' || cn.number || ']' as "Ker", 
+                    de.description as "Content", 
+                    ori.name as "Origin", 
+                    (case when length(hi.date) > 0 then hi.date else hand_date end) as "Date",
+                    (case when length(regexp_replace(shelfmark, E'\\D','','g')) between 1 and 10 then regexp_replace(shelfmark, E'\\D','','g')::bigint else 0 end) as shelf_num
+                from 
+                    digipal_itempart ip 
+                    join digipal_currentitem ci on ip.current_item_id = ci.id
+                    join digipal_historicalitem hi on ip.historical_item_id = hi.id
+                    join digipal_repository re on ci.repository_id = re.id
+                    left join digipal_place pl on re.place_id = pl.id
+                    left join digipal_description de on hi.id = de.historical_item_id
+                    left join digipal_cataloguenumber cn on (cn.historical_item_id = hi.id and cn.source_id = 3)
+                    left join (
+                            select ip2.id as id, (case when max(pa.id) > 0 then count(*) else 0 end) as page_count
+                            from 
+                            digipal_itempart ip2 left join digipal_page pa on pa.item_part_id = ip2.id
+                            group by ip2.id
+                            order by page_count desc
+                        ) pc on ip.id = pc.id
+                    left join (
+                            select io.historical_item_id as historical_item_id, (case when pl2.id > 0 then pl2.name when ins.id > 0 then ins.name else '' end) as name
+                            from 
+                                digipal_itemorigin io
+                                left join digipal_place pl2 on (io.object_id = pl2.id and io.content_type_id = 43)
+                                left join digipal_institution ins on (io.object_id = ins.id and io.content_type_id = 48)
+                        ) ori on hi.id = ori.historical_item_id
+                    left join (
+                            select ha.item_part_id, max(da.date) as hand_date
+                            from
+                                digipal_hand ha
+                                left join digipal_date da on ha.assigned_date_id = da.id
+                            group by ha.item_part_id
+                    ) ha on ha.item_part_id = ip.id
+                order by
+                    "Place", "Repository", shelf_num, "Shelf Mark", "Ker", "Locus"
+        '''
+        
+        from django.db import connections
+        con_src = connections[options.get('src')]
+        
+        cursor = con_src.cursor()
+        cursor.execute(query)
+        
+        rows = [[col[0] for col in cursor.description]]
+        for row in cursor.fetchall():
+            row_latin_1 = [(u'%s' % v).encode('latin-1', 'ignore') for v in row]
+            rows.append(row_latin_1)
+
+        csv_path = 'digipal.csv'
+        with open(csv_path, 'wb') as csvfile:
+            import csv        
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerows(rows)
+    
+    def parse_em_table(self, options):
+        from digipal.utils import find_first
+        import HTMLParser
+        hp = HTMLParser.HTMLParser()
+        
+        csv_path = 'em.csv'
+
+        with open(csv_path, 'wb') as csvfile:
+
+            import csv        
+            csvwriter = csv.writer(csvfile)
+        
+            xml_file = options.get('src', '')
+            html = utils.readFile(xml_file)
+            
+            # extract the rows
+            rows = re.findall(ur'<tr>(.*?)</tr>', html)
+            
+            csvwriter.writerow(['Digipal URL', 'Type', 'Place', 'Repository', 'Collection', 'Shelf Mark', 'Ker', 'Content', 'Place', 'Date', 'File Name', 'URL'])
+            
+            for row in rows:
+                # extract the columns
+                cols = re.findall(ur'<td>(.*?)</td>', row)
+                
+                # extract href from first column
+                href = find_first(ur'href="(.*?)"', cols[0])
+    
+                # get the file name from the href
+                href_file = find_first(ur'/([^/]+?)$', href)
+                
+                href_abs = ''
+                if href_file:
+                    href_abs = ur'http://www.le.ac.uk/english/em1060to1220/mss/%s' % href_file 
+                
+                # extract class
+                ms_type = find_first(ur'class="(.*?)"', cols[0])
+                
+                # strip html from all columns
+                # and decode html entities (e.g. &nbsp; &amp;)
+                for i in range(0, len(cols)):
+                    cols[i] = re.sub(ur'<.*?>', '', cols[i])
+                    cols[i] = hp.unescape(cols[i])
+                    
+                # add extracted fields to the list of columns
+                cols.extend([href_file, href_abs])
+                cols.insert(0, ms_type)
+                cols.insert(0, '')
+                
+                for i in range(0, len(cols)):
+                    cols[i] = cols[i].encode('latin-1', 'ignore')
+                
+                # write this row to a CSV file
+                #line = csv.reader(csvfile, delimiter=' ', quotechar='|')
+                csvwriter.writerow(cols)
+        
     def importStokesCatalogue(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         

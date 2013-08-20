@@ -8,7 +8,7 @@
 {% block record_tabs %}
     <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
     <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
-    <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ pages.count }})</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
     <li><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
 
@@ -40,14 +40,17 @@
                 <table class="table table-condensed">
                     <tbody>
                         <tr>
+                            {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
                             <th>Date</th>
                             <td>{{ item_part.historical_item.date }}</td>
                         </tr>
                         <tr>
                             <th>Origin</th>
-                            <td>{% for data in item_part.historical_item.itemorigin_set.all %}
-                            <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
-                             {% endfor %}
+                            <td>
+                                {% for data in item_part.historical_item.itemorigin_set.all %}
+                                    <b>Evidence</b>: {{ data.evidence }}
+                                    {% if data.dubitable %}, <b>Dubitable</b>{% endif %}
+                                {% endfor %}
                             </td>
                         </tr>
                     </tbody>
@@ -67,12 +70,14 @@
                         <tr>
                             <th>MS Description</th>
                             <td>
-                                {% for desc in item_part.historical_item.description_set.all %}
-                                    <p>
-                                        {{ desc.description }}
-                                        <br/>
-                                        {{ desc.source.get_display_reference }}
-                                    </p>
+                                {% for historical_item in item_part.historical_items.all %}
+                                    {% for desc in historical_item.description_set.all %}
+                                        <p>
+                                            {{ desc.description }}
+                                            <br/>
+                                            {{ desc.source.get_display_reference }}
+                                        </p>
+                                    {% endfor %}
                                 {% endfor %}
                             </td>
                         </tr>
@@ -80,7 +85,7 @@
                 </table>
             </div>
     
-            {% include "pages/tab_pages.html" %}
+            {% include "pages/tab_images.html" %}
     
             <div class='tab-pane fade' id='hands'>
                 <div class='row-fluid'>

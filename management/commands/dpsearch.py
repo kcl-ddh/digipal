@@ -185,7 +185,7 @@ Commands:
         writer = index.writer()
         for type in types:
             count = type.write_index(writer)
-            print '\t\t%s %s records indexed' % (count, type.get_model())
+            print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
         
         writer.commit()
 

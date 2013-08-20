@@ -11,11 +11,11 @@ class SearchScribes(SearchContentType):
         ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name'}, 'advanced': True}
         ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
-        ret['hand__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
-        ret['hand__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}}
-        ret['hand__item_part__historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 1.0}}
+        ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}}
+        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 1.0}}
         # TODO: display this field on the front-end
-        #ret['historical_item__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
+        #ret['historical_items__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
 
         # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
         # filtering is done using the DB
@@ -134,7 +134,7 @@ class FilterScribes(forms.Form):
 
 def scribe_details(request):
     """
-    Get Idiograph, Graph, and Page data for a Scribe,
+    Get Idiograph, Graph, and Image data for a Scribe,
     for display in a record view
     """
     scribe = Scribe.objects.get(id=request.GET.get('id'))

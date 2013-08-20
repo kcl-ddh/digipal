@@ -32,9 +32,9 @@ from django import forms
 
 @staff_member_required
 
-def page_bulk_edit(request, url=None):
+def image_bulk_edit(request, url=None):
     context = {}
-    context['folios'] = Page.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
+    context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
     context['folio_sides'] = []
     '''
     context['folio_sides'] = [
@@ -156,25 +156,25 @@ def page_bulk_edit(request, url=None):
 def newScriptEntry (request):
     page_id = 34
     """Returns a page annotation form."""
-    page = Page.objects.get(id=page_id)
-    annotations = page.annotation_set.values('graph').count()
+    image = Image.objects.get(id=page_id)
+    annotations = image.annotation_set.values('graph').count()
     
-    page_link = urlresolvers.reverse('admin:digipal_page_change', args=(page.id,))
+    image_link = urlresolvers.reverse('admin:digipal_page_change', args=(image.id,))
     form = ScribeAdminForm()
     scribeField = OnlyScribe()
 
-    width, height = page.dimensions()
-    image_server_url = page.zoomify
+    width, height = image.dimensions()
+    image_server_url = image.zoomify
 
     #is_admin = request.user.is_superuser
-    is_admin = has_edit_permission(request, Page)
+    is_admin = has_edit_permission(request, Image)
     
     context = {
-               'form': form, 'page': page, 'height': height, 'width': width,
+               'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url,
-               'page_link': page_link, 'annotations': annotations, 
+               'image_link': image_link, 'annotations': annotations, 
                #'hands': hands, 'is_admin': is_admin,
-               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation)
                }
 
@@ -185,10 +185,10 @@ def newScriptEntry (request):
     onlyScribeForm = OnlyScribe()
 
     newContext = {
-               'form': form, 'page': page, 'height': height, 'width': width,
+               'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'scribe': scribeField,
-               'page_link': page_link, 'annotations': annotations, 
-               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'image_link': image_link, 'annotations': annotations, 
+               'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation), 'formset': formset,
                'scribeForm': onlyScribeForm
                }

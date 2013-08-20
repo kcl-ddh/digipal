@@ -37,7 +37,7 @@ def record_view(request, content_type='', objectid=''):
     context = {}
     
     # We need to do a search to show the next and previous record
-    # Only when we come from the the search page.
+    # Only when we come from the the search image.
     set_search_results_to_context(request, allowed_type=content_type, context=context)
     
     for type in context['types']:
@@ -204,7 +204,7 @@ def allographHandSearch(request):
                     Q(hand__assigned_date__date__icontains=term) | \
                     Q(hand__item_part__current_item__shelfmark__icontains=term) | \
                     Q(hand__item_part__current_item__repository__name__icontains=term) | \
-                    Q(hand__item_part__historical_item__catalogue_number__icontains=term))
+                    Q(hand__item_part__historical_items__catalogue_number__icontains=term))
         else:
             graphs = Graph.objects.all()
             

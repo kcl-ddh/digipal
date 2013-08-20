@@ -8,7 +8,7 @@
 {% block record_tabs %}
     <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
     <li><a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
-    <li><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.pages.count }})</a></li>
+    <li><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
     <li><a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
 
@@ -59,7 +59,7 @@
                 </div>       
             </div>
     
-            {% include "pages/tab_pages.html" with pages=result.pages.all %}
+            {% include "pages/tab_images.html" with images=result.images.all %}
     
             <div class='tab-pane fade' id='graphs'>
                 <div class="scribe annotations">
@@ -78,14 +78,14 @@
                               <ul>
                                 {% for annotation in annotations %}
                                     <li>
-                                    <p><a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
+                                    <p><a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
                                     {% if can_edit %}
                                     <span> | </span>
                                     <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
                                     {% else %}
                                     </p>
                                     {% endif %}
-                                    <a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
+                                    <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
                                     {{ annotation.thumbnail }}
                                     </a> 
                                     </li>

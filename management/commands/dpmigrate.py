@@ -118,6 +118,7 @@ Commands:
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
 
     def gen_em_table(self, options):
+        # TODO: update this query to work with the itempartitem table
         query = ur'''
                 select distinct
                     'http://www.digipal.eu/digipal/manuscripts/' || ip.id || '/pages/' as "Digipal URL",
@@ -283,6 +284,7 @@ Commands:
                 
                 hand_number_parts = (re.findall(ur'^(\d+)(.*)$', hand_number))[0]
                 
+                # TODO: update this query to work with multiple historical_itemS for each item part
                 hands = Hand.objects.filter(num=hand_number_parts[0], item_part__historical_item__catalogue_numbers__number=doc_number, item_part__historical_item__catalogue_numbers__source__label='%s.' % catalogue)
                 
                 # 2. validation

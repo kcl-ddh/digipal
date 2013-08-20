@@ -27,7 +27,7 @@ class ContactForm(forms.Form):
     sender = forms.EmailField()
     cc_myself = forms.BooleanField(required=False)
 
-class PageAnnotationForm(forms.Form):
+class ImageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)
 
     if status_list:
@@ -53,7 +53,7 @@ class PageAnnotationForm(forms.Form):
         are populated dinamically on the client side, therefore the clean
         method needs to be overriden to ignore errors related to the feature
         field."""
-        super(PageAnnotationForm, self).clean()
+        super(ImageAnnotationForm, self).clean()
 
         if 'feature' in self._errors:
             del self._errors['feature']
@@ -98,7 +98,7 @@ class InlineForm(forms.ModelForm):
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
-        queryset = Place.objects.filter(repository__currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat=True),
+        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "",
         empty_label = "Town or City",

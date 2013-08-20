@@ -23,8 +23,8 @@
 {% block annotations %}
 <div class='container'>
     <h2 class='header1'>
-        {% if page.item_part.pagination %}Page{% else %}Folio{% endif %}: 
-        {{page|capfirst}}
+        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}: 
+        {{image|capfirst}}
     </h2>
     {% if no_image_reason %}
         <p>
@@ -35,7 +35,7 @@
       <form></form>            
       <form id="frmAnnotation" method="get" name="frmAnnotation">
           {% csrf_token %}
-          <input id="id_page" name="page" type="hidden" value="{{ page.id }}" />
+          <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
         <div class='row'>
           <div class='span7'>
               <ul class='nav nav-tabs'>
@@ -46,8 +46,8 @@
               </ul>
           </div>
           <div class='span3 pull-right'>
-            <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ page.item_part.pages.count }}
-             {% if page.item_part.pages.count == 1 %} 
+            <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ image.item_part.images.count }}
+             {% if image.item_part.images.count == 1 %} 
               <span style='font-weight:bold'>image</span></span>
               {% else %}
               <span style='font-weight:bold'>images</span></span>
@@ -56,23 +56,23 @@
                   <div class='arrow'></div>
                   <div id='titlePopup'><p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'>X</span></p> </div>
                   <div class='span12' id='imagesBoxcontent'>
-                    {% for p in page.item_part.pages.all %}
-                    {% if page.item_part.pages.count == 1 %}
+                    {% for p in image.item_part.images.all %}
+                    {% if image.item_part.images.count == 1 %}
                       <p>
-                        <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">{{ p.thumbnail|safe }}
+                        <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">{{ p.thumbnail|safe }}
                             </a>
                           </p>
-                      {% elif page.item_part.pages.count < 3 %}
-                          <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
+                      {% elif image.item_part.images.count < 3 %}
+                          <a data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
                             </a>
                       {% else %}
                         {% if forloop.counter|divisibleby:3 %}
                           <div class='row'>
     
-                           <a style='margin-left:1.1%;' data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                           <a style='margin-left:1.1%;' data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
                           </div>
                       {% else %}
-                          <a  data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{page.hand_set.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                          <a  data-title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
          
                     {% endif %}
                     {% endif %}

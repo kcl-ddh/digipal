@@ -15,7 +15,7 @@ class SearchHands(SearchContentType):
         ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
         ret['item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
+        ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
@@ -67,7 +67,7 @@ class SearchHands(SearchContentType):
                     Q(assigned_date__date__icontains=term) | \
                     Q(item_part__current_item__shelfmark__icontains=term) | \
                     Q(item_part__current_item__repository__name__icontains=term) | \
-                    Q(item_part__historical_item__catalogue_number__icontains=term))
+                    Q(item_part__historical_items__catalogue_number__icontains=term))
         
         scribes = request.GET.get('scribes', '')
         repository = request.GET.get('repository', '')

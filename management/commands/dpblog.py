@@ -222,7 +222,7 @@ Commands:
 				if xml_tag_slug not in [c.slug for c in getattr(post, model_name.lower() + '_list')()]:
 					object_to_add = categories[xml_tag_slug]
 # 					keyword_id = Keyword.objects.get_or_create(title=keyword)[0].id
-# 					page.keywords.add(AssignedKeyword(keyword_id=keyword_id))
+# 					image.keywords.add(AssignedKeyword(keyword_id=keyword_id))
 					if not as_categories:
 						object_to_add = AssignedKeyword(keyword=categories[xml_tag_slug])
 					getattr(post, model_field_name).add(object_to_add)

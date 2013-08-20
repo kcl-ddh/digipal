@@ -11,17 +11,17 @@ class SearchManuscripts(SearchContentType):
         ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
         ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
         ret['current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
-        ret['historical_item__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
-        ret['historical_item__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
-        ret['historical_item__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
-        ret['historical_item__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['historical_items__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
+        ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
+        ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
     def set_record_view_context(self, context):
         super(SearchManuscripts, self).set_record_view_context(context)
         context['item_part'] = ItemPart.objects.get(id=context['id'])
-        context['pages'] = context['item_part'].pages.all().order_by('locus')
-        context['hands'] = context['item_part'].hand_set.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+        context['images'] = context['item_part'].images.all().order_by('locus')
+        context['hands'] = context['item_part'].hands.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
     
     @property
     def form(self):
@@ -48,8 +48,8 @@ class SearchManuscripts(SearchContentType):
                 Q(locus__contains=term) | \
                 Q(current_item__shelfmark__icontains=term) | \
                 Q(current_item__repository__name__icontains=term) | \
-                Q(historical_item__catalogue_number__icontains=term) | \
-                Q(historical_item__description__description__icontains=term))
+                Q(historical_items__catalogue_number__icontains=term) | \
+                Q(historical_items__description__description__icontains=term))
         
         repository = request.GET.get('repository', '')
         index_manuscript = request.GET.get('index', '')
@@ -58,13 +58,13 @@ class SearchManuscripts(SearchContentType):
         self.is_advanced = repository or index_manuscript or date
     
         if date:
-            query_manuscripts = query_manuscripts.filter(historical_item__date=date)
+            query_manuscripts = query_manuscripts.filter(historical_items__date=date)
         if repository:
             query_manuscripts = query_manuscripts.filter(current_item__repository__name=repository)
         if index_manuscript:
-            query_manuscripts = query_manuscripts.filter(historical_item__catalogue_number=index_manuscript)
+            query_manuscripts = query_manuscripts.filter(historical_items__catalogue_number=index_manuscript)
             
-        self._queryset = query_manuscripts.distinct().order_by('historical_item__catalogue_number', 'id')
+        self._queryset = query_manuscripts.distinct().order_by('historical_items__catalogue_number', 'id')
         
         return self._queryset
 

@@ -899,11 +899,24 @@ class HistoricalItemDate(models.Model):
         #return u'%s. %s' % (self.historical_item, self.date)
         return get_list_as_string(self.historical_item, '. ', self.date) 
 
+class ItemPartType(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 # Manuscripts and Charters in legacy db
 class ItemPart(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
+    historical_items = models.ManyToManyField(HistoricalItem, through='ItemPartItem', related_name='item_parts')
     current_item = models.ForeignKey(CurrentItem)
+    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True)
+    # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
             default=settings.ITEM_PART_DEFAULT_LOCUS)
     display_label = models.CharField(max_length=128, editable=False)
@@ -911,23 +924,50 @@ class ItemPart(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    type = models.ForeignKey(ItemPartType, null=True, blank=True)
 
     class Meta:
         ordering = ['display_label']
-        unique_together = ['historical_item', 'current_item', 'locus']
+        #unique_together = ['historical_item', 'current_item', 'locus']
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
-        self.display_label = get_list_as_string(self.current_item, ', ', self.locus) 
+        self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
         super(ItemPart, self).save(*args, **kwargs)
+    
+    @property
+    def historical_item(self):
+        ret= None
+        try:
+            ret = self.historical_items.order_by('id')[0]
+        except IndexError:
+            pass
+        return ret
 
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
 ItemPart.webpath_key = 'Manuscripts'
+
+# Represents the physical belonging to a whole (Item) during a period of time in history.
+# A constitutionality.
+class ItemPartItem(models.Model):
+    historical_item = models.ForeignKey(HistoricalItem, related_name='partitions')
+    item_part = models.ForeignKey(ItemPart, related_name='constitutionalities')
+    locus = models.CharField(max_length=64, blank=True, null=False, default='')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['historical_item__id']
+        verbose_name = 'Item Partition'
+
+    def __unicode__(self):
+        return get_list_as_string(self.historical_item, ', ', self.locus)
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
@@ -943,9 +983,9 @@ class LatinStyle(models.Model):
     def __unicode__(self):
         return u'%s' % (self.style)
 
-
-class Page(models.Model):
-    item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
+class Image(models.Model):
+    #item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
+    item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
     locus = models.CharField(max_length=64)
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
@@ -1039,7 +1079,7 @@ class Page(models.Model):
             self.display_label = get_list_as_string(self.item_part, ': ', self.locus) 
         else:
             self.display_label = u''
-        super(Page, self).save(*args, **kwargs)
+        super(Image, self).save(*args, **kwargs)
 
     def path(self):
         """Returns the path of the image on the image server. The server path
@@ -1115,7 +1155,7 @@ class Page(models.Model):
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
-Page.webpath_key = 'Page'
+Image.webpath_key = 'Page'
 
 
 def normalize_string(s):
@@ -1155,9 +1195,9 @@ def thumbnail(image, length=settings.MAX_THUMB_LENGTH):
 class Hand(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     num = models.IntegerField()
-    item_part = models.ForeignKey(ItemPart)
+    item_part = models.ForeignKey(ItemPart, related_name='hands')
     script = models.ForeignKey(Script, blank=True, null=True)
-    scribe = models.ForeignKey(Scribe, blank=True, null=True)
+    scribe = models.ForeignKey(Scribe, blank=True, null=True, related_name='hands')
     assigned_date = models.ForeignKey(Date, blank=True, null=True)
     assigned_place = models.ForeignKey(Place, blank=True, null=True)
     # This is an absolute hand (or scribe) number, so we can
@@ -1190,7 +1230,8 @@ class Hand(models.Model):
     imitative = models.NullBooleanField()
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    pages = models.ManyToManyField(Page, blank=True, null=True)
+    #pages = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
+    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1378,7 +1419,9 @@ class Status(models.Model):
 
 
 class Annotation(models.Model):
-    page = models.ForeignKey(Page)
+    # TODO: to remove
+    #page = models.ForeignKey(Image, related_name='to_be_removed')
+    image = models.ForeignKey(Image, null=True, blank=False)
     cutout = models.CharField(max_length=256)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
@@ -1397,7 +1440,7 @@ class Annotation(models.Model):
 
     class Meta:
         ordering = ['graph', 'modified']
-        unique_together = ('page', 'vector_id')
+        unique_together = ('image', 'vector_id')
 
     def save(self, *args, **kwargs):
         super(Annotation, self).save(*args, **kwargs)
@@ -1417,8 +1460,8 @@ class Annotation(models.Model):
         min_y = float(min(yy))
         max_y = float(max(yy))
 
-        if self.page.path():
-            img_width, img_height = self.page.dimensions()
+        if self.image.path():
+            img_width, img_height = self.image.dimensions()
             if img_width > 0 and img_height > 0:
                 img_width = float(img_width)
                 img_height = float(img_height)
@@ -1447,13 +1490,13 @@ class Annotation(models.Model):
 
                 self.cutout = settings.IMAGE_SERVER_RGN % \
                         (settings.IMAGE_SERVER_HOST,
-                                settings.IMAGE_SERVER_PATH, self.page.path(),
+                                settings.IMAGE_SERVER_PATH, self.image.path(),
                                 size, left, top, width, height)
-        elif self.page.image:
-            img = pil.open(self.page.image.path)
+        elif self.image.image:
+            img = pil.open(self.image.image.path)
             cropped = img.crop((int(min_x),
-                self.page.image.height - int(max_y), int(max_x),
-                self.page.image.height - min_y))
+                self.image.image.height - int(max_y), int(max_x),
+                self.image.image.height - min_y))
 
             cropped_name = '%d.jpg' % (self.id)
             cropped_path = os.path.join(settings.ANNOTATIONS_ROOT,
@@ -1470,15 +1513,15 @@ class Annotation(models.Model):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
         '''
-        # graft the query string of self.cutout to self.page.thumbnail_url
+        # graft the query string of self.cutout to self.image.thumbnail_url
         # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
-        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.page, cgi.escape(self.cutout)))
+        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.image, cgi.escape(self.cutout)))
         from utils import update_query_string
         cutout_qs = re.sub(ur'^(.*)\?(.*)$', ur'\2', self.cutout)
         # This technique doesn't work because of the encoding:
-        # cutout_url = update_query_string(self.page.thumbnail_url(), cutout_qs)
+        # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)
         # Just concatenate things together instead
-        image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.page.thumbnail_url())
+        image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
         return u'%s?%s' % (image_url, cutout_qs)
         
     def thumbnail(self):

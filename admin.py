@@ -15,7 +15,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Hair, Hand, HistoricalItem, HistoricalItemType, \
         Idiograph, IdiographComponent, Institution, InstitutionType, \
         HistoricalItemDate, \
-        ItemOrigin, ItemPart, ItemPartItem, \
+        ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
         Language, LatinStyle, Layout, \
         Measurement, \
         Ontograph, OntographType, Owner, \
@@ -542,9 +542,9 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
     filter_horizontal = ['categories', 'owners']
-    inlines = [CatalogueNumberInline, CollationInline,
+    inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
-            ItemOriginInline, ItemPartItemInline, LayoutInline]
+            ItemOriginInline, LayoutInline]
     list_display = ['historical_item_type', 'historical_item_format',
             'catalogue_number', 'date', 'name', 'created', 'modified']
     list_display_links = ['historical_item_type', 'historical_item_format',
@@ -651,6 +651,12 @@ class ItemPartAdmin(reversion.VersionAdmin):
     search_fields = ['locus', 'display_label',
             'historical_items__display_label']
 
+class ItemPartTypeAdmin(reversion.VersionAdmin):
+    model = ItemPartType
+
+    list_display = ['name', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name']
 
 class LanguageAdmin(reversion.VersionAdmin):
     model = Language
@@ -1072,6 +1078,7 @@ admin.site.register(InstitutionType, InstitutionTypeAdmin)
 admin.site.register(HistoricalItemDate, ItemDateAdmin)
 admin.site.register(ItemOrigin, ItemOriginAdmin)
 admin.site.register(ItemPart, ItemPartAdmin)
+admin.site.register(ItemPartType, ItemPartTypeAdmin)
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LatinStyle, LatinStyleAdmin)
 admin.site.register(Layout, LayoutAdmin)

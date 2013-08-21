@@ -39,7 +39,7 @@ urlpatterns += patterns('digipal.views.image',
                        (r'^image-display/', 'image'),
                        )
 
-urlpatterns += patterns('digipal.views.admin.page',
+urlpatterns += patterns('digipal.views.admin.image',
                        (r'admin/image/bulk_edit', 'image_bulk_edit'),
                        (r'admin/newscriptentry', 'newScriptEntry'),
                        (r'admin/Scribeinserted', 'inserting'),

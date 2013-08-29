@@ -15,11 +15,11 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Hair, Hand, HistoricalItem, HistoricalItemType, \
         Idiograph, IdiographComponent, Institution, InstitutionType, \
         HistoricalItemDate, \
-        ItemOrigin, ItemPart, \
+        ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
         Language, LatinStyle, Layout, \
         Measurement, \
         Ontograph, OntographType, Owner, \
-        Page, Person, Place, PlaceEvidence, Proportion, \
+        Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog
@@ -37,7 +37,7 @@ dplog = logging.getLogger( 'digipal_debugger')
 #                       #
 #########################
 
-class PageAnnotationNumber(SimpleListFilter):
+class ImageAnnotationNumber(SimpleListFilter):
     title = ('Annotations')
 
     parameter_name = ('Annot')
@@ -50,12 +50,12 @@ class PageAnnotationNumber(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.annotate(num_annot = Count('annotation__page__item_part')).exclude(num_annot__lt = 5)
+            return queryset.annotate(num_annot = Count('annotation__image__item_part')).exclude(num_annot__lt = 5)
         if self.value() == '2':
-            return queryset.annotate(num_annot = Count('annotation__page__item_part')).filter(num_annot__lt = 5)
+            return queryset.annotate(num_annot = Count('annotation__image__item_part')).filter(num_annot__lt = 5)
             
 
-class PageFilterNoItemPart(SimpleListFilter):
+class ImageFilterNoItemPart(SimpleListFilter):
     title = 'Item Part'
 
     parameter_name = ('item_part')
@@ -72,7 +72,7 @@ class PageFilterNoItemPart(SimpleListFilter):
         if self.value() == 'without':
             return queryset.exclude(item_part_id__gt = 0).distinct()
 
-class PageWithFeature(SimpleListFilter):
+class ImageWithFeature(SimpleListFilter):
     title = ('Associated Features')
 
     parameter_name = ('WithFeat')
@@ -89,7 +89,7 @@ class PageWithFeature(SimpleListFilter):
         if self.value() == 'no':
             return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
            
-class PageWithHand(SimpleListFilter):
+class ImageWithHand(SimpleListFilter):
     title = ('Associated Hand')
 
     parameter_name = ('WithHand')
@@ -199,9 +199,9 @@ class HandItempPartFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return Hand.objects.filter(item_part__historical_item__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
+            return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
         if self.value() == 'no':
-            return Hand.objects.filter(item_part__historical_item__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
+            return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
 
 class HandGlossNumFilter(SimpleListFilter):
     title = ('number of Glossing Hands')
@@ -245,6 +245,10 @@ class HandGlossTextFilter(SimpleListFilter):
 #########################
 
 
+class OwnerInline(admin.StackedInline):
+    model = Owner
+
+
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
 
@@ -279,11 +283,11 @@ class AlphabetAdmin(reversion.VersionAdmin):
 class AnnotationAdmin(reversion.VersionAdmin):
     model = Annotation
 
-    list_display = ['author', 'page', 'status', 'before', 'graph', 'after',
+    list_display = ['author', 'image', 'status', 'before', 'graph', 'after',
             'thumbnail', 'created', 'modified']
-    list_display_links = ['author', 'page', 'status', 'before', 'graph',
+    list_display_links = ['author', 'image', 'status', 'before', 'graph',
             'after', 'created', 'modified']
-    search_fields = ['vector_id', 'page__display_label',
+    search_fields = ['vector_id', 'image__display_label',
             'graph__idiograph__allograph__character__name']
     list_filter = ['author__username', 'graph__idiograph__allograph__character__name']
 
@@ -369,11 +373,17 @@ class CountyAdmin(reversion.VersionAdmin):
 class ItemPartInline(admin.StackedInline):
     model = ItemPart
 
+class ItemPartItemInline(admin.StackedInline):
+    model = ItemPartItem
+    
+    verbose_name = 'Historical Item Part'
+
 
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
     inlines = [ItemPartInline]
+    filter_horizontal = ['owners']
     list_display = ['repository', 'shelfmark', 'created', 'modified']
     list_display_links = ['repository', 'shelfmark', 'created', 'modified']
     search_fields = ['repository__name', 'shelfmark', 'description']
@@ -488,7 +498,7 @@ class HandFilterSurrogates(admin.SimpleListFilter):
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
 
-    filter_horizontal = ['pages']
+    filter_horizontal = ['images']
     list_display = ['label', 'num', 'item_part', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
@@ -529,17 +539,21 @@ class ItemOriginInline(admin.StackedInline):
     model = ItemOrigin
 
 
-class LayoutInline(admin.StackedInline):
+class PartLayoutInline(admin.StackedInline):
     model = Layout
+    exclude = ('historical_item', )    
 
+class ItemLayoutInline(admin.StackedInline):
+    model = Layout
+    exclude = ('item_part', )    
 
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
     filter_horizontal = ['categories', 'owners']
-    inlines = [CatalogueNumberInline, CollationInline,
+    inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
-            ItemOriginInline, ItemPartInline, LayoutInline]
+            ItemOriginInline, ItemLayoutInline]
     list_display = ['historical_item_type', 'historical_item_format',
             'catalogue_number', 'date', 'name', 'created', 'modified']
     list_display_links = ['historical_item_type', 'historical_item_format',
@@ -547,7 +561,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     readonly_fields = ['catalogue_number']
     search_fields = ['catalogue_number', 'date', 'name']
     list_filter = [HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter]
-
+    
 class HistoricalItemTypeAdmin(reversion.VersionAdmin):
     model = HistoricalItemType
 
@@ -578,10 +592,6 @@ class IdiographAdmin(reversion.VersionAdmin):
     search_fields = ['allograph__name']
 
 
-class OwnerInline(generic.GenericStackedInline):
-    model = Owner
-
-
 class ScribeInline(admin.StackedInline):
     model = Scribe
 
@@ -604,7 +614,6 @@ class InstitutionTypeAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
-
 class ItemDateAdmin(reversion.VersionAdmin):
     model = HistoricalItemDate
 
@@ -626,11 +635,11 @@ class ItemOriginAdmin(reversion.VersionAdmin):
 class HandInline(admin.StackedInline):
     model = Hand
 
-    filter_horizontal = ['pages']
+    filter_horizontal = ['images']
 
 
-class PageInline(admin.StackedInline):
-    model = Page
+class ImageInline(admin.StackedInline):
+    model = Image
 
     exclude = ['image']
 
@@ -638,14 +647,20 @@ class PageInline(admin.StackedInline):
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
-    inlines = [HandInline, PageInline]
+    inlines = [ItemPartItemInline, ItemPartInline, HandInline, ImageInline, PartLayoutInline]
     list_display = ['historical_item', 'current_item', 'locus', 'created',
             'modified']
     list_display_links = ['historical_item', 'current_item', 'locus',
             'created', 'modified']
     search_fields = ['locus', 'display_label',
-            'historical_item__display_label']
+            'historical_items__display_label']
 
+class ItemPartTypeAdmin(reversion.VersionAdmin):
+    model = ItemPartType
+
+    list_display = ['name', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name']
 
 class LanguageAdmin(reversion.VersionAdmin):
     model = Language
@@ -683,11 +698,10 @@ class MeasurementAdmin(reversion.VersionAdmin):
 class OwnerAdmin(reversion.VersionAdmin):
     model = Owner
 
-    list_display = ['content_type', 'content_object', 'created', 'modified']
-    list_display_links = ['content_type', 'content_object', 'created',
-            'modified']
-    search_fields = ['evidence']
-
+    list_display = ['content_object', 'content_type', 'date', 'rebound', 'annotated', 'dubitable', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['evidence', 'institution__name', 'person__name']
+    
 
 class CharacterInline(admin.StackedInline):
     model = Character
@@ -713,13 +727,13 @@ class OntographTypeAdmin(reversion.VersionAdmin):
 
 
 class HandsInline(admin.StackedInline):
-    model = Hand.pages.through
+    model = Hand.images.through
 
 
-class PageForm(forms.ModelForm):
+class ImageForm(forms.ModelForm):
 
     class Meta:
-        model = Page    
+        model = Image    
 
     def __init__(self, *args, **kwargs):
         # we change the label of the default value for the media_permission 
@@ -727,12 +741,12 @@ class PageForm(forms.ModelForm):
         #
         # We also add a link to the repository in the help message under the 
         # field
-        super(PageForm, self).__init__(*args, **kwargs)
-        page = getattr(self, 'instance', None)
+        super(ImageForm, self).__init__(*args, **kwargs)
+        image = getattr(self, 'instance', None)
         permission_field = self.fields['media_permission']
-        if page:
+        if image:
             # TODO: remove code duplication in the functions
-            repository = page.get_repository()
+            repository = image.get_repository()
             if repository:
                 permission = repository.get_media_permission()
                 repository_url = reverse("admin:digipal_repository_change", 
@@ -744,8 +758,8 @@ class PageForm(forms.ModelForm):
                     select the first option.<br/>''' % repository_url
 
 
-class PageAdmin(reversion.VersionAdmin):
-    form = PageForm
+class ImageAdmin(reversion.VersionAdmin):
+    form = ImageForm
 
     exclude = ['image', 'caption']
     inlines = [HandsInline]
@@ -757,7 +771,7 @@ class PageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
     
-    list_filter = ["media_permission__label", PageAnnotationNumber, PageWithFeature, PageWithHand, PageFilterNoItemPart]
+    list_filter = ["media_permission__label", ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart]
     
     actions = ['bulk_editing', 'bulk_natural_sorting']
 
@@ -765,7 +779,7 @@ class PageAdmin(reversion.VersionAdmin):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         from django.core.urlresolvers import reverse
-        return HttpResponseRedirect(reverse('digipal.views.admin.page.page_bulk_edit') + '?ids=' + ','.join(selected) )
+        return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
     
     def get_locus_label(self, obj):
@@ -785,16 +799,30 @@ class InstitutionInline(admin.StackedInline):
     model = Institution
 
 
+class PlaceTypeAdmin(reversion.VersionAdmin):
+    model = PlaceType
+
+    list_display = ['name', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name']
+
+
 class PlaceAdmin(reversion.VersionAdmin):
     model = Place
 
+    fieldsets = (
+                (None, {'fields': ('name', 'type')}),
+                ('Regions', {'fields': ('region', 'current_county', 'historical_county')}),
+                ('Coordinates', {'fields': ('eastings', 'northings')}),
+                ('Legacy', {'fields': ('legacy_id',)}),
+                ) 
     inlines = [InstitutionInline, PlaceEvidenceInline]
-    list_display = ['name', 'region', 'current_county',
+    
+    list_display = ['name', 'type', 'region', 'current_county',
             'historical_county', 'created', 'modified']
-    list_display_links = ['name', 'region', 'current_county',
-            'historical_county', 'created', 'modified']
-    search_fields = ['name']
-
+    list_display_links = list_display
+    search_fields = ['name', 'type']
+    list_filter = ['type__name']
 
 class PlaceEvidenceAdmin(reversion.VersionAdmin):
     model = PlaceEvidence
@@ -907,7 +935,7 @@ class LogEntryAdmin(reversion.VersionAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        # Returning False causes table to not show up in admin page
+        # Returning False causes table to not show up in admin image
         return True
 
     def has_delete_permission(self, request, obj=None):
@@ -1067,6 +1095,7 @@ admin.site.register(InstitutionType, InstitutionTypeAdmin)
 admin.site.register(HistoricalItemDate, ItemDateAdmin)
 admin.site.register(ItemOrigin, ItemOriginAdmin)
 admin.site.register(ItemPart, ItemPartAdmin)
+admin.site.register(ItemPartType, ItemPartTypeAdmin)
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LatinStyle, LatinStyleAdmin)
 admin.site.register(Layout, LayoutAdmin)
@@ -1075,8 +1104,9 @@ admin.site.register(Measurement, MeasurementAdmin)
 admin.site.register(Owner, OwnerAdmin)
 admin.site.register(Ontograph, OntographAdmin)
 admin.site.register(OntographType, OntographTypeAdmin)
-admin.site.register(Page, PageAdmin)
+admin.site.register(Image, ImageAdmin)
 admin.site.register(Person, PersonAdmin)
+admin.site.register(PlaceType, PlaceTypeAdmin)
 admin.site.register(Place, PlaceAdmin)
 admin.site.register(PlaceEvidence, PlaceEvidenceAdmin)
 admin.site.register(Proportion, ProportionAdmin)

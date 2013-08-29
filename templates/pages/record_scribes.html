@@ -7,7 +7,7 @@
 
 {% block record_tabs %}
     <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hand_set.all.count }})</a></li>
+    <li><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
     <li><a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a></li>
     <li><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
 {% endblock %}
@@ -44,7 +44,7 @@
                             <th>Item Part</th>
                             <th>Hand</th>
                         </tr>
-                        {% for hand in scribe.hand_set.all %}
+                        {% for hand in scribe.hands.all %}
                             {% if hand %}
                                 <tr>
                                     <td>{{hand.item_part}}</td> 
@@ -68,19 +68,19 @@
                         <th>Hand</td>
                         <th>Image</th>
                     </tr>
-                    {% for hand in scribe.hand_set.all %}
-                        {% for page in hand.pages.all %}
+                    {% for hand in scribe.hands.all %}
+                        {% for image in hand.images.all %}
                             <tr>
                                 <td>
-                                    <p><a href="{{ page.get_absolute_url }}">{{ page}}</a></p>
+                                    <p><a href="{{ image.get_absolute_url }}">{{ image }}</a></p>
         
                                 </td>
                                 <td>
                                     <p>{{ hand }}</p>
                                 </td>
                                 <td style='padding:1%'>
-                                    <a class="{{ page.get_absolute_url }}">
-                                        {{ page.thumbnail  }}
+                                    <a class="{{ image.get_absolute_url }}">
+                                        {{ image.thumbnail  }}
                                     </a>
                                 </td>
                                

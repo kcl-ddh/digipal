@@ -9,9 +9,9 @@ from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys
 
-from digipal.forms import PageAnnotationForm, FilterManuscriptsImages
+from digipal.forms import ImageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, \
-        GraphComponent, Graph, Component, Feature, Idiograph, Page, Repository, \
+        GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
         has_edit_permission
 import ast
 from django import template
@@ -19,7 +19,7 @@ from django import template
 register = template.Library()
 
 
-def get_features(request, page_id, graph_id):
+def get_features(request, image_id, graph_id):
     dict_features = []
     graph_components = GraphComponent.objects.filter(graph_id = graph_id)
     for component in graph_components.values_list('id', flat=True):
@@ -32,7 +32,7 @@ def get_features(request, page_id, graph_id):
             feature['feature'] = list(f)
     return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
 
-def allograph_features(request, page_id, allograph_id):
+def allograph_features(request, image_id, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
     by component."""
     allograph = Allograph.objects.get(id=allograph_id)
@@ -55,45 +55,45 @@ def allograph_features(request, page_id, allograph_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
-def page(request, page_id):
-    """Returns a page annotation form."""
-    page = Page.objects.get(id=page_id)
-    annotations = page.annotation_set.values('graph').count()
-    hands = page.hand_set.count()
-    # Check for a vector_id in page referral, if it exists the request has
+def image(request, image_id):
+    """Returns a image annotation form."""
+    image = Image.objects.get(id=image_id)
+    annotations = image.annotation_set.values('graph').count()
+    hands = image.hands.count()
+    # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
 
-    page_link = urlresolvers.reverse('admin:digipal_page_change', args=(page.id,))
-    form = PageAnnotationForm()
+    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
+    form = ImageAnnotationForm()
 
-    form.fields['hand'].queryset = page.hand_set.all()
+    form.fields['hand'].queryset = image.hands.all()
 
-    width, height = page.dimensions()
-    image_server_url = page.zoomify
+    width, height = image.dimensions()
+    image_server_url = image.zoomify
 
     #is_admin = request.user.is_superuser
-    is_admin = has_edit_permission(request, Page)
+    is_admin = has_edit_permission(request, Image)
         
     context = {
-               'form': form, 'page': page, 'height': height, 'width': width,
+               'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url,
-               'page_link': page_link, 'annotations': annotations, 
+               'image_link': image_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
-               'no_image_reason': page.get_media_unavailability_reason(request.user),
+               'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation)
                }
  
     if vector_id:
         context['vector_id'] = vector_id
 
-    return render_to_response('digipal/page_annotation.html', context, 
+    return render_to_response('digipal/image_annotation.html', context, 
                               context_instance=RequestContext(request))
     
 
-def page_vectors(request, page_id):
-    """Returns a JSON of all the vectors for the requested page."""
-    annotation_list = Annotation.objects.filter(page=page_id)
+def image_vectors(request, image_id):
+    """Returns a JSON of all the vectors for the requested image."""
+    annotation_list = Annotation.objects.filter(image=image_id)
     data = {}
 
     for a in annotation_list:
@@ -102,9 +102,9 @@ def page_vectors(request, page_id):
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
-def page_annotations(request, page_id):
-    """Returns a JSON of all the annotations for the requested page."""
-    annotation_list = Annotation.objects.filter(page=page_id)
+def image_annotations(request, image_id):
+    """Returns a JSON of all the annotations for the requested image."""
+    annotation_list = Annotation.objects.filter(image=image_id)
 
     data = {}
 
@@ -142,11 +142,11 @@ def page_annotations(request, page_id):
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
-def page_allographs(request, page_id):
+def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
-    page."""
-    annotation_list = Annotation.objects.filter(page=page_id)
-    page = Page.objects.get(id=page_id)
+    image."""
+    annotation_list = Annotation.objects.filter(image=image_id)
+    image = Image.objects.get(id=image_id)
     data = SortedDict()
 
     for annotation in annotation_list:
@@ -162,35 +162,36 @@ def page_allographs(request, page_id):
 
         data[hand][allograph_name].append(annotation)
 
-    return render_to_response('digipal/page_allograph.html',
-            {'page': page, 'data': data, 
+    return render_to_response('digipal/image_allograph.html',
+            {'image': image, 'data': data, 
              'can_edit': has_edit_permission(request, Annotation)},
             context_instance=RequestContext(request))
 
-def page_metadata(request, page_id):
+def image_metadata(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
-    page."""
+    image."""
     context = {}
-    page = Page.objects.get(id=page_id)
-    context['page'] = page
+    image = Image.objects.get(id=image_id)
+    context['image'] = image
 
-    return render_to_response('pages/record_pages.html',
+    return render_to_response('pages/record_images.html',
             context,
             context_instance=RequestContext(request))
 
-def page_copyright(request, page_id):
+def image_copyright(request, image_id):
     context = {}
-    page = Page.objects.get(id=page_id)
-    #repositories = Repository.objects.filter(currentitem__itempart__pages=page_id)
+    image = Image.objects.get(id=image_id)
+    #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
     #context['copyright'] = repository.values_list('copyright_notice', flat = True)
-    context['repositories'] = Repository.objects.filter(currentitem__itempart__pages=page_id)
-    context['page'] = page
+    # TODO: check this path
+    context['repositories'] = Repository.objects.filter(currentitem__itempart__images=image_id)
+    context['image'] = image
     return render_to_response('pages/copyright.html', context,
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-def page_list(request):
-    pages = Page.objects.all()
+def image_list(request):
+    images = Image.objects.all()
     
     # Get Buttons
 
@@ -200,15 +201,15 @@ def page_list(request):
 
     # Applying filters
     if town_or_city:
-        pages = pages.filter(item_part__current_item__repository__place__name = town_or_city)
+        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
     if repository:
-        pages = pages.filter(item_part__current_item__repository__name = repository)
+        images = images.filter(item_part__current_item__repository__name = repository)
     if date:
-        pages = pages.filter(hand__assigned_date__date = date)
+        images = images.filter(hands__assigned_date__date = date)
         
-    pages = pages.filter(item_part_id__gt = 0)
+    images = images.filter(item_part_id__gt = 0)
 
-    paginator = Paginator(pages, 24)
+    paginator = Paginator(images, 24)
     page = request.GET.get('page')
     filterImages = FilterManuscriptsImages()
 
@@ -229,33 +230,33 @@ def page_list(request):
     except:
         context['view'] = 'Images'
 
-    return render_to_response('digipal/page_list.html', context, context_instance=RequestContext(request))
+    return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
 
 
 
 @login_required
 @transaction.commit_manually
-def save(request, page_id, vector_id):
+def save(request, image_id, vector_id):
     """Saves an annotation and creates a cutout of the annotation."""
     try:
         data = {}
 
-        page = Page.objects.get(id=page_id)
+        image = Image.objects.get(id=image_id)
 
         get_data = request.GET.copy()
         geo_json = get_data['geo_json']
 
-        annotation_list = Annotation.objects.filter(page=page,
+        annotation_list = Annotation.objects.filter(image=image,
                 vector_id=vector_id)
 
         if annotation_list:
             annotation = annotation_list[0]
             graph = annotation.graph
         else:
-            annotation = Annotation(page=page, vector_id=vector_id)
+            annotation = Annotation(image=image, vector_id=vector_id)
             graph = Graph()
 
-        form = PageAnnotationForm(data=get_data)
+        form = ImageAnnotationForm(data=get_data)
 
         if form.is_valid():
             clean = form.cleaned_data
@@ -326,21 +327,21 @@ def save(request, page_id, vector_id):
 
         return HttpResponse(simplejson.dumps(data),
                 mimetype='application/json')
-
+    
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
 @login_required
 @transaction.commit_manually
-def delete(request, page_id, vector_id):
-    """Deletes the annotation related with the `page_id` and `feature_id`."""
+def delete(request, image_id, vector_id):
+    """Deletes the annotation related with the `image_id` and `feature_id`."""
     data = {}
 
     try:
-        page = get_object_or_404(Page, pk=page_id)
+        image = get_object_or_404(Image, pk=image_id)
 
         try:
-            annotation = Annotation.objects.get(page=page, vector_id=vector_id)
+            annotation = Annotation.objects.get(image=image, vector_id=vector_id)
         except Annotation.DoesNotExist:
             pass
         else:

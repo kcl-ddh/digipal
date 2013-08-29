@@ -118,30 +118,30 @@
             <div class="tab-pane fade" id="images">
             {% endif %}
                      
-            {% for page in page_list %}
+            {% for image in page_list %}
             {% if forloop.counter|divisibleby:4 %}
                 <div class='row-fluid'>
                    
                     <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                         <p class='imageDetails'>
-                            {% ifequal page.annotation_set.all.count 0 %}
+                            {% ifequal image.annotation_set.all.count 0 %}
                             <span data-toggle="tooltip" title="View Image Annotations" class='label'>View Annotations</span>
                             {% else %}
-                            <a data-toggle="tooltip" title="View Image Annotations" href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                            <a data-toggle="tooltip" title="View Image Annotations" href='{{ image.id }}/' class='label label-info'>View Annotations</a>
                             {% endifequal %}
-                            <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                            <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                             <p style='line-height:1'>
                                 <span>Annotations: 
-                                <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
-                            <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+                                <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
+                            <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
                         </p>
                         <dl class="imageDatabase">
                             <dt>
-                                 <a href="{{ page.id }}/">{{ page.thumbnail|safe }}</a>
+                                 <a href="{{ image.id }}/">{{ image.thumbnail|safe }}</a>
                             </dt>
                             <dd>
-                                <p><b>{{ page }}</b></p>
+                                <p><b>{{ image }}</b></p>
                             </dd>               
                         </dl>
                     </div>
@@ -149,24 +149,24 @@
             {% else %}
                 <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
-                        {% ifequal page.annotation_set.all.count 0 %}
+                        {% ifequal image.annotation_set.all.count 0 %}
                         <span data-toggle="tooltip" title="View Image Annotations" class='label'>View Annotations</span>
                         {% else %}
-                        <a data-toggle="tooltip" title="View Image Annotations" href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                        <a data-toggle="tooltip" title="View Image Annotations" href='{{ image.id }}/' class='label label-info'>View Annotations</a>
                         {% endifequal %}
-                        <a data-toggle="tooltip" title="View Image Annotations" class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                        <a data-toggle="tooltip" title="View Image Annotations" class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                         <p style='line-height:1'>
                             <span>Annotations: 
-                            <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
-                        <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+                            <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
+                        <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
                     </p>
                     <dl class="imageDatabase">
                         <dt>
-                             <a title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe}}</a>
+                             <a title="View Image Annotations" href="{{ image.id }}/">{{ image.thumbnail|safe}}</a>
                         </dt>
                         <dd>
-                            <p><b>{{ page }}</b></p>
+                            <p><b>{{ image }}</b></p>
                         </dd>               
                     </dl>
                 </div>
@@ -199,14 +199,14 @@
                     <th>Hands</th>
                     <th>View</th>
                 </tr>
-                {% for page in page_list %}
+                {% for image in page_list %}
                     <tr>
-                        <td><a href='{{ page.id }}/'>{{page}}</a></td>
-                        <td>{{page.item_part.current_item.repository.place}}</td>
-                        <td>{{page.item_part.current_item.repository.name}}</td>
-                        <td>{{ page.annotation_set.all.count }}</td>
-                        <td>{{ page.hand_set.all.count }}</td>
-                        <td><a class='btn btn-primary' href='{{ page.id }}/'>View</a></td>
+                        <td><a href='{{ image.id }}/'>{{image}}</a></td>
+                        <td>{{image.item_part.current_item.repository.place}}</td>
+                        <td>{{image.item_part.current_item.repository.name}}</td>
+                        <td>{{ image.annotation_set.all.count }}</td>
+                        <td>{{ image.hands.all.count }}</td>
+                        <td><a class='btn btn-primary' href='{{ image.id }}/'>View</a></td>
                     </tr>
                 {% endfor %}
             </tbody>

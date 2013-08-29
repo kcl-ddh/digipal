@@ -21,16 +21,21 @@
             <td>{{ hand.item_part.current_item.repository.name }}</td>
             <td>{{ hand.item_part.current_item.shelfmark }}</td>
             <td>{{ hand.label }}
-                {% if hand.pages.all %}
+                {% if hand.images.all %}
                     <a class="imageIcon" href="{% filter add_query_params:request.META.QUERY_STRING %}?id={{ hand.id }}&result_type={{template_type}}#pages{% endfilter %}" title='{{page}}'>
-                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.pages.count}} images' />
+                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.images.count}} images' />
                     </a> 
-                    ({{hand.pages.count}})
+                    ({{hand.images.count}})
                 {% endif %}
             </td>
             <td>{{ hand.assigned_place.name }}</td>
             <td>{{ hand.assigned_date.date }}</td>
-            <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+            <td>
+                {% for item in hand.item_part.historical_items.all %}
+                    {% if not loop.first %}, {% endif %}
+                    {{ item.catalogue_number }}
+                {% endfor %}
+            </td>
             <td>
                 {% if can_edit %}
                     <a class="btn" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>

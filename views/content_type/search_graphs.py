@@ -52,7 +52,7 @@ class SearchGraphs(SearchContentType):
                     Q(assigned_date__date__icontains=term) | \
                     Q(item_part__current_item__shelfmark__icontains=term) | \
                     Q(item_part__current_item__repository__name__icontains=term) | \
-                    Q(item_part__historical_item__catalogue_number__icontains=term))
+                    Q(item_part__historical_items__catalogue_number__icontains=term))
         
         scribes = request.GET.get('scribes', '')
         repository = request.GET.get('repository', '')

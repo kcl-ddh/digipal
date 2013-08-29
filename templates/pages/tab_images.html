@@ -1,5 +1,5 @@
 <div class='tab-pane fade' id='pages'>
-    {% for page in pages %}
+    {% for image in images %}
      
         {% if forloop.counter0|divisibleby:4 %}
             <div class="row">
@@ -7,12 +7,12 @@
                 <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
                     <dl class="imageDatabase">
                         <dt>
-                            <a class="imageDatabase" href="{{ page.get_absolute_url }}">
-                                {{ page.thumbnail }}
+                            <a class="imageDatabase" href="{{ image.get_absolute_url }}">
+                                {{ image.thumbnail }}
                             </a>
                         </dt>
                         <dd>
-                            <p>{{ page }}</p>
+                            <p>{{ image }}</p>
                         </dd>
                     </dl>
                 </div>

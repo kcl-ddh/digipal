@@ -99,7 +99,7 @@
                                                             <dt>
                                                                 {% for graph in hand.list %}
                                                                 {% if forloop.counter < 10 %}
-                                                                <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                                                                <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                                 {% endif %}
                                                                 {% endfor %}   
                                                             </dt>
@@ -115,7 +115,7 @@
                                                         <dt>
                                                             {% for graph in hand.list %}
                                                                 {% if forloop.counter < 10 %}
-                                                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                                                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                                 {% endif %}
                                                             {% endfor %}                           
                                                         </dt>
@@ -157,7 +157,7 @@
                                             <tr class="{% cycle 'bgColour' '' %}">
                                                 <td>
                                                     {% for graph in hand.list %}
-                                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                     {% endfor %}
                                                 </td>
                                                 <td>{{ hand.grouper }}</td>
@@ -188,7 +188,7 @@
                         {% for hand in handlist %}
                             {% for graph in hand.list %}
                                 <span class="allogr">
-                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                 </span>
                             {% endfor %}                           
                         

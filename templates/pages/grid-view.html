@@ -101,29 +101,29 @@
     {% if page_list %}
     
     <div class='container'>
-        {% for page in page_list %}
+        {% for image in page_list %}
         {% if forloop.counter|divisibleby:4 %}
             <div class='row-fluid'>
                 <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
-                        {% ifequal page.annotation_set.all.count 0 %}
+                        {% ifequal image.annotation_set.all.count 0 %}
                         <span class='label'>View Annotations</span>
                         {% else %}
-                        <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                        <a href='{{ image.id }}/' class='label label-info'>View Annotations</a>
                         {% endifequal %}
-                        <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                        <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                         <p style='line-height:1'>
                             <span>Annotations: 
-                            <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
-                        <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+                            <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
+                        <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
                     </p>
                     <dl class="imageDatabase">
                         <dt>
-                             <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe }}</a>
+                             <a data-toggle="tooltip" title="View Image Annotations" href="{{ image.id }}/">{{ image.thumbnail|safe }}</a>
                         </dt>
                         <dd>
-                            <p><b>{{ page }}</b></p>
+                            <p><b>{{ image }}</b></p>
                         </dd>               
                     </dl>
                 </div>
@@ -131,24 +131,24 @@
         {% else %}
             <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                 <p class='imageDetails'>
-                    {% ifequal page.annotation_set.all.count 0 %}
+                    {% ifequal image.annotation_set.all.count 0 %}
                     <span class='label'>View Annotations</span>
                     {% else %}
-                    <a href='{{ page.id }}/' class='label label-info'>View Annotations</a>
+                    <a href='{{ image.id }}/' class='label label-info'>View Annotations</a>
                     {% endifequal %}
-                    <a class='label label-info' href="{{ page.id }}/?annotations=false">View Image</a></p>
+                    <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                     <p style='line-height:1'>
                         <span>Annotations: 
-                        <span class="badge badge-important">{{ page.annotation_set.all.count }}</span></span>
-                    <span>Hands: <span class="badge badge-success">{{ page.hand_set.all.count }}</span></span>
+                        <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
+                    <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
                 </p>
                 <dl class="imageDatabase">
                     <dt>
-                         <a data-toggle="tooltip" title="View Image Annotations" href="{{ page.id }}/">{{ page.thumbnail|safe}}</a>
+                         <a data-toggle="tooltip" title="View Image Annotations" href="{{ image.id }}/">{{ image.thumbnail|safe}}</a>
                     </dt>
                     <dd>
-                        <p><b>{{ page }}</b></p>
+                        <p><b>{{ image }}</b></p>
                     </dd>               
                 </dl>
             </div>

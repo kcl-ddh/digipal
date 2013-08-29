@@ -13,12 +13,17 @@
     {% filter tag_phrase_terms:terms %}
         {% for manuscript in records %}
             <tr>
-                <td>{{ manuscript.historical_item.catalogue_number }} 
-                    {% if manuscript.pages.all %}
+                <td>
+                    {% for item in manuscript.historical_items.all %}
+                        {% if not forloop.first %}, {% endif %}
+                        {{ item.catalogue_number }}
+                    {% endfor %}
+                
+                    {% if manuscript.images.all %}
                         <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
-                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.pages.count}} images' />
+                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' />
                         </a> 
-                        ({{manuscript.pages.count}})
+                        ({{manuscript.images.count}})
                     {% endif %}
                 </td>
                 
@@ -26,13 +31,6 @@
                 <td>{{ manuscript.current_item.shelfmark }}</td>
                 <td>{{ manuscript.locus }}</td>
                 <td>
-                    {% comment %}
-                        {% with description=manuscript.historical_item.get_display_description %}
-                            {% if description %}
-                                {{ description.description|truncatewords:15 }}
-                            {% endif %}
-                        {% endwith %}
-                    {% endcomment %}
                     {{ manuscript.description_snippet }}
                 </td>
                 <td>

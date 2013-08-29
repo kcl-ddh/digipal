@@ -40,9 +40,9 @@ Commands:
                         Check for issues in the data (See Mantis issue #5532)
   
   cleanlocus ITEMPARTID1 [ITEMPARTID2 ...] [--force]
-                        Remove the v/r from the Page.locus field.
-                        For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
-                        Use --force to also change Page.item_part.pagination to true.
+                        Remove the v/r from the Image.locus field.
+                        For all pages where Image.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
+                        Use --force to also change Image.item_part.pagination to true.
                         Use checkdata1 to list the id of the pages and item_parts records.
   
   drop_tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]
@@ -174,24 +174,24 @@ Commands:
 		
 		# ----------------------------------------------
 		
-		print 'A. Remove \'f\' and \'r\' from Page.locus when page.item_part.pagination = true.'
-		print 'To remove the f/v from the Page.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
+		print 'A. Remove \'f\' and \'r\' from Image.locus when image.item_part.pagination = true.'
+		print 'To remove the f/v from the Image.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
 		
 		print 
-		from digipal.models import Page
+		from digipal.models import Image
 		from django.db.models import Q
-		pages = Page.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
-		if not pages:
+		images = Image.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
+		if not images:
 			print 'No problem found.'
-		for page in pages:
-			if page.item_part:
+		for image in images:
+			if image.item_part:
 				item_part_name = '[Encoding error]'
 				try:
-					item_part_name = u'%s' % page.item_part
+					item_part_name = u'%s' % image.item_part
 					item_part_name = item_part_name.encode('ascii', 'xmlcharrefreplace')
 				except:
 					pass
-				print 'Page# %-5s: %-8s (ItemPart #%s: %s)' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'), page.item_part.id, item_part_name)
+				print 'Image# %-5s: %-8s (ItemPart #%s: %s)' % (image.id, image.locus.encode('ascii', 'xmlcharrefreplace'), image.item_part.id, item_part_name)
 		
 		# ----------------------------------------------
 		
@@ -224,21 +224,21 @@ Commands:
 	def cleanlocus(self, item_partids, options):
 		if len(item_partids) < 1:
 			raise CommandError('Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
-		from digipal.models import Page 
-		pages = Page.objects.filter(item_part__in = item_partids).order_by('id')
+		from digipal.models import Image 
+		images = Image.objects.filter(item_part__in = item_partids).order_by('id')
 		c = 0
-		for page in pages:
-			page.locus = re.sub(ur'(.*)(r|v)$', ur'\1', page.locus)
-			print 'Page #%s, locus = %s' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'))
-			if not page.item_part.pagination:
+		for image in images:
+			image.locus = re.sub(ur'(.*)(r|v)$', ur'\1', image.locus)
+			print 'Image #%s, locus = %s' % (image.id, image.locus.encode('ascii', 'xmlcharrefreplace'))
+			if not image.item_part.pagination:
 				if options.get('force', False):
-					page.item_part.pagination = True
-					page.item_part.save()
-					print 'WARNING: forced page.item_part.pagination = true (item part %s)' % page.item_part.id
+					image.item_part.pagination = True
+					image.item_part.save()
+					print 'WARNING: forced image.item_part.pagination = true (item part %s)' % image.item_part.id
 				else:
-					print 'WARNING: Not saved as page.item_part.pagination = false (item part %s)' % page.item_part.id
+					print 'WARNING: Not saved as image.item_part.pagination = false (item part %s)' % image.item_part.id
 				continue
-			page.save()
+			image.save()
 			c += 1
 		print '%s loci modified.' % c
 		
@@ -416,7 +416,7 @@ Commands:
 			Idiograph
 			HistoricalItemDate
 			ItemPart
-			Page
+			Image
 			DateEvidence
 			Graph
 			PlaceEvidence

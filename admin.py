@@ -698,10 +698,10 @@ class MeasurementAdmin(reversion.VersionAdmin):
 class OwnerAdmin(reversion.VersionAdmin):
     model = Owner
 
-    list_display = ['institution', 'person', 'created', 'modified']
+    list_display = ['content_object', 'content_type', 'date', 'rebound', 'annotated', 'dubitable', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['evidence', 'institution__name', 'person__name']
-
+    
 
 class CharacterInline(admin.StackedInline):
     model = Character

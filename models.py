@@ -278,9 +278,21 @@ class Reference(models.Model):
 # MsOwners in legacy db
 class Owner(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
+    
+    # GN: replaced generic relations with particular FKs.
+    # because generic relations are not easy to edit in the admin.
+    #
+    #content_type = models.ForeignKey(ContentType)
+    #object_id = models.PositiveIntegerField()
+    #content_object = generic.GenericForeignKey()
+    #
+    institution = models.ForeignKey('Institution', blank=True, null=True
+        , default=None, related_name='owners',
+        help_text='Please select either an institution or a person')
+    person = models.ForeignKey('Person', blank=True, null=True, default=None, 
+        related_name='owners',
+        help_text='Please select either an institution or a person')
+    
     date = models.CharField(max_length=128)
     evidence = models.TextField()
     rebound = models.NullBooleanField()
@@ -293,11 +305,23 @@ class Owner(models.Model):
     class Meta:
         ordering = ['date']
 
+    @property
+    def content_object(self):
+        return self.institution or self.person
+
+    @property
+    def content_type(self):
+        ret = self.content_object
+        if ret:
+            ret = ContentType.objects.get_for_model(ret)
+        return ret
+
     def __unicode__(self):
         #return u'%s: %s. %s' % (self.content_type, self.content_object, 
         #        self.date)
-        return get_list_as_string(self.content_type, ': ', self.content_object,
-                '. ', self.date)
+        #return get_list_as_string(self.content_type, ': ', self.content_object,
+        #        '. ', self.date)
+        return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type) 
 
 
 # DateText in legacy db
@@ -763,6 +787,7 @@ class CurrentItem(models.Model):
     shelfmark = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
     display_label = models.CharField(max_length=128, editable=False)
+    owners = models.ManyToManyField(Owner, blank=True, null=True, default=None, related_name='current_items')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -784,7 +809,7 @@ class CurrentItem(models.Model):
 class Person(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=256, unique=True)
-    owners = generic.GenericRelation(Owner)
+    #owners = generic.GenericRelation(Owner)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -823,7 +848,7 @@ class Institution(models.Model):
     place = models.ForeignKey(Place)
     foundation = models.CharField(max_length=128, blank=True, null=True)
     refoundation = models.CharField(max_length=128, blank=True, null=True)
-    owners = generic.GenericRelation(Owner)
+    #owners = generic.GenericRelation(Owner)
     origins = generic.GenericRelation(ItemOrigin)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,

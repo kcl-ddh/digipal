@@ -245,6 +245,10 @@ class HandGlossTextFilter(SimpleListFilter):
 #########################
 
 
+class OwnerInline(admin.StackedInline):
+    model = Owner
+
+
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
 
@@ -379,6 +383,7 @@ class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
     inlines = [ItemPartInline]
+    filter_horizontal = ['owners']
     list_display = ['repository', 'shelfmark', 'created', 'modified']
     list_display_links = ['repository', 'shelfmark', 'created', 'modified']
     search_fields = ['repository__name', 'shelfmark', 'description']
@@ -587,10 +592,6 @@ class IdiographAdmin(reversion.VersionAdmin):
     search_fields = ['allograph__name']
 
 
-class OwnerInline(generic.GenericStackedInline):
-    model = Owner
-
-
 class ScribeInline(admin.StackedInline):
     model = Scribe
 
@@ -697,10 +698,9 @@ class MeasurementAdmin(reversion.VersionAdmin):
 class OwnerAdmin(reversion.VersionAdmin):
     model = Owner
 
-    list_display = ['content_type', 'content_object', 'created', 'modified']
-    list_display_links = ['content_type', 'content_object', 'created',
-            'modified']
-    search_fields = ['evidence']
+    list_display = ['institution', 'person', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['evidence', 'institution__name', 'person__name']
 
 
 class CharacterInline(admin.StackedInline):

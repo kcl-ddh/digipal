@@ -91,17 +91,19 @@ class SearchManuscripts(SearchContentType):
             else:
                 # Do the snippeting ourselves
                 snippet_length = 50
-                description, location = self._get_best_description_location(record.historical_item.get_descriptions().all())
-                if description is None:
-                    # no match in any description, so we select the beginning of the most important description 
-                    description, location = record.historical_item.get_display_description(), 0
-                # get the description text
-                if description:
-                    text = description.description
-                    # truncate around the location
-                    record.description_snippet = self._truncate_text(text, location, snippet_length)
-                    # add the description author (e.g. ' (G.)' for Gneuss)
-                    record.description_snippet += u' (%s)' % description.source.get_authors_short()
+                historical_item = record.historical_item
+                if historical_item:
+                    description, location = self._get_best_description_location(historical_item.get_descriptions().all())
+                    if description is None:
+                        # no match in any description, so we select the beginning of the most important description 
+                        description, location = historical_item.get_display_description(), 0
+                    # get the description text
+                    if description:
+                        text = description.description
+                        # truncate around the location
+                        record.description_snippet = self._truncate_text(text, location, snippet_length)
+                        # add the description author (e.g. ' (G.)' for Gneuss)
+                        record.description_snippet += u' (%s)' % description.source.get_authors_short()
         return ret
     
     def _get_best_description_location(self, descriptions):

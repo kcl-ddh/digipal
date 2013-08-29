@@ -327,7 +327,7 @@ def save(request, image_id, vector_id):
 
         return HttpResponse(simplejson.dumps(data),
                 mimetype='application/json')
-
+    
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 

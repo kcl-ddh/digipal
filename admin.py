@@ -534,9 +534,13 @@ class ItemOriginInline(admin.StackedInline):
     model = ItemOrigin
 
 
-class LayoutInline(admin.StackedInline):
+class PartLayoutInline(admin.StackedInline):
     model = Layout
+    exclude = ('historical_item', )    
 
+class ItemLayoutInline(admin.StackedInline):
+    model = Layout
+    exclude = ('item_part', )    
 
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
@@ -544,7 +548,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     filter_horizontal = ['categories', 'owners']
     inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
-            ItemOriginInline, LayoutInline]
+            ItemOriginInline, ItemLayoutInline]
     list_display = ['historical_item_type', 'historical_item_format',
             'catalogue_number', 'date', 'name', 'created', 'modified']
     list_display_links = ['historical_item_type', 'historical_item_format',
@@ -643,7 +647,7 @@ class ImageInline(admin.StackedInline):
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
-    inlines = [ItemPartItemInline, ItemPartInline, HandInline, ImageInline]
+    inlines = [ItemPartItemInline, ItemPartInline, HandInline, ImageInline, PartLayoutInline]
     list_display = ['historical_item', 'current_item', 'locus', 'created',
             'modified']
     list_display_links = ['historical_item', 'current_item', 'locus',

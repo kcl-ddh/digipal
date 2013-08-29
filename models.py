@@ -575,7 +575,8 @@ class Description(models.Model):
     
 # Manuscripts in legacy db
 class Layout(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
+    item_part = models.ForeignKey('ItemPart', blank=True, null=True, related_name='layouts')
     page_height = models.IntegerField(blank=True, null=True)
     page_width = models.IntegerField(blank=True, null=True)
     frame_height = models.IntegerField(blank=True, null=True)
@@ -594,10 +595,10 @@ class Layout(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['historical_item']
+        ordering = ['item_part', 'historical_item']
 
     def __unicode__(self):
-        return u'%s' % (self.historical_item)
+        return u'%s' % (self.item_part or self.historical_item)
 
 
 # MsOrigin in legacy db

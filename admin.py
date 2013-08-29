@@ -19,7 +19,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Language, LatinStyle, Layout, \
         Measurement, \
         Ontograph, OntographType, Owner, \
-        Image, Person, Place, PlaceEvidence, Proportion, \
+        Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog
@@ -613,7 +613,6 @@ class InstitutionTypeAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
-
 class ItemDateAdmin(reversion.VersionAdmin):
     model = HistoricalItemDate
 
@@ -800,16 +799,30 @@ class InstitutionInline(admin.StackedInline):
     model = Institution
 
 
+class PlaceTypeAdmin(reversion.VersionAdmin):
+    model = PlaceType
+
+    list_display = ['name', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name']
+
+
 class PlaceAdmin(reversion.VersionAdmin):
     model = Place
 
+    fieldsets = (
+                (None, {'fields': ('name', 'type')}),
+                ('Regions', {'fields': ('region', 'current_county', 'historical_county')}),
+                ('Coordinates', {'fields': ('eastings', 'northings')}),
+                ('Legacy', {'fields': ('legacy_id',)}),
+                ) 
     inlines = [InstitutionInline, PlaceEvidenceInline]
-    list_display = ['name', 'region', 'current_county',
+    
+    list_display = ['name', 'type', 'region', 'current_county',
             'historical_county', 'created', 'modified']
-    list_display_links = ['name', 'region', 'current_county',
-            'historical_county', 'created', 'modified']
-    search_fields = ['name']
-
+    list_display_links = list_display
+    search_fields = ['name', 'type']
+    list_filter = ['type__name']
 
 class PlaceEvidenceAdmin(reversion.VersionAdmin):
     model = PlaceEvidence
@@ -1093,6 +1106,7 @@ admin.site.register(Ontograph, OntographAdmin)
 admin.site.register(OntographType, OntographTypeAdmin)
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Person, PersonAdmin)
+admin.site.register(PlaceType, PlaceTypeAdmin)
 admin.site.register(Place, PlaceAdmin)
 admin.site.register(PlaceEvidence, PlaceEvidenceAdmin)
 admin.site.register(Proportion, ProportionAdmin)

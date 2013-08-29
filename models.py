@@ -673,6 +673,17 @@ class County(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class PlaceType(models.Model):
+    name = models.CharField(max_length=256)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 # PlaceText in legacy db
 class Place(models.Model):
@@ -688,6 +699,7 @@ class Place(models.Model):
             related_name='county_historical',
             blank=True, null=True)
     origins = generic.GenericRelation(ItemOrigin)
+    type = models.ForeignKey(PlaceType, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

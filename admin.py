@@ -382,11 +382,13 @@ class ItemPartItemInline(admin.StackedInline):
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
+    list_display = ['repository', 'shelfmark', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['repository__name', 'shelfmark', 'description']
+    list_filter = ['repository']
+
     inlines = [ItemPartInline]
     filter_horizontal = ['owners']
-    list_display = ['repository', 'shelfmark', 'created', 'modified']
-    list_display_links = ['repository', 'shelfmark', 'created', 'modified']
-    search_fields = ['repository__name', 'shelfmark', 'description']
 
 
 class DateEvidenceInline(admin.StackedInline):
@@ -550,18 +552,25 @@ class ItemLayoutInline(admin.StackedInline):
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
+    search_fields = ['catalogue_number', 'date', 'name']
+    list_display = ['catalogue_number', 'name', 'date', 'historical_item_type', 
+                    'historical_item_format', 'created', 'modified']
+    list_display_links = list_display
+    list_filter = ['historical_item_type', HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter]
+    
+    fieldsets = (
+                (None, {'fields': ('catalogue_number', 'name', 'date', )}),
+                ('Classifications', {'fields': ('historical_item_type', 'categories')}),
+                ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
+                ('Owners', {'fields': ('owners',)}),
+                ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),
+                ) 
+    readonly_fields = ['catalogue_number']
     filter_horizontal = ['categories', 'owners']
     inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
             ItemOriginInline, ItemLayoutInline]
-    list_display = ['historical_item_type', 'historical_item_format',
-            'catalogue_number', 'date', 'name', 'created', 'modified']
-    list_display_links = ['historical_item_type', 'historical_item_format',
-            'catalogue_number', 'date', 'name', 'created', 'modified']
-    readonly_fields = ['catalogue_number']
-    search_fields = ['catalogue_number', 'date', 'name']
-    list_filter = [HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter]
-    
+
 class HistoricalItemTypeAdmin(reversion.VersionAdmin):
     model = HistoricalItemType
 
@@ -647,13 +656,19 @@ class ImageInline(admin.StackedInline):
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
-    inlines = [ItemPartItemInline, ItemPartInline, HandInline, ImageInline, PartLayoutInline]
-    list_display = ['historical_item', 'current_item', 'locus', 'created',
-            'modified']
-    list_display_links = ['historical_item', 'current_item', 'locus',
+    list_display = ['historical_item', 'current_item', 'locus', 'type', 
             'created', 'modified']
+    list_display_links = list_display
     search_fields = ['locus', 'display_label',
-            'historical_items__display_label']
+            'historical_items__display_label', 'type']
+    list_filters = ('type',)
+
+    fieldsets = (
+                (None, {'fields': ('type',)}),
+                ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
+                ('It belongs (or belonged) to another part...', {'fields': ('group',)}),
+                ) 
+    inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType

@@ -1,23 +1,22 @@
 {% extends "base.html" %}
 
     {% block extra_css %}
-      <link rel="shortcut icon"
-      href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
+        <link rel="shortcut icon"
+            href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
      
-      <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
-       <link rel="stylesheet" type="text/css"
-      href="{{ STATIC_URL }}digipal/scripts/libs/openlayers/theme/default/style.css"/>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+        <link rel="stylesheet" type="text/css"
+            href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
     {% endblock %}
 
     {% block extra_js %}
-    <script src="http{% if request.is_secure %}s{% endif %}://cdn.jquerytools.org/1.2.6/all/jquery.tools.min.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
-    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>    
-    <script src="http{% if request.is_secure %}s{% endif %}://openlayers.org/dev/OpenLayers.js"></script>    
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
+        <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
     {% endblock %}
 
 {% block annotations %}

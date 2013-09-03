@@ -7,7 +7,7 @@
 
 {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
 {% endblock %}
 {% block main %}
 <div class="row-fluid">

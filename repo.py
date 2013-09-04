@@ -106,8 +106,16 @@ def process_commands_main_dir():
                 print '> Pull main'
                 validation_hg = r'(?i)error:|abort:'
                 system('hg pull', validation_hg)
+                # This would cause and 'abort: uncommitted local changes'
+                # in the frequent case where .hgsubstate is not up to date.
                 #system('hg update -c', validation_hg)
-                system('hg update', validation_hg)
+                if os.name != 'nt':
+                    # we always respond 'r' to the question:
+                    # subrepository sources for digipal differ (in checked out version)
+                    # use (l)ocal source (e0fc331) or (r)emote source (69a5d41)?
+                    system('echo r | hg update', validation_hg)
+                else:
+                    system('hg update', validation_hg)
 
                 if os.name != 'nt':
                     print '> fix permissions'

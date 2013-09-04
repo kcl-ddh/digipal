@@ -106,7 +106,8 @@ def process_commands_main_dir():
                 print '> Pull main'
                 validation_hg = r'(?i)error:|abort:'
                 system('hg pull', validation_hg)
-                system('hg update -c', validation_hg)
+                #system('hg update -c', validation_hg)
+                system('hg update', validation_hg)
 
                 if os.name != 'nt':
                     print '> fix permissions'

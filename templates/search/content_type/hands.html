@@ -15,7 +15,7 @@
     {% filter tag_phrase_terms:terms %}
         {% for hand in records %}
             <tr class="{% cycle 'bgColour' '' %}">
-                <td>{{ hand.item_part.current_item.repository.name }}</td>
+                <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
                 <td>{{ hand.item_part.current_item.shelfmark }}</td>
                 <td>{{ hand.label }}
                     {% if hand.images.all %}

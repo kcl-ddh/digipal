@@ -14,7 +14,7 @@ class SearchHands(SearchContentType):
         ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes'}, 'advanced': True}
         ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
-        ret['item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['item_part__current_item__repository__place__name, item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
@@ -105,7 +105,7 @@ class FilterHands(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),

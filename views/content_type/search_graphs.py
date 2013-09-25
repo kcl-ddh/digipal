@@ -90,7 +90,7 @@ class FilterGraphs(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),

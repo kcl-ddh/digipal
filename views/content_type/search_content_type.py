@@ -117,15 +117,37 @@ class SearchContentType(object):
     def write_index(self, writer):
         fields = self.get_fields_info()
         
-        django_fields = [k for k in fields if k != 'type' and not fields[k]['whoosh'].get('ignore', False)]
+        # extract all the fields names from the content type schema
+        # Note that a schema entry can be an expressions made of multiple field names
+        # e.g. "current_item__repository__place__name, current_item__repository__name"
+        import re 
+        django_fields = []
+        for k in fields: 
+            if k != 'type' and not fields[k]['whoosh'].get('ignore', False):
+                django_fields.extend(re.findall(ur'\w+', k))
+        
+        # Retrieve all the records from the database
         query = (self.get_model()).objects.all().values(*django_fields).distinct()
         ret = query.count()
         
+        # For each record, create a Whoosh document
         for record in query:
             document = {'type': u'%s' % self.key}
-            for path, val in record.iteritems():
-                if val is not None:
-                    document[fields[path]['whoosh']['name']] = u'%s' % val
+            
+            # The document is made of the Content Type Schema where
+            # The django fields in the schema entries are replaced by their
+            # value in the database record.
+            #
+            for k in fields:
+                if k != 'type' and not fields[k]['whoosh'].get('ignore', False):
+                    val = u'%s' % k
+                    for field_name in re.findall(ur'\w+', k):
+                        v = record[field_name]
+                        if v is None: v = ''
+                        val = val.replace(field_name, u'%s' % v)
+                    if len(val):
+                        document[fields[k]['whoosh']['name']] = val
+                    
             if document:
                 writer.add_document(**document)
         

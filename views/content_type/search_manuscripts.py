@@ -10,7 +10,7 @@ class SearchManuscripts(SearchContentType):
         ret = super(SearchManuscripts, self).get_fields_info()
         ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
         ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
-        ret['current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['current_item__repository__place__name, current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['historical_items__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
         ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
@@ -156,7 +156,7 @@ class FilterManuscripts(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),

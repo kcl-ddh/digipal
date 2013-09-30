@@ -963,6 +963,7 @@ class ItemPart(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
     type = models.ForeignKey(ItemPartType, null=True, blank=True)
+    owners = models.ManyToManyField(Owner, blank=True, null=True)
 
     class Meta:
         ordering = ['display_label']

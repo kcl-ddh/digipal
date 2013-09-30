@@ -237,7 +237,7 @@ def _user_has_perm(user, perm, obj):
 
 django.contrib.auth.models._user_has_perm = _user_has_perm
 
-# Patch 5: Whoosh ReadTooFar bug.
+# Patch 6: Whoosh ReadTooFar bug.
 # See Jira 115: ReadToFar Error on the search page 
 # See Whoosh Issue Tracker: 331
 #  https://bitbucket.org/mchaput/whoosh/issue/331/readtoofar-exception
@@ -269,4 +269,5 @@ def array_union_matcher_skip_to(self, docnum):
     else:
         self._docnum = self._doccount
     
-ArrayUnionMatcher.skip_to = array_union_matcher_skip_to
+# Commnented out as the code seem the have been fixed in new version of Whoosh
+##ArrayUnionMatcher.skip_to = array_union_matcher_skip_to

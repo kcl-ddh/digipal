@@ -952,7 +952,7 @@ class ItemPartType(models.Model):
 # Manuscripts and Charters in legacy db
 class ItemPart(models.Model):
     historical_items = models.ManyToManyField(HistoricalItem, through='ItemPartItem', related_name='item_parts')
-    current_item = models.ForeignKey(CurrentItem)
+    current_item = models.ForeignKey(CurrentItem, blank=True, null=True, default=None)
     group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True)
     # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,

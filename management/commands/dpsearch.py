@@ -20,6 +20,9 @@ Commands:
   index
                         Re-Index all the content 
 
+  info
+                        Show the whoosh schema 
+
 """
     
     args = 'index'
@@ -143,6 +146,7 @@ Commands:
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
         from digipal.views.content_type.search_scribes import SearchScribes
         types = [SearchHands(), SearchManuscripts(), SearchScribes()]
+        ##types = [SearchManuscripts()]
         
         # build a single schema from the fields exposed by the different search types
         print '\tSchema:' 

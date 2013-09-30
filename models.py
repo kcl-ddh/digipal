@@ -1006,7 +1006,11 @@ class ItemPartItem(models.Model):
         verbose_name = 'Item Partition'
 
     def __unicode__(self):
-        return get_list_as_string(self.historical_item, ', ', self.locus)
+        #return get_list_as_string(self.historical_item, ', ', self.locus)
+        close_parentheses = ' '
+        hi = self.historical_item
+        if hi is None: close_parentheses = None
+        return get_list_as_string(self.item_part.type, ', ', self.locus, '(', self.historical_item, ')',  close_parentheses)
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):

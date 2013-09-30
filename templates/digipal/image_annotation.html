@@ -246,8 +246,9 @@
                 for(i = 0; i < features.length; i++){
                     if(features[i].feature == text){
                         features[i].originalColor = features[i].style.fillColor;
-                        features[i].style.fillColor = 'red';
+                         features[i].originalWidth = 2;
                         features[i].style.strokeColor = 'red';
+                        features[i].style.strokeWidth = 6;
                     }
                 }
                 annotator.vectorLayer.redraw();
@@ -257,8 +258,9 @@
               var features = annotator.vectorLayer.features;
               for(i = 0; i < features.length; i++){
                   if(features[i].feature == text){
-                      features[i].style.fillColor = features[i].originalColor;
                       features[i].style.strokeColor = features[i].originalColor;
+                      features[i].style.strokeWidth = features[i].originalWidth;
+
                   }
               }
               annotator.vectorLayer.redraw();
@@ -423,9 +425,12 @@
                 <span id=''><a class="btn" id="settings_annotator">Settings</a></span>
                 {% if can_edit %}
                   <span id=''><a class="btn" id="refresh_layer">Refresh</a></span>
-                  <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}</p>
                 {% endif %}
             </div>  
+            {% if can_edit %}
+                <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}</p>
+            {% endif %}
+
             <div>
               <p id='status'></p>
             </div>

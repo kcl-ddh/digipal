@@ -312,6 +312,7 @@ function updateFeatureSelect(currentFeatures) {
     var features = annotator.vectorLayer.features;
     var url;
     $('#hidden_allograph').val($('#id_allograph option:selected').val());
+    console.log($('#hidden_allograph').val());
     if (annotator.url_allographs) {
         url = '../allograph/' + $('#id_allograph option:selected').val() + '/features/';
     } else {
@@ -569,8 +570,11 @@ function fill_dialog(id, annotation) {
 
     var hidden_hand = $('#id_hand').val();
     var hidden_allograph = $('#id_allograph').val();
+
     $('#hidden_hand').val(hidden_hand);
     $('#hidden_allograph').val(hidden_allograph);
+    console.log($('#hidden_allograph').val());
+
 }
 
 function showBox(selectedFeature) {
@@ -689,7 +693,9 @@ function showBox(selectedFeature) {
                 $('#id_after').val(getKeyFromObjField(annotation, 'after'));
                 */
                 $('#hidden_hand').val(selectedFeature.hidden_hand);
-                $('#hidden_allograph').val(selectedFeature.hidden_allograph);
+                $('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+                console.log($('#hidden_allograph').val());
+
                 $('#id_hand').val(selectedFeature.hidden_hand);
                 $('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 

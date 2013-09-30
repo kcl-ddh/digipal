@@ -1,3 +1,15 @@
+
+#OpenLayers_Control_Panel_29{
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: 2px;
+    border-radius:4px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    margin:0;
+    border: 1px solid #999;
+    border-left:none;
+}
+
 div.olMap {
     z-index: 0;
     padding: 0 !important;
@@ -374,32 +386,32 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
  * Editing and navigation icons.
  * (using the editing_tool_bar.png sprint image)
  */
-.olControlNavToolbar ,
-.olControlEditingToolbar {
+.olControlNavToolbar {
     margin: 5px 5px 0 0;
+
 }
 .olControlNavToolbar div,
 .olControlEditingToolbar div {
     background-image: url("img/editing_tool_bar.png");
     background-repeat: no-repeat;
-    margin: 0 0 5px 5px;
     width: 24px;
     height: 22px;
     cursor: pointer
 }
 /* positions */
 .olControlEditingToolbar {
-    right: 0;
-    top: 0;
+    position: fixed !important;
+    left: 0px;
+    top: 245px;
+    width: 30px;
+    z-index: 1000;
 }
 .olControlNavToolbar {
     top: 295px;
     left: 9px;
 }
 /* layouts */
-.olControlEditingToolbar div {
-    float: right;
-}
+
 /* individual controls */
 .olControlNavToolbar .olControlNavigationItemInactive,
 .olControlEditingToolbar .olControlNavigationItemInactive {

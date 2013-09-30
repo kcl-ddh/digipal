@@ -667,7 +667,9 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('type',)}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
                 ('It belongs (or belonged) to another part...', {'fields': ('group',)}),
+                ('Owners', {'fields': ('owners',)}),
                 ) 
+    filter_horizontal = ['owners']
     inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):

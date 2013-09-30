@@ -197,7 +197,7 @@
                 showImages = 0;
               }
             });
-
+            
       
             $('#closeBox').click(function(){
               $('#popupImages').fadeOut();
@@ -238,8 +238,33 @@
                 });
               }
             });
+            
+            $("select[id!=id_feature]").on("liszt:ready", function(){
+              $('.active-result').on('mouseover', function(){
+                var text = $(this).text();
+                var features = annotator.vectorLayer.features;
+                for(i = 0; i < features.length; i++){
+                    if(features[i].feature == text){
+                        features[i].originalColor = features[i].style.fillColor;
+                        features[i].style.fillColor = 'red';
+                        features[i].style.strokeColor = 'red';
+                    }
+                }
+                annotator.vectorLayer.redraw();
+            });
+            $('.active-result').on('mouseout', function(){
+              var text = $(this).text();
+              var features = annotator.vectorLayer.features;
+              for(i = 0; i < features.length; i++){
+                  if(features[i].feature == text){
+                      features[i].style.fillColor = features[i].originalColor;
+                      features[i].style.strokeColor = features[i].originalColor;
+                  }
+              }
+              annotator.vectorLayer.redraw();
+            });
+            });
             $('select[id!=id_feature]').chosen();
-
             $('#modal_settings').draggable();
             var modal_settings = false;
             $('#settings_annotator').click(function(){
@@ -318,6 +343,7 @@
               }
             });
 
+            
         });
     </script>     
     {% endblock %}

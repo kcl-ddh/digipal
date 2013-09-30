@@ -472,10 +472,19 @@ function create_dialog(selectedFeature, id) {
         $('.dialog_annotations').parent('.ui-dialog').remove();
         $('.dialog_annotations').remove();
     }
+
     $('#annotations').append('<div id="dialog' + id + '"></div>');
     var path;
-    if (typeof annotator.selectedFeature != "undefined") {
-        path = $('#' + annotator.selectedFeature.geometry.id);
+    if (selectedFeature !== null) {
+        var vector_id;
+        for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+            var feature = annotator.vectorLayer.features[i];
+            if (feature.graph == selectedFeature.graph) {
+                vector_id = feature.geometry.id;
+                break;
+            }
+        }
+        path = $('#' + vector_id);
     } else {
         path = $('#OpenLayers_Layer_Vector_27_svgRoot');
     }

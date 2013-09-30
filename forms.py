@@ -18,7 +18,7 @@ class ScribeAdminForm(forms.Form):
 
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
     component = forms.ModelChoiceField(queryset=Component.objects.all())
-    feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
+    #feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
 
 
 class ContactForm(forms.Form):
@@ -33,16 +33,23 @@ class ImageAnnotationForm(forms.Form):
     if status_list:
         default_status = status_list[0]
 
-    status = forms.ModelChoiceField(queryset=Status.objects.all(),
-            initial=default_status)
-    hand = forms.ModelChoiceField(queryset=Hand.objects.all())
-    after = forms.ModelChoiceField(required=False,
-            queryset=Allograph.objects.all())
-    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
-    before = forms.ModelChoiceField(required=False,
-            queryset=Allograph.objects.all())
-    feature = forms.MultipleChoiceField(required=False,
-            widget=forms.SelectMultiple(attrs={'size': 25}))
+    #status = forms.ModelChoiceField(queryset=Status.objects.all(),
+    #        initial=default_status)
+    hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
+        widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Hand"}),
+        label = "",
+        empty_label = "Hand",)
+    #after = forms.ModelChoiceField(required=False,
+    #        queryset=Allograph.objects.all())
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
+        widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
+        label = "",
+        empty_label = "Allograph",
+    )
+    #before = forms.ModelChoiceField(required=False,
+    #        queryset=Allograph.objects.all())
+    #feature = forms.MultipleChoiceField(required=False,
+    #        widget=forms.SelectMultiple(attrs={'size': 25}))
     display_note = forms.CharField(required=False,
             widget=Textarea(attrs={'cols': 25, 'rows': 5}))
     internal_note = forms.CharField(required=False,
@@ -106,7 +113,7 @@ class FilterManuscriptsImages(forms.Form):
 
     
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
         required = False)

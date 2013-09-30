@@ -19,6 +19,7 @@ from django import template
 register = template.Library()
 
 
+
 def get_features(request, image_id, graph_id):
     dict_features = []
     graph_components = GraphComponent.objects.filter(graph_id = graph_id)
@@ -89,7 +90,13 @@ def image(request, image_id):
 
     return render_to_response('digipal/image_annotation.html', context, 
                               context_instance=RequestContext(request))
-    
+
+def get_allograph(request, graph_id, image_id):
+    """Returns the allograph id of a given graph"""
+    g = Graph.objects.get(id=graph_id)
+    allograph_id = g.idiograph.allograph_id
+    data = {'id': allograph_id}
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json') 
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
@@ -102,6 +109,7 @@ def image_vectors(request, image_id):
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
+
 def image_annotations(request, image_id):
     """Returns a JSON of all the annotations for the requested image."""
     annotation_list = Annotation.objects.filter(image=image_id)
@@ -112,12 +120,12 @@ def image_annotations(request, image_id):
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
         data[a.id]['status_id'] = a.status_id
-        data[a.id]['hand_id'] = a.graph.hand.id
+        data[a.id]['hidden_hand'] = a.graph.hand.id
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
 
-        data[a.id]['allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
+        data[a.id]['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
             a.graph.idiograph.allograph.name)
 
         data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
@@ -147,6 +155,17 @@ def image_allographs(request, image_id):
     image."""
     annotation_list = Annotation.objects.filter(image=image_id)
     image = Image.objects.get(id=image_id)
+    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
+    form = ImageAnnotationForm()
+
+    form.fields['hand'].queryset = image.hands.all()
+
+    width, height = image.dimensions()
+    image_server_url = image.zoomify
+
+    #is_admin = request.user.is_superuser
+    is_admin = has_edit_permission(request, Image)
+     
     data = SortedDict()
 
     for annotation in annotation_list:
@@ -163,7 +182,12 @@ def image_allographs(request, image_id):
         data[hand][allograph_name].append(annotation)
 
     return render_to_response('digipal/image_allograph.html',
-            {'image': image, 'data': data, 
+            {'image': image,
+             'height': height, 
+             'image_server_url': image_server_url,
+             'width': width, 
+             'data': data, 
+             'form': form,
              'can_edit': has_edit_permission(request, Annotation)},
             context_instance=RequestContext(request))
 
@@ -197,13 +221,18 @@ def image_list(request):
 
     town_or_city = request.GET.get('town_or_city', '')
     repository = request.GET.get('repository', '')
+
     date = request.GET.get('date', '')
 
     # Applying filters
     if town_or_city:
         images = images.filter(item_part__current_item__repository__place__name = town_or_city)
     if repository:
-        images = images.filter(item_part__current_item__repository__name = repository)
+        repository_place = repository.split(',')[0]
+        repository_name = repository.split(', ')[1]
+        print repository_place
+        print repository_name
+        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
     if date:
         images = images.filter(hands__assigned_date__date = date)
         
@@ -265,13 +294,13 @@ def save(request, image_id, vector_id):
             annotation.display_note = clean['display_note']
             annotation.internal_note = clean['internal_note']
             annotation.author = request.user
-            annotation.before = clean['before']
-            annotation.after = clean['after']
+            #annotation.before = clean['before']
+            #annotation.after = clean['after']
 
             allograph = clean['allograph']
             hand = clean['hand']
             scribe = hand.scribe
-
+            
             idiograph_list = Idiograph.objects.filter(allograph=allograph,
                     scribe=scribe)
 
@@ -287,15 +316,15 @@ def save(request, image_id, vector_id):
             graph.save() # error is here
 
             feature_list = get_data.getlist('feature')
-
+            graph.graph_components.all().delete()
+            
             if feature_list:
-                graph.graph_components.all().delete()
 
                 for value in feature_list:
                     cid, fid = value.split('::')
+
                     component = Component.objects.get(id=cid)
                     feature = Feature.objects.get(id=fid)
-
                     gc_list = GraphComponent.objects.filter(graph=graph,
                             component=component)
 
@@ -323,6 +352,7 @@ def save(request, image_id, vector_id):
         data.update({'success': False})
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
+        print "Error:", e.message
         tb = sys.exc_info()[2]
 
         return HttpResponse(simplejson.dumps(data),

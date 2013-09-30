@@ -2,45 +2,62 @@
 {% load i18n %}
 
 {% block extrastyle %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.responsive.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ScriptPage.css" />
 {% endblock %}
 
-
 {% block content %}
-
-<p><a href="/admin/digipal/page">Back to Page list.</a></p>
-
 <div id="generalContent">
-	<h1>Scribe Entries v1.0</h1>
+	<h1 class='header1'>Scribe Entries <a style='float:right' href="/admin/digipal">Back to Page list</a></h1>
 
 
 {% block annotations %}
-<div class='container'>
-  <form id="frmAnnotation" method="POST" name="frmAnnotation" action="digipal/admin/Scribeinserted/">
-      {% csrf_token %}
+  <div class='row-fluid'>
+    <div class='span8'>
+      <div class='alert'></div>
+      <form id="frmAnnotation" method="POST" name="frmAnnotation" action="digipal/admin/Scribeinserted/">
+          {% csrf_token %}
+            <div id='scribe_header'>{{ scribeForm }} <img src='/static/images/ajax-loader-ball.gif' id ='ajax_loader' /></div>
+            <div>
+              <label>Ideograph: </label> <span id='ideograph_selected'>Null (Defining new Ideograph)</span>
+            </div>
+            <div id="listElems">
+              <div class="listElem">
+                {{ formset }}
+              </div>
+            </div>
+            <h2>Features</h2>
+              
+              <div id="features_container"></div>
+              <div style='margin:1%'>
+                <input type='button' value='Check All' id='check_all' />
+                <input type='button' value='Uncheck All' id='uncheck_all' /> 
+              </div>
+              <div style='float:right;'>
+                <input type="hidden" name="addedrows" id="hiddenAdded" value="0">
+                <input type='button' class='btn' value='Save Idiograph' id="subButton"/>
+                <input type='button' class='btn' value='New Idiograph' id="new_idiograph_Button"/>
+                <!--<span id="errorSpan">You must select a Scribe to continue</span>-->
+              </div>
+        </form>
+        <!--
+        <form id="linesAdder">
+            <label>Add some rows</label>
+            <input type="text" name="rowAdder" id="addRowNum" />
+            <input type='button' id="addrowbutton" class='btn' value='Add rows' />
+        </form>
+      -->
+    </div>
+    <div class='span4' id='current_idiographs'>
+      <h1 class='header1'>Ideographs <span id='number_ideographs'></span></h1>
+      <div id='idiographs_container'></div>
+    </div>
+  </div>
 
-        {{ scribeForm }}
-        <div id="listElems">
-        {% for elem in formset %}
-          <div class="listElem">
-        
-          {{ elem }}
-          </div>
-        {% endfor %}
-          <div id="appendHere"></div>
-          <input type="hidden" name="addedrows" id="hiddenAdded" value="0">
-          <input type='submit' class='btn' value='Submit' id="subButton" disabled/>
-          <span id="errorSpan">You must select a Scribe to continue</span>
-          
-    </form>
-    <form id="linesAdder">
-        <label>Add some rows</label>
-        <input type="text" name="rowAdder" id="addRowNum" />
-        <input type='button' id="addrowbutton" class='btn' value='Add rows' />
-    </form>
-</div>
 
 <script type="text/javascript">
+/*
   $(document).ready( function() {
     var index = 11
     $("#addrowbutton").click(function(){
@@ -84,9 +101,10 @@
       }
     })
   })
-
+*/
 </script>
 <script type="text/javascript">
+/*
 $("#id_scribe").change(function(){
   if($("#id_scribe option:selected").val() != ""){
     $("#subButton").removeAttr("disabled")
@@ -97,10 +115,11 @@ $("#id_scribe").change(function(){
     $("#errorSpan").html("You must select a Scribe to continue")
   }
 });
-
+*/
 </script>
 {% endblock %}
 
 </div>
-
+<script type="text/javascript" src = "{{ STATIC_URL }}admin/js/new_script_entry.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
 {% endblock %} 

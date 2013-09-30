@@ -148,3 +148,12 @@ def reset_recordids():
     '''
     return []
     
+def escapenewline(value):
+    """
+    Adds a slash before any newline. Useful for loading a multi-line html chunk
+    into a Javascript variable.
+    """
+    return value.replace('\n', '\\\n')
+escapenewline.is_safe = True
+escapenewline = stringfilter(escapenewline)
+register.filter('escapenewline', escapenewline)

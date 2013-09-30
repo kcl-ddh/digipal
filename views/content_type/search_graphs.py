@@ -64,7 +64,9 @@ class SearchGraphs(SearchContentType):
         if scribes:
             query_hands = query_hands.filter(scribe__name=scribes)
         if repository:
-            query_hands = query_hands.filter(item_part__current_item__repository__name=repository)
+            repository_place = repository.split(', ')[0]
+            repository_name = repository.split(', ')[1]
+            query_hands = query_hands.filter(item_part__current_item__repository__name=repository_name, item_part__current_item__repository__place__name=repository_place)
         if place:
             query_hands = query_hands.filter(assigned_place__name=place)
         if date:

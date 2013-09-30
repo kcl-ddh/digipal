@@ -75,7 +75,6 @@ class SearchHands(SearchContentType):
         date = request.GET.get('date', '')
         
         self.is_advanced = repository or scribes or place or date
-
         if scribes:
             query_hands = query_hands.filter(scribe__name=scribes)
         if repository:

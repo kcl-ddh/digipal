@@ -102,8 +102,8 @@
 
     {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
     <div class='breadcrumb'>
-      <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
-      {% if request.GET.town_or_city %}| <span><b>Town or City: </b></span><span> {{ request.GET.town_or_city }}</span>{% endif %}
+      {% comment %} <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span> |{% endcomment %}
+      {% if request.GET.town_or_city %} <span><b>Town or City: </b></span><span> {{ request.GET.town_or_city }}</span>{% endif %}
       {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
       {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
     </div>

@@ -473,23 +473,13 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     background-repeat: no-repeat;
     background-position: 0 1px;
 }
-.olControlEditingToolbar .olControlModifyFeatureItemInactive{
+.olControlEditingToolbar .olControlTransformFeatureItemInactive{
     background-image: url(img/modify_off.png);
     background-repeat: no-repeat;
     background-position: 0 1px;
 }
-.olControlEditingToolbar .olControlModifyFeatureItemActive {
-    background-image: url(img/modify_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlTransformFeatureItemInactive{
-    background-image: url(img/rotate_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
 .olControlEditingToolbar .olControlTransformFeatureItemActive {
-    background-image: url(img/rotate_on.png);
+    background-image: url(img/modify_on.png);
     background-repeat: no-repeat;
     background-position: 0 1px;
 }

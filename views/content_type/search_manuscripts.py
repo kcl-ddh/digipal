@@ -60,7 +60,10 @@ class SearchManuscripts(SearchContentType):
         if date:
             query_manuscripts = query_manuscripts.filter(historical_items__date=date)
         if repository:
-            query_manuscripts = query_manuscripts.filter(current_item__repository__name=repository)
+            repository_place = repository.split(',')[0]
+            repository_name = repository.split(', ')[1]
+            query_manuscripts = query_manuscripts.filter(current_item__repository__name=repository_name, urrent_item__repository__place__name=repository_place)
+
         if index_manuscript:
             query_manuscripts = query_manuscripts.filter(historical_items__catalogue_number=index_manuscript)
             

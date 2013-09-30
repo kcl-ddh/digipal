@@ -11,6 +11,7 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<image_id>\d+)/vectors/$', 'image_vectors'),
                        (r'^page/(?P<image_id>\d+)/annotations/$', 'image_annotations'),
                        (r'^page/(?P<image_id>\d+)/allographs/$', 'image_allographs'),
+                       (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
                        (r'^page/(?P<image_id>\d+)/metadata/$', 'image_metadata'),
                        (r'^page/(?P<image_id>\d+)/copyright/$', 'image_copyright'),
                        (r'^page/(?P<image_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
@@ -41,8 +42,12 @@ urlpatterns += patterns('digipal.views.image',
 
 urlpatterns += patterns('digipal.views.admin.image',
                        (r'admin/image/bulk_edit', 'image_bulk_edit'),
-                       (r'admin/newscriptentry', 'newScriptEntry'),
-                       (r'admin/Scribeinserted', 'inserting'),
+                       (r'admin/newscriptentry/$', 'newScriptEntry'),
+                       (r'admin/Scribeinserted/$', 'inserting'),
+                       (r'admin/newscriptentry/get_idiographs', 'get_idiographs'),
+                       (r'admin/newscriptentry/get_allographs', 'get_allographs'),
+                       (r'admin/newscriptentry/get_ideograph', 'get_ideograph'),
+
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',

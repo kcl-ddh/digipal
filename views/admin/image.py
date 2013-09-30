@@ -14,8 +14,8 @@ import htmlentitydefs
 from django.core import urlresolvers
 from digipal.forms import ScribeAdminForm, OnlyScribe
 from django.forms.formsets import formset_factory
-
-from django.http import HttpResponse, Http404
+from django.utils import simplejson
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -153,53 +153,100 @@ def image_bulk_edit(request, url=None):
 
 @staff_member_required
 
-def newScriptEntry (request):
-    page_id = 34
-    """Returns a page annotation form."""
-    image = Image.objects.get(id=page_id)
-    annotations = image.annotation_set.values('graph').count()
-    
-    image_link = urlresolvers.reverse('admin:digipal_page_change', args=(image.id,))
-    form = ScribeAdminForm()
-    scribeField = OnlyScribe()
+def newScriptEntry(request):
 
-    width, height = image.dimensions()
-    image_server_url = image.zoomify
-
-    #is_admin = request.user.is_superuser
-    is_admin = has_edit_permission(request, Image)
-    
-    context = {
-               'form': form, 'image': image, 'height': height, 'width': width,
-               'image_server_url': image_server_url,
-               'image_link': image_link, 'annotations': annotations, 
-               #'hands': hands, 'is_admin': is_admin,
-               'no_image_reason': image.get_media_unavailability_reason(request.user),
-               'can_edit': has_edit_permission(request, Annotation)
-               }
-
-    formsetScribe = formset_factory(ScribeAdminForm, extra=10)
+    formsetScribe = formset_factory(ScribeAdminForm)
 
     formset = formsetScribe()
         
     onlyScribeForm = OnlyScribe()
 
     newContext = {
-               'form': form, 'image': image, 'height': height, 'width': width,
-               'image_server_url': image_server_url, 'scribe': scribeField,
-               'image_link': image_link, 'annotations': annotations, 
-               'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation), 'formset': formset,
                'scribeForm': onlyScribeForm
                }
 
     return render_to_response('admin/page/ScriptForm.html', newContext, 
                               context_instance=RequestContext(request))
-    
+
+
+@staff_member_required
+
+def get_idiographs(request):
+        scribe_id = request.GET.get('scribe', '')
+        scribe = Scribe.objects.get(id=scribe_id)
+        idiographs_values = scribe.idiographs.values()
+        idiographs = []
+        for idiograph in idiographs_values:
+            object_idiograph = {
+                'allograph_id': idiograph['allograph_id'],
+                'scribe_id': idiograph['scribe_id'],
+                'idiograph': idiograph['display_label'],
+                'id': idiograph['id']
+            }
+            idiographs.append(object_idiograph)
+
+        return HttpResponse(simplejson.dumps(idiographs), mimetype='application/json')
+
+@staff_member_required
+
+def get_allographs(request):
+    """Returns a JSON of all the features for the requested allograph, grouped
+    by component."""
+    if request.is_ajax():
+        allograph_id = request.GET.get('allograph', '')
+        allograph = Allograph.objects.get(id=allograph_id)
+        allograph_components = \
+                AllographComponent.objects.filter(allograph=allograph)
+
+        data = []
+
+        if allograph_components:
+            for ac in allograph_components:
+                ac_dict = {}
+                ac_dict['id'] = ac.component.id
+                ac_dict['name'] = ac.component.name
+                ac_dict['features'] = []
+
+                for f in ac.component.features.all():
+                    ac_dict['features'].append({'id': f.id, 'name': f.name})
+
+                data.append(ac_dict)
+
+        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    else:
+        return HttpResponseBadRequest()
+
+@staff_member_required
+
+def get_ideograph(request):
+    if request.is_ajax():
+        ideograph_id = request.GET.get('ideograph', '')
+        ideograph_obj = Idiograph.objects.get(id=ideograph_id)
+        ideograph = {}
+        ideograph['scribe_id'] = ideograph_obj.scribe.id
+        ideograph['allograph_id'] = ideograph_obj.allograph.id,
+        ideograph['scribe'] = ideograph_obj.scribe.name
+        ideograph_components = ideograph_obj.idiographcomponent_set.values()
+        features = []
+        for component in ideograph_components:
+            feature_obj = Feature.objects.filter(idiographcomponent=component['id']).values()
+            if len(feature_obj) > 0:
+                for obj in feature_obj:
+                    feature = {}
+                    feature['name'] = obj['name']
+                    feature['id'] = obj['id']
+                    features.append(feature)
+        ideograph['features'] = features
+        return HttpResponse(simplejson.dumps([ideograph]), mimetype='application/json')
+    else:
+        return HttpResponseBadRequest()
+
 @staff_member_required
 
 def inserting (request):
 
+    """
     newContext = {}
     d = request.POST
 
@@ -281,6 +328,20 @@ def inserting (request):
                             idiogCompResults[0].features.add(int(randomindex))
 
     newContext['insertedElements'] += "</table>"
+    """
+
+    scribe = request.POST.get('scribe', '')
+    ideograph = request.POST.get('ideograph', '')
+    is_new_ideograph = request.POST.get('is_new_ideograph', '')
+    allograph = request.POST.get('allograph', '')
+    components = request.POST.get('components', '')
+    features = request.POST.get('features', '')
+
+    if is_new_ideograph:
+        print
+    else:
+        print 
+    
 
     return render_to_response('admin/page/insertion.html', newContext, 
                               context_instance=RequestContext(request))

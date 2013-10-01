@@ -520,26 +520,43 @@ function create_dialog(selectedFeature, id) {
 		}
 	}).addClass('dialog_annotations');
 	$('#number_annotated_allographs').click(function() {
+		$(this).addClass('active');
 		var feature = selectedFeature.graph;
+		var allograph = selectedFeature.feature;
 		var url = "graph/" + feature + "/allographs_by_graph/";
 		var features = $.getJSON(url);
 		features.done(function(data) {
-			var div = $("<div>");
-			if ($('.letters-allograph-container').length == 0) {
-				div.attr('class', 'letters-allograph-container');
-				div.css({
-					'position': 'fixed',
-					'top': '30%',
-					'left': '30%',
-					'width': '25%',
-					'height': '20%'
-				});
-				div.draggable().resizable();
-				for (i = 0; i < data.length; i++) {
-					div.append(data[i]);
-				}
-				$('body').append(div);
+			if ($('.letters-allograph-container').length) {
+				$('.letters-allograph-container').remove();
 			}
+			var div = $("<div>");
+			div.attr('class', 'letters-allograph-container');
+			div.css({
+				'position': 'fixed',
+				'top': '30%',
+				'left': '30%',
+				'width': '30%',
+				'height': 'auto',
+				'min-height': '25%',
+				'z-index': 1020
+			});
+
+			div.draggable();
+
+			var top_div = $("<div id='top_div_annotated_allographs'>");
+			top_div.append("<span>" + allograph + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
+			div.append(top_div);
+			var container_div = $("<div>");
+			container_div.css('padding', '1.5%');
+			for (i = 0; i < data.length; i++) {
+				container_div.append(data[i]);
+			}
+			div.append(container_div);
+			$('body').append(div.hide().fadeIn());
+			$('.close_top_div_annotated_allographs').click(function() {
+				$('.letters-allograph-container').fadeOut().remove();
+				$('#number_annotated_allographs').removeClass('active');
+			});
 		});
 	});
 }

@@ -240,29 +240,7 @@
             });
             
             $("select[id!=id_feature]").on("liszt:ready", function(){
-              $('.active-result').on('mouseover', function(){
-                var text = $(this).text();
-                var features = annotator.vectorLayer.features;
-                for(i = 0; i < features.length; i++){
-                    if(features[i].feature == text){
-                        features[i].originalColor = features[i].style.fillColor;
-                        features[i].style.fillColor = 'red';
-                        features[i].style.strokeColor = 'red';
-                    }
-                }
-                annotator.vectorLayer.redraw();
-            });
-            $('.active-result').on('mouseout', function(){
-              var text = $(this).text();
-              var features = annotator.vectorLayer.features;
-              for(i = 0; i < features.length; i++){
-                  if(features[i].feature == text){
-                      features[i].style.fillColor = features[i].originalColor;
-                      features[i].style.strokeColor = features[i].originalColor;
-                  }
-              }
-              annotator.vectorLayer.redraw();
-            });
+              highlight_vectors();
             });
             $('select[id!=id_feature]').chosen();
             $('#modal_settings').draggable();
@@ -423,9 +401,12 @@
                 <span id=''><a class="btn" id="settings_annotator">Settings</a></span>
                 {% if can_edit %}
                   <span id=''><a class="btn" id="refresh_layer">Refresh</a></span>
-                  <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}</p>
                 {% endif %}
             </div>  
+            {% if can_edit %}
+                <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}</p>
+            {% endif %}
+
             <div>
               <p id='status'></p>
             </div>

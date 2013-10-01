@@ -17,6 +17,8 @@
         {% for hand in records %}
             <tr class="{% cycle 'bgColour' '' %}">
 
+                <td>Digipal Hand {{ hand.num }}</td>
+                
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
 
                 <td>{{ hand.item_part.current_item.shelfmark }}</td>

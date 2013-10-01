@@ -519,6 +519,29 @@ function create_dialog(selectedFeature, id) {
 			of: path
 		}
 	}).addClass('dialog_annotations');
+	$('#number_annotated_allographs').click(function() {
+		var feature = selectedFeature.graph;
+		var url = "graph/" + feature + "/allographs_by_graph/";
+		var features = $.getJSON(url);
+		features.done(function(data) {
+			var div = $("<div>");
+			if ($('.letters-allograph-container').length == 0) {
+				div.attr('class', 'letters-allograph-container');
+				div.css({
+					'position': 'fixed',
+					'top': '30%',
+					'left': '30%',
+					'width': '25%',
+					'height': '20%'
+				});
+				div.draggable().resizable();
+				for (i = 0; i < data.length; i++) {
+					div.append(data[i]);
+				}
+				$('body').append(div);
+			}
+		});
+	});
 }
 
 /*

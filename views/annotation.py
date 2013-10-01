@@ -149,6 +149,14 @@ def image_annotations(request, image_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
+def get_allographs_by_graph(request, image_id, graph_id):
+        graph = Graph.objects.get(id=graph_id)
+        feature = graph.idiograph.allograph.name
+        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, image=image_id)
+        annotations_list = []
+        for i in annotations:
+            annotations_list.append(i.thumbnail())
+        return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
 
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested

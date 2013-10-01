@@ -38,8 +38,7 @@
               annotator.toolbarPanel.redraw();
               {% endif %}
               
-    
-              annotator.activateKeyboardShortcuts();
+            annotator.activateKeyboardShortcuts();
 
             var defer = $.Deferred();
             var request = $.getJSON('annotations/', function(data) {

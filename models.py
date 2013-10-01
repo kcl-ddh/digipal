@@ -1006,11 +1006,35 @@ class ItemPartItem(models.Model):
         verbose_name = 'Item Partition'
 
     def __unicode__(self):
-        #return get_list_as_string(self.historical_item, ', ', self.locus)
-        close_parentheses = ' '
-        hi = self.historical_item
-        if hi is None: close_parentheses = None
-        return get_list_as_string(self.item_part.type, ', ', self.locus, '(', self.historical_item, ')',  close_parentheses)
+        ret = u''
+        
+        # Type, [Shelfmark, locus], [HI.name, locus]
+        if self.item_part.type:
+            ret += u'%s: ' % self.item_part.type
+        
+        ret += u'%s, %s' % (self.historical_item.name, self.locus)
+        
+        if self.item_part.current_item:
+            ret += u' ('
+            ret += u'%s' % self.item_part.current_item.shelfmark
+            if self.item_part.locus:
+                ret += ', '
+                ret += u'%s' % self.item_part.locus
+            ret += u')'
+        
+        if self.item_part.group:
+            group_label = ''
+            if self.item_part.group.locus:
+                group_label = '%s, %s' % (self.item_part.group.current_item.shelfmark, self.item_part.group.locus)
+            else:
+                ipi = ItemPartItems.objects.filter(item_part=self.item_part.group)
+                if ipi.count():
+                    ipi = ipi[0]
+                    group_label = '%s, %s' % (ipi.historical_item.name, ipi.locus)
+            if group_label:
+                ret += ur' [part of %s: %s]' % (self.item_part.group.type, group_label)
+        
+        return ret
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):

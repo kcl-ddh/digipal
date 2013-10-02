@@ -103,8 +103,7 @@
                       $('.myModalLabel').html(annotation.feature);
                     }
                   }
-                  event.stopPropagation();
-                  event.preventDefault();
+               
                   modal = true;
                   $('#save').click(function(){
 
@@ -277,7 +276,7 @@
         {% for annotation in annotations %}
         <li class='annotation_li' data-annotation = "{{ annotation.vector_id }}">
         <p>
-        <a  href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}">View</a>
+        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}">View</a>
         </p>
         <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
         {{ annotation.thumbnail }}

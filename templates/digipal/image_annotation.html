@@ -59,9 +59,11 @@
                       for(var i in annotations){
                           var allograph = annotations[i]['feature'];
                           var graph = annotations[i]['graph'];
+                          var character = annotations[i]['character'];
                           if(f.id == annotations[i]['vector_id']){
                               f.feature = allograph;
                               f.graph = graph;
+                              f.character = character;
                               f.stored = true;
                           }
                       }

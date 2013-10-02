@@ -288,9 +288,11 @@ function refresh_layer() {
 				for (var i in annotations) {
 					var allograph = annotations[i]['feature'];
 					var graph = annotations[i]['graph'];
+					var character = annotations[i]['character'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.graph = graph;
+						f.character = character;
 					}
 				}
 				features.push(f);
@@ -522,12 +524,17 @@ function create_dialog(selectedFeature, id) {
 		$(this).addClass('active');
 		var feature = selectedFeature.graph;
 		var allograph = selectedFeature.feature;
-		var url = "graph/" + feature + "/allographs_by_graph/";
+		var character = selectedFeature.character;
+		var url = "graph/" + feature + "/" + character + "/allographs_by_graph/";
 		var features = $.getJSON(url);
+		var img = $("<img>");
+		img.attr('src', '/static/images/ajax-loader.gif');
+		$('#top_div_annotated_allographs').find('span').after(img);
 		features.done(function(data) {
 			if ($('.letters-allograph-container').length) {
 				$('.letters-allograph-container').remove();
 			}
+			img.remove();
 			var div = $("<div>");
 			div.attr('class', 'letters-allograph-container');
 			div.css({
@@ -560,8 +567,16 @@ function create_dialog(selectedFeature, id) {
 	});
 }
 
-function refresh_letters_container(allograph) {
-	var url = "allographs/" + allograph + "/allographs_by_allograph/";
+function refresh_letters_container(allograph, allograph_id) {
+	var features = annotator.vectorLayer.features;
+	var character;
+	for (i = 0; i < features.length; i++) {
+		if (features[i].feature == allograph) {
+			character = features[i].character;
+			break;
+		}
+	}
+	var url = "allographs/" + allograph_id + "/" + character + "/allographs_by_allograph/";
 	var features = $.getJSON(url);
 	var img = $("<img>");
 	img.attr('src', '/static/images/ajax-loader.gif');
@@ -1134,8 +1149,9 @@ function save(url, feature, data) {
 				$('#status').attr('class', 'alert alert-success');
 				$('#status').html('Saved annotation.');
 				if ($('.letters-allograph-container').length) {
-					var allograph = $('#hidden_allograph').val();
-					refresh_letters_container(allograph);
+					var allograph = $('#id_allograph option:selected').text();
+					var allograph_id = $('#id_allograph').val();
+					refresh_letters_container(allograph, allograph_id);
 				}
 			}
 		}
@@ -1156,9 +1172,13 @@ function save(url, feature, data) {
 
 function handleErrors(data) {
 	$('#status').attr('class', 'alert alert-error');
-	errors = [];
-	for (var e in data.errors) {
-		errors.push(e);
+	if (data != "error") {
+		var errors = [];
+		for (var e in data.errors) {
+			errors.push(e);
+		}
+	} else {
+		var errors = "Errors"
 	}
 	updateStatus(errors);
 }
@@ -1172,8 +1192,12 @@ function handleErrors(data) {
 
 function updateStatus(msg) {
 	var s = '';
-	for (var i = 0; i < msg.length; i++) {
-		s += "<p>Select the " + msg[i] + "</p>";
+	if (typeof msg == 'object') {
+		for (var i = 0; i < msg.length; i++) {
+			s += "<p>Select the " + msg[i] + "</p>";
+		}
+	} else {
+		s = msg;
 	}
 	$('#status').html(s);
 

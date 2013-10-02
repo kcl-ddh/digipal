@@ -312,7 +312,6 @@ function updateFeatureSelect(currentFeatures) {
 	var features = annotator.vectorLayer.features;
 	var url;
 	$('#hidden_allograph').val($('#id_allograph option:selected').val());
-	console.log($('#hidden_allograph').val());
 	if (annotator.url_allographs) {
 		url = '../allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	} else {
@@ -494,7 +493,7 @@ function create_dialog(selectedFeature, id) {
 		draggable: true,
 		height: 340,
 		minHeight: 340,
-		resizable: false,
+		resizable: true,
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
 			$('.dialog_annotations').remove();
@@ -541,12 +540,12 @@ function create_dialog(selectedFeature, id) {
 				'z-index': 1020
 			});
 
-			div.draggable();
+			div.draggable().resizable();
 
 			var top_div = $("<div id='top_div_annotated_allographs'>");
 			top_div.append("<span>" + allograph + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
 			div.append(top_div);
-			var container_div = $("<div>");
+			var container_div = $("<div id='container-letters-popup'>");
 			container_div.css('padding', '1.5%');
 			for (i = 0; i < data.length; i++) {
 				container_div.append(data[i]);
@@ -558,6 +557,23 @@ function create_dialog(selectedFeature, id) {
 				$('#number_annotated_allographs').removeClass('active');
 			});
 		});
+	});
+}
+
+function refresh_letters_container(allograph) {
+	var url = "allographs/" + allograph + "/allographs_by_allograph/";
+	var features = $.getJSON(url);
+	var img = $("<img>");
+	img.attr('src', '/static/images/ajax-loader.gif');
+	$('#top_div_annotated_allographs').find('span').after(img);
+	features.done(function(data) {
+		img.remove();
+		var container_div = $('#container-letters-popup');
+		var s = '';
+		for (i = 0; i < data.length; i++) {
+			s += data[i];
+		}
+		container_div.html(s);
 	});
 }
 
@@ -1117,6 +1133,10 @@ function save(url, feature, data) {
 			} else {
 				$('#status').attr('class', 'alert alert-success');
 				$('#status').html('Saved annotation.');
+				if ($('.letters-allograph-container').length) {
+					var allograph = $('#hidden_allograph').val();
+					refresh_letters_container(allograph);
+				}
 			}
 		}
 	});

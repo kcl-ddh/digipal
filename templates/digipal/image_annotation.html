@@ -139,7 +139,7 @@
             allographs_box = 0;
             allographs_loaded = false;
             $('#filterAllographs').click(function(){
-                  checkOutput = '<ul style="padding:2%;"><span class="btn pull-left" id="checkAll">Check all</span> <span class="btn pull-right" id="unCheckAll">Uncheck all</span><br clear="all" />';       
+                  checkOutput = '<ul style="padding:2%;"><span class="btn pull-left" id="checkAll">All</span> <span class="btn pull-right" id="unCheckAll">Clear</span><br clear="all" />';       
                   var annotations = annotator.annotations;
                   if(!isEmpty(annotations)){
                     list = [];
@@ -157,8 +157,9 @@
                   checkOutput += "</ul>";
                   $('#allographs_filtersBox').dialog({
                     draggable: true, 
-                    height: 270,
-                    resizable: false, 
+                    height: 300,
+                    resizable: true,
+                    width:320,
                     title: "Filter Annotations",
                     close: function(event, ui){
                       allographs_box = 0;
@@ -167,15 +168,15 @@
                   annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
                   $('#allographs_filtersBox').html(checkOutput)
                   annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
-                    $('.checkVectors').change(function(){
-                      annotator.filterAnnotation($(this));
-                    });
-                    $('#checkAll').click(function(){
-                      annotator.filterCheckboxes('.checkVectors', 'check');
-                    });
-                    $('#unCheckAll').click(function(){
-                      annotator.filterCheckboxes('.checkVectors', 'uncheck');
-                    });
+                  $('.checkVectors').change(function(){
+                    annotator.filterAnnotation($(this));
+                  });
+                  $('#checkAll').click(function(){
+                    annotator.filterCheckboxes('.checkVectors', 'check');
+                  });
+                  $('#unCheckAll').click(function(){
+                    annotator.filterCheckboxes('.checkVectors', 'uncheck');
+                  });
                   
                 });
       
@@ -448,15 +449,7 @@
 
 
 {% if not no_image_reason or can_edit %}
-    
-    <div id='loadingFilters'>
-        <div><b>Loading Features ...</b></div>
-        <div><img src='/static/digipal/images/ajax-loader.gif' alt='image loading' /></div>
-    </div>
-    <div id='loadingGraph'>
-        <div><b>Loading Graph ...</b></div>
-        <div><img src='/static/digipal/images/ajax-loader.gif' alt='image loading' /></div>
-    </div>
+
     <div id='allographs_filtersBox'></div> 
     <!-- Modal -->
 

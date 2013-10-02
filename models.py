@@ -1437,11 +1437,13 @@ class DateEvidence(models.Model):
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
     hand = models.ForeignKey(Hand, related_name='graphs')
-    aspects = models.ManyToManyField(Aspect)
+    aspects = models.ManyToManyField(Aspect, null=True, blank=True)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    group = models.ForeignKey('Graph', related_name='parts', blank=True, 
+            null=True, help_text=u'Select a graph that contains this one')
 
     class Meta:
         ordering = ['idiograph']

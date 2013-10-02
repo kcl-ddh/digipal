@@ -239,6 +239,66 @@ class HandGlossTextFilter(SimpleListFilter):
 
 #########################
 #                       #
+#        Forms          #
+#                       #
+#########################
+
+class GraphForm(forms.ModelForm):
+
+    class Meta:
+        model = Graph    
+
+    def __init__(self, *args, **kwargs):
+        # Don't look into other pages for possible grouping graphs.
+        # We know that both the containing (group) graph and the child graphs
+        # belong to the same page.
+        super(GraphForm, self).__init__(*args, **kwargs)
+        object = getattr(self, 'instance', None)
+        if object and object.annotation:
+            group_field = self.fields['group']
+            group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+
+class ImageForm(forms.ModelForm):
+
+    class Meta:
+        model = Image    
+
+    def __init__(self, *args, **kwargs):
+        # we change the label of the default value for the media_permission 
+        # field so it displays the actual permission on the repository object.
+        #
+        # We also add a link to the repository in the help message under the 
+        # field
+        super(ImageForm, self).__init__(*args, **kwargs)
+        image = getattr(self, 'instance', None)
+        permission_field = self.fields['media_permission']
+        if image:
+            # TODO: remove code duplication in the functions
+            repository = image.get_repository()
+            if repository:
+                permission = repository.get_media_permission()
+                repository_url = reverse("admin:digipal_repository_change", 
+                                         args=[repository.id])
+                permission_field.empty_label = 'Inherited: %s' % permission
+                permission_field.help_text += ur'''<br/>To inherit from the 
+                    default permission set in the 
+                    <a target="_blank" href="%s">repository</a>, please 
+                    select the first option.<br/>''' % repository_url
+
+class RepositoryForm(forms.ModelForm):
+
+    class Meta:
+        model = Repository
+
+    def __init__(self, *args, **kwargs):
+        # we change the label of the default value for the media_permission 
+        # field so it displays the actual permission (public/private)
+        super(RepositoryForm, self).__init__(*args, **kwargs)
+        self.fields['media_permission'].empty_label = '%s' % Repository.get_default_media_permission()
+
+
+#########################
+#                       #
 #     Admin Tables      #
 #     Visualization     #
 #                       #
@@ -264,11 +324,13 @@ class IdiographInline(admin.StackedInline):
 class AllographAdmin(reversion.VersionAdmin):
     model = Allograph
 
+    search_fields = ['name', 'character']
+
+    list_display = ['name', 'character', 'created', 'modified']
+    list_display_links = list_display
+
     filter_horizontal = ['aspects']
     inlines = [AllographComponentInline, IdiographInline]
-    list_display = ['name', 'character', 'created', 'modified']
-    list_display_links = ['name', 'character', 'created', 'modified']
-    search_fields = ['name', 'character']
 
 
 class AlphabetAdmin(reversion.VersionAdmin):
@@ -453,6 +515,7 @@ class GraphComponentInline(admin.StackedInline):
 
 
 class GraphAdmin(reversion.VersionAdmin):
+    form = GraphForm
     model = Graph
 
     filter_horizontal = ['aspects']
@@ -747,34 +810,6 @@ class HandsInline(admin.StackedInline):
     model = Hand.images.through
 
 
-class ImageForm(forms.ModelForm):
-
-    class Meta:
-        model = Image    
-
-    def __init__(self, *args, **kwargs):
-        # we change the label of the default value for the media_permission 
-        # field so it displays the actual permission on the repository object.
-        #
-        # We also add a link to the repository in the help message under the 
-        # field
-        super(ImageForm, self).__init__(*args, **kwargs)
-        image = getattr(self, 'instance', None)
-        permission_field = self.fields['media_permission']
-        if image:
-            # TODO: remove code duplication in the functions
-            repository = image.get_repository()
-            if repository:
-                permission = repository.get_media_permission()
-                repository_url = reverse("admin:digipal_repository_change", 
-                                         args=[repository.id])
-                permission_field.empty_label = 'Inherited: %s' % permission
-                permission_field.help_text += ur'''<br/>To inherit from the 
-                    default permission set in the 
-                    <a target="_blank" href="%s">repository</a>, please 
-                    select the first option.<br/>''' % repository_url
-
-
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
 
@@ -877,17 +912,6 @@ class RegionAdmin(reversion.VersionAdmin):
 
 class CurrentItemInline(admin.StackedInline):
     model = CurrentItem
-
-class RepositoryForm(forms.ModelForm):
-
-    class Meta:
-        model = Repository
-
-    def __init__(self, *args, **kwargs):
-        # we change the label of the default value for the media_permission 
-        # field so it displays the actual permission (public/private)
-        super(RepositoryForm, self).__init__(*args, **kwargs)
-        self.fields['media_permission'].empty_label = '%s' % Repository.get_default_media_permission()
 
 class RepositoryAdmin(reversion.VersionAdmin):
     form = RepositoryForm

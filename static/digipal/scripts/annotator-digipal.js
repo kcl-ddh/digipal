@@ -29,7 +29,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.url_allographs = false;
 	this.isAdmin = isAdmin;
 	this.mediaUrl = mediaUrl;
-	this.deleteFeature.panel_div.title = 'Delete (alt + d)';
+	this.deleteFeature.panel_div.title = 'Delete (alt + Backspace)';
 	this.transformFeature.panel_div.title = 'Transform (alt + t)';
 	this.duplicateFeature.panel_div.title = 'Duplicate (alt + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
@@ -288,9 +288,11 @@ function refresh_layer() {
 				for (var i in annotations) {
 					var allograph = annotations[i]['feature'];
 					var graph = annotations[i]['graph'];
+					var character = annotations[i]['character'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.graph = graph;
+						f.character = character;
 					}
 				}
 				features.push(f);
@@ -312,7 +314,6 @@ function updateFeatureSelect(currentFeatures) {
 	var features = annotator.vectorLayer.features;
 	var url;
 	$('#hidden_allograph').val($('#id_allograph option:selected').val());
-	console.log($('#hidden_allograph').val());
 	if (annotator.url_allographs) {
 		url = '../allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	} else {
@@ -494,7 +495,7 @@ function create_dialog(selectedFeature, id) {
 		draggable: true,
 		height: 340,
 		minHeight: 340,
-		resizable: false,
+		resizable: true,
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
 			$('.dialog_annotations').remove();
@@ -503,7 +504,7 @@ function create_dialog(selectedFeature, id) {
 			var title;
 			if (annotator.isAdmin == "True" && selectedFeature !== null) {
 				title = "<span class='allograph_label'>" + selectedFeature.feature +
-					"</span> <span style='position:relative;left:6%;'><span class='btn btn-small btn-primary' data-feature = '" + selectedFeature.feature + "'  id = 'number_annotated_allographs'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+					"</span> <span style='position:relative;left:6%;'><span class='btn btn-small btn-primary' data-feature = '" + selectedFeature.feature + "'  id = 'number_annotated_allographs' title='Show all the images of this allograph'></span><span class='url_allograph btn btn-small'>URL</span></span>";
 			} else {
 				if (selectedFeature !== null) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
@@ -523,30 +524,35 @@ function create_dialog(selectedFeature, id) {
 		$(this).addClass('active');
 		var feature = selectedFeature.graph;
 		var allograph = selectedFeature.feature;
-		var url = "graph/" + feature + "/allographs_by_graph/";
+		var character = selectedFeature.character;
+		var url = "graph/" + feature + "/" + character + "/allographs_by_graph/";
 		var features = $.getJSON(url);
+		var img = $("<img>");
+		img.attr('src', '/static/images/ajax-loader.gif');
+		$('#top_div_annotated_allographs').find('span').after(img);
 		features.done(function(data) {
 			if ($('.letters-allograph-container').length) {
 				$('.letters-allograph-container').remove();
 			}
+			img.remove();
 			var div = $("<div>");
 			div.attr('class', 'letters-allograph-container');
 			div.css({
 				'position': 'fixed',
 				'top': '30%',
-				'left': '30%',
+				'left': '33%',
 				'width': '30%',
 				'height': 'auto',
 				'min-height': '25%',
 				'z-index': 1020
 			});
 
-			div.draggable();
+			div.draggable().resizable();
 
 			var top_div = $("<div id='top_div_annotated_allographs'>");
 			top_div.append("<span>" + allograph + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
 			div.append(top_div);
-			var container_div = $("<div>");
+			var container_div = $("<div id='container-letters-popup'>");
 			container_div.css('padding', '1.5%');
 			for (i = 0; i < data.length; i++) {
 				container_div.append(data[i]);
@@ -558,6 +564,31 @@ function create_dialog(selectedFeature, id) {
 				$('#number_annotated_allographs').removeClass('active');
 			});
 		});
+	});
+}
+
+function refresh_letters_container(allograph, allograph_id) {
+	var features = annotator.vectorLayer.features;
+	var character;
+	for (i = 0; i < features.length; i++) {
+		if (features[i].feature == allograph) {
+			character = features[i].character;
+			break;
+		}
+	}
+	var url = "allographs/" + allograph_id + "/" + character + "/allographs_by_allograph/";
+	var features = $.getJSON(url);
+	var img = $("<img>");
+	img.attr('src', '/static/images/ajax-loader.gif');
+	$('#top_div_annotated_allographs').find('span').after(img);
+	features.done(function(data) {
+		img.remove();
+		var container_div = $('#container-letters-popup');
+		var s = '';
+		for (i = 0; i < data.length; i++) {
+			s += data[i];
+		}
+		container_div.html(s);
 	});
 }
 
@@ -614,7 +645,6 @@ function fill_dialog(id, annotation) {
 
 	$('#hidden_hand').val(hidden_hand);
 	$('#hidden_allograph').val(hidden_allograph);
-	console.log($('#hidden_allograph').val());
 
 }
 
@@ -639,7 +669,6 @@ function showBox(selectedFeature) {
 	var can_edit = $('#development_annotation').is(':checked');
 	var url = 'graph/' + selectedFeature.graph + '/features/';
 	array_features_owned = features_owned(selectedFeature, url);
-	console.log(selectedFeature)
 	create_dialog(selectedFeature, id);
 	if (can_edit) {
 		$('#number_annotated_allographs').after(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
@@ -1119,6 +1148,11 @@ function save(url, feature, data) {
 			} else {
 				$('#status').attr('class', 'alert alert-success');
 				$('#status').html('Saved annotation.');
+				if ($('.letters-allograph-container').length) {
+					var allograph = $('#id_allograph option:selected').text();
+					var allograph_id = $('#id_allograph').val();
+					refresh_letters_container(allograph, allograph_id);
+				}
 			}
 		}
 	});
@@ -1138,9 +1172,13 @@ function save(url, feature, data) {
 
 function handleErrors(data) {
 	$('#status').attr('class', 'alert alert-error');
-	errors = '';
-	for (var e in data.errors) {
-		errors += e;
+	if (data != "error") {
+		var errors = [];
+		for (var e in data.errors) {
+			errors.push(e);
+		}
+	} else {
+		var errors = "Errors"
 	}
 	updateStatus(errors);
 }
@@ -1153,7 +1191,16 @@ function handleErrors(data) {
  */
 
 function updateStatus(msg) {
-	$('#status').text(msg);
+	var s = '';
+	if (typeof msg == 'object') {
+		for (var i = 0; i < msg.length; i++) {
+			s += "<p>Select the " + msg[i] + "</p>";
+		}
+	} else {
+		s = msg;
+	}
+	$('#status').html(s);
+
 	//
 	// GN: bugfix, JIRA 77
 	// The message will push the openlayer div down and cause
@@ -1283,7 +1330,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 
 	$(document).bind('keydown', function(event) {
 		var code = (event.keyCode ? event.keyCode : event.which);
-		if (event.altKey || code == 18) {
+		if (event.altKey) {
 			switch (code) {
 				case 77:
 					activeControls[activeControls.length - 1].deactivate();
@@ -1306,9 +1353,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 					_self.polygonFeature.activate();
 					break;
 				case 82:
-					if (activeControls[activeControls.length - 1].id != "OpenLayers_Control_TransformFeature_36") {
-						activeControls[activeControls.length - 1].deactivate();
-					}
+					activeControls[activeControls.length - 1].deactivate();
 					_self.rectangleFeature.activate();
 					break;
 				case 71:

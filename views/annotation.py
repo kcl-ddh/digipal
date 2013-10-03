@@ -121,6 +121,7 @@ def image_annotations(request, image_id):
         data[a.id]['vector_id'] = a.vector_id
         data[a.id]['status_id'] = a.status_id
         data[a.id]['hidden_hand'] = a.graph.hand.id
+        data[a.id]['character'] = a.graph.idiograph.allograph.character.name
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
@@ -149,14 +150,21 @@ def image_annotations(request, image_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
-def get_allographs_by_graph(request, image_id, graph_id):
+def get_allographs_by_graph(request, image_id, character, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
-        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, image=image_id)
+        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__name=character, image=image_id)
         annotations_list = []
         for i in annotations:
             annotations_list.append(i.thumbnail())
         return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+
+def get_allographs_by_allograph(request, image_id, character, allograph_id):
+    annotations = Annotation.objects.filter(graph__idiograph__allograph__id=allograph_id,graph__idiograph__allograph__character__name=character, image=image_id)
+    annotations_list = []
+    for i in annotations:
+        annotations_list.append(i.thumbnail())
+    return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
 
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested

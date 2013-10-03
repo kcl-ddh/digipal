@@ -100,15 +100,17 @@ def get_allograph(request, graph_id, image_id):
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
-    annotation_list = Annotation.objects.filter(image=image_id).order_by('-graph__group')
-    data = {}
+    # Note that we first return the graphs that have no parent graph (see order_by).
+    # This way larger graphs will always be covered by the graphs they contain.
+    # Otherwise it would be impossible for the user to select the nested graphs.
+    annotation_list = Annotation.objects.filter(image=image_id).order_by('-graph__group','id')
+    data = SortedDict()
 
     for a in annotation_list:
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
         data[a.vector_id]['graph'] = a.graph_id
+        
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
-
-
 
 def image_annotations(request, image_id):
     """Returns a JSON of all the annotations for the requested image."""

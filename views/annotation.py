@@ -100,7 +100,7 @@ def get_allograph(request, graph_id, image_id):
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
-    annotation_list = Annotation.objects.filter(image=image_id)
+    annotation_list = Annotation.objects.filter(image=image_id).order_by('-graph__group')
     data = {}
 
     for a in annotation_list:
@@ -321,6 +321,7 @@ def save(request, image_id, vector_id):
 
             graph.idiograph = idiograph
             graph.hand = hand
+
             graph.save() # error is here
 
             feature_list = get_data.getlist('feature')
@@ -346,8 +347,12 @@ def save(request, image_id, vector_id):
                     gc.save()
 
             annotation.graph = graph
-            annotation.save()
 
+            # attach the graph to a containing one
+            annotation.set_graph_group()
+
+            annotation.save()
+            
             transaction.commit()
             data.update({'success': True})
         else:
@@ -360,7 +365,6 @@ def save(request, image_id, vector_id):
         data.update({'success': False})
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
-        print "Error:", e.message
         tb = sys.exc_info()[2]
 
         return HttpResponse(simplejson.dumps(data),

@@ -169,7 +169,7 @@ class Ontograph(models.Model):
 
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
-    unicode_point = models.CharField(max_length=32, unique=True)
+    unicode_point = models.CharField(max_length=32, unique=False, blank=True, null=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
     components = models.ManyToManyField(Component, blank=True, null=True)
@@ -1384,6 +1384,8 @@ class Hand(models.Model):
                     
             self.descriptions.add(hand_description)
 
+Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, self.image.display_label)
+
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
     source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
@@ -1511,6 +1513,43 @@ class Annotation(models.Model):
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
 
+    def get_coordinates(self):
+        import json
+        ret = json.loads(self.geo_json)
+        # TODO: test if this exists!
+        ret = ret['geometry']['coordinates'][0]
+        ret = (
+                (min([c[0] for c in ret]), 
+                min([c[1] for c in ret])),
+                (max([c[0] for c in ret]), 
+                max([c[1] for c in ret]))
+            )
+        return ret
+        
+
+    def set_graph_group(self):
+        # if the graph is contained within another
+        # this function will set self.group to that other graph.
+        group = None
+        
+        coord = self.get_coordinates()
+        
+        # assumptions made:
+        #    1. all regions are rectangles, no more complex shapes
+        #    2. only one level of nesting
+        for a in Annotation.objects.filter(image=self.image).exclude(id=self.id):
+            a_coord = a.get_coordinates()
+            # ((602, 56), (998, 184))
+            if coord[0][0] >= a_coord[0][0] and \
+                coord[0][1] >= a_coord[0][1] and \
+                coord[1][0] <= a_coord[1][0] and \
+                coord[1][1] <= a_coord[1][1]:
+                group = a.graph
+                break
+        
+        self.graph.group = group
+        self.graph.save()
+    
     def save(self, *args, **kwargs):
         super(Annotation, self).save(*args, **kwargs)
 

@@ -419,6 +419,9 @@ function reload_described_annotations() {
 			"fillOpacity": opacity
 		};
 	};
+	
+	var check_described = null;
+	
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
 		if (annotator.selectedFeature !== undefined) {
@@ -453,9 +456,12 @@ function reload_described_annotations() {
 		});
 
 	});
-	check_described.done(function() {
-		annotator.vectorLayer.redraw();
-	});
+	
+	if (check_described) { 
+		check_described.done(function() {
+			annotator.vectorLayer.redraw();
+		});
+	}
 }
 
 

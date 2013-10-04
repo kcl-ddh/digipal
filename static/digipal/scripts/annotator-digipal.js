@@ -1013,11 +1013,8 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature) {
 				alert('Error: ' + textStatus);
 			},
 			success: function(data) {
-				if (data.success === false) {
-					handleErrors(data);
-				} else {
-					$('#status').addClass('alert alert-error');
-					updateStatus('Deleted annotation.');
+				if (!handleErrors(data)) {
+					updateStatus('Annotation deleted.', 'success');
 					_self.loadAnnotations();
 				}
 			}
@@ -1141,19 +1138,15 @@ function save(url, feature, data) {
 		url: url + '/' + id + '/?geo_json=' + geoJson,
 		data: data,
 		beforeSend: function() {
-			$('#status').html('Saving ...');
+			updateStatus('Saving annotation ...')
 		},
 		error: function(xhr, textStatus, errorThrown) {
-			$('#status').attr('class', 'alert alert-error');
-			updateStatus(textStatus);
+			updateStatus(textStatus, 'error');
 			annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
-			if (data.success === false) {
-				handleErrors(data);
-			} else {
-				$('#status').attr('class', 'alert alert-success');
-				$('#status').html('Saved annotation.');
+			if (!handleErrors(data)) {
+				updateStatus('Saved annotation.', 'success');
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();
@@ -1170,42 +1163,56 @@ function save(url, feature, data) {
 
 
 /**
- * Displays an alert for each error in the data.
+ * Displays an alert for each error in the Ajax response (json).
+ * Returns true only if data is invalid (contains error or empty).
  *
  * @param data
- *              Object with errors.
+ *              JSON response from the server
+ *              E.g. {'errors': ['allograph: This field is required.', 
+ *              'hand: This field is required.'], 'success': False}
  */
 
 function handleErrors(data) {
-	$('#status').attr('class', 'alert alert-error');
-	if (data != "error") {
-		var errors = [];
-		for (var e in data.errors) {
-			errors.push(e);
-		}
-	} else {
-		var errors = "Errors"
-	}
-	updateStatus(errors);
+	if (data && 'success' in data && data.success) return false;
+	// something is not right
+	var message = 'Internal error: the AJAX response is empty';
+	if (data) {
+		message = 'Internal error: no "success" in AJAX response';
+		if ('success' in data) {
+			message = '';
+			if (!data.success) {
+				message = 'Unknown error.';
+				if ('errors' in data) {
+					message = '';
+					for (i in data.errors) {
+						message += '<p>' + data.errors[i] + '</p>';
+					}
+				}
+			}
+		} 		
+	} 
+	
+	if (message) { 
+		updateStatus(message, 'error') 
+	};
+	
+	return (message.length > 0);
 }
 
 /**
- * Updates the status message of the last operation.
+ * Updates the status message and style of the last operation.
  *
  * @param msg
  *              Status message to display.
+ * @param status
+ * 				Either 'error', 'success' or ''
  */
 
-function updateStatus(msg) {
-	var s = '';
-	if (typeof msg == 'object') {
-		for (var i = 0; i < msg.length; i++) {
-			s += "<p>Select the " + msg[i] + "</p>";
-		}
-	} else {
-		s = msg;
-	}
-	$('#status').html(s);
+function updateStatus(msg, status) {
+	$('#status').html(msg);
+	
+	status_class = status ? ' alert-' + status : '';
+	$('#status').attr('class', 'alert' + status_class);
 
 	//
 	// GN: bugfix, JIRA 77

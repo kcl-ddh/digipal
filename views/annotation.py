@@ -73,8 +73,9 @@ def image(request, image_id):
     width, height = image.dimensions()
     image_server_url = image.zoomify
 
-    #is_admin = request.user.is_superuser
     is_admin = has_edit_permission(request, Image)
+    
+    from digipal.models import OntographType
         
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
@@ -82,7 +83,8 @@ def image(request, image_id):
                'image_link': image_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
-               'can_edit': has_edit_permission(request, Annotation)
+               'can_edit': has_edit_permission(request, Annotation),
+               'ontograph_types': OntographType.objects.order_by('name'),
                }
  
     if vector_id:

@@ -27,6 +27,23 @@ class ContactForm(forms.Form):
     sender = forms.EmailField()
     cc_myself = forms.BooleanField(required=False)
 
+class AllographSelect(Select):
+    '''Special variant of the Select widget which adds a class to each option.
+        The class contains the id of the type of the ontograph linked to the allograph.
+        e.g.
+            <option value="42">r, Caroline</option>
+            =>
+            <option class="type-2" value="42">r, Caroline</option>
+        
+        Because allograph 42 derives from an ontograph of type = 2 
+    '''
+    def render_option(self, selected_choices, option_value, option_label):
+        ret = super(AllographSelect, self).render_option(selected_choices, option_value, option_label)
+        if option_value:
+            a = Allograph.objects.get(id=int(option_value))
+            ret = ret.replace('<option ', '<option class="type-%s" ' % a.character.ontograph.ontograph_type.id)
+        return ret
+    
 class ImageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)
 
@@ -42,7 +59,7 @@ class ImageAnnotationForm(forms.Form):
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
-        widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
+        widget = AllographSelect(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
         label = "",
         empty_label = "Allograph",
     )

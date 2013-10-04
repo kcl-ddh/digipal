@@ -1051,7 +1051,7 @@ function serializeObject(obj) {
 };
 
 function highlight_vectors() {
-	$('.active-result').on('mouseover', function() {
+	$('#id_allograph_chzn .active-result').on('mouseover', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
 		for (i = 0; i < features.length; i++) {
@@ -1064,7 +1064,7 @@ function highlight_vectors() {
 		}
 		annotator.vectorLayer.redraw();
 	});
-	$('.active-result').on('mouseout', function() {
+	$('#id_allograph_chzn .active-result').on('mouseout', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
 		for (i = 0; i < features.length; i++) {

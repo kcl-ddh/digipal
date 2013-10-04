@@ -405,6 +405,8 @@ def delete(request, image_id, vector_id):
         except Annotation.DoesNotExist:
             pass
         else:
+            if annotation.graph:
+                annotation.graph.delete()
             annotation.delete()
 
     except Exception as e:

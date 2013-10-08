@@ -211,6 +211,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlSelectFeature',
 		title: 'Drag'
 	});
+
 	this.dragFeature.onComplete = function(feature, pixel) {
 		_self.setSavedAttribute(feature, Annotator.UNSAVED, true);
 	}
@@ -220,6 +221,8 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		alwaysZoom: true,
 		displayClass: 'olControlZoomBox'
 	});
+
+
 
 	// creates a button to save features
 	this.saveButton = new OpenLayers.Control.Button({
@@ -247,6 +250,15 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		CLASS_NAME: 'OpenLayers.Control.FullScreen'
 	});
 
+	Refresh = OpenLayers.Class(OpenLayers.Control, {
+		initialize: function(layer, options) {
+			OpenLayers.Control.prototype.initialize.apply(this, [options]);
+			this.layer = layer;
+		},
+
+		CLASS_NAME: 'OpenLayers.Control.Refresh'
+	});
+
 	this.fullScreen = new OpenLayers.Control.Button({
 		displayClass: 'olControlFullScreenFeature',
 		title: 'Full Screen',
@@ -255,9 +267,17 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		}
 	});
 
+	this.refresh = new OpenLayers.Control.Button({
+		displayClass: 'olControlRefreshFeature',
+		title: 'Refresh',
+		trigger: function() {
+			_self.refresh_layer();
+		}
+	});
+
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature, this.dragFeature,
-			this.zoomBoxFeature, this.saveButton, this.deleteFeature,
+			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
 			this.transformFeature, this.duplicateFeature, this.rectangleFeature, ]);
 
 	// sets the default control to be the drag feature 
@@ -393,6 +413,10 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
 	this.map.zoomToExtent(feature.geometry.getBounds());
 }
 
+Annotator.prototype.centreById = function(featureId) {
+	var feature = this.vectorLayer.getFeatureById(featureId);
+	this.map.zoomToExtent(feature.geometry.getBounds());
+}
 /**
  * Returns the saved attribute for the given feature.
  *

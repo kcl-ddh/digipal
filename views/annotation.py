@@ -10,7 +10,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys
 
 from digipal.forms import ImageAnnotationForm, FilterManuscriptsImages
-from digipal.models import Allograph, AllographComponent, Annotation, \
+from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
         has_edit_permission
 import ast
@@ -64,6 +64,9 @@ def image(request, image_id):
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
+    hands_list = []
+    for a in image.annotation_set.all():
+        hands_list.append(a.graph.hand_id)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
     form = ImageAnnotationForm()
@@ -78,7 +81,7 @@ def image(request, image_id):
         
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
-               'image_server_url': image_server_url,
+               'image_server_url': image_server_url, 'hands_list': list(set(hands_list)),
                'image_link': image_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
@@ -115,13 +118,15 @@ def image_annotations(request, image_id):
     annotation_list = Annotation.objects.filter(image=image_id)
 
     data = {}
-
     for a in annotation_list:
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
         data[a.id]['status_id'] = a.status_id
         data[a.id]['hidden_hand'] = a.graph.hand.id
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
+        data[a.id]['hand'] = a.graph.hand_id
+        data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id 
+        #hands.append(data[a.id]['hand'])
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
@@ -150,21 +155,41 @@ def image_annotations(request, image_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
-def get_allographs_by_graph(request, image_id, character, graph_id):
+def get_allographs_by_graph(request, image_id, character_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
-        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__name=character, image=image_id)
+        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__id=character_id, image=image_id)
         annotations_list = []
-        for i in annotations:
-            annotations_list.append(i.thumbnail())
-        return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+        if annotations:
+            for i in annotations:
+                hand = Hand.objects.filter(graphs__annotation=i.id)
+                annotation = {
+                    'hand': hand[0].id,
+                    'hand_name': hand[0].display_label,
+                    'image': i.thumbnail(),
+                    'vector_id': i.vector_id
+                }
+                annotations_list.append(annotation)
+            return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+        else:
+            return HttpResponse(False)
 
-def get_allographs_by_allograph(request, image_id, character, allograph_id):
-    annotations = Annotation.objects.filter(graph__idiograph__allograph__id=allograph_id,graph__idiograph__allograph__character__name=character, image=image_id)
+def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
+    annotations = Annotation.objects.filter(graph__idiograph__allograph__id=allograph_id,graph__idiograph__allograph__character__id=character_id, image=image_id)
     annotations_list = []
-    for i in annotations:
-        annotations_list.append(i.thumbnail())
-    return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+    if annotations:
+        for i in annotations:
+            hand = Hand.objects.filter(graphs__annotation=i.id)
+            annotation = {
+                'hand': hand[0].id,
+                'hand_name': hand[0].display_label,
+                'image': i.thumbnail(),
+                'vector_id': i.vector_id
+            }
+            annotations_list.append(annotation)
+        return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+    else:
+        return HttpResponse(False)
 
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested

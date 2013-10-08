@@ -8,7 +8,6 @@
         <link rel="stylesheet" type="text/css"
             href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
     {% endblock %}
-
     {% block extra_js %}
         <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
@@ -18,7 +17,6 @@
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-        
         <script>
           
           var csrftoken = getCookie('csrftoken');
@@ -37,10 +35,10 @@
               annotator.toolbarPanel.controls.splice(3, 5);
               annotator.toolbarPanel.redraw();
               {% endif %}
-              
+              annotator.dragFeature.handlers.drag.keyMask = OpenLayers.Handler.MOD_SHIFT;
+              annotator.zoomBoxFeature.keyMask = OpenLayers.Handler.MOD_CTRL;
             annotator.activateKeyboardShortcuts();
-
-            var defer = $.Deferred();
+            annotator.hands = {{hands_list}};
             var request = $.getJSON('annotations/', function(data) {
                 annotator.annotations = data;
             });
@@ -58,12 +56,16 @@
                       f.id = j;
                       for(var i in annotations){
                           var allograph = annotations[i]['feature'];
+                          var character_id = annotations[i]['character_id'];
                           var graph = annotations[i]['graph'];
                           var character = annotations[i]['character'];
+                          var hand = annotations[i]['hand'];
                           if(f.id == annotations[i]['vector_id']){
                               f.feature = allograph;
+                              f.character_id = character_id;
                               f.graph = graph;
                               f.character = character;
+                              f.hand = hand;
                               f.stored = true;
                           }
                       }
@@ -73,7 +75,7 @@
                   layer.addFeatures(features);
 
                   // zooms to the max extent of the map area
-                  map.zoomToMaxExtent();
+                  map.zoomIn();
                   var vectors = annotator.vectorLayer.features;
                   {% if vector_id %}
                   // vectorLayer event moveend is triggered on first load so flag this
@@ -138,10 +140,13 @@
             }
 
             });
-            allographs_box = 0;
+            allographs_box = false;
             allographs_loaded = false;
             $('#filterAllographs').click(function(){
-                  checkOutput = '<ul style="padding:2%;"><span class="btn pull-left" id="checkAll">All</span> <span class="btn pull-right" id="unCheckAll">Clear</span><br clear="all" />';       
+              $(this).addClass('active');
+              if(!allographs_box){
+                  allographs_box = true;
+                  var checkOutput = '<ul class="span6" style="padding:2%;"><span class="btn pull-left" id="checkAll">All</span> <span class="btn pull-right" id="unCheckAll">Clear</span><br clear="all" />';       
                   var annotations = annotator.annotations;
                   if(!isEmpty(annotations)){
                     list = [];
@@ -157,16 +162,23 @@
                     }
                   }
                   checkOutput += "</ul>";
+                  /*
+                  var check_hands = $.getJSON('/hands_names');
+                  check_hands.done(function(data){
+
+                  });
+
+*/
                   $('#allographs_filtersBox').dialog({
                     draggable: true, 
                     height: 300,
                     resizable: true,
                     width:320,
                     title: "Filter Annotations",
-                    close: function(event, ui){
-                      allographs_box = 0;
-                    }
+                    closeOnEscape: false,
+                    dialogClass: 'no-close'
                   });
+                  $('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>")
                   annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
                   $('#allographs_filtersBox').html(checkOutput)
                   annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
@@ -179,8 +191,17 @@
                   $('#unCheckAll').click(function(){
                     annotator.filterCheckboxes('.checkVectors', 'uncheck');
                   });
-                  
-                });
+
+                  $('.pin-filters-box').click(function(){
+                    $('#filterAllographs').removeClass('active');
+                    $(this).parent().parent().fadeOut();
+                  });
+
+                } else {
+                  $('.pin-filters-box').parent().parent().fadeIn();
+                }
+                
+              });
       
             $('#map').css('border','1px solid #efefef');
             $('#map').css('border-radius','3px');
@@ -315,14 +336,33 @@
 
               }
             });
+    $('#id_allograph').on('change', function() {
+      updateFeatureSelect();
+      refresh_letters_container($("#id_allograph option:selected").text(), $(this).val());
+    });
 
-            annotator.rectangleFeature.events.on({
-              'featureadded': function(e) {
-                showBox(null);
-                annotator.selectFeatureById(e.feature.id);
-              }
-            });
+    $('#id_hand').on('change', function() {
+      $('#hidden_hand').val($(this).val());
+    });
 
+    $('.number_annotated_allographs').click(function() {
+      open_allographs();
+    });
+
+    annotator.rectangleFeature.events.register('featureadded', annotator.rectangleFeature,
+  findRectangleFeaturAadded);
+  function findRectangleFeaturAadded(feature) {
+    annotator.selectFeatureById(feature.feature.id);
+  }
+
+  $('#boxes_on_click').on('change', function(){
+    if($(this).is(':checked')){
+      annotator.boxes_on_click = true;
+    } else {
+      annotator.boxes_on_click = false;
+
+    }
+  });
             
         });
     </script>     
@@ -401,13 +441,14 @@
                 </span>
                 {% endif %}
                 <span id=''><a class="btn" id="settings_annotator">Settings</a></span>
-                {% if can_edit %}
-                  <span id=''><a class="btn" id="refresh_layer">Refresh</a></span>
-                {% endif %}
             </div>  
             {% if can_edit %}
-                <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}</p>
+                <form name='frmAnnotation' method="get" id='frmAnnotation'>
+                  <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}
+                  <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span></p>
+                </form>
             {% endif %}
+
 
             <div>
               <p id='status'></p>
@@ -441,10 +482,13 @@
                         <label>Admin</label>
                         <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span> 
                       </p>
+                      <p>
+                        <label>Boxes</label>
+                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' /></span> 
                       {% endif %}
                 </div>
               </div>
-                      <div id='annotations'></div>
+              <div id='annotations'></div>
     {% endif %}
 
 </div>
@@ -452,7 +496,7 @@
 
 {% if not no_image_reason or can_edit %}
 
-    <div id='allographs_filtersBox'></div> 
+    <div class='row-fluid' id='allographs_filtersBox'></div> 
     <!-- Modal -->
 
 

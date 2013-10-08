@@ -29,6 +29,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.url_allographs = false;
 	this.isAdmin = isAdmin;
 	this.mediaUrl = mediaUrl;
+	this.allow_multiple_dialogs = false;
+	this.boxes_on_click = false;
 	this.deleteFeature.panel_div.title = 'Delete (alt + Backspace)';
 	this.transformFeature.panel_div.title = 'Transform (alt + t)';
 	this.duplicateFeature.panel_div.title = 'Duplicate (alt + d)';
@@ -38,7 +40,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.dragFeature.panel_div.title = 'Drag (alt + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (alt + z)';
 	this.saveButton.panel_div.title = 'Save (alt + s)';
-	this.allow_multiple_dialogs = false;
+
 }
 
 /**
@@ -228,7 +230,6 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				annotation = null;
 			}
 		}
-
 		showBox(annotation);
 
 	}
@@ -270,7 +271,7 @@ function getFeatureById(id) {
 
 */
 
-function refresh_layer() {
+DigipalAnnotator.prototype.refresh_layer = function() {
 	annotator.vectorLayer.destroyFeatures();
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
@@ -301,7 +302,6 @@ function refresh_layer() {
 			var vectors = annotator.vectorLayer.features;
 		});
 		reload_described_annotations();
-
 	});
 }
 /**
@@ -320,6 +320,16 @@ function updateFeatureSelect(currentFeatures) {
 		url = 'allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	}
 	$('.allograph_label').html($('#id_allograph option:selected').text());
+	var n = 0;
+	var features = annotator.vectorLayer.features;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == $('#id_allograph option:selected').text()) {
+			n++;
+		}
+	}
+	if ($(".number_annotated_allographs").length) {
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
 	var s = '';
 	$.getJSON(url, function(data) {
 		$.each(data, function(idx) {
@@ -354,13 +364,8 @@ function updateFeatureSelect(currentFeatures) {
 				checkbox.attr('checked', "checked");
 			}
 		});
-		if (currentFeatures) {
-			$('#id_feature option').each(function() {
-				if (currentFeatures.indexOf($(this).val()) >= 0) {
-					$(this).attr('selected', 'selected');
-				}
-			});
-		}
+
+
 	});
 }
 
@@ -504,7 +509,7 @@ function create_dialog(selectedFeature, id) {
 			var title;
 			if (annotator.isAdmin == "True" && selectedFeature !== null) {
 				title = "<span class='allograph_label'>" + selectedFeature.feature +
-					"</span> <span style='position:relative;left:6%;'><span class='btn btn-small btn-primary' data-feature = '" + selectedFeature.feature + "'  id = 'number_annotated_allographs' title='Show all the images of this allograph'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+					"</span> <span style='position:relative;left:6%;'><span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '" + selectedFeature.feature + "' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span><span class='url_allograph btn btn-small'>URL</span></span>";
 			} else {
 				if (selectedFeature !== null) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
@@ -520,75 +525,227 @@ function create_dialog(selectedFeature, id) {
 			of: path
 		}
 	}).addClass('dialog_annotations');
-	$('#number_annotated_allographs').click(function() {
-		$(this).addClass('active');
-		var feature = selectedFeature.graph;
-		var allograph = selectedFeature.feature;
-		var character = selectedFeature.character;
-		var url = "graph/" + feature + "/" + character + "/allographs_by_graph/";
-		var features = $.getJSON(url);
-		var img = $("<img>");
-		img.attr('src', '/static/images/ajax-loader.gif');
-		$('#top_div_annotated_allographs').find('span').after(img);
-		features.done(function(data) {
-			if ($('.letters-allograph-container').length) {
-				$('.letters-allograph-container').remove();
-			}
-			img.remove();
-			var div = $("<div>");
-			div.attr('class', 'letters-allograph-container');
-			div.css({
-				'position': 'fixed',
-				'top': '30%',
-				'left': '33%',
-				'width': '30%',
-				'height': 'auto',
-				'min-height': '25%',
-				'z-index': 1020
-			});
+	var pin = "<span title='Minimize box' class='pull-right pin-box'>-</span>";
+	$('.ui-dialog-title').after(pin);
 
-			div.draggable().resizable();
-
-			var top_div = $("<div id='top_div_annotated_allographs'>");
-			top_div.append("<span>" + allograph + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
-			div.append(top_div);
-			var container_div = $("<div id='container-letters-popup'>");
-			container_div.css('padding', '1.5%');
-			for (i = 0; i < data.length; i++) {
-				container_div.append(data[i]);
-			}
-			div.append(container_div);
-			$('body').append(div.hide().fadeIn());
-			$('.close_top_div_annotated_allographs').click(function() {
-				$('.letters-allograph-container').fadeOut().remove();
-				$('#number_annotated_allographs').removeClass('active');
+	// Minimize the dialog
+	$('.pin-box').click(function() {
+		var dialog = $('.pin-box').parent().parent();
+		if (dialog.data('pinned')) {
+			$(this).html('-').css({
+				'line-height': 1,
+				'font-size': "30px"
 			});
-		});
+			var position = dialog.data('position');
+			var height = dialog.data('height');
+			$('.dialog_annotations').show();
+			dialog.animate({
+				'top': position.top,
+				'left': position.left,
+				'height': height,
+				'box-shadow': '0px 0px 12px rgba(45, 45, 45, 0.498039)'
+			}, 300).resizable().draggable();
+			dialog.data('pinned', false);
+		} else {
+			$(this).html('&#9633;').css({
+				'line-height': 1.5,
+				'font-size': "20px"
+			});
+			var position = dialog.position();
+			console.log(position);
+			var height = dialog.css('height');
+			var allograph_position = $('.number_annotated_allographs');
+			$('.dialog_annotations').hide();
+			dialog.animate({
+				'top': allograph_position.position().top - 10,
+				'left': allograph_position.position().left + 60,
+				'height': '40px',
+				'box-shadow': 'none'
+			}, 300).resizable('destroy').draggable('destroy');
+			dialog.data('position', position);
+			dialog.data('height', height);
+			dialog.data('pinned', true);
+		}
+	});
+
+
+	// Showing all the allographs of a given allograph
+	$('.number_annotated_allographs').click(function() {
+		open_allographs();
 	});
 }
+
+function open_allographs() {
+	if ($('.letters-allograph-container').length) {
+		$('.letters-allograph-container').remove();
+	}
+	$(this).addClass('active');
+	var allograph = $('#id_allograph option:selected').text();
+	if (allograph) {
+		var features = annotator.vectorLayer.features;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == allograph) {
+				var feature = features[i].graph;
+				var character = features[i].character_id;
+				break;
+			}
+		}
+		if (!feature && !character) {
+			return false;
+		}
+
+		var url = "graph/" + feature + "/" + character + "/allographs_by_graph/";
+		var features = $.getJSON(url);
+
+		var div = $("<div>");
+		div.attr('class', 'letters-allograph-container');
+		div.css({
+			'position': 'fixed',
+			'top': '20%',
+			'left': '33%',
+			'width': '30%',
+			'height': 'auto',
+			'min-height': '25%',
+			'z-index': 1020
+		});
+		div.draggable().resizable();
+		var top_div = $("<div id='top_div_annotated_allographs'>");
+		top_div.append("<span>" + allograph + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
+		div.append(top_div);
+		var container_div = $("<div id='container-letters-popup'>");
+		container_div.css('padding', '1.5%');
+		div.append(container_div);
+		$('body').append(div);
+		var img = $("<img>");
+		img.attr('src', '/static/images/ajax-loader3.gif');
+		$('#top_div_annotated_allographs').find('span').after(img);
+		features.done(function(data) {
+			if (data != "False") {
+				img.remove();
+				var s = '';
+				for (i = 0; i < data.length; i++) {
+					if (i == 0) {
+						s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+					}
+					if (typeof data[i + 1] != "undefined" && data[i].hand != data[i + 1].hand) {
+						s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+					}
+					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+				}
+				container_div.html(s);
+				$('.close_top_div_annotated_allographs').click(function() {
+					$('.letters-allograph-container').fadeOut().remove();
+					$('.number_annotated_allographs').removeClass('active');
+				});
+
+				$('.vector_image_link').click(function() {
+					var vector = $(this);
+					annotator.centreById(vector.data('vector-id'));
+				});
+				var features = annotator.vectorLayer.features;
+
+				$('.vector_image_link').on("mouseover", function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].originalColor = features[i].style.fillColor;
+							features[i].style.strokeColor = 'red';
+							features[i].style.strokeWidth = 6;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+				});
+
+
+				$('.vector_image_link').mouseout(function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].style.strokeColor = features[i].originalColor;
+							features[i].style.strokeWidth = 2;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+
+				});
+			} else {
+				img.remove();
+				var s = "<p><label>No Annotations</label></p>";
+				container_div.html(s);
+			}
+
+		});
+	}
+}
+
 
 function refresh_letters_container(allograph, allograph_id) {
 	var features = annotator.vectorLayer.features;
 	var character;
 	for (i = 0; i < features.length; i++) {
 		if (features[i].feature == allograph) {
-			character = features[i].character;
+			character_id = features[i].character_id;
 			break;
 		}
 	}
-	var url = "allographs/" + allograph_id + "/" + character + "/allographs_by_allograph/";
+	var url = "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	var features = $.getJSON(url);
 	var img = $("<img>");
-	img.attr('src', '/static/images/ajax-loader.gif');
-	$('#top_div_annotated_allographs').find('span').after(img);
+	img.attr('src', '/static/images/ajax-loader3.gif');
+	$('#top_div_annotated_allographs').find('span').html(allograph).after(img);
 	features.done(function(data) {
 		img.remove();
 		var container_div = $('#container-letters-popup');
 		var s = '';
 		for (i = 0; i < data.length; i++) {
-			s += data[i];
+			if (i == 0) {
+				s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+			}
+			if (typeof data[i + 1] != "undefined" && data[i].hand != data[i + 1].hand) {
+				s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+			}
+			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 		}
 		container_div.html(s);
+		$('.close_top_div_annotated_allographs').click(function() {
+			$('.letters-allograph-container').fadeOut().remove();
+			$('.number_annotated_allographs').removeClass('active');
+		});
+
+		$('.vector_image_link').click(function() {
+			var vector = $(this);
+			annotator.centreById(vector.data('vector-id'));
+		});
+		var features = annotator.vectorLayer.features;
+
+		$('.vector_image_link').on("mouseover", function() {
+			var vector = $(this);
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].id == vector.data('vector-id')) {
+					features[i].originalColor = features[i].style.fillColor;
+					features[i].style.strokeColor = 'red';
+					features[i].style.strokeWidth = 6;
+					break;
+				}
+			}
+			annotator.vectorLayer.redraw();
+		});
+
+
+		$('.vector_image_link').mouseout(function() {
+			var vector = $(this);
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].id == vector.data('vector-id')) {
+					features[i].style.strokeColor = features[i].originalColor;
+					features[i].style.strokeWidth = 2;
+					break;
+				}
+			}
+			annotator.vectorLayer.redraw();
+
+		});
 	});
 }
 
@@ -601,15 +758,17 @@ Function to fill the content of a dialog
 function fill_dialog(id, annotation) {
 	var can_edit = $('#development_annotation').is(':checked');
 	if (can_edit) {
-		var s = '<form id="frmAnnotation" method="get" name="frmAnnotation">';
-		s += "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
-		s += "<div id='box_features_container'></div></form>";
+		var s = "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
+		s += "<div id='box_features_container'></div>";
 		$('#dialog' + id).html(s);
+
+		/*
 		$('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
 		$('#save_features_titlebar').click(function() {
 			annotator.saveAnnotation();
 			reload_described_annotations();
 		});
+		*/
 
 		$('#id_allograph').on('change', function() {
 			updateFeatureSelect(annotation);
@@ -666,170 +825,172 @@ function showBox(selectedFeature) {
 		return false;
 	}
 
-	var can_edit = $('#development_annotation').is(':checked');
-	var url = 'graph/' + selectedFeature.graph + '/features/';
-	array_features_owned = features_owned(selectedFeature, url);
-	create_dialog(selectedFeature, id);
-	if (can_edit) {
-		$('#number_annotated_allographs').after(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
-		$('#save_features_titlebar').click(function() {
-			annotator.saveAnnotation();
-		});
 
-		var request = $.getJSON("graph/" + selectedFeature.graph, function(data) {
-			return data;
-		});
-		var features = annotator.vectorLayer.features;
-		request.done(function(data) {
-			var url;
-			if (annotator.url_allographs) {
-				url = '../allograph/' + data.id + '/features/';
-			} else {
-				url = 'allograph/' + data.id + '/features/';
-			}
+	if (annotator.boxes_on_click) {
+		var url = 'graph/' + selectedFeature.graph + '/features/';
+		array_features_owned = features_owned(selectedFeature, url);
+		create_dialog(selectedFeature, id);
+		var can_edit = $('#development_annotation').is(':checked');
+		if (can_edit) {
+			var request = $.getJSON("graph/" + selectedFeature.graph, function(data) {
+				return data;
+			});
+			var features = annotator.vectorLayer.features;
+			request.done(function(data) {
+				var url;
+				if (annotator.url_allographs) {
+					url = '../allograph/' + data.id + '/features/';
+				} else {
+					url = 'allograph/' + data.id + '/features/';
+				}
 
-			var s = '<form id="frmAnnotation" method="get" name="frmAnnotation">';
-			s += "<input type='hidden' name ='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
-			var allographs = $.getJSON(url);
-			s += "<div id='box_features_container'>";
+				var s = '<form id="frmAnnotation" method="get" name="frmAnnotation">';
+				s += "<input type='hidden' name ='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
+				var allographs = $.getJSON(url);
+				s += "<div id='box_features_container'>";
 
-			allographs.done(function(data) {
-				$.each(data, function(idx) {
-					component = data[idx].name;
-					component_id = data[idx].id;
-					var features = data[idx].features;
-					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-					s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
-					$.each(features, function(idx) {
-						var value = component_id + '::' + features[idx].id;
-						var names = component + ':' + features[idx].name;
-						if (array_features_owned.indexOf(names) >= 0) {
-							s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> " + features[idx].name;
+				allographs.done(function(data) {
+					$.each(data, function(idx) {
+						component = data[idx].name;
+						component_id = data[idx].id;
+						var features = data[idx].features;
+						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+						s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+						$.each(features, function(idx) {
+							var value = component_id + '::' + features[idx].id;
+							var names = component + ':' + features[idx].name;
+							if (array_features_owned.indexOf(names) >= 0) {
+								s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> " + features[idx].name;
+							} else {
+								s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> " + features[idx].name;
+							}
+						});
+						s += "</p></div>";
+					});
+					s += "</div>";
+					$('#dialog' + id).html(s);
+
+					var url_allograph_div = false;
+
+					$('.url_allograph').click(function() {
+						if (!url_allograph_div) {
+							if ($('#dialog' + id).find('.allograph_url_div').length === 0) {
+								var url = $("<div class='allograph_url_div'>");
+								var input = $('<input type="text" disabled>');
+								var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+								input.val(allograph_url);
+								url.html(input);
+								$('#dialog' + id).prepend(url);
+								$('.allograph_url_div input').select();
+								url_allograph_div = true;
+							}
 						} else {
-							s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> " + features[idx].name;
+							var url = $(".allograph_url_div");
+							url.fadeOut().remove();
+							url_allograph_div = false;
 						}
 					});
-					s += "</p></div>";
-				});
-				s += "</div>";
-				$('#dialog' + id).html(s);
 
-				var url_allograph_div = false;
+					$('.component_labels').click(function() {
+						var div = $("#" + $(this).data('id'));
+						if (div.data('hidden') === false) {
+							div.slideUp().data('hidden', true);
+							$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 
-				$('.url_allograph').click(function() {
-					if (!url_allograph_div) {
-						if ($('#dialog' + id).find('.allograph_url_div').length === 0) {
-							var url = $("<div class='allograph_url_div'>");
-							var input = $('<input type="text" disabled>');
-							var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-							input.val(allograph_url);
-							url.html(input);
-							$('#dialog' + id).prepend(url);
-							$('.allograph_url_div input').select();
-							url_allograph_div = true;
+						} else {
+							div.slideDown().data('hidden', false);
+							$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 						}
-					} else {
-						var url = $(".allograph_url_div");
-						url.fadeOut().remove();
-						url_allograph_div = false;
+					});
+
+					var n = 0;
+					var features = annotator.vectorLayer.features;
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].feature == annotator.selectedFeature.feature) {
+							n++;
+						}
 					}
-				});
-
-				$('.component_labels').click(function() {
-					var div = $("#" + $(this).data('id'));
-					if (div.data('hidden') === false) {
-						div.slideUp().data('hidden', true);
-						$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
-
-					} else {
-						div.slideDown().data('hidden', false);
-						$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
+					if ($(".number_annotated_allographs").length) {
+						$(".number_annotated_allographs .number-allographs").html(n);
 					}
-				});
+					/*
+			                $('#id_status').val(annotation.status_id);
+			                $('#id_before').val(getKeyFromObjField(annotation, 'before'));
+			                $('#id_after').val(getKeyFromObjField(annotation, 'after'));
+			                */
 
-				var n = 0;
-				var features = annotator.vectorLayer.features;
-				for (var i = 0; i < features.length; i++) {
-					if (features[i].feature == annotator.selectedFeature.feature) {
-						n++;
-					}
-				}
-				if ($("#number_annotated_allographs").length) {
-					$("#number_annotated_allographs").html(n);
-				}
-				/*
-                $('#id_status').val(annotation.status_id);
-                $('#id_before').val(getKeyFromObjField(annotation, 'before'));
-                $('#id_after').val(getKeyFromObjField(annotation, 'after'));
-                */
-				$('#hidden_hand').val(selectedFeature.hidden_hand);
-				$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-				$('#id_hand').val(selectedFeature.hidden_hand);
-				$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 
-				//$('#id_display_note').val(selectedFeature.display_note);
-				//$('#id_internal_note').val(selectedFeature.internal_note);
+					//$('#id_display_note').val(selectedFeature.display_note);
+					//$('#id_internal_note').val(selectedFeature.internal_note);
 
-				$('select').trigger('liszt:updated');
-				highlight_vectors();
-				$('#box_features_container p').click(function() {
-					var checkbox = $(this).find('input');
-					if (checkbox.is(':checked')) {
-						checkbox.attr('checked', false);
-					} else {
-						checkbox.attr('checked', "checked");
-					}
+
 				});
 			});
-		});
 
-
-	} else {
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			cache: false,
-			type: 'GET',
-			async: true,
-			success: function(data) {
-				var s = '<ul>';
-				if (!isEmpty(data)) {
-					for (i = 0; i < data.length; i++) {
-						var component = data[i]['name'];
-						s += "<li class='component'><b>" + component + "</b></li>";
-						for (j = 0; j < data[i]['feature'].length; j++) {
-							s += "<li class='feature'>" + (data[i]['feature'][j]) + "</li>";
+		} else {
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				cache: false,
+				type: 'GET',
+				async: true,
+				success: function(data) {
+					var s = '<ul>';
+					if (!isEmpty(data)) {
+						for (i = 0; i < data.length; i++) {
+							var component = data[i]['name'];
+							s += "<li class='component'><b>" + component + "</b></li>";
+							for (j = 0; j < data[i]['feature'].length; j++) {
+								s += "<li class='feature'>" + (data[i]['feature'][j]) + "</li>";
+							}
 						}
+					} else {
+						s += "<li class='component'>This graph has not yet been described.</li>";
+					}
+					s += "</ul>";
+					$('#dialog' + id).html(s);
+				}
+			});
+
+			var url_allograph_div = false;
+			$('.url_allograph').click(function() {
+				if (!url_allograph_div) {
+					if ($('#dialog' + id).find('.allograph_url_div').length === 0) {
+						var url = $("<div class='allograph_url_div'>");
+						var input = $('<input type="text" disabled>');
+						var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+						input.val(allograph_url);
+						url.html(input);
+						$('#dialog' + id).prepend(url);
+						$('.allograph_url_div input').select();
+						url_allograph_div = true;
 					}
 				} else {
-					s += "<li class='component'>This graph has not yet been described.</li>";
+					var url = $(".allograph_url_div");
+					url.fadeOut().remove();
+					url_allograph_div = false;
 				}
-				s += "</ul>";
-				$('#dialog' + id).html(s);
-			}
-		});
+			});
 
-		var url_allograph_div = false;
-		$('.url_allograph').click(function() {
-			if (!url_allograph_div) {
-				if ($('#dialog' + id).find('.allograph_url_div').length === 0) {
-					var url = $("<div class='allograph_url_div'>");
-					var input = $('<input type="text" disabled>');
-					var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-					input.val(allograph_url);
-					url.html(input);
-					$('#dialog' + id).prepend(url);
-					$('.allograph_url_div input').select();
-					url_allograph_div = true;
-				}
-			} else {
-				var url = $(".allograph_url_div");
-				url.fadeOut().remove();
-				url_allograph_div = false;
-			}
-		});
-
+		}
 	}
+
+	$('#hidden_hand').val(selectedFeature.hidden_hand);
+	$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	$('#id_hand').val(selectedFeature.hidden_hand);
+	$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	$('select').trigger('liszt:updated');
+	highlight_vectors();
+	updateFeatureSelect();
+	$('#box_features_container p').click(function() {
+		var checkbox = $(this).find('input');
+		if (checkbox.is(':checked')) {
+			checkbox.attr('checked', false);
+		} else {
+			checkbox.attr('checked', "checked");
+		}
+	});
+
 }
 
 
@@ -897,6 +1058,7 @@ function updateSelectOptions(elementId, values) {
 	if (detail) {
 		$('#' + elementId + '_detail').text(detail);
 	} else {
+		full_Screen
 		$('#' + elementId + '_detail').text('-');
 	}
 }
@@ -1327,7 +1489,12 @@ function showAnnotationsOverview(data) {
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
 	var activeControls = _self.map.getControlsBy('active', true);
-
+	$(document).bind('keyup', function(event) {
+		if (event.shiftKey) {
+			_self.rectangleFeature.activate();
+			_self.dragFeature.deactivate();
+		}
+	});
 	$(document).bind('keydown', function(event) {
 		var code = (event.keyCode ? event.keyCode : event.which);
 		if (event.altKey) {
@@ -1378,5 +1545,4 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 
 	});
-
-};
+}

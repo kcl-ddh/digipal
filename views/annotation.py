@@ -76,8 +76,9 @@ def image(request, image_id):
     width, height = image.dimensions()
     image_server_url = image.zoomify
 
-    #is_admin = request.user.is_superuser
     is_admin = has_edit_permission(request, Image)
+    
+    from digipal.models import OntographType
         
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
@@ -85,7 +86,8 @@ def image(request, image_id):
                'image_link': image_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
-               'can_edit': has_edit_permission(request, Annotation)
+               'can_edit': has_edit_permission(request, Annotation),
+               'ontograph_types': OntographType.objects.order_by('name'),
                }
  
     if vector_id:
@@ -103,15 +105,21 @@ def get_allograph(request, graph_id, image_id):
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
-    annotation_list = Annotation.objects.filter(image=image_id)
-    data = {}
+    # Order the graph by the left edge to ensure that an openlayer feature
+    # contained in another will be created later and therefore remain on top.
+    # Otherwise nested graphs may not be selectable because they are covered 
+    # by their parent.
+    
+    annotation_list = list(Annotation.objects.filter(image=image_id))
+    annotation_list = sorted(annotation_list, key=lambda a: a.get_coordinates()[0][0])
+    
+    data = SortedDict()
 
     for a in annotation_list:
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
         data[a.vector_id]['graph'] = a.graph_id
+        
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
-
-
 
 def image_annotations(request, image_id):
     """Returns a JSON of all the annotations for the requested image."""
@@ -309,7 +317,7 @@ def image_list(request):
 def save(request, image_id, vector_id):
     """Saves an annotation and creates a cutout of the annotation."""
     try:
-        data = {}
+        data = {'success': False}
 
         image = Image.objects.get(id=image_id)
 
@@ -354,6 +362,7 @@ def save(request, image_id, vector_id):
 
             graph.idiograph = idiograph
             graph.hand = hand
+
             graph.save() # error is here
 
             feature_list = get_data.getlist('feature')
@@ -379,28 +388,33 @@ def save(request, image_id, vector_id):
                     gc.save()
 
             annotation.graph = graph
-            annotation.save()
 
+            # attach the graph to a containing one
+            annotation.set_graph_group()
+
+            annotation.save()
+            
             transaction.commit()
-            data.update({'success': True})
+            data['success'] = True
         else:
             transaction.rollback()
-            data.update({'success': False})
-            data.update({'errors': {}})
-            data['errors'].update(form.errors)
+            data['errors'] = get_json_error_from_form_errors(form)
     except Exception as e:
         transaction.rollback()
-        data.update({'success': False})
-        data.update({'errors': {}})
-        data['errors'].update({'exception': e.message})
-        print "Error:", e.message
-        tb = sys.exc_info()[2]
-
-        return HttpResponse(simplejson.dumps(data),
-                mimetype='application/json')
+        data['errors'] = ['Internal error: %s' % e.message]
+        #tb = sys.exc_info()[2]
     
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
+
+def get_json_error_from_form_errors(form):
+    '''Returns a list of errors from a set of Django form errors.
+        E.g. ['Allograph: this field is required.', 'Hand: this field is required.']
+    '''
+    ret = []
+    for field_name in form.errors:
+        ret.append('%s: %s' % (field_name.title(), form.errors[field_name].as_text()))
+    return ret
 
 @login_required
 @transaction.commit_manually
@@ -416,6 +430,8 @@ def delete(request, image_id, vector_id):
         except Annotation.DoesNotExist:
             pass
         else:
+            if annotation.graph:
+                annotation.graph.delete()
             annotation.delete()
 
     except Exception as e:

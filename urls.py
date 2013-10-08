@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, url
+from django.conf import settings
 from views.facet import facet_search
 
 urlpatterns = patterns('digipal.views.annotation',
@@ -56,6 +57,11 @@ urlpatterns += patterns('digipal.views.admin.stewart',
                        (r'admin/digipal/stewartrecord/match', 'stewart_match'),
                        (r'admin/digipal/stewartrecord/import', 'stewart_import'),
                        )
+
+if settings.DEBUG:
+    urlpatterns += patterns('digipal.views.test',
+                           (r'test/cookied_inputs/$', 'cookied_inputs'),
+                           )
 
 urlpatterns += patterns('haystack.views',
                         url(

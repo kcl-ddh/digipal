@@ -158,6 +158,8 @@ class Ontograph(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    nesting_level = models.IntegerField(blank=False, null=False, default=0, 
+            help_text='''An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.''')
 
     class Meta:
         ordering = ['ontograph_type', 'name']
@@ -169,7 +171,7 @@ class Ontograph(models.Model):
 
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
-    unicode_point = models.CharField(max_length=32, unique=True)
+    unicode_point = models.CharField(max_length=32, unique=False, blank=True, null=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
     components = models.ManyToManyField(Component, blank=True, null=True)
@@ -1384,6 +1386,8 @@ class Hand(models.Model):
                     
             self.descriptions.add(hand_description)
 
+Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, self.image.display_label)
+
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
     source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
@@ -1437,11 +1441,13 @@ class DateEvidence(models.Model):
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
     hand = models.ForeignKey(Hand, related_name='graphs')
-    aspects = models.ManyToManyField(Aspect)
+    aspects = models.ManyToManyField(Aspect, null=True, blank=True)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    group = models.ForeignKey('Graph', related_name='parts', blank=True, 
+            null=True, help_text=u'Select a graph that contains this one')
 
     class Meta:
         ordering = ['idiograph']
@@ -1509,6 +1515,53 @@ class Annotation(models.Model):
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
 
+    def get_coordinates(self, geo_json=None):
+        ''' Returns the coordinates of the graph rectangle
+            E.g. ((602, 56), (998, 184))
+        '''        
+        import json
+        if geo_json is None: geo_json = self.geo_json
+        ret = json.loads(geo_json)
+        # TODO: test if this exists!
+        ret = ret['geometry']['coordinates'][0]
+        ret = (
+                (min([c[0] for c in ret]), 
+                min([c[1] for c in ret])),
+                (max([c[0] for c in ret]), 
+                max([c[1] for c in ret]))
+            )
+        return ret
+        
+
+    def set_graph_group(self):
+        # if the graph is contained within another
+        # this function will set self.group to that other graph.
+        group_id = None
+        min_dist = 1e6
+        
+        coord = self.get_coordinates()
+        
+        # Assumptions made:
+        #    1. all regions are rectangles, no more complex shapes.
+        #    2. nested graphs are saved after their parent graph.
+        if self.graph:
+            level = self.graph.idiograph.allograph.character.ontograph.nesting_level
+            if level > 1:
+                lvl_field = 'graph__idiograph__allograph__character__ontograph__nesting_level';
+                for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
+                    a_coord = self.get_coordinates(a['geo_json'])
+                    if coord[0][0] >= a_coord[0][0] and \
+                        coord[0][1] >= a_coord[0][1] and \
+                        coord[1][0] <= a_coord[1][0] and \
+                        coord[1][1] <= a_coord[1][1]:
+                        dist = abs(coord[0][0] - a_coord[0][0])
+                        if dist < min_dist:
+                            group_id = a['graph_id']
+                            min_dist = dist
+            
+            self.graph.group_id = group_id
+            self.graph.save()
+    
     def save(self, *args, **kwargs):
         super(Annotation, self).save(*args, **kwargs)
 

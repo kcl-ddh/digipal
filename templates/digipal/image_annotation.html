@@ -267,10 +267,7 @@
               }
             });
             
-            $("select[id!=id_feature]").on("liszt:ready", function(){
-              highlight_vectors();
-            });
-            $('select[id!=id_feature]').chosen();
+           
             
             /* Set up the Settings Modal */
             var modal_settings = false;
@@ -306,6 +303,7 @@
                 	$('#id_allograph option[class=type-'+type_id+']').removeAttr('disabled');
             	}
             	$('#id_allograph').trigger("liszt:updated");
+              highlight_vectors();
             });
             // Filter just after page is loaded.
             $("#ontograph_type").change();
@@ -392,6 +390,11 @@
 
     }
   });
+
+   $("#id_allograph").on("liszt:ready", function(){
+              highlight_vectors();
+            });
+            $('select[id!=id_feature]').chosen();
             
         });
     </script>     

@@ -240,6 +240,15 @@ def image_allographs(request, image_id):
              'can_edit': has_edit_permission(request, Annotation)},
             context_instance=RequestContext(request))
 
+def hands_list(request, image_id):
+    hands_list = simplejson.loads(request.GET.get('hands', ''))
+    print hands_list
+    hands = []
+    for i in hands_list:
+        h = Hand.objects.get(id=i)
+        hands.append(h.display_label)
+    return HttpResponse(simplejson.dumps(hands), mimetype='application/json')
+
 def image_metadata(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""

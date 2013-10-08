@@ -424,9 +424,9 @@ function reload_described_annotations() {
 			"fillOpacity": opacity
 		};
 	};
-	
+
 	var check_described = null;
-	
+
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
 		if (annotator.selectedFeature !== undefined) {
@@ -461,8 +461,8 @@ function reload_described_annotations() {
 		});
 
 	});
-	
-	if (check_described) { 
+
+	if (check_described) {
 		check_described.done(function() {
 			annotator.vectorLayer.redraw();
 		});
@@ -532,7 +532,7 @@ function create_dialog(selectedFeature, id) {
 		}
 	}).addClass('dialog_annotations');
 	var pin = "<span title='Minimize box' class='pull-right pin-box'>-</span>";
-	$('.ui-dialog-title').after(pin);
+	$('#ui-dialog-title-dialog' + id).after(pin);
 
 	// Minimize the dialog
 	$('.pin-box').click(function() {
@@ -1330,7 +1330,7 @@ function save(url, feature, data) {
  *
  * @param data
  *              JSON response from the server
- *              E.g. {'errors': ['allograph: This field is required.', 
+ *              E.g. {'errors': ['allograph: This field is required.',
  *              'hand: This field is required.'], 'success': False}
  */
 
@@ -1351,13 +1351,13 @@ function handleErrors(data) {
 					}
 				}
 			}
-		} 		
-	} 
-	
-	if (message) { 
-		updateStatus(message, 'error') 
+		}
+	}
+
+	if (message) {
+		updateStatus(message, 'error')
 	};
-	
+
 	return (message.length > 0);
 }
 
@@ -1372,7 +1372,7 @@ function handleErrors(data) {
 
 function updateStatus(msg, status) {
 	$('#status').html(msg);
-	
+
 	status_class = status ? ' alert-' + status : '';
 	$('#status').attr('class', 'alert' + status_class);
 

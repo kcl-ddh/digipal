@@ -470,14 +470,9 @@
                 </span>
                 {% endif %}
 
-                <span id=''><a class="btn" id="settings_annotator">Settings</a></span>
-
                 <span>
                     <a class="btn" id="settings_annotator">Settings</a>
                 </span>
-                {% if can_edit %}
-                  <span id=''><a class="btn" id="refresh_layer">Refresh</a></span>
-                {% endif %}
             </div>  
             {% if can_edit %}
                 <form name='frmAnnotation' method="get" id='frmAnnotation'>
@@ -515,13 +510,13 @@
                         <label>Boxes</label>
                         <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' /></span> 
                       {% endif %}
-                </div>
-              </div>
+               
                           <p>
                             <label>Admin</label>
                             <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span>
-                            <br/>
-                            <span>Filter allographs: 
+                            </p>
+                            <p>
+                           <label>Filter allographs: </label>
                                 <select id="ontograph_type" name="ontograph_type">
                                     <option value="0">Show all</option>
                                     {% for type in ontograph_types %}
@@ -532,8 +527,9 @@
                           </p>
                       {% endif %}
                 </div>
+                 </div>
+              </div>
               <div id='annotations'></div>
-    {% endif %}
 
 </div>
 

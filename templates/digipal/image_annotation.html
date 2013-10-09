@@ -148,66 +148,69 @@
             allographs_box = false;
             allographs_loaded = false;
             $('#filterAllographs').click(function(){
-              $(this).addClass('active');
-              if(!allographs_box){
-                  allographs_box = true;
-                  var checkOutput = '<ul class="span6" style="padding:2%;"><span class="btn pull-left" id="checkAll">All</span> <span class="btn pull-right" id="unCheckAll">Clear</span><br clear="all" />';       
-                  var annotations = annotator.annotations;
-                  if(!isEmpty(annotations)){
-                    list = [];
-                    vectors = [];
-                    for (var i in annotations){
-                        list.push(annotations[i]['feature']);
+              var find_hands = $.ajax({
+                url: 'hands_list/',
+                dataType: 'json',
+                data: {'hands': JSON.stringify(annotator.hands)}
+              });
+
+              find_hands.done(function(data){
+                console.log(data);
+                $(this).addClass('active');
+                if(!allographs_box){
+                    allographs_box = true;
+                    var checkOutput = '<ul class="span6" style="padding:2%;"><span class="btn pull-left" id="checkAll">All</span> <span class="btn pull-right" id="unCheckAll">Clear</span><br clear="all" />';       
+                    var annotations = annotator.annotations;
+                    if(!isEmpty(annotations)){
+                      list = [];
+                      vectors = [];
+                      for (var i in annotations){
+                          list.push(annotations[i]['feature']);
+                      }
+                      list.sort();
+                      vectors.sort();
+                      for(var h = 0; h < list.length; h++){
+                          checkOutput += "<li style='padding:2%;' data-annotation = '" + list[h] + "'>" +
+                          "<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='" + vectors[h] + "' type='checkbox' /> <label style='display:inline;'>" + list[h] + "</label></li>";
+                      }
                     }
-                    list.sort();
-                    vectors.sort();
-                    for(var h = 0; h < list.length; h++){
-                        checkOutput += "<li style='padding:2%;' data-annotation = '" + list[h] + "'>" +
-                        "<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='" + vectors[h] + "' type='checkbox' /> <label style='display:inline;'>" + list[h] + "</label></li>";
-                    }
+                    checkOutput += "</ul>";
+                                      
+
+                    $('#allographs_filtersBox').dialog({
+                      draggable: true, 
+                      height: 300,
+                      resizable: true,
+                      width:320,
+                      title: "Filter Annotations",
+                      closeOnEscape: false,
+                      dialogClass: 'no-close'
+                    });
+                    $('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>")
+                    annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
+                    $('#allographs_filtersBox').html(checkOutput)
+                    annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
+                    $('.checkVectors').change(function(){
+                      annotator.filterAnnotation($(this));
+                    });
+                    $('#checkAll').click(function(){
+                      annotator.filterCheckboxes('.checkVectors', 'check');
+                    });
+                    $('#unCheckAll').click(function(){
+                      annotator.filterCheckboxes('.checkVectors', 'uncheck');
+                    });
+
+                    $('.pin-filters-box').click(function(){
+                      $('#filterAllographs').removeClass('active');
+                      $(this).parent().parent().fadeOut();
+                    });
+
+                  } else {
+                    $('.pin-filters-box').parent().parent().fadeIn();
                   }
-                  checkOutput += "</ul>";
-                  /*
-                  var check_hands = $.getJSON('/hands_names');
-                  check_hands.done(function(data){
-
-                  });
-
-*/
-                  $('#allographs_filtersBox').dialog({
-                    draggable: true, 
-                    height: 300,
-                    resizable: true,
-                    width:320,
-                    title: "Filter Annotations",
-                    closeOnEscape: false,
-                    dialogClass: 'no-close'
-                  });
-                  $('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>")
-                  annotator.removeDuplicate('allographs_filtersBox li', 'data-annotation', false);
-                  $('#allographs_filtersBox').html(checkOutput)
-                  annotator.removeDuplicate('#allographs_filtersBox li', 'data-annotation', false);
-                  $('.checkVectors').change(function(){
-                    annotator.filterAnnotation($(this));
-                  });
-                  $('#checkAll').click(function(){
-                    annotator.filterCheckboxes('.checkVectors', 'check');
-                  });
-                  $('#unCheckAll').click(function(){
-                    annotator.filterCheckboxes('.checkVectors', 'uncheck');
-                  });
-
-                  $('.pin-filters-box').click(function(){
-                    $('#filterAllographs').removeClass('active');
-                    $(this).parent().parent().fadeOut();
-                  });
-
-                } else {
-                  $('.pin-filters-box').parent().parent().fadeIn();
-                }
                 
               });
-      
+             });
             $('#map').css('border','1px solid #efefef');
             $('#map').css('border-radius','3px');
             //$("a[data-toggle=tooltip]").tooltip()
@@ -267,10 +270,7 @@
               }
             });
             
-            $("select[id!=id_feature]").on("liszt:ready", function(){
-              highlight_vectors();
-            });
-            $('select[id!=id_feature]').chosen();
+           
             
             /* Set up the Settings Modal */
             var modal_settings = false;
@@ -306,6 +306,7 @@
                 	$('#id_allograph option[class=type-'+type_id+']').removeAttr('disabled');
             	}
             	$('#id_allograph').trigger("liszt:updated");
+              highlight_vectors();
             });
             // Filter just after page is loaded.
             $("#ontograph_type").change();
@@ -392,6 +393,15 @@
 
     }
   });
+
+     $("#id_allograph").on("liszt:ready", function(){
+        highlight_vectors();
+      });
+    $('select[id!=id_feature]').chosen();
+
+    if($('#boxes_on_click').is(':checked')){
+      annotator.boxes_on_click = true;
+    }
             
         });
     </script>     
@@ -501,30 +511,29 @@
                           <span>Vertical <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked /></span><br />
                           <span>Horizontal <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  /></span>
                       </p>
-                      {% if can_edit %}
-                      <p>
-                        <label>Admin</label>
-                        <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span> 
-                      </p>
                       <p>
                         <label>Boxes</label>
-                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' /></span> 
-                      {% endif %}
-               
-                          <p>
-                            <label>Admin</label>
-                            <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span>
-                            </p>
-                            <p>
-                           <label>Filter allographs: </label>
-                                <select id="ontograph_type" name="ontograph_type">
-                                    <option value="0">Show all</option>
-                                    {% for type in ontograph_types %}
-                                        <option value="{{ type.id }}">{{ type.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </span> 
-                          </p>
+                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></span> 
+                      </p>
+                      {% if can_edit %}
+
+                      <p>
+                        <label>Admin</label>
+                        <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span>
+                        </p>
+                        <p>
+                       <label>Filter allographs: </label>
+                            <select id="ontograph_type" name="ontograph_type">
+                                <option value="0">Show all</option>
+                                {% for type in ontograph_types %}
+                                    <option value="{{ type.id }}">{{ type.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </span> 
+                      </p>
+                  {% endif %}
+                         
+                          
                       {% endif %}
                 </div>
                  </div>

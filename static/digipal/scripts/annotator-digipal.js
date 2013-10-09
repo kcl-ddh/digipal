@@ -63,6 +63,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		}
 		layer.redraw();
 	}
+
 	this.showAnnotation(event.feature);
 };
 
@@ -229,6 +230,11 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			} else {
 				annotation = null;
 			}
+		}
+		if ($('.letters-allograph-container').length) {
+			var allograph_id = $('#id_allograph').val();
+			var allograph = $('#id_allograph option:selected').text();
+			refresh_letters_container(allograph, allograph_id);
 		}
 		showBox(annotation);
 
@@ -623,11 +629,12 @@ function open_allographs() {
 		div.append(container_div);
 		$('body').append(div);
 		var img = $("<img>");
+		img.attr('class', 'img-loading');
 		img.attr('src', '/static/images/ajax-loader3.gif');
 		$('#top_div_annotated_allographs').find('span').after(img);
 		features.done(function(data) {
+			$('.img-loading').remove();
 			if (data != "False") {
-				img.remove();
 				var s = '';
 				for (i = 0; i < data.length; i++) {
 					if (i == 0) {
@@ -677,7 +684,6 @@ function open_allographs() {
 
 				});
 			} else {
-				img.remove();
 				var s = "<p><label>No Annotations</label></p>";
 				container_div.html(s);
 			}
@@ -689,20 +695,24 @@ function open_allographs() {
 
 function refresh_letters_container(allograph, allograph_id) {
 	var features = annotator.vectorLayer.features;
-	var character;
+	var character_id;
 	for (i = 0; i < features.length; i++) {
 		if (features[i].feature == allograph) {
 			character_id = features[i].character_id;
 			break;
 		}
 	}
+	if (typeof character_id == "undefined") {
+		return false;
+	}
 	var url = "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	var features = $.getJSON(url);
 	var img = $("<img>");
+	img.attr('class', 'img-loading');
 	img.attr('src', '/static/images/ajax-loader3.gif');
 	$('#top_div_annotated_allographs').find('span').html(allograph).after(img);
 	features.done(function(data) {
-		img.remove();
+		$('.img-loading').remove();
 		var container_div = $('#container-letters-popup');
 		var s = '';
 		for (i = 0; i < data.length; i++) {
@@ -825,14 +835,12 @@ function showBox(selectedFeature) {
 
 	var id = Math.random().toString(36).substring(7);
 
-	if (selectedFeature === null) {
-		create_dialog(null, id);
-		fill_dialog(id, selectedFeature);
-		return false;
-	}
-
-
 	if (annotator.boxes_on_click) {
+		if (selectedFeature === null) {
+			create_dialog(null, id);
+			fill_dialog(id, selectedFeature);
+			return false;
+		}
 		var url = 'graph/' + selectedFeature.graph + '/features/';
 		array_features_owned = features_owned(selectedFeature, url);
 		create_dialog(selectedFeature, id);
@@ -980,12 +988,13 @@ function showBox(selectedFeature) {
 
 		}
 	}
-
-	$('#hidden_hand').val(selectedFeature.hidden_hand);
-	$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-	$('#id_hand').val(selectedFeature.hidden_hand);
-	$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-	$('select').trigger('liszt:updated');
+	if (selectedFeature !== null) {
+		$('#hidden_hand').val(selectedFeature.hidden_hand);
+		$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		$('#id_hand').val(selectedFeature.hidden_hand);
+		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		$('select').trigger('liszt:updated');
+	}
 	highlight_vectors();
 	updateFeatureSelect();
 	$('#box_features_container p').click(function() {
@@ -1309,6 +1318,9 @@ function save(url, feature, data) {
 		success: function(data) {
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
+				$('.number_annotated_allographs span').html(function() {
+					return parseInt($(this).text()) + 1;
+				});
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();

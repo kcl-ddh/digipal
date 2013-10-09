@@ -254,9 +254,12 @@ class GraphForm(forms.ModelForm):
         # belong to the same page.
         super(GraphForm, self).__init__(*args, **kwargs)
         object = getattr(self, 'instance', None)
-        if object and object.annotation:
-            group_field = self.fields['group']
-            group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+        try:
+            if object and object.annotation:
+                group_field = self.fields['group']
+                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+        except Annotation.DoesNotExist:
+            print 'ERROR'
 
 class ImageForm(forms.ModelForm):
 
@@ -723,7 +726,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
             'created', 'modified']
     list_display_links = list_display
     search_fields = ['locus', 'display_label',
-            'historical_items__display_label', 'type']
+            'historical_items__display_label', 'type__name']
     list_filters = ('type',)
 
     fieldsets = (

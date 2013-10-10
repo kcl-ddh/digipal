@@ -521,6 +521,24 @@ function create_dialog(selectedFeature, id) {
 		path = $('#OpenLayers_Layer_Vector_27_svgRoot');
 	}
 	$('#dialog' + id).data('feature', selectedFeature);
+	var position = function() {
+		var p;
+		if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+			p = {
+				my: "right center",
+				at: "right top",
+				of: window
+			}
+		} else {
+			p = {
+				my: "right",
+				at: "right",
+				of: path
+			};
+		}
+		console.log(p);
+		return p;
+	}
 	$('#dialog' + id).dialog({
 		draggable: true,
 		height: 340,
@@ -529,6 +547,7 @@ function create_dialog(selectedFeature, id) {
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
 			$('.dialog_annotations').remove();
+			annotator.pinned = undefined;
 		},
 		title: function() {
 			var title;
@@ -544,11 +563,7 @@ function create_dialog(selectedFeature, id) {
 			}
 			return title;
 		},
-		position: {
-			my: "right",
-			at: "right",
-			of: path
-		}
+		position: position()
 	}).addClass('dialog_annotations');
 	var pin = "<span title='Minimize box' class='pull-right pin-box'>-</span>";
 	$('#ui-dialog-title-dialog' + id).after(pin);
@@ -562,33 +577,34 @@ function create_dialog(selectedFeature, id) {
 				'font-size': "30px"
 			});
 			var position = dialog.data('position');
-			var height = dialog.data('height');
-			$('.dialog_annotations').show();
+			annotator.pinned = {
+				'pinned': false,
+				position: position
+			};
 			dialog.animate({
 				'top': position.top,
-				'left': position.left,
-				'height': height,
-				'box-shadow': '0px 0px 12px rgba(45, 45, 45, 0.498039)'
+				'left': position.left
 			}, 300).resizable().draggable();
 			dialog.data('pinned', false);
 		} else {
+			annotator.pinned = {
+				'pinned': true,
+				position: {
+					'top': parseInt($(window).scrollTop()) + 10,
+					'left': '75%'
+				}
+			};
 			$(this).html('&#9633;').css({
 				'line-height': 1.5,
 				'font-size': "20px"
 			});
-			var position = dialog.position();
-			console.log(position);
-			var height = dialog.css('height');
+			var position = dialog.offset();
 			var allograph_position = $('.number_annotated_allographs');
-			$('.dialog_annotations').hide();
 			dialog.animate({
-				'top': allograph_position.position().top - 10,
-				'left': allograph_position.position().left + 60,
-				'height': '40px',
-				'box-shadow': 'none'
+				'top': annotator.pinned.position.top,
+				'left': annotator.pinned.position.left,
 			}, 300).resizable('destroy').draggable('destroy');
 			dialog.data('position', position);
-			dialog.data('height', height);
 			dialog.data('pinned', true);
 		}
 	});
@@ -854,7 +870,7 @@ function showBox(selectedFeature) {
 	var id = Math.random().toString(36).substring(7);
 
 	if (annotator.boxes_on_click) {
-		if (selectedFeature === null) {
+		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
 			fill_dialog(id, selectedFeature);
 			return false;
@@ -1014,7 +1030,9 @@ function showBox(selectedFeature) {
 		$('select').trigger('liszt:updated');
 	}
 	highlight_vectors();
-	updateFeatureSelect();
+	if (annotator.isAdmin == "True") {
+		updateFeatureSelect(selectedFeature);
+	}
 	$('#box_features_container p').click(function() {
 		var checkbox = $(this).find('input');
 		if (checkbox.is(':checked')) {

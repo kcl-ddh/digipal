@@ -143,6 +143,7 @@ def image_bulk_edit(request, url=None):
                 #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
                 #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
                 #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
+                folio.locus = folio.get_locus_label(True)
                 modified = True            
             
             if modified: folio.save()

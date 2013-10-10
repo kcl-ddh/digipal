@@ -65,12 +65,14 @@
                           var graph = annotations[i]['graph'];
                           var character = annotations[i]['character'];
                           var hand = annotations[i]['hand'];
+                          var image_id = annotations[i]['image_id'];
                           if(f.id == annotations[i]['vector_id']){
                               f.feature = allograph;
                               f.character_id = character_id;
                               f.graph = graph;
                               f.character = character;
                               f.hand = hand;
+                              f.image_id = image_id;
                               f.stored = true;
                           }
                       }

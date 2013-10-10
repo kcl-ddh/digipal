@@ -282,6 +282,10 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
 	});
+	var div = $('<div>');
+	div.attr('class', 'loading-div');
+	div.html('<p>Reloading annotations. Please wait...</p></p><img src="/static/images/ajax-loader3.gif" />');
+	$('body').append(div.fadeIn());
 	var chained = request.then(function(data) {
 		var layer = annotator.vectorLayer;
 		var format = annotator.format;
@@ -294,12 +298,19 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 				f.id = j;
 				for (var i in annotations) {
 					var allograph = annotations[i]['feature'];
+					var character_id = annotations[i]['character_id'];
 					var graph = annotations[i]['graph'];
 					var character = annotations[i]['character'];
+					var hand = annotations[i]['hand'];
+					var image_id = annotations[i]['image_id'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
+						f.character_id = character_id;
 						f.graph = graph;
 						f.character = character;
+						f.hand = hand;
+						f.image_id = image_id;
+						f.stored = true;
 					}
 				}
 				features.push(f);
@@ -307,7 +318,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
 		});
-		reload_described_annotations();
+		reload_described_annotations(div);
 	});
 }
 /**
@@ -346,7 +357,7 @@ function updateFeatureSelect(currentFeatures) {
 			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
 			$.each(features, function(idx) {
 				var value = component_id + '::' + features[idx].id;
-				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> " + features[idx].name;
+				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 			});
 			s += "</p></div>";
 		});
@@ -422,7 +433,7 @@ render the layer according to each allograph
 
 */
 
-function reload_described_annotations() {
+function reload_described_annotations(div) {
 	var stylize = function(feature, fill, stroke, opacity) {
 		feature.style = {
 			'strokeColor': stroke,
@@ -444,7 +455,6 @@ function reload_described_annotations() {
 			var vector = (data);
 			var is_empty = isEmpty(vector);
 			while (h < feature.length) {
-				var path = $("#" + feature[h].geometry.id);
 				if (annotation.graph == feature[h].graph) {
 					if (is_empty === false) {
 						stylize(feature[h], 'green', 'green', 0.4);
@@ -471,6 +481,9 @@ function reload_described_annotations() {
 	if (check_described) {
 		check_described.done(function() {
 			annotator.vectorLayer.redraw();
+			if (typeof div != "undefined") {
+				div.fadeOut().remove();
+			}
 		});
 	}
 }
@@ -633,7 +646,6 @@ function open_allographs() {
 		img.attr('src', '/static/images/ajax-loader3.gif');
 		$('#top_div_annotated_allographs').find('span').after(img);
 		features.done(function(data) {
-			$('.img-loading').remove();
 			if (data != "False") {
 				var s = '';
 				for (i = 0; i < data.length; i++) {
@@ -646,6 +658,10 @@ function open_allographs() {
 					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 				}
 				container_div.html(s);
+				container_div.find('img').on('load', function() {
+					$('.img-loading').remove();
+				});
+
 				$('.close_top_div_annotated_allographs').click(function() {
 					$('.letters-allograph-container').fadeOut().remove();
 					$('.number_annotated_allographs').removeClass('active');
@@ -712,7 +728,6 @@ function refresh_letters_container(allograph, allograph_id) {
 	img.attr('src', '/static/images/ajax-loader3.gif');
 	$('#top_div_annotated_allographs').find('span').html(allograph).after(img);
 	features.done(function(data) {
-		$('.img-loading').remove();
 		var container_div = $('#container-letters-popup');
 		var s = '';
 		for (i = 0; i < data.length; i++) {
@@ -725,6 +740,9 @@ function refresh_letters_container(allograph, allograph_id) {
 			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 		}
 		container_div.html(s);
+		container_div.find('img').on('load', function() {
+			$('.img-loading').remove();
+		});
 		$('.close_top_div_annotated_allographs').click(function() {
 			$('.letters-allograph-container').fadeOut().remove();
 			$('.number_annotated_allographs').removeClass('active');
@@ -1176,9 +1194,14 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature) {
 
 		updateStatus('-');
 		layer.destroyFeatures([feature]);
-
+		var url;
+		if (annotator.url_allographs) {
+			url = '../delete/' + featureId + '/';
+		} else {
+			url = 'delete/' + featureId + '/';
+		}
 		$.ajax({
-			url: 'delete/' + featureId + '/',
+			url: url,
 			data: '',
 			error: function(xhr, textStatus, errorThrown) {
 				alert('Error: ' + textStatus);

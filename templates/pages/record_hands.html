@@ -63,44 +63,7 @@
     
             <div class='tab-pane fade' id='graphs'>
                 <div class="scribe annotations">
-                 {% if data %}
-                  {% for key, allographs in data.items %}
-                    <div class="scribe">
-                        <div class='panel'>
-                        {% for key, annotations in allographs.items %}
-                            <span><a class="label label-info" href='#{{key}}'>{{ key }}</a></span>
-                        {% endfor %}
-                        </div>
-                        <h3 class='header1'>{{ key }}</h3>
-                            {% for key, annotations in allographs.items %}
-                            
-                              <div><h4 class='header5' id='{{key}}'>{{ key }}</h4></div>
-                              <ul>
-                                {% for annotation in annotations %}
-                                    <li>
-                                    <p><a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
-                                    {% if can_edit %}
-                                    <span> | </span>
-                                    <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
-                                    {% else %}
-                                    </p>
-                                    {% endif %}
-                                    <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
-                                    {{ annotation.thumbnail }}
-                                    </a> 
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                    
-                            {% endfor %}
-                            <div><a id='ontop' href='#top' title='On Top'></a></div>
-                        
-                    </div>
-                    </div>
-              {% endfor %}
-            {% else %}
-                <div class='alert alert-warning'><h4>No annotations available</h4></p>
-            {% endif %}
+                    {% include "digipal/hands.html" %}
         </div>
         </div>
             </div>

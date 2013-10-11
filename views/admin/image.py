@@ -16,6 +16,7 @@ from digipal.forms import ScribeAdminForm, OnlyScribe
 from django.forms.formsets import formset_factory
 from django.utils import simplejson
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
+from django.db import transaction
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -175,16 +176,18 @@ def newScriptEntry(request):
 
 def get_idiographs(request):
         scribe_id = request.GET.get('scribe', '')
-        scribe = Scribe.objects.get(id=scribe_id)
-        idiographs_values = scribe.idiographs.values()
         idiographs = []
-        for idiograph in idiographs_values:
+        scribe = Scribe.objects.get(id=scribe_id)
+        idiographs_values = scribe.idiographs
+        for idiograph in idiographs_values.all():
+            num_features = Feature.objects.filter(idiographcomponent__idiograph=idiograph.id).count()
             object_idiograph = {
-                'allograph_id': idiograph['allograph_id'],
-                'scribe_id': idiograph['scribe_id'],
-                'idiograph': idiograph['display_label'],
-                'id': idiograph['id']
-            }
+                'allograph_id': idiograph.allograph_id,
+                'scribe_id': idiograph.scribe_id,
+                'idiograph': idiograph.display_label,
+                'id': idiograph.id,
+                'num_features': num_features
+            }            
             idiographs.append(object_idiograph)
 
         return HttpResponse(simplejson.dumps(idiographs), mimetype='application/json')
@@ -229,120 +232,94 @@ def get_ideograph(request):
         ideograph['allograph_id'] = ideograph_obj.allograph.id,
         ideograph['scribe'] = ideograph_obj.scribe.name
         ideograph_components = ideograph_obj.idiographcomponent_set.values()
-        features = []
+        components = []
         for component in ideograph_components:
             feature_obj = Feature.objects.filter(idiographcomponent=component['id']).values()
             if len(feature_obj) > 0:
+                features = []
                 for obj in feature_obj:
                     feature = {}
                     feature['name'] = obj['name']
                     feature['id'] = obj['id']
+                    component_id = Component.objects.filter(features=obj['id'], idiographcomponent=component['id']).values('id')[0]['id']
                     features.append(feature)
-        ideograph['features'] = features
+                c = {
+                    'id': component_id,
+                    "features": features
+                }
+                components.append(c)
+        ideograph['components'] = components
         return HttpResponse(simplejson.dumps([ideograph]), mimetype='application/json')
     else:
         return HttpResponseBadRequest()
 
 @staff_member_required
 
-def inserting (request):
+def save_idiograph(request):
+    try:
+        scribe_id = int(request.POST.get('scribe', ''))
+        allograph_id = int(request.POST.get('allograph', ''))
+        data = simplejson.loads(request.POST.get('data', ''))
+        response = {}
+        allograph = Allograph.objects.get(id=allograph_id)
+        scribe = Scribe.objects.get(id=scribe_id)
 
-    """
-    newContext = {}
-    d = request.POST
+        idiograph = Idiograph(allograph=allograph, scribe=scribe) 
+        idiograph.save()
+        for component in data:
+            idiograph_id = Idiograph.objects.get(id=idiograph.id)
+            component_id = Component.objects.get(id=component['id'])
+            idiograph_component = IdiographComponent(idiograph = idiograph_id, component = component_id)
+            idiograph_component.save()
+            for features in component['features']:
+                feature = Feature.objects.get(id=features['id'])
+                idiograph_component.features.add(feature)
+        transaction.commit()
+        response['errors'] = False
+    except Exception as e:
+        transaction.rollback()
+        response['errors'] = ['Internal error: %s' % e.message]
+    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
-    
-    length = 10
 
-    if(not(d['addedrows'])):
-        print("a")
-    else:
-        length = length + int(d['addedrows'])
-        
-    array = [""] * length
 
-    for elem in range(0,len(array)):
-        array[elem] = ["","",[]]
+@staff_member_required
 
-    scribeVar = ""
+def update_idiograph(request):
+    try:
+        allograph_id = int(request.POST.get('allograph', ''))
+        data = simplejson.loads(request.POST.get('data', ''))
+        idiograph_id = int(request.POST.get('idiograph_id', ''))
+        response = {}
+        allograph = Allograph.objects.get(id=allograph_id)
+        idiograph = Idiograph.objects.get(id=idiograph_id)
+        idiograph.allograph = allograph
+        idiograph.save()
+        if data:
+            for component in data:
+                component_id = Component.objects.get(id=component['id'])
+                idiograph_component = IdiographComponent(idiograph = idiograph, component = component_id)
+                idiograph_component.save()
+                for features in component['features']:
+                    feature = Feature.objects.get(id=features['id'])
+                    idiograph_component.features.add(feature)
+        transaction.commit()
+        response['errors'] = False
+    except Exception as e:
+        transaction.rollback()
+        response['errors'] = ['Internal error: %s' % e.message]
+    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
-    if(d['scribe']):
-        scribeVar = d['scribe']
+@staff_member_required
 
-    for elem in d:
-        if(not(elem == "csrfmiddlewaretoken") and not(elem == "scribe") and not (elem == "addedrows")):
-            #print elem + " = " + d[elem]r
-            numRegex = re.search("[0-9]", elem, flags = 0)
-            typeRegex = re.search( "((allograph$)|(component$)|(feature$))", elem, flags = 0)
-            #print(elem)
-            if(typeRegex):
-                if(typeRegex.group() == "allograph"):
-                    array[int(numRegex.group())][0] = d[elem]
-                elif(typeRegex.group() == "component") :
-                    array[int(numRegex.group())][1] = d[elem]
-                elif(typeRegex.group() == "feature"):
-                    string = "form-"+numRegex.group()+"-feature"
-                    arr = request.POST.getlist(string)
-                    for index in arr:
-                        array[int(numRegex.group())][2].append(index)
-    newContext['insertedElements'] = "<table>"
-
-    for row in array:
-        if(row[0] != "" and row[1] != "" and len(row[2]) != 0):
-
-            newContext['insertedElements'] += "<tr>"
-            newContext['insertedElements'] += "<td>" + row[0] + "</td>" + "<td>" + row[1] + "</td>"
-            newContext['insertedElements'] += "<td><ul>"
-           
-            for element in row[2]:
-                "<li>" + element + "</li>"  
-
-            newContext['insertedElements'] += "</ul></td>"
-    
-            newContext['insertedElements'] += "</tr>"
-
-            
-            results = Idiograph.objects.filter(allograph__id = row[0], scribe__id = scribeVar)
-
-            if(not(results)):
-                globalObj = Idiograph(allograph_id = row[0], scribe_id = scribeVar)    
-                globalObj.save()
-
-                idiogComp = IdiographComponent(idiograph = globalObj, component_id = row[1])
-                idiogComp.save()
-                for randomindex in row[2]:
-                    idiogComp.features.add(randomindex)
-
-            else:
-                
-                idiogCompResults = IdiographComponent.objects.filter(idiograph_id = results[0], component_id = row[1])
-                
-                if(not(idiogCompResults)):
-                    idiogComp = IdiographComponent(idiograph = results[0], component_id = row[1])
-                    idiogComp.save()
-                    for randomindex in row[2]:
-                        idiogComp.features.add(randomindex)
-                else:
-                    for randomindex in row[2]:
-                        if(randomindex not in idiogCompResults[0].features.all()):
-                            print(randomindex)
-                            idiogCompResults[0].features.add(int(randomindex))
-
-    newContext['insertedElements'] += "</table>"
-    """
-
-    scribe = request.POST.get('scribe', '')
-    ideograph = request.POST.get('ideograph', '')
-    is_new_ideograph = request.POST.get('is_new_ideograph', '')
-    allograph = request.POST.get('allograph', '')
-    components = request.POST.get('components', '')
-    features = request.POST.get('features', '')
-
-    if is_new_ideograph:
-        print
-    else:
-        print 
-    
-
-    return render_to_response('admin/page/insertion.html', newContext, 
-                              context_instance=RequestContext(request))
+def delete_idiograph(request):
+    try:
+        response = {}
+        idiograph_id = int(request.POST.get('idiograph_id', ''))
+        idiograph = Idiograph.objects.get(id=idiograph_id)
+        idiograph.delete()
+        response['errors'] = False
+    except Exception as e:
+        transaction.rollback()
+        response['errors'] = ['Internal error: %s' % e.message]
+    return HttpResponse(simplejson.dumps(response), mimetype='application/json')

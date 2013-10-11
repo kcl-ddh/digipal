@@ -16,7 +16,7 @@
   <div class='row-fluid'>
     <div class='span8'>
       <div class='alert'></div>
-      <form id="frmAnnotation" method="POST" name="frmAnnotation" action="digipal/admin/Scribeinserted/">
+      <form id="frmAnnotation" method="POST" name="frmAnnotation">
           {% csrf_token %}
             <div id='scribe_header'>{{ scribeForm }} <img src='/static/images/ajax-loader-ball.gif' id ='ajax_loader' /></div>
             <div>
@@ -27,8 +27,8 @@
                 {{ formset }}
               </div>
             </div>
-            <h2>Features</h2>
-              
+            <h2>Features <span class='label' style='font-size:13px' id='num_features'></span></h2>
+              <hr style='margin-top:3px'/>
               <div id="features_container"></div>
               <div style='margin:1%'>
                 <input type='button' value='Check All' id='check_all' />
@@ -55,68 +55,6 @@
     </div>
   </div>
 
-
-<script type="text/javascript">
-/*
-  $(document).ready( function() {
-    var index = 11
-    $("#addrowbutton").click(function(){
-      var regexp = /^(\d)*$/
-      var inputNum = $("#addRowNum").val()
-      if(inputNum.search(regexp) == -1 ){
-        alert("Inserted value not valid, this form must contains only numbers")
-      } else{
-          var k = $("#hiddenAdded").val()
-          f = parseInt(k) + parseInt(inputNum)
-          $("#hiddenAdded").val(f)
-
-          var div = $(".listElem")
-          var dummyCopy = $(div[0]).clone()
-          var dummyChildrenCopy = dummyCopy.children()
-
-          for(var i = 0; i < inputNum; i++){
-            var toInsert = dummyCopy.clone()
-            for(var j = 0; j < dummyChildrenCopy.length; j++){
-              
-              if((toInsert.children()[j]) == "[object HTMLLabelElement]" ){
-                var str = $(toInsert.children()[j]).attr("for")
-                var newStr = str.replace("0", index)
-                $(toInsert.children()[j]).attr("for", newStr)
-              } else {
-
-                var str = $(toInsert.children()[j]).attr("id")
-                var newStr = str.replace("0", index)
-                $(toInsert.children()[j]).attr("id", newStr)
-
-                var str2 = $(toInsert.children()[j]).attr("name")
-                var newstr2 = str2.replace("0", index)
-                $(toInsert.children()[j]).attr("name", newstr2)
-
-              }
-            }
-
-            $("#appendHere").append(toInsert)
-            index += 1;
-        }
-      }
-    })
-  })
-*/
-</script>
-<script type="text/javascript">
-/*
-$("#id_scribe").change(function(){
-  if($("#id_scribe option:selected").val() != ""){
-    $("#subButton").removeAttr("disabled")
-    $("#errorSpan").html("")
-
-  } else{
-    $("#subButton").attr("disabled", true);
-    $("#errorSpan").html("You must select a Scribe to continue")
-  }
-});
-*/
-</script>
 {% endblock %}
 
 </div>

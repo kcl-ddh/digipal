@@ -225,6 +225,37 @@ class AllographComponent(models.Model):
         #return u'%s. %s' % (self.allograph, self.component)
         return get_list_as_string(self.allograph, '. ', self.component)
 
+class Text(models.Model):
+    name = models.CharField(max_length=200)
+    item_parts = models.ManyToManyField('ItemPart', through='TextItemPart', related_name='texts')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        unique_together = ['name']
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+
+class TextItemPart(models.Model):
+    locus = models.CharField(max_length=20, blank=True, null=True)
+    item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
+    text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        unique_together = ['item_part', 'text']
+
+    def __unicode__(self):
+        locus = ''
+        if self.locus:
+            locus = u' (%s)' % self.locus
+        return u'%s in %s%s' % (self.text.name, self.item_part.display_label, locus)
+
 
 class Script(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -524,19 +555,24 @@ class Source(models.Model):
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
     historical_item = models.ForeignKey(HistoricalItem,
-            related_name='catalogue_numbers')
+            related_name='catalogue_numbers', blank=True, null=True)
+    text = models.ForeignKey('Text', related_name='catalogue_numbers', blank=True, null=True)
     source = models.ForeignKey(Source)
     number = models.CharField(max_length=32)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
+    def clean(self):
+        if self.historical_item is None and self.text is None:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('A catalogue number must refer to a Text or a Historical Item.')
+
     class Meta:
         ordering = ['source', 'number']
         unique_together = ['source', 'number']
 
     def __unicode__(self):
-        #return u'%s %s' % (self.source, self.number)
         return get_list_as_string(self.source, ' ', self.number) 
 
 
@@ -584,8 +620,8 @@ class Decoration(models.Model):
 
 
 class Description(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
-    #historical_item = models.ForeignKey(HistoricalItem)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
+    text = models.ForeignKey('Text', related_name='descriptions', blank=True, null=True)
     source = models.ForeignKey(Source)
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -593,8 +629,13 @@ class Description(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['historical_item']
+        ordering = ['historical_item', 'text']
 
+    def clean(self):
+        if self.historical_item is None and self.text is None:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('A description must refer to a Text or a Historical Item.')
+        
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source)
@@ -1122,7 +1163,10 @@ class Image(models.Model):
                         
         return ret
     
-    def get_locus_label(self):
+    def get_locus_label(self, hide_type=False):
+        ''' Returns a label for the locus from the side and number fields.
+            If hide_type is False, don't include p. or f. in the output.
+        '''
         ret = ''
         if self.folio_number:
             ret = ret + self.folio_number
@@ -1134,7 +1178,7 @@ class Image(models.Model):
         if ret == '0v':
             ret = 'dorse'
         
-        if ret and self.folio_number and self.folio_number != '0':
+        if ret and self.folio_number and self.folio_number != '0' and not hide_type:
             unit = 'f.'
             if self.item_part and self.item_part.pagination:
                 unit = 'p.'

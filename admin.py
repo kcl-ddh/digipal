@@ -22,7 +22,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord, HandDescription, RequestLog
+        StewartRecord, HandDescription, RequestLog, Text, TextItemPart
 import reversion
 import django_admin_customisations
 from django.utils.safestring import mark_safe
@@ -323,6 +323,8 @@ class IdiographInline(admin.StackedInline):
 
     filter_horizontal = ['aspects']
 
+class TextItemPartInline(admin.StackedInline):
+    model = TextItemPart
 
 class AllographAdmin(reversion.VersionAdmin):
     model = Allograph
@@ -736,7 +738,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline]
+    inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType
@@ -990,6 +992,16 @@ class MediaPermissionAdmin(reversion.VersionAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
 
+class TextAdmin(reversion.VersionAdmin):
+    model = Text
+    
+    list_display = ['name', 'created', 'modified']
+    list_display_link = list_display
+    search_fields = ['name']
+    ordering = ['name']
+
+    inlines = [TextItemPartInline]
+
 class StewartRecordFilterMatched(admin.SimpleListFilter):
     title = 'Match'
     parameter_name = 'matched'
@@ -1165,3 +1177,4 @@ admin.site.register(Status, StatusAdmin)
 admin.site.register(MediaPermission, MediaPermissionAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
+admin.site.register(Text, TextAdmin)

@@ -5,7 +5,7 @@
 <div class="breadcrumbs">
      <a href="../../../">{% trans "Home" %}</a> &rsaquo;
      <a href="../../">Editions</a> &rsaquo;
-     <a href="../">Page</a> &rsaquo;
+     <a href="../">Image</a> &rsaquo;
      Bulk Edit
 </div>
 {% endblock %}
@@ -183,7 +183,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 		<tbody>
 		    {% for folio in folios %}
 			    <tr class="{% cycle 'row1' 'row2' %}">
-			    	<td><a href="/admin/digipal/page/{{folio.id}}/">{{folio.id}}</a></td>
+			    	<td><a href="/admin/digipal/image/{{folio.id}}/">{{folio.id}}</a></td>
 			    	<td>{{folio.iipimage.name}}</td>
 			    	<td>{{folio.item_part.display_label}}</td>
 			    	<td>

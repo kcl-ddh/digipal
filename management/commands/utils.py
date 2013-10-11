@@ -1,4 +1,5 @@
 from django.conf import settings
+import urllib2
 
 def fix_sequences(db_alias, silent=False):
     ret = 0
@@ -128,4 +129,17 @@ class Logger(object):
                 print (u'[%s] %s%s%s' % (timestamp, indent_str, prefixes[log_level], message)).encode('utf-8')
             except UnicodeEncodeError:
                 print '???'
-            
+
+def write_file(file_name, data):
+    f = open(file_name, 'wb')
+    f.write(data)
+    f.close()
+        
+def wget(url):
+    ret = None
+    try:
+        response = urllib2.urlopen(url)
+        ret = response.read()
+    except Exception, e:
+        ret = None
+    return ret

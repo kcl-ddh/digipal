@@ -5,6 +5,7 @@ import os
 import shlex
 import subprocess
 import re
+import utils
 from optparse import make_option
 from os import listdir
 from os.path import isfile, join
@@ -29,6 +30,8 @@ class Command(BaseCommand):
 		upload
 		
 		update
+		
+		fetch URL [LINK_NAMES]
 	
 	"""
 	
@@ -150,6 +153,21 @@ class Command(BaseCommand):
 			dest='offline',
 			default='',
 			help='Only list images which are offline'),
+		make_option('--links',
+			action='store',
+			dest='links',
+			default='',
+			help='Link names'),
+		make_option('--op',
+			action='store',
+			dest='out_path',
+			default='.',
+			help='out path'),
+		make_option('--links_file',
+			action='store',
+			dest='links_file',
+			default='',
+			help='Link names'),
 		make_option('--missing',
 			action='store_true',
 			dest='missing',
@@ -234,6 +252,10 @@ class Command(BaseCommand):
 		
 		known_command = False
 		counts = {'online': 0, 'disk': 0, 'disk_only': 0, 'missing': 0}
+		if command == 'fetch':
+			known_command = True
+			self.fetch(*args, **options)
+		
 		if command in ('list', 'upload', 'unstage', 'update', 'remove'):
 			known_command = True
 
@@ -337,6 +359,66 @@ class Command(BaseCommand):
 
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
+	
+	def fetch(self, *args, **options):
+		'''
+			fetch http://bdigital.sib.uc.pt/bg2/UCBG-Cofre-1/UCBG-Cofre-1_item1/P3.html --links-file "bible1" --op=img1
+			
+			Will save all the jpg images found at that address into a directory called img1.
+			We first download the index from that address then follow each link with a name listed in bible1 file.
+			Download all all the jpg images found in those sub-pages.
+		'''
+		out_path = options['out_path']
+
+		if len(args) > 1:
+			url = args[1]
+			print url
+
+			if options['links']:
+				links = options['links'].split(' ')
+
+			if options['links_file']:
+				f = open(options['links_file'], 'rb')
+				links = f.readlines()
+				f.close()
+				links = [link.strip() for link in links]
+				
+			if links:
+				
+				html = utils.wget(url)
+				if not html:
+					print 'ERROR: request to %s failed.' % url
+				else:
+					for link in links:
+						print link 
+						href = re.findall(ur'<a [^>]*href="([^"]*?)"[^>]*>\s*' + re.escape(link) + '\s*<', html)
+						if href:
+							href = href[0]
+							href = re.sub(ur'/[^/]*$', '/' + href, url)
+							print href
+							
+							sub_html = utils.wget(href)
+							
+							if not sub_html:
+								print 'WARNING: request to %s failed.' % sub_html
+							else:
+								# get the jpg image in the page
+								image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
+								for image_url in image_urls:
+									image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
+									print image_url
+									
+									# get the image
+									image = utils.wget(image_url)
+									
+									if not image:
+										print 'WARNING: request to %s failed.' % image_url
+									else:
+										# save it
+										import os
+										image_path = os.path.join(out_path, re.sub(ur'^.*/', '', image_url)) + ''
+										print image_path
+										utils.write_file(image_path, image)
 	
 	def processOriginals(self, args, options):
 		''' List or copy the original images. '''

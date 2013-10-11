@@ -105,6 +105,12 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes) {
 DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
+
+	function stylize(color, feature) {
+		feature.style.fillColor = color;
+		feature.style.strokeColor = color;
+	}
+
 	if (check == 'check') {
 		$(checkboxes).attr('checked', true);
 		for (var i = 0; i < features.length; i++) {
@@ -114,25 +120,17 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 					'strokeOpacity': 1
 				};
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = 'green';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			} else {
 				features[i].style.fillOpacity = 0.4;
 				features[i].style.strokeOpacity = 1;
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = 'green';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			}
 		}
@@ -145,25 +143,17 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 					'strokeOpacity': 0
 				};
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			} else {
 				features[i].style.fillOpacity = 0;
 				features[i].style.strokeOpacity = 0;
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			}
 		}
@@ -237,7 +227,6 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			refresh_letters_container(allograph, allograph_id);
 		}
 		showBox(annotation);
-
 	}
 
 };
@@ -422,7 +411,6 @@ function features_owned(selectedFeature, url) {
 			s = '';
 		}
 	});
-
 	return array_features_owned;
 }
 
@@ -812,12 +800,12 @@ function fill_dialog(id, annotation) {
 		$('#dialog' + id).html(s);
 
 		/*
-		$('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
-		$('#save_features_titlebar').click(function() {
-			annotator.saveAnnotation();
-			reload_described_annotations();
-		});
-		*/
+        $('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
+        $('#save_features_titlebar').click(function() {
+            annotator.saveAnnotation();
+            reload_described_annotations();
+        });
+        */
 
 		$('#id_allograph').on('change', function() {
 			updateFeatureSelect(annotation);
@@ -961,10 +949,10 @@ function showBox(selectedFeature) {
 						$(".number_annotated_allographs .number-allographs").html(n);
 					}
 					/*
-			                $('#id_status').val(annotation.status_id);
-			                $('#id_before').val(getKeyFromObjField(annotation, 'before'));
-			                $('#id_after').val(getKeyFromObjField(annotation, 'after'));
-			                */
+                            $('#id_status').val(annotation.status_id);
+                            $('#id_before').val(getKeyFromObjField(annotation, 'before'));
+                            $('#id_after').val(getKeyFromObjField(annotation, 'after'));
+                            */
 
 
 					//$('#id_display_note').val(selectedFeature.display_note);
@@ -1419,7 +1407,7 @@ function handleErrors(data) {
  * @param msg
  *              Status message to display.
  * @param status
- * 				Either 'error', 'success' or ''
+ *              Either 'error', 'success' or ''
  */
 
 function updateStatus(msg, status) {

@@ -221,12 +221,12 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				annotation = null;
 			}
 		}
+		showBox(annotation);
 		if ($('.letters-allograph-container').length) {
 			var allograph_id = $('#id_allograph').val();
 			var allograph = $('#id_allograph option:selected').text();
 			refresh_letters_container(allograph, allograph_id);
 		}
-		showBox(annotation);
 	}
 
 };
@@ -343,7 +343,10 @@ function updateFeatureSelect(currentFeatures) {
 			component_id = data[idx].id;
 			var features = data[idx].features;
 			s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+			s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
+
 			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+
 			$.each(features, function(idx) {
 				var value = component_id + '::' + features[idx].id;
 				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
@@ -351,13 +354,23 @@ function updateFeatureSelect(currentFeatures) {
 			s += "</p></div>";
 		});
 		$('#box_features_container').html(s);
+		$('.check_all').click(function() {
+			var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+			checkboxes.attr('checked', true);
+		});
+		$('.uncheck_all').click(function() {
+			var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+			checkboxes.attr('checked', false);
+		});
 		$('.component_labels').click(function() {
 			var div = $("#" + $(this).data('id'));
 			if (div.data('hidden') === false) {
 				div.slideUp().data('hidden', true);
+				$(this).next('.checkboxes_div').hide();
 				$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 			} else {
 				div.slideDown().data('hidden', false);
+				$(this).next('.checkboxes_div').show();
 				$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 
 			}
@@ -890,6 +903,8 @@ function showBox(selectedFeature) {
 						component_id = data[idx].id;
 						var features = data[idx].features;
 						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><input type='button' class='check_all btn btn-small' value='All' /> <input type='button' class='btn btn-small uncheck_all' value='Clear' /></div>";
+
 						s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
@@ -904,7 +919,14 @@ function showBox(selectedFeature) {
 					});
 					s += "</div>";
 					$('#dialog' + id).html(s);
-
+					$('.check_all').click(function() {
+						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						checkboxes.attr('checked', true);
+					});
+					$('.uncheck_all').click(function() {
+						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						checkboxes.attr('checked', false);
+					});
 					var url_allograph_div = false;
 
 					$('.url_allograph').click(function() {
@@ -930,10 +952,12 @@ function showBox(selectedFeature) {
 						var div = $("#" + $(this).data('id'));
 						if (div.data('hidden') === false) {
 							div.slideUp().data('hidden', true);
+							$(this).next('.checkboxes_div').hide();
 							$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 
 						} else {
 							div.slideDown().data('hidden', false);
+							$(this).next('.checkboxes_div').show();
 							$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 						}
 					});

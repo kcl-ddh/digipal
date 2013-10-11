@@ -536,7 +536,6 @@ function create_dialog(selectedFeature, id) {
 				of: path
 			};
 		}
-		console.log(p);
 		return p;
 	}
 	$('#dialog' + id).dialog({

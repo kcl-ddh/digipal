@@ -46,10 +46,13 @@ urlpatterns += patterns('digipal.views.image',
 urlpatterns += patterns('digipal.views.admin.image',
                        (r'admin/image/bulk_edit', 'image_bulk_edit'),
                        (r'admin/newscriptentry/$', 'newScriptEntry'),
-                       (r'admin/Scribeinserted/$', 'inserting'),
                        (r'admin/newscriptentry/get_idiographs', 'get_idiographs'),
                        (r'admin/newscriptentry/get_allographs', 'get_allographs'),
                        (r'admin/newscriptentry/get_ideograph', 'get_ideograph'),
+                       (r'admin/newscriptentry/save_idiograph', 'save_idiograph'),
+                       (r'admin/newscriptentry/update_idiograph', 'update_idiograph'),
+                       (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
+
 
                        )
 

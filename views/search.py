@@ -1,10 +1,10 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
-from django.utils.datastructures import SortedDict
+from django.utils import simplejson
 from digipal.models import *
 from digipal.forms import DrilldownForm, SearchPageForm
-from itertools import islice, chain
+
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 

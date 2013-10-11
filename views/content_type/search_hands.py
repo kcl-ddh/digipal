@@ -24,6 +24,10 @@ class SearchHands(SearchContentType):
 
         from django.utils.datastructures import SortedDict
         p = Hand.objects.get(id=context['id'])
+        image = p.images.all()[0]
+        width, height = image.dimensions()
+        image_server_url = image.zoomify
+        hands_page = True
         #c = p.graphs_set.model.objects.get(id=p.id)
         annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
         data = SortedDict()
@@ -40,6 +44,11 @@ class SearchHands(SearchContentType):
 
             data[hand][allograph_name].append(annotation)
             context['data'] = data
+        context['width'] = width
+        context['can_edit'] = True
+        context['height'] = height
+        context['image_erver_url'] = image_server_url
+        context['hands_page'] = hands_page
         context['result'] = p
     
     @property

@@ -1491,8 +1491,8 @@ class Graph(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
     group = models.ForeignKey('Graph', related_name='parts', blank=True, 
-            null=True, help_text=u'Select a graph that contains this one')    
-
+                              null=True, help_text=u'Select a graph that contains this one')
+    
     class Meta:
         ordering = ['idiograph']
 

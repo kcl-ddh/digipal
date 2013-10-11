@@ -26,7 +26,6 @@ urlpatterns = patterns('digipal.views.annotation',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
-
                        )
 
 urlpatterns += patterns('digipal.views.search',

@@ -121,15 +121,19 @@ def image_vectors(request, image_id):
         
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
-def image_annotations(request, image_id):
+def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
-    annotation_list = Annotation.objects.filter(image=image_id)
+    if annotations_page:
+        annotation_list = Annotation.objects.filter(image=image_id)
+    else:
+        annotation_list = Annotation.objects.filter(graph__hand=hand)
 
     data = {}
     for a in annotation_list:
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
         data[a.id]['status_id'] = a.status_id
+        data[a.id]['image_id'] = a.image.id
         data[a.id]['hidden_hand'] = a.graph.hand.id
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
@@ -160,9 +164,11 @@ def image_annotations(request, image_id):
                 for f in gc.features.all():
                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
                         f.id))
-
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
-
+    if annotations_page:
+        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    else:
+        return data
+        
 def get_allographs_by_graph(request, image_id, character_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
@@ -206,7 +212,7 @@ def image_allographs(request, image_id):
     image = Image.objects.get(id=image_id)
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
     form = ImageAnnotationForm()
-
+    hands = []
     form.fields['hand'].queryset = image.hands.all()
 
     width, height = image.dimensions()
@@ -219,6 +225,7 @@ def image_allographs(request, image_id):
 
     for annotation in annotation_list:
         hand = annotation.graph.hand
+        hands.append(hand.id)
         allograph_name = annotation.graph.idiograph.allograph
 
         if hand in data:
@@ -235,6 +242,7 @@ def image_allographs(request, image_id):
              'height': height, 
              'image_server_url': image_server_url,
              'width': width, 
+             'hands': list(set(hands)),
              'data': data, 
              'form': form,
              'can_edit': has_edit_permission(request, Annotation)},

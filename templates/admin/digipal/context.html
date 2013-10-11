@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Image</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+{{ block.super }}
+
+<style type="text/css">
+table.bulk_options {width: 100%;}
+table.bulk_options tr {width: 100%;}
+tr.section_last td {border-bottom: 3px solid #DDDDDD}
+.txt-folio-number {width:3em;}
+#tbl-selected-folios {border: 1px solid lightgrey}
+.txta-folio-note {width: 8em; height: 6em;}
+#container input.sbm-change {float: left;}
+ul {margin-left: 2em;}
+ul li { 
+    list-style-type: disc;
+}
+li.collapsed ul {
+    display: none;
+}
+</style>
+
+<script>
+    $(function(){
+        $('body').on('click', 'a.expandable', function() {
+            $(this).parent().toggleClass('collapsed');
+            $(this).html('['+($(this).parent().hasClass('collapsed') ? ' + ' : ' - ')+']');
+            return false;
+        });
+    });
+</script>
+
+{% endblock %}
+
+
+{% block content %}
+
+{{ tree_html }}
+
+{% endblock %} 

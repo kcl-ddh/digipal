@@ -105,6 +105,12 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes) {
 DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
+
+	function stylize(color, feature) {
+		feature.style.fillColor = color;
+		feature.style.strokeColor = color;
+	}
+
 	if (check == 'check') {
 		$(checkboxes).attr('checked', true);
 		for (var i = 0; i < features.length; i++) {
@@ -114,25 +120,17 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 					'strokeOpacity': 1
 				};
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = 'green';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			} else {
 				features[i].style.fillOpacity = 0.4;
 				features[i].style.strokeOpacity = 1;
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = 'green';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			}
 		}
@@ -145,25 +143,17 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 					'strokeOpacity': 0
 				};
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			} else {
 				features[i].style.fillOpacity = 0;
 				features[i].style.strokeOpacity = 0;
 				if (features[i].described) {
-					features[i].style.fillColor = 'green';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('green', features[i]);
 				} else {
-					features[i].style.fillColor = '#ee9900';
-					features[i].style.strokeColor = '#ee9900';
-
+					stylize('#ee9900', features[i]);
 				}
 			}
 		}
@@ -231,13 +221,12 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				annotation = null;
 			}
 		}
+		showBox(annotation);
 		if ($('.letters-allograph-container').length) {
 			var allograph_id = $('#id_allograph').val();
 			var allograph = $('#id_allograph option:selected').text();
 			refresh_letters_container(allograph, allograph_id);
 		}
-		showBox(annotation);
-
 	}
 
 };
@@ -354,7 +343,10 @@ function updateFeatureSelect(currentFeatures) {
 			component_id = data[idx].id;
 			var features = data[idx].features;
 			s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+			s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
+
 			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+
 			$.each(features, function(idx) {
 				var value = component_id + '::' + features[idx].id;
 				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
@@ -362,13 +354,23 @@ function updateFeatureSelect(currentFeatures) {
 			s += "</p></div>";
 		});
 		$('#box_features_container').html(s);
+		$('.check_all').click(function() {
+			var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+			checkboxes.attr('checked', true);
+		});
+		$('.uncheck_all').click(function() {
+			var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+			checkboxes.attr('checked', false);
+		});
 		$('.component_labels').click(function() {
 			var div = $("#" + $(this).data('id'));
 			if (div.data('hidden') === false) {
 				div.slideUp().data('hidden', true);
+				$(this).next('.checkboxes_div').hide();
 				$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 			} else {
 				div.slideDown().data('hidden', false);
+				$(this).next('.checkboxes_div').show();
 				$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 
 			}
@@ -422,7 +424,6 @@ function features_owned(selectedFeature, url) {
 			s = '';
 		}
 	});
-
 	return array_features_owned;
 }
 
@@ -812,12 +813,12 @@ function fill_dialog(id, annotation) {
 		$('#dialog' + id).html(s);
 
 		/*
-		$('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
-		$('#save_features_titlebar').click(function() {
-			annotator.saveAnnotation();
-			reload_described_annotations();
-		});
-		*/
+        $('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
+        $('#save_features_titlebar').click(function() {
+            annotator.saveAnnotation();
+            reload_described_annotations();
+        });
+        */
 
 		$('#id_allograph').on('change', function() {
 			updateFeatureSelect(annotation);
@@ -902,6 +903,8 @@ function showBox(selectedFeature) {
 						component_id = data[idx].id;
 						var features = data[idx].features;
 						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><input type='button' class='check_all btn btn-small' value='All' /> <input type='button' class='btn btn-small uncheck_all' value='Clear' /></div>";
+
 						s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
@@ -916,7 +919,14 @@ function showBox(selectedFeature) {
 					});
 					s += "</div>";
 					$('#dialog' + id).html(s);
-
+					$('.check_all').click(function() {
+						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						checkboxes.attr('checked', true);
+					});
+					$('.uncheck_all').click(function() {
+						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						checkboxes.attr('checked', false);
+					});
 					var url_allograph_div = false;
 
 					$('.url_allograph').click(function() {
@@ -942,10 +952,12 @@ function showBox(selectedFeature) {
 						var div = $("#" + $(this).data('id'));
 						if (div.data('hidden') === false) {
 							div.slideUp().data('hidden', true);
+							$(this).next('.checkboxes_div').hide();
 							$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 
 						} else {
 							div.slideDown().data('hidden', false);
+							$(this).next('.checkboxes_div').show();
 							$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 						}
 					});
@@ -961,10 +973,10 @@ function showBox(selectedFeature) {
 						$(".number_annotated_allographs .number-allographs").html(n);
 					}
 					/*
-			                $('#id_status').val(annotation.status_id);
-			                $('#id_before').val(getKeyFromObjField(annotation, 'before'));
-			                $('#id_after').val(getKeyFromObjField(annotation, 'after'));
-			                */
+                            $('#id_status').val(annotation.status_id);
+                            $('#id_before').val(getKeyFromObjField(annotation, 'before'));
+                            $('#id_after').val(getKeyFromObjField(annotation, 'after'));
+                            */
 
 
 					//$('#id_display_note').val(selectedFeature.display_note);
@@ -1419,7 +1431,7 @@ function handleErrors(data) {
  * @param msg
  *              Status message to display.
  * @param status
- * 				Either 'error', 'success' or ''
+ *              Either 'error', 'success' or ''
  */
 
 function updateStatus(msg, status) {

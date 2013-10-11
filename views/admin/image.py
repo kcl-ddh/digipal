@@ -318,6 +318,7 @@ def delete_idiograph(request):
         idiograph_id = int(request.POST.get('idiograph_id', ''))
         idiograph = Idiograph.objects.get(id=idiograph_id)
         idiograph.delete()
+        IdiographComponent.objects.filter(idiograph=idiograph).delete()
         response['errors'] = False
     except Exception as e:
         transaction.rollback()

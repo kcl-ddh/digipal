@@ -54,7 +54,12 @@ def get_obj_info(obj, exclude_list=None):
     info = ''
 
     if obj._meta.module_name == 'historicalitem':
+        info_parts = []
         info = '%s, %s' % (obj.historical_item_format, obj.historical_item_type)
+        if info:
+            info_parts = [info]
+        info_parts.extend(['%s' % cat_num for cat_num in obj.catalogue_numbers.all()])
+        info = ', '.join(info_parts)
         
     if info:
         info = ur'(%s) ' % info

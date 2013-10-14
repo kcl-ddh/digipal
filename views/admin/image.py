@@ -245,7 +245,8 @@ def get_ideograph(request):
                     features.append(feature)
                 c = {
                     'id': component_id,
-                    "features": features
+                    "features": features,
+                    'idiograph_component': component['id']
                 }
                 components.append(c)
         ideograph['components'] = components
@@ -256,14 +257,13 @@ def get_ideograph(request):
 @staff_member_required
 
 def save_idiograph(request):
+    response = {}
     try:
         scribe_id = int(request.POST.get('scribe', ''))
         allograph_id = int(request.POST.get('allograph', ''))
         data = simplejson.loads(request.POST.get('data', ''))
-        response = {}
         allograph = Allograph.objects.get(id=allograph_id)
         scribe = Scribe.objects.get(id=scribe_id)
-
         idiograph = Idiograph(allograph=allograph, scribe=scribe) 
         idiograph.save()
         for component in data:
@@ -284,41 +284,45 @@ def save_idiograph(request):
 
 
 @staff_member_required
-
+@transaction.commit_on_success
 def update_idiograph(request):
+    response = {}
     try:
         allograph_id = int(request.POST.get('allograph', ''))
-        data = simplejson.loads(request.POST.get('data', ''))
         idiograph_id = int(request.POST.get('idiograph_id', ''))
-        response = {}
+        data = simplejson.loads(request.POST.get('data', ''))
         allograph = Allograph.objects.get(id=allograph_id)
         idiograph = Idiograph.objects.get(id=idiograph_id)
         idiograph.allograph = allograph
         idiograph.save()
-        if data:
-            for component in data:
-                component_id = Component.objects.get(id=component['id'])
-                idiograph_component = IdiographComponent(idiograph = idiograph, component = component_id)
-                idiograph_component.save()
-                for features in component['features']:
-                    feature = Feature.objects.get(id=features['id'])
-                    idiograph_component.features.add(feature)
-        transaction.commit()
+        for idiograph_component in data:
+            if idiograph_component['idiograph_component'] != False:
+                ic = IdiographComponent.objects.get(id=idiograph_component['idiograph_component'])
+                ic.features.clear()
+            else:
+                ic = IdiographComponent()
+            component = Component.objects.get(id=idiograph_component['id'])
+            ic.idiograph = idiograph
+            ic.component = component
+            ic.save()
+            for features in idiograph_component['features']:
+                feature = Feature.objects.get(id=features['id'])
+                ic.features.add(feature)
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-        transaction.rollback()
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 @staff_member_required
 
 def delete_idiograph(request):
+    response = {}
     try:
-        response = {}
         idiograph_id = int(request.POST.get('idiograph_id', ''))
         idiograph = Idiograph.objects.get(id=idiograph_id)
         idiograph.delete()
         IdiographComponent.objects.filter(idiograph=idiograph).delete()
+        transaction.commit()
         response['errors'] = False
     except Exception as e:
         transaction.rollback()

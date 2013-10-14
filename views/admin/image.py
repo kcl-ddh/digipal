@@ -277,8 +277,8 @@ def save_idiograph(request):
         transaction.commit()
         response['errors'] = False
     except Exception as e:
-        transaction.rollback()
         response['errors'] = ['Internal error: %s' % e.message]
+        transaction.rollback()
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 
@@ -306,8 +306,8 @@ def update_idiograph(request):
         transaction.commit()
         response['errors'] = False
     except Exception as e:
-        transaction.rollback()
         response['errors'] = ['Internal error: %s' % e.message]
+        transaction.rollback()
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 @staff_member_required

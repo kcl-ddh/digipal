@@ -234,17 +234,19 @@ def get_ideograph(request):
         ideograph_components = ideograph_obj.idiographcomponent_set.values()
         components = []
         for component in ideograph_components:
-            feature_obj = Feature.objects.filter(idiographcomponent=component['id']).values()
-            if len(feature_obj) > 0:
+            feature_obj = Feature.objects.filter(idiographcomponent=component['id'])
+            if feature_obj.count() > 0:
                 features = []
-                for obj in feature_obj:
+                for obj in feature_obj.values():
                     feature = {}
                     feature['name'] = obj['name']
                     feature['id'] = obj['id']
                     component_id = Component.objects.filter(features=obj['id'], idiographcomponent=component['id']).values('id')[0]['id']
+                    component_name = Component.objects.filter(features=obj['id'], idiographcomponent=component['id']).values('name')[0]['name']
                     features.append(feature)
                 c = {
                     'id': component_id,
+                    'name': component_name,
                     "features": features,
                     'idiograph_component': component['id']
                 }
@@ -255,6 +257,7 @@ def get_ideograph(request):
         return HttpResponseBadRequest()
 
 @staff_member_required
+@transaction.commit_on_success
 
 def save_idiograph(request):
     response = {}
@@ -274,11 +277,9 @@ def save_idiograph(request):
             for features in component['features']:
                 feature = Feature.objects.get(id=features['id'])
                 idiograph_component.features.add(feature)
-        transaction.commit()
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-        transaction.rollback()
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 
@@ -314,6 +315,7 @@ def update_idiograph(request):
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 @staff_member_required
+@transaction.commit_on_success
 
 def delete_idiograph(request):
     response = {}
@@ -322,9 +324,7 @@ def delete_idiograph(request):
         idiograph = Idiograph.objects.get(id=idiograph_id)
         idiograph.delete()
         IdiographComponent.objects.filter(idiograph=idiograph).delete()
-        transaction.commit()
         response['errors'] = False
     except Exception as e:
-        transaction.rollback()
         response['errors'] = ['Internal error: %s' % e.message]
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')

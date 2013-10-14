@@ -179,7 +179,7 @@ def get_allographs_by_graph(request, image_id, character_id, graph_id):
                 hand = Hand.objects.filter(graphs__annotation=i.id)
                 annotation = {
                     'hand': hand[0].id,
-                    'hand_name': hand[0].display_label,
+                    'hand_name': hand[0].label,
                     'image': i.thumbnail(),
                     'vector_id': i.vector_id
                 }
@@ -196,7 +196,7 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
             hand = Hand.objects.filter(graphs__annotation=i.id)
             annotation = {
                 'hand': hand[0].id,
-                'hand_name': hand[0].display_label,
+                'hand_name': hand[0].label,
                 'image': i.thumbnail(),
                 'vector_id': i.vector_id
             }

@@ -152,6 +152,27 @@ class HistoricalItemDescriptionFilter(SimpleListFilter):
             k = q.exclude(description__description__contains = "FIX")
             return k
 
+class HistoricalItemItemPartNumberFilter(SimpleListFilter):
+    title = ('Number of Parts')
+
+    parameter_name = ('hi_nip')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('None')),
+            ('1', ('One')),
+            ('2p', ('Two or more')),
+        )   
+
+    def queryset(self, request, queryset):
+        select = ur'''(SELECT COUNT(*) FROM digipal_itempartitem WHERE historical_item_id = digipal_historicalitem.id) %s'''
+        if self.value() == '0':
+            return queryset.extra(where=[select % ' = 0'])
+        if self.value() == '1':
+            return queryset.extra(where=[select % ' = 1'])
+        if self.value() == '2p':
+            return queryset.extra(where=[select % ' > 1'])
+
 class HistoricalItemKerFilter(SimpleListFilter):
     title = ('Ker')
 
@@ -611,11 +632,11 @@ class ItemOriginInline(admin.StackedInline):
 
 class PartLayoutInline(admin.StackedInline):
     model = Layout
-    exclude = ('historical_item', )    
+    exclude = ('historical_item', )
 
 class ItemLayoutInline(admin.StackedInline):
     model = Layout
-    exclude = ('item_part', )    
+    exclude = ('item_part', )
 
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
@@ -624,7 +645,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     list_display = ['catalogue_number', 'name', 'date', 'historical_item_type', 
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
-    list_filter = ['historical_item_type', HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter]
+    list_filter = ['historical_item_type', 'historical_item_format', HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
     
     fieldsets = (
                 (None, {'fields': ('catalogue_number', 'name', 'date', )}),

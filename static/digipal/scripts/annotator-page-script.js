@@ -350,7 +350,7 @@ declaring function to get parameteres from URL
 					"position": "fixed !important",
 					"left": "0px",
 					"top": "245px",
-					"width": "30px",
+					"width": "25px",
 					"z-index": 1000
 				});
 			} else {

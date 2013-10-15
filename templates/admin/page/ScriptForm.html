@@ -5,6 +5,8 @@
 <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.responsive.css"/>
 <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ScriptPage.css" />
+<link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"/>
+
 {% endblock %}
 
 {% block content %}
@@ -14,7 +16,7 @@
 
 {% block annotations %}
   <div class='row-fluid'>
-    <div class='span8'>
+    <div class='span7'>
       <div class='alert'></div>
       <form id="frmAnnotation" method="POST" name="frmAnnotation">
           {% csrf_token %}
@@ -35,7 +37,6 @@
                 <input type='button' value='Uncheck All' id='uncheck_all' /> 
               </div>
               <div style='float:right;'>
-                <input type="hidden" name="addedrows" id="hiddenAdded" value="0">
                 <input type='button' class='btn' value='Save Idiograph' id="subButton"/>
                 <input type='button' class='btn' value='New Idiograph' id="new_idiograph_Button"/>
                 <!--<span id="errorSpan">You must select a Scribe to continue</span>-->
@@ -49,7 +50,7 @@
         </form>
       -->
     </div>
-    <div class='span4' id='current_idiographs'>
+    <div class='span5' id='current_idiographs'>
       <h1 class='header1'>Ideographs <span id='number_ideographs'></span></h1>
       <div id='idiographs_container'></div>
     </div>
@@ -60,4 +61,6 @@
 </div>
 <script type="text/javascript" src = "{{ STATIC_URL }}admin/js/new_script_entry.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+<script type="text/javascript" src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+
 {% endblock %} 

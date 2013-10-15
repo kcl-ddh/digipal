@@ -1567,51 +1567,54 @@ function showAnnotationsOverview(data) {
 
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
-	var activeControls = _self.map.getControlsBy('active', true);
 	$(document).bind('keyup', function(event) {
 		if (event.shiftKey) {
 			_self.rectangleFeature.activate();
 			_self.dragFeature.deactivate();
 		}
 	});
+	var deactivateAll = function(activeControls) {
+		for (i = 0; i < activeControls.length; i++) {
+			if (activeControls[i].title) {
+				activeControls[i].deactivate();
+			}
+		}
+	}
 	$(document).bind('keydown', function(event) {
+		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
-		if (event.altKey) {
+		if (event.altKey && event.ctrlKey) {
 			switch (code) {
 				case 77:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.modifyFeature.activate();
 					break;
 				case 8:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.deleteFeature.activate();
 					break;
 				case 84:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.transformFeature.activate();
 					break;
 				case 68:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.duplicateFeature.activate();
 					break;
-				case 80:
-					activeControls[activeControls.length - 1].deactivate();
-					_self.polygonFeature.activate();
-					break;
 				case 82:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.rectangleFeature.activate();
 					break;
 				case 71:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.selectFeature.activate();
 					break;
 				case 87:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.dragFeature.activate();
 					break;
 				case 90:
-					activeControls[activeControls.length - 1].deactivate();
+					deactivateAll(activeControls);
 					_self.zoomBoxFeature.activate();
 					break;
 				case 83:

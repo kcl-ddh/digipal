@@ -1554,17 +1554,27 @@ class Annotation(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-
+    
     class Meta:
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
-
+        
     def get_coordinates(self, geo_json=None):
         ''' Returns the coordinates of the graph rectangle
             E.g. ((602, 56), (998, 184))
         '''        
         import json
         if geo_json is None: geo_json = self.geo_json
+        
+        # See JIRA-229, some old geo_json format are not standard JSON
+        # and cause trouble with the deserialiser (json.loads()).
+        # The property names are surrounded by single quotes 
+        # instead of double quotes.        
+        # simplistic conversion but in our case it works well
+        # e.g. {'geometry': {'type': 'Polygon', 'coordinates':
+        #     Returns {"geometry": {"type": "Polygon", "coordinates":
+        geo_json = geo_json.replace('\'', '"')
+        
         ret = json.loads(geo_json)
         # TODO: test if this exists!
         ret = ret['geometry']['coordinates'][0]
@@ -1575,7 +1585,6 @@ class Annotation(models.Model):
                 max([c[1] for c in ret]))
             )
         return ret
-        
 
     def set_graph_group(self):
         # if the graph is contained within another
@@ -1609,6 +1618,7 @@ class Annotation(models.Model):
     def save(self, *args, **kwargs):
         super(Annotation, self).save(*args, **kwargs)
 
+        # TODO: suspicious call to eval. Should call json.loads() instead - GN 
         json = eval(self.geo_json)
         coordinates = json['geometry']['coordinates']
 

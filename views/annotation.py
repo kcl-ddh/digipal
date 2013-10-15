@@ -116,6 +116,7 @@ def image_vectors(request, image_id):
     data = SortedDict()
 
     for a in annotation_list:
+        # TODO: suspicious call to eval. Should call json.loads() instead - GN 
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
         data[a.vector_id]['graph'] = a.graph_id
         

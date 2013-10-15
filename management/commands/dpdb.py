@@ -46,9 +46,13 @@ Commands:
                         Use checkdata1 to list the id of the pages and item_parts records.
   
   drop_tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]
+  
+  pseudo_items
+ 						Convert Sawyer pseudo-items into Text records
+ 						
 	"""
 	
-	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1'
+	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items'
 	#help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -482,6 +486,74 @@ Commands:
 		#print Hand.objects.filter(descriptions__description__contains='sema').count()
 		
 
+	def process_pseudo_items(self):
+		# See JIRA 86 and 223
+		from digipal.models import HistoricalItem, ItemPart
+		
+		ip_count = 0
+		ip_corrected_count = 0
+		his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
+		for hi in his:
+			print '%s' % self.get_obj_label(hi)
+			cat_nums = hi.catalogue_numbers.all()
+			other_cat_nums = ''
+			for cat in cat_nums:
+				if cat.source.name != 'sawyer':
+					 self.print_warning('HI with non-Sawyer number', 1)
+					 other_cat_nums = '\t\t%s' % ','.join(['%s' % cn for cn in hi.catalogue_numbers.all()])
+					 continue
+			if other_cat_nums:
+				print other_cat_nums
+				continue
+					 
+			for ip in hi.item_parts.all().order_by('id'):
+				ip_count += 1
+				print '\t%s' % self.get_obj_label(ip)
+				correct_ip = None
+				correct_ips = ItemPart.objects.filter(current_item=ip.current_item).exclude(historical_items__historical_item_type__name='charter').order_by('id')
+				if correct_ips.count() == 0:
+					self.print_warning('no correct IP found', 2)
+					continue
+				if correct_ips.count() == 1:
+					correct_ip = correct_ips[0]
+				if correct_ips.count() > 1:
+					self.print_warning('more than one correct IP', 2)
+					for cip in correct_ips:
+						if cip.locus == ip.locus:
+							if correct_ip:
+								self.print_warning('more than one IP with the same locus', 2)
+							correct_ip = cip
+				if correct_ip is None:
+					self.print_warning('no IP with same locus', 2)
+					continue					
+				if correct_ip.locus != ip.locus:
+					self.print_warning('selected correct IP has a different locus', 2)
+					continue
+				correct_hi = correct_ip.historical_item
+				print '\t\t%s (Correct)' % self.get_obj_label(correct_hi)
+				print '\t\t%s (Correct)' % self.get_obj_label(correct_ip)
+				ip_corrected_count += 1
+				# create new text record based on the data in hi connected to correct_ip
+				# delete ip
+			# delete hi
+		
+		print '%s historical items. %s item parts. %s corrected item parts.' % (his.count(), ip_count, ip_corrected_count)
+		self.print_warning_report()
+		
+	def print_warning(self, message, indent=0):
+		if not hasattr(self, 'messages'):
+			self.messages = {}
+		self.messages[message] = self.messages.get(message, 0) + 1
+		print ('\t' * indent) + 'WARNING: ' + message
+		
+	def print_warning_report(self):
+		print 'WARNINGS:'
+		for message in self.messages:
+			print '\t%6d: %s' % (self.messages[message], message)
+	
+	def get_obj_label(self, obj):
+		return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 
+				
 	def handle(self, *args, **options):
 		
 		self.options = options
@@ -536,6 +608,11 @@ Commands:
 			
 			c = utils.fix_sequences(options.get('db', 'default'), True)
 			print "%d sequences fixed." % c
+
+		if command == 'pseudo_items':
+			known_command = True
+			
+			self.process_pseudo_items()
 
 		if command == 'list':
 			known_command = True

@@ -306,8 +306,10 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			}
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
+			if (vectors) {
+				reload_described_annotations(div);
+			}
 		});
-		reload_described_annotations(div);
 	});
 }
 /**
@@ -447,6 +449,7 @@ function reload_described_annotations(div) {
 
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
+		console.log(feature);
 		if (annotator.selectedFeature !== undefined) {
 			var selectedFeature = annotator.selectedFeature;
 		}
@@ -460,14 +463,14 @@ function reload_described_annotations(div) {
 					if (is_empty === false) {
 						stylize(feature[h], 'green', 'green', 0.4);
 						feature[h].described = true;
-						if (selectedFeature !== undefined && feature[h].graph == selectedFeature.graph) {
+						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = true;
 						}
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
 						feature[h].described = false;
-						if (selectedFeature !== undefined && feature[h].graph == selectedFeature.graph) {
+						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = false;
 						}
@@ -674,48 +677,54 @@ function open_allographs() {
 					}
 					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 				}
-				container_div.html(s);
-				container_div.find('img').on('load', function() {
-					$('.img-loading').remove();
+				$(s).find('img').each(function() {
+					$(this).on('load', function() {
+						$('.img-loading').remove();
+						container_div.html(s);
+						$('.close_top_div_annotated_allographs').click(function() {
+							$('.letters-allograph-container').fadeOut().remove();
+							$('.number_annotated_allographs').removeClass('active');
+						});
+
+						$('.vector_image_link').click(function() {
+							var vector = $(this);
+							annotator.centreById(vector.data('vector-id'));
+						});
+
+						var features = annotator.vectorLayer.features;
+
+						// waiting for all images to be loaded
+						$('.vector_image_link').on("mouseover", function() {
+							var vector = $(this);
+							for (var i = 0; i < features.length; i++) {
+								if (features[i].id == vector.data('vector-id')) {
+									features[i].originalColor = features[i].style.fillColor;
+									features[i].style.strokeColor = 'red';
+									features[i].style.strokeWidth = 6;
+									break;
+								}
+							}
+							annotator.vectorLayer.redraw();
+						});
+
+
+						$('.vector_image_link').mouseout(function() {
+							var vector = $(this);
+							for (var i = 0; i < features.length; i++) {
+								if (features[i].id == vector.data('vector-id')) {
+									features[i].style.strokeColor = features[i].originalColor;
+									features[i].style.strokeWidth = 2;
+									break;
+								}
+							}
+							annotator.vectorLayer.redraw();
+
+						});
+					});
 				});
 
-				$('.close_top_div_annotated_allographs').click(function() {
-					$('.letters-allograph-container').fadeOut().remove();
-					$('.number_annotated_allographs').removeClass('active');
-				});
-
-				$('.vector_image_link').click(function() {
-					var vector = $(this);
-					annotator.centreById(vector.data('vector-id'));
-				});
-				var features = annotator.vectorLayer.features;
-
-				$('.vector_image_link').on("mouseover", function() {
-					var vector = $(this);
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].id == vector.data('vector-id')) {
-							features[i].originalColor = features[i].style.fillColor;
-							features[i].style.strokeColor = 'red';
-							features[i].style.strokeWidth = 6;
-							break;
-						}
-					}
-					annotator.vectorLayer.redraw();
-				});
 
 
-				$('.vector_image_link').mouseout(function() {
-					var vector = $(this);
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].id == vector.data('vector-id')) {
-							features[i].style.strokeColor = features[i].originalColor;
-							features[i].style.strokeWidth = 2;
-							break;
-						}
-					}
-					annotator.vectorLayer.redraw();
-
-				});
 			} else {
 				var s = "<p><label>No Annotations</label></p>";
 				container_div.html(s);
@@ -757,47 +766,55 @@ function refresh_letters_container(allograph, allograph_id) {
 			}
 			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 		}
-		container_div.html(s);
-		container_div.find('img').on('load', function() {
-			$('.img-loading').remove();
-		});
-		$('.close_top_div_annotated_allographs').click(function() {
-			$('.letters-allograph-container').fadeOut().remove();
-			$('.number_annotated_allographs').removeClass('active');
+
+		// Waiting for all images to be loaded
+		$(s).find('img').each(function() {
+			$(this).on('load', function() {
+				$('.img-loading').remove();
+				container_div.html(s);
+
+				$('.close_top_div_annotated_allographs').click(function() {
+					$('.letters-allograph-container').fadeOut().remove();
+					$('.number_annotated_allographs').removeClass('active');
+				});
+
+				$('.vector_image_link').click(function() {
+					var vector = $(this);
+					annotator.centreById(vector.data('vector-id'));
+				});
+
+				var features = annotator.vectorLayer.features;
+
+				$('.vector_image_link').on("mouseover", function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].originalColor = features[i].style.fillColor;
+							features[i].style.strokeColor = 'red';
+							features[i].style.strokeWidth = 6;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+				});
+
+
+				$('.vector_image_link').mouseout(function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].style.strokeColor = features[i].originalColor;
+							features[i].style.strokeWidth = 2;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+
+				});
+			});
 		});
 
-		$('.vector_image_link').click(function() {
-			var vector = $(this);
-			annotator.centreById(vector.data('vector-id'));
-		});
-		var features = annotator.vectorLayer.features;
 
-		$('.vector_image_link').on("mouseover", function() {
-			var vector = $(this);
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].id == vector.data('vector-id')) {
-					features[i].originalColor = features[i].style.fillColor;
-					features[i].style.strokeColor = 'red';
-					features[i].style.strokeWidth = 6;
-					break;
-				}
-			}
-			annotator.vectorLayer.redraw();
-		});
-
-
-		$('.vector_image_link').mouseout(function() {
-			var vector = $(this);
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].id == vector.data('vector-id')) {
-					features[i].style.strokeColor = features[i].originalColor;
-					features[i].style.strokeWidth = 2;
-					break;
-				}
-			}
-			annotator.vectorLayer.redraw();
-
-		});
 	});
 }
 
@@ -912,9 +929,9 @@ function showBox(selectedFeature) {
 							var value = component_id + '::' + features[idx].id;
 							var names = component + ':' + features[idx].name;
 							if (array_features_owned.indexOf(names) >= 0) {
-								s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> " + features[idx].name;
+								s += "<p><input id='" + features[idx].id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 							} else {
-								s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> " + features[idx].name;
+								s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";;
 							}
 						});
 						s += "</p></div>";
@@ -1372,9 +1389,11 @@ function save(url, feature, data) {
 		success: function(data) {
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
+				/*
 				$('.number_annotated_allographs span').html(function() {
 					return parseInt($(this).text()) + 1;
 				});
+*/
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();
@@ -1583,6 +1602,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	$(document).bind('keydown', function(event) {
 		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
+		_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
 		if (event.altKey && event.ctrlKey) {
 			switch (code) {
 				case 77:

@@ -328,15 +328,17 @@ function updateFeatureSelect(currentFeatures) {
 		url = 'allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	}
 	$('.allograph_label').html($('#id_allograph option:selected').text());
-	var n = 0;
-	var features = annotator.vectorLayer.features;
-	for (var i = 0; i < features.length; i++) {
-		if (features[i].feature == $('#id_allograph option:selected').text()) {
-			n++;
+	if (!annotator.selectedFeature) {
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == $('#id_allograph option:selected').text()) {
+				n++;
+			}
 		}
-	}
-	if ($(".number_annotated_allographs").length) {
-		$(".number_annotated_allographs .number-allographs").html(n);
+		if ($(".number_annotated_allographs").length) {
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
 	}
 	var s = '';
 	$.getJSON(url, function(data) {
@@ -668,15 +670,23 @@ function open_allographs() {
 			if (data != "False") {
 				var s = '';
 				data = data.sort();
+				var j = 0;
+				var data_hand;
 				for (i = 0; i < data.length; i++) {
+					j++;
 					if (i == 0) {
-						s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+						data_hand = data[i].hand;
 					}
 					if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
-						s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+						j = 1;
+						data_hand = data[i].hand;
+						s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 					}
-					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+					s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 				}
+
+
 				$(s).find('img').each(function() {
 					$(this).on('load', function() {
 						$('.img-loading').remove();
@@ -720,6 +730,18 @@ function open_allographs() {
 							annotator.vectorLayer.redraw();
 
 						});
+
+						var images = $('.vector_image_link');
+						var hands = $('.hands_labels');
+						$.each(hands, function(index_hands, hand) {
+							var c = 0;
+							$.each(images, function(index_images, image) {
+								if ($(image).data('hand') == $(hand).data('hand')) {
+									c++;
+								}
+							});
+							$(hand).after(" <span class='num_all_hands label'>" + c + "</span><span style='display:block;margin:3px;'></span>");
+						});
 					});
 				});
 
@@ -758,16 +780,19 @@ function refresh_letters_container(allograph, allograph_id) {
 		var s = '';
 		data = data.sort();
 		var j = 0;
+		var data_hand;
 		for (i = 0; i < data.length; i++) {
 			j++;
 			if (i == 0) {
-				s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+				s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+				data_hand = data[i].hand;
 			}
 			if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
 				j = 1;
-				s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+				data_hand = data[i].hand;
+				s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 			}
-			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+			s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 		}
 
 		// Waiting for all images to be loaded
@@ -813,6 +838,18 @@ function refresh_letters_container(allograph, allograph_id) {
 					}
 					annotator.vectorLayer.redraw();
 
+				});
+
+				var images = $('.vector_image_link');
+				var hands = $('.hands_labels');
+				$.each(hands, function(index_hands, hand) {
+					var c = 0;
+					$.each(images, function(index_images, image) {
+						if ($(image).data('hand') == $(hand).data('hand')) {
+							c++;
+						}
+					});
+					$(hand).after(" <span class='num_all_hands label'>" + c + "</span><span style='display:block;margin:3px;'></span>");
 				});
 			});
 		});
@@ -984,18 +1021,7 @@ function showBox(selectedFeature) {
 						}
 					});
 
-					var n = 0;
-					var features = annotator.vectorLayer.features;
-					var annotations = annotator.annotations;
 
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
-							n++;
-						}
-					}
-					if ($(".number_annotated_allographs").length) {
-						$(".number_annotated_allographs .number-allographs").html(n);
-					}
 					/*
                             $('#id_status').val(annotation.status_id);
                             $('#id_before').val(getKeyFromObjField(annotation, 'before'));
@@ -1057,6 +1083,19 @@ function showBox(selectedFeature) {
 
 		}
 	}
+	var n = 0;
+	var features = annotator.vectorLayer.features;
+	var annotations = annotator.annotations;
+
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
+			n++;
+		}
+	}
+	if ($(".number_annotated_allographs").length) {
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
 	if (selectedFeature !== null) {
 		$('#hidden_hand').val(selectedFeature.hidden_hand);
 		$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));

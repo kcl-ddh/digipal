@@ -672,7 +672,7 @@ function open_allographs() {
 					if (i == 0) {
 						s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
 					}
-					if (typeof data[i + 1] != "undefined" && typeof data[i - 1] != "undefined" && data[i].hand != data[i + 1].hand && data[i].hand != data[i - 1].hand) {
+					if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
 						s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 					}
 					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
@@ -757,11 +757,14 @@ function refresh_letters_container(allograph, allograph_id) {
 		var container_div = $('#container-letters-popup');
 		var s = '';
 		data = data.sort();
+		var j = 0;
 		for (i = 0; i < data.length; i++) {
+			j++;
 			if (i == 0) {
 				s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
 			}
-			if (typeof data[i + 1] != "undefined" && typeof data[i - 1] != "undefined" && data[i].hand != data[i + 1].hand && data[i].hand != data[i - 1].hand) {
+			if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
+				j = 1;
 				s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 			}
 			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
@@ -983,8 +986,10 @@ function showBox(selectedFeature) {
 
 					var n = 0;
 					var features = annotator.vectorLayer.features;
+					var annotations = annotator.annotations;
+
 					for (var i = 0; i < features.length; i++) {
-						if (features[i].feature == annotator.selectedFeature.feature) {
+						if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
 							n++;
 						}
 					}

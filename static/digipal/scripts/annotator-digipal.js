@@ -31,15 +31,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.mediaUrl = mediaUrl;
 	this.allow_multiple_dialogs = false;
 	this.boxes_on_click = false;
-	this.deleteFeature.panel_div.title = 'Delete (alt + Backspace)';
-	this.transformFeature.panel_div.title = 'Transform (alt + t)';
-	this.duplicateFeature.panel_div.title = 'Duplicate (alt + d)';
+	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
+	this.transformFeature.panel_div.title = 'Transform (shift + t)';
+	this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
-	this.rectangleFeature.panel_div.title = 'Draw Rectangle (alt + r)';
-	this.selectFeature.panel_div.title = 'Select (alt + g)';
-	this.dragFeature.panel_div.title = 'Drag (alt + w)';
-	this.zoomBoxFeature.panel_div.title = 'Zoom (alt + z)';
-	this.saveButton.panel_div.title = 'Save (alt + s)';
+	this.rectangleFeature.panel_div.title = 'Draw Rectangle (shift + r)';
+	this.selectFeature.panel_div.title = 'Select (shift + g)';
+	this.dragFeature.panel_div.title = 'Drag (shift + w)';
+	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
+	this.saveButton.panel_div.title = 'Save (shift + s)';
 
 }
 
@@ -83,24 +83,27 @@ DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) 
 	});
 }
 
-DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, attribute) {
+DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attribute, formal_attribute2) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
 	var feature;
-
 	for (var i in features) {
-		if (attribute == 'hand') {
-			feature = features[i].hand;
+		if (formal_attribute == 'hand') {
+			attribute = features[i].hand;
+			attribute2 = features[i].feature;
 		} else {
-			feature = features[i].feature;
+			attribute = features[i].feature;
+			attribute2 = features[i].hand;
 		}
 		if (!($(checkboxes).is(':checked'))) {
-			if ($(checkboxes).val() == feature) {
+
+			if ($(checkboxes).val() == attribute) {
 				features[i].style.fillOpacity = 0;
 				features[i].style.strokeOpacity = 0;
 			}
 		} else {
-			if ($(checkboxes).val() == feature) {
+
+			if ($(checkboxes).val() == attribute) {
 				features[i].style.fillOpacity = 0.4;
 				features[i].style.strokeOpacity = 1;
 			}
@@ -1644,12 +1647,7 @@ function showAnnotationsOverview(data) {
 
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
-	$(document).bind('keyup', function(event) {
-		if (event.shiftKey) {
-			_self.rectangleFeature.activate();
-			_self.dragFeature.deactivate();
-		}
-	});
+	_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
 	var deactivateAll = function(activeControls) {
 		for (i = 0; i < activeControls.length; i++) {
 			if (activeControls[i].title) {
@@ -1660,8 +1658,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	$(document).bind('keydown', function(event) {
 		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
-		_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
-		if (event.altKey && event.ctrlKey) {
+		if (event.shiftKey) {
 			switch (code) {
 				case 77:
 					deactivateAll(activeControls);

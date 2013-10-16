@@ -41,7 +41,7 @@
               annotator.toolbarPanel.redraw();
               {% endif %}
 
-              annotator.hands = {{hands_list}}
+              annotator.hands = {{ hands_list|safe }}
               
               {% if vector_id %}
                 vector_id = true;

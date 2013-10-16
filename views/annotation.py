@@ -65,8 +65,11 @@ def image(request, image_id):
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
     hands_list = []
-    for a in image.annotation_set.all():
-        hands_list.append(a.graph.hand_id)
+    hand = {}
+    hands_object = Hand.objects.filter(images=image_id)
+    for h in hands_object.values():
+        hand = {'id': h['id'], 'name': str(h['label'])}
+        hands_list.append(hand)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
     form = ImageAnnotationForm()
@@ -82,7 +85,7 @@ def image(request, image_id):
         
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
-               'image_server_url': image_server_url, 'hands_list': list(set(hands_list)),
+               'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations, 
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),

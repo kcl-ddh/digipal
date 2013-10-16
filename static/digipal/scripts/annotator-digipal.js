@@ -83,17 +83,24 @@ DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) 
 	});
 }
 
-DigipalAnnotator.prototype.filterAnnotation = function(checkboxes) {
+DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, attribute) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
+	var feature;
+
 	for (var i in features) {
+		if (attribute == 'hand') {
+			feature = features[i].hand;
+		} else {
+			feature = features[i].feature;
+		}
 		if (!($(checkboxes).is(':checked'))) {
-			if ($(checkboxes).val() == features[i].feature) {
+			if ($(checkboxes).val() == feature) {
 				features[i].style.fillOpacity = 0;
 				features[i].style.strokeOpacity = 0;
 			}
 		} else {
-			if ($(checkboxes).val() == features[i].feature) {
+			if ($(checkboxes).val() == feature) {
 				features[i].style.fillOpacity = 0.4;
 				features[i].style.strokeOpacity = 1;
 			}
@@ -451,7 +458,6 @@ function reload_described_annotations(div) {
 
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
-		console.log(feature);
 		if (annotator.selectedFeature !== undefined) {
 			var selectedFeature = annotator.selectedFeature;
 		}
@@ -614,6 +620,9 @@ function create_dialog(selectedFeature, id) {
 		}
 	});
 
+	if (selectedFeature === null) {
+		updateFeatureSelect();
+	}
 
 	// Showing all the allographs of a given allograph
 	$('.number_annotated_allographs').click(function() {
@@ -931,7 +940,7 @@ function showBox(selectedFeature) {
 	if (annotator.boxes_on_click) {
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
-			fill_dialog(id, selectedFeature);
+			fill_dialog(id, null);
 			return false;
 		}
 		var url = 'graph/' + selectedFeature.graph + '/features/';
@@ -1083,30 +1092,35 @@ function showBox(selectedFeature) {
 
 		}
 	}
-	var n = 0;
-	var features = annotator.vectorLayer.features;
-	var annotations = annotator.annotations;
 
-	for (var i = 0; i < features.length; i++) {
-		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
-			n++;
-		}
-	}
-	if ($(".number_annotated_allographs").length) {
-		$(".number_annotated_allographs .number-allographs").html(n);
-	}
 
 	if (selectedFeature !== null) {
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		var annotations = annotator.annotations;
+
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
+				n++;
+			}
+		}
+
+		if ($(".number_annotated_allographs").length) {
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
 		$('#hidden_hand').val(selectedFeature.hidden_hand);
 		$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('#id_hand').val(selectedFeature.hidden_hand);
 		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
 	}
+
 	highlight_vectors();
+
 	if (annotator.isAdmin == "True") {
 		updateFeatureSelect(selectedFeature);
 	}
+
 	$('#box_features_container p').click(function() {
 		var checkbox = $(this).find('input');
 		if (checkbox.is(':checked')) {

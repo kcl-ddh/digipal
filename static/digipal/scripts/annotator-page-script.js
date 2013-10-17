@@ -48,7 +48,7 @@ declaring function to get parameteres from URL
 		// Loading vectors
 
 		var features_request = $.getJSON('vectors/');
-		features_request.then(function(data) {
+		features_request.done(function(data) {
 			var features = [];
 			for (var j in data) {
 				var f = format.read(data[j])[0];
@@ -69,6 +69,7 @@ declaring function to get parameteres from URL
 						f.hand = hand;
 						f.image_id = image_id;
 						f.num_features = num_features;
+
 						// it serves to differentiate stored and temporary annotations
 						f.stored = true;
 					}
@@ -84,48 +85,20 @@ declaring function to get parameteres from URL
 			}
 			// adds all the vectors to the vector layer
 			layer.addFeatures(features);
+			var vectors = annotator.vectorLayer.features;
 
 			// [was] zooms to the max extent of the map area
-
 			// Now the maps zooms just one step ahead
 			map.zoomIn();
 
-			var vectors = annotator.vectorLayer.features;
-
-			if (typeof vector_id != "undefined" && vector_id) {
-				// vectorLayer event moveend is triggered on first load so flag this
-				initialLoad = true;
-
-				// tries to centre the map every 1/2 second
-				//interval = setInterval(function() {
-				//}, 500);
-
-				/* listen for the moveend event
-      annotator.vectorLayer.events.register('moveend', 
-          annotator.vectorLayer, function() {
-          // checks if it is a first load, if not kill the interval
-          if (initialLoad) {
-            initialLoad=false
-          } else {
-            clearInterval(interval);
-            annotator.vectorLayer.events.remove('moveend');
-          }
-      });
-      */
-				annotator.selectFeatureByIdAndCentre('{{ vector_id }}');
-				annotator.selectFeatureByIdAndZoom('{{ vector_id }}');
-				reload_described_annotations();
-
-			} else {
-				reload_described_annotations();
-			}
 
 
 			/*
 
-    checking if there's a temporary vector as URL parameter
+			checking
+			if there 's a temporary vector as URL parameter
 
-    */
+		    */
 			var temporary_vectors = getParameter('temporary_vector');
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
@@ -145,6 +118,34 @@ declaring function to get parameteres from URL
 					annotator.selectFeatureByIdAndZoom(objectGeometry.id);
 				}
 			}
+
+			if (typeof vector_id != "undefined" && vector_id && vectors) {
+				// vectorLayer event moveend is triggered on first load so flag this
+				//initialLoad = true;
+
+				// tries to centre the map every 1/2 second
+				//interval = setInterval(function() {
+				//}, 500);
+
+				/* listen for the moveend event
+				      annotator.vectorLayer.events.register('moveend', 
+				          annotator.vectorLayer, function() {
+				          // checks if it is a first load, if not kill the interval
+				          if (initialLoad) {
+				            initialLoad=false
+				          } else {
+				            clearInterval(interval);
+				            annotator.vectorLayer.events.remove('moveend');
+				          }
+				      });
+				      */
+				console.log(vector_id_value)
+				annotator.selectFeatureByIdAndCentre(vector_id_value);
+				annotator.selectFeatureByIdAndZoom(vector_id_value);
+			}
+
+			reload_described_annotations();
+
 
 		});
 
@@ -445,5 +446,7 @@ declaring function to get parameteres from URL
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
 	}
+
+
 
 })();

@@ -467,7 +467,6 @@ function reload_described_annotations(div) {
 			var selectedFeature = annotator.selectedFeature;
 		}
 		var num_features = annotation.num_features;
-		console.log(num_features);
 		var h = 0;
 		check_described = $.each(feature, function(index, data) {
 			while (h < feature.length) {
@@ -713,6 +712,7 @@ function open_allographs() {
 						});
 
 						var features = annotator.vectorLayer.features;
+
 
 						// waiting for all images to be loaded
 						$('.vector_image_link').on("mouseover", function() {

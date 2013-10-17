@@ -429,7 +429,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlRefreshFeatureItemInactive{
-    background-image: url(/static/images/refresh_icon.gif);
+    background-image: url(/static/digipal/images/refresh_icon.gif);
     background-color: #efefef;
     border-radius:3px;
     background-repeat: no-repeat;

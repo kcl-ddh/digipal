@@ -1102,7 +1102,6 @@ class LatinStyle(models.Model):
         return u'%s' % (self.style)
 
 class Image(models.Model):
-    #item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
     item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
     locus = models.CharField(max_length=64)
     # r|v|vr|n=none|NULL=unspecified

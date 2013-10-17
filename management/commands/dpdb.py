@@ -616,6 +616,8 @@ Commands:
 				continue
 			if not text.name:
 				text.name = hi.display_label
+			if not text.legacy_id:
+				text.legacy_id = hi.legacy_id
 			
 			# Set the other fields (date, category, languages)
 			text.date = hi.date
@@ -635,6 +637,13 @@ Commands:
 				print '\t\tLanguage: %s' % hi.language
 				text.languages.add(hi.language)
 
+			# connect the text to the correct item part
+			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
+				from django.db.utils import IntegrityError
+				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
+					print '\t\tCorrect ItemPart: #%s' % ips_conversion[ip.id]
+					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
+
 			# create description
 			text.descriptions.clear()
 			for description in hi.description_set.filter(source__name=settings.SOURCE_SAWYER):
@@ -647,46 +656,46 @@ Commands:
 				# create cat num
 				CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
 				
-			# connect the text to the correct item part
-			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
-				from django.db.utils import IntegrityError
-				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
-					print '\t\tCorrect ItemPart: %s' % self.get_obj_label(ips_conversion[ip.id])
-					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
+		print '\n4. Move Hands and Images from the pseudo-IPs to the correct IPs.\n'
+		
+		from digipal.models import Hand, Image
+		
+		for h in Hand.objects.filter(item_part_id__in=ips_conversion.keys()):
+			print '\t%s' % self.get_obj_label(h)
+			h.item_part_id = ips_conversion[h.item_part_id]
+			h.save()
 
-		print '\n4. Delete pseudo-HIs and pseudo-CIs.\n'
+		for i in Image.objects.filter(item_part_id__in=ips_conversion.keys()):
+			print '\t%s' % self.get_obj_label(i)
+			i.item_part_id = ips_conversion[i.item_part_id]
+			i.save()
+
+		print '\n5. Delete pseudo-HIs and pseudo-CIs.\n'
 
 # 		for ipi in ItemPartItem.objects.filter(historical_item_id__in=his_to_delete):
 # 			ipi.delete()
 
 		# delete the pseudo-HIs
-		if 0:
-			for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
-				hi.delete()
-			
-			# delete the pseudo-IPs
-			for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()):
-				remove_pseudo_ip(ip, ItemPart.get(id=ips_conversion[ip.id]))
-			
-			# delete the pseudo-HI - pseudo-IP links
-			#for hi in ItemPartItem.objects.filter(id__in=his_to_delete):
-			# delete all the pseudo-HIs
-			# delete all the pseudo-IPs
+		for hi in HistoricalItem.objects.filter(id__in=his_to_delete).order_by('id'):
+			print '\tDelete %s' % self.get_obj_label(hi)
+			hi.delete()
+		
+		# delete the pseudo-IPs
+		for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()).order_by('id'):
+			print '\tDelete %s' % self.get_obj_label(ip)
+			ip.delete()
+		
+		# delete the pseudo-HI - pseudo-IP links
+		#for hi in ItemPartItem.objects.filter(id__in=his_to_delete):
+		# delete all the pseudo-HIs
+		# delete all the pseudo-IPs
 					
 	
 		print '\nSummary\n'
 
-		print '%s single-sheet HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
+		print '%s cartulary HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
 		self.print_warning_report()
 		
-	def remove_pseudo_ip(ip, correct_ip):
-		# all connections to pseudo-IP are moved to the correct IP
-	
-		
-		# delete the pseudo-IPs
-		#correct_ip_id = ips_conversion[ip.id]
-		ip.delete()
-	
 	def get_duplicates_of_current_item(self, ci):
 		if not hasattr(self, 'duplicate_cis'):
 			self.duplicate_cis = self.get_duplicate_cis()

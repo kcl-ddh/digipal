@@ -228,6 +228,13 @@ class AllographComponent(models.Model):
 class Text(models.Model):
     name = models.CharField(max_length=200)
     item_parts = models.ManyToManyField('ItemPart', through='TextItemPart', related_name='texts')
+    legacy_id = models.IntegerField(blank=True, null=True)
+    
+    date = models.CharField(max_length=128, blank=True, null=True)
+    categories = models.ManyToManyField('Category', blank=True, null=True, related_name='texts')
+    languages = models.ManyToManyField('Language', blank=True, null=True, related_name='texts')
+    url = models.URLField(blank=True, null=True)
+
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -570,7 +577,7 @@ class CatalogueNumber(models.Model):
 
     class Meta:
         ordering = ['source', 'number']
-        unique_together = ['source', 'number']
+        unique_together = ['source', 'number', 'historical_item', 'text']
 
     def __unicode__(self):
         return get_list_as_string(self.source, ' ', self.number) 
@@ -630,6 +637,7 @@ class Description(models.Model):
 
     class Meta:
         ordering = ['historical_item', 'text']
+        unique_together = ['source', 'historical_item', 'text']
 
     def clean(self):
         if self.historical_item is None and self.text is None:

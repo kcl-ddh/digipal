@@ -645,7 +645,9 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     list_display = ['catalogue_number', 'name', 'date', 'historical_item_type', 
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
-    list_filter = ['historical_item_type', 'historical_item_format', HistoricalItemDescriptionFilter, HistoricalItemKerFilter, HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
+    list_filter = ['historical_item_type', 'historical_item_format', 
+                   HistoricalItemDescriptionFilter, HistoricalItemKerFilter, 
+                   HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
     
     fieldsets = (
                 (None, {'fields': ('catalogue_number', 'name', 'date', )}),
@@ -1020,8 +1022,8 @@ class TextAdmin(reversion.VersionAdmin):
     list_display_link = list_display
     search_fields = ['name']
     ordering = ['name']
-
-    inlines = [TextItemPartInline]
+    
+    inlines = [TextItemPartInline, CatalogueNumberInline, DescriptionInline]
 
 class StewartRecordFilterMatched(admin.SimpleListFilter):
     title = 'Match'

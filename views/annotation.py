@@ -68,7 +68,7 @@ def image(request, image_id):
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
     for h in hands_object.values():
-        hand = {'id': h['id'], 'name': str(h['label'])}
+        hand = {'id': h['id'], 'name': h['label'].encode("utf-8")}
         hands_list.append(hand)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))

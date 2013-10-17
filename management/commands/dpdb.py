@@ -52,7 +52,7 @@ Commands:
  						
 	"""
 	
-	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items'
+	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
 	#help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -485,18 +485,39 @@ Commands:
 		
 		#print Hand.objects.filter(descriptions__description__contains='sema').count()
 		
+	def get_duplicate_cis(self):
+		from digipal.models import CurrentItem
+		duplicates = {}
+		for ci in CurrentItem.objects.all():
+			key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+			if key not in duplicates:
+				duplicates[key] = []
+			duplicates[key].append(ci)
+		return duplicates
 
 	def process_pseudo_items(self):
+		from digipal.models import Text
+		#text.objects.all().delete()
+		utils.fix_sequences(db_alias='default', silent=True)
+		
 		# See JIRA 86 and 223
 		from digipal.models import HistoricalItem, ItemPart
 		
+		print '\n1. Find pseudo HIs and pseudo IPs\n'
+		
+		ips_conversion = {}
+		his_to_delete = set()
+		
 		ip_count = 0
-		ip_corrected_count = 0
 		his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
+
 		for hi in his:
 			print '%s' % self.get_obj_label(hi)
 			cat_nums = hi.catalogue_numbers.all()
 			other_cat_nums = ''
+			if cat_nums.count() == 0:
+				self.print_warning('HI with non-Sawyer number', 1)
+				continue
 			for cat in cat_nums:
 				if cat.source.name != 'sawyer':
 					 self.print_warning('HI with non-Sawyer number', 1)
@@ -510,35 +531,170 @@ Commands:
 				ip_count += 1
 				print '\t%s' % self.get_obj_label(ip)
 				correct_ip = None
-				correct_ips = ItemPart.objects.filter(current_item=ip.current_item).exclude(historical_items__historical_item_type__name='charter').order_by('id')
-				if correct_ips.count() == 0:
+				# We also look for duplicates of the CIs (see JIRA-230)
+				duplicate_cis = self.get_duplicates_of_current_item(ip.current_item)
+				correct_ips = list(ItemPart.objects.filter(current_item__in=duplicate_cis).exclude(historical_items__historical_item_type__name='charter').order_by('id'))
+				
+				if len(correct_ips) == 0:
 					self.print_warning('no correct IP found', 2)
 					continue
-				if correct_ips.count() == 1:
+				if len(correct_ips) == 1:
 					correct_ip = correct_ips[0]
-				if correct_ips.count() > 1:
+				if len(correct_ips) > 1:
 					self.print_warning('more than one correct IP', 2)
 					for cip in correct_ips:
-						if cip.locus == ip.locus:
+						if self.get_normalised_code(cip.locus) == self.get_normalised_code(ip.locus):
 							if correct_ip:
 								self.print_warning('more than one IP with the same locus', 2)
 							correct_ip = cip
 				if correct_ip is None:
 					self.print_warning('no IP with same locus', 2)
+					print (u'\t\t\t%s <> %s' % (ip.locus, u' | '.join(u'%s' % cip.locus for cip in correct_ips))).encode('ascii', 'xmlcharrefreplace')
 					continue					
-				if correct_ip.locus != ip.locus:
+				if self.get_normalised_code(correct_ip.locus) != self.get_normalised_code(ip.locus):
 					self.print_warning('selected correct IP has a different locus', 2)
+					print '\t\t\t%s' % self.get_obj_label(correct_ip)
 					continue
+				
 				correct_hi = correct_ip.historical_item
+				
 				print '\t\t%s (Correct)' % self.get_obj_label(correct_hi)
 				print '\t\t%s (Correct)' % self.get_obj_label(correct_ip)
-				ip_corrected_count += 1
+				
 				# create new text record based on the data in hi connected to correct_ip
+				ips_conversion[ip.id] = correct_ip.id
+			his_to_delete.add(hi.id)
 				# delete ip
 			# delete hi
 		
-		print '%s historical items. %s item parts. %s corrected item parts.' % (his.count(), ip_count, ip_corrected_count)
+		print '\n2. Find all non-deletable IPs which have only deletable HIs\n'
+		
+		his_to_keep = set()
+		for ip in ItemPart.objects.exclude(id__in=ips_conversion.keys()).order_by('id'):
+			hi_ids = set([hi.id for hi in ip.historical_items.all()])
+			if hi_ids.issubset(his_to_delete):
+				self.print_warning('IP will have no HI left', 0)
+				print '\t%s' % self.get_obj_label(ip)
+				for hi in HistoricalItem.objects.filter(id__in=hi_ids):
+					print '\t%s (cannot be deleted)' % self.get_obj_label(hi)
+					his_to_keep.add(hi.id)
+					#his_to_delete.remove(hi)
+		
+		his_to_delete = his_to_delete - his_to_keep
+		
+		# Integrity check: no pseudo-IP can also be a correct IP
+		ip_correct_and_pseudo = set(ips_conversion.keys()).intersection(ips_conversion.values())
+		if len(ip_correct_and_pseudo):
+			print 'ERROR: pseudo-IP = correct-IP'
+			print ip_correct_and_pseudo
+			return
+
+		print '\n3. Create the Text records\n'
+		
+		from digipal.models import Text, CatalogueNumber, Description, TextItemPart
+		from django.db.models import Q
+		# create the Texts
+		for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
+			print self.get_obj_label(hi)
+			# Find or Create the text record
+			
+			# Get the HI Sawyer Cat Num
+			hi_cat_num = hi.catalogue_numbers.filter(source__name=settings.SOURCE_SAWYER)[0]
+
+			# Find a Text with the same Cat Num
+			texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
+			if texts.count() == 0:
+				print '\tCreate Text'
+				# create the Text and cat num
+				text = Text()
+			if texts.count() == 1:
+				print '\tUpdate Text'
+				# update the text
+				text = texts[0]
+			if texts.count() > 1:
+				self.print_warning('More than one Text with that cat number', 1)
+				continue
+			if not text.name:
+				text.name = hi.display_label
+			
+			# Set the other fields (date, category, languages)
+			text.date = hi.date
+			text.save()
+
+			# set the categories
+			text.categories.clear()
+			
+			for category in hi.categories.all():
+				print '\t\tCategory: %s' % category
+				text.categories.add(category)
+				
+			# set the languages
+			text.languages.clear()
+
+			if hi.language:
+				print '\t\tLanguage: %s' % hi.language
+				text.languages.add(hi.language)
+
+			# create description
+			text.descriptions.clear()
+			for description in hi.description_set.filter(source__name=settings.SOURCE_SAWYER):
+				print '\tCreate description'
+				Description(source=description.source, description=description.description, text=text).save()
+
+			text.save()
+		
+			if texts.count() == 0:
+				# create cat num
+				CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
+				
+			# connect the text to the correct item part
+			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
+				from django.db.utils import IntegrityError
+				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
+					print '\t\tCorrect ItemPart: %s' % self.get_obj_label(ips_conversion[ip.id])
+					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
+
+		print '\n4. Delete pseudo-HIs and pseudo-CIs.\n'
+
+# 		for ipi in ItemPartItem.objects.filter(historical_item_id__in=his_to_delete):
+# 			ipi.delete()
+
+		# delete the pseudo-HIs
+		if 0:
+			for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
+				hi.delete()
+			
+			# delete the pseudo-IPs
+			for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()):
+				remove_pseudo_ip(ip, ItemPart.get(id=ips_conversion[ip.id]))
+			
+			# delete the pseudo-HI - pseudo-IP links
+			#for hi in ItemPartItem.objects.filter(id__in=his_to_delete):
+			# delete all the pseudo-HIs
+			# delete all the pseudo-IPs
+					
+	
+		print '\nSummary\n'
+
+		print '%s single-sheet HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
 		self.print_warning_report()
+		
+	def remove_pseudo_ip(ip, correct_ip):
+		# all connections to pseudo-IP are moved to the correct IP
+	
+		
+		# delete the pseudo-IPs
+		#correct_ip_id = ips_conversion[ip.id]
+		ip.delete()
+	
+	def get_duplicates_of_current_item(self, ci):
+		if not hasattr(self, 'duplicate_cis'):
+			self.duplicate_cis = self.get_duplicate_cis()
+		key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+		return self.duplicate_cis[key][:]
+	
+	def get_normalised_code(self, locus):
+		return re.sub(ur'\W+', ur'.', locus.lower().strip())
 		
 	def print_warning(self, message, indent=0):
 		if not hasattr(self, 'messages'):
@@ -611,8 +767,16 @@ Commands:
 
 		if command == 'pseudo_items':
 			known_command = True
-			
 			self.process_pseudo_items()
+			
+		if command == 'duplicate_cis':
+			known_command = True
+			duplicates = self.get_duplicate_cis()
+			for cis in duplicates.values():
+				if len(cis) > 1:
+					print 'Duplicates:'
+					for ci in cis:
+						print '\t%s' % self.get_obj_label(ci)
 
 		if command == 'list':
 			known_command = True

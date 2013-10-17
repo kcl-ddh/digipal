@@ -41,7 +41,7 @@
               annotator.toolbarPanel.redraw();
               {% endif %}
 
-              annotator.hands = {{hands_list}}
+              annotator.hands = {{ hands_list|safe }}
               
               {% if vector_id %}
                 vector_id = true;
@@ -142,8 +142,11 @@
             </div>  
             {% if can_edit %}
                 <form name='frmAnnotation' method="get" id='frmAnnotation'>
-                  <p style='margin-top:2%' id='form_annotation_hand'>{{ form }}
-                  <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span></p>
+                  <div style='margin-top:2%' id='form_annotation_hand'>
+                  {{ form }}
+                  <div style='display:inline;'>
+                    <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span></div>
+                  </div>
                 </form>
             {% endif %}
 

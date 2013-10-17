@@ -296,14 +296,14 @@
     <div class='panel'>
     {% for key, annotations in allographs.items %}
 
-    <span><a class="label label-info" href='#{{key|anchorify}}'>{{ key }}</a></span>
+    <span><a class="label label-info" href='#{{key.id|anchorify}}_{{key|anchorify}}'>{{ key }}</a></span>
 
     {% endfor %}
     </div>
     {% for key, annotations in allographs.items %}
 
     <div>
-      <h5 class='header5' style='font-size:14px;' id='{{key|anchorify}}'>{{ key }}</h5>
+      <h5 class='header5' style='font-size:14px;' id='{{key.id|anchorify}}_{{key|anchorify}}'>{{ key }}</h5>
       <ul>
         {% for annotation in annotations %}
         <li class='annotation_li' data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">

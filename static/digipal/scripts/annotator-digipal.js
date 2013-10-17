@@ -31,15 +31,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.mediaUrl = mediaUrl;
 	this.allow_multiple_dialogs = false;
 	this.boxes_on_click = false;
-	this.deleteFeature.panel_div.title = 'Delete (alt + Backspace)';
-	this.transformFeature.panel_div.title = 'Transform (alt + t)';
-	this.duplicateFeature.panel_div.title = 'Duplicate (alt + d)';
+	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
+	this.transformFeature.panel_div.title = 'Transform (shift + t)';
+	this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
-	this.rectangleFeature.panel_div.title = 'Draw Rectangle (alt + r)';
-	this.selectFeature.panel_div.title = 'Select (alt + g)';
-	this.dragFeature.panel_div.title = 'Drag (alt + w)';
-	this.zoomBoxFeature.panel_div.title = 'Zoom (alt + z)';
-	this.saveButton.panel_div.title = 'Save (alt + s)';
+	this.rectangleFeature.panel_div.title = 'Draw Rectangle (shift + r)';
+	this.selectFeature.panel_div.title = 'Select (shift + g)';
+	this.dragFeature.panel_div.title = 'Drag (shift + w)';
+	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
+	this.saveButton.panel_div.title = 'Save (shift + s)';
 
 }
 
@@ -83,17 +83,27 @@ DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) 
 	});
 }
 
-DigipalAnnotator.prototype.filterAnnotation = function(checkboxes) {
+DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attribute, formal_attribute2) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
+	var feature;
 	for (var i in features) {
+		if (formal_attribute == 'hand') {
+			attribute = features[i].hand;
+			attribute2 = features[i].feature;
+		} else {
+			attribute = features[i].feature;
+			attribute2 = features[i].hand;
+		}
 		if (!($(checkboxes).is(':checked'))) {
-			if ($(checkboxes).val() == features[i].feature) {
+
+			if ($(checkboxes).val() == attribute) {
 				features[i].style.fillOpacity = 0;
 				features[i].style.strokeOpacity = 0;
 			}
 		} else {
-			if ($(checkboxes).val() == features[i].feature) {
+
+			if ($(checkboxes).val() == attribute) {
 				features[i].style.fillOpacity = 0.4;
 				features[i].style.strokeOpacity = 1;
 			}
@@ -292,6 +302,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 					var character = annotations[i]['character'];
 					var hand = annotations[i]['hand'];
 					var image_id = annotations[i]['image_id'];
+					var num_features = annotations[i]['num_features'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.character_id = character_id;
@@ -299,6 +310,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 						f.character = character;
 						f.hand = hand;
 						f.image_id = image_id;
+						f.num_features = num_features;
 						f.stored = true;
 					}
 				}
@@ -328,15 +340,17 @@ function updateFeatureSelect(currentFeatures) {
 		url = 'allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	}
 	$('.allograph_label').html($('#id_allograph option:selected').text());
-	var n = 0;
-	var features = annotator.vectorLayer.features;
-	for (var i = 0; i < features.length; i++) {
-		if (features[i].feature == $('#id_allograph option:selected').text()) {
-			n++;
+	if (!annotator.selectedFeature) {
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == $('#id_allograph option:selected').text()) {
+				n++;
+			}
 		}
-	}
-	if ($(".number_annotated_allographs").length) {
-		$(".number_annotated_allographs .number-allographs").html(n);
+		if ($(".number_annotated_allographs").length) {
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
 	}
 	var s = '';
 	$.getJSON(url, function(data) {
@@ -449,18 +463,16 @@ function reload_described_annotations(div) {
 
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
-		console.log(feature);
 		if (annotator.selectedFeature !== undefined) {
 			var selectedFeature = annotator.selectedFeature;
 		}
-		var url = 'graph/' + annotation.graph + '/features/';
+		var num_features = annotation.num_features;
+		console.log(num_features);
 		var h = 0;
-		check_described = $.getJSON(url, function(data) {
-			var vector = (data);
-			var is_empty = isEmpty(vector);
+		check_described = $.each(feature, function(index, data) {
 			while (h < feature.length) {
 				if (annotation.graph == feature[h].graph) {
-					if (is_empty === false) {
+					if (num_features) {
 						stylize(feature[h], 'green', 'green', 0.4);
 						feature[h].described = true;
 						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
@@ -483,12 +495,10 @@ function reload_described_annotations(div) {
 	});
 
 	if (check_described) {
-		check_described.done(function() {
-			annotator.vectorLayer.redraw();
-			if (typeof div != "undefined") {
-				div.fadeOut().remove();
-			}
-		});
+		annotator.vectorLayer.redraw();
+		if (typeof div != "undefined") {
+			div.fadeOut().remove();
+		}
 	}
 }
 
@@ -612,6 +622,9 @@ function create_dialog(selectedFeature, id) {
 		}
 	});
 
+	if (selectedFeature === null) {
+		updateFeatureSelect();
+	}
 
 	// Showing all the allographs of a given allograph
 	$('.number_annotated_allographs').click(function() {
@@ -668,15 +681,23 @@ function open_allographs() {
 			if (data != "False") {
 				var s = '';
 				data = data.sort();
+				var j = 0;
+				var data_hand;
 				for (i = 0; i < data.length; i++) {
+					j++;
 					if (i == 0) {
-						s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+						data_hand = data[i].hand;
 					}
-					if (typeof data[i + 1] != "undefined" && typeof data[i - 1] != "undefined" && data[i].hand != data[i + 1].hand && data[i].hand != data[i - 1].hand) {
-						s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+					if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
+						j = 1;
+						data_hand = data[i].hand;
+						s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 					}
-					s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+					s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 				}
+
+
 				$(s).find('img').each(function() {
 					$(this).on('load', function() {
 						$('.img-loading').remove();
@@ -720,6 +741,18 @@ function open_allographs() {
 							annotator.vectorLayer.redraw();
 
 						});
+
+						var images = $('.vector_image_link');
+						var hands = $('.hands_labels');
+						$.each(hands, function(index_hands, hand) {
+							var c = 0;
+							$.each(images, function(index_images, image) {
+								if ($(image).data('hand') == $(hand).data('hand')) {
+									c++;
+								}
+							});
+							$(hand).after(" <span class='num_all_hands label'>" + c + "</span><span style='display:block;margin:3px;'></span>");
+						});
 					});
 				});
 
@@ -757,14 +790,20 @@ function refresh_letters_container(allograph, allograph_id) {
 		var container_div = $('#container-letters-popup');
 		var s = '';
 		data = data.sort();
+		var j = 0;
+		var data_hand;
 		for (i = 0; i < data.length; i++) {
+			j++;
 			if (i == 0) {
-				s += "<label style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+				s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+				data_hand = data[i].hand;
 			}
-			if (typeof data[i + 1] != "undefined" && typeof data[i - 1] != "undefined" && data[i].hand != data[i + 1].hand && data[i].hand != data[i - 1].hand) {
-				s += "<label style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+			if (typeof data[i - 1] != "undefined" && data[i].hand != data[i - 1].hand) {
+				j = 1;
+				data_hand = data[i].hand;
+				s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 			}
-			s += "<span class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+			s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
 		}
 
 		// Waiting for all images to be loaded
@@ -810,6 +849,18 @@ function refresh_letters_container(allograph, allograph_id) {
 					}
 					annotator.vectorLayer.redraw();
 
+				});
+
+				var images = $('.vector_image_link');
+				var hands = $('.hands_labels');
+				$.each(hands, function(index_hands, hand) {
+					var c = 0;
+					$.each(images, function(index_images, image) {
+						if ($(image).data('hand') == $(hand).data('hand')) {
+							c++;
+						}
+					});
+					$(hand).after(" <span class='num_all_hands label'>" + c + "</span><span style='display:block;margin:3px;'></span>");
 				});
 			});
 		});
@@ -891,7 +942,7 @@ function showBox(selectedFeature) {
 	if (annotator.boxes_on_click) {
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
-			fill_dialog(id, selectedFeature);
+			fill_dialog(id, null);
 			return false;
 		}
 		var url = 'graph/' + selectedFeature.graph + '/features/';
@@ -981,16 +1032,7 @@ function showBox(selectedFeature) {
 						}
 					});
 
-					var n = 0;
-					var features = annotator.vectorLayer.features;
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].feature == annotator.selectedFeature.feature) {
-							n++;
-						}
-					}
-					if ($(".number_annotated_allographs").length) {
-						$(".number_annotated_allographs .number-allographs").html(n);
-					}
+
 					/*
                             $('#id_status').val(annotation.status_id);
                             $('#id_before').val(getKeyFromObjField(annotation, 'before'));
@@ -1052,17 +1094,35 @@ function showBox(selectedFeature) {
 
 		}
 	}
+
+
 	if (selectedFeature !== null) {
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		var annotations = annotator.annotations;
+
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
+				n++;
+			}
+		}
+
+		if ($(".number_annotated_allographs").length) {
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
 		$('#hidden_hand').val(selectedFeature.hidden_hand);
 		$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('#id_hand').val(selectedFeature.hidden_hand);
 		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
 	}
+
 	highlight_vectors();
+
 	if (annotator.isAdmin == "True") {
 		updateFeatureSelect(selectedFeature);
 	}
+
 	$('#box_features_container p').click(function() {
 		var checkbox = $(this).find('input');
 		if (checkbox.is(':checked')) {
@@ -1586,12 +1646,7 @@ function showAnnotationsOverview(data) {
 
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
-	$(document).bind('keyup', function(event) {
-		if (event.shiftKey) {
-			_self.rectangleFeature.activate();
-			_self.dragFeature.deactivate();
-		}
-	});
+	_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
 	var deactivateAll = function(activeControls) {
 		for (i = 0; i < activeControls.length; i++) {
 			if (activeControls[i].title) {
@@ -1602,8 +1657,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	$(document).bind('keydown', function(event) {
 		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
-		_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
-		if (event.altKey && event.ctrlKey) {
+		if (event.shiftKey) {
 			switch (code) {
 				case 77:
 					deactivateAll(activeControls);

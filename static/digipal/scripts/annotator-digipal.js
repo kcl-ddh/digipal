@@ -302,6 +302,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 					var character = annotations[i]['character'];
 					var hand = annotations[i]['hand'];
 					var image_id = annotations[i]['image_id'];
+					var num_features = annotations[i]['num_features'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.character_id = character_id;
@@ -309,6 +310,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 						f.character = character;
 						f.hand = hand;
 						f.image_id = image_id;
+						f.num_features = num_features;
 						f.stored = true;
 					}
 				}
@@ -464,14 +466,13 @@ function reload_described_annotations(div) {
 		if (annotator.selectedFeature !== undefined) {
 			var selectedFeature = annotator.selectedFeature;
 		}
-		var url = 'graph/' + annotation.graph + '/features/';
+		var num_features = annotation.num_features;
+		console.log(num_features);
 		var h = 0;
-		check_described = $.getJSON(url, function(data) {
-			var vector = (data);
-			var is_empty = isEmpty(vector);
+		check_described = $.each(feature, function(index, data) {
 			while (h < feature.length) {
 				if (annotation.graph == feature[h].graph) {
-					if (is_empty === false) {
+					if (num_features) {
 						stylize(feature[h], 'green', 'green', 0.4);
 						feature[h].described = true;
 						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
@@ -494,12 +495,10 @@ function reload_described_annotations(div) {
 	});
 
 	if (check_described) {
-		check_described.done(function() {
-			annotator.vectorLayer.redraw();
-			if (typeof div != "undefined") {
-				div.fadeOut().remove();
-			}
-		});
+		annotator.vectorLayer.redraw();
+		if (typeof div != "undefined") {
+			div.fadeOut().remove();
+		}
 	}
 }
 

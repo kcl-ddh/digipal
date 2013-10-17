@@ -60,6 +60,7 @@ declaring function to get parameteres from URL
 					var character = annotations[i]['character'];
 					var hand = annotations[i]['hand'];
 					var image_id = annotations[i]['image_id'];
+					var num_features = annotations[i]['num_features'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.character_id = character_id;
@@ -67,7 +68,7 @@ declaring function to get parameteres from URL
 						f.character = character;
 						f.hand = hand;
 						f.image_id = image_id;
-
+						f.num_features = num_features;
 						// it serves to differentiate stored and temporary annotations
 						f.stored = true;
 					}

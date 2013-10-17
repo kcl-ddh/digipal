@@ -20,7 +20,7 @@ register = template.Library()
 
 
 
-def get_features(request, image_id, graph_id):
+def get_features(request, image_id, graph_id, return_request=True):
     dict_features = []
     graph_components = GraphComponent.objects.filter(graph_id = graph_id)
     for component in graph_components.values_list('id', flat=True):
@@ -31,7 +31,10 @@ def get_features(request, image_id, graph_id):
         feature['feature'].append(features)
         for f in feature['feature']:
             feature['feature'] = list(f)
-    return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
+    if return_request:
+        return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
+    else:
+        return dict_features
 
 def allograph_features(request, image_id, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
@@ -142,6 +145,8 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id 
+        features_list = get_features(request, a.image.id, a.graph_id, False)
+        data[a.id]['num_features'] = len(features_list)
         #hands.append(data[a.id]['hand'])
 
         if a.before:

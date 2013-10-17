@@ -42,7 +42,8 @@
               {% endif %}
 
               annotator.hands = {{ hands_list|safe }}
-              
+            
+
               {% if vector_id %}
                 vector_id = true;
                 vector_id_value = "{{ vector_id }}"
@@ -56,9 +57,15 @@
                 get_annotations = "true"
               {% endif %}
 
+              /*
+              
+              Calling page script
+
+              */
               if(annotator){
                 $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js")
               }
+
             });
     </script>
 
@@ -194,7 +201,7 @@
                   {% endif %}
                          
                           
-                      {% endif %}
+                {% endif %}
                 </div>
                  </div>
               </div>
@@ -206,8 +213,6 @@
 {% if not no_image_reason or can_edit %}
 
     <div class='row-fluid' id='allographs_filtersBox'></div> 
-    <!-- Modal -->
-
 
 {% endif %}
      

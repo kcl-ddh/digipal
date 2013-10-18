@@ -232,10 +232,12 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			}
 		}
 		showBox(annotation);
-		if ($('.letters-allograph-container').length) {
-			var allograph_id = $('#id_allograph').val();
-			var allograph = $('#id_allograph option:selected').text();
-			refresh_letters_container(allograph, allograph_id);
+		if (annotation) {
+			if ($('.letters-allograph-container').length) {
+				var allograph_id = $('#id_allograph').val();
+				var allograph = $('#id_allograph option:selected').text();
+				refresh_letters_container(allograph, allograph_id);
+			}
 		}
 	}
 

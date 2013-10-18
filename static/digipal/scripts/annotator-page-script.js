@@ -103,6 +103,7 @@ declaring function to get parameteres from URL
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
 				var temporary_vector = getParameter('temporary_vector');
+				var geo_json = JSON.parse(temporary_vector);
 				for (i = 0; i < temporary_vector.length; i++) {
 					var object = geoJSON.read(temporary_vector[i]);
 					var objectGeometry = object[0];
@@ -116,6 +117,12 @@ declaring function to get parameteres from URL
 					objectGeometry.stored = false;
 					annotator.vectorLayer.features.push(object[0]);
 					annotator.selectFeatureByIdAndZoom(objectGeometry.id);
+				}
+				if ($('.dialog_annotations').length) {
+					var title = geo_json.title;
+					var desc = geo_json.desc;
+					$('.name_temporary_annotation').val(title);
+					$('.textarea_temporary_annotation').val(desc);
 				}
 			}
 

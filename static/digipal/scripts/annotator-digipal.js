@@ -581,7 +581,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature !== null) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<span class='allograph_label'>Annotation</span> <span style='position:relative;left:6%;'><span class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:6%;'><span class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;
@@ -631,11 +631,15 @@ function create_dialog(selectedFeature, id) {
 			}, 300).resizable('destroy').draggable('destroy');
 			dialog.data('position', position);
 			dialog.data('pinned', true);
+
+
 		}
+
 	});
 
 	if (selectedFeature === null) {
 		updateFeatureSelect(null, id);
+		$('.name_temporary_annotation').focus();
 	}
 
 	// Showing all the allographs of a given allograph
@@ -822,11 +826,11 @@ Function to fill the content of a dialog
 
 function fill_dialog(id, annotation) {
 	var can_edit = $('#development_annotation').is(':checked');
-	var dialog = $('#dialog' + id)
+	var dialog = $('#dialog' + id);
+	var s;
 	if (can_edit) {
-		var s = "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
+		s = "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
 		s += "<div id='box_features_container'></div>";
-		dialog.html(s);
 
 		/*
         $('.url_allograph').before(" <span id='save_features_titlebar' class='btn btn-small btn-success'>Save</span> ");
@@ -843,18 +847,26 @@ function fill_dialog(id, annotation) {
 		$('#id_hand').on('change', function() {
 			$('#hidden_hand').val($(this).val());
 		});
+	} else {
+		s = "<textarea class='textarea_temporary_annotation'></textarea>";
 	}
+	dialog.html(s);
+
 	dialog.parent().find('.url_allograph').click(function() {
-		if (dialog.parent().find('.allograph_url_div').length === 0) {
+		if (!dialog.parent().find('.allograph_url_div').length) {
 			var url = $("<div class='allograph_url_div'>");
 			var allograph_url;
 			var input = $('<input type="text" disabled>');
+			var title = $('.name_temporary_annotation').val();
+			var desc = $('.textarea_temporary_annotation').val();
 			if (annotation !== null && annotation.stored) {
 				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 			} else {
 				var geometryObject = annotator.selectedFeature;
-				var geoJSONText = annotator.format.write(geometryObject);
-				allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + geoJSONText;
+				var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+				geoJSONText.title = title;
+				geoJSONText.desc = desc;
+				allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
 			}
 			input.val(allograph_url);
 			url.append(input);

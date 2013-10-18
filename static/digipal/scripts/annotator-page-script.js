@@ -139,7 +139,6 @@ declaring function to get parameteres from URL
 				          }
 				      });
 				      */
-				console.log(vector_id_value)
 				annotator.selectFeatureByIdAndCentre(vector_id_value);
 				annotator.selectFeatureByIdAndZoom(vector_id_value);
 			}

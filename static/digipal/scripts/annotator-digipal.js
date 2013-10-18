@@ -283,7 +283,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 	var div = $('<div>');
 	div.attr('class', 'loading-div');
-	div.html('<p>Reloading annotations. Please wait...</p></p><img src="/static/images/ajax-loader3.gif" />');
+	div.html('<p>Reloading annotations. Please wait...</p></p><img src="/static/digipal/images/ajax-loader3.gif" />');
 	$('body').append(div.fadeIn());
 	var chained = request.then(function(data) {
 		var layer = annotator.vectorLayer;
@@ -674,7 +674,7 @@ function open_allographs() {
 		$('body').append(div);
 		var img = $("<img>");
 		img.attr('class', 'img-loading');
-		img.attr('src', '/static/images/ajax-loader3.gif');
+		img.attr('src', '/static/digipal/images/ajax-loader3.gif');
 		$('#top_div_annotated_allographs').find('span').after(img);
 		features.done(function(data) {
 			if (data != "False") {
@@ -784,7 +784,7 @@ function refresh_letters_container(allograph, allograph_id) {
 	var features = $.getJSON(url);
 	var img = $("<img>");
 	img.attr('class', 'img-loading');
-	img.attr('src', '/static/images/ajax-loader3.gif');
+	img.attr('src', '/static/digipal/images/ajax-loader3.gif');
 	$('#top_div_annotated_allographs').find('span').html(allograph).after(img);
 	features.done(function(data) {
 		var container_div = $('#container-letters-popup');

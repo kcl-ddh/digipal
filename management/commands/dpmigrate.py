@@ -108,6 +108,10 @@ Commands:
         if command == 'fp7_import':
             known_command = True
             self.fp7_import(options)
+        
+        if command == 'esawyer_import':
+            known_command = True
+            self.esawyer_import(options)
             
         if command == 'gen_em_table':
             known_command = True
@@ -126,6 +130,9 @@ Commands:
         
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+
+        if not known_command:
+            raise CommandError('Unknown command: "%s".' % command)
 
     def gen_em_table(self, options):
         # TODO: update this query to work with the itempartitem table
@@ -191,6 +198,96 @@ Commands:
             import csv        
             csvwriter = csv.writer(csvfile)
             csvwriter.writerows(rows)
+            
+    def esawyer_import(self, options):
+        # Copy fields from esawyer MSS-Esawyer relationship table
+        # to the TextItemPart
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        con_dst.enter_transaction_management()
+        con_dst.managed()
+        
+        print '\n fm_sawyerdetails -> digipal_text\n' 
+        
+        from digipal.models import Text, CatalogueNumber, Description, Source        
+        source_esawyer = Source.objects.get(name=settings.SOURCE_SAWYER) 
+        
+        es_descriptions = utils.fetch_all_dic(utils.sqlSelect(con_dst, 'select sawyer_num, title, king, kingdom, comments from fm_sawyerdetails'))
+
+        es_text_item_parts0 = utils.fetch_all_dic(utils.sqlSelect(con_dst, '''
+            select re.recordid, sd.sawyer_num, cm.shelfmark, cm.part, 
+                    re.calculatefoliopagemembrane as locus, re.this_text_date
+            from fm_chartermss cm , fm_sawyermssrelationships re , fm_sawyerdetails sd
+            where re.sawyernumber = sd.sawyer_num
+                and re.msid = cm.msid
+            order by sd.sawyer_num
+        '''))
+        
+        # two problems:
+        #    1. cm.part can be missing, in this case reckey is null
+        #    2. cm.part is only necessary when the text is in more than one item part of the same current item
+        
+        def get_key(code):
+            return utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_').replace('_add_', '_additional_').replace('_f_', '_').replace('_fols_', '_').replace('_ff_', '_')
+        
+        es_text_item_parts = {}
+        for key in es_text_item_parts0:
+            es_text_item_part = es_text_item_parts0[key]
+            if key is not None:
+                es_text_item_parts[get_key('%s-%s-%s' % (es_text_item_part['sawyer_num'], es_text_item_part['shelfmark'], es_text_item_part['part']))] = es_text_item_part
+                loose_key = get_key('%s-%s' % (es_text_item_part['sawyer_num'], es_text_item_part['shelfmark']))
+                if loose_key not in es_text_item_parts:
+                    es_text_item_parts[loose_key] = es_text_item_part
+                else:
+                    # The loose key cannot be used anymore as it corresponds to more than one item part
+                    #print loose_key
+                    es_text_item_parts[loose_key] = None
+        
+        #print '-' * 50
+
+        cat_nums = CatalogueNumber.objects.filter(number__in=es_descriptions.keys(), source=source_esawyer, text_id__isnull=False)
+        for cat_num in cat_nums:
+            # update the Text record from the esawyerdetails record 
+            es_desc = es_descriptions[cat_num.number]
+            text = cat_num.text
+            descriptions = text.descriptions.filter(source=source_esawyer)
+            if descriptions:
+                description = descriptions[0]
+            else:
+                description = Description(source=source_esawyer, text=text)
+            
+            description.description = es_desc['title']
+            description.comments = es_desc['comments']
+            description.summary = ''
+            
+            description.save()
+            
+            # update the textitempart record from the esawyer mssrelationship record
+            for text_item_part in text.text_instances.all():
+                # first try a precise match on the locus
+                # if not found, try a match without locus
+                key = get_key(u'%s-%s-%s' % (cat_num.number, text_item_part.item_part.current_item.shelfmark, text_item_part.item_part.locus))
+                #print key
+                es_text_item_part = None
+                if key in es_text_item_parts:
+                    es_text_item_part = es_text_item_parts[key]
+                    #print 'Found an exact match'
+                else:
+                    key = get_key(u'%s-%s' % (cat_num.number, text_item_part.item_part.current_item.shelfmark))
+                    if key in es_text_item_parts and es_text_item_parts[key] is not None:
+                        #print 'Found a loose match'
+                        es_text_item_part = es_text_item_parts[key]
+                    else:
+                        print (ur'WARNING: no matching item part for key: "%s", %s, %s' % (key, text.name, text_item_part.item_part)).encode('ascii', 'xmlcharrefreplace')
+                if es_text_item_part:
+                    text_item_part.locus = es_text_item_part['locus']
+                    text_item_part.date = es_text_item_part['this_text_date']
+                    text_item_part.save()
+            
+        print 'Updated %d Text records.' % cat_nums.count()
+
+        con_dst.commit()
+        con_dst.leave_transaction_management()
 
     def fp7_import(self, options):
         '''

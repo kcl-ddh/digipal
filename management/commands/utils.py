@@ -50,6 +50,16 @@ def sqlSelect(wrapper, command, arguments=[]):
     
     return cur
 
+def fetch_all_dic(cursor, key_field_name=None):
+    ret = {}
+    desc = cursor.description
+    if key_field_name is None: key_field_name = desc[0][0]
+    for row in cursor.fetchall():
+        row = dict(zip([col[0] for col in desc], row))
+        ret[row[key_field_name]] = row
+    cursor.close()
+    return ret
+
 def sqlSelectMaxDate(con, table, field):
     ret = None
     cur = sqlSelect(con, 'select max(%s) from %s' % (field, table))
@@ -154,3 +164,6 @@ def is_int(str):
     except ValueError:
         return False
     return True
+
+def get_obj_label(obj):
+    return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 

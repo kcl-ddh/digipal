@@ -730,7 +730,7 @@ Commands:
 			print '\t%6d: %s' % (self.messages[message], message)
 	
 	def get_obj_label(self, obj):
-		return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 
+		return utils.get_obj_label(obj)
 				
 	def handle(self, *args, **options):
 		

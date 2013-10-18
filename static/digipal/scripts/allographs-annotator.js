@@ -76,6 +76,7 @@ var chained = request.then(function(data) {
 				clean_annotations(annotation);
 				$(this).data('selected', false);
 				$(this).removeClass('selected');
+
 			} else {
 				selectedAnnotations.allograph = annotation.feature;
 				selectedAnnotations.annotations.push(annotation);
@@ -120,16 +121,17 @@ var chained = request.then(function(data) {
 				}
 				var j = 0;
 				for (i = 0; i < selected_features.length; i++) {
-
 					annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i]);
-
-
 				}
 			});
 
 
-
-			$("#modal_features").fadeIn();
+			if (!selectedAnnotations.annotations.length) {
+				$("#modal_features").fadeOut();
+				return false;
+			} else {
+				$("#modal_features").fadeIn();
+			}
 			if (annotation) {
 				if (selectedAnnotations.annotations.length > 1) {
 					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)")

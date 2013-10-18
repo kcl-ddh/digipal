@@ -419,7 +419,6 @@ declaring function to get parameteres from URL
 
 	$('#id_allograph').on('change', function() {
 		updateFeatureSelect();
-		refresh_letters_container($("#id_allograph option:selected").text(), $(this).val());
 	});
 
 	$('#id_hand').on('change', function() {

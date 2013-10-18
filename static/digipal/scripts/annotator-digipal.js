@@ -333,43 +333,32 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var url;
-	var dialog = $('#dialog' + id);
+
 	$('#hidden_allograph').val($('#id_allograph option:selected').val());
+
 	if (annotator.url_allographs) {
 		url = '../allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	} else {
 		url = 'allograph/' + $('#id_allograph option:selected').val() + '/features/';
 	}
-	dialog.find('.allograph_label').html($('#id_allograph option:selected').text());
-	if (!annotator.selectedFeature) {
-		var n = 0;
-		var features = annotator.vectorLayer.features;
-		for (var i = 0; i < features.length; i++) {
-			if (features[i].feature == $('#id_allograph option:selected').text()) {
-				n++;
-			}
+
+	var n = 0;
+	var features = annotator.vectorLayer.features;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == $('#id_allograph option:selected').text()) {
+			n++;
 		}
+	}
+	if ($(".number_annotated_allographs").length) {
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
+	if (id !== undefined) {
+		var dialog = $('#dialog' + id);
+		dialog.find('.allograph_label').html($('#id_allograph option:selected').text());
 		if (dialog.parent().find(".number_annotated_allographs").length) {
 			dialog.parent().find(".number_annotated_allographs .number-allographs").html(n);
 		}
-	}
-	var s = '';
-	$.getJSON(url, function(data) {
-		$.each(data, function(idx) {
-			component = data[idx].name;
-			component_id = data[idx].id;
-			var features = data[idx].features;
-			s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-			s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
-
-			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
-
-			$.each(features, function(idx) {
-				var value = component_id + '::' + features[idx].id;
-				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
-			});
-			s += "</p></div>";
-		});
 		dialog.find('#box_features_container').html(s);
 		dialog.find('.check_all').click(function() {
 			var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
@@ -389,7 +378,6 @@ function updateFeatureSelect(currentFeatures, id) {
 				div.slideDown().data('hidden', false);
 				$(this).next('.checkboxes_div').show();
 				$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
-
 			}
 		});
 		dialog.find('#box_features_container p').click(function() {
@@ -400,7 +388,26 @@ function updateFeatureSelect(currentFeatures, id) {
 				checkbox.attr('checked', "checked");
 			}
 		});
+	}
 
+
+	var s = '';
+	$.getJSON(url, function(data) {
+		$.each(data, function(idx) {
+			component = data[idx].name;
+			component_id = data[idx].id;
+			var features = data[idx].features;
+			s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+			s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
+
+			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+
+			$.each(features, function(idx) {
+				var value = component_id + '::' + features[idx].id;
+				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+			});
+			s += "</p></div>";
+		});
 
 	});
 }
@@ -1077,7 +1084,7 @@ function showBox(selectedFeature) {
 
 	highlight_vectors();
 
-	if (annotator.isAdmin == "True") {
+	if (annotator.isAdmin == "True" && selectedFeature !== null) {
 		updateFeatureSelect(selectedFeature, id);
 	}
 
@@ -1406,7 +1413,8 @@ function save(url, feature, data) {
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();
-					refresh_letters_container(allograph, allograph_id);
+					var url =
+						load_allographs_container(allograph, allograph_id);
 				}
 			}
 		}

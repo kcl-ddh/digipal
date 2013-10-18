@@ -404,6 +404,8 @@ declaring function to get parameteres from URL
 			$('#multiple_boxes').attr('disabled', 'disabled');
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
+			$('#boxes_on_click').attr('checked', true).trigger('change');
+
 		}
 	});
 

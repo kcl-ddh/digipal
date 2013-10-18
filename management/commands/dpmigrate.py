@@ -38,6 +38,12 @@ Commands:
   stokes_catalogue_import --src=XML_FILE_PATH
   
   parse_em_table --src=HTML_FILE_PATH
+  
+  fp7_import --src=XML_FILE_PATH
+                        Where file.xml is a XML file exported from a FileMaker 
+                        Pro 7 table.
+                        This command will (re)create a table in the database 
+                        and upload all the data from the XML file. 
 
 """
     
@@ -98,6 +104,10 @@ Commands:
         if command == 'parse_em_table':
             known_command = True
             self.parse_em_table(options)
+            
+        if command == 'fp7_import':
+            known_command = True
+            self.fp7_import(options)
             
         if command == 'gen_em_table':
             known_command = True
@@ -181,6 +191,96 @@ Commands:
             import csv        
             csvwriter = csv.writer(csvfile)
             csvwriter.writerows(rows)
+
+    def fp7_import(self, options):
+        '''
+        --src=file.xml
+        
+        Where file.xml is a XML file exported from a FileMaker Pro 7 table.
+        This command will (re)create a table in the database and upload all 
+        the date from the XML file. 
+        
+        '''
+        import xml.etree.ElementTree as ET
+
+        # open the file
+        xml_file = options.get('src', '')
+        ns = '{http://www.filemaker.com/fmpdsoresult}'
+        try:
+            import lxml.etree as ET
+            tree = ET.parse(xml_file)
+            #tree.register_namespace('wp', 'http://wordpress.org/export/1.2/')
+            root = tree.getroot()
+        except Exception, e:
+            raise CommandError('Cannot parse %s: %s' % (xml_file, e))
+
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        con_dst.enter_transaction_management()
+        con_dst.managed()
+        
+        # get all the rows and fields and the max lengths
+        fields = {}
+        
+        rows = []
+        for row in root.findall('.//%sROW' % ns):
+            arow = {}
+            for col in list(row):
+                field_name = utils.get_simple_str(re.sub(ur'\{[^}]*\}', '', col.tag))
+                arow[field_name] = col.text
+            for col, val in row.attrib.iteritems():
+                field_name = utils.get_simple_str(re.sub(ur'\{[^}]*\}', '', col))
+                arow[field_name] = val
+            
+            for field, val in arow.iteritems():
+                if field not in fields:
+                    fields[field] = [0, True, False]
+                if val is not None:
+                    fields[field][0] = max(fields[field][0], len(val))
+                    fields[field][1] &= utils.is_int(val)
+                fields[field][2] |= (val is None)
+                 
+            #print arow
+            rows.append(arow)
+            
+        # (re)create the table
+        table_name = 'fm_' + utils.get_simple_str(re.sub(ur'^.*\\([^.]+).*$', ur'\1', xml_file))
+        print table_name
+        
+        utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
+        
+        def field_type(field, field_name):
+            ret = 'int'
+            if not field[1]: 
+                ret = 'varchar(%s)' % field[0]
+            if field_name == 'recordid':
+                ret += ' PRIMARY KEY '
+            if field[2]:
+                ret += ' NULL '
+            
+            return ret
+        
+        fields_sql = ', '.join(['%s %s' % (f, field_type(fields[f], f)) for f in fields])
+        
+        create_table_sql = 'CREATE TABLE %s (%s)' % (table_name, fields_sql)
+        
+        #print create_table_sql
+        
+        utils.sqlWrite(con_dst, create_table_sql)
+        
+        # write the records
+        fields_ordered = fields.keys()
+        insert_sql = ur'INSERT INTO %s (%s) VALUES (%s)' % (table_name, ', '.join([f for f in fields_ordered]), ','.join([ur'%s'] * len(fields_ordered)))
+        
+        for row in rows:
+            utils.sqlWrite(con_dst, insert_sql, [row[f] for f in fields_ordered])
+            
+        con_dst.commit()
+        con_dst.leave_transaction_management()
+
+        print 'Wrote %d records in table %s' % (len(rows), table_name)
+        
+        #print fields
     
     def parse_em_table(self, options):
         from digipal.utils import find_first

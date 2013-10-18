@@ -143,3 +143,14 @@ def wget(url):
     except Exception, e:
         ret = None
     return ret
+
+def get_simple_str(str):
+    import re
+    return re.sub(ur'\W+', '_', str.strip().lower())
+
+def is_int(str):
+    try:
+        int(str)
+    except ValueError:
+        return False
+    return True

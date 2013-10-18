@@ -8,6 +8,10 @@ import subprocess
 import re
 from optparse import make_option
 import utils  
+from digipal.models import Text, CatalogueNumber, Description, TextItemPart
+from digipal.models import Text
+from digipal.models import HistoricalItem, ItemPart
+from django.db.models import Q
 
 class Command(BaseCommand):
 	help = """
@@ -494,22 +498,18 @@ Commands:
 				duplicates[key] = []
 			duplicates[key].append(ci)
 		return duplicates
+	
+	##################################################
+	#
+	#				PSEUDO ITEMS
+	#
+	##################################################
 
-	def process_pseudo_items(self):
-		from digipal.models import Text
-		#text.objects.all().delete()
-		utils.fix_sequences(db_alias='default', silent=True)
-		
-		# See JIRA 86 and 223
-		from digipal.models import HistoricalItem, ItemPart
-		
-		print '\n1. Find pseudo HIs and pseudo IPs\n'
-		
+	def find_pseudo_items(self, his):
 		ips_conversion = {}
 		his_to_delete = set()
 		
 		ip_count = 0
-		his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
 
 		for hi in his:
 			print '%s' % self.get_obj_label(hi)
@@ -566,9 +566,10 @@ Commands:
 			his_to_delete.add(hi.id)
 				# delete ip
 			# delete hi
-		
-		print '\n2. Find all non-deletable IPs which have only deletable HIs\n'
-		
+
+		return ips_conversion, his_to_delete, ip_count
+	
+	def protect_pseudo_his(self, ips_conversion, his_to_delete):
 		his_to_keep = set()
 		for ip in ItemPart.objects.exclude(id__in=ips_conversion.keys()).order_by('id'):
 			hi_ids = set([hi.id for hi in ip.historical_items.all()])
@@ -582,17 +583,9 @@ Commands:
 		
 		his_to_delete = his_to_delete - his_to_keep
 		
-		# Integrity check: no pseudo-IP can also be a correct IP
-		ip_correct_and_pseudo = set(ips_conversion.keys()).intersection(ips_conversion.values())
-		if len(ip_correct_and_pseudo):
-			print 'ERROR: pseudo-IP = correct-IP'
-			print ip_correct_and_pseudo
-			return
+		return his_to_delete
 
-		print '\n3. Create the Text records\n'
-		
-		from digipal.models import Text, CatalogueNumber, Description, TextItemPart
-		from django.db.models import Q
+	def create_text_records(self, ips_conversion, his_to_delete):
 		# create the Texts
 		for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
 			print self.get_obj_label(hi)
@@ -656,6 +649,32 @@ Commands:
 				# create cat num
 				CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
 				
+	def process_pseudo_items(self):
+		#text.objects.all().delete()
+		utils.fix_sequences(db_alias='default', silent=True)
+		
+		# See JIRA 86 and 223
+		print '\n1. Find pseudo HIs and pseudo IPs\n'
+		
+		his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
+
+		ips_conversion, his_to_delete, ip_count = self.find_pseudo_items(his)
+		
+		print '\n2. Find all non-deletable IPs which have only deletable HIs\n'
+		
+		his_to_delete = self.protect_pseudo_his(ips_conversion, his_to_delete)
+				
+		# Integrity check: no pseudo-IP can also be a correct IP
+		ip_correct_and_pseudo = set(ips_conversion.keys()).intersection(ips_conversion.values())
+		if len(ip_correct_and_pseudo):
+			print 'ERROR: pseudo-IP = correct-IP'
+			print ip_correct_and_pseudo
+			return
+
+		print '\n3. Create the Text records\n'
+
+		self.create_text_records(ips_conversion, his_to_delete)
+
 		print '\n4. Move Hands and Images from the pseudo-IPs to the correct IPs.\n'
 		
 		from digipal.models import Hand, Image
@@ -672,9 +691,6 @@ Commands:
 
 		print '\n5. Delete pseudo-HIs and pseudo-CIs.\n'
 
-# 		for ipi in ItemPartItem.objects.filter(historical_item_id__in=his_to_delete):
-# 			ipi.delete()
-
 		# delete the pseudo-HIs
 		for hi in HistoricalItem.objects.filter(id__in=his_to_delete).order_by('id'):
 			print '\tDelete %s' % self.get_obj_label(hi)
@@ -685,15 +701,10 @@ Commands:
 			print '\tDelete %s' % self.get_obj_label(ip)
 			ip.delete()
 		
-		# delete the pseudo-HI - pseudo-IP links
-		#for hi in ItemPartItem.objects.filter(id__in=his_to_delete):
-		# delete all the pseudo-HIs
-		# delete all the pseudo-IPs
-					
-	
-		print '\nSummary\n'
+		print '\n6. Summary\n'
 
 		print '%s cartulary HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
+		
 		self.print_warning_report()
 		
 	def get_duplicates_of_current_item(self, ci):
@@ -705,6 +716,8 @@ Commands:
 	def get_normalised_code(self, locus):
 		return re.sub(ur'\W+', ur'.', locus.lower().strip())
 		
+	##################################################
+
 	def print_warning(self, message, indent=0):
 		if not hasattr(self, 'messages'):
 			self.messages = {}

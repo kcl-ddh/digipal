@@ -341,7 +341,7 @@ Commands:
             rows.append(arow)
             
         # (re)create the table
-        table_name = 'fm_' + utils.get_simple_str(re.sub(ur'^.*\\([^.]+).*$', ur'\1', xml_file))
+        table_name = 'fm_' + utils.get_simple_str(re.sub(ur'^.*[\\/]([^.]+).*$', ur'\1', xml_file))
         print table_name
         
         utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)

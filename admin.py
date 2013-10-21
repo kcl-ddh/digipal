@@ -843,18 +843,31 @@ class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
 
     exclude = ['image', 'caption']
-    inlines = [HandsInline]
-    list_display = ['id', 'item_part', 'get_locus_label', 'thumbnail_with_link', 
+    list_display = ['id', 'display_label', 'thumbnail_with_link', 
             'media_permission', 'created', 'modified',
             #'caption', 
             'iipimage']
     list_display_links = list_display
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
+
+    actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
     
     list_filter = ["media_permission__label", ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart]
     
-    actions = ['bulk_editing', 'bulk_natural_sorting']
+    readonly_fields = ('display_label', 'folio_number', 'folio_side')
+    
+    fieldsets = (
+                (None, {'fields': ('display_label',)}),
+                ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
+                ('Image file', {'fields': ('iipimage', 'media_permission')}),
+                ) 
+    inlines = [HandsInline]
+
+    def action_regen_display_label(self, request, queryset):
+        for image in queryset.all():
+            image.save()
+    action_regen_display_label.short_description = 'Regenerate display labels'
 
     def bulk_editing(self, request, queryset):
         from django.http import HttpResponseRedirect

@@ -247,9 +247,10 @@ class Text(models.Model):
         return u'%s' % (self.name)
 
 class TextItemPart(models.Model):
-    locus = models.CharField(max_length=20, blank=True, null=True)
     item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
     text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
+    locus = models.CharField(max_length=20, blank=True, null=True)
+    date = models.CharField(max_length=128, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -629,8 +630,13 @@ class Decoration(models.Model):
 class Description(models.Model):
     historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
     text = models.ForeignKey('Text', related_name='descriptions', blank=True, null=True)
+    
     source = models.ForeignKey(Source)
-    description = models.TextField()
+    
+    description = models.TextField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    summary = models.CharField(max_length=256, blank=True, null=True)
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -640,9 +646,11 @@ class Description(models.Model):
         unique_together = ['source', 'historical_item', 'text']
 
     def clean(self):
+        from django.core.exceptions import ValidationError
         if self.historical_item is None and self.text is None:
-            from django.core.exceptions import ValidationError
             raise ValidationError('A description must refer to a Text or a Historical Item.')
+        if not(self.description or self.comments or self.summary):
+            raise ValidationError('A description record must have a summary, a description or comments.')
         
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)

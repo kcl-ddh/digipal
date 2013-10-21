@@ -1018,7 +1018,7 @@ class MediaPermissionAdmin(reversion.VersionAdmin):
 class TextAdmin(reversion.VersionAdmin):
     model = Text
     
-    list_display = ['name', 'created', 'modified']
+    list_display = ['name', 'date', 'created', 'modified']
     list_display_link = list_display
     search_fields = ['name']
     ordering = ['name']

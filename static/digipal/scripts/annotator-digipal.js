@@ -69,45 +69,70 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 
 DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
 	var seen = {};
+	var txt;
 	$(element).each(function() {
-		if (text == true) {
-			var txt = $(this).text();
+		if (text) {
+			txt = $(this).text();
 			attribute = null;
 		} else {
-			var txt = $(this).attr(attribute);
+			txt = $(this).attr(attribute);
 		}
 		if (seen[txt])
 			$(this).remove();
 		else
 			seen[txt] = true;
+
 	});
-}
+};
 
 DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attribute, formal_attribute2) {
 	var _self = this;
 	var features = _self.vectorLayer.features;
 	var feature;
+	var attribute, attribute2;
+	var hand;
+	var allograph;
 	for (var i in features) {
 		if (formal_attribute == 'hand') {
 			attribute = features[i].hand;
 			attribute2 = features[i].feature;
+			hand = $('#hand_input_' + attribute);
+			allograph = $('#allograph_' + attribute2);
+			var allographs = $('.checkVectors');
+			if (!($(checkboxes).is(':checked'))) {
+				if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
+					features[i].style.fillOpacity = 0;
+					features[i].style.strokeOpacity = 0;
+				}
+			} else {
+				for (var h = 0; h < allographs.length; h++) {
+					var a = $(allographs[h]);
+					if (a.is(':checked') && a.val() == attribute2) {
+						if ($(checkboxes).val() == attribute) {
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 1;
+						}
+					}
+				}
+			}
 		} else {
 			attribute = features[i].feature;
 			attribute2 = features[i].hand;
-		}
-		if (!($(checkboxes).is(':checked'))) {
-
-			if ($(checkboxes).val() == attribute) {
-				features[i].style.fillOpacity = 0;
-				features[i].style.strokeOpacity = 0;
+			hand = $('#hand_input_' + attribute2);
+			allograph = $('#hand_input_' + attribute2);
+			if (!($(checkboxes).is(':checked'))) {
+				if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
+					features[i].style.fillOpacity = 0;
+					features[i].style.strokeOpacity = 0;
+				}
+			} else {
+				if ($(checkboxes).val() == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+					features[i].style.fillOpacity = 0.4;
+					features[i].style.strokeOpacity = 1;
+				}
 			}
-		} else {
-
-			if ($(checkboxes).val() == attribute) {
-				features[i].style.fillOpacity = 0.4;
-				features[i].style.strokeOpacity = 1;
-			}
 		}
+
 	}
 	_self.vectorLayer.redraw();
 };
@@ -120,34 +145,42 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 		feature.style.fillColor = color;
 		feature.style.strokeColor = color;
 	}
-
+	var allographs = $('.checkVectors');
+	var hands = $('.checkVectors_hands');
+	var hand;
 	if (check == 'check') {
 		$(checkboxes).attr('checked', true);
 		for (var i = 0; i < features.length; i++) {
-			if (features[i].style === undefined || features[i].style === null) {
-				features[i].style = {
-					'fillOpacity': 0.4,
-					'strokeOpacity': 1
-				};
-				if (features[i].described) {
-					stylize('green', features[i]);
-				} else {
-					stylize('#ee9900', features[i]);
-				}
-			} else {
-				features[i].style.fillOpacity = 0.4;
-				features[i].style.strokeOpacity = 1;
-				if (features[i].described) {
-					stylize('green', features[i]);
-				} else {
-					stylize('#ee9900', features[i]);
+			for (var h = 0; h < hands.length; h++) {
+				hand = $(hands[h]);
+				if (features[i].hand == hand.val() && hand.is(':checked')) {
+					if (!features[i].style) {
+						features[i].style = {
+							'fillOpacity': 0.4,
+							'strokeOpacity': 1
+						};
+						if (features[i].described) {
+							stylize('green', features[i]);
+						} else {
+							stylize('#ee9900', features[i]);
+						}
+					} else {
+						features[i].style.fillOpacity = 0.4;
+						features[i].style.strokeOpacity = 1;
+						if (features[i].described) {
+							stylize('green', features[i]);
+						} else {
+							stylize('#ee9900', features[i]);
+						}
+					}
 				}
 			}
 		}
+
 	} else if (check == 'uncheck') {
 		$(checkboxes).attr('checked', false);
 		for (var i = 0; i < features.length; i++) {
-			if (features[i].style === undefined || features[i].style === null) {
+			if (!features[i].style) {
 				features[i].style = {
 					'fillOpacity': 0,
 					'strokeOpacity': 0
@@ -324,11 +357,11 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			}
 		});
 	});
-}
+};
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -344,7 +377,6 @@ function updateFeatureSelect(currentFeatures, id) {
 	}
 
 	var n = 0;
-	var features = annotator.vectorLayer.features;
 	for (var i = 0; i < features.length; i++) {
 		if (features[i].feature == $('#id_allograph option:selected').text()) {
 			n++;
@@ -559,7 +591,7 @@ function create_dialog(selectedFeature, id) {
 				my: "right center",
 				at: "right top",
 				of: window
-			}
+			};
 		} else {
 			p = {
 				my: "right",
@@ -605,12 +637,13 @@ function create_dialog(selectedFeature, id) {
 	// Minimize the dialog
 	dialog.parent().find('.pin-box').click(function() {
 		var dialog = $(this).parent().parent();
+		var position;
 		if (dialog.data('pinned')) {
 			$(this).html('-').css({
 				'line-height': 1,
 				'font-size': "30px"
 			});
-			var position = dialog.data('position');
+			position = dialog.data('position');
 			annotator.pinned = {
 				'pinned': false,
 				position: position
@@ -632,7 +665,7 @@ function create_dialog(selectedFeature, id) {
 				'line-height': 1.5,
 				'font-size': "20px"
 			});
-			var position = dialog.offset();
+			position = dialog.offset();
 			var allograph_position = dialog.parent().find('.number_annotated_allographs');
 
 			dialog.animate({

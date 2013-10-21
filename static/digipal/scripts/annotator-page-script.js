@@ -184,7 +184,7 @@ declaring function to get parameteres from URL
 					list.sort();
 					for (var h = 0; h < list.length; h++) {
 						checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
-							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='" + vectors[h] + "' type='checkbox' /> <label for = 'id='" + vectors[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
+							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 					}
 				}
 				checkOutput += "</div>";
@@ -235,12 +235,10 @@ declaring function to get parameteres from URL
 
 				$('#unCheckAll').click(function() {
 					annotator.filterCheckboxes('.checkVectors', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
 				});
 
 				$('#unCheckAll_hands').click(function() {
 					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
 
 				});
 

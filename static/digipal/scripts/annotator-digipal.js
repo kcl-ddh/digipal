@@ -828,6 +828,12 @@ function load_allographs_container(allograph_value, url) {
 
 					});
 
+					$('.vector_image_link').dblclick(function() {
+						var vector = $(this);
+						annotator.selectFeatureByIdAndCentre(vector.data('vector-id'));
+					});
+
+
 					var images = $('.vector_image_link');
 					var hands = $('.hands_labels');
 					$.each(hands, function(index_hands, hand) {
@@ -857,7 +863,7 @@ function open_allographs(allograph) {
 		$('.letters-allograph-container').remove();
 	}
 	$(this).addClass('active');
-	var allograph_value
+	var allograph_value;
 	if (typeof allograph != "undefined") {
 		allograph_value = allograph.parent().prev().text();
 	} else {

@@ -416,6 +416,21 @@ declaring function to get parameteres from URL
 	});
 
 
+	$('#id_allograph').on('change', function() {
+		(function() {
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == $(this).val()) {
+					n++;
+				}
+			}
+
+			if ($(".number_annotated_allographs").length) {
+				$(".number_annotated_allographs .number-allographs").html(n);
+			}
+		})();
+
+	});
 
 	$('#id_hand').on('change', function() {
 		$('#hidden_hand').val($(this).val());

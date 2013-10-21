@@ -1111,6 +1111,7 @@ class LatinStyle(models.Model):
 
 class Image(models.Model):
     item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
+    
     locus = models.CharField(max_length=64)
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
@@ -1126,7 +1127,7 @@ class Image(models.Model):
     iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path, 
             blank=True, null=True, storage=iipimage.storage.image_storage)
     
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
             help_text='''This field determines if the image is publicly visible and the reason if not.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -1207,7 +1208,23 @@ class Image(models.Model):
             self.display_label = get_list_as_string(self.item_part, ': ', self.locus) 
         else:
             self.display_label = u''
+        self.update_number_and_side_from_locus()
         super(Image, self).save(*args, **kwargs)
+        
+    def update_number_and_side_from_locus(self):
+        ''' sets self.folio_number and self.folio_side from self.locus
+            e.g. self.locus = '10r' => self.folio_number = 10, self.folio_side = 'r'
+        '''
+        self.folio_number = None
+        self.folio_side = None 
+        if self.locus:
+            m = re.search(ur'(\d+)', self.locus[::-1])
+            if m: 
+                self.folio_number = m.group(1)[::-1]
+            
+            m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', self.locus[::-1])
+            if m: 
+                self.folio_side = m.group(1)[::-1]
 
     def path(self):
         """Returns the path of the image on the image server. The server path
@@ -1267,6 +1284,15 @@ class Image(models.Model):
         
     thumbnail_with_link.short_description = 'Thumbnail'
     thumbnail_with_link.allow_tags = True
+
+    @classmethod
+    def sort_query_set_by_locus(self, query_set):
+        ''' Returns a query set based on the given one but with
+            results sorted by item part then locus.
+        '''
+        # TODO: fall back for non-postgresql RDBMS
+        # TODO: optimise this by caching the result in a field
+        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify

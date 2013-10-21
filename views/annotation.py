@@ -305,13 +305,12 @@ def image_list(request):
     if repository:
         repository_place = repository.split(',')[0]
         repository_name = repository.split(', ')[1]
-        print repository_place
-        print repository_name
         images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
     if date:
         images = images.filter(hands__assigned_date__date = date)
         
     images = images.filter(item_part_id__gt = 0)
+    images = Image.sort_query_set_by_locus(images)
 
     paginator = Paginator(images, 24)
     page = request.GET.get('page')

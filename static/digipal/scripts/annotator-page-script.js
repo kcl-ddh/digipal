@@ -184,7 +184,7 @@ declaring function to get parameteres from URL
 					list.sort();
 					for (var h = 0; h < list.length; h++) {
 						checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
-							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='" + vectors[h] + "' type='checkbox' /> <label for = 'id='" + vectors[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
+							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 					}
 				}
 				checkOutput += "</div>";
@@ -235,12 +235,10 @@ declaring function to get parameteres from URL
 
 				$('#unCheckAll').click(function() {
 					annotator.filterCheckboxes('.checkVectors', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
 				});
 
 				$('#unCheckAll_hands').click(function() {
 					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
 
 				});
 
@@ -326,7 +324,7 @@ declaring function to get parameteres from URL
 		$('#settings_annotator').click(function() {
 			if (modal_settings) {
 				modal_settings = false;
-				$("#modal_settings").fadeOut();
+				$("#modal_settings").parent().remove();
 			} else {
 				modal_settings = true;
 				$('#modal_settings').dialog({
@@ -337,7 +335,7 @@ declaring function to get parameteres from URL
 					title: "Settings",
 					close: function(event, ui) {
 						modal_settings = false;
-						$("#modal_settings").fadeOut();
+						$("#modal_settings").parent().remove();
 					}
 				});
 			}

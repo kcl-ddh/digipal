@@ -324,7 +324,7 @@ declaring function to get parameteres from URL
 		$('#settings_annotator').click(function() {
 			if (modal_settings) {
 				modal_settings = false;
-				$("#modal_settings").fadeOut();
+				$("#modal_settings").parent().remove();
 			} else {
 				modal_settings = true;
 				$('#modal_settings').dialog({
@@ -335,7 +335,7 @@ declaring function to get parameteres from URL
 					title: "Settings",
 					close: function(event, ui) {
 						modal_settings = false;
-						$("#modal_settings").fadeOut();
+						$("#modal_settings").parent().remove();
 					}
 				});
 			}

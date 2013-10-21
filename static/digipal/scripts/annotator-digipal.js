@@ -587,9 +587,10 @@ function create_dialog(selectedFeature, id) {
 	var position = function() {
 		var p;
 		if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+			var w = $(window).scrollTop();
 			p = {
-				my: "right center",
-				at: "right top",
+				my: "right center + " + w,
+				at: "right top" + w,
 				of: window
 			};
 		} else {
@@ -607,6 +608,7 @@ function create_dialog(selectedFeature, id) {
 		draggable: true,
 		height: 340,
 		minHeight: 340,
+		minWidth: 335,
 		resizable: true,
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
@@ -623,7 +625,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature !== null) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:6%;'><span class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;
@@ -683,6 +685,9 @@ function create_dialog(selectedFeature, id) {
 	if (selectedFeature === null) {
 		updateFeatureSelect(null, id);
 		$('.name_temporary_annotation').focus();
+		$('.ui-dialog-title').on('click', function() {
+			$('.name_temporary_annotation').focus();
+		});
 	}
 
 	// Showing all the allographs of a given allograph
@@ -707,7 +712,13 @@ function load_allographs_container(allograph_value, url) {
 		'min-height': '25%',
 		'z-index': 1020
 	});
-	div.draggable().resizable();
+	div.draggable({
+		handle: '#top_div_annotated_allographs',
+		cursor: "move"
+	}).resizable({
+		minHeight: "25%",
+		minWidth: 300
+	});
 	var top_div = $("<div id='top_div_annotated_allographs'>");
 	top_div.append("<span>" + allograph_value + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
 	div.append(top_div);
@@ -914,7 +925,7 @@ function fill_dialog(id, annotation) {
 			input.val(allograph_url);
 			url.append(input);
 			dialog.prepend(url);
-			dialog.find('.allograph_url_div input').select();
+			input.select();
 		} else {
 			dialog.find('.allograph_url_div').fadeOut().remove();
 		}

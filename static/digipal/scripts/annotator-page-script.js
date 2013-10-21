@@ -3,7 +3,7 @@
 	/*
 
 declaring function to get parameteres from URL
-    
+
 */
 
 	function getParameter(paramName) {
@@ -11,7 +11,7 @@ declaring function to get parameteres from URL
 			i, val, params = searchString.split("&");
 		var parameters = [];
 		for (i = 0; i < params.length; i++) {
-			var val = params[i].split("=");
+			val = params[i].split("=");
 			if (val[0] == paramName) {
 				parameters.push(unescape(val[1]));
 			}
@@ -21,7 +21,7 @@ declaring function to get parameteres from URL
 
 
 	/*
-  
+
   Setting keyboard shortcuts
 
   */
@@ -31,7 +31,7 @@ declaring function to get parameteres from URL
 
 
 	/*
-  
+
   Loading annotations
 
 */
@@ -76,7 +76,7 @@ declaring function to get parameteres from URL
 				}
 
 				/*
-      
+
       annotator.vectorLayer.features is the array to access to all the features
 
       */
@@ -98,13 +98,14 @@ declaring function to get parameteres from URL
 			checking
 			if there 's a temporary vector as URL parameter
 
-		    */
+			*/
+
 			var temporary_vectors = getParameter('temporary_vector');
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
 				var temporary_vector = getParameter('temporary_vector');
 				var geo_json = JSON.parse(temporary_vector);
-				for (i = 0; i < temporary_vector.length; i++) {
+				for (var i = 0; i < temporary_vector.length; i++) {
 					var object = geoJSON.read(temporary_vector[i]);
 					var objectGeometry = object[0];
 					objectGeometry.layer = annotator.vectorLayer;
@@ -135,17 +136,17 @@ declaring function to get parameteres from URL
 				//}, 500);
 
 				/* listen for the moveend event
-				      annotator.vectorLayer.events.register('moveend', 
-				          annotator.vectorLayer, function() {
-				          // checks if it is a first load, if not kill the interval
-				          if (initialLoad) {
-				            initialLoad=false
-				          } else {
-				            clearInterval(interval);
-				            annotator.vectorLayer.events.remove('moveend');
-				          }
-				      });
-				      */
+				annotator.vectorLayer.events.register('moveend',
+				annotator.vectorLayer, function() {
+				// checks if it is a first load, if not kill the interval
+				if (initialLoad) {
+				initialLoad=false
+				} else {
+				clearInterval(interval);
+				annotator.vectorLayer.events.remove('moveend');
+				}
+				});
+				*/
 				annotator.selectFeatureByIdAndCentre(vector_id_value);
 				annotator.selectFeatureByIdAndZoom(vector_id_value);
 			}
@@ -208,10 +209,10 @@ declaring function to get parameteres from URL
 					dialogClass: 'no-close'
 				});
 
-				$('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>")
+				$('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>");
 
 				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-				$('#allographs_filtersBox').html(checkOutput)
+				$('#allographs_filtersBox').html(checkOutput);
 
 				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
@@ -261,8 +262,8 @@ declaring function to get parameteres from URL
 
 		var showImages = 0;
 		$('#showImages').click(function() {
-			if (showImages == 0) {
-				position = $(this).position();
+			if (!showImages) {
+				var position = $(this).position();
 				$('#popupImages').css('top', position['top'] + 40);
 				$('#popupImages').css('left', position['left'] - 40);
 				$('#popupImages').fadeIn();
@@ -289,9 +290,9 @@ declaring function to get parameteres from URL
 
 		$('#toggle-state-switch').on('switch-change', function(e, data) {
 			if ($(this).bootstrapSwitch('status')) {
-				annotator.vectorLayer.setVisibility(true)
+				annotator.vectorLayer.setVisibility(true);
 			} else {
-				annotator.vectorLayer.setVisibility(false)
+				annotator.vectorLayer.setVisibility(false);
 			}
 		});
 
@@ -344,7 +345,7 @@ declaring function to get parameteres from URL
 
 		// Filter the allograph by ontograph type.
 		// Each time an ontograph type is selected in the settings,
-		// we enable only the relevant options in the allograph Select. 
+		// we enable only the relevant options in the allograph Select.
 		$("#ontograph_type").change(function(event) {
 			var type_id = $(event.target).val();
 			if (type_id == '0') {
@@ -453,7 +454,5 @@ declaring function to get parameteres from URL
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
 	}
-
-
 
 })();

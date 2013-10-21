@@ -190,7 +190,6 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	if ($('#id_hide').prop('checked')) {
 		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
 			var f = _self.vectorLayer.features[i];
-
 			if (_self.selectedFeature.id != f.id) {
 				f.style = null;
 			}
@@ -273,7 +272,7 @@ function getFeatureById(id) {
 }
 
 /*
-    
+
     Function to refresh the layer when saved an annotation
 
 */
@@ -327,9 +326,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 }
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -394,24 +393,26 @@ function updateFeatureSelect(currentFeatures, id) {
 
 
 	var s = '';
-	$.getJSON(url, function(data) {
-		$.each(data, function(idx) {
-			component = data[idx].name;
-			component_id = data[idx].id;
-			var features = data[idx].features;
-			s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-			s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
+	if (currentFeatures !== null) {
+		$.getJSON(url, function(data) {
+			$.each(data, function(idx) {
+				component = data[idx].name;
+				component_id = data[idx].id;
+				var features = data[idx].features;
+				s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+				s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
 
-			s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+				s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
 
-			$.each(features, function(idx) {
-				var value = component_id + '::' + features[idx].id;
-				s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+				$.each(features, function(idx) {
+					var value = component_id + '::' + features[idx].id;
+					s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+				});
+				s += "</p></div>";
 			});
-			s += "</p></div>";
-		});
 
-	});
+		});
+	}
 }
 
 // function to check if an object is empty, boolean returned
@@ -686,14 +687,14 @@ function load_allographs_container(allograph_value, url) {
 	img.attr('src', '/static/digipal/images/ajax-loader3.gif');
 	$('#top_div_annotated_allographs').find('span').after(img);
 	features.done(function(data) {
+		var s = '';
 		if (data != "False") {
-			var s = '';
 			data = data.sort();
 			var j = 0;
 			var data_hand;
-			for (i = 0; i < data.length; i++) {
+			for (var i = 0; i < data.length; i++) {
 				j++;
-				if (i == 0) {
+				if (i === 0) {
 					s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
 					data_hand = data[i].hand;
 				}
@@ -768,7 +769,7 @@ function load_allographs_container(allograph_value, url) {
 
 
 		} else {
-			var s = "<p><label>No Annotations</label></p>";
+			s = "<p><label>No Annotations</label></p>";
 			container_div.html(s);
 		}
 
@@ -780,11 +781,11 @@ function open_allographs(allograph) {
 		$('.letters-allograph-container').remove();
 	}
 	$(this).addClass('active');
-
+	var allograph_value
 	if (typeof allograph != "undefined") {
-		var allograph_value = allograph.parent().prev().text();
+		allograph_value = allograph.parent().prev().text();
 	} else {
-		var allograph_value = $('#id_allograph option:selected').text();
+		allograph_value = $('#id_allograph option:selected').text();
 	}
 	if (allograph_value) {
 		var features = annotator.vectorLayer.features;
@@ -1276,6 +1277,11 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature) {
 				if (!handleErrors(data)) {
 					updateStatus('Annotation deleted.', 'success');
 					_self.loadAnnotations();
+					if ($('.letters-allograph-container').length) {
+						var allograph = $('#id_allograph option:selected').text();
+						var allograph_id = $('#id_allograph').val();
+						refresh_letters_container(allograph, allograph_id);
+					}
 				}
 			}
 		});
@@ -1308,7 +1314,7 @@ function serializeObject(obj) {
 		}
 	});
 	return o;
-};
+}
 
 function highlight_vectors() {
 	$('#id_allograph_chzn .active-result').on('mouseover', function() {
@@ -1398,7 +1404,7 @@ function save(url, feature, data) {
 		url: url + '/' + id + '/?geo_json=' + geoJson,
 		data: data,
 		beforeSend: function() {
-			updateStatus('Saving annotation ...')
+			updateStatus('Saving annotation ...');
 		},
 		error: function(xhr, textStatus, errorThrown) {
 			updateStatus(textStatus, 'error');
@@ -1415,8 +1421,7 @@ function save(url, feature, data) {
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();
-					var url =
-						load_allographs_container(allograph, allograph_id);
+					refresh_letters_container(allograph, allograph_id);
 				}
 			}
 		}
@@ -1484,7 +1489,7 @@ function updateStatus(msg, status) {
 	// GN: bugfix, JIRA 77
 	// The message will push the openlayer div down and cause
 	// the drawing symbol to appear below the mosue cursor.
-	// To avoid this we force a render on the OL map to tell it 
+	// To avoid this we force a render on the OL map to tell it
 	// to refresh it internal location variable.
 	//
 	if (typeof annotator !== 'undefined') {
@@ -1516,7 +1521,7 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 /* FullScreen Mode */
 
 DigipalAnnotator.prototype.full_Screen = function() {
-	if (!(this.fullScreen.active) || (this.fullScreen.active == null) || (this.fullScreen.active == undefined)) {
+	if (!(this.fullScreen.active)) {
 		$('#map').css({
 			'width': '100%',
 			'height': '100%',
@@ -1543,7 +1548,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$('.olControlFullScreenFeatureItemInactive').css('background-image', 'url(/static/digipal/scripts/libs/openlayers/theme/default/img/fullscreen.gif)');
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen')
 	}
-}
+};
 
 /* End FullScreen Mode */
 
@@ -1660,4 +1665,4 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 
 	});
-}
+};

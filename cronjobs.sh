@@ -1,10 +1,15 @@
 #!/bin/bash
-# Runs regular tasks 
+# Runs regular tasks
+
+env_path="$1"
 
 DIR_PRJ=$( cd "$( dirname "$0" )" && pwd )/..
-DIR_ACTIVATE=../envs/digipal-dev/bin/activate
 cd $DIR_PRJ
-source $DIR_ACTIVATE
+
+if [ -n "$env_path" ] 
+	then
+		source $env_path/bin/activate
+fi 
 
 # Reindexing
 python manage.py dpsearch index

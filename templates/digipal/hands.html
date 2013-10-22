@@ -63,7 +63,7 @@
         {% if not can_edit %}
         <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}">View</a>
         {% else %}
-        <input class='select_annotation_checkbox' type='checkbox' data-annotation = "{{ annotation.vector_id }}" />
+        <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
         <span class='label label-info'>{{forloop.counter}}</span>
         {% endif %}
         </p>
@@ -99,7 +99,7 @@
           {{ field }}
         </p>
       {% endfor %}
-  <div id='features_container' style='margin-top:10%'></div>
+  <div id='features_container'></div>
 
   </div>
   <div id='summary'></div>

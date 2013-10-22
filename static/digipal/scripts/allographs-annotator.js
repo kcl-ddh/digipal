@@ -53,7 +53,7 @@ var chained = request.then(function(data) {
 				$(this).addClass('active');
 			} else {
 				$("#summary").animate({
-					'right': "34%",
+					'right': "33.4%",
 					'opacity': 1
 				}, 350);
 				summary_shown = true;
@@ -82,6 +82,7 @@ var chained = request.then(function(data) {
 
 		$('.annotation_li').click(function(event) {
 			var annotation = getFeatureById($(this).data('annotation'));
+			var annotation_li = $(this);
 			if (event.target.type != 'checkbox') {
 				if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
 					selectedAnnotations.allograph = null;
@@ -106,24 +107,36 @@ var chained = request.then(function(data) {
 					modal = true;
 				}
 			} else {
-				if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
+				var checkbox = $(this).children('p').children("input");
+				var checkboxes = $('.select_annotation_checkbox');
+				var a = selectedAnnotations.allograph;
+				if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
+
 					selectedAnnotations.allograph = null;
 					selectedAnnotations.annotations = [];
 					$('.annotation_li').removeClass('selected');
 					$('.annotation_li').data('selected', false);
 				}
-				if ($(this).is(':checked')) {
+
+				if (!checkbox.is(':checked')) {
 					clean_annotations(annotation);
-					$(this).data('selected', false);
-					$(this).removeClass('selected');
+					annotation_li.data('selected', false);
+					annotation_li.removeClass('selected');
 				} else {
 					selectedAnnotations.allograph = annotation.feature;
 					selectedAnnotations.annotations.push(annotation);
-					$(this).data('selected', true);
-					$(this).addClass('selected');
+					annotation_li.data('selected', true);
+					annotation_li.addClass('selected');
 					modal = true;
+					$.each(checkboxes, function() {
+						if ($(this).data('allograph') !== selectedAnnotations.allograph) {
+							$(this).attr('checked', false);
+						}
+					});
 				}
+
 			}
+
 			main();
 		});
 
@@ -239,6 +252,7 @@ var chained = request.then(function(data) {
 							component_id = data[idx].id;
 							string_summary += "<span style='display:block;font-weight:bold;border-bottom:1px solid #ccc;'>" + data[idx].name + "</span>";
 							var features = data[idx].features;
+
 							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></span></b>";
 							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
 
@@ -251,6 +265,7 @@ var chained = request.then(function(data) {
 									string_summary += "<span style='display:block;'>" + features[idx].name; + "</span>";
 									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 								} else {
+
 									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 								}
 							});

@@ -19,7 +19,7 @@
                                           '{{ image_server_url }}', "{{can_edit}}");
 
             annotator.hands_page = "{{hands_page}}";
-            
+
             if(annotator){
               $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
             }
@@ -43,7 +43,7 @@
   {% for key, allographs in data.items %}
 
   <div class="scribe">
-    <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'><b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}: 
+    <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'><b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
         {{image|capfirst}} - {{ key }}</h2>
     <div class='panel'>
     {% for key, annotations in allographs.items %}
@@ -60,18 +60,20 @@
         {% for annotation in annotations %}
         <li class='annotation_li' data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">
         <p>
+        {% if not can_edit %}
         <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}">View</a>
+        {% else %}
+        <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
+        <span class='label label-info'>{{forloop.counter}}</span>
+        {% endif %}
         </p>
         <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
         {{ annotation.thumbnail }}
         </a>
-        {% if can_edit %}
-          <span class='label label-info'>{{forloop.counter}}</span>
-        {% endif %}
         </li>
-        
+
         {% endfor %}
-       
+
       </ul>
     </div>
     {% endfor %}
@@ -86,7 +88,7 @@
 <div class="myModal" id='modal_features'>
   <div class="modal_header">
     <form id="frmAnnotation" method="get" name="frmAnnotation"><i class='icon icon-remove close'></i>
-    <p class="myModalLabel"><span class='label-modal-value' ></span> <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' /> <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' /></p>
+    <p class="myModalLabel"><span class='label-modal-value' ></span> <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' /> <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' /> <input type='button' class='btn-small btn' value='Features' id='show_summary' /></p>
     <p style='border-top:1px solid #efefef;padding-top:2%'></p>
   </div>
   <div class="modal-body">
@@ -97,9 +99,10 @@
           {{ field }}
         </p>
       {% endfor %}
-  <div id='features_container' style='margin-top:10%'></div>
+  <div id='features_container'></div>
 
   </div>
+  <div id='summary'></div>
   </form>
-              
+
 {% endif %}

@@ -3,7 +3,7 @@
     {% block extra_css %}
         <link rel="shortcut icon"
             href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
-     
+
         <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
         <link rel="stylesheet" type="text/css"
             href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
@@ -20,7 +20,7 @@
         <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
 
         <script>
-          
+
           var csrftoken = getCookie('csrftoken');
           $.ajaxSetup({
               headers: { "X-CSRFToken": csrftoken }
@@ -42,7 +42,7 @@
               {% endif %}
 
               annotator.hands = {{ hands_list|safe }}
-            
+
 
               {% if vector_id %}
                 vector_id = true;
@@ -56,9 +56,9 @@
               {% else %}
                 get_annotations = "true"
               {% endif %}
- 
+
               /*
-              
+
               Calling page script
 
               */
@@ -74,7 +74,7 @@
 {% block annotations %}
 <div class='container'>
     <h2 class='header1'>
-        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}: 
+        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
         {{image|capfirst}}
     </h2>
     {% if no_image_reason %}
@@ -95,11 +95,11 @@
           </div>
           <div class='span3 pull-right'>
             <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ image.item_part.images.count }}
-             {% if image.item_part.images.count == 1 %} 
+             {% if image.item_part.images.count == 1 %}
               <span style='font-weight:bold'>image</span></span>
               {% else %}
               <span style='font-weight:bold'>images</span></span>
-              {% endif %}          
+              {% endif %}
                 <div id='popupImages' class="row-fluid">
                   <div class='arrow'></div>
                   <div id='titlePopup'><p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p> </div>
@@ -116,16 +116,16 @@
                       {% else %}
                         {% if forloop.counter|divisibleby:3 %}
                           <div class='row'>
-    
+
                            <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
                           </div>
                       {% else %}
                           <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
-         
+
                     {% endif %}
                     {% endif %}
                 {% endfor %}
-                </div>                  
+                </div>
               </div>
             </div>
           </div>
@@ -138,7 +138,7 @@
                     <input type="checkbox" />
                   </span>
                 </span>
-    
+
                 <span>
                   <a class='btn' id='filterAllographs'>Filter</a>
                 </span>
@@ -147,7 +147,7 @@
                 <span>
                     <a class="btn" id="settings_annotator">Settings</a>
                 </span>
-            </div>  
+            </div>
             {% if can_edit %}
                 <form name='frmAnnotation' method="get" id='frmAnnotation'>
                   <div style='margin-top:2%' id='form_annotation_hand'>
@@ -162,16 +162,16 @@
             <div>
               <p id='status'></p>
             </div>
-            
+
               <div class='container'>
                   <div id="map"></div>
                   <div id="toolbar" class="olControlEditingToolbar"></div>
               </div>
-              
+
                 <div id='modal_settings' style="display:none;">
                       <p>
                         <label>Annotation boxes</label>
-                        <span>Allow multiple boxes <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled {% endif %} /></span> 
+                        <span>Allow multiple boxes <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled {% endif %} /></span>
                       </p>
                       <p>
                         <label>Toolbar position</label>
@@ -180,7 +180,7 @@
                       </p>
                       <p>
                         <label>Boxes</label>
-                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></span> 
+                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></span>
                       </p>
                       {% if can_edit %}
 
@@ -196,11 +196,11 @@
                                     <option value="{{ type.id }}">{{ type.name }}</option>
                                 {% endfor %}
                             </select>
-                        </span> 
+                        </span>
                       </p>
                   {% endif %}
-                         
-                          
+
+
                 {% endif %}
                 </div>
                  </div>
@@ -212,9 +212,9 @@
 
 {% if not no_image_reason or can_edit %}
 
-    <div class='row-fluid' id='allographs_filtersBox'></div> 
+    <div class='row-fluid' id='allographs_filtersBox'></div>
 
 {% endif %}
-     
+
 {% endblock %}
 

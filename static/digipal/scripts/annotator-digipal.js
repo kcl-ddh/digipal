@@ -404,7 +404,7 @@ function updateFeatureSelect(currentFeatures, id) {
 
 				$.each(features, function(idx) {
 					var value = component_id + '::' + features[idx].id;
-					s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+					s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 				});
 				s += "</p></div>";
 			});

@@ -42,12 +42,28 @@ var chained = request.then(function(data) {
 		layer.addFeatures(features); // zooms to the max extent of the map area
 		var vectors = annotator.vectorLayer.features;
 
+		var summary_shown = true;
+		$('#show_summary').click(function() {
+			if (summary_shown) {
+				$("#summary").animate({
+					'right': 0,
+					'opacity': 0
+				}, 350);
+				summary_shown = false;
+				$(this).addClass('active');
+			} else {
+				$("#summary").animate({
+					'right': "34%",
+					'opacity': 1
+				}, 350);
+				summary_shown = true;
+				$(this).removeClass('active');
+			}
+		});
 
+		modal = false;
+		current_feature = false;
 		$("#modal_features").draggable();
-		var modal = false;
-		var current_feature = false;
-		$("#modal_features").draggable();
-
 		selectedAnnotations = {
 			'allograph': null,
 			'annotations': []
@@ -66,27 +82,56 @@ var chained = request.then(function(data) {
 
 		$('.annotation_li').click(function(event) {
 			var annotation = getFeatureById($(this).data('annotation'));
-			if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
-				selectedAnnotations.allograph = null;
-				selectedAnnotations.annotations = [];
-				$('.annotation_li').removeClass('selected');
-				$('.annotation_li').data('selected', false);
-			}
-			if ($(this).data('selected')) {
-				clean_annotations(annotation);
-				$(this).data('selected', false);
-				$(this).removeClass('selected');
-
+			if (event.target.type != 'checkbox') {
+				if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
+					selectedAnnotations.allograph = null;
+					selectedAnnotations.annotations = [];
+					$('.annotation_li').removeClass('selected');
+					$('.annotation_li').data('selected', false);
+				}
+				if ($(this).data('selected')) {
+					clean_annotations(annotation);
+					$(this).data('selected', false);
+					$(this).removeClass('selected');
+					$(this).find('input').attr('checked', false);
+				} else {
+					selectedAnnotations.annotations = [];
+					$('.annotation_li').data('selected', false).removeClass('selected');
+					$('.annotation_li').find('input').attr('checked', false);
+					selectedAnnotations.allograph = annotation.feature;
+					selectedAnnotations.annotations.push(annotation);
+					$(this).data('selected', true);
+					$(this).addClass('selected');
+					$(this).find('input').attr('checked', true);
+					modal = true;
+				}
 			} else {
-				selectedAnnotations.allograph = annotation.feature;
-				selectedAnnotations.annotations.push(annotation);
-				$(this).data('selected', true);
-				$(this).addClass('selected');
-				modal = true;
+				if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
+					selectedAnnotations.allograph = null;
+					selectedAnnotations.annotations = [];
+					$('.annotation_li').removeClass('selected');
+					$('.annotation_li').data('selected', false);
+				}
+				if ($(this).is(':checked')) {
+					clean_annotations(annotation);
+					$(this).data('selected', false);
+					$(this).removeClass('selected');
+				} else {
+					selectedAnnotations.allograph = annotation.feature;
+					selectedAnnotations.annotations.push(annotation);
+					$(this).data('selected', true);
+					$(this).addClass('selected');
+					modal = true;
+				}
 			}
+			main();
+		});
+
+
+		function main() {
 			if (modal) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)")
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
@@ -120,7 +165,7 @@ var chained = request.then(function(data) {
 					}
 				}
 				var j = 0;
-				for (i = 0; i < selected_features.length; i++) {
+				for (var i = 0; i < selected_features.length; i++) {
 					annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i]);
 				}
 			});
@@ -134,7 +179,7 @@ var chained = request.then(function(data) {
 			}
 			if (annotation) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)")
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
@@ -170,15 +215,14 @@ var chained = request.then(function(data) {
 					}
 				});
 
-				$('#id_display_note').parent('p').hide()
-				$('#id_internal_note').parent('p').hide()
+				$('#id_display_note').parent('p').hide();
+				$('#id_internal_note').parent('p').hide();
 				var url_features = "../graph/" + annotation.graph;
 				if (annotator.hands_page == "True") {
 					var url_features = "/digipal/page/61/graph/" + annotation.graph;
 				}
-				var request = $.getJSON(url_features, function(data) {
-					return data;
-				});
+
+				var request = $.getJSON(url_features);
 
 				var features = annotator.vectorLayer.features;
 				request.done(function(data) {
@@ -188,10 +232,12 @@ var chained = request.then(function(data) {
 					}
 					var allographs = $.getJSON(url);
 					var s = "<div id='box_features_container'>";
+					var string_summary = '';
 					allographs.done(function(data) {
 						$.each(data, function(idx) {
 							component = data[idx].name;
 							component_id = data[idx].id;
+							string_summary += "<span style='display:block;font-weight:bold;border-bottom:1px solid #ccc;'>" + data[idx].name + "</span>";
 							var features = data[idx].features;
 							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></span></b>";
 							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
@@ -200,15 +246,18 @@ var chained = request.then(function(data) {
 							$.each(features, function(idx) {
 								var value = component_id + '::' + features[idx].id;
 								var names = component + ':' + features[idx].name;
+
 								if (array_features_owned.indexOf(names) >= 0) {
-									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+									string_summary += "<span style='display:block;'>" + features[idx].name; + "</span>";
+									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 								} else {
-									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 								}
 							});
 							s += "</p></div>";
 						});
 						s += "</div>";
+						$("#summary").html(string_summary);
 						$('#features_container').html(s);
 						$('.check_all').click(function() {
 							var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
@@ -250,6 +299,7 @@ var chained = request.then(function(data) {
 				});
 
 			}
-		});
+
+		}
 	});
 });

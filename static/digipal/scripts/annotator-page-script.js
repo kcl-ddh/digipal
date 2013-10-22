@@ -193,7 +193,7 @@ declaring function to get parameteres from URL
 					var hands = annotator.hands;
 					for (var h = 0; h < hands.length; h++) {
 						checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
-							"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for = 'id='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+							"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
 					}
 				}
 				checkOutput += "</div>";

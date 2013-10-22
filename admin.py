@@ -819,9 +819,9 @@ class CharacterInline(admin.StackedInline):
 class OntographAdmin(reversion.VersionAdmin):
     model = Ontograph
 
-    list_display = ['name', 'ontograph_type', 'nesting_level', 'created', 'modified']
+    list_display = ['name', 'ontograph_type', 'sort_order', 'nesting_level', 'created', 'modified']
     list_display_links = ['name', 'ontograph_type', 'created', 'modified']
-    list_editable = ['nesting_level']
+    list_editable = ['nesting_level', 'sort_order']
     list_filter = ['ontograph_type', 'nesting_level']
     search_fields = ['name', 'ontograph_type']
 

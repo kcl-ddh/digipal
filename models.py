@@ -160,9 +160,11 @@ class Ontograph(models.Model):
             editable=False)
     nesting_level = models.IntegerField(blank=False, null=False, default=0, 
             help_text='''An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.''')
+    sort_order = models.IntegerField(blank=False, null=False, default=0)
 
     class Meta:
-        ordering = ['ontograph_type', 'name']
+        #ordering = ['ontograph_type', 'name']
+        ordering = ['sort_order', 'ontograph_type__name', 'name']
         unique_together = ['name', 'ontograph_type']
 
     def __unicode__(self):
@@ -180,7 +182,8 @@ class Character(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['name']
+        #ordering = ['name']
+        ordering = ['ontograph__sort_order', 'ontograph__ontograph_type__name', 'name']
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -196,7 +199,8 @@ class Allograph(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['character__name', 'name']
+        #ordering = ['character__name', 'name']
+        ordering = ['character__ontograph__sort_order', 'character__ontograph__ontograph_type__name', 'name']
         unique_together = ['name', 'character']
 
     def __unicode__(self):

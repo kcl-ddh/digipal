@@ -144,7 +144,7 @@ var chained = request.then(function(data) {
 		function main() {
 			if (modal) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
@@ -192,7 +192,7 @@ var chained = request.then(function(data) {
 			}
 			if (annotation) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + " selected)");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}

@@ -61,13 +61,13 @@
         <li class='annotation_li' data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">
         <p>
         {% if not can_edit %}
-        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}">View</a>
+        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
         {% else %}
         <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
         <span class='label label-info'>{{forloop.counter}}</span>
         {% endif %}
         </p>
-        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
+        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
         {{ annotation.thumbnail }}
         </a>
         </li>

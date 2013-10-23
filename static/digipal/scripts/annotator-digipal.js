@@ -371,7 +371,7 @@ function updateFeatureSelect(currentFeatures, id) {
 	if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
 		allograph_selected = $('#id_allograph').val();
 	} else {
-		if (!annotator.isAdmin) {
+		if (annotator.isAdmin == "False") {
 			var annotations = annotator.annotations;
 			$.each(annotations, function() {
 				if (currentFeatures.feature == this.feature) {
@@ -382,7 +382,6 @@ function updateFeatureSelect(currentFeatures, id) {
 			allograph_selected = currentFeatures;
 		}
 	}
-
 	var allograph = $('#id_allograph option:selected').val();
 	$('#hidden_allograph').val(allograph_selected);
 

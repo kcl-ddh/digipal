@@ -359,33 +359,39 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var url;
 	var allograph_selected;
-	if (!currentFeatures) {
+	if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
 		allograph_selected = $('#id_allograph').val();
 	} else {
-		var annotations = annotator.annotations;
-		$.each(annotations, function() {
-			if (currentFeatures.feature == this.feature) {
-				allograph_selected = this.hidden_allograph.split('::')[0];
-			}
-		});
+		if (!annotator.isAdmin) {
+			var annotations = annotator.annotations;
+			$.each(annotations, function() {
+				if (currentFeatures.feature == this.feature) {
+					allograph_selected = this.hidden_allograph.split('::')[0];
+				}
+			});
+		} else {
+			allograph_selected = currentFeatures;
+		}
 	}
+	console.log(currentFeatures)
+
 	var allograph = $('#id_allograph option:selected').val();
 	$('#hidden_allograph').val(allograph_selected);
+
 	if (annotator.url_allographs) {
 		url = '../allograph/' + allograph_selected + '/features/';
 	} else {
 		url = 'allograph/' + allograph_selected + '/features/';
 	}
-
 
 	var n = 0;
 
@@ -904,7 +910,9 @@ function open_allographs(allograph) {
 
 
 function refresh_letters_container(allograph, allograph_id) {
-
+	if ($('.letters-allograph-container').length) {
+		$('.letters-allograph-container').remove();
+	}
 	var features = annotator.vectorLayer.features;
 	var character_id;
 	for (i = 0; i < features.length; i++) {
@@ -1175,12 +1183,7 @@ function showBox(selectedFeature) {
 		$('#id_hand').val(selectedFeature.hidden_hand);
 		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
-		if (annotator.isAdmin == "True") {
-			highlight_vectors();
-			$('#id_allograph').on('change', function() {
-				updateFeatureSelect(selectedFeature, id);
-			});
-		}
+
 
 	}
 

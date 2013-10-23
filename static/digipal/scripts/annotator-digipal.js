@@ -382,7 +382,6 @@ function updateFeatureSelect(currentFeatures, id) {
 			allograph_selected = currentFeatures;
 		}
 	}
-	console.log(currentFeatures)
 
 	var allograph = $('#id_allograph option:selected').val();
 	$('#hidden_allograph').val(allograph_selected);
@@ -1183,7 +1182,10 @@ function showBox(selectedFeature) {
 		$('#id_hand').val(selectedFeature.hidden_hand);
 		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
+		if (annotator.isAdmin == "True") {
+			highlight_vectors();
 
+		}
 
 	}
 

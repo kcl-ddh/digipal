@@ -129,26 +129,26 @@ declaring function to get parameteres from URL
 
 			if (typeof vector_id != "undefined" && vector_id && vectors) {
 				// vectorLayer event moveend is triggered on first load so flag this
-				//initialLoad = true;
+				initialLoad = true;
 
 				// tries to centre the map every 1/2 second
-				//interval = setInterval(function() {
-				//}, 500);
+				interval = setTimeout(function() {
 
-				/* listen for the moveend event
-				annotator.vectorLayer.events.register('moveend',
-				annotator.vectorLayer, function() {
-				// checks if it is a first load, if not kill the interval
-				if (initialLoad) {
-				initialLoad=false
-				} else {
-				clearInterval(interval);
-				annotator.vectorLayer.events.remove('moveend');
-				}
-				});
-				*/
-				annotator.selectFeatureByIdAndCentre(vector_id_value);
-				annotator.selectFeatureByIdAndZoom(vector_id_value);
+					/* listen for the moveend event
+					annotator.vectorLayer.events.register('moveend',
+						annotator.vectorLayer, function() {
+							// checks if it is a first load, if not kill the interval
+							if (initialLoad) {
+								initialLoad = false;
+							} else {
+								clearInterval(interval);
+								annotator.vectorLayer.events.remove('moveend');
+							}
+						});
+					*/
+					annotator.selectFeatureByIdAndCentre(vector_id_value);
+					annotator.selectFeatureByIdAndZoom(vector_id_value);
+				}, 500);
 			}
 
 			reload_described_annotations();

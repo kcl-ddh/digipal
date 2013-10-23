@@ -359,23 +359,33 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var url;
-	var allograph_selected = $('#id_allograph').val();
+	var allograph_selected;
+	if (!currentFeatures) {
+		allograph_selected = $('#id_allograph').val();
+	} else {
+		var annotations = annotator.annotations;
+		$.each(annotations, function() {
+			if (currentFeatures.feature == this.feature) {
+				allograph_selected = this.hidden_allograph.split('::')[0];
+			}
+		});
+	}
 	var allograph = $('#id_allograph option:selected').val();
 	$('#hidden_allograph').val(allograph_selected);
-
 	if (annotator.url_allographs) {
 		url = '../allograph/' + allograph_selected + '/features/';
 	} else {
 		url = 'allograph/' + allograph_selected + '/features/';
 	}
+
 
 	var n = 0;
 
@@ -597,9 +607,10 @@ function create_dialog(selectedFeature, id) {
 				break;
 			}
 		}
-		path = $('#' + vector_id);
+		//path = $('#' + vector_id);
+		path = document.getElementById(vector_id);
 	} else {
-		path = $('#OpenLayers_Layer_Vector_27_svgRoot');
+		path = document.getElementById("#OpenLayers_Layer_Vector_27_svgRoot");
 	}
 
 	dialog.data('feature', selectedFeature);
@@ -614,10 +625,12 @@ function create_dialog(selectedFeature, id) {
 				of: window
 			};
 		} else {
+
 			p = {
-				my: "right",
-				at: "right",
-				of: path
+				my: 'right top',
+				at: 'right top',
+				of: $(path),
+				collision: 'flipfit flipfit'
 			};
 		}
 		return p;
@@ -711,7 +724,7 @@ function create_dialog(selectedFeature, id) {
 
 
 
-	if (!selectedFeature) {
+	if (typeof selectedFeature === "null" || typeof selectedFeature === "undefined") {
 		updateFeatureSelect(null, id);
 		if (annotator.isAdmin == "False") {
 			$('.name_temporary_annotation').focus();

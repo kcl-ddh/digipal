@@ -417,19 +417,24 @@ declaring function to get parameteres from URL
 
 
 	$('#id_allograph').on('change', function() {
-		(function() {
-			var features = annotator.vectorLayer.features;
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == $(this).val()) {
-					n++;
-				}
-			}
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		var allograph = $('#id_allograph option:selected').text();
+		var allograph_id = $(this).val();
 
-			if ($(".number_annotated_allographs").length) {
-				$(".number_annotated_allographs .number-allographs").html(n);
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == allograph) {
+				n++;
 			}
-		})();
+		}
 
+		updateFeatureSelect($(this).val());
+
+		if ($('.letters-allograph-container').length) {
+			open_allographs();
+		}
+
+		$(".number_annotated_allographs .number-allographs").html(n);
 	});
 
 	$('#id_hand').on('change', function() {

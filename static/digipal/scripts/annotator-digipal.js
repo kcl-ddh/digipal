@@ -419,7 +419,6 @@ function updateFeatureSelect(currentFeatures, id) {
 			} else {
 				dialog = $('.modal-body');
 			}
-			console.log(dialog);
 			dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
 
 
@@ -878,6 +877,7 @@ function open_allographs(allograph) {
 				break;
 			}
 		}
+
 		if (!feature && !character) {
 			return false;
 		}
@@ -891,9 +891,7 @@ function open_allographs(allograph) {
 
 
 function refresh_letters_container(allograph, allograph_id) {
-	if ($('.letters-allograph-container').length) {
-		$('.letters-allograph-container').remove();
-	}
+
 	var features = annotator.vectorLayer.features;
 	var character_id;
 	for (i = 0; i < features.length; i++) {

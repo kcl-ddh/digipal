@@ -53,7 +53,7 @@ var chained = request.then(function(data) {
 				$(this).addClass('active');
 			} else {
 				$("#summary").animate({
-					'right': "30.4%",
+					'right': "35.4%",
 					'opacity': 1
 				}, 350);
 				summary_shown = true;
@@ -140,50 +140,55 @@ var chained = request.then(function(data) {
 			main();
 		});
 
+		var initialLoad = true;
 
 		function main() {
 			if (modal) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
 			}
 
 			modal = true;
-			$('#save').click(function() {
-				var features = annotator.vectorLayer.features;
-				var selected_features = [];
-				for (var i = 0; i < features.length; i++) {
-					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
-						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
-							selected_features.push(features[i]);
+			if (initialLoad) {
+				$('#save').click(function() {
+					var features = annotator.vectorLayer.features;
+					var selected_features = [];
+					for (var i = 0; i < features.length; i++) {
+						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
+							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
+								selected_features.push(features[i]);
+							}
 						}
 					}
-				}
-				for (i = 0; i < selected_features.length; i++) {
-					annotator.selectedFeature = selected_features[i];
-					annotator.saveAnnotation();
-				}
-			});
+					for (i = 0; i < selected_features.length; i++) {
+						annotator.selectedFeature = selected_features[i];
+						annotator.saveAnnotation();
+					}
+				});
 
-			$('#delete').click(function() {
-				var features = annotator.vectorLayer.features;
-				var selected_features = [];
-				for (var i = 0; i < features.length; i++) {
-					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
-						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
-							selected_features.push(features[i]);
+				$('#delete').click(function(event) {
+					var features = annotator.vectorLayer.features;
+					var selected_features = [];
+					for (var i = 0; i < features.length; i++) {
+						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
+							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
+								selected_features.push(features[i]);
+							}
 						}
 					}
-				}
-				console.log(selected_features)
-				var j = 0;
-				for (var i = 0; i < selected_features.length; i++) {
-					annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i]);
-				}
-			});
 
+					var j = 0;
+					for (var i = 0; i < selected_features.length; i++) {
+						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
+					}
+
+				});
+			}
+
+			initialLoad = false;
 
 			if (!selectedAnnotations.annotations.length) {
 				$("#modal_features").fadeOut();
@@ -191,9 +196,10 @@ var chained = request.then(function(data) {
 			} else {
 				$("#modal_features").fadeIn();
 			}
+
 			if (annotation) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
@@ -233,7 +239,7 @@ var chained = request.then(function(data) {
 				$('#id_internal_note').parent('p').hide();
 				var url_features = "../graph/" + annotation.graph;
 				if (annotator.hands_page == "True") {
-					var url_features = "/digipal/page/61/graph/" + annotation.graph;
+					url_features = "/digipal/page/61/graph/" + annotation.graph;
 				}
 
 				var request = $.getJSON(url_features);

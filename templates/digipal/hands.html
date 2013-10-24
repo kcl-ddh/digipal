@@ -64,6 +64,8 @@
         <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
         {% else %}
         <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
+        {% endif %}
+        {% if can_edit %}
         <span class='label label-info'>{{forloop.counter}}</span>
         {% endif %}
         </p>
@@ -88,7 +90,7 @@
 <div class="myModal" id='modal_features'>
   <div class="modal_header">
     <form id="frmAnnotation" method="get" name="frmAnnotation"><i class='icon icon-remove close'></i>
-    <p class="myModalLabel"><span class='label-modal-value' ></span> <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' /> <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' /> <input type='button' class='btn-small btn' value='Summary' id='show_summary' /></p>
+    <p class="myModalLabel"><span class='label-modal-value'></span> <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' /> <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' /> <input type='button' class='btn-small btn' value='Summary' id='show_summary' /></p>
     <p style='border-top:1px solid #efefef;padding-top:2%'></p>
   </div>
   <div class="modal-body">

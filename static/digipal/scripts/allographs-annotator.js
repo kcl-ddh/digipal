@@ -255,11 +255,11 @@ var chained = request.then(function(data) {
 							var features = data[idx].features;
 							string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 
-							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b></p>";
+							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
 
 							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
 
-							s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+							s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 							var n = 0;
 							$.each(features, function(idx) {
 								var value = component_id + '::' + features[idx].id;
@@ -292,11 +292,10 @@ var chained = request.then(function(data) {
 
 						$('.component_labels').click(function() {
 							var div = $("#" + $(this).data('id'));
-							if (div.data('hidden') === false) {
+							if (!div.data('hidden')) {
 								$(this).next('.checkboxes_div').hide();
 								div.slideUp().data('hidden', true);
 								$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
-
 							} else {
 								div.slideDown().data('hidden', false);
 								$(this).next('.checkboxes_div').show();

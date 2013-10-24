@@ -53,7 +53,7 @@ var chained = request.then(function(data) {
 				$(this).addClass('active');
 			} else {
 				$("#summary").animate({
-					'right': "33.4%",
+					'right': "30.4%",
 					'opacity': 1
 				}, 350);
 				summary_shown = true;
@@ -153,7 +153,7 @@ var chained = request.then(function(data) {
 			modal = true;
 			$('#save').click(function() {
 				var features = annotator.vectorLayer.features;
-				selected_features = [];
+				var selected_features = [];
 				for (var i = 0; i < features.length; i++) {
 					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
@@ -169,7 +169,7 @@ var chained = request.then(function(data) {
 
 			$('#delete').click(function() {
 				var features = annotator.vectorLayer.features;
-				selected_features = [];
+				var selected_features = [];
 				for (var i = 0; i < features.length; i++) {
 					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
@@ -177,6 +177,7 @@ var chained = request.then(function(data) {
 						}
 					}
 				}
+				console.log(selected_features)
 				var j = 0;
 				for (var i = 0; i < selected_features.length; i++) {
 					annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i]);
@@ -250,26 +251,33 @@ var chained = request.then(function(data) {
 						$.each(data, function(idx) {
 							component = data[idx].name;
 							component_id = data[idx].id;
-							string_summary += "<span style='display:block;font-weight:bold;border-bottom:1px solid #ccc;'>" + data[idx].name + "</span>";
+							string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 							var features = data[idx].features;
-
+							var is_empty;
 							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></span></b>";
 							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
 
 							s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+							a = features
+							var n = 0;
 							$.each(features, function(idx) {
+
 								var value = component_id + '::' + features[idx].id;
 								var names = component + ':' + features[idx].name;
 
 								if (array_features_owned.indexOf(names) >= 0) {
-									string_summary += "<span style='display:block;'>" + features[idx].name; + "</span>";
+									string_summary += "<span class='feature_summary'>" + features[idx].name + "</span>";
 									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+									n++;
 								} else {
-
 									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
 								}
 							});
-							s += "</p></div>";
+							console.log(n)
+							if (!n) {
+								string_summary += "<span class='feature_summary'>undefined</span>";
+							}
+
 						});
 						s += "</div>";
 						$("#summary").html(string_summary);

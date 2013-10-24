@@ -382,6 +382,7 @@ function updateFeatureSelect(currentFeatures, id) {
 			allograph_selected = currentFeatures;
 		}
 	}
+	console.log(allograph_selected);
 	var allograph = $('#id_allograph option:selected').val();
 	$('#hidden_allograph').val(allograph_selected);
 
@@ -600,9 +601,9 @@ function create_dialog(selectedFeature, id) {
 	var dialog = $("<div>");
 	dialog.attr('id', 'dialog' + id);
 	$('#annotations').append(dialog);
-	var path;
+	var path = $("#OpenLayers_Layer_Vector_27_svgRoot")
 
-	if (selectedFeature) {
+	if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 		var vector_id;
 		for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
 			var feature = annotator.vectorLayer.features[i];
@@ -613,30 +614,37 @@ function create_dialog(selectedFeature, id) {
 		}
 		//path = $('#' + vector_id);
 		path = document.getElementById(vector_id);
-	} else {
-		path = document.getElementById("#OpenLayers_Layer_Vector_27_svgRoot");
 	}
-
+	console.log(path)
 	dialog.data('feature', selectedFeature);
 
 	var position = function() {
 		var p;
-		if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
-			var w = $(window).scrollTop();
+		try {
+			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+				var w = $(window).scrollTop();
+				p = {
+					my: "right center + " + w,
+					at: "right top" + w,
+					of: window
+				};
+			} else {
+
+				p = {
+					my: 'right top',
+					at: 'right top',
+					of: $(path),
+					collision: 'flipfit flipfit'
+				};
+			}
+		} catch (e) {
 			p = {
 				my: "right center + " + w,
 				at: "right top" + w,
 				of: window
 			};
-		} else {
-
-			p = {
-				my: 'right top',
-				at: 'right top',
-				of: $(path),
-				collision: 'flipfit flipfit'
-			};
 		}
+		console.log(p)
 		return p;
 	};
 

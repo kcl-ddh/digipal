@@ -503,7 +503,7 @@ function createPopup(feature) {
 		null,
 		'<div class="markerContent">' + feature.display_note + '</div>',
 		null,
-		true,
+		null,
 		function() {
 			controls['selector'].unselectAll();
 		}
@@ -1850,8 +1850,20 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 				case 83:
 					_self.saveButton.trigger();
 					break;
-				case 38:
+				case 70:
 					_self.full_Screen();
+					break;
+				case 38:
+					annotator.map.moveByPx(0, -30);
+					break;
+				case 40:
+					annotator.map.moveByPx(0, 30);
+					break;
+				case 37:
+					annotator.map.moveByPx(-30);
+					break;
+				case 39:
+					annotator.map.moveByPx(30);
 					break;
 			}
 		}

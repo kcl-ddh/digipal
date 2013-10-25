@@ -31,9 +31,11 @@ var chained = request.then(function(data) {
 			for (var i in annotations) {
 				var allograph = annotations[i]['feature'];
 				var graph = annotations[i]['graph'];
+				var features_list = annotations[i]['features'];
 				if (f.id == annotations[i]['vector_id']) {
 					f.feature = allograph;
 					f.graph = graph;
+					f.features = features_list;
 				}
 			}
 			features.push(f);
@@ -48,19 +50,26 @@ var chained = request.then(function(data) {
 				$("#summary").animate({
 					'right': 0,
 					'opacity': 0,
-					'display': 'none'
-				}, 350);
+				}, 350, function() {
+					$(this).css({
+						'display': 'none'
+					});
+				});
+
 
 				summary_shown = false;
-				$(this).addClass('active');
+				$(this).removeClass('active');
 			} else {
+				$("#summary").css({
+					'display': 'block'
+				});
 				$("#summary").animate({
-					'display': 'block',
 					'right': "35.4%",
 					'opacity': 1
 				}, 350);
 				summary_shown = true;
-				$(this).removeClass('active');
+				$(this).addClass('active');
+
 			}
 		});
 
@@ -249,6 +258,7 @@ var chained = request.then(function(data) {
 
 				var features = annotator.vectorLayer.features;
 				request.done(function(data) {
+					var allograph_id = data.id;
 					var url = '../allograph/' + data.id + '/features/';
 					if (annotator.hands_page == "True") {
 						var url = "/digipal/page/61/allograph/" + data.id + '/features/';
@@ -270,11 +280,29 @@ var chained = request.then(function(data) {
 
 							s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 							var n = 0;
+
 							$.each(features, function(idx) {
 								var value = component_id + '::' + features[idx].id;
 								var names = component + ':' + features[idx].name;
+								var f = annotator.vectorLayer.features;
+								var al = '';
+								var d = 0;
+								var title = '';
 								if (array_features_owned.indexOf(names) >= 0) {
-									string_summary += "<span class='feature_summary'>" + features[idx].name + "</span>";
+									for (var k = 0; k < f.length; k++) {
+										for (var j = 0; j < f[k].features.length; j++) {
+											if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
+												var ann = $('input[data-annotation="' + f[k].id + '"]').next().text();
+												d++;
+												al += '<span class="label">' + ann + '</span> ';
+												if (d > 2) {
+													al = al + '..';
+												}
+												title += ann + ' ';
+											}
+										}
+									}
+									string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
 									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
 									n++;
 								} else {
@@ -321,7 +349,7 @@ var chained = request.then(function(data) {
 									"width": '30%',
 									"height": '60%'
 								}, 300).draggable();
-								$('#summary').css("bottom", "100%");
+								$('#summary').css("bottom", "88%");
 								$('.modal-body').css("max-height", "");
 
 								maximized = false;

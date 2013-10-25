@@ -83,23 +83,23 @@ def image(request, image_id):
     image_server_url = image.zoomify
 
     is_admin = has_edit_permission(request, Image)
-    
+
     from digipal.models import OntographType
-        
+
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               'image_link': image_link, 'annotations': annotations, 
+               'image_link': image_link, 'annotations': annotations,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
                }
- 
+
     if vector_id:
         context['vector_id'] = vector_id
 
-    return render_to_response('digipal/image_annotation.html', context, 
+    return render_to_response('digipal/image_annotation.html', context,
                               context_instance=RequestContext(request))
 
 def get_allograph(request, graph_id, image_id):
@@ -107,25 +107,25 @@ def get_allograph(request, graph_id, image_id):
     g = Graph.objects.get(id=graph_id)
     allograph_id = g.idiograph.allograph_id
     data = {'id': allograph_id}
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json') 
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
     # Order the graph by the left edge to ensure that an openlayer feature
     # contained in another will be created later and therefore remain on top.
-    # Otherwise nested graphs may not be selectable because they are covered 
+    # Otherwise nested graphs may not be selectable because they are covered
     # by their parent.
-    
+
     annotation_list = list(Annotation.objects.filter(image=image_id))
     annotation_list = sorted(annotation_list, key=lambda a: a.get_coordinates()[0][0])
-    
+
     data = SortedDict()
 
     for a in annotation_list:
-        # TODO: suspicious call to eval. Should call json.loads() instead - GN 
+        # TODO: suspicious call to eval. Should call json.loads() instead - GN
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
         data[a.vector_id]['graph'] = a.graph_id
-        
+
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
@@ -144,9 +144,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['hidden_hand'] = a.graph.hand.id
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
-        data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id 
+        data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
         features_list = get_features(request, a.image.id, a.graph_id, False)
         data[a.id]['num_features'] = len(features_list)
+        data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
 
         if a.before:
@@ -177,7 +178,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         return HttpResponse(simplejson.dumps(data), mimetype='application/json')
     else:
         return data
-        
+
 def get_allographs_by_graph(request, image_id, character_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
@@ -229,7 +230,7 @@ def image_allographs(request, image_id):
 
     #is_admin = request.user.is_superuser
     is_admin = has_edit_permission(request, Image)
-     
+
     data = SortedDict()
 
     for annotation in annotation_list:
@@ -248,11 +249,11 @@ def image_allographs(request, image_id):
 
     return render_to_response('digipal/image_allograph.html',
             {'image': image,
-             'height': height, 
+             'height': height,
              'image_server_url': image_server_url,
-             'width': width, 
+             'width': width,
              'hands': list(set(hands)),
-             'data': data, 
+             'data': data,
              'form': form,
              'can_edit': has_edit_permission(request, Annotation)},
             context_instance=RequestContext(request))
@@ -291,7 +292,7 @@ def image_copyright(request, image_id):
 
 def image_list(request):
     images = Image.objects.all()
-    
+
     # Get Buttons
 
     town_or_city = request.GET.get('town_or_city', '')
@@ -308,7 +309,7 @@ def image_list(request):
         images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
     if date:
         images = images.filter(hands__assigned_date__date = date)
-        
+
     images = images.filter(item_part_id__gt = 0)
     images = Image.sort_query_set_by_locus(images)
 
@@ -374,7 +375,7 @@ def save(request, image_id, vector_id):
             allograph = clean['allograph']
             hand = clean['hand']
             scribe = hand.scribe
-            
+
             idiograph_list = Idiograph.objects.filter(allograph=allograph,
                     scribe=scribe)
 
@@ -392,7 +393,7 @@ def save(request, image_id, vector_id):
 
             feature_list = get_data.getlist('feature')
             graph.graph_components.all().delete()
-            
+
             if feature_list:
 
                 for value in feature_list:
@@ -418,7 +419,7 @@ def save(request, image_id, vector_id):
             annotation.set_graph_group()
 
             annotation.save()
-            
+
             transaction.commit()
             data['success'] = True
         else:
@@ -428,7 +429,7 @@ def save(request, image_id, vector_id):
         transaction.rollback()
         data['errors'] = ['Internal error: %s' % e.message]
         #tb = sys.exc_info()[2]
-    
+
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 

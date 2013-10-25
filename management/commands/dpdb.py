@@ -549,17 +549,18 @@ Commands:
 				if len(correct_ips) > 1:
 					self.print_warning('more than one correct IP', 2)
 					for cip in correct_ips:
-						if self.get_normalised_code(cip.locus) == self.get_normalised_code(ip.locus):
+						if self.loci_are_the_same(ip.locus, cip.locus):
 							if correct_ip:
 								self.print_warning('more than one IP with the same locus', 2)
 							correct_ip = cip
 				if correct_ip is None:
 					self.print_warning('no IP with same locus', 2)
-					print (u'\t\t\t%s <> %s' % (ip.locus, u' | '.join(u'%s' % cip.locus for cip in correct_ips))).encode('ascii', 'xmlcharrefreplace')
+					print (u'\t\t\t%s <> %s' % (repr(ip.locus), u' | '.join(repr(u'%s' % cip.locus) for cip in correct_ips)))
 					continue					
-				if self.get_normalised_code(correct_ip.locus) != self.get_normalised_code(ip.locus):
+				if not self.loci_are_the_same(ip.locus, correct_ip.locus):
 					self.print_warning('selected correct IP has a different locus', 2)
 					print '\t\t\t%s' % self.get_obj_label(correct_ip)
+					print u'\t\t\t%s <> %s' % (repr(ip.locus), repr(correct_ip.locus))
 					continue
 				
 				correct_hi = correct_ip.historical_item
@@ -574,6 +575,11 @@ Commands:
 			# delete hi
 
 		return ips_conversion, his_to_delete, ip_count
+	
+	def loci_are_the_same(self, l1, l2):
+		if not l1 and l2 == u'fols. 0\u20137':
+			return True
+		return self.get_normalised_code(l1) == self.get_normalised_code(l2)
 	
 	def protect_pseudo_his(self, ips_conversion, his_to_delete):
 		his_to_keep = set()
@@ -596,15 +602,20 @@ Commands:
 
 	def create_text_records(self, ips_conversion, his_to_delete):
 		# create the Texts
-		for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
-			print self.get_obj_label(hi)
+		#for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
+		for hi in HistoricalItem.objects.all():
 			# Find or Create the text record
-			
+
 			# Get the HI Sawyer Cat Num
 			hi_cat_nums = hi.catalogue_numbers.filter(source__name__in=self.get_pseudo_types())
+			if hi_cat_nums.count() < 1:
+				continue
+
+			print self.get_obj_label(hi)
+
 			if hi_cat_nums.count() > 1:
 				print '\tNOTICE: more than one cat cum: %' % [', '.join('%s' % cat_num for cat_num in hi_cat_nums)]
-			
+				
 			# Find a Text with the same Cat Num
 			#texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
 			texts = list(Text.objects.raw(ur'''
@@ -655,12 +666,21 @@ Commands:
 
 			# connect the text to the correct item part
 			## Check what to do for 
-			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
-				from django.db.utils import IntegrityError
-				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
-					print '\t\tCorrect ItemPart: #%s' % ips_conversion[ip.id]
-					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
+# 			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
+# 				from django.db.utils import IntegrityError
+# 				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
+# 					print '\t\tCorrect ItemPart: #%s' % ips_conversion[ip.id]
+# 					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
 
+			for ip in hi.item_parts.all():
+				correct_ip_id = ips_conversion.get(ip.id, ip.id)
+				if not TextItemPart.objects.filter(text=text, item_part_id=correct_ip_id).count():
+					corrected = ''
+					if correct_ip_id != ip.id:
+						corrected = ' (corrected)' 
+					print '\t\tItemPart: #%s%s' % (correct_ip_id, corrected)
+					TextItemPart(text=text, item_part_id=correct_ip_id).save()
+					
 			text.descriptions.clear()
 			# create descriptions
 			for description in hi.description_set.filter(source__name__in=self.get_pseudo_types()):
@@ -737,13 +757,14 @@ Commands:
 
 		print '%s cartulary HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
 		
-		self.print_warning_report()
-
 		if self.is_dry_run():
 			con.rollback()
 			print 'Nothing actually written (remove --dry-run option for permanent changes).'
 		else:
 			con.commit()
+		con.leave_transaction_management()
+
+		self.print_warning_report()
 		
 	def add_cartulary_his(self):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -893,7 +914,7 @@ Commands:
 		# For CUL and Oxford Bodleian we ignore the number between parenthesis at the end  
 		if (code.startswith('20-')) or (code.startswith('43-')):
 			code = re.sub(ur'\(\d+\)\s*$', ur'', code)
-		code = re.sub(ur'(\s|,|\.)+', ur'_', code)
+		code = re.sub(ur'(\s|,|\.|-|_|\u2013)+', ur'_', code)
 		return code.replace('ii', '2').replace('i', '1').replace('latin', 'lat').replace('additional', 'add').replace('add', 'ad').strip()
 		
 	##################################################

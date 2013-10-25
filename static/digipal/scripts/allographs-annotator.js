@@ -47,12 +47,15 @@ var chained = request.then(function(data) {
 			if (summary_shown) {
 				$("#summary").animate({
 					'right': 0,
-					'opacity': 0
+					'opacity': 0,
+					'display': 'none'
 				}, 350);
+
 				summary_shown = false;
 				$(this).addClass('active');
 			} else {
 				$("#summary").animate({
+					'display': 'block',
 					'right': "35.4%",
 					'opacity': 1
 				}, 350);
@@ -295,6 +298,35 @@ var chained = request.then(function(data) {
 							checkboxes.attr('checked', false);
 						});
 						$('.myModal select').chosen();
+
+						var maximized = false;
+						$('#maximize').click(function() {
+							if (!maximized) {
+								$('.myModal').animate({
+									'position': 'fixed',
+									'top': "0px",
+									'left': '59.5%',
+									"width": '40%',
+									"height": '100%'
+								}, 300).draggable("destroy");
+								$('#summary').css("bottom", "67.3%");
+								$('.modal-body').css("max-height", "100%");
+								maximized = true;
+							} else {
+								$('.myModal').animate({
+									'position': 'fixed',
+									'left': "55%",
+									'top': "15%",
+									'right': '',
+									"width": '30%',
+									"height": '60%'
+								}, 300).draggable();
+								$('#summary').css("bottom", "100%");
+								$('.modal-body').css("max-height", "");
+
+								maximized = false;
+							}
+						});
 
 						$('.component_labels').click(function() {
 							var div = $("#" + $(this).data('id'));

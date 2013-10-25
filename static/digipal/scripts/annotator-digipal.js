@@ -549,6 +549,7 @@ function reload_described_annotations(div) {
 		}
 		var num_features = annotation.num_features;
 		var h = 0;
+		var path;
 		check_described = $.each(feature, function(index, data) {
 			while (h < feature.length) {
 				if (annotation.graph == feature[h].graph) {
@@ -560,7 +561,9 @@ function reload_described_annotations(div) {
 							feature[h].described = true;
 						}
 						if (feature[h].display_note) {
-							var path = $('#' + feature[h].geometry.id);
+							path = $('#' + feature[h].geometry.id);
+							path.data('title', feature[h].display_note);
+							console.log(path.data('title'))
 						}
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
@@ -570,7 +573,8 @@ function reload_described_annotations(div) {
 							feature[h].described = false;
 						}
 						if (feature[h].display_note) {
-							var path = $('#' + feature[h].geometry.id);
+							path = $('#' + feature[h].geometry.id);
+							path.data('title', feature[h].display_note)
 						}
 					}
 				}

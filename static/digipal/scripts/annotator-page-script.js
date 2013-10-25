@@ -466,7 +466,7 @@ declaring function to get parameteres from URL
 		highlight_vectors();
 	});
 
-	$('select[id!=id_feature]').chosen();
+	$('select').chosen();
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;

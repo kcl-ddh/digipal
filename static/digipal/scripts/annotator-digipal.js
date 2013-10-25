@@ -418,7 +418,7 @@ function updateFeatureSelect(currentFeatures, id) {
 				s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
 				s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
 
-				s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+				s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
 				$.each(features, function(idx) {
 					var value = component_id + '::' + features[idx].id;

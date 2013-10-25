@@ -8,6 +8,17 @@ var request = $.getJSON(annotator.url_annotations, function(data) {
 	annotator.annotations = data;
 });
 
+function style_select(select) {
+	$(select).css({
+		"float": "left",
+		"margin": "0%",
+		"margin-left": "3%",
+		"margin-right": "3%",
+		"margin-bottom": "3%",
+		"margin-top": "2%"
+	}).addClass('important_width');
+}
+
 var chained = request.then(function(data) {
 
 	$('#id_allograph').change(function() {
@@ -380,7 +391,13 @@ var chained = request.then(function(data) {
 						});
 
 					});
-					$('select[id!=id_feature]').chosen();
+					$('select').on("liszt:ready", function() {
+						style_select('#id_hand_chzn');
+						style_select('#id_allograph_chzn');
+					});
+					$('select').chosen();
+
+
 
 				});
 

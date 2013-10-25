@@ -493,6 +493,31 @@ isEmpty = function(obj) {
 	return true;
 };
 
+
+function createPopup(feature) {
+	var map = annotator.map;
+	feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+		feature.geometry.getBounds().getCenterLonLat(),
+		null,
+		'<div class="markerContent">' + feature.display_note + '</div>',
+		null,
+		true,
+		function() {
+			controls['selector'].unselectAll();
+		}
+	);
+	//feature.popup.closeOnMove = true;
+	map.addPopup(feature.popup);
+	$('.olPopupCloseBox').click(function() {
+		feature.popup.destroy();
+		feature.popup = null;
+	});
+}
+
+function deletePopup(feature) {
+	feature.popup.destroy();
+	feature.popup = null;
+}
 /*
 
 Function to get the features of a described allograph
@@ -500,7 +525,6 @@ Function to get the features of a described allograph
 */
 
 function features_owned(selectedFeature, url) {
-
 	var features = $.ajax({
 		url: url,
 		dataType: 'json',
@@ -560,21 +584,13 @@ function reload_described_annotations(div) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = true;
 						}
-						if (feature[h].display_note) {
-							path = $('#' + feature[h].geometry.id);
-							path.data('title', feature[h].display_note);
-							console.log(path.data('title'))
-						}
+
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
 						feature[h].described = false;
 						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = false;
-						}
-						if (feature[h].display_note) {
-							path = $('#' + feature[h].geometry.id);
-							path.data('title', feature[h].display_note)
 						}
 					}
 				}
@@ -589,7 +605,26 @@ function reload_described_annotations(div) {
 		if (typeof div != "undefined") {
 			div.fadeOut().remove();
 		}
+		$('path').unbind();
+		setTimeout(function() {
+
+			$('path').mouseenter(function() {
+				var features = annotator.vectorLayer.features;
+				for (var i = 0; i < features.length; i++) {
+					if ($(this).attr('id') == features[i].geometry.id) {
+						if (features[i].display_note) {
+							createPopup(features[i]);
+						}
+					}
+				}
+			});
+
+
+		}, 500);
 	}
+
+
+
 }
 
 

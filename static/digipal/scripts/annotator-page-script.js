@@ -472,4 +472,6 @@ declaring function to get parameteres from URL
 		annotator.boxes_on_click = true;
 	}
 
+
+
 })();

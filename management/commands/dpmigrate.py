@@ -237,7 +237,17 @@ Commands:
         #     if it does not work we try to match using a loose key: without cm.part 
         
         def get_key(code):
-            return utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_').replace('_add_', '_additional_').replace('_f_', '_').replace('_fols_', '_').replace('_ff_', '_')
+            ret = utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_')
+            ret = ret.replace('_additionals_', '_add_').replace('_additional_', '_add_').replace('_f_', '_').replace('_fols_', '_').replace('_ff_', '_')
+            ret = ret.replace('_charters_', '_ch_').replace('_charter_', '_ch_')
+            # fixes for particular cases
+            ret = ret.replace('_des_', '_de_').replace('_chart_ant_', '_').replace('_w_a_m_', '_').replace('1220_ms_600', '1220_600').replace('_s_c_31346_', '_')
+            ret = ret.replace('1417_12092_olim_muniment_room_cabinet_7_drawer_2_3_', '1417_cabinet_7_drawer_2_3').replace('_s_c_', '_')
+            ret = ret.replace('1497_m_140', '1497_m140').replace('_wcm_', '_').replace('_muniments_', '_').replace('_cathedral_', '_cath_').replace('_d_dp_t_', '_d_dp_t')
+            ret = ret.replace('_e_d_c_1b_', '_edc_1b_').replace('795_pro_30_', '795_30_').replace('eng_hist_a_2_no_viii_a', 'eng_hist_a_2_no_viiia')
+            ret = ret.replace('981_stowe_ch_40_none', '981_stowe_ch_40_')
+            
+            return ret
         
         es_text_item_parts = {}
         for key in es_text_item_parts0:
@@ -257,6 +267,7 @@ Commands:
         # For each text with an eSawyer cat num
         # We update the text description from the matching record in eSawyer. 
         # Then find the item part matching those in eSawyer DB. 
+        item_part_count = 0
 
         cat_nums = CatalogueNumber.objects.filter(number__in=es_descriptions.keys(), source=source_esawyer, text_id__isnull=False)
         for cat_num in cat_nums:
@@ -291,6 +302,7 @@ Commands:
                 # first try a precise match on the locus
                 # if not found, try a match without locus
                 key = get_key(u'%s-%s-%s' % (cat_num.number, text_item_part.item_part.current_item.shelfmark, text_item_part.item_part.locus))
+                key_long = key
                 #print key
                 es_text_item_part = None
                 if key in es_text_item_parts:
@@ -302,17 +314,27 @@ Commands:
                         #print 'Found a loose match'
                         es_text_item_part = es_text_item_parts[key]
                     else:
-                        print (ur'\tWARNING: no matching item part for key: "%s", %s, %s' % (key, text.name, text_item_part.item_part)).encode('ascii', 'xmlcharrefreplace')
+                        self.print_warning('Item Part not found in eSawyer', 1)
+                        print u'\t\tSearch keys: ("%s", "%s"); Item part: %s' % (repr(key_long), repr(key), repr(utils.get_obj_label(text_item_part.item_part)))
+                        similars = ''
+                        for pk in es_text_item_parts.keys(): 
+                             if (pk is not None) and (pk.startswith('%s_' % cat_num.number)) and es_text_item_parts[pk]:
+                                 if similars: similars += ' | '
+                                 similars += '#%s (%s)' % (es_text_item_parts[pk]['recordid'], pk)
+                        print '\t\tSimilar: %s' % similars
                 
                 if es_text_item_part:
-                    print ('\tUpdate item part %s' % utils.get_obj_label(es_text_item_part)).encode('ascii', 'xmlcharrefreplace')
+                    item_part_count += 1
+                    print u'\tUpdate item part %s' % repr(utils.get_obj_label(text_item_part))
                     if es_text_item_part['locus']:
                         text_item_part.locus = es_text_item_part['locus']
                     if es_text_item_part['this_text_date']:
                         text_item_part.date = es_text_item_part['this_text_date']
                     text_item_part.save()
             
-        print 'Updated %d Text records.' % cat_nums.count()
+        print 'Updated %d Text records and % d item parts.' % (cat_nums.count(), item_part_count)
+
+        self.print_warning_report()
 
         if self.is_dry_run():
             con_dst.rollback()
@@ -846,3 +868,15 @@ Commands:
 
     def log(self, *args, **kwargs):
         self.logger.log(*args, **kwargs)
+
+    def print_warning(self, message, indent=0):
+        if not hasattr(self, 'messages'):
+            self.messages = {}
+        self.messages[message] = self.messages.get(message, 0) + 1
+        print ('\t' * indent) + 'WARNING: ' + message
+        
+    def print_warning_report(self):
+        print 'WARNINGS:'
+        for message in getattr(self, 'messages', []):
+            print '\t%6d: %s' % (self.messages[message], message)
+    

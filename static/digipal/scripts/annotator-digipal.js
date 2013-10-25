@@ -361,9 +361,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -619,7 +619,14 @@ function reload_described_annotations(div) {
 				}
 			});
 
-
+			$('path').mouseleave(function() {
+				var features = annotator.vectorLayer.features;
+				for (var i = 0; i < features.length; i++) {
+					if (features[i].popup) {
+						deletePopup(features[i]);
+					}
+				}
+			});
 		}, 500);
 	}
 

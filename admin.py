@@ -672,7 +672,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     
     fieldsets = (
                 (None, {'fields': ('catalogue_number', 'name', 'date', )}),
-                ('Classifications', {'fields': ('historical_item_type', 'categories')}),
+                ('Classifications', {'fields': ('historical_item_type', 'historical_item_format', 'categories')}),
                 ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
                 ('Owners', {'fields': ('owners',)}),
                 ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),

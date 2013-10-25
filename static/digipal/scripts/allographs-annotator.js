@@ -53,7 +53,7 @@ var chained = request.then(function(data) {
 				$(this).addClass('active');
 			} else {
 				$("#summary").animate({
-					'right': "33.4%",
+					'right': "35.4%",
 					'opacity': 1
 				}, 350);
 				summary_shown = true;
@@ -140,49 +140,55 @@ var chained = request.then(function(data) {
 			main();
 		});
 
+		var initialLoad = true;
 
 		function main() {
 			if (modal) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
 			}
 
 			modal = true;
-			$('#save').click(function() {
-				var features = annotator.vectorLayer.features;
-				selected_features = [];
-				for (var i = 0; i < features.length; i++) {
-					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
-						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
-							selected_features.push(features[i]);
+			if (initialLoad) {
+				$('#save').click(function() {
+					var features = annotator.vectorLayer.features;
+					var selected_features = [];
+					for (var i = 0; i < features.length; i++) {
+						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
+							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
+								selected_features.push(features[i]);
+							}
 						}
 					}
-				}
-				for (i = 0; i < selected_features.length; i++) {
-					annotator.selectedFeature = selected_features[i];
-					annotator.saveAnnotation();
-				}
-			});
+					for (i = 0; i < selected_features.length; i++) {
+						annotator.selectedFeature = selected_features[i];
+						annotator.saveAnnotation();
+					}
+				});
 
-			$('#delete').click(function() {
-				var features = annotator.vectorLayer.features;
-				selected_features = [];
-				for (var i = 0; i < features.length; i++) {
-					for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
-						if (features[i].graph == selectedAnnotations.annotations[j].graph) {
-							selected_features.push(features[i]);
+				$('#delete').click(function(event) {
+					var features = annotator.vectorLayer.features;
+					var selected_features = [];
+					for (var i = 0; i < features.length; i++) {
+						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
+							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
+								selected_features.push(features[i]);
+							}
 						}
 					}
-				}
-				var j = 0;
-				for (var i = 0; i < selected_features.length; i++) {
-					annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i]);
-				}
-			});
 
+					var j = 0;
+					for (var i = 0; i < selected_features.length; i++) {
+						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
+					}
+
+				});
+			}
+
+			initialLoad = false;
 
 			if (!selectedAnnotations.annotations.length) {
 				$("#modal_features").fadeOut();
@@ -190,9 +196,10 @@ var chained = request.then(function(data) {
 			} else {
 				$("#modal_features").fadeIn();
 			}
+
 			if (annotation) {
 				if (selectedAnnotations.annotations.length > 1) {
-					$('.myModalLabel .label-modal-value').html(annotation.feature + " (" + selectedAnnotations.annotations.length + ")");
+					$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 				} else {
 					$('.myModalLabel .label-modal-value').html(annotation.feature);
 				}
@@ -232,7 +239,7 @@ var chained = request.then(function(data) {
 				$('#id_internal_note').parent('p').hide();
 				var url_features = "../graph/" + annotation.graph;
 				if (annotator.hands_page == "True") {
-					var url_features = "/digipal/page/61/graph/" + annotation.graph;
+					url_features = "/digipal/page/61/graph/" + annotation.graph;
 				}
 
 				var request = $.getJSON(url_features);
@@ -250,26 +257,31 @@ var chained = request.then(function(data) {
 						$.each(data, function(idx) {
 							component = data[idx].name;
 							component_id = data[idx].id;
-							string_summary += "<span style='display:block;font-weight:bold;border-bottom:1px solid #ccc;'>" + data[idx].name + "</span>";
+							var is_empty;
 							var features = data[idx].features;
+							string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 
-							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></span></b>";
+							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
+
 							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
 
-							s += "<div id='component_" + component_id + "' data-hidden='true' class='feature_containers'>";
+							s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+							var n = 0;
 							$.each(features, function(idx) {
 								var value = component_id + '::' + features[idx].id;
 								var names = component + ':' + features[idx].name;
-
 								if (array_features_owned.indexOf(names) >= 0) {
-									string_summary += "<span style='display:block;'>" + features[idx].name; + "</span>";
-									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+									string_summary += "<span class='feature_summary'>" + features[idx].name + "</span>";
+									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
+									n++;
 								} else {
-
-									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
 								}
 							});
-							s += "</p></div>";
+							s += "</div>";
+							if (!n) {
+								string_summary += "<span class='feature_summary'>undefined</span>";
+							}
 						});
 						s += "</div>";
 						$("#summary").html(string_summary);
@@ -286,11 +298,10 @@ var chained = request.then(function(data) {
 
 						$('.component_labels').click(function() {
 							var div = $("#" + $(this).data('id'));
-							if (div.data('hidden') === false) {
+							if (!div.data('hidden')) {
 								$(this).next('.checkboxes_div').hide();
 								div.slideUp().data('hidden', true);
 								$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
-
 							} else {
 								div.slideDown().data('hidden', false);
 								$(this).next('.checkboxes_div').show();

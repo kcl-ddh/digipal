@@ -61,6 +61,7 @@ declaring function to get parameteres from URL
 					var hand = annotations[i]['hand'];
 					var image_id = annotations[i]['image_id'];
 					var num_features = annotations[i]['num_features'];
+					var display_note = annotations[i]['display_note'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.character_id = character_id;
@@ -69,6 +70,7 @@ declaring function to get parameteres from URL
 						f.hand = hand;
 						f.image_id = image_id;
 						f.num_features = num_features;
+						f.display_note = display_note;
 
 						// it serves to differentiate stored and temporary annotations
 						f.stored = true;
@@ -129,26 +131,26 @@ declaring function to get parameteres from URL
 
 			if (typeof vector_id != "undefined" && vector_id && vectors) {
 				// vectorLayer event moveend is triggered on first load so flag this
-				//initialLoad = true;
+				initialLoad = true;
 
 				// tries to centre the map every 1/2 second
-				//interval = setInterval(function() {
-				//}, 500);
+				interval = setTimeout(function() {
 
-				/* listen for the moveend event
-				annotator.vectorLayer.events.register('moveend',
-				annotator.vectorLayer, function() {
-				// checks if it is a first load, if not kill the interval
-				if (initialLoad) {
-				initialLoad=false
-				} else {
-				clearInterval(interval);
-				annotator.vectorLayer.events.remove('moveend');
-				}
-				});
-				*/
-				annotator.selectFeatureByIdAndCentre(vector_id_value);
-				annotator.selectFeatureByIdAndZoom(vector_id_value);
+					/* listen for the moveend event
+					annotator.vectorLayer.events.register('moveend',
+						annotator.vectorLayer, function() {
+							// checks if it is a first load, if not kill the interval
+							if (initialLoad) {
+								initialLoad = false;
+							} else {
+								clearInterval(interval);
+								annotator.vectorLayer.events.remove('moveend');
+							}
+						});
+					*/
+					annotator.selectFeatureByIdAndCentre(vector_id_value);
+					annotator.selectFeatureByIdAndZoom(vector_id_value);
+				}, 500);
 			}
 
 			reload_described_annotations();
@@ -417,19 +419,24 @@ declaring function to get parameteres from URL
 
 
 	$('#id_allograph').on('change', function() {
-		(function() {
-			var features = annotator.vectorLayer.features;
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == $(this).val()) {
-					n++;
-				}
-			}
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		var allograph = $('#id_allograph option:selected').text();
+		var allograph_id = $(this).val();
 
-			if ($(".number_annotated_allographs").length) {
-				$(".number_annotated_allographs .number-allographs").html(n);
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == allograph) {
+				n++;
 			}
-		})();
+		}
 
+		updateFeatureSelect($(this).val());
+
+		if ($('.letters-allograph-container').length) {
+			open_allographs();
+		}
+
+		$(".number_annotated_allographs .number-allographs").html(n);
 	});
 
 	$('#id_hand').on('change', function() {

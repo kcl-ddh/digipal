@@ -43,7 +43,11 @@ Commands:
                         Where file.xml is a XML file exported from a FileMaker 
                         Pro 7 table.
                         This command will (re)create a table in the database 
-                        and upload all the data from the XML file. 
+                        and upload all the data from the XML file.
+    
+  esawyer_import
+                        Import data from the filemaker table into the Text 
+                        records
 
 """
     
@@ -223,9 +227,14 @@ Commands:
             order by sd.sawyer_num
         '''))
         
-        # two problems:
+        # Create a key/hash for every item part in eSawyer DB
+        #
+        # Two problems:
         #    1. cm.part can be missing, in this case reckey is null
         #    2. cm.part is only necessary when the text is in more than one item part of the same current item
+        #
+        # => we first try to match records using an exact key for our item part.
+        #     if it does not work we try to match using a loose key: without cm.part 
         
         def get_key(code):
             return utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_').replace('_add_', '_additional_').replace('_f_', '_').replace('_fols_', '_').replace('_ff_', '_')
@@ -244,25 +253,40 @@ Commands:
                     es_text_item_parts[loose_key] = None
         
         #print '-' * 50
+        
+        # For each text with an eSawyer cat num
+        # We update the text description from the matching record in eSawyer. 
+        # Then find the item part matching those in eSawyer DB. 
 
         cat_nums = CatalogueNumber.objects.filter(number__in=es_descriptions.keys(), source=source_esawyer, text_id__isnull=False)
         for cat_num in cat_nums:
             # update the Text record from the esawyerdetails record 
+            
+            # Create/Update the Description
             es_desc = es_descriptions[cat_num.number]
             text = cat_num.text
+            
+            print 'Text %s' % utils.get_obj_label(text)
+            
             descriptions = text.descriptions.filter(source=source_esawyer)
             if descriptions:
+                print '\tUpdate description'
                 description = descriptions[0]
             else:
+                print '\tCreate description'
                 description = Description(source=source_esawyer, text=text)
             
-            description.description = es_desc['title']
-            description.comments = es_desc['comments']
+            if es_desc['title'] and es_desc['title'].strip(): 
+                description.description = es_desc['title']
+                print '\t\tUpdate description'
+            if es_desc['comments'] and es_desc['comments'].strip(): 
+                description.comments = es_desc['comments'] 
+                print '\t\tUpdate comments'
             description.summary = ''
             
             description.save()
             
-            # update the textitempart record from the esawyer mssrelationship record
+            # Update the textitempart record from the esawyer mssrelationship record
             for text_item_part in text.text_instances.all():
                 # first try a precise match on the locus
                 # if not found, try a match without locus
@@ -278,15 +302,23 @@ Commands:
                         #print 'Found a loose match'
                         es_text_item_part = es_text_item_parts[key]
                     else:
-                        print (ur'WARNING: no matching item part for key: "%s", %s, %s' % (key, text.name, text_item_part.item_part)).encode('ascii', 'xmlcharrefreplace')
+                        print (ur'\tWARNING: no matching item part for key: "%s", %s, %s' % (key, text.name, text_item_part.item_part)).encode('ascii', 'xmlcharrefreplace')
+                
                 if es_text_item_part:
-                    text_item_part.locus = es_text_item_part['locus']
-                    text_item_part.date = es_text_item_part['this_text_date']
+                    print ('\tUpdate item part %s' % utils.get_obj_label(es_text_item_part)).encode('ascii', 'xmlcharrefreplace')
+                    if es_text_item_part['locus']:
+                        text_item_part.locus = es_text_item_part['locus']
+                    if es_text_item_part['this_text_date']:
+                        text_item_part.date = es_text_item_part['this_text_date']
                     text_item_part.save()
             
         print 'Updated %d Text records.' % cat_nums.count()
 
-        con_dst.commit()
+        if self.is_dry_run():
+            con_dst.rollback()
+            print 'Nothing actually written (remove --dry-run option for permanent changes).'
+        else:
+            con_dst.commit()
         con_dst.leave_transaction_management()
 
     def fp7_import(self, options):

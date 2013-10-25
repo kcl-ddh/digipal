@@ -8,7 +8,7 @@ import subprocess
 import re
 from optparse import make_option
 import utils  
-from digipal.models import Text, CatalogueNumber, Description, TextItemPart
+from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
 from digipal.models import Text
 from digipal.models import HistoricalItem, ItemPart
 from django.db.models import Q
@@ -776,13 +776,61 @@ Commands:
 					ItemPartItem.objects.filter(historical_item=hi, item_part=ip).delete()
 					ItemPartItem(historical_item=hi_new, item_part=ip).save()
 
+		self.fix_imcomplete_clones()
+		
 		if self.is_dry_run():
 			con.rollback()
 			print 'Nothing actually written (remove --dry-run option for permanent changes).'
 		else:
 			con.commit()
 		con.leave_transaction_management()
+		
+		self.print_warning_report()
 					
+	def fix_imcomplete_clones(self):
+		# Cloning of the HI in add_cartulary_his() didn't copy the 
+		# 	.catalogue_number field, collations and descriptions.
+		# We address that here in a second pass. 
+		for hi in HistoricalItem.objects.filter(historical_item_type__name='charter', historical_item_format__name='Single-sheet'):
+			if hi.catalogue_number:
+				select = '''
+					select hi.*
+					from digipal_historicalitem hi,
+					digipal_cataloguenumber cn
+					where 
+					cn.historical_item_id = hi.id
+					and hi.id <> %s
+					and (cn.number, cn.source_id) in (select cn2.number, cn2.source_id from digipal_cataloguenumber cn2 where cn2.historical_item_id = %s)
+				''' % (hi.id, hi.id)
+				for hi_clone in HistoricalItem.objects.raw(select):
+					print '%s' % self.get_obj_label(hi)
+					print '\tclone: %s' % self.get_obj_label(hi_clone)
+					hi_clone.catalogue_number = hi.catalogue_number
+					hi_clone.save()
+					
+					# create the description
+					hi_clone.description_set.all().delete()
+					for desc in hi.description_set.all():
+						print '\t\tCreate description'
+						Description(historical_item=hi_clone, 
+								source=desc.source, 
+								description=desc.description,
+								text_id=desc.text_id,
+								comments=desc.comments,
+								summary=desc.summary
+								).save()					
+
+					# create the collation
+					hi_clone.collation_set.all().delete()
+					for col in hi.collation_set.all():
+						print '\t\tCreate collation'
+						Collation(historical_item=hi_clone, 
+								fragment=col.fragment,
+								leaves=col.leaves,
+								front_flyleaves=col.front_flyleaves,
+								back_flyleaves=col.back_flyleaves
+								).save()					
+			
 	def get_cloned_hi(self, hi):
 		ret = HistoricalItem()
 		ret.display_label = hi.display_label
@@ -806,7 +854,7 @@ Commands:
 			ret.categories.add(cat)
 			
 		for owner in hi.owners.all():
-			ret.owners.add(cat)
+			ret.owners.add(owner)
 		
 		# cat num!
 		# Have to copy all the cat nums!
@@ -816,7 +864,16 @@ Commands:
 		
 		# layout! None of them has a layout so we can ignore this part.
 		if hi.layout_set.count() > 0:
-			print '\t\t\tWARNING: Has layout'
+			self.print_warning('Has layout', 2)
+		
+		if hi.itemorigin_set.count() > 0:
+			self.print_warning('Has origin', 2)
+
+		if hi.description_set.count() > 0:
+			self.print_warning('Has description', 2)
+			
+		if hi.collation_set.count() > 0:
+			self.print_warning('Has collation', 2)
 			
 		return ret
 	
@@ -849,7 +906,7 @@ Commands:
 		
 	def print_warning_report(self):
 		print 'WARNINGS:'
-		for message in self.messages:
+		for message in getattr(self, 'messages', []):
 			print '\t%6d: %s' % (self.messages[message], message)
 	
 	def get_obj_label(self, obj):

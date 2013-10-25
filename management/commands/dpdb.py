@@ -54,6 +54,12 @@ Commands:
   pseudo_items
  						Convert Sawyer pseudo-items into Text records
  						
+  duplicate_cis
+ 						Returns duplicate CIs
+  
+  add_cartulary_his
+  						Create missing cartulary HIs from the SS HIs 
+ 						
 	"""
 	
 	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
@@ -519,8 +525,8 @@ Commands:
 				self.print_warning('HI with non-Sawyer number', 1)
 				continue
 			for cat in cat_nums:
-				if cat.source.name != 'sawyer':
-					 self.print_warning('HI with non-Sawyer number', 1)
+				if cat.source.name not in self.get_pseudo_types():
+					 self.print_warning('HI with non-Sawyer / Pelteret number', 1)
 					 other_cat_nums = '\t\t%s' % ','.join(['%s' % cn for cn in hi.catalogue_numbers.all()])
 					 continue
 			if other_cat_nums:
@@ -532,7 +538,7 @@ Commands:
 				print '\t%s' % self.get_obj_label(ip)
 				correct_ip = None
 				# We also look for duplicates of the CIs (see JIRA-230)
-				duplicate_cis = self.get_duplicates_of_current_item(ip.current_item)
+				duplicate_cis = self.get_duplicates_of_current_item(ip.current_item, True)
 				correct_ips = list(ItemPart.objects.filter(current_item__in=duplicate_cis).exclude(historical_items__historical_item_type__name='charter').order_by('id'))
 				
 				if len(correct_ips) == 0:
@@ -585,6 +591,9 @@ Commands:
 		
 		return his_to_delete
 
+	def get_pseudo_types(self):
+		return [settings.SOURCE_SAWYER, settings.SOURCE_PELTERET]
+
 	def create_text_records(self, ips_conversion, his_to_delete):
 		# create the Texts
 		for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
@@ -592,19 +601,33 @@ Commands:
 			# Find or Create the text record
 			
 			# Get the HI Sawyer Cat Num
-			hi_cat_num = hi.catalogue_numbers.filter(source__name=settings.SOURCE_SAWYER)[0]
-
+			hi_cat_nums = hi.catalogue_numbers.filter(source__name__in=self.get_pseudo_types())
+			if hi_cat_nums.count() > 1:
+				print '\tNOTICE: more than one cat cum: %' % [', '.join('%s' % cat_num for cat_num in hi_cat_nums)]
+			
 			# Find a Text with the same Cat Num
-			texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
-			if texts.count() == 0:
+			#texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
+			texts = list(Text.objects.raw(ur'''
+				select distinct te.* 
+				from digipal_text te, 
+				digipal_cataloguenumber cn,
+				digipal_cataloguenumber cn2
+				where cn.historical_item_id = %s
+				and cn.source_id in (5, 6)
+				and cn2.source_id = cn.source_id
+				and cn2.number = cn.number
+				and cn2.text_id = te.id
+			''' % hi.id))
+			
+			if len(texts) == 0:
 				print '\tCreate Text'
 				# create the Text and cat num
 				text = Text()
-			if texts.count() == 1:
+			if len(texts) == 1:
 				print '\tUpdate Text'
 				# update the text
 				text = texts[0]
-			if texts.count() > 1:
+			if len(texts) > 1:
 				self.print_warning('More than one Text with that cat number', 1)
 				continue
 			if not text.name:
@@ -631,25 +654,33 @@ Commands:
 				text.languages.add(hi.language)
 
 			# connect the text to the correct item part
+			## Check what to do for 
 			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
 				from django.db.utils import IntegrityError
 				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
 					print '\t\tCorrect ItemPart: #%s' % ips_conversion[ip.id]
 					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
 
-			# create description
 			text.descriptions.clear()
-			for description in hi.description_set.filter(source__name=settings.SOURCE_SAWYER):
+			# create descriptions
+			for description in hi.description_set.filter(source__name__in=self.get_pseudo_types()):
 				print '\tCreate description'
 				Description(source=description.source, description=description.description, text=text).save()
 
 			text.save()
 		
-			if texts.count() == 0:
-				# create cat num
-				CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
+			if len(texts) == 0:
+				# create cat nums
+				for hi_cat_num in hi_cat_nums:
+					CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
 				
 	def process_pseudo_items(self):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+
 		#text.objects.all().delete()
 		utils.fix_sequences(db_alias='default', silent=True)
 		
@@ -692,29 +723,121 @@ Commands:
 		print '\n5. Delete pseudo-HIs and pseudo-CIs.\n'
 
 		# delete the pseudo-HIs
-		for hi in HistoricalItem.objects.filter(id__in=his_to_delete).order_by('id'):
-			print '\tDelete %s' % self.get_obj_label(hi)
-			hi.delete()
-		
-		# delete the pseudo-IPs
-		for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()).order_by('id'):
-			print '\tDelete %s' % self.get_obj_label(ip)
-			ip.delete()
+		if 1:
+			for hi in HistoricalItem.objects.filter(id__in=his_to_delete).order_by('id'):
+				print '\tDelete %s' % self.get_obj_label(hi)
+				hi.delete()
+			
+			# delete the pseudo-IPs
+			for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()).order_by('id'):
+				print '\tDelete %s' % self.get_obj_label(ip)
+				ip.delete()
 		
 		print '\n6. Summary\n'
 
 		print '%s cartulary HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
 		
 		self.print_warning_report()
+
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
 		
-	def get_duplicates_of_current_item(self, ci):
+	def add_cartulary_his(self):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		from digipal.models import ItemPartItem		
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+		
+		for hi in HistoricalItem.objects.filter(historical_item_type__name='charter', historical_item_format__name='Single-sheet'):
+			ciids = {}
+			for ip in hi.item_parts.all():
+				ciids[ip.current_item.id] = 1
+			if len(ciids) > 1:
+				print '%s' % self.get_obj_label(hi)
+				first = True
+				for ip in hi.item_parts.all():
+					print '\t%s' % self.get_obj_label(ip)
+					if first:
+						print '\t\tSkip'
+						first = False
+						continue
+					
+					# Clone the HI
+					print '\t\tClone HI'
+					hi_new = self.get_cloned_hi(hi)
+					
+					# Reconnect the IP to the new HI
+					print '\t\tConnect cloned HI (%s) to IP (%s)' % (self.get_obj_label(hi_new), self.get_obj_label(ip))
+					ItemPartItem.objects.filter(historical_item=hi, item_part=ip).delete()
+					ItemPartItem(historical_item=hi_new, item_part=ip).save()
+
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
+		con.leave_transaction_management()
+					
+	def get_cloned_hi(self, hi):
+		ret = HistoricalItem()
+		ret.display_label = hi.display_label
+
+		ret.legacy_id = hi.legacy_id
+		ret.historical_item_type = hi.historical_item_type
+		ret.historical_item_format = hi.historical_item_format
+		ret.date = hi.date
+		ret.name = hi.name
+		ret.hair = hi.hair
+		ret.language = hi.language
+		ret.url = hi.url
+		ret.vernacular = hi.vernacular
+		ret.neumed = hi.neumed
+		ret.catalogue_number = hi.catalogue_number
+		ret.legacy_reference = hi.legacy_reference
+		
+		ret.save()
+
+		for cat in hi.categories.all():
+			ret.categories.add(cat)
+			
+		for owner in hi.owners.all():
+			ret.owners.add(cat)
+		
+		# cat num!
+		# Have to copy all the cat nums!
+		for cat_num in hi.catalogue_numbers.all():
+			print '\t\t\tCreate cat num: %s' % cat_num
+			CatalogueNumber(historical_item=ret, number=cat_num.number, source=cat_num.source).save()
+		
+		# layout! None of them has a layout so we can ignore this part.
+		if hi.layout_set.count() > 0:
+			print '\t\t\tWARNING: Has layout'
+			
+		return ret
+	
+	def get_duplicates_of_current_item(self, ci, echo=False):
 		if not hasattr(self, 'duplicate_cis'):
 			self.duplicate_cis = self.get_duplicate_cis()
 		key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
-		return self.duplicate_cis[key][:]
+		ret = self.duplicate_cis[key][:]
+		if len(ret) > 1 and echo:
+			self.print_warning('Bridged CIs with similar names', 2)
+			print '\t\t\t%s (key: %s)' % (', '.join([self.get_obj_label(ci) % ci for ci in ret]), key)
+		return ret
 	
-	def get_normalised_code(self, locus):
-		return re.sub(ur'\W+', ur'.', locus.lower().strip())
+	def get_normalised_code(self, code):
+		#return re.sub(ur'\W+', ur'.', locus.lower().strip())
+		code = code.lower()
+		# For CUL and Oxford Bodleian we ignore the number between parenthesis at the end  
+		if (code.startswith('20-')) or (code.startswith('43-')):
+			code = re.sub(ur'\(\d+\)\s*$', ur'', code)
+		code = re.sub(ur'(\s|,|\.)+', ur'_', code)
+		return code.replace('ii', '2').replace('i', '1').replace('latin', 'lat').replace('additional', 'add').replace('add', 'ad').strip()
 		
 	##################################################
 
@@ -787,6 +910,10 @@ Commands:
 			c = utils.fix_sequences(options.get('db', 'default'), True)
 			print "%d sequences fixed." % c
 
+		if command == 'add_cartulary_his':
+			known_command = True
+			self.add_cartulary_his()
+
 		if command == 'pseudo_items':
 			known_command = True
 			self.process_pseudo_items()
@@ -794,9 +921,10 @@ Commands:
 		if command == 'duplicate_cis':
 			known_command = True
 			duplicates = self.get_duplicate_cis()
-			for cis in duplicates.values():
+			for key in duplicates:
+				cis = duplicates[key]
 				if len(cis) > 1:
-					print 'Duplicates:'
+					print 'Duplicates: (%s)' % key
 					for ci in cis:
 						print '\t%s' % self.get_obj_label(ci)
 

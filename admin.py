@@ -152,6 +152,27 @@ class HistoricalItemDescriptionFilter(SimpleListFilter):
             k = q.exclude(description__description__contains = "FIX")
             return k
 
+class CurrentItemPartNumberFilter(SimpleListFilter):
+    title = ('Number of Parts')
+
+    parameter_name = ('ci_nip')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('None')),
+            ('1', ('One')),
+            ('2p', ('Two or more')),
+        )   
+
+    def queryset(self, request, queryset):
+        select = ur'''(SELECT COUNT(*) FROM digipal_itempart WHERE current_item_id = digipal_currentitem.id) %s'''
+        if self.value() == '0':
+            return queryset.extra(where=[select % ' = 0'])
+        if self.value() == '1':
+            return queryset.extra(where=[select % ' = 1'])
+        if self.value() == '2p':
+            return queryset.extra(where=[select % ' > 1'])
+
 class HistoricalItemItemPartNumberFilter(SimpleListFilter):
     title = ('Number of Parts')
 
@@ -470,10 +491,10 @@ class ItemPartItemInline(admin.StackedInline):
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
-    list_display = ['repository', 'shelfmark', 'created', 'modified']
+    list_display = ['display_label', 'repository', 'shelfmark', 'created', 'modified']
     list_display_links = list_display
-    search_fields = ['repository__name', 'shelfmark', 'description']
-    list_filter = ['repository']
+    search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
+    list_filter = ['repository', CurrentItemPartNumberFilter]
 
     inlines = [ItemPartInline]
     filter_horizontal = ['owners']

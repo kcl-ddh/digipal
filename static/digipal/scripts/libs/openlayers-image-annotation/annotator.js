@@ -145,7 +145,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlModifyFeature',
 		title: 'Modify'
 	});
-	
+
 	*/
 	// creates a transform feature
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
@@ -259,9 +259,19 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		CLASS_NAME: 'OpenLayers.Control.Refresh'
 	});
 
+	EditorialAnnotations = OpenLayers.Class(OpenLayers.Control, {
+		initialize: function(layer, options) {
+			OpenLayers.Control.prototype.initialize.apply(this, [options]);
+			this.layer = layer;
+		},
+
+		CLASS_NAME: 'OpenLayers.Control.EditorialAnnotations'
+	});
+
 	this.fullScreen = new OpenLayers.Control.Button({
 		displayClass: 'olControlFullScreenFeature',
 		title: 'Full Screen',
+		active: false,
 		trigger: function() {
 			_self.full_Screen();
 		}
@@ -275,12 +285,30 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		}
 	});
 
+	this.editorial = new OpenLayers.Control.Button({
+		displayClass: 'olControlEditorialFeature',
+		title: 'Editorial Annotations',
+		active: false,
+		trigger: function() {
+
+			if (this.active) {
+				_self.boxes_on_click = false;
+				$('#boxes_on_click').attr('checked', false);
+				this.deactivate();
+			} else {
+				_self.boxes_on_click = true;
+				$('#boxes_on_click').attr('checked', true);
+				this.activate();
+			}
+		}
+	});
+
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature, this.dragFeature,
 			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
-			this.transformFeature, this.duplicateFeature, this.rectangleFeature, ]);
+			this.transformFeature, this.duplicateFeature, this.rectangleFeature, this.editorial]);
 
-	// sets the default control to be the drag feature 
+	// sets the default control to be the drag feature
 	this.toolbarPanel.defaultControl = this.selectFeature;
 
 	// adds the toolbar panel to the map

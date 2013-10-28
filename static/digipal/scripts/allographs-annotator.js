@@ -268,13 +268,14 @@ var chained = request.then(function(data) {
 				var request = $.getJSON(url_features);
 
 				var features = annotator.vectorLayer.features;
+				var url2;
 				request.done(function(data) {
 					var allograph_id = data.id;
-					var url = '../allograph/' + data.id + '/features/';
+					url2 = '../allograph/' + data.id + '/features/';
 					if (annotator.hands_page == "True") {
-						var url = "/digipal/page/61/allograph/" + data.id + '/features/';
+						url2 = "/digipal/page/61/allograph/" + data.id + '/features/';
 					}
-					var allographs = $.getJSON(url);
+					var allographs = $.getJSON(url2);
 					var s = "<div id='box_features_container'>";
 					var string_summary = '';
 					allographs.done(function(data) {

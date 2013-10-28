@@ -129,34 +129,36 @@
               </div>
             </div>
           </div>
-              <div class='panel' id='panelImageBox' style='padding:1%;'>
-                <span><b>Annotations</b>: <span class="badge badge-important">{{ annotations }}</span></span>
-                <span><b>Hands</b>: <span class="badge badge-success">{{ hands }}</span></span>
+              <div class='panel' id='panelImageBox' style='padding:0.8%;'>
+                <span class="label label-important" style='margin-right:0;font-size:12.8px;'><span><b>Annotations</b>: {{ annotations }}</span></span>
+                <span class="label label-success style='margin-right:0;font-size:12.8px;'"><span><b>Hands</b>: {{ hands }}</span></span>
                 {% if annotations > 0 %}
-                <span><b>Annotations:</b>
+                <span class="label" style='margin-right:0;font-size:12.8px;'><b>Annotations:</b></span>
                   <span id="toggle-state-switch" class="switch switch-small">
                     <input type="checkbox" />
                   </span>
-                </span>
-
                 <span>
-                  <a class='btn' id='filterAllographs'>Filter</a>
-                </span>
+                  <div class="btn-toolbar" style='display:inline'>
+                    <div class="btn-group" style='margin-bottom:1%'>
+                      <a class='btn' id='filterAllographs'>Filter</a>
+                {% else %}
+                <span>
                 {% endif %}
-
-                <span>
                     <a class="btn" id="settings_annotator">Settings</a>
+                  </div>
+                </div>
                 </span>
-            </div>
-            {% if can_edit %}
-                <form name='frmAnnotation' method="get" id='frmAnnotation'>
-                  <div style='margin-top:2%' id='form_annotation_hand'>
+                 {% if can_edit %}
+                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;margin-left:18%;'>
+                  <div id='form_annotation_hand' style='display:inline;width:35%;'>
                   {{ form }}
                   <div style='display:inline;'>
-                    <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span></div>
+                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
                   </div>
                 </form>
             {% endif %}
+            </div>
+
 
 
             <div>

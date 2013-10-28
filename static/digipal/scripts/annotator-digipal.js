@@ -629,7 +629,7 @@ function reload_described_annotations(div) {
 						}
 					}
 				});
-			}, 500);
+			}, 1000);
 		}
 	}
 

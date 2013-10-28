@@ -326,9 +326,11 @@ declaring function to get parameteres from URL
 		$('#settings_annotator').click(function() {
 			if (modal_settings) {
 				modal_settings = false;
+				$(this).removeClass('active');
 				$("#modal_settings").parent().remove();
 			} else {
 				modal_settings = true;
+				$(this).addClass('active');
 				$('#modal_settings').dialog({
 					draggable: true,
 					height: 500,
@@ -338,6 +340,7 @@ declaring function to get parameteres from URL
 					close: function(event, ui) {
 						modal_settings = false;
 						$("#modal_settings").parent().remove();
+						$('#settings_annotator').removeClass('active');
 					}
 				});
 			}

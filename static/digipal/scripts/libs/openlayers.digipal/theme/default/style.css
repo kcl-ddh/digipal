@@ -129,10 +129,15 @@ div.olControlMousePosition {
 .olLayerGeoRSSTitle {
     float:left;font-size:1.2em;
 }
-
+.olPopup{
+    max-width: 350px !important;
+    word-wrap:break-word;
+}
 .olPopupContent {
-    padding:5px;
-    overflow: auto;
+    word-wrap:break-word;
+    padding:6px;
+    left:0px !important;
+    overflow: hidden;
 }
 
 .olControlNavigationHistory {

@@ -144,6 +144,11 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 	function stylize(color, feature) {
 		feature.style.fillColor = color;
 		feature.style.strokeColor = color;
+		if (feature.display_note) {
+			feature.style.strokeColor = 'yellow';
+		} else {
+			feature.style.strokeColor = color;
+		}
 	}
 	var allographs = $('.checkVectors');
 	var hands = $('.checkVectors_hands');
@@ -161,9 +166,11 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 						};
 						if (features[i].described) {
 							stylize('green', features[i]);
+
 						} else {
 							stylize('#ee9900', features[i]);
 						}
+
 					} else {
 						features[i].style.fillOpacity = 0.4;
 						features[i].style.strokeOpacity = 1;
@@ -214,11 +221,19 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	var feature = event.feature;
 	if (feature.described) {
 		feature.style.fillColor = 'green';
-		feature.style.strokeColor = 'green';
+		if (feature.display_note) {
+			feature.style.strokeColor = 'yellow';
+		} else {
+			feature.style.strokeColor = 'green';
+		}
 
 	} else {
 		feature.style.fillColor = '#ee9900';
-		feature.style.strokeColor = '#ee9900';
+		if (feature.display_note) {
+			feature.style.strokeColor = 'yellow';
+		} else {
+			feature.style.strokeColor = '#ee9900';
+		}
 	}
 	if ($('#id_hide').prop('checked')) {
 		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
@@ -586,6 +601,9 @@ function reload_described_annotations(div) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = true;
 						}
+						if (feature[h].display_note) {
+							feature[h].style.strokeColor = 'yellow';
+						}
 
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
@@ -593,6 +611,9 @@ function reload_described_annotations(div) {
 						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
 							stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = false;
+						}
+						if (feature[h].display_note) {
+							feature[h].style.strokeColor = 'yellow';
 						}
 					}
 				}
@@ -607,10 +628,13 @@ function reload_described_annotations(div) {
 		if (typeof div != "undefined") {
 			div.fadeOut().remove();
 		}
+
 		if (annotator.isAdmin == 'True') {
-			$('path').unbind();
+
 			setTimeout(function() {
-				$('path').mouseenter(function() {
+				var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+				paths.unbind();
+				paths.mouseenter(function() {
 					var features = annotator.vectorLayer.features;
 					for (var i = 0; i < features.length; i++) {
 						if ($(this).attr('id') == features[i].geometry.id) {
@@ -621,7 +645,7 @@ function reload_described_annotations(div) {
 					}
 				});
 
-				$('path').mouseleave(function() {
+				paths.mouseleave(function() {
 					var features = annotator.vectorLayer.features;
 					for (var i = 0; i < features.length; i++) {
 						if (features[i].popup) {

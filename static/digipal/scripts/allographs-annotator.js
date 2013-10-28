@@ -341,6 +341,7 @@ var chained = request.then(function(data) {
 
 						var maximized = false;
 						$('#maximize').click(function() {
+							$('#summary').css("bottom", "67.3%").hide();
 							if (!maximized) {
 								$('.myModal').animate({
 									'position': 'fixed',
@@ -348,11 +349,14 @@ var chained = request.then(function(data) {
 									'left': '59.5%',
 									"width": '40%',
 									"height": '100%'
-								}, 300).draggable("destroy");
-								$('#summary').css("bottom", "67.3%");
+								}, 300, function() {
+									$('#summary').show();
+								}).draggable("destroy");
+
 								$('.modal-body').css("max-height", "100%");
 								maximized = true;
 							} else {
+								$('#summary').css("bottom", "88%").hide();
 								$('.myModal').animate({
 									'position': 'fixed',
 									'left': "55%",
@@ -360,8 +364,10 @@ var chained = request.then(function(data) {
 									'right': '',
 									"width": '30%',
 									"height": '60%'
-								}, 300).draggable();
-								$('#summary').css("bottom", "88%");
+								}, 300, function() {
+									$('#summary').show();
+								}).draggable();
+
 								$('.modal-body').css("max-height", "");
 
 								maximized = false;

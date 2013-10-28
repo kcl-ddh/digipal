@@ -132,12 +132,24 @@ div.olControlMousePosition {
 .olPopup{
     max-width: 350px !important;
     word-wrap:break-word;
+    border-radius:4px;
+}
+#pop_FrameDecorationDiv_3, #pop_FrameDecorationDiv_1,#pop_FrameDecorationDiv_2,#pop_FrameDecorationDiv_4, #pop_FrameDecorationDiv_0{
+    display:none;
+}
+#pop_contentDiv{
+    left:8px !important;
+    width: 330px !important;
+    top:46px;
+    text-align:justify;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    border-radius:4px;
 }
 .olPopupContent {
     word-wrap:break-word;
-    padding:6px;
-    left:0px !important;
-    overflow: hidden;
+    padding:3px;
+    overflow: auto;
 }
 
 .olControlNavigationHistory {

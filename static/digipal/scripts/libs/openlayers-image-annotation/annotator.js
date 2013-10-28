@@ -271,6 +271,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.fullScreen = new OpenLayers.Control.Button({
 		displayClass: 'olControlFullScreenFeature',
 		title: 'Full Screen',
+		active: false,
 		trigger: function() {
 			_self.full_Screen();
 		}

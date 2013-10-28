@@ -730,7 +730,7 @@ function create_dialog(selectedFeature, id) {
 						"</span> <span style='position:relative;left:6%;'> <span class='url_allograph btn btn-small'>URL</span></span>";
 				} else {
 					if (annotator.editorial.active) {
-						title = "<span class='allograph_label'>Editorial Annotation</span>" +
+						title = "<span class='allograph_label'>Annotation (Note)</span>" +
 							" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
 					} else {
 						title = "<span class='allograph_label'>Annotation</span>" +
@@ -1113,7 +1113,9 @@ function showBox(selectedFeature) {
 			dialog = $('#dialog' + id);
 			if (annotator.editorial.active && can_edit) {
 				var s = '<label>Editorial Note</label>';
-				s += '<textarea style="width:95%;height:40%;"></textarea>';
+				s += '<textarea id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
+				s += '<label>Public Note</label>'
+				s += '<textarea id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
 				dialog.css('margin', '3%');
 				dialog.html(s);
 			}
@@ -1732,6 +1734,7 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 
 DigipalAnnotator.prototype.full_Screen = function() {
 	if (!(this.fullScreen.active)) {
+		this.fullScreen.activate();
 		$('#map').css({
 			'width': '100%',
 			'height': '100%',
@@ -1742,20 +1745,18 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			'background-color': 'rgba(0, 0, 0, 0.95)'
 		});
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.85)");
-		this.fullScreen.active = true;
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
 				this.fullScreen.active = null;
 			}
 		});
-		$('.olControlFullScreenFeatureItemInactive').css('background-image', 'url(/static/digipal/scripts/libs/openlayers/theme/default/img/fullscreen_on.gif)');
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen')
 	} else {
+		this.fullScreen.deactivate();
 		$('#map').attr('style', null);
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 		this.fullScreen.active = null;
-		$('.olControlFullScreenFeatureItemInactive').css('background-image', 'url(/static/digipal/scripts/libs/openlayers/theme/default/img/fullscreen.gif)');
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen')
 	}
 };

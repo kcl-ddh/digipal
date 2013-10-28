@@ -531,12 +531,22 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 	background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    width: 22px !important;
+    border-radius: 5px;
 }
+
 .olControlEditingToolbar .olControlFullScreenFeatureItemInactive:hover, .olControlEditingToolbar .olControlFullScreenFeatureItemActive{
-	background-image: url(img/fullscreen_on.gif);
+	background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
+    background-color: #f2c021;
+    border: 1px solid #ccc;
+    width: 22px !important;
+    border-radius: 5px;
 }
+
 div.olControlZoom {
     position: absolute;
     top: 8px;

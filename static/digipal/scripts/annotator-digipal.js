@@ -319,6 +319,7 @@ function getFeatureById(id) {
 	return annotation;
 }
 
+
 /*
 
     Function to refresh the layer when saved an annotation
@@ -728,8 +729,13 @@ function create_dialog(selectedFeature, id) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
 						"</span> <span style='position:relative;left:6%;'> <span class='url_allograph btn btn-small'>URL</span></span>";
 				} else {
-					title = "<span class='allograph_label'>Annotation</span>" +
-						" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+					if (annotator.editorial.active) {
+						title = "<span class='allograph_label'>Editorial Annotation</span>" +
+							" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+					} else {
+						title = "<span class='allograph_label'>Annotation</span>" +
+							" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+					}
 				}
 			} else {
 				if (selectedFeature) {
@@ -1063,10 +1069,11 @@ function fill_dialog(id, annotation) {
 
 function show_url_allograph(dialog) {
 	var url_allograph_div = false;
+	var url;
 	dialog.parent().find('.url_allograph').click(function() {
 		if (!url_allograph_div) {
 			if (!dialog.find('.allograph_url_div').length) {
-				var url = $("<div class='allograph_url_div'>");
+				url = $("<div class='allograph_url_div'>");
 				var input = $('<input type="text" disabled>');
 				var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 				input.val(allograph_url);
@@ -1076,7 +1083,7 @@ function show_url_allograph(dialog) {
 				url_allograph_div = true;
 			}
 		} else {
-			var url = dialog.parent().find(".allograph_url_div");
+			url = dialog.parent().find(".allograph_url_div");
 			url.fadeOut().remove();
 			url_allograph_div = false;
 		}
@@ -1096,18 +1103,29 @@ function showBox(selectedFeature) {
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
 	if (annotator.boxes_on_click) {
+		var dialog;
+
+		var can_edit = $('#development_annotation').is(':checked');
 
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
 			fill_dialog(id, null);
+			dialog = $('#dialog' + id);
+			if (annotator.editorial.active && can_edit) {
+				var s = '<label>Editorial Note</label>';
+				s += '<textarea style="width:95%;height:40%;"></textarea>';
+				dialog.css('margin', '3%');
+				dialog.html(s);
+			}
+
 			return false;
 		}
 
 		var url = 'graph/' + selectedFeature.graph + '/features/';
 		array_features_owned = features_owned(selectedFeature, url);
 		create_dialog(selectedFeature, id);
-		var can_edit = $('#development_annotation').is(':checked');
-		var dialog = $('#dialog' + id);
+		dialog = $('#dialog' + id);
+
 
 		if (can_edit) {
 
@@ -1193,6 +1211,7 @@ function showBox(selectedFeature) {
 
 				});
 			});
+
 
 		} else {
 			$.ajax({

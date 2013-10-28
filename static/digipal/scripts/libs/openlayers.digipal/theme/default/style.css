@@ -429,6 +429,25 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 .olControlEditingToolbar .olControlNavigationItemActive  {
     background-position: -103px -24px;
 }
+.olControlEditorialFeatureItemInactive{
+    background-image: url(/static/images/edit.png) !important;
+    background-repeat: no-repeat;
+    background-position: 4px 4px !important;
+    background: #eee;
+    border: 1px solid #ccc;
+    width: 22px !important;
+    border-radius: 5px;
+}
+
+.olControlEditorialFeatureItemActive{
+    background-image: url(/static/images/edit.png) !important;
+    background-repeat: no-repeat;
+    background-position: 4px 4px !important;
+    background: #f2c021;
+    border: 1px solid #ccc;
+    width: 22px !important;
+    border-radius: 5px;
+}
 .olControlEditingToolbar .olControlZoomBoxItemInactive {
     background-image: url(img/zoom_off.png);
     background-repeat: no-repeat;

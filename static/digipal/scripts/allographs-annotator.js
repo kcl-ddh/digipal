@@ -340,7 +340,8 @@ var chained = request.then(function(data) {
 						$('.myModal select').chosen();
 
 						var maximized = false;
-						$('#maximize').click(function() {
+						$('#maximize').click(function(event) {
+							event.preventDefault();
 							$('#summary').css("bottom", "67.3%").hide();
 							if (!maximized) {
 								$('.myModal').animate({

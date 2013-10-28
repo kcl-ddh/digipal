@@ -629,32 +629,7 @@ function reload_described_annotations(div) {
 			div.fadeOut().remove();
 		}
 
-		if (annotator.isAdmin == 'True') {
 
-			setTimeout(function() {
-				var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-				paths.unbind();
-				paths.mouseenter(function() {
-					var features = annotator.vectorLayer.features;
-					for (var i = 0; i < features.length; i++) {
-						if ($(this).attr('id') == features[i].geometry.id) {
-							if (features[i].display_note) {
-								createPopup(features[i]);
-							}
-						}
-					}
-				});
-
-				paths.mouseleave(function() {
-					var features = annotator.vectorLayer.features;
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].popup) {
-							deletePopup(features[i]);
-						}
-					}
-				});
-			}, 1000);
-		}
 	}
 
 
@@ -1888,6 +1863,12 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 					break;
 				case 39:
 					annotator.map.moveByPx(30);
+					break;
+				case 187:
+					annotator.vectorLayer.map.zoomIn();
+					break;
+				case 189:
+					annotator.vectorLayer.map.zoomOut();
 					break;
 			}
 		}

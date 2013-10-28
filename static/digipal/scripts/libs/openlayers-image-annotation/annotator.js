@@ -293,11 +293,11 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 			if (this.active) {
 				_self.boxes_on_click = false;
-				$('#development_annotation').attr('checked', false);
+				$('#boxes_on_click').attr('checked', false);
 				this.deactivate();
 			} else {
 				_self.boxes_on_click = true;
-				$('#development_annotation').attr('checked', true);
+				$('#boxes_on_click').attr('checked', true);
 				this.activate();
 			}
 		}

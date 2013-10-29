@@ -94,14 +94,30 @@ var chained = request.then(function(data) {
 
 		function clean_annotations(annotation) {
 			var annotations = selectedAnnotations.annotations;
-			for (i = 0; i < annotations.length; i++) {
+			var length_annotations = annotations.length;
+			for (i = 0; i < length_annotations; i++) {
 				if (annotations[i].id == annotation.id) {
 					annotations.splice(i, 1);
-					i--;
 					break;
 				}
 			}
 		}
+
+		/*
+		$('.check_all_allographs').click(function(event) {
+			var parent = $(this).parent();
+			var checkboxes = parent.find('input[type=checkbox]');
+			checkboxes.attr('checked', true);
+			checkboxes.trigger('click');
+		});
+
+		$('.uncheck_all_allographs').click(function(event) {
+			var parent = $(this).parent();
+			var checkboxes = parent.find('input[type=checkbox]');
+			checkboxes.attr('checked', false);
+			checkboxes.trigger('click');
+		});
+*/
 
 		$('.annotation_li').click(function(event) {
 			var annotation = getFeatureById($(this).data('annotation'));
@@ -134,17 +150,16 @@ var chained = request.then(function(data) {
 				var checkboxes = $('.select_annotation_checkbox');
 				var a = selectedAnnotations.allograph;
 				if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
-
 					selectedAnnotations.allograph = null;
 					selectedAnnotations.annotations = [];
 					$('.annotation_li').removeClass('selected');
 					$('.annotation_li').data('selected', false);
 				}
-
 				if (!checkbox.is(':checked')) {
 					clean_annotations(annotation);
 					annotation_li.data('selected', false);
 					annotation_li.removeClass('selected');
+					event.stopPropagation();
 				} else {
 					selectedAnnotations.allograph = annotation.feature;
 					selectedAnnotations.annotations.push(annotation);
@@ -159,6 +174,7 @@ var chained = request.then(function(data) {
 				}
 
 			}
+
 
 			main();
 		});
@@ -178,8 +194,9 @@ var chained = request.then(function(data) {
 			if (initialLoad) {
 				$('#save').click(function() {
 					var features = annotator.vectorLayer.features;
+					var features_length = features.length;
 					var selected_features = [];
-					for (var i = 0; i < features.length; i++) {
+					for (var i = 0; i < features_length; i++) {
 						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 								selected_features.push(features[i]);
@@ -194,8 +211,9 @@ var chained = request.then(function(data) {
 
 				$('#delete').click(function(event) {
 					var features = annotator.vectorLayer.features;
+					var features_length = features.length;
 					var selected_features = [];
-					for (var i = 0; i < features.length; i++) {
+					for (var i = 0; i < features_length; i++) {
 						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 								selected_features.push(features[i]);
@@ -248,7 +266,8 @@ var chained = request.then(function(data) {
 
 				features_owned.done(function(f) {
 					array_features_owned = [];
-					for (var i = 0; i < f.length; i++) {
+					var f_length = f.length;
+					for (var i = 0; i < f_length; i++) {
 						for (var j = 0; j < f[i].feature.length; j++) {
 							s = f[i].name;
 							s += ':' + f[i].feature[j];
@@ -306,10 +325,10 @@ var chained = request.then(function(data) {
 											if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
 												var ann = $('input[data-annotation="' + f[k].id + '"]').next().text();
 												d++;
+
+
 												al += '<span class="label">' + ann + '</span> ';
-												if (d > 2) {
-													al = al + '..';
-												}
+
 												title += ann + ' ';
 											}
 										}
@@ -320,6 +339,7 @@ var chained = request.then(function(data) {
 								} else {
 									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
 								}
+
 							});
 							s += "</div>";
 							if (!n) {

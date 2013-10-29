@@ -38,6 +38,7 @@
 
               {% if not is_admin %}
               annotator.toolbarPanel.controls.splice(4, 5);
+              annotator.toolbarPanel.controls.splice(5, 6);
               annotator.toolbarPanel.redraw();
               {% endif %}
 
@@ -129,7 +130,7 @@
               </div>
             </div>
           </div>
-              <div class='panel' id='panelImageBox' style='padding:0.8%;'>
+              <div class='panel' id='panelImageBox' style='padding:0.8%;padding-bottom: 0.5%;'>
                 <span class="label label-important" style='margin-right:0;font-size:12.8px;'><span><b>Annotations</b>: {{ annotations }}</span></span>
                 <span class="label label-success style='margin-right:0;font-size:12.8px;'"><span><b>Hands</b>: {{ hands }}</span></span>
                 {% if annotations > 0 %}

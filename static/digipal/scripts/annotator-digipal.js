@@ -1761,16 +1761,17 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
+				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 				this.fullScreen.active = null;
 			}
 		});
-		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen')
+		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 	} else {
 		this.fullScreen.deactivate();
 		$('#map').attr('style', null);
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 		this.fullScreen.active = null;
-		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen')
+		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
 	}
 };
 
@@ -1838,10 +1839,13 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var deactivateAll = function(activeControls) {
 		for (i = 0; i < activeControls.length; i++) {
 			if (activeControls[i].title) {
-				activeControls[i].deactivate();
+				if (activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
+					activeControls[i].deactivate();
+
+				}
 			}
 		}
-	}
+	};
 	$(document).bind('keydown', function(event) {
 		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);

@@ -8,7 +8,7 @@ from django.shortcuts import render_to_response
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 from django.utils.text import capfirst
-from django.utils.translation import ugettext_lazy, ugettext as _ 
+from django.utils.translation import ugettext_lazy, ugettext as _
 from django.utils.safestring import mark_safe
 import htmlentitydefs
 from django.core import urlresolvers
@@ -47,39 +47,39 @@ def image_bulk_edit(request, url=None):
     '''
     context['manuscripts'] = ItemPart.objects.all().order_by('display_label')
     context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
-    
+
     manuscript = request.POST.get('manuscript', None)
     if manuscript == '0': manuscript = None
     if manuscript:
         manuscript = ItemPart.objects.get(id=manuscript)
-    
+
     page = request.POST.get('page_number', '').strip()
     if page != '':
         page = int(page)
-        
+
     folio_number = request.POST.get('folio_number', '').strip()
     if folio_number != '':
         folio_number = int(folio_number)
     #folio_side = Folio_Side.objects.get(id=request.POST.get('folio_side', '1'))
     folio_side = request.POST.get('folio_side', '1').strip()
     #folio_sides = {}
-    
+
 #    for s in Folio_Side.objects.all():
 #        folio_sides[s.id] = s
-    
+
     recto = 'r'
     verso = 'v'
     unspecified_side = ''
-    
+
     action = request.POST.get('action', '').strip()
 
     #if action == 'operations':
 
-    
+
     if len(action):
         for folio in context['folios']:
             modified = False
-            
+
             if action == 'operations':
                 number = re.findall(r'(?i)0*(\d{1,3})\D*$', folio.iipimage.name)
                 if str(request.POST.get('manuscript_set', '0')) == '1':
@@ -95,7 +95,7 @@ def image_bulk_edit(request, url=None):
                     if folio_number != '' and folio_side in (verso, ''):
                         folio_number = folio_number + 1
                     folio.folio_side = folio_side
-                    if folio_side == recto: 
+                    if folio_side == recto:
                         folio_side = verso
                     elif folio_side == verso:
                         folio_side = recto
@@ -107,11 +107,11 @@ def image_bulk_edit(request, url=None):
                         folio.folio_number = ''
                     modified = True
                 if str(request.POST.get('folio_side_set', '0')) == '1':
-                    if re.search('(?i)[^a-z]r$', folio.iipimage.name): 
+                    if re.search('(?i)[^a-z]r$', folio.iipimage.name):
                         folio.folio_side = recto
-                    elif re.search('(?i)[^a-z]v$', folio.iipimage.name): 
+                    elif re.search('(?i)[^a-z]v$', folio.iipimage.name):
                         folio.folio_side = verso
-                    else: 
+                    else:
                         folio.folio_side = recto
                         #folio.folio_side = unspecified_side
                     modified = True
@@ -127,7 +127,7 @@ def image_bulk_edit(request, url=None):
                 if str(request.POST.get('unarchived_set', '0')) == '1':
                     folio.archived = False
                     modified = True
-            
+
             if action == 'change_values':
 
                 '''
@@ -136,8 +136,8 @@ def image_bulk_edit(request, url=None):
                         <input class="txt-folio-number" type="text" name="pn-{{folio.id}}" value="{{folio.page}}" />
                         <input type="checkbox" name="arch-{{folio.id}}" {% if folio.archived %}checked="checked"{% endif %} />
                         <textarea class="txta-folio-note" name="inotes-{{folio.id}}">{{ folio.internal_notes }}</textarea>
-                '''                
-                
+                '''
+
                 folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
                 #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
                 folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()
@@ -145,11 +145,11 @@ def image_bulk_edit(request, url=None):
                 #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
                 #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
                 folio.locus = folio.get_locus_label(True)
-                modified = True            
-            
+                modified = True
+
             if modified: folio.save()
 
-            
+
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     return render(request, 'admin/page/bulk_edit.html', context)
 
@@ -160,7 +160,7 @@ def newScriptEntry(request):
     formsetScribe = formset_factory(ScribeAdminForm)
 
     formset = formsetScribe()
-        
+
     onlyScribeForm = OnlyScribe()
 
     newContext = {
@@ -168,7 +168,7 @@ def newScriptEntry(request):
                'scribeForm': onlyScribeForm
                }
 
-    return render_to_response('admin/page/ScriptForm.html', newContext, 
+    return render_to_response('admin/page/ScriptForm.html', newContext,
                               context_instance=RequestContext(request))
 
 
@@ -187,7 +187,7 @@ def get_idiographs(request):
                 'idiograph': idiograph.display_label,
                 'id': idiograph.id,
                 'num_features': num_features
-            }            
+            }
             idiographs.append(object_idiograph)
 
         return HttpResponse(simplejson.dumps(idiographs), mimetype='application/json')
@@ -267,7 +267,7 @@ def save_idiograph(request):
         data = simplejson.loads(request.POST.get('data', ''))
         allograph = Allograph.objects.get(id=allograph_id)
         scribe = Scribe.objects.get(id=scribe_id)
-        idiograph = Idiograph(allograph=allograph, scribe=scribe) 
+        idiograph = Idiograph(allograph=allograph, scribe=scribe)
         idiograph.save()
         for component in data:
             idiograph_id = Idiograph.objects.get(id=idiograph.id)

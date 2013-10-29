@@ -283,7 +283,12 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			if ($('.letters-allograph-container').length) {
 				var allograph_id = $('#id_allograph').val();
 				var allograph = $('#id_allograph option:selected').text();
-				refresh_letters_container(allograph, allograph_id);
+				if (current_allograph === undefined) {
+					refresh_letters_container(allograph, allograph_id);
+				}
+				if (current_allograph !== undefined && annotation.feature !== current_allograph) {
+					refresh_letters_container(allograph, allograph_id);
+				}
 			}
 		}
 	}
@@ -957,6 +962,8 @@ function load_allographs_container(allograph_value, url) {
 }
 
 function open_allographs(allograph) {
+	current_allograph = allograph;
+
 	if ($('.letters-allograph-container').length) {
 		$('.letters-allograph-container').remove();
 	}
@@ -990,6 +997,7 @@ function open_allographs(allograph) {
 
 
 function refresh_letters_container(allograph, allograph_id) {
+	current_allograph = allograph;
 	if ($('.letters-allograph-container').length) {
 		$('.letters-allograph-container').remove();
 	}

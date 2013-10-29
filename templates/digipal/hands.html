@@ -73,7 +73,12 @@
         {{ annotation.thumbnail }}
         </a>
         </li>
-
+        {% comment %}
+        {% if forloop.last %}
+          <input type="button" style='margin-top:1%' class="btn check_all_allographs" value ="All" />
+          <input type="button" style='margin-top:1%' class="btn uncheck_all_allographs" value ="Clear" />
+        {% endif %}
+        {% endcomment %}
         {% endfor %}
 
       </ul>

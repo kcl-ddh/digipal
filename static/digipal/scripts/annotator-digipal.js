@@ -283,7 +283,12 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			if ($('.letters-allograph-container').length) {
 				var allograph_id = $('#id_allograph').val();
 				var allograph = $('#id_allograph option:selected').text();
-				refresh_letters_container(allograph, allograph_id);
+				if (current_allograph === undefined) {
+					refresh_letters_container(allograph, allograph_id);
+				}
+				if (current_allograph !== undefined && annotation.feature !== current_allograph) {
+					refresh_letters_container(allograph, allograph_id);
+				}
 			}
 		}
 	}
@@ -679,14 +684,12 @@ function create_dialog(selectedFeature, id) {
 		var p;
 		try {
 			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
-				var w = $(window).scrollTop();
 				p = {
-					my: "right center + " + w,
-					at: "right top" + w,
-					of: window
+					my: "right center",
+					at: "right top",
+					of: $('#map')
 				};
 			} else {
-
 				p = {
 					my: 'right top',
 					at: 'right top',
@@ -696,9 +699,9 @@ function create_dialog(selectedFeature, id) {
 			}
 		} catch (e) {
 			p = {
-				my: "right center + " + w,
-				at: "right top" + w,
-				of: window
+				my: "right center",
+				at: "right top",
+				of: $('#map')
 			};
 		}
 		return p;
@@ -748,14 +751,29 @@ function create_dialog(selectedFeature, id) {
 		},
 		position: position()
 	}).addClass('dialog_annotations');
+	var pin;
+	if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+		pin = "<span title='Minimize box' style='font-size:20px;line-height:1.5;' class='pull-right pin-box'>&#9633;</span>";
+	} else {
+		pin = "<span title='Minimize box' class='pull-right pin-box'>-</span>";
+	}
 
-	var pin = "<span title='Minimize box' class='pull-right pin-box'>-</span>";
 	dialog.parent().find('.ui-dialog-title').after(pin);
 
 	// Minimize the dialog
+
 	dialog.parent().find('.pin-box').click(function() {
 		var dialog = $(this).parent().parent();
 		var position;
+		if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+			dialog.data('pinned', true);
+			position = {
+				'top': $(window).scrollTop() + 200,
+				'left': '70%'
+			};
+			dialog.data('position', position);
+		}
+
 		if (dialog.data('pinned')) {
 			$(this).html('-').css({
 				'line-height': 1,
@@ -944,6 +962,8 @@ function load_allographs_container(allograph_value, url) {
 }
 
 function open_allographs(allograph) {
+	current_allograph = allograph;
+
 	if ($('.letters-allograph-container').length) {
 		$('.letters-allograph-container').remove();
 	}
@@ -977,6 +997,7 @@ function open_allographs(allograph) {
 
 
 function refresh_letters_container(allograph, allograph_id) {
+	current_allograph = allograph;
 	if ($('.letters-allograph-container').length) {
 		$('.letters-allograph-container').remove();
 	}
@@ -1748,16 +1769,17 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
+				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 				this.fullScreen.active = null;
 			}
 		});
-		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen')
+		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 	} else {
 		this.fullScreen.deactivate();
 		$('#map').attr('style', null);
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 		this.fullScreen.active = null;
-		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen')
+		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
 	}
 };
 
@@ -1825,10 +1847,13 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var deactivateAll = function(activeControls) {
 		for (i = 0; i < activeControls.length; i++) {
 			if (activeControls[i].title) {
-				activeControls[i].deactivate();
+				if (activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
+					activeControls[i].deactivate();
+
+				}
 			}
 		}
-	}
+	};
 	$(document).bind('keydown', function(event) {
 		var activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);

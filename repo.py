@@ -33,10 +33,10 @@ def show_help():
          
 Options:
 
-     --ni
+     -a --automatic
          no interaction or user input required
 
-     --email=EMAIL_ADDRESS
+     -e --email=EMAIL_ADDRESS
          send error message to EMAIL_ADDRESS
 
     ''' % os.path.basename(__file__)

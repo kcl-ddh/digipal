@@ -3,6 +3,13 @@ from optparse import OptionParser
 import os, sys, re
 import subprocess
 
+class ExecutionError(Exception):
+    
+    def __init__(self, title, message):
+        self.title = title
+        self.message = message
+
+
 '''
 Repository management tool.
 
@@ -23,8 +30,23 @@ def show_help():
     
      diff
          Lists the difference across all repos
+         
+Options:
+
+     --ni
+         no interaction or user input required
+
+     --email=EMAIL_ADDRESS
+         send error message to EMAIL_ADDRESS
+
     ''' % os.path.basename(__file__)
     exit
+
+def get_allowed_branch_names():
+    return ['master', 'staging', 'ref2014']
+
+def get_allowed_branch_names_as_str():
+    return '|'.join(get_allowed_branch_names())
 
 def get_hg_folder_name():
     ret = ''
@@ -47,14 +69,15 @@ def process_commands():
         
 def process_commands_main_dir():
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="filename",
-                      help="write report to FILE", metavar="FILE")
-    parser.add_option("-q", "--quiet",
-                      action="store_false", dest="verbose", default=True,
-                      help="don't print status messages to stdout")
+    parser.add_option("-a", "--automatic",
+                      action="store_true", dest="automatic", default=False,
+                      help="no input necessary")
+    parser.add_option("-e", "--email",
+                      action="store", dest="email", default='',
+                      help="email to send errors to")
     
     (options, args) = parser.parse_args()
-
+    
     known_command = False
     
     if len(args):
@@ -93,13 +116,13 @@ def process_commands_main_dir():
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
                 os.chdir('digipal')
-                system('git status', r'(?i)on branch (master|staging)', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
+                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
                 system('git pull', validation_git)
                 os.chdir(dir)
                 
                 print '> Pull iipimage'
                 os.chdir('django-iipimage')
-                system('git status', r'(?i)on branch (master|staging)', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
+                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
                 system('git pull', validation_git)
                 os.chdir(dir)
                 
@@ -121,7 +144,7 @@ def process_commands_main_dir():
                     print '> fix permissions'
                     if has_sudo: print '\t(with sudo)'
                     sudo = ''
-                    if has_sudo: sudo = 'sudo '
+                    if has_sudo and not options.automatic: sudo = 'sudo '
                     system('%shown -R :digipal *' % sudo)
                     system('%shmod -R ug+rw *' % sudo)
                 
@@ -137,6 +160,15 @@ def process_commands_main_dir():
                 if os.name != 'nt':
                     print '> Touch WSGI'
                     run_shell_command(['touch', '%s/wsgi.py' % get_hg_folder_name()])
+
+            except ExecutionError as e:
+                email = options.email
+                if email:
+                    server_name = 'HOSTNAME'
+                    send_email(email, e.title + '\n\n' + e.message, 'Pull Script ERROR on %s' % server_name)
+                    print 'email sent to %s ' % email
+                print e.message
+                print e.title
 
             finally:
                 os.chdir(dir)
@@ -183,11 +215,7 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
         is_valid = (pattern_found == pattern_must_be_found)
         
     if not is_valid:
-        print output
-        print 'ERROR DURING EXECUTION of (%s, see above)' % command
-        if error_message:
-            print error_message
-        exit()
+        raise ExecutionError('%s - ERROR DURING EXECUTION of "%s"' % (error_message, command), output)
     
     return is_valid 
 
@@ -218,4 +246,27 @@ def run_shell_command(command, sudo=False):
     
     return ret
 
+def send_email(ato, amsg, asubject, afrom='noreply@digipal.eu'):
+    import smtplib
+    
+    # Import the email modules we'll need
+    from email.mime.text import MIMEText
+    
+    # Open a plain text file for reading.  For this example, assume that
+    # the text file contains only ASCII characters.
+    # Create a text/plain message
+    msg = MIMEText(amsg)
+    
+    # me == the sender's email address
+    # you == the recipient's email address
+    msg['Subject'] = asubject
+    msg['From'] = afrom
+    msg['To'] = ato
+    
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP('localhost')
+    s.sendmail(msg['From'], msg['To'].split(', '), msg.as_string())
+    s.quit()           
+    
 process_commands()

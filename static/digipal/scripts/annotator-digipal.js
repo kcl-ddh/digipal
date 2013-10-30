@@ -400,13 +400,17 @@ function updateFeatureSelect(currentFeatures, id) {
 	} else {
 		var annotations = annotator.annotations;
 		$.each(annotations, function() {
-			if (currentFeatures.feature == this.feature) {
-				allograph_selected = this.hidden_allograph.split('::')[0];
+			if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
+				if (currentFeatures.feature == this.feature) {
+					allograph_selected = this.hidden_allograph.split('::')[0];
+				}
+			} else {
+				return false;
 			}
 		});
-
 	}
-	if (annotator.admin === "True") {
+	console.log(allograph_selected);
+	if (annotator.isAdmin === "True") {
 
 		var allograph = $('#id_allograph option:selected').val();
 		$('#hidden_allograph').val(allograph_selected);
@@ -430,8 +434,9 @@ function updateFeatureSelect(currentFeatures, id) {
 		}
 
 		var s = '';
-		var get_features = $.getJSON(url);
-		if (allograph_selected) {
+
+		if (typeof allograph_selected != 'undefined' && allograph_selected) {
+			var get_features = $.getJSON(url);
 			get_features.done(function(data) {
 				$.each(data, function(idx) {
 					component = data[idx].name;
@@ -503,9 +508,7 @@ function updateFeatureSelect(currentFeatures, id) {
 			});
 		}
 	}
-
-
-
+	return false;
 }
 
 // function to check if an object is empty, boolean returned
@@ -692,9 +695,8 @@ function create_dialog(selectedFeature, id) {
 			} else {
 				p = {
 					my: 'right top',
-					at: 'right top',
-					of: $(path),
-					collision: 'flipfit flipfit'
+					at: 'right bottom',
+					of: $(path)
 				};
 			}
 		} catch (e) {
@@ -1898,16 +1900,16 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 					_self.full_Screen();
 					break;
 				case 38:
-					annotator.map.moveByPx(0, -30);
+					annotator.map.moveByPx(0, -40);
 					break;
 				case 40:
-					annotator.map.moveByPx(0, 30);
+					annotator.map.moveByPx(0, 40);
 					break;
 				case 37:
-					annotator.map.moveByPx(-30);
+					annotator.map.moveByPx(-40);
 					break;
 				case 39:
-					annotator.map.moveByPx(30);
+					annotator.map.moveByPx(40);
 					break;
 				case 187:
 					annotator.vectorLayer.map.zoomIn();

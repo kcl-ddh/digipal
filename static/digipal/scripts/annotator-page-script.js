@@ -35,6 +35,7 @@ declaring function to get parameteres from URL
   Loading annotations
 
 */
+
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
 	});
@@ -237,7 +238,7 @@ declaring function to get parameteres from URL
 					dialogClass: 'no-close'
 				});
 
-				$('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>");
+				$('#ui-dialog-title-allographs_filtersBox').after("<span title='Close box' class='pin-filters-box pull-right'>-</span>");
 
 				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 				$('#allographs_filtersBox').html(checkOutput);

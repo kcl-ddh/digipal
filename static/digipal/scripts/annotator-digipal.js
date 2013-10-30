@@ -594,8 +594,9 @@ function reload_described_annotations(div) {
 
 	$.each(annotator.annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
-		if (annotator.selectedFeature !== undefined) {
-			var selectedFeature = annotator.selectedFeature;
+		var selectedFeature;
+		if (typeof annotator.selectedFeature !== "undefined") {
+			selectedFeature = annotator.selectedFeature;
 		}
 		var num_features = annotation.num_features;
 		var h = 0;
@@ -606,9 +607,10 @@ function reload_described_annotations(div) {
 					if (num_features) {
 						stylize(feature[h], 'green', 'green', 0.4);
 						feature[h].described = true;
-						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
-							stylize(feature[h], 'blue', 'blue', 0.4);
+						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && feature[h].graph == selectedFeature.graph) {
+							//stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = true;
+							annotator.selectFeatureById(feature[h].id);
 						}
 						if (feature[h].display_note) {
 							feature[h].style.strokeColor = 'yellow';
@@ -617,9 +619,10 @@ function reload_described_annotations(div) {
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
 						feature[h].described = false;
-						if (typeof selectedFeature != "undefined" && feature[h].graph == selectedFeature.graph) {
-							stylize(feature[h], 'blue', 'blue', 0.4);
+						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && feature[h].graph == selectedFeature.graph) {
+							//stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = false;
+							annotator.selectFeatureById(feature[h].id);
 						}
 						if (feature[h].display_note) {
 							feature[h].style.strokeColor = 'yellow';
@@ -655,11 +658,11 @@ Function to create a new dialog for each allograph clicked
 
 function create_dialog(selectedFeature, id) {
 
-	if (typeof allow_multiple_dialogs == "undefined") {
-		allow_multiple_dialogs = false;
+	if (typeof annotator.allow_multiple_dialogs == "undefined") {
+		annotator.allow_multiple_dialogs = false;
 	}
 
-	if (!allow_multiple_dialogs) {
+	if (!annotator.allow_multiple_dialogs) {
 		$('.dialog_annotations').parent('.ui-dialog').remove();
 		$('.dialog_annotations').remove();
 	}
@@ -667,7 +670,7 @@ function create_dialog(selectedFeature, id) {
 	var dialog = $("<div>");
 	dialog.attr('id', 'dialog' + id);
 	$('#annotations').append(dialog);
-	var path = $("#OpenLayers_Layer_Vector_27_svgRoot")
+	var path = $("#OpenLayers_Layer_Vector_27_svgRoot");
 
 	if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 		var vector_id;

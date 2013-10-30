@@ -393,9 +393,9 @@ declaring function to get parameteres from URL
 		allow_multiple_dialogs = false;
 		$('#multiple_boxes').change(function() {
 			if ($(this).is(':checked')) {
-				allow_multiple_dialogs = true;
+				annotator.allow_multiple_dialogs = true;
 			} else {
-				allow_multiple_dialogs = false;
+				annotator.allow_multiple_dialogs = false;
 			}
 		});
 
@@ -439,11 +439,11 @@ declaring function to get parameteres from URL
 
 	can_edit.on('change', function() {
 		if ($(this).is(':checked')) {
-			$('#multiple_boxes').attr('disabled', 'disabled');
+			$('#multiple_boxes').attr('disabled', 'disabled').attr('checked', false);
+			annotator.allow_multiple_dialogs = false;
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
 			$('#boxes_on_click').attr('checked', true).trigger('change');
-
 		}
 	});
 

@@ -307,7 +307,7 @@ var chained = request.then(function(data) {
 
 							s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
 
-							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div><div>";
+							s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-small'>All</button> <button data-component = '" + component_id + "' class='btn btn-small uncheck_all'>Clear</button></div><div>";
 
 							s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 							var n = 0;
@@ -325,10 +325,7 @@ var chained = request.then(function(data) {
 											if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
 												var ann = $('input[data-annotation="' + f[k].id + '"]').next().text();
 												d++;
-
-
 												al += '<span class="label">' + ann + '</span> ';
-
 												title += ann + ' ';
 											}
 										}
@@ -349,13 +346,17 @@ var chained = request.then(function(data) {
 						s += "</div>";
 						$("#summary").html(string_summary);
 						$('#features_container').html(s);
-						$('.check_all').click(function() {
-							var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						$('.check_all').click(function(event) {
+							var component = $(this).data('component');
+							var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 							checkboxes.attr('checked', true);
+							event.stopPropagation();
 						});
-						$('.uncheck_all').click(function() {
-							var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+						$('.uncheck_all').click(function(event) {
+							var component = $(this).data('component');
+							var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 							checkboxes.attr('checked', false);
+							event.stopPropagation();
 						});
 						$('.myModal select').chosen();
 

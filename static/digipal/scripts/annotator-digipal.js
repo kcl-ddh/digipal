@@ -391,27 +391,28 @@ function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var url;
 	var allograph_selected;
-	if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
-		if ($('#id_allograph').val()) {
-			allograph_selected = $('#id_allograph').val();
-		} else {
-			return false;
-		}
+	if (isNaN(currentFeatures)) {
+		allograph_selected = currentFeatures;
 	} else {
-		var annotations = annotator.annotations;
-		$.each(annotations, function() {
-			if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
-				if (currentFeatures.feature == this.feature) {
-					allograph_selected = this.hidden_allograph.split('::')[0];
-				}
+		if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
+			if ($('#id_allograph').val()) {
+				allograph_selected = $('#id_allograph').val();
 			} else {
 				return false;
 			}
-		});
-	}
-	console.log(allograph_selected);
-	if (annotator.isAdmin === "True") {
+		} else {
+			var annotations = annotator.annotations;
+			$.each(annotations, function() {
 
+				if (currentFeatures.feature == this.feature) {
+					allograph_selected = this.hidden_allograph.split('::')[0];
+				}
+
+			});
+		}
+	}
+
+	if (annotator.isAdmin === "True") {
 		var allograph = $('#id_allograph option:selected').val();
 		$('#hidden_allograph').val(allograph_selected);
 
@@ -429,8 +430,9 @@ function updateFeatureSelect(currentFeatures, id) {
 			}
 		}
 
-		if ($(".number_annotated_allographs").length) {
-			$(".number_annotated_allographs .number-allographs").html(n);
+		var number_allographs = $(".number_annotated_allographs");
+		if (number_allographs.length) {
+			number_allographs.find(".number-allographs").html(n);
 		}
 
 		var s = '';
@@ -443,7 +445,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component_id = data[idx].id;
 					var features = data[idx].features;
 					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button class='check_all btn btn-small'>All</button> <button class='btn btn-small uncheck_all'>Clear</button></div>";
+					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-small'>All</button> <button data-component = '" + component_id + "' class='btn btn-small uncheck_all'>Clear</button></div>";
 
 					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -464,18 +466,21 @@ function updateFeatureSelect(currentFeatures, id) {
 				} else {
 					dialog = $('.modal-body');
 				}
-				dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
-
+				if (!annotator.editorial.active) {
+					dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
+				}
 
 				dialog.find('#box_features_container').html(s);
-				dialog.find('.check_all').click(function() {
-					var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+				dialog.find('.check_all').click(function(event) {
+					var checkboxes = $(this).parent().next().find('input[type=checkbox]');
 					checkboxes.attr('checked', true);
+					event.stopPropagation();
 				});
 
-				dialog.find('.uncheck_all').click(function() {
-					var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
+				dialog.find('.uncheck_all').click(function(event) {
+					var checkboxes = $(this).parent().next().find('input[type=checkbox]');
 					checkboxes.attr('checked', false);
+					event.stopPropagation();
 				});
 
 				dialog.find('.component_labels').click(function() {
@@ -733,7 +738,7 @@ function create_dialog(selectedFeature, id) {
 				var button = <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '" + selectedFeature.feature + "' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span>
 
 				*/
-				if (selectedFeature) {
+				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
 						"</span> <span style='position:relative;left:6%;'> <span class='url_allograph btn btn-small'>URL</span></span>";
 				} else {
@@ -818,16 +823,16 @@ function create_dialog(selectedFeature, id) {
 		}
 	});
 
-
+	if (annotator.isAdmin == "False") {
+		$('.name_temporary_annotation').focus();
+		$('.ui-dialog-title').on('click', function() {
+			$('.name_temporary_annotation').focus();
+		});
+	}
 
 	if (typeof selectedFeature === "null" || typeof selectedFeature === "undefined") {
 		updateFeatureSelect(null, id);
-		if (annotator.isAdmin == "False") {
-			$('.name_temporary_annotation').focus();
-			$('.ui-dialog-title').on('click', function() {
-				$('.name_temporary_annotation').focus();
-			});
-		}
+
 	} else {
 		updateFeatureSelect(selectedFeature, id);
 	}
@@ -1053,11 +1058,25 @@ function fill_dialog(id, annotation) {
 
 
 		$('#id_allograph').on('change', function() {
-			updateFeatureSelect(annotation, id);
-		});
+			var n = 0;
+			var features = annotator.vectorLayer.features;
+			var allograph = $('#id_allograph option:selected').text();
+			var allograph_id = $(this).val();
 
-		$('#id_hand').on('change', function() {
-			$('#hidden_hand').val($(this).val());
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == allograph) {
+					n++;
+				}
+			}
+
+			//updateFeatureSelect($(this).val());
+
+			if ($('.letters-allograph-container').length) {
+				open_allographs();
+			}
+
+			$(".number_annotated_allographs .number-allographs").html(n);
+			updateFeatureSelect(annotation, id);
 		});
 
 	} else {
@@ -1158,6 +1177,7 @@ function showBox(selectedFeature) {
 		var url = 'graph/' + selectedFeature.graph + '/features/';
 		array_features_owned = features_owned(selectedFeature, url);
 		create_dialog(selectedFeature, id);
+		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 
 
@@ -1921,10 +1941,10 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 				case 39:
 					annotator.map.moveByPx(40);
 					break;
-				case 191:
+				case 187:
 					annotator.vectorLayer.map.zoomIn();
 					break;
-				case 54:
+				case 189:
 					annotator.vectorLayer.map.zoomOut();
 					break;
 			}

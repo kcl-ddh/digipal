@@ -460,7 +460,7 @@ declaring function to get parameteres from URL
 			}
 		}
 
-		updateFeatureSelect($(this).val());
+		//updateFeatureSelect($(this).val());
 
 		if ($('.letters-allograph-container').length) {
 			open_allographs();
@@ -469,9 +469,6 @@ declaring function to get parameteres from URL
 		$(".number_annotated_allographs .number-allographs").html(n);
 	});
 
-	$('#id_hand').on('change', function() {
-		$('#hidden_hand').val($(this).val());
-	});
 
 	$('.number_annotated_allographs').click(function() {
 		open_allographs();

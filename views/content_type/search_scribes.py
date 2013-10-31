@@ -24,8 +24,8 @@ class SearchScribes(SearchContentType):
         ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         return ret
 
-    def set_record_view_context(self, context):
-        super(SearchScribes, self).set_record_view_context(context)
+    def set_record_view_context(self, context, request):
+        super(SearchScribes, self).set_record_view_context(context, request)
         context['scribe'] = Scribe.objects.get(id=context['id'])
         # TODO: naming is confusing here, check if the code still work
         context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)

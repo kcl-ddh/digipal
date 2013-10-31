@@ -19,17 +19,14 @@ class SearchHands(SearchContentType):
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
-    def set_record_view_context(self, context):
-        super(SearchHands, self).set_record_view_context(context)
+    def set_record_view_context(self, context, request):
+        super(SearchHands, self).set_record_view_context(context, request)
 
         from django.utils.datastructures import SortedDict
-        p = Hand.objects.get(id=context['id'])
-        image = p.images.all()[0]
-        width, height = image.dimensions()
-        image_server_url = image.zoomify
-        hands_page = True
-        #c = p.graphs_set.model.objects.get(id=p.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
+        current_hand = Hand.objects.get(id=context['id'])
+        
+        #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
+        annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id)
         data = SortedDict()
         for annotation in annotation_list:
             hand = annotation.graph.hand
@@ -43,13 +40,20 @@ class SearchHands(SearchContentType):
                 data[hand][allograph_name] = []
 
             data[hand][allograph_name].append(annotation)
+            
             context['data'] = data
-        context['width'] = width
-        context['can_edit'] = True
-        context['height'] = height
-        context['image_erver_url'] = image_server_url
-        context['hands_page'] = hands_page
-        context['result'] = p
+        
+        # GN: ???
+        context['can_edit'] = request and has_edit_permission(request, Annotation)
+
+        images = current_hand.images.all()
+        if images.count():
+            image = images[0]            
+            context['width'], context['height'] = image.dimensions()
+            context['image_erver_url'] = image.zoomify
+        
+        context['hands_page'] = True
+        context['result'] = current_hand
     
     @property
     def form(self):

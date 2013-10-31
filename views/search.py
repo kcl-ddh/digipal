@@ -43,7 +43,7 @@ def record_view(request, content_type='', objectid=''):
     for type in context['types']:
         if type.key == content_type:
             context['id'] = objectid
-            type.set_record_view_context(context)
+            type.set_record_view_context(context, request)
             type.set_record_view_pagination_context(context, request)
             break
     

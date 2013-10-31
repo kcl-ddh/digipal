@@ -7,7 +7,7 @@ class SearchContentType(object):
         ret = getattr(digipal.models, self.label[:-1])
         return ret
     
-    def set_record_view_context(self, context):
+    def set_record_view_context(self, context, request):
         context['type'] = self
 
     def __init__(self):

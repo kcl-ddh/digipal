@@ -151,11 +151,17 @@
                   {{ form }}
 
                 </form>
-            {% endif %}
+
              <div style='display:inline;'>
                     <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
                   </div>
             </div>
+            {% else %}
+             <div style='display:inline;'>
+                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )</span></div>
+                  </div>
+            </div>
+            {% endif %}
             <p id='status'></p>
 
               <div class='container'>

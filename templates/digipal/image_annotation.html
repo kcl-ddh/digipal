@@ -34,8 +34,8 @@
                                               '{{ image_server_url }}', "{{is_admin}}");
 
               {% if not is_admin %}
-              annotator.toolbarPanel.controls.splice(4, 5);
-              annotator.toolbarPanel.controls.splice(5, 6);
+              annotator.toolbarPanel.controls.splice(3, 4);
+              annotator.toolbarPanel.controls.splice(4, 4);
               annotator.toolbarPanel.redraw();
               {% endif %}
 

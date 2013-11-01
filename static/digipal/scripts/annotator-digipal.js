@@ -757,7 +757,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span  data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;

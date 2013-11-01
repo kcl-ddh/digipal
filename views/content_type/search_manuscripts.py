@@ -17,8 +17,8 @@ class SearchManuscripts(SearchContentType):
         ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
-    def set_record_view_context(self, context):
-        super(SearchManuscripts, self).set_record_view_context(context)
+    def set_record_view_context(self, context, request):
+        super(SearchManuscripts, self).set_record_view_context(context, request)
         context['item_part'] = ItemPart.objects.get(id=context['id'])
         context['images'] = context['item_part'].images.all().order_by('locus')
         context['hands'] = context['item_part'].hands.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')

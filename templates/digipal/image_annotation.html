@@ -37,6 +37,7 @@
               annotator.toolbarPanel.controls.splice(3, 4);
               annotator.toolbarPanel.controls.splice(4, 4);
               annotator.toolbarPanel.redraw();
+              annotator.user_annotations = [];
               {% endif %}
 
               annotator.hands = {{ hands_list|safe }}

@@ -83,7 +83,7 @@
     {% if not no_image_reason or can_edit %}
           <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
         <div class='row'>
-          <div class='span7'>
+          <div class='span8'>
               <ul class='nav nav-tabs'>
                 <li class='active'><a>View Manuscript</a></li>
                 <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
@@ -91,7 +91,7 @@
                 <li><a href='copyright/'>Image Copyright</a></li>
               </ul>
           </div>
-          <div class='span3 pull-right'>
+          <div class='pull-right'>
             <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ image.item_part.images.count }}
              {% if image.item_part.images.count == 1 %}
               <span style='font-weight:bold'>image</span></span>
@@ -114,12 +114,10 @@
                       {% else %}
                         {% if forloop.counter|divisibleby:3 %}
                           <div class='row'>
-
                            <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
                           </div>
                       {% else %}
                           <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
-
                     {% endif %}
                     {% endif %}
                 {% endfor %}
@@ -132,7 +130,7 @@
                 <span class="label label-success style='margin-right:0;font-size:12.8px;'"><span><b>Hands</b>: {{ hands }}</span></span>
                 {% if annotations > 0 %}
                 <span class="label" style='margin-right:0;font-size:12.8px;'><b>Annotations:</b></span>
-                  <span id="toggle-state-switch" class="switch switch-small">
+                  <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: text-bottom;'>
                     <input type="checkbox" />
                   </span>
                 <span>
@@ -147,7 +145,7 @@
                 </div>
                 </span>
                  {% if can_edit %}
-                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;margin-left:18%;'>
+                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;margin-left:16%;'>
                   <div id='form_annotation_hand' style='display:inline;width:35%;'>
                   {{ form }}
                   <div style='display:inline;'>
@@ -156,12 +154,7 @@
                 </form>
             {% endif %}
             </div>
-
-
-
-            <div>
-              <p id='status'></p>
-            </div>
+            <p id='status'></p>
 
               <div class='container'>
                   <div id="map"></div>
@@ -171,22 +164,22 @@
                 <div id='modal_settings' style="display:none;">
                       <p>
                         <label>Annotation boxes</label>
-                        <span>Allow multiple boxes <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled {% endif %} /></span>
+                        <label for='multiple_boxes' style='font-weight:normal;'>Allow multiple boxes <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled {% endif %} /></label>
                       </p>
                       <p>
                         <label>Toolbar position</label>
-                          <span>Vertical <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked /></span><br />
-                          <span>Horizontal <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  /></span>
+                          <label style='font-weight:normal;' for='vertical'>Vertical <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked /></label>
+                          <label style='font-weight:normal;' for='horizontal'>Horizontal <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  /></label>
                       </p>
                       <p>
                         <label>Boxes</label>
-                        <span>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></span>
+                        <label style='font-weight:normal;' for='boxes_on_click'>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></label>
                       </p>
                       {% if can_edit %}
 
                       <p>
                         <label>Admin</label>
-                        <span>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></span>
+                        <label style='font-weight:normal;' for='development_annotation'>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></label>
                         </p>
                         <p>
                        <label>Filter allographs: </label>

@@ -1,6 +1,6 @@
 annotator.url_allographs = true;
 annotator.url_annotations = '../annotations';
-
+temporary_vectors = [];
 if (annotator.hands_page == "True") {
 	annotator.url_annotations = '/digipal/page/61/annotations/';
 }
@@ -96,8 +96,9 @@ var chained = request.then(function(data) {
 			var annotations = selectedAnnotations.annotations;
 			var length_annotations = annotations.length;
 			for (i = 0; i < length_annotations; i++) {
-				if (annotations[i].id == annotation.id) {
-					annotations.splice(i, 1);
+				if (annotations[i].vector_id == annotation.vector_id) {
+
+					selectedAnnotations.annotations.splice(i, 1);
 					break;
 				}
 			}
@@ -128,6 +129,7 @@ var chained = request.then(function(data) {
 					selectedAnnotations.annotations = [];
 					$('.annotation_li').removeClass('selected');
 					$('.annotation_li').data('selected', false);
+					temporary_vectors = [];
 				}
 				if ($(this).data('selected')) {
 					clean_annotations(annotation);
@@ -135,6 +137,7 @@ var chained = request.then(function(data) {
 					$(this).removeClass('selected');
 					$(this).find('input').attr('checked', false);
 				} else {
+					temporary_vectors = [];
 					selectedAnnotations.annotations = [];
 					$('.annotation_li').data('selected', false).removeClass('selected');
 					$('.annotation_li').find('input').attr('checked', false);
@@ -154,12 +157,13 @@ var chained = request.then(function(data) {
 					selectedAnnotations.annotations = [];
 					$('.annotation_li').removeClass('selected');
 					$('.annotation_li').data('selected', false);
+					temporary_vectors = [];
 				}
 				if (!checkbox.is(':checked')) {
 					clean_annotations(annotation);
 					annotation_li.data('selected', false);
 					annotation_li.removeClass('selected');
-					event.stopPropagation();
+
 				} else {
 					selectedAnnotations.allograph = annotation.feature;
 					selectedAnnotations.annotations.push(annotation);
@@ -171,6 +175,7 @@ var chained = request.then(function(data) {
 							$(this).attr('checked', false);
 						}
 					});
+
 				}
 
 			}
@@ -266,6 +271,9 @@ var chained = request.then(function(data) {
 
 				features_owned.done(function(f) {
 					array_features_owned = [];
+					if (temporary_vectors) {
+						array_features_owned = array_features_owned.concat(temporary_vectors);
+					}
 					var f_length = f.length;
 					for (var i = 0; i < f_length; i++) {
 						for (var j = 0; j < f[i].feature.length; j++) {
@@ -285,7 +293,6 @@ var chained = request.then(function(data) {
 				}
 
 				var request = $.getJSON(url_features);
-
 				var features = annotator.vectorLayer.features;
 				var url2;
 				request.done(function(data) {
@@ -315,21 +322,26 @@ var chained = request.then(function(data) {
 							$.each(features, function(idx) {
 								var value = component_id + '::' + features[idx].id;
 								var names = component + ':' + features[idx].name;
-								var f = annotator.vectorLayer.features;
+								var f = selectedAnnotations.annotations;
 								var al = '';
 								var d = 0;
 								var title = '';
-								if (array_features_owned.indexOf(names) >= 0) {
-									for (var k = 0; k < f.length; k++) {
-										for (var j = 0; j < f[k].features.length; j++) {
-											if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
-												var ann = $('input[data-annotation="' + f[k].id + '"]').next().text();
-												d++;
-												al += '<span class="label">' + ann + '</span> ';
-												title += ann + ' ';
-											}
+								var ann;
+								for (var k = 0; k < f.length; k++) {
+									for (var j = 0; j < f[k].features.length; j++) {
+										if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
+											ann = $('input[data-annotation="' + f[k].vector_id + '"]').next().text();
+											d++;
+											al += '<span class="label">' + ann + '</span> ';
+											title += ann + ' ';
+											temporary_vectors.push(names);
 										}
+
 									}
+								}
+
+								if (array_features_owned.indexOf(names) >= 0) {
+
 									string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
 									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
 									n++;

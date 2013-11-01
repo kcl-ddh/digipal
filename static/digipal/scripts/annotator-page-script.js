@@ -199,86 +199,85 @@ declaring function to get parameteres from URL
 
 			$(this).addClass('active');
 
-			if (!allographs_box) {
-				allographs_box = true;
-				var checkOutput = '<div class="span6" style="padding:2%;border-right:1px dotted #efefef;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
-				var annotations = annotator.annotations;
 
-				if (!isEmpty(annotations)) {
-					var list = [];
-					var vectors = [];
-					for (var i in annotations) {
-						list.push([annotations[i]['feature']]);
-					}
-					list.sort();
-					for (var h = 0; h < list.length; h++) {
-						checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
-							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
-					}
+			var checkOutput = '<div class="span6" style="padding:2%;border-right:1px dotted #efefef;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
+			var annotations = annotator.annotations;
+
+			if (!isEmpty(annotations)) {
+				var list = [];
+				var vectors = [];
+				for (var i in annotations) {
+					list.push([annotations[i]['feature']]);
 				}
-				checkOutput += "</div>";
-				checkOutput += '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
-				if (!isEmpty(annotations)) {
-					var hands = annotator.hands;
-					for (var h = 0; h < hands.length; h++) {
-						checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
-							"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
-					}
+				list.sort();
+				for (var h = 0; h < list.length; h++) {
+					checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
+						"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 				}
-				checkOutput += "</div>";
+			}
+			checkOutput += "</div>";
+			checkOutput += '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
+			if (!isEmpty(annotations)) {
+				var hands = annotator.hands;
+				for (var h = 0; h < hands.length; h++) {
+					checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
+						"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+				}
+			}
+			checkOutput += "</div>";
 
 
-				$('#allographs_filtersBox').dialog({
-					draggable: true,
-					height: 300,
-					resizable: true,
-					width: 320,
-					title: "Filter Annotations",
-					closeOnEscape: false,
-					dialogClass: 'no-close'
-				});
+			$('#allographs_filtersBox').dialog({
+				draggable: true,
+				height: 300,
+				resizable: true,
+				width: 320,
+				title: "Filter Annotations",
+				close: function() {
+					$('#filterAllographs').removeClass('active');
+				}
+			});
 
-				$('#ui-dialog-title-allographs_filtersBox').after("<span title='Close box' class='pin-filters-box pull-right'>-</span>");
+			/*$('#ui-dialog-title-allographs_filtersBox').after("<span title='Close box' class='pin-filters-box pull-right'>-</span>");*/
 
-				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-				$('#allographs_filtersBox').html(checkOutput);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			$('#allographs_filtersBox').html(checkOutput);
 
-				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
-				$('.checkVectors').change(function() {
-					annotator.filterAnnotation($(this), 'feature');
-				});
+			$('.checkVectors').change(function() {
+				annotator.filterAnnotation($(this), 'feature');
+			});
 
-				$('.checkVectors_hands').change(function() {
-					annotator.filterAnnotation($(this), 'hand');
-				});
+			$('.checkVectors_hands').change(function() {
+				annotator.filterAnnotation($(this), 'hand');
+			});
 
-				$('#checkAll').click(function() {
-					annotator.filterCheckboxes('.checkVectors', 'check');
-				});
+			$('#checkAll').click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'check');
+			});
 
-				$('#checkAll_hands').click(function() {
-					annotator.filterCheckboxes('.checkVectors_hands', 'check');
+			$('#checkAll_hands').click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'check');
 
-				});
+			});
 
-				$('#unCheckAll').click(function() {
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
-				});
+			$('#unCheckAll').click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'uncheck');
+			});
 
-				$('#unCheckAll_hands').click(function() {
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
+			$('#unCheckAll_hands').click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
 
-				});
+			});
 
+			/*
 				$('.pin-filters-box').click(function() {
 					$('#filterAllographs').removeClass('active');
 					$(this).parent().parent().fadeOut();
 				});
+				*/
 
-			} else {
-				$('.pin-filters-box').parent().parent().fadeIn();
-			}
 
 
 		});
@@ -304,6 +303,7 @@ declaring function to get parameteres from URL
 
 		$('#closeBox').click(function() {
 			$('#popupImages').fadeOut();
+			showImages = 0;
 		});
 
 

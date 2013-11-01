@@ -164,10 +164,11 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	// creates a duplicate feature
-	this.duplicateFeature = new DuplicateFeature(this.vectorLayer, {
+	/*this.duplicateFeature = new DuplicateFeature(this.vectorLayer, {
 		displayClass: 'olControlDuplicateFeature',
 		title: 'Duplicate'
 	});
+	*/
 
 	// creates a polygon feature
 	/*
@@ -304,9 +305,9 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	// adds all the control features to the toolbar panel
-	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature, this.dragFeature,
+	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,
 			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
-			this.transformFeature, this.duplicateFeature, this.rectangleFeature, this.editorial]);
+			this.transformFeature, this.rectangleFeature, this.editorial]);
 
 	// sets the default control to be the drag feature
 	this.toolbarPanel.defaultControl = this.selectFeature;

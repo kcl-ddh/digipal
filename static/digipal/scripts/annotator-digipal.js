@@ -33,11 +33,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.boxes_on_click = false;
 	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
 	this.transformFeature.panel_div.title = 'Transform (shift + t)';
-	this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
+	//this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
 	this.rectangleFeature.panel_div.title = 'Draw Rectangle (shift + r)';
 	this.selectFeature.panel_div.title = 'Select (shift + g)';
-	this.dragFeature.panel_div.title = 'Drag (shift + w)';
+	//this.dragFeature.panel_div.title = 'Drag (shift + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
 	this.saveButton.panel_div.title = 'Save (shift + s)';
 
@@ -391,23 +391,19 @@ function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var url;
 	var allograph_selected;
-	if (isNaN(currentFeatures)) {
+	var annotations = annotator.annotations;
+	if ($.isNumeric(currentFeatures)) {
 		allograph_selected = currentFeatures;
 	} else {
 		if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
 			if ($('#id_allograph').val()) {
 				allograph_selected = $('#id_allograph').val();
-			} else {
-				return false;
 			}
 		} else {
-			var annotations = annotator.annotations;
 			$.each(annotations, function() {
-
 				if (currentFeatures.feature == this.feature) {
 					allograph_selected = this.hidden_allograph.split('::')[0];
 				}
-
 			});
 		}
 	}
@@ -422,6 +418,7 @@ function updateFeatureSelect(currentFeatures, id) {
 			url = 'allograph/' + allograph_selected + '/features/';
 		}
 
+		/*
 		var n = 0;
 
 		for (var i = 0; i < features.length; i++) {
@@ -434,7 +431,7 @@ function updateFeatureSelect(currentFeatures, id) {
 		if (number_allographs.length) {
 			number_allographs.find(".number-allographs").html(n);
 		}
-
+	*/
 		var s = '';
 
 		if (typeof allograph_selected != 'undefined' && allograph_selected) {
@@ -596,8 +593,8 @@ function reload_described_annotations(div) {
 	};
 
 	var check_described = null;
-
-	$.each(annotator.annotations, function(index, annotation) {
+	var annotations = annotator.annotations;
+	$.each(annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
 		var selectedFeature;
 		if (typeof annotator.selectedFeature !== "undefined") {
@@ -612,26 +609,32 @@ function reload_described_annotations(div) {
 					if (num_features) {
 						stylize(feature[h], 'green', 'green', 0.4);
 						feature[h].described = true;
-						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && feature[h].graph == selectedFeature.graph) {
+
+						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
 							//stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = true;
 							annotator.selectFeatureById(feature[h].id);
 						}
+						/*
 						if (feature[h].display_note) {
 							feature[h].style.strokeColor = 'yellow';
 						}
-
+						*/
 					} else {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
 						feature[h].described = false;
+
 						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && feature[h].graph == selectedFeature.graph) {
 							//stylize(feature[h], 'blue', 'blue', 0.4);
 							feature[h].described = false;
 							annotator.selectFeatureById(feature[h].id);
 						}
+
+						/*
 						if (feature[h].display_note) {
 							feature[h].style.strokeColor = 'yellow';
 						}
+						*/
 					}
 				}
 				h++;
@@ -740,14 +743,14 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <span style='position:relative;left:6%;'> <span class='url_allograph btn btn-small'>URL</span></span>";
+						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
-							" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
 					} else {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <span style='position:relative;left:6%;'></span><span class='url_allograph btn btn-small'>URL</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
 					}
 				}
 			} else {
@@ -1069,8 +1072,6 @@ function fill_dialog(id, annotation) {
 				}
 			}
 
-			//updateFeatureSelect($(this).val());
-
 			if ($('.letters-allograph-container').length) {
 				open_allographs();
 			}
@@ -1085,14 +1086,36 @@ function fill_dialog(id, annotation) {
 
 	dialog.html(s);
 
-	dialog.parent().find('.url_allograph').click(function() {
-		if (!dialog.parent().find('.allograph_url_div').length) {
+	show_url_allograph(dialog, annotation);
+
+	var hidden_hand = $('#id_hand').val();
+	var hidden_allograph = $('#id_allograph').val();
+
+	$('#hidden_hand').val(hidden_hand);
+	$('#hidden_allograph').val(hidden_allograph);
+
+}
+
+function show_url_allograph(dialog, annotation) {
+	var features = annotator.vectorLayer.features;
+	var url_allograph_button = dialog.parent().find('.url_allograph');
+	url_allograph_button.click(function() {
+		if ($(this).data('hidden')) {
+			$(this).data('hidden', false);
 			var url = $("<div class='allograph_url_div'>");
 			var allograph_url;
 			var input = $('<input type="text" disabled>');
 			var title = $('.name_temporary_annotation').val();
 			var desc = $('.textarea_temporary_annotation').val();
-			if (annotation !== null && annotation.stored) {
+			var stored;
+			if (annotation !== null) {
+				for (var i = 0; i < features.length; i++) {
+					if (annotation.graph == features[i].graph && features[i].stored) {
+						stored = true;
+					}
+				}
+			}
+			if (annotation !== null && stored) {
 				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 			} else {
 				var geometryObject = annotator.selectedFeature;
@@ -1106,37 +1129,9 @@ function fill_dialog(id, annotation) {
 			dialog.prepend(url);
 			input.select();
 		} else {
-			dialog.find('.allograph_url_div').fadeOut().remove();
-		}
-	});
-
-	var hidden_hand = $('#id_hand').val();
-	var hidden_allograph = $('#id_allograph').val();
-
-	$('#hidden_hand').val(hidden_hand);
-	$('#hidden_allograph').val(hidden_allograph);
-
-}
-
-function show_url_allograph(dialog) {
-	var url_allograph_div = false;
-	var url;
-	dialog.parent().find('.url_allograph').click(function() {
-		if (!url_allograph_div) {
-			if (!dialog.find('.allograph_url_div').length) {
-				url = $("<div class='allograph_url_div'>");
-				var input = $('<input type="text" disabled>');
-				var allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-				input.val(allograph_url);
-				url.html(input);
-				dialog.prepend(url);
-				dialog.parent().find('.allograph_url_div input').select();
-				url_allograph_div = true;
-			}
-		} else {
-			url = dialog.parent().find(".allograph_url_div");
-			url.fadeOut().remove();
-			url_allograph_div = false;
+			$(this).data('hidden', true);
+			var url_allograph_element = dialog.parent().find('.allograph_url_div');
+			url_allograph_element.fadeOut().remove();
 		}
 	});
 }
@@ -1165,7 +1160,7 @@ function showBox(selectedFeature) {
 			if (annotator.editorial.active && can_edit) {
 				var s = '<label>Editorial Note</label>';
 				s += '<textarea id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
-				s += '<label>Public Note</label>'
+				s += '<label>Public Note</label>';
 				s += '<textarea id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
 				dialog.css('margin', '3%');
 				dialog.html(s);
@@ -1248,7 +1243,6 @@ function showBox(selectedFeature) {
 						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
 						checkboxes.attr('checked', false);
 					});
-					show_url_allograph(dialog);
 					$('.component_labels').click(function() {
 						var div = $("#" + $(this).data('id'));
 						if (!div.data('hidden')) {

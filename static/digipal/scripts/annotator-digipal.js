@@ -1940,16 +1940,20 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 					_self.full_Screen();
 					break;
 				case 38:
-					annotator.map.moveByPx(0, -40);
+					annotator.map.moveByPx(0, -60);
+					annotator.vectorLayer.redraw();
 					break;
 				case 40:
-					annotator.map.moveByPx(0, 40);
+					annotator.map.moveByPx(0, 60);
+					annotator.vectorLayer.redraw();
 					break;
 				case 37:
-					annotator.map.moveByPx(-40);
+					annotator.map.moveByPx(-60);
+					annotator.vectorLayer.redraw();
 					break;
 				case 39:
-					annotator.map.moveByPx(40);
+					annotator.map.moveByPx(60);
+					annotator.vectorLayer.redraw();
 					break;
 				case 187:
 					annotator.vectorLayer.map.zoomIn();

@@ -1076,7 +1076,7 @@ function fill_dialog(id, annotation) {
 			var allograph_id = $(this).val();
 
 			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == allograph) {
+				if (features[i].feature == allograph && features[i].stored) {
 					n++;
 				}
 			}
@@ -1327,7 +1327,7 @@ function showBox(selectedFeature) {
 
 		(function() {
 			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
+				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
 					n++;
 				}
 			}
@@ -1955,12 +1955,6 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 			}
 		}
 	};
-
-	$(document).bind('keyup', function(event) {
-		if (event.shiftKey) {
-			_self.rectangleFeature.activate();
-		}
-	});
 
 	$(document).bind('keydown', function(event) {
 		activeControls = _self.map.getControlsBy('active', true);

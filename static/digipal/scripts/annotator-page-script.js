@@ -459,7 +459,7 @@ declaring function to get parameteres from URL
 		var allograph_id = $(this).val();
 
 		for (var i = 0; i < features.length; i++) {
-			if (features[i].feature == allograph) {
+			if (features[i].feature == allograph && features[i].stored) {
 				n++;
 			}
 		}

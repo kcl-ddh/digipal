@@ -163,7 +163,6 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 		},
 		'setfeature': function(e) {
-			console.log(e.feature);
 			var hand = $('#id_hand').val();
 			var allograph = $('#id_allograph').val();
 			e.feature.hand = hand;

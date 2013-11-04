@@ -93,6 +93,10 @@ declaring function to get parameteres from URL
 			// [was] zooms to the max extent of the map area
 			// Now the maps zooms just one step ahead
 			map.zoomIn();
+			var navigation = new OpenLayers.Control.Navigation({
+				'zoomBoxEnabled': false
+			});
+			map.addControl(navigation);
 
 
 
@@ -153,7 +157,7 @@ declaring function to get parameteres from URL
 					annotator.selectFeatureByIdAndZoom(vector_id_value);
 				}, 500);
 			}
-
+			highlight_unsaved_vectors();
 			reload_described_annotations();
 
 			if (annotator.isAdmin == 'True') {
@@ -503,7 +507,13 @@ declaring function to get parameteres from URL
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}
+
 		annotator.selectFeatureById(feature.feature.id);
+		//annotator.rectangleFeature.deactivate();
+		//annotator.selectFeature.activate();
+		annotator.unsaved_annotations.push(feature);
+		$('.number_unsaved_allographs').html(annotator.unsaved_annotations.length);
+
 	}
 
 	$('#boxes_on_click').on('change', function() {

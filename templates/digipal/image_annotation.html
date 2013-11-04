@@ -144,17 +144,18 @@
                     <a class="btn" id="settings_annotator">Settings</a>
                   </div>
                 </div>
+                <span style='margin-left:1%' class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
                 </span>
                  {% if can_edit %}
                 <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
                   <div id='form_annotation_hand' style='display:inline;width:35%;'>
                   {{ form }}
-
                 </form>
 
+
              <div style='display:inline;'>
-                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
-                  </div>
+                <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
+              </div>
             </div>
             {% else %}
              <div style='display:inline;'>

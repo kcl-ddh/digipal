@@ -37,6 +37,7 @@
               annotator.toolbarPanel.controls.splice(3, 4);
               annotator.toolbarPanel.controls.splice(4, 4);
               annotator.toolbarPanel.redraw();
+              annotator.user_annotations = [];
               {% endif %}
 
               annotator.hands = {{ hands_list|safe }}
@@ -145,15 +146,22 @@
                 </div>
                 </span>
                  {% if can_edit %}
-                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;margin-left:16%;'>
+                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
                   <div id='form_annotation_hand' style='display:inline;width:35%;'>
                   {{ form }}
-                  <div style='display:inline;'>
+
+                </form>
+
+             <div style='display:inline;'>
                     <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
                   </div>
-                </form>
-            {% endif %}
             </div>
+            {% else %}
+             <div style='display:inline;'>
+                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )</span></div>
+                  </div>
+            </div>
+            {% endif %}
             <p id='status'></p>
 
               <div class='container'>

@@ -34,8 +34,8 @@ class AllographSelect(Select):
             <option value="42">r, Caroline</option>
             =>
             <option class="type-2" value="42">r, Caroline</option>
-        
-        Because allograph 42 derives from an ontograph of type = 2 
+
+        Because allograph 42 derives from an ontograph of type = 2
     '''
     def render_option(self, selected_choices, option_value, option_label):
         ret = super(AllographSelect, self).render_option(selected_choices, option_value, option_label)
@@ -43,7 +43,7 @@ class AllographSelect(Select):
             a = Allograph.objects.get(id=int(option_value))
             ret = ret.replace('<option ', '<option class="type-%s" ' % a.character.ontograph.ontograph_type.id)
         return ret
-    
+
 class ImageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)
 
@@ -55,13 +55,13 @@ class ImageAnnotationForm(forms.Form):
     hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
         widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Hand"}),
         label = "",
-        empty_label = "Hand",)
+        empty_label = "",)
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
-    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all().order_by('character'),
         widget = AllographSelect(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
         label = "",
-        empty_label = "Allograph",
+        empty_label = "",
     )
     #before = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
@@ -128,7 +128,7 @@ class FilterManuscriptsImages(forms.Form):
         empty_label = "Town or City",
         required = False)
 
-    
+
     repository = forms.ChoiceField(
         choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
@@ -144,7 +144,7 @@ class FilterManuscriptsImages(forms.Form):
 
 class SearchPageForm(forms.Form):
     """ Represents the input form on the search page """
-    
+
     def __init__(self, *args, **kwargs):
         # set basic_search_type: 'hands' by default if not selected
         if not args:
@@ -155,7 +155,7 @@ class SearchPageForm(forms.Form):
         if 'basic_search_type' not in args[0]:
             args[0]['basic_search_type'] = 'hands'
         super(SearchPageForm, self).__init__(*args, **kwargs)
- 
+
     terms = forms.CharField(
         label='',
         required=False,
@@ -163,7 +163,7 @@ class SearchPageForm(forms.Form):
         'required': 'Please enter at least one search term',
         'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
-            'id': 'search-terms', 
+            'id': 'search-terms',
             'class':'textEntry',
             'placeholder': 'Enter search terms',
             'required': 'required',
@@ -187,13 +187,13 @@ class SearchPageForm(forms.Form):
         required=False,
         label='ordering',
         widget=HiddenInput(attrs={'id':'active_ordering'})
-    ) 
+    )
     years = forms.CharField(
         initial='1000-1300',
         required=False,
         label='years',
         widget=HiddenInput(attrs={'id':'active_years'})
-    ) 
+    )
     result_type = forms.CharField(
         initial='',
         required=False,
@@ -203,7 +203,7 @@ class SearchPageForm(forms.Form):
 
 # class SearchForm(forms.Form):
 #     """ Represents the input form on the search page """
-# 
+#
 #     terms = forms.CharField(
 #         label='',
 #         required=False,
@@ -233,13 +233,13 @@ class SearchPageForm(forms.Form):
 #         required=False,
 #         label='ordering',
 #         widget=HiddenInput(attrs={'id':'active_ordering'}))
-# 
+#
 #     years = forms.CharField(
 #         initial='1000-1300',
 #         required=False,
 #         label='years',
 #         widget=HiddenInput(attrs={'id':'active_years'}))
-# 
+#
 # class QuickSearch(forms.Form):
 #     terms = forms.CharField(
 #         label='',

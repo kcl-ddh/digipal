@@ -475,9 +475,34 @@ declaring function to get parameteres from URL
 	});
 
 	annotator.rectangleFeature.events.register('featureadded', annotator.rectangleFeature,
-		findRectangleFeaturAadded);
+		findRectangleFeatureAdded);
 
-	function findRectangleFeaturAadded(feature) {
+	/*
+	function check_transform_permission(feature) {
+		var vectors = annotator.user_annotations;
+		console.log(vectors);
+		var flag = false;
+		for (var i = 0; i < vectors.length; i++) {
+			if (vectors[i] == feature.feature.id) {
+				flag = true;
+				break;
+			}
+		}
+		console.log(flag);
+		if (!flag) {
+			annotator.transformFeature.unsetFeature();
+		}
+	}
+
+	if (annotator.isAdmin == "False") {
+		annotator.transformFeature.events.register('beforesetfeature', annotator.transformFeature, check_transform_permission);
+	}
+	*/
+
+	function findRectangleFeatureAdded(feature) {
+		if (annotator.isAdmin == "False") {
+			annotator.user_annotations.push(feature.feature.id);
+		}
 		annotator.selectFeatureById(feature.feature.id);
 	}
 
@@ -491,9 +516,16 @@ declaring function to get parameteres from URL
 
 	$("#id_allograph").on("liszt:ready", function() {
 		highlight_vectors();
+		$("#id_allograph").append($("#id_allograph option").remove().sort(function(a, b) {
+			var at = $(a).text(),
+				bt = $(b).text();
+			return (at > bt) ? 1 : ((at < bt) ? -1 : 0);
+		}));
+		$(this).trigger("liszt:update");
 	});
 
 	$('select').chosen();
+
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;

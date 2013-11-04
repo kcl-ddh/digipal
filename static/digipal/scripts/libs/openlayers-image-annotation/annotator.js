@@ -160,6 +160,15 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'transformcomplete': function(e) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
 			_self.selectFeatureById(e.feature.id);
+
+		},
+		'setfeature': function(e) {
+			console.log(e.feature);
+			if (annotator.isAdmin == 'False') {
+				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
+					_self.transformFeature.unsetFeature();
+				}
+			}
 		}
 	});
 

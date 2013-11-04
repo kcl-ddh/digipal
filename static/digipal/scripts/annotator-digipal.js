@@ -895,7 +895,7 @@ function load_allographs_container(allograph_value, url) {
 					data_hand = data[i].hand;
 					s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
 				}
-				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "'>" + data[i].image + '</span>\n';
+				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map'>" + data[i].image + '</span>\n';
 			}
 
 
@@ -985,10 +985,14 @@ function open_allographs(allograph) {
 	}
 	$(this).addClass('active');
 	var allograph_value;
-	if (typeof allograph != "undefined") {
-		allograph_value = allograph.parent().prev().text();
+	if (annotator.isAdmin == 'True') {
+		if (typeof allograph != "undefined") {
+			allograph_value = allograph.parent().prev().text();
+		} else {
+			allograph_value = $('#id_allograph option:selected').text();
+		}
 	} else {
-		allograph_value = $('#id_allograph option:selected').text();
+		allograph_value = annotator.selectedFeature.feature;
 	}
 	if (allograph_value) {
 		var features = annotator.vectorLayer.features;
@@ -1046,6 +1050,7 @@ function fill_dialog(id, annotation) {
 	var can_edit = $('#development_annotation').is(':checked');
 	var dialog = $('#dialog' + id);
 	var s;
+
 	if (can_edit) {
 		s = "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
 		s += "<div id='box_features_container'></div>";
@@ -1072,10 +1077,6 @@ function fill_dialog(id, annotation) {
 				}
 			}
 
-			if ($('.letters-allograph-container').length) {
-				open_allographs();
-			}
-
 			$(".number_annotated_allographs .number-allographs").html(n);
 			updateFeatureSelect(annotation, id);
 		});
@@ -1094,6 +1095,21 @@ function fill_dialog(id, annotation) {
 	$('#hidden_hand').val(hidden_hand);
 	$('#hidden_allograph').val(hidden_allograph);
 
+	if ($('.letters-allograph-container').length) {
+		var allograph_id = get_allograph(annotation.feature);
+		refresh_letters_container(annotation.feature, allograph_id);
+	}
+}
+
+function get_allograph(allograph) {
+	var annotations = annotator.annotations;
+	var allograph_id;
+	$.each(annotations, function() {
+		if (this.feature == allograph) {
+			allograph_id = this.hidden_allograph.split('::')[0];
+		}
+	});
+	return allograph_id;
 }
 
 function show_url_allograph(dialog, annotation) {

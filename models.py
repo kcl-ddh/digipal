@@ -1261,29 +1261,32 @@ class Image(models.Model):
 
         return path
 
-    def thumbnail_url(self):
+    def thumbnail_url(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
+        if width is None and height is None:
+            height = settings.IMAGE_SERVER_THUMBNAIL_HEIGHT
         if self.iipimage:
-            ret = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
+            ret = self.iipimage.thumbnail_url(height, width)
         return ret
 
-    def thumbnail(self):
+    def thumbnail(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
+        print height, width
         if self.iipimage:
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url())))
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
         return ret
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
 
-    def thumbnail_with_link(self):
+    def thumbnail_with_link(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail with a link to
         view the image."""
         ret = ''
         ret = mark_safe(u'<a href="%s">%s</a>' % \
-                (self.full(), self.thumbnail()))
+                (self.full(), self.thumbnail(height, width)))
         return ret
 
     thumbnail_with_link.short_description = 'Thumbnail'

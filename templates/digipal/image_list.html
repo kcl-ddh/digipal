@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load mezzanine_tags pagination_tags %}
 
-{% block extra_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-{% endblock %}
+{% block meta_title %}Manuscript Images{% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+{% endblock %}
 
 {% block main %}
 <h1 class='header1'>Manuscript Images</h1>
@@ -22,6 +23,7 @@
             $('select').chosen();
         </script>
 </div>
+
 <div class='container'>
 
     {% if page_list.paginator.count > 24 %}
@@ -138,7 +140,7 @@
                         </p>
                         <dl class="imageDatabase">
                             <dt>
-                                 <a href="{{ image.id }}/">{{ image.thumbnail|safe }}</a>
+                                 <a href="{{ image.id }}/">{{ image.view_thumbnail|safe }}</a>
                             </dt>
                             <dd>
                                 <p><b>{{ image }}</b></p>
@@ -163,7 +165,7 @@
                     </p>
                     <dl class="imageDatabase">
                         <dt>
-                             <a title="View Image Annotations" href="{{ image.id }}/">{{ image.thumbnail|safe}}</a>
+                             <a title="View Image Annotations" href="{{ image.id }}/">{{ image.view_thumbnail|safe}}</a>
                         </dt>
                         <dd>
                             <p><b>{{ image }}</b></p>

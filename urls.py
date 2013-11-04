@@ -64,6 +64,7 @@ urlpatterns += patterns('digipal.views.admin.stewart',
 if settings.DEBUG:
     urlpatterns += patterns('digipal.views.test',
                            (r'test/cookied_inputs/$', 'cookied_inputs'),
+                           (r'test/iipimage/$', 'iipimage'),
                            )
 
 urlpatterns += patterns('haystack.views',

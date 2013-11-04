@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <script src="/static/mezzanine/js/jquery-1.7.1.min.js"></script>
+    <script>
+    	$(function(){
+    		$('#iip-img').on('load', function() {
+    			$('#img-meta').html($('#iip-img').width() + ' x ' + $('#iip-img').height());
+    		});
+    		
+    		$('#iip-url').keyup(function() {
+    			$('#iip-img').attr('src', $('#iip-url').val());
+    		});
+
+    		$('#iip-url').val($('#iip-img').attr('src')).focus();
+    		
+    	});
+    </script>
+    <style>
+    	#iip-url {width: 100%;}
+    </style>
+
+</head>
+
+<body>
+    <p>
+    	<input type="text" name="iip-url" id="iip-url" value="" />
+    	<br/>
+    	<span id="img-meta"></span>
+    </p>
+    <p>
+    	<img id="iip-img" src="{{ iiphost }}?FIF=jp2/bl/additional_ch_19795/face.jp2&RST=*&HEI=1878&RGN=0.577265,0.611552,0.008289,0.026614&CVT=JPG" >
+    </p>
+    
+</body>
+</html>

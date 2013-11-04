@@ -326,6 +326,9 @@ def image_list(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         page_list = paginator.page(paginator.num_pages)
 
+    for page in page_list:
+        page.view_thumbnail = page.thumbnail(None, 210)
+
     context = {}
     context['page_list'] = page_list
     context['filterImages'] = filterImages

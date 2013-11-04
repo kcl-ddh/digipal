@@ -5,10 +5,11 @@ import os
 import shlex
 import subprocess
 import re
+import utils
 from optparse import make_option
 from os import listdir
 from os.path import isfile, join
-from digipal.models import Page
+from digipal.models import Image
 
 def get_originals_path():
 	ret = join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), getattr(settings, 'IMAGE_SERVER_ORIGINALS_ROOT', ''))
@@ -29,6 +30,8 @@ class Command(BaseCommand):
 		upload
 		
 		update
+		
+		fetch URL [LINK_NAMES]
 	
 	"""
 	
@@ -78,7 +81,7 @@ class Command(BaseCommand):
 
         upload
             Converts new images to JPEG 2000 and create the corresponding 
-            Page records
+            Image records
 		
         unstage
             Removes the images from the database (but leave them on disk)
@@ -115,7 +118,7 @@ class Command(BaseCommand):
         upload all the images which contain 'canterbury' in their name
 		
     python manage.py dpim --filter canterbury unstage
-        remove from the database the Page records which point to
+        remove from the database the Image records which point to
         an image with 'canterbury' in its name.
 		
     python manage.py dpim --offline list
@@ -150,6 +153,21 @@ class Command(BaseCommand):
 			dest='offline',
 			default='',
 			help='Only list images which are offline'),
+		make_option('--links',
+			action='store',
+			dest='links',
+			default='',
+			help='Link names'),
+		make_option('--op',
+			action='store',
+			dest='out_path',
+			default='.',
+			help='out path'),
+		make_option('--links_file',
+			action='store',
+			dest='links_file',
+			default='',
+			help='Link names'),
 		make_option('--missing',
 			action='store_true',
 			dest='missing',
@@ -160,15 +178,15 @@ class Command(BaseCommand):
 	def get_all_files(self, root):
 		# Scan all the image files on disk (under root) and in the database.
 		# Returns an array of file informations. For each file we have: 
-		# 	{'path': path relative to settings.IMAGE_SERVER_ROOT, 'disk': True|False, 'page': Page object|None}
+		# 	{'path': path relative to settings.IMAGE_SERVER_ROOT, 'disk': True|False, 'image': Image object|None}
 		ret = []
 
-		all_pages = Page.objects.all()
-		page_paths = {}
-		pages = {}
-		for page in all_pages: 
-			page_paths[os.path.normcase(page.iipimage.name)] = page.id
-			pages[page.id] = page
+		all_images = Image.objects.all()
+		image_paths = {}
+		images = {}
+		for image in all_images: 
+			image_paths[os.path.normcase(image.iipimage.name)] = image.id
+			images[image.id] = image
 		
 		# find all the images on disk
 		current_path = root
@@ -184,30 +202,30 @@ class Command(BaseCommand):
 				if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
 					file_relative = os.path.relpath(file, settings.IMAGE_SERVER_ROOT)
 
-					id = page_paths.get(os.path.normcase(file_relative), 0)
+					id = image_paths.get(os.path.normcase(file_relative), 0)
 
 					info = {
-							'page': pages.get(id, None),
+							'image': images.get(id, None),
 							'disk': 1,
 							'path': file_relative
 							}
 					
 					if id:
-						del pages[id]
+						del images[id]
 					
 					ret.append(info)
 			elif isdir(file):
 				files.extend([join(file, f) for f in listdir(file)])
 		
 		# find the images in DB but not on disk
-		for page in pages.values():
+		for image in images.values():
 			file_name = ''
-			if page.iipimage:
-				file_name = page.iipimage.name
+			if image.iipimage:
+				file_name = image.iipimage.name
 			info = {
 					'disk': os.path.exists(join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), file_name)), 
 					'path': file_name, 
-					'page': page
+					'image': image
 					}
 			if file_name == '':
 				info['disk'] = False
@@ -234,6 +252,10 @@ class Command(BaseCommand):
 		
 		known_command = False
 		counts = {'online': 0, 'disk': 0, 'disk_only': 0, 'missing': 0}
+		if command == 'fetch':
+			known_command = True
+			self.fetch(*args, **options)
+		
 		if command in ('list', 'upload', 'unstage', 'update', 'remove'):
 			known_command = True
 
@@ -241,10 +263,10 @@ class Command(BaseCommand):
 				file_relative = file_info['path']
 				found_message = ''
 
-				online = (file_info['page'] is not None)
-				pageid = 0
+				online = (file_info['image'] is not None)
+				imageid = 0
 				if online:
-					pageid = file_info['page'].id
+					imageid = file_info['image'].id
 					
 				if options['filter'].lower() not in file_relative.lower():
 					continue
@@ -281,31 +303,31 @@ class Command(BaseCommand):
 					if re.search(r'\s|,', new_file_name):
 						found_message = '[FAILED: please remove spaces and commas from the directory names]'
 					else:
-						page = None
+						image = None
 						if command in ('update',):
 							found_message = '[JUST UPDATED]'
-							page = file_info['page']
+							image = file_info['image']
 						else:
 							found_message = '[JUST UPLOADED]'
-							page = Page()
-							page.iipimage = file_relative
-							page.image = 'x'
-							page.caption = os.path.basename(file_relative)
+							image = Image()
+							image.iipimage = file_relative
+							image.image = 'x'
+							image.caption = os.path.basename(file_relative)
 							# todo: which rules should we apply here?
-							page.display_label = os.path.basename(file_relative)
+							image.display_label = os.path.basename(file_relative)
 
 						# cpnvert the image to jp2
 						if command == 'upload':
-							error_message = self.convert_image(page)
+							error_message = self.convert_image(image)
 							if error_message:
 								found_message += ' ' + error_message
-								page = None
+								image = None
 							else:
 								found_message += ' [JUST CONVERTED]'
 						
-						if page: 
-							page.save()
-							pageid = page.id
+						if image: 
+							image.save()
+							imageid = image.id
 						
 				if command == 'remove' and file_info['disk']:
 					file_abs_path = join(settings.IMAGE_SERVER_ROOT, file_relative)
@@ -321,15 +343,15 @@ class Command(BaseCommand):
 					processed = True
 					
 					found_message = '[JUST REMOVED FROM DB]'
-					file_info['page'].delete()
+					file_info['image'].delete()
 						
 				if self.is_verbose() or command == 'list' or processed:
 					extra = ''
-					if not file_info['disk'] and online and file_info['page'].image is not None and len(file_info['page'].image.name) > 2: 
-						extra = file_info['page'].image.name
-					print '#%s\t%-20s\t%s\t%s' % (pageid, found_message, file_relative, extra)
+					if not file_info['disk'] and online and file_info['image'].image is not None and len(file_info['image'].image.name) > 2: 
+						extra = file_info['image'].image.name
+					print '#%s\t%-20s\t%s\t%s' % (imageid, found_message, file_relative, extra)
 				
-			print '%s pages in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
+			print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
 			
 		if command in ['copy', 'originals']:
 			known_command = True
@@ -337,6 +359,66 @@ class Command(BaseCommand):
 
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
+	
+	def fetch(self, *args, **options):
+		'''
+			fetch http://bdigital.sib.uc.pt/bg2/UCBG-Cofre-1/UCBG-Cofre-1_item1/P3.html --links-file "bible1" --op=img1
+			
+			Will save all the jpg images found at that address into a directory called img1.
+			We first download the index from that address then follow each link with a name listed in bible1 file.
+			Download all all the jpg images found in those sub-pages.
+		'''
+		out_path = options['out_path']
+
+		if len(args) > 1:
+			url = args[1]
+			print url
+
+			if options['links']:
+				links = options['links'].split(' ')
+
+			if options['links_file']:
+				f = open(options['links_file'], 'rb')
+				links = f.readlines()
+				f.close()
+				links = [link.strip() for link in links]
+				
+			if links:
+				
+				html = utils.wget(url)
+				if not html:
+					print 'ERROR: request to %s failed.' % url
+				else:
+					for link in links:
+						print link 
+						href = re.findall(ur'<a [^>]*href="([^"]*?)"[^>]*>\s*' + re.escape(link) + '\s*<', html)
+						if href:
+							href = href[0]
+							href = re.sub(ur'/[^/]*$', '/' + href, url)
+							print href
+							
+							sub_html = utils.wget(href)
+							
+							if not sub_html:
+								print 'WARNING: request to %s failed.' % sub_html
+							else:
+								# get the jpg image in the page
+								image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
+								for image_url in image_urls:
+									image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
+									print image_url
+									
+									# get the image
+									image = utils.wget(image_url)
+									
+									if not image:
+										print 'WARNING: request to %s failed.' % image_url
+									else:
+										# save it
+										import os
+										image_path = os.path.join(out_path, re.sub(ur'^.*/', '', image_url)) + ''
+										print image_path
+										utils.write_file(image_path, image)
 	
 	def processOriginals(self, args, options):
 		''' List or copy the original images. '''
@@ -418,11 +500,11 @@ class Command(BaseCommand):
 		# 0: minimal output, 1: normal output, 2: verbose, 3: very verbose
 		return self.options['verbosity']
 
-	def convert_image(self, page):
+	def convert_image(self, image):
 		ret = None
 		
 		# normalise the image path and rename so iipimage server doesn't complain
-		name = os.path.normpath(page.iipimage.name)
+		name = os.path.normpath(image.iipimage.name)
 		path, basename = os.path.split(name)		
 		name = os.path.join(path, re.sub(r'(\s|,)+', '_' , basename.lower()))
 		path, ext = os.path.splitext(name)
@@ -431,11 +513,11 @@ class Command(BaseCommand):
 		ret_shell = []
 		
 		# rename the file to .jp2
-		if page.iipimage.name != name:
+		if image.iipimage.name != name:
 			try:
-				os.rename(os.path.join(settings.IMAGE_SERVER_ROOT, page.iipimage.name), os.path.join(settings.IMAGE_SERVER_ROOT, name))
-				page.iipimage.name = name
-				page.save()
+				os.rename(os.path.join(settings.IMAGE_SERVER_ROOT, image.iipimage.name), os.path.join(settings.IMAGE_SERVER_ROOT, name))
+				image.iipimage.name = name
+				image.save()
 			except Exception, e:
 				ret_shell = [e, 'rename']
 		else:
@@ -446,7 +528,7 @@ class Command(BaseCommand):
 		if not ret_shell:
 			from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
 			
-			full_path = os.path.join(settings.IMAGE_SERVER_ROOT, page.iipimage.name)
+			full_path = os.path.join(settings.IMAGE_SERVER_ROOT, image.iipimage.name)
 			temp_file = full_path + '.tmp.tiff'
 			
 			command = CONVERT_TO_TIFF % (full_path, temp_file)

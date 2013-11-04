@@ -1,14 +1,24 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags html_escape %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
+
+{% block meta_title %}
+    Search 
+    {% if terms %}({{ terms }}){% endif %}
+{% endblock %}
 
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
     <script type="text/javascript">
         init_search_page({{ search_page_options_json|safe }});
     </script>
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui.css">
 {% endblock %}
 
 {% block main %}
@@ -18,7 +28,6 @@
             <h3>Please type in keyword to search for {{ search_types_display }} and use filters to narrow down your search results</h3>
         </div>
     {% endif %}
-    
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
         <div class='row-fluid'>
             {# {% csrf_token %} #}
@@ -75,17 +84,17 @@
             </div>
         {% endif %}
     
-        <div class='container'>
-            <ul class="nav nav-tabs" id='myTab'>
-                {% for type in types %}
-                    <li class="{% if result_type == type.key %}active{% else %}disabled{% endif %}">
-                        <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.queryset.count|default:'0'}})</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        
-        {% if 1 %}
+        {% if not is_empty %}
+            <div class='container'>
+                <ul class="nav nav-tabs" id='myTab'>
+                    {% for type in types %}
+                        <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
+                            <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.count|default:'0'}})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
             <div class='tabbable'>
                 <div id='myTabContent' class='tab-content'>
                     {% for type in types %}
@@ -93,19 +102,30 @@
                             {% if type.is_empty %}
                                 <div class='alert alert-warning'><h4>No results found for <b>{{type.label}}</b></h4></div>
                             {% else %}
-                                {% autopaginate type.queryset 9 as records%}
-                                {% paginate %}
+                                {% reset_recordids as recordids %}
+                                {% autopaginate type.queryset 9 as recordids %}
+                                {% get_records_from_ids type recordids as records %}
                                 
-                                {% include type.template_path with template_type=type.key%}
+                                {% filter update_query_params:type.result_type_qs %}
+                                    {% paginate %}
+                                {% endfilter %}
                                 
-                                {% paginate %}
+                                {% include type.template_path with template_type=type.key %}
+                                
+                                {% filter update_query_params:type.result_type_qs %}
+                                    {% paginate %}
+                                {% endfilter %}
+                                
                             {% endif %}
                         </div>
                     {% endfor %}
                 </div>
             </div>
         {% else %}
-            <div class='alert alert-warning'><h4>No results found</h4></div>
+            <div class='alert alert-warning'>
+                <h4>No results found</h4>
+                <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
+            </div>
         {% endif %}
     
     {% endif %}

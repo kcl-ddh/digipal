@@ -10,33 +10,36 @@
         <th>Actions</th>
     </tr>
 
-    {% for manuscript in records %}
-        <tr>
-            <td>{{ manuscript.historical_item.catalogue_number }} 
-                {% if manuscript.pages.all %}
-                    <a class='imageIcon' href='/digipal/search/?terms={{ terms }}&amp;result_type={{ template_type }}&amp;id={{ manuscript.id }}&amp;record={{ forloop.counter }}&amp;from_image=true' title='{{page}}'>
-                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.pages.count}} images' />
-                    </a> 
-                    ({{manuscript.pages.count}})
-                {% endif %}
-            </td>
-            
-            <td>{{ manuscript.current_item.repository.name }}</td>
-            <td>{{ manuscript.current_item.shelfmark }}</td>
-            <td>{{ manuscript.locus }}</td>
-            <td>
-                {% for desc in manuscript.historical_item.description_set.all %}
-                    {{ desc.description|truncatewords:15 }}
-                {% endfor %}
-            </td>
-            <td>
-                {% if can_edit %}
-                    <a class="btn" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
-                {% endif %}
-                <a class="btn btn-primary" href="/digipal/search/?terms={{ terms }}&amp;result_type={{ template_type }}&amp;id={{ manuscript.id }}&amp;amp;record={{ forloop.counter }}">
-                    View
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
+    {% filter tag_phrase_terms:terms %}
+        {% for manuscript in records %}
+            <tr>
+                <td>
+                    {% for item in manuscript.historical_items.all %}
+                        {% if not forloop.first %}, {% endif %}
+                        {{ item.catalogue_number }}
+                    {% endfor %}
+                
+                    {% if manuscript.images.all %}
+                        <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
+                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' />
+                        </a> 
+                        ({{manuscript.images.count}})
+                    {% endif %}
+                </td>
+                
+                <td>{{ manuscript.current_item.repository.place.name }}, {{ manuscript.current_item.repository.name }}</td>
+                <td>{{ manuscript.current_item.shelfmark }}</td>
+                <td>{{ manuscript.locus }}</td>
+                <td>
+                    {{ manuscript.description_snippet }}
+                </td>
+                <td>
+                    {% if can_edit %}
+                        <a class="btn" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
+                    {% endif %}
+                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfilter %}
 </table>

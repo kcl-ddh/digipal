@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <script src="/static/mezzanine/js/jquery-1.7.1.min.js"></script>
+    <script src="/static/digipal/scripts/stored-inputs.js"></script>
+    <script>
+    	$(function(){
+    		si = new StoredInputs('digipal_settings');
+    		si.registerInput('#i1');
+    		si.registerInput('#i2');
+    	});
+    </script>
+
+</head>
+
+<body>
+    <p>
+        <select id="i1">
+            <option name="k1">v1</option>
+            <option name="k2">v2</option>
+        </select>
+    </p>
+    <p>
+    
+        <input id="i2" type="text" />
+    </p>
+    <p>
+    
+        <span id="message">-</span>
+    </p>
+    
+</body>
+</html>

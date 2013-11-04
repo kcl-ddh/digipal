@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from os.path import isdir
@@ -7,6 +8,10 @@ import subprocess
 import re
 from optparse import make_option
 import utils  
+from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
+from digipal.models import Text
+from digipal.models import HistoricalItem, ItemPart
+from django.db.models import Q
 
 class Command(BaseCommand):
 	help = """
@@ -39,15 +44,25 @@ Commands:
                         Check for issues in the data (See Mantis issue #5532)
   
   cleanlocus ITEMPARTID1 [ITEMPARTID2 ...] [--force]
-                        Remove the v/r from the Page.locus field.
-                        For all pages where Page.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
-                        Use --force to also change Page.item_part.pagination to true.
+                        Remove the v/r from the Image.locus field.
+                        For all pages where Image.item_part_id in (ITEMPARTID1 ITEMPARTID2 ...).
+                        Use --force to also change Image.item_part.pagination to true.
                         Use checkdata1 to list the id of the pages and item_parts records.
   
   drop_tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]
+  
+  pseudo_items
+ 						Convert Sawyer pseudo-items into Text records
+ 						
+  duplicate_cis
+ 						Returns duplicate CIs
+  
+  add_cartulary_his
+  						Create missing cartulary HIs from the SS HIs 
+ 						
 	"""
 	
-	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1'
+	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
 	#help = 'Manage the Digipal database'
 	option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -173,24 +188,24 @@ Commands:
 		
 		# ----------------------------------------------
 		
-		print 'A. Remove \'f\' and \'r\' from Page.locus when page.item_part.pagination = true.'
-		print 'To remove the f/v from the Page.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
+		print 'A. Remove \'f\' and \'r\' from Image.locus when image.item_part.pagination = true.'
+		print 'To remove the f/v from the Image.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
 		
 		print 
-		from digipal.models import Page
+		from digipal.models import Image
 		from django.db.models import Q
-		pages = Page.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
-		if not pages:
+		images = Image.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
+		if not images:
 			print 'No problem found.'
-		for page in pages:
-			if page.item_part:
+		for image in images:
+			if image.item_part:
 				item_part_name = '[Encoding error]'
 				try:
-					item_part_name = u'%s' % page.item_part
+					item_part_name = u'%s' % image.item_part
 					item_part_name = item_part_name.encode('ascii', 'xmlcharrefreplace')
 				except:
 					pass
-				print 'Page# %-5s: %-8s (ItemPart #%s: %s)' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'), page.item_part.id, item_part_name)
+				print 'Image# %-5s: %-8s (ItemPart #%s: %s)' % (image.id, image.locus.encode('ascii', 'xmlcharrefreplace'), image.item_part.id, item_part_name)
 		
 		# ----------------------------------------------
 		
@@ -223,21 +238,21 @@ Commands:
 	def cleanlocus(self, item_partids, options):
 		if len(item_partids) < 1:
 			raise CommandError('Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
-		from digipal.models import Page 
-		pages = Page.objects.filter(item_part__in = item_partids).order_by('id')
+		from digipal.models import Image 
+		images = Image.objects.filter(item_part__in = item_partids).order_by('id')
 		c = 0
-		for page in pages:
-			page.locus = re.sub(ur'(.*)(r|v)$', ur'\1', page.locus)
-			print 'Page #%s, locus = %s' % (page.id, page.locus.encode('ascii', 'xmlcharrefreplace'))
-			if not page.item_part.pagination:
+		for image in images:
+			image.locus = re.sub(ur'(.*)(r|v)$', ur'\1', image.locus)
+			print 'Image #%s, locus = %s' % (image.id, image.locus.encode('ascii', 'xmlcharrefreplace'))
+			if not image.item_part.pagination:
 				if options.get('force', False):
-					page.item_part.pagination = True
-					page.item_part.save()
-					print 'WARNING: forced page.item_part.pagination = true (item part %s)' % page.item_part.id
+					image.item_part.pagination = True
+					image.item_part.save()
+					print 'WARNING: forced image.item_part.pagination = true (item part %s)' % image.item_part.id
 				else:
-					print 'WARNING: Not saved as page.item_part.pagination = false (item part %s)' % page.item_part.id
+					print 'WARNING: Not saved as image.item_part.pagination = false (item part %s)' % image.item_part.id
 				continue
-			page.save()
+			image.save()
 			c += 1
 		print '%s loci modified.' % c
 		
@@ -415,7 +430,7 @@ Commands:
 			Idiograph
 			HistoricalItemDate
 			ItemPart
-			Page
+			Image
 			DateEvidence
 			Graph
 			PlaceEvidence
@@ -438,20 +453,40 @@ Commands:
 
 	def is_dry_run(self):
 		return self.options.get('dry-run', False)
-	
-	def test(self, options):
-		print 'TEST'
-		from digipal.models import *
-		from django.template.defaultfilters import slugify
-		from digipal.templatetags.html_escape import anchorify
 
-		slugs = {}
-		for allograph in Allograph.objects.all():
-			s = anchorify(u'%s' % allograph)
-			if s in slugs:
-				print '>>>>>>>>>> ALREADY EXISTS'
-			slugs[s] = 1
-			print s, (u'%s' % allograph).encode('utf-8')
+	def test(self, options):
+		#from digipal.models import *
+		from django.template.defaultfilters import slugify
+		from digipal.templatetags.html_escape import update_query_string
+		
+		
+		
+		#content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
+		#updates = '''k2=&k5=v5'''
+		#print content
+		#print update_query_string(content, updates)
+# 		from digipal.models import ItemPart
+# 		for ip in ItemPart.objects.all():
+# 			desc = ip.historical_item.get_display_description()
+# 			if desc:
+# 				print ip.id, desc.source.name
+# 		url = '?id=93&result_type=scribes'
+# 		updates = 'terms=%C3%86thelstan&basic_search_type=hands&ordering=&years=&result_type=&scribes=&repository=&place=&date='
+# 		update_query_string(url, updates, True)
+
+		url = '?page=2&amp;terms=%C3%86thelstan&amp;repository=&amp;ordering=&amp;years=&amp;place=&amp;basic_search_type=hands&amp;date=&amp;scribes=&amp;result_type='
+		updates = 'result_type=manuscripts'
+		update_query_string(url, updates, False)
+
+# 		slugs = {}
+# 		for allograph in Allograph.objects.all():
+# 			s = anchorify(u'%s' % allograph)
+# 			if s in slugs:
+# 				print '>>>>>>>>>> ALREADY EXISTS'
+# 			slugs[s] = 1
+# 			print s, (u'%s' % allograph).encode('utf-8')
+# 			
+# 		update_query_string(content, updates)
 					
 		# ST.id=253 => H.id=1150
 		
@@ -460,7 +495,444 @@ Commands:
 		
 		#print Hand.objects.filter(descriptions__description__contains='sema').count()
 		
+	def get_duplicate_cis(self):
+		from digipal.models import CurrentItem
+		duplicates = {}
+		for ci in CurrentItem.objects.all():
+			key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+			if key not in duplicates:
+				duplicates[key] = []
+			duplicates[key].append(ci)
+		return duplicates
+	
+	##################################################
+	#
+	#				PSEUDO ITEMS
+	#
+	##################################################
 
+	def find_pseudo_items(self, his):
+		ips_conversion = {}
+		his_to_delete = set()
+		
+		ip_count = 0
+
+		for hi in his:
+			print '%s' % self.get_obj_label(hi)
+			cat_nums = hi.catalogue_numbers.all()
+			other_cat_nums = ''
+			if cat_nums.count() == 0:
+				self.print_warning('HI with non-Sawyer number', 1)
+				continue
+			for cat in cat_nums:
+				if cat.source.name not in self.get_pseudo_types():
+					 self.print_warning('HI with non-Sawyer / Pelteret number', 1)
+					 other_cat_nums = '\t\t%s' % ','.join(['%s' % cn for cn in hi.catalogue_numbers.all()])
+					 continue
+			if other_cat_nums:
+				print other_cat_nums
+				continue
+					 
+			for ip in hi.item_parts.all().order_by('id'):
+				ip_count += 1
+				print '\t%s' % self.get_obj_label(ip)
+				correct_ip = None
+				# We also look for duplicates of the CIs (see JIRA-230)
+				duplicate_cis = self.get_duplicates_of_current_item(ip.current_item, True)
+				correct_ips = list(ItemPart.objects.filter(current_item__in=duplicate_cis).exclude(historical_items__historical_item_type__name='charter').order_by('id'))
+				
+				if len(correct_ips) == 0:
+					self.print_warning('no correct IP found', 2)
+					continue
+				if len(correct_ips) == 1:
+					correct_ip = correct_ips[0]
+				if len(correct_ips) > 1:
+					self.print_warning('more than one correct IP', 2)
+					for cip in correct_ips:
+						if self.loci_are_the_same(ip.locus, cip.locus):
+							if correct_ip:
+								self.print_warning('more than one IP with the same locus', 2)
+							correct_ip = cip
+				if correct_ip is None:
+					self.print_warning('no IP with same locus', 2)
+					print (u'\t\t\t%s <> %s' % (repr(ip.locus), u' | '.join(repr(u'%s' % cip.locus) for cip in correct_ips)))
+					continue					
+				if not self.loci_are_the_same(ip.locus, correct_ip.locus):
+					self.print_warning('selected correct IP has a different locus', 2)
+					print '\t\t\t%s' % self.get_obj_label(correct_ip)
+					print u'\t\t\t%s <> %s' % (repr(ip.locus), repr(correct_ip.locus))
+					continue
+				
+				correct_hi = correct_ip.historical_item
+				
+				print '\t\t%s (Correct)' % self.get_obj_label(correct_hi)
+				print '\t\t%s (Correct)' % self.get_obj_label(correct_ip)
+				
+				# create new text record based on the data in hi connected to correct_ip
+				ips_conversion[ip.id] = correct_ip.id
+			his_to_delete.add(hi.id)
+				# delete ip
+			# delete hi
+
+		return ips_conversion, his_to_delete, ip_count
+	
+	def loci_are_the_same(self, l1, l2):
+		if not l1 and l2 == u'fols. 0\u20137':
+			return True
+		return self.get_normalised_code(l1) == self.get_normalised_code(l2)
+	
+	def protect_pseudo_his(self, ips_conversion, his_to_delete):
+		his_to_keep = set()
+		for ip in ItemPart.objects.exclude(id__in=ips_conversion.keys()).order_by('id'):
+			hi_ids = set([hi.id for hi in ip.historical_items.all()])
+			if hi_ids.issubset(his_to_delete):
+				self.print_warning('IP will have no HI left', 0)
+				print '\t%s' % self.get_obj_label(ip)
+				for hi in HistoricalItem.objects.filter(id__in=hi_ids):
+					print '\t%s (cannot be deleted)' % self.get_obj_label(hi)
+					his_to_keep.add(hi.id)
+					#his_to_delete.remove(hi)
+		
+		his_to_delete = his_to_delete - his_to_keep
+		
+		return his_to_delete
+
+	def get_pseudo_types(self):
+		return [settings.SOURCE_SAWYER, settings.SOURCE_PELTERET]
+
+	def create_text_records(self, ips_conversion, his_to_delete):
+		# create the Texts
+		#for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
+		for hi in HistoricalItem.objects.all():
+			# Find or Create the text record
+
+			# Get the HI Sawyer Cat Num
+			hi_cat_nums = hi.catalogue_numbers.filter(source__name__in=self.get_pseudo_types())
+			if hi_cat_nums.count() < 1:
+				continue
+
+			print self.get_obj_label(hi)
+
+			if hi_cat_nums.count() > 1:
+				print '\tNOTICE: more than one cat cum: %' % [', '.join('%s' % cat_num for cat_num in hi_cat_nums)]
+				
+			# Find a Text with the same Cat Num
+			#texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
+			texts = list(Text.objects.raw(ur'''
+				select distinct te.* 
+				from digipal_text te, 
+				digipal_cataloguenumber cn,
+				digipal_cataloguenumber cn2
+				where cn.historical_item_id = %s
+				and cn.source_id in (5, 6)
+				and cn2.source_id = cn.source_id
+				and cn2.number = cn.number
+				and cn2.text_id = te.id
+			''' % hi.id))
+			
+			if len(texts) == 0:
+				print '\tCreate Text'
+				# create the Text and cat num
+				text = Text()
+			if len(texts) == 1:
+				print '\tUpdate Text'
+				# update the text
+				text = texts[0]
+			if len(texts) > 1:
+				self.print_warning('More than one Text with that cat number', 1)
+				continue
+			if not text.name:
+				text.name = hi.display_label
+			if not text.legacy_id:
+				text.legacy_id = hi.legacy_id
+			
+			# Set the other fields (date, category, languages)
+			text.date = hi.date
+			text.save()
+
+			# set the categories
+			text.categories.clear()
+			
+			for category in hi.categories.all():
+				print '\t\tCategory: %s' % category
+				text.categories.add(category)
+				
+			# set the languages
+			text.languages.clear()
+
+			if hi.language:
+				print '\t\tLanguage: %s' % hi.language
+				text.languages.add(hi.language)
+
+			# connect the text to the correct item part
+			## Check what to do for 
+# 			for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
+# 				from django.db.utils import IntegrityError
+# 				if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
+# 					print '\t\tCorrect ItemPart: #%s' % ips_conversion[ip.id]
+# 					TextItemPart(text=text, item_part_id=ips_conversion[ip.id]).save()
+
+			for ip in hi.item_parts.all():
+				correct_ip_id = ips_conversion.get(ip.id, ip.id)
+				if not TextItemPart.objects.filter(text=text, item_part_id=correct_ip_id).count():
+					corrected = ''
+					if correct_ip_id != ip.id:
+						corrected = ' (corrected)' 
+					print '\t\tItemPart: #%s%s' % (correct_ip_id, corrected)
+					TextItemPart(text=text, item_part_id=correct_ip_id).save()
+					
+			text.descriptions.clear()
+			# create descriptions
+			for description in hi.description_set.filter(source__name__in=self.get_pseudo_types()):
+				print '\tCreate description'
+				Description(source=description.source, description=description.description, text=text).save()
+
+			text.save()
+		
+			if len(texts) == 0:
+				# create cat nums
+				for hi_cat_num in hi_cat_nums:
+					CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
+				
+	def process_pseudo_items(self):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+
+		#text.objects.all().delete()
+		utils.fix_sequences(db_alias='default', silent=True)
+		
+		# See JIRA 86 and 223
+		print '\n1. Find pseudo HIs and pseudo IPs\n'
+		
+		his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
+
+		ips_conversion, his_to_delete, ip_count = self.find_pseudo_items(his)
+		
+		print '\n2. Find all non-deletable IPs which have only deletable HIs\n'
+		
+		his_to_delete = self.protect_pseudo_his(ips_conversion, his_to_delete)
+				
+		# Integrity check: no pseudo-IP can also be a correct IP
+		ip_correct_and_pseudo = set(ips_conversion.keys()).intersection(ips_conversion.values())
+		if len(ip_correct_and_pseudo):
+			print 'ERROR: pseudo-IP = correct-IP'
+			print ip_correct_and_pseudo
+			return
+
+		print '\n3. Create the Text records\n'
+
+		self.create_text_records(ips_conversion, his_to_delete)
+
+		print '\n4. Move Hands and Images from the pseudo-IPs to the correct IPs.\n'
+		
+		from digipal.models import Hand, Image
+		
+		for h in Hand.objects.filter(item_part_id__in=ips_conversion.keys()):
+			print '\t%s' % self.get_obj_label(h)
+			h.item_part_id = ips_conversion[h.item_part_id]
+			h.save()
+
+		for i in Image.objects.filter(item_part_id__in=ips_conversion.keys()):
+			print '\t%s' % self.get_obj_label(i)
+			i.item_part_id = ips_conversion[i.item_part_id]
+			i.save()
+
+		print '\n5. Delete pseudo-HIs and pseudo-CIs.\n'
+
+		# delete the pseudo-HIs
+		if 1:
+			for hi in HistoricalItem.objects.filter(id__in=his_to_delete).order_by('id'):
+				print '\tDelete %s' % self.get_obj_label(hi)
+				hi.delete()
+			
+			# delete the pseudo-IPs
+			for ip in ItemPart.objects.filter(id__in=ips_conversion.keys()).order_by('id'):
+				print '\tDelete %s' % self.get_obj_label(ip)
+				ip.delete()
+		
+		print '\n6. Summary\n'
+
+		print '%s cartulary HIs, %s deleted HIs, %s item parts, %s deleted IP, %s correct IP.' % (his.count(), len(his_to_delete), ip_count, len(ips_conversion.keys()), len(set(ips_conversion.values())))
+		
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
+		con.leave_transaction_management()
+
+		self.print_warning_report()
+		
+	def add_cartulary_his(self):
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		from digipal.models import ItemPartItem		
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+		con.disable_constraint_checking()
+		
+		for hi in HistoricalItem.objects.filter(historical_item_type__name='charter', historical_item_format__name='Single-sheet'):
+			ciids = {}
+			for ip in hi.item_parts.all():
+				ciids[ip.current_item.id] = 1
+			if len(ciids) > 1:
+				print '%s' % self.get_obj_label(hi)
+				first = True
+				for ip in hi.item_parts.all():
+					print '\t%s' % self.get_obj_label(ip)
+					if first:
+						print '\t\tSkip'
+						first = False
+						continue
+					
+					# Clone the HI
+					print '\t\tClone HI'
+					hi_new = self.get_cloned_hi(hi)
+					
+					# Reconnect the IP to the new HI
+					print '\t\tConnect cloned HI (%s) to IP (%s)' % (self.get_obj_label(hi_new), self.get_obj_label(ip))
+					ItemPartItem.objects.filter(historical_item=hi, item_part=ip).delete()
+					ItemPartItem(historical_item=hi_new, item_part=ip).save()
+
+		self.fix_imcomplete_clones()
+		
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
+		con.leave_transaction_management()
+		
+		self.print_warning_report()
+					
+	def fix_imcomplete_clones(self):
+		# Cloning of the HI in add_cartulary_his() didn't copy the 
+		# 	.catalogue_number field, collations and descriptions.
+		# We address that here in a second pass. 
+		for hi in HistoricalItem.objects.filter(historical_item_type__name='charter', historical_item_format__name='Single-sheet'):
+			if hi.catalogue_number:
+				select = '''
+					select hi.*
+					from digipal_historicalitem hi,
+					digipal_cataloguenumber cn
+					where 
+					cn.historical_item_id = hi.id
+					and hi.id <> %s
+					and (cn.number, cn.source_id) in (select cn2.number, cn2.source_id from digipal_cataloguenumber cn2 where cn2.historical_item_id = %s)
+				''' % (hi.id, hi.id)
+				for hi_clone in HistoricalItem.objects.raw(select):
+					print '%s' % self.get_obj_label(hi)
+					print '\tclone: %s' % self.get_obj_label(hi_clone)
+					hi_clone.catalogue_number = hi.catalogue_number
+					hi_clone.save()
+					
+					# create the description
+					hi_clone.description_set.all().delete()
+					for desc in hi.description_set.all():
+						print '\t\tCreate description'
+						Description(historical_item=hi_clone, 
+								source=desc.source, 
+								description=desc.description,
+								text_id=desc.text_id,
+								comments=desc.comments,
+								summary=desc.summary
+								).save()					
+
+					# create the collation
+					hi_clone.collation_set.all().delete()
+					for col in hi.collation_set.all():
+						print '\t\tCreate collation'
+						Collation(historical_item=hi_clone, 
+								fragment=col.fragment,
+								leaves=col.leaves,
+								front_flyleaves=col.front_flyleaves,
+								back_flyleaves=col.back_flyleaves
+								).save()					
+			
+	def get_cloned_hi(self, hi):
+		ret = HistoricalItem()
+		ret.display_label = hi.display_label
+
+		ret.legacy_id = hi.legacy_id
+		ret.historical_item_type = hi.historical_item_type
+		ret.historical_item_format = hi.historical_item_format
+		ret.date = hi.date
+		ret.name = hi.name
+		ret.hair = hi.hair
+		ret.language = hi.language
+		ret.url = hi.url
+		ret.vernacular = hi.vernacular
+		ret.neumed = hi.neumed
+		ret.catalogue_number = hi.catalogue_number
+		ret.legacy_reference = hi.legacy_reference
+		
+		ret.save()
+
+		for cat in hi.categories.all():
+			ret.categories.add(cat)
+			
+		for owner in hi.owners.all():
+			ret.owners.add(owner)
+		
+		# cat num!
+		# Have to copy all the cat nums!
+		for cat_num in hi.catalogue_numbers.all():
+			print '\t\t\tCreate cat num: %s' % cat_num
+			CatalogueNumber(historical_item=ret, number=cat_num.number, source=cat_num.source).save()
+		
+		# layout! None of them has a layout so we can ignore this part.
+		if hi.layout_set.count() > 0:
+			self.print_warning('Has layout', 2)
+		
+		if hi.itemorigin_set.count() > 0:
+			self.print_warning('Has origin', 2)
+
+		if hi.description_set.count() > 0:
+			self.print_warning('Has description', 2)
+			
+		if hi.collation_set.count() > 0:
+			self.print_warning('Has collation', 2)
+			
+		return ret
+	
+	def get_duplicates_of_current_item(self, ci, echo=False):
+		if not hasattr(self, 'duplicate_cis'):
+			self.duplicate_cis = self.get_duplicate_cis()
+		key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+		ret = self.duplicate_cis[key][:]
+		if len(ret) > 1 and echo:
+			self.print_warning('Bridged CIs with similar names', 2)
+			print '\t\t\t%s (key: %s)' % (', '.join([self.get_obj_label(ci) % ci for ci in ret]), key)
+		return ret
+	
+	def get_normalised_code(self, code):
+		#return re.sub(ur'\W+', ur'.', locus.lower().strip())
+		code = code.lower()
+		# For CUL and Oxford Bodleian we ignore the number between parenthesis at the end  
+		if (code.startswith('20-')) or (code.startswith('43-')):
+			code = re.sub(ur'\(\d+\)\s*$', ur'', code)
+		code = re.sub(ur'(\s|,|\.|-|_|\u2013)+', ur'_', code)
+		return code.replace('ii', '2').replace('i', '1').replace('latin', 'lat').replace('additional', 'add').replace('add', 'ad').strip()
+		
+	##################################################
+
+	def print_warning(self, message, indent=0):
+		if not hasattr(self, 'messages'):
+			self.messages = {}
+		self.messages[message] = self.messages.get(message, 0) + 1
+		print ('\t' * indent) + 'WARNING: ' + message
+		
+	def print_warning_report(self):
+		print 'WARNINGS:'
+		for message in getattr(self, 'messages', []):
+			print '\t%6d: %s' % (self.messages[message], message)
+	
+	def get_obj_label(self, obj):
+		return utils.get_obj_label(obj)
+				
 	def handle(self, *args, **options):
 		
 		self.options = options
@@ -515,6 +987,24 @@ Commands:
 			
 			c = utils.fix_sequences(options.get('db', 'default'), True)
 			print "%d sequences fixed." % c
+
+		if command == 'add_cartulary_his':
+			known_command = True
+			self.add_cartulary_his()
+
+		if command == 'pseudo_items':
+			known_command = True
+			self.process_pseudo_items()
+			
+		if command == 'duplicate_cis':
+			known_command = True
+			duplicates = self.get_duplicate_cis()
+			for key in duplicates:
+				cis = duplicates[key]
+				if len(cis) > 1:
+					print 'Duplicates: (%s)' % key
+					for ci in cis:
+						print '\t%s' % self.get_obj_label(ci)
 
 		if command == 'list':
 			known_command = True

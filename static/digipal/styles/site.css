@@ -599,6 +599,7 @@ display: block;
 }
 
 
+
 .tabContentOverlay {
 background-color: #333;
 background-repeat: repeat;
@@ -615,6 +616,9 @@ border-top-right-radius: 5px;
 
 }
 
+label[for=id_hand], label[for=id_allograph]{
+    display: inline;
+}
 
 .tabContentOverlay p {
 
@@ -780,6 +784,7 @@ select.faceted {
     border-radius: 5px;
     cursor: pointer;
 }
+
 
 
 li ul.initial {

@@ -3,33 +3,48 @@
 <table class="table table-condensed">
     <tr>
         <!--<th>Scribe</th>-->
+        <th>Hand</th>
         <th>Repository</th>
         <th>Shelfmark</th>
-        <th>Hand</th>
+        <th>Description</th>
         <th>Place</th>
         <th>Date</th>
         <th>Catalogue Number</th>
         <th>Actions</th>
     </tr>
 
-    {% for hand in records %}
-        <tr class="{% cycle 'bgColour' '' %}">
-            <td>{{ hand.item_part.current_item.repository.name }}</td>
-            <td>{{ hand.item_part.current_item.shelfmark }}</td>
-            <td>{{ hand.label }}
-                {% if hand.pages.all %}
-                    <a class='imageIcon' href='/digipal/search/?terms={{ terms|spacify }}&amp;result_type={{ template_type }}&amp;id={{ hand.id }}&amp;record={{ forloop.counter }}&from_image=true' title='{{page}}'><img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.pages.count}} images' /></a> ({{hand.pages.count}})
-                {% endif %}
-            </td>
-            <td>{{ hand.assigned_place.name }}</td>
-            <td>{{ hand.assigned_date.date }}</td>
-            <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
-            <td>
-                {% if can_edit %}
-                    <a class="btn" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
-                {% endif %}
-                <a class="btn btn-primary" href="/digipal/search/?terms={{ terms|spacify }}&amp;result_type={{template_type}}&amp;id={{ hand.id }}&amp;record={{ forloop.counter }}">View</a>
-            </td>
-        </tr>
-    {% endfor %}
+    {% filter tag_phrase_terms:terms %}
+        {% for hand in records %}
+            <tr class="{% cycle 'bgColour' '' %}">
+
+                <td>Digipal Hand {{ hand.num }}</td>
+                
+                <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
+
+                <td>{{ hand.item_part.current_item.shelfmark }}</td>
+                <td>{{ hand.label }}
+                    {% if hand.images.all %}
+                        <a class="imageIcon" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
+                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.images.count}} images' />
+                        </a> 
+                        ({{hand.images.count}})
+                    {% endif %}
+                </td>
+                <td>{{ hand.assigned_place.name }}</td>
+                <td>{{ hand.assigned_date.date }}</td>
+                <td>
+                    {% for item in hand.item_part.historical_items.all %}
+                        {% if not forloop.first %}, {% endif %}
+                        {{ item.catalogue_number }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if can_edit %}
+                        <a class="btn" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
+                    {% endif %}
+                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfilter %}
 </table>

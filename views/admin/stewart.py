@@ -128,10 +128,10 @@ def get_best_matches(record):
                     document_id = document_id_p
                     source_dp = 'pelteret'
             document_ids = re.split('\s*,\s*', document_id)
-            documents = ItemPart.objects.filter(historical_item__catalogue_numbers__source__name=source_dp,
-                                                historical_item__catalogue_numbers__number__in=document_ids).distinct()
+            documents = ItemPart.objects.filter(Q(historical_items__catalogue_numbers__source__name=source_dp) & \
+                                                Q(historical_items__catalogue_numbers__number__in=document_ids)).distinct()
             for doc in documents: record.documents[doc.id] = doc
-            hands = Hand.objects.filter(Q(pages__item_part__in=documents) | Q(item_part__in=documents)).distinct().order_by('id')
+            hands = Hand.objects.filter(Q(images__item_part__in=documents) | Q(item_part__in=documents)).distinct().order_by('id')
             for hand in hands:
                 add_matching_hand_to_result(ret, record, hand, source.upper()[0])
             

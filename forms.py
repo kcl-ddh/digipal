@@ -18,7 +18,7 @@ class ScribeAdminForm(forms.Form):
 
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
     component = forms.ModelChoiceField(queryset=Component.objects.all())
-    feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
+    #feature = forms.ModelChoiceField(queryset=Feature.objects.all(), widget=SelectMultiple)
 
 
 class ContactForm(forms.Form):
@@ -27,22 +27,46 @@ class ContactForm(forms.Form):
     sender = forms.EmailField()
     cc_myself = forms.BooleanField(required=False)
 
-class PageAnnotationForm(forms.Form):
+class AllographSelect(Select):
+    '''Special variant of the Select widget which adds a class to each option.
+        The class contains the id of the type of the ontograph linked to the allograph.
+        e.g.
+            <option value="42">r, Caroline</option>
+            =>
+            <option class="type-2" value="42">r, Caroline</option>
+
+        Because allograph 42 derives from an ontograph of type = 2
+    '''
+    def render_option(self, selected_choices, option_value, option_label):
+        ret = super(AllographSelect, self).render_option(selected_choices, option_value, option_label)
+        if option_value:
+            a = Allograph.objects.get(id=int(option_value))
+            ret = ret.replace('<option ', '<option class="type-%s" ' % a.character.ontograph.ontograph_type.id)
+        return ret
+
+class ImageAnnotationForm(forms.Form):
     status_list = Status.objects.filter(default=True)
 
     if status_list:
         default_status = status_list[0]
 
-    status = forms.ModelChoiceField(queryset=Status.objects.all(),
-            initial=default_status)
-    hand = forms.ModelChoiceField(queryset=Hand.objects.all())
-    after = forms.ModelChoiceField(required=False,
-            queryset=Allograph.objects.all())
-    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all())
-    before = forms.ModelChoiceField(required=False,
-            queryset=Allograph.objects.all())
-    feature = forms.MultipleChoiceField(required=False,
-            widget=forms.SelectMultiple(attrs={'size': 25}))
+    #status = forms.ModelChoiceField(queryset=Status.objects.all(),
+    #        initial=default_status)
+    hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
+        widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Hand"}),
+        label = "",
+        empty_label = "",)
+    #after = forms.ModelChoiceField(required=False,
+    #        queryset=Allograph.objects.all())
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all().order_by('character'),
+        widget = AllographSelect(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
+        label = "",
+        empty_label = "",
+    )
+    #before = forms.ModelChoiceField(required=False,
+    #        queryset=Allograph.objects.all())
+    #feature = forms.MultipleChoiceField(required=False,
+    #        widget=forms.SelectMultiple(attrs={'size': 25}))
     display_note = forms.CharField(required=False,
             widget=Textarea(attrs={'cols': 25, 'rows': 5}))
     internal_note = forms.CharField(required=False,
@@ -53,7 +77,7 @@ class PageAnnotationForm(forms.Form):
         are populated dinamically on the client side, therefore the clean
         method needs to be overriden to ignore errors related to the feature
         field."""
-        super(PageAnnotationForm, self).clean()
+        super(ImageAnnotationForm, self).clean()
 
         if 'feature' in self._errors:
             del self._errors['feature']
@@ -98,15 +122,15 @@ class InlineForm(forms.ModelForm):
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
-        queryset = Place.objects.filter(repository__currentitem__itempart__pages__isnull=False).distinct().values_list('name', flat=True),
+        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "",
-        empty_label = "Medieval Town or City",
+        empty_label = "Town or City",
         required = False)
 
-    
+
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
         required = False)
@@ -120,7 +144,7 @@ class FilterManuscriptsImages(forms.Form):
 
 class SearchPageForm(forms.Form):
     """ Represents the input form on the search page """
-    
+
     def __init__(self, *args, **kwargs):
         # set basic_search_type: 'hands' by default if not selected
         if not args:
@@ -131,7 +155,7 @@ class SearchPageForm(forms.Form):
         if 'basic_search_type' not in args[0]:
             args[0]['basic_search_type'] = 'hands'
         super(SearchPageForm, self).__init__(*args, **kwargs)
- 
+
     terms = forms.CharField(
         label='',
         required=False,
@@ -139,7 +163,7 @@ class SearchPageForm(forms.Form):
         'required': 'Please enter at least one search term',
         'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
-            'id': 'search-terms', 
+            'id': 'search-terms',
             'class':'textEntry',
             'placeholder': 'Enter search terms',
             'required': 'required',
@@ -163,13 +187,13 @@ class SearchPageForm(forms.Form):
         required=False,
         label='ordering',
         widget=HiddenInput(attrs={'id':'active_ordering'})
-    ) 
+    )
     years = forms.CharField(
         initial='1000-1300',
         required=False,
         label='years',
         widget=HiddenInput(attrs={'id':'active_years'})
-    ) 
+    )
     result_type = forms.CharField(
         initial='',
         required=False,
@@ -179,7 +203,7 @@ class SearchPageForm(forms.Form):
 
 # class SearchForm(forms.Form):
 #     """ Represents the input form on the search page """
-# 
+#
 #     terms = forms.CharField(
 #         label='',
 #         required=False,
@@ -209,13 +233,13 @@ class SearchPageForm(forms.Form):
 #         required=False,
 #         label='ordering',
 #         widget=HiddenInput(attrs={'id':'active_ordering'}))
-# 
+#
 #     years = forms.CharField(
 #         initial='1000-1300',
 #         required=False,
 #         label='years',
 #         widget=HiddenInput(attrs={'id':'active_years'}))
-# 
+#
 # class QuickSearch(forms.Form):
 #     terms = forms.CharField(
 #         label='',
@@ -241,13 +265,13 @@ class DrilldownForm(forms.Form):
         empty_label = "Script",
         required=False)
     character_select = forms.ModelChoiceField(
-        queryset=Character.objects.values_list('name', flat= True).order_by('name').distinct(),
+        queryset=Character.objects.values_list('name', flat= True).distinct(),
         widget=Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label='',
         empty_label = "Character",
         required=False)
     allograph_select = forms.ChoiceField(
-        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().order_by('name').distinct()],
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='',

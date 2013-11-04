@@ -1,3 +1,15 @@
+
+#OpenLayers_Control_Panel_29{
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: 1px;
+    border-radius:4px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    margin:0;
+    border: 1px solid #999;
+    border-left:none;
+}
+
 div.olMap {
     z-index: 0;
     padding: 0 !important;
@@ -7,6 +19,7 @@ div.olMap {
 
 div.olMapViewport {
     text-align: left;
+    -ms-touch-action: none;
 }
 
 div.olLayerDiv {
@@ -27,6 +40,10 @@ div.olLayerDiv {
 }
 .olLayerGoogleV3.olLayerGooglePoweredBy {
     bottom: 15px !important;
+}
+/* GMaps should not set styles on its container */
+.olForeignContainer {
+    opacity: 1 !important;
 }
 .olControlAttribution {
     font-size: smaller;
@@ -155,7 +172,16 @@ div.olControlMousePosition {
    background-position: -24px -24px;
 }
 
-
+div.olControlSaveFeaturesItemActive {
+    background-image: url(img/save_features_on.png);
+    background-repeat: no-repeat;
+    background-position: 0 1px;
+}
+div.olControlSaveFeaturesItemInactive {
+    background-image: url(img/save_features_off.png);
+    background-repeat: no-repeat;
+    background-position: 0 1px;
+}
 
 .olHandlerBoxZoomBox {
     border: 2px solid red;
@@ -360,49 +386,32 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
  * Editing and navigation icons.
  * (using the editing_tool_bar.png sprint image)
  */
-.olControlNavToolbar ,
-.olControlEditingToolbar {
-    margin: 5px 5px 0 0;
-}
-/* positions */
-.olControlEditingToolbar {
-    right: 0;
-    top: 0;
-}
 .olControlNavToolbar {
-    top: 295px;
-    left: 9px;
-}
-/* layouts */
-.olControlEditingToolbar div {
-    float: right;
-}
-
-/* individual controls */
-.olControlNavToolbar ,
-.olControlEditingToolbar {
     margin: 5px 5px 0 0;
+
 }
 .olControlNavToolbar div,
 .olControlEditingToolbar div {
-    margin: 0 0 5px 5px;
+    background-image: url("img/editing_tool_bar.png");
+    background-repeat: no-repeat;
     width: 24px;
     height: 22px;
     cursor: pointer
 }
 /* positions */
 .olControlEditingToolbar {
-    right: 0;
-    top: 0;
+    position: fixed !important;
+    left: 0px;
+    top: 245px;
+    width: 25px;
+    z-index: 1000;
 }
 .olControlNavToolbar {
     top: 295px;
     left: 9px;
 }
 /* layouts */
-.olControlEditingToolbar div {
-    float: right;
-}
+
 /* individual controls */
 .olControlNavToolbar .olControlNavigationItemInactive,
 .olControlEditingToolbar .olControlNavigationItemInactive {
@@ -412,98 +421,31 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 .olControlEditingToolbar .olControlNavigationItemActive  {
     background-position: -103px -24px;
 }
-.olControlEditingToolbar .olControlZoomBoxItemInactive {
-    background-image: url(img/zoom_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
+.olControlNavToolbar .olControlZoomBoxItemInactive {
+    background-position: -128px -1px;
 }
-.olControlEditingToolbar .olControlZoomBoxItemActive  {
-    background-image: url(img/zoom_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
+.olControlNavToolbar .olControlZoomBoxItemActive  {
+    background-position: -128px -24px;
 }
-
+.olControlEditingToolbar .olControlDrawFeaturePointItemInactive {
+    background-position: -77px -1px;
+}
+.olControlEditingToolbar .olControlDrawFeaturePointItemActive {
+    background-position: -77px -24px;
+}
+.olControlEditingToolbar .olControlDrawFeaturePathItemInactive {
+    background-position: -51px -1px;
+}
+.olControlEditingToolbar .olControlDrawFeaturePathItemActive {
+    background-position: -51px -24px;
+}
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemInactive{
-    background-image: url(img/rectangle_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
+    background-position: -26px -1px;
 }
 .olControlEditingToolbar .olControlDrawFeaturePolygonItemActive {
-    background-image: url(img/rectangle_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
-}
-.olControlEditingToolbar .olControlDeleteFeatureItemInactive{
-    background-image: url(img/delete_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
-}
-.olControlEditingToolbar .olControlDeleteFeatureItemActive {
-    background-image: url(img/delete_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px !important;
-}
-.olControlEditingToolbar .olControlDuplicateFeatureItemInactive{
-    background-image: url(img/clone_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlDuplicateFeatureItemActive {
-    background-image: url(img/clone_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlSelectFeatureItemInactive{
-    background-image: url(img/pan_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlSelectFeatureItemActive {
-    background-image: url(img/pan_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlDragFeatureItemInactive{
-    background-image: url(img/select_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlDragFeatureItemActive {
-    background-image: url(img/select_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlModifyFeatureItemInactive{
-    background-image: url(img/modify_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlModifyFeatureItemActive {
-    background-image: url(img/modify_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlTransformFeatureItemInactive{
-    background-image: url(img/rotate_off.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlTransformFeatureItemActive {
-    background-image: url(img/rotate_on.png);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: -26px -24px;
 }
 
-.olControlEditingToolbar .olControlFullScreenFeatureItemInactive{
-	background-image: url(img/fullscreen.gif);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
-.olControlEditingToolbar .olControlFullScreenFeatureItemInactive:hover, .olControlEditingToolbar .olControlFullScreenFeatureItemActive{
-	background-image: url(img/fullscreen_on.gif);
-    background-repeat: no-repeat;
-    background-position: 0 1px;
-}
 div.olControlZoom {
     position: absolute;
     top: 8px;
@@ -528,16 +470,6 @@ div.olControlZoom a {
     background: #130085; /* fallback for IE - IE6 requires background shorthand*/
     background: rgba(0, 60, 136, 0.5);
     filter: alpha(opacity=80);
-}
-div.olControlSaveFeaturesItemActive {
-    background-image: url(img/save_features_on.png)!important;
-    background-repeat: no-repeat!important;
-    background-position: 0 1px!important;
-}
-div.olControlSaveFeaturesItemInactive {
-    background-image: url(img/save_features_off.png)!important;
-    background-repeat: no-repeat!important;
-    background-position: 0 1px!important;
 }
 div.olControlZoom a:hover {
     background: #130085; /* fallback for IE */
@@ -566,4 +498,31 @@ a.olControlZoomOut {
     -moz-transition: opacity 0.2s linear;
     -o-transition: opacity 0.2s linear;
     transition: opacity 0.2s linear;
+}
+
+/* Turn on GPU support where available */
+.olTileImage {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -ms-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    -moz-perspective: 1000;
+    -ms-perspective: 1000;
+    perspective: 1000;
+}
+
+/* when replacing tiles, do not show tile and backbuffer at the same time */
+.olTileReplacing {
+    display: none;
+}
+
+/* override any max-width image settings (e.g. bootstrap.css) */
+img.olTileImage {
+    max-width: none;
 }

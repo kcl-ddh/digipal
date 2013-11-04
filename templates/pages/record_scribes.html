@@ -2,120 +2,110 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
-{% block record_title %}{{ scribe.name }}{% endblock %}
+{% block meta_title %}Scribe: {{ scribe.name }}{% endblock %}
+{% block record_title %}Scribe: {{ scribe.name }}{% endblock %}
+
+{% block record_tabs %}
+    <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
+    <li><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
+    <li><a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a></li>
+    <li><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
+{% endblock %}
 
 {% block details %}
-{% if request.GET.from_image == "true" %}
-<script>
-    $(document).ready(function($) {
-        $('#data').removeClass('active');
-        $('#myTab li[class=active]').removeClass('active');
-        $('#myTab li a[href=#pages]').parent().addClass('active')
-        $('#pages').addClass('in');
-        $('#pages').addClass('active');
-    });
-</script>
-{% endif %}
-<div class='tabbable'>
-    <div id='myTabContent' class='tab-content'>
-        <div class='tab-pane fade active in' id='data'>
-            <h3>Location</h3>
-
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Name</th>
-                        <td>{{ scribe.name }}</td>
-                    </tr>
-                    <tr>
-                        <th>Date</th>
-                        <td>{{ scribe.date }}</td>
-                    </tr>
-                    <tr>
-                        <th>Scriptorium</th>
-                        <td>{{ scribe.scriptorium }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-            <div class='tab-pane fade' id='hands'>
-                <h3>Hands</h3>
-                    <div class='row-fluid'>
-                        <table class="table table-condensed">
-                            <tr>
-                                <th>Item Part</th>
-                                <th>Hand</th>
-                            </tr>
-                            {% for hand in scribe.hand_set.all %}
-                                {% if hand %}
-                                    <tr>
-                                        <td>{{hand.item_part}}</td> 
-                                        <td><a href='/digipal/search/?terms={{terms}}&amp;basic_search_type=hands&amp;id={{hand.id}}&amp;record=1'>{{hand}}</a></td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td><div class="alert alert-block"><h4>No hands available</h4></div></td>
-                                    </tr>
-                                {% endif %}
-                            {% endfor %}
-
-                        </table>
-                    </div>
-            
-            </div>
-            <div class='tab-pane fade' id='pages'>
-                <h3>Pages</h3> 
-
-                    <table class='table table-condensed'>
+    <div class='tabbable'>
+    
+        <div id='myTabContent' class='tab-content'>
+            <div class='tab-pane fade active in' id='data'>
+                <h3>Location</h3>
+    
+                <table class="table table-condensed">
+                    <tbody>
                         <tr>
-                            <th>Page</th>
-                            <th>Hand</td>
-                            <th>Image</th>
+                            <th>Name</th>
+                            <td>{{ scribe.name }}</td>
                         </tr>
-                        {% for hand in scribe.hand_set.all %}
-                            {% for page in hand.pages.all %}
+                        <tr>
+                            <th>Date</th>
+                            <td>{{ scribe.date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Scriptorium</th>
+                            <td>{{ scribe.scriptorium }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    
+            <div class='tab-pane fade' id='hands'>
+                <div class='row-fluid'>
+                    <table class="table table-condensed">
+                        <tr>
+                            <th>Item Part</th>
+                            <th>Hand</th>
+                        </tr>
+                        {% for hand in scribe.hands.all %}
+                            {% if hand %}
+                                <tr>
+                                    <td>{{hand.item_part}}</td> 
+                                    <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td><div class="alert alert-block"><h4>No hands available</h4></div></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+    
+                    </table>
+                </div>
+            </div>
+            
+            <div class='tab-pane fade' id='pages'>
+                <table class='table table-condensed'>
+                    <tr>
+                        <th>Page</th>
+                        <th>Hand</td>
+                        <th>Image</th>
+                    </tr>
+                    {% for hand in scribe.hands.all %}
+                        {% for image in hand.images.all %}
                             <tr>
                                 <td>
-                                    <p><a href='../page/{{ page.id }}/'>{{ page}}</a></p>
-
+                                    <p><a href="{{ image.get_absolute_url }}">{{ image }}</a></p>
+        
                                 </td>
                                 <td>
                                     <p>{{ hand }}</p>
                                 </td>
                                 <td style='padding:1%'>
-                                    <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                        {{ page.thumbnail  }}
+                                    <a class="{{ image.get_absolute_url }}">
+                                        {{ image.thumbnail  }}
                                     </a>
                                 </td>
                                
                             </tr>
-                            {% endfor %}
                         {% endfor %}
+                    {% endfor %}
                 </table>
             </div>
+            
             <div class='tab-pane fade' id='idiographs'>
-                <h3>Idiographs</h3>
                 <div id='idiographsView'>
+                <a class='btn btn-primary' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>Edit Ideographs</a>
                 {% if idiograph_components %}
-                    {% for idiograph in idiograph_components.distinct %}
+                    {% for idiograph in idiograph_components.all %}
+                    <div class="idiograph_scribe">
                         <h4><b>Idiograph:</b> {{idiograph}}</h4>
-                        <table class='table table-condensed'>
-                            <tbody>
-                                <tr>
-                                    <th>Component</th>
-                                    <th>Graph</th>
-                                </tr>
-
-                        {% for component_list in idiograph.graph_set.distinct %}
-                                {% for component in component_list.graph_components.all %}
-                                <tr>
-                                    <td>{{component.component}}</td>
-                                    <td>{{component.id}}</td>
-                                </tr>
-                                {% endfor %}
+                        {% if can_edit %}
+                        {% endif %}
+                        {% for component in idiograph.idiographcomponent_set.all %}
+                            <p class='component_scribe'>{{ component.component }}</p>
+                            {% for feature in component.features.all %}
+                                <p class='feature_scribe'>{{feature}}</p>
+                            {% endfor %}
                         {% endfor %}
-                            </tbody>
-                        </table>
+                    </div>
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-block">
@@ -124,6 +114,7 @@
                 {% endif %}
                 </div>
             </div>
+            
         </div>
     </div>
 {% endblock %}

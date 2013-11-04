@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}In Context{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Image</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+    {{ block.super }}
+    
+    <style type="text/css">
+    #container input.sbm-change {float: left;}
+    #context-div ul {margin-left: 2em;}
+    #context-div ul li { 
+        list-style-type: disc;
+    }
+    #context-div li.collapsed ul {
+        display: none;
+    }
+    </style>
+    
+    <script>
+        $(function(){
+            $('#context-div').on('click', 'a.expandable', function() {
+                $(this).parent().toggleClass('collapsed');
+                $(this).html('['+($(this).parent().hasClass('collapsed') ? ' + ' : ' - ')+']');
+                return false;
+            });
+        });
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="context-div">
+    
+        <h1>In Context</h1>
+        
+        {{ tree_html }}
+    
+    </div>
+
+{% endblock %} 

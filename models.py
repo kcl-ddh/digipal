@@ -20,7 +20,7 @@ dplog = logging.getLogger( 'digipal_debugger')
 def has_edit_permission(request, model):
     '''Returns True if the user of the current HTTP request
         can edit a model. False otherwise.
-        
+
         model is a model class
         request is a django request
     '''
@@ -28,17 +28,17 @@ def has_edit_permission(request, model):
     if model and request and request.user:
         perm = model._meta.app_label + '.' + model._meta.get_change_permission()
         ret = request.user.has_perm(perm)
-        
+
     return ret
 
 def get_list_as_string(*parts):
     '''
         Takes a list of items and separators and returns this list as a string.
         If an item is None or converts to an empty string it won't be included in the output.
-        
-        >> get_list_as_string('1', ': ', '2', ', ', '3') 
+
+        >> get_list_as_string('1', ': ', '2', ', ', '3')
         u'1: 2, 3'
-        
+
         >> get_list_as_string('1', ': ', '', ', ', '3')
         u'1: 3'
     '''
@@ -55,7 +55,7 @@ def get_list_as_string(*parts):
             item_str = (u'%s' % item).strip()
             if not item_str:
                 continue
-            
+
             if len(waiting_sep) and ret.endswith(waiting_sep[0]):
                 ret = ret[:-1]
             ret += waiting_sep + item_str
@@ -65,11 +65,11 @@ def get_list_as_string(*parts):
 class MediaPermission(models.Model):
     label = models.CharField(max_length=64, blank=False, null=False,
         help_text='''An short label describing the type of permission. For internal use only.''')
-    is_private = models.BooleanField(null=False, default=False, 
+    is_private = models.BooleanField(null=False, default=False,
         help_text='''If ticked the image the following message will be displayed instead of the image.''')
     display_message = models.TextField(blank=True, null=False, default='',
         help_text='''If Private is ticked the image the message will be displayed instead of the image.''')
-    
+
     class Meta:
         ordering = ['label']
 
@@ -158,9 +158,13 @@ class Ontograph(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    nesting_level = models.IntegerField(blank=False, null=False, default=0,
+            help_text='''An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.''')
+    sort_order = models.IntegerField(blank=False, null=False, default=0)
 
     class Meta:
-        ordering = ['ontograph_type', 'name']
+        #ordering = ['ontograph_type', 'name']
+        ordering = ['sort_order', 'ontograph_type__name', 'name']
         unique_together = ['name', 'ontograph_type']
 
     def __unicode__(self):
@@ -169,7 +173,7 @@ class Ontograph(models.Model):
 
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
-    unicode_point = models.CharField(max_length=32, unique=True)
+    unicode_point = models.CharField(max_length=32, unique=False, blank=True, null=True)
     form = models.CharField(max_length=128)
     ontograph = models.ForeignKey(Ontograph)
     components = models.ManyToManyField(Component, blank=True, null=True)
@@ -178,7 +182,8 @@ class Character(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['name']
+        #ordering = ['name']
+        ordering = ['ontograph__sort_order', 'ontograph__ontograph_type__name', 'name']
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -194,7 +199,8 @@ class Allograph(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['character__name', 'name']
+        #ordering = ['character__name', 'name']
+        ordering = ['character__ontograph__sort_order', 'character__ontograph__ontograph_type__name', 'name']
         unique_together = ['name', 'character']
 
     def __unicode__(self):
@@ -209,7 +215,7 @@ class Allograph(models.Model):
 
 
 class AllographComponent(models.Model):
-    allograph = models.ForeignKey(Allograph)
+    allograph = models.ForeignKey(Allograph, related_name="allograph_components")
     component = models.ForeignKey(Component)
     features = models.ManyToManyField(Feature, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -222,6 +228,45 @@ class AllographComponent(models.Model):
     def __unicode__(self):
         #return u'%s. %s' % (self.allograph, self.component)
         return get_list_as_string(self.allograph, '. ', self.component)
+
+class Text(models.Model):
+    name = models.CharField(max_length=200)
+    item_parts = models.ManyToManyField('ItemPart', through='TextItemPart', related_name='texts')
+    legacy_id = models.IntegerField(blank=True, null=True)
+
+    date = models.CharField(max_length=128, blank=True, null=True)
+    categories = models.ManyToManyField('Category', blank=True, null=True, related_name='texts')
+    languages = models.ManyToManyField('Language', blank=True, null=True, related_name='texts')
+    url = models.URLField(blank=True, null=True)
+
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        unique_together = ['name']
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+
+class TextItemPart(models.Model):
+    item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
+    text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
+    locus = models.CharField(max_length=20, blank=True, null=True)
+    date = models.CharField(max_length=128, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        unique_together = ['item_part', 'text']
+
+    def __unicode__(self):
+        locus = ''
+        if self.locus:
+            locus = u' (%s)' % self.locus
+        return u'%s in %s%s' % (self.text.name, self.item_part.display_label, locus)
 
 
 class Script(models.Model):
@@ -278,9 +323,21 @@ class Reference(models.Model):
 # MsOwners in legacy db
 class Owner(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
+
+    # GN: replaced generic relations with particular FKs.
+    # because generic relations are not easy to edit in the admin.
+    #
+    #content_type = models.ForeignKey(ContentType)
+    #object_id = models.PositiveIntegerField()
+    #content_object = generic.GenericForeignKey()
+    #
+    institution = models.ForeignKey('Institution', blank=True, null=True
+        , default=None, related_name='owners',
+        help_text='Please select either an institution or a person')
+    person = models.ForeignKey('Person', blank=True, null=True, default=None,
+        related_name='owners',
+        help_text='Please select either an institution or a person')
+
     date = models.CharField(max_length=128)
     evidence = models.TextField()
     rebound = models.NullBooleanField()
@@ -289,15 +346,27 @@ class Owner(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    
+
     class Meta:
         ordering = ['date']
 
+    @property
+    def content_object(self):
+        return self.institution or self.person
+
+    @property
+    def content_type(self):
+        ret = self.content_object
+        if ret:
+            ret = ContentType.objects.get_for_model(ret)
+        return ret
+
     def __unicode__(self):
-        #return u'%s: %s. %s' % (self.content_type, self.content_object, 
+        #return u'%s: %s. %s' % (self.content_type, self.content_object,
         #        self.date)
-        return get_list_as_string(self.content_type, ': ', self.content_object,
-                '. ', self.date)
+        #return get_list_as_string(self.content_type, ': ', self.content_object,
+        #        '. ', self.date)
+        return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
 
 
 # DateText in legacy db
@@ -426,9 +495,10 @@ class HistoricalItem(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
-    
+
     def get_descriptions(self):
-        ret = Description.objects.filter(historical_item=self).distinct()
+        #ret = Description.objects.filter(historical_item=self).distinct()
+        ret = self.description_set.all()
         return ret
 
     def set_catalogue_number(self):
@@ -442,10 +512,31 @@ class HistoricalItem(models.Model):
         self.set_catalogue_number()
         #self.display_label = u'%s %s %s' % (self.historical_item_type,
         #        self.catalogue_number, self.name or '')
-        self.display_label = get_list_as_string(self.historical_item_type, 
+        self.display_label = get_list_as_string(self.historical_item_type,
                 ' ', self.catalogue_number, ' ', self.name)
         super(HistoricalItem, self).save(*args, **kwargs)
 
+    def get_display_description(self):
+        ret = None
+        ret_priority = 10
+        is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
+        # See JIRA 95
+        for desc in  self.get_descriptions():
+            if desc.source.name == 'digipal':
+                ret = desc
+                break
+            if is_charter and desc.source.name in ['sawyer'] and ret_priority > 1:
+                ret = desc
+                ret_priority = 1
+            if is_charter and desc.source.name in ['pelteret'] and ret_priority > 2:
+                ret = desc
+                ret_priority = 2
+            if not is_charter and desc.source.name in ['gneuss'] and ret_priority > 3:
+                ret = desc
+                ret_priority = 3
+            if ret_priority == 10:
+                ret = desc
+        return ret
 
 class Source(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -458,27 +549,43 @@ class Source(models.Model):
     class Meta:
         ordering = ['name']
 
+    def get_authors_short(self):
+        ''' Used by the front-end to display the source as a shorthand '''
+        return self.label
+
+    def get_authors_long(self):
+        ''' Used by the front-end to display the authors of the source '''
+        return self.name.title()
+
+    def get_display_reference(self):
+        ''' Used by the front-end to display the source as a reference '''
+        return self.get_authors_long()
+
     def __unicode__(self):
         return u'%s' % (self.label or self.name)
-
 
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
     historical_item = models.ForeignKey(HistoricalItem,
-            related_name='catalogue_numbers')
+            related_name='catalogue_numbers', blank=True, null=True)
+    text = models.ForeignKey('Text', related_name='catalogue_numbers', blank=True, null=True)
     source = models.ForeignKey(Source)
     number = models.CharField(max_length=32)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
+    def clean(self):
+        if self.historical_item is None and self.text is None:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('A catalogue number must refer to a Text or a Historical Item.')
+
     class Meta:
         ordering = ['source', 'number']
-        unique_together = ['source', 'number']
+        unique_together = ['source', 'number', 'historical_item', 'text']
 
     def __unicode__(self):
-        #return u'%s %s' % (self.source, self.number)
-        return get_list_as_string(self.source, ' ', self.number) 
+        return get_list_as_string(self.source, ' ', self.number)
 
 
 # Manuscripts in legacy db
@@ -525,24 +632,38 @@ class Decoration(models.Model):
 
 
 class Description(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
-    #historical_item = models.ForeignKey(HistoricalItem)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
+    text = models.ForeignKey('Text', related_name='descriptions', blank=True, null=True)
+
     source = models.ForeignKey(Source)
-    description = models.TextField()
+
+    description = models.TextField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    summary = models.CharField(max_length=256, blank=True, null=True)
+
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
     class Meta:
-        ordering = ['historical_item']
+        ordering = ['historical_item', 'text']
+        unique_together = ['source', 'historical_item', 'text']
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.historical_item is None and self.text is None:
+            raise ValidationError('A description must refer to a Text or a Historical Item.')
+        if not(self.description or self.comments or self.summary):
+            raise ValidationError('A description record must have a summary, a description or comments.')
 
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source)
-    
+
 # Manuscripts in legacy db
 class Layout(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
+    item_part = models.ForeignKey('ItemPart', blank=True, null=True, related_name='layouts')
     page_height = models.IntegerField(blank=True, null=True)
     page_width = models.IntegerField(blank=True, null=True)
     frame_height = models.IntegerField(blank=True, null=True)
@@ -561,10 +682,10 @@ class Layout(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['historical_item']
+        ordering = ['item_part', 'historical_item']
 
     def __unicode__(self):
-        return u'%s' % (self.historical_item)
+        return u'%s' % (self.item_part or self.historical_item)
 
 
 # MsOrigin in legacy db
@@ -586,7 +707,7 @@ class ItemOrigin(models.Model):
     def __unicode__(self):
         #return u'%s: %s %s' % (self.content_type, self.content_object,
         #        self.historical_item)
-        return get_list_as_string(self.content_type, ': ', 
+        return get_list_as_string(self.content_type, ': ',
                 self.content_object, ' ', self.historical_item)
 
 # MsOrigin in legacy db
@@ -607,7 +728,7 @@ class Archive(models.Model):
     def __unicode__(self):
         #return u'%s: %s. %s' % (self.content_type, self.content_object,
         #        self.historical_item)
-        return get_list_as_string(self.content_type, ': ', 
+        return get_list_as_string(self.content_type, ': ',
                 self.content_object, '. ', self.historical_item)
 
 
@@ -639,6 +760,17 @@ class County(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class PlaceType(models.Model):
+    name = models.CharField(max_length=256)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 # PlaceText in legacy db
 class Place(models.Model):
@@ -654,6 +786,7 @@ class Place(models.Model):
             related_name='county_historical',
             blank=True, null=True)
     origins = generic.GenericRelation(ItemOrigin)
+    type = models.ForeignKey(PlaceType, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -676,16 +809,16 @@ class Repository(models.Model):
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
     copyright_notice = models.TextField(blank=True, null=True)
-    media_permission = models.ForeignKey(MediaPermission, null=True, 
+    media_permission = models.ForeignKey(MediaPermission, null=True,
             blank=True, default=None,
-            help_text='''The default permission scheme for images originating 
-            from this repository.<br/> The Pages can override the 
+            help_text='''The default permission scheme for images originating
+            from this repository.<br/> The Pages can override the
             repository default permission.
             ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    
+
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Repositories'
@@ -695,18 +828,18 @@ class Repository(models.Model):
 
     def human_readable(self):
         #return u'%s, %s' % (self.place, self.name)
-        return get_list_as_string(self.place, ', ', self.name) 
+        return get_list_as_string(self.place, ', ', self.name)
 
     @staticmethod
     def get_default_media_permission():
-        return MediaPermission(label='Unspecified', 
-                               display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE, 
+        return MediaPermission(label='Unspecified',
+                               display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE,
                                is_private=True)
 
     def get_media_permission(self):
         # this function will always return a mdia_permission object
         return self.media_permission or Repository.get_default_media_permission()
-    
+
     def is_media_private(self):
         return get_media_permission().is_private
 
@@ -717,6 +850,7 @@ class CurrentItem(models.Model):
     shelfmark = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
     display_label = models.CharField(max_length=128, editable=False)
+    owners = models.ManyToManyField(Owner, blank=True, null=True, default=None, related_name='current_items')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -730,7 +864,7 @@ class CurrentItem(models.Model):
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s %s' % (self.repository, self.shelfmark)
-        self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark) 
+        self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark)
         super(CurrentItem, self).save(*args, **kwargs)
 
 
@@ -738,7 +872,7 @@ class CurrentItem(models.Model):
 class Person(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=256, unique=True)
-    owners = generic.GenericRelation(Owner)
+    #owners = generic.GenericRelation(Owner)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -777,7 +911,7 @@ class Institution(models.Model):
     place = models.ForeignKey(Place)
     foundation = models.CharField(max_length=128, blank=True, null=True)
     refoundation = models.CharField(max_length=128, blank=True, null=True)
-    owners = generic.GenericRelation(Owner)
+    #owners = generic.GenericRelation(Owner)
     origins = generic.GenericRelation(ItemOrigin)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -796,7 +930,7 @@ class Scribe(models.Model):
     name = models.CharField(max_length=128, unique=True)
     date = models.CharField(max_length=128, blank=True, null=True)
     scriptorium = models.ForeignKey(Institution, blank=True, null=True)
-    reference = models.ManyToManyField(Reference, blank=True, null=True)    
+    reference = models.ManyToManyField(Reference, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -807,7 +941,7 @@ class Scribe(models.Model):
 
     def __unicode__(self):
         #return u'%s. %s' % (self.name, self.date or '')
-        return get_list_as_string(self.name, '. ', self.date) 
+        return get_list_as_string(self.name, '. ', self.date)
 
 
 class Idiograph(models.Model):
@@ -827,7 +961,7 @@ class Idiograph(models.Model):
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s. %s' % (self.allograph, self.scribe)
-        self.display_label = get_list_as_string(self.allograph, '. ', self.scribe) 
+        self.display_label = get_list_as_string(self.allograph, '. ', self.scribe)
         super(Idiograph, self).save(*args, **kwargs)
 
 
@@ -864,13 +998,26 @@ class HistoricalItemDate(models.Model):
 
     def __unicode__(self):
         #return u'%s. %s' % (self.historical_item, self.date)
-        return get_list_as_string(self.historical_item, '. ', self.date) 
+        return get_list_as_string(self.historical_item, '. ', self.date)
 
+class ItemPartType(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 # Manuscripts and Charters in legacy db
 class ItemPart(models.Model):
-    historical_item = models.ForeignKey(HistoricalItem)
-    current_item = models.ForeignKey(CurrentItem)
+    historical_items = models.ManyToManyField(HistoricalItem, through='ItemPartItem', related_name='item_parts')
+    current_item = models.ForeignKey(CurrentItem, blank=True, null=True, default=None)
+    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True)
+    # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
             default=settings.ITEM_PART_DEFAULT_LOCUS)
     display_label = models.CharField(max_length=128, editable=False)
@@ -878,18 +1025,79 @@ class ItemPart(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    type = models.ForeignKey(ItemPartType, null=True, blank=True)
+    owners = models.ManyToManyField(Owner, blank=True, null=True)
 
     class Meta:
         ordering = ['display_label']
-        unique_together = ['historical_item', 'current_item', 'locus']
+        #unique_together = ['historical_item', 'current_item', 'locus']
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
-        self.display_label = get_list_as_string(self.current_item, ', ', self.locus) 
+        self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
         super(ItemPart, self).save(*args, **kwargs)
+
+    @property
+    def historical_item(self):
+        ret= None
+        try:
+            ret = self.historical_items.order_by('id')[0]
+        except IndexError:
+            pass
+        return ret
+
+''' This is used to build the front-end URL of the item part objects
+    See set_models_absolute_urls()
+'''
+ItemPart.webpath_key = 'Manuscripts'
+
+# Represents the physical belonging to a whole (Item) during a period of time in history.
+# A constitutionality.
+class ItemPartItem(models.Model):
+    historical_item = models.ForeignKey(HistoricalItem, related_name='partitions')
+    item_part = models.ForeignKey(ItemPart, related_name='constitutionalities')
+    locus = models.CharField(max_length=64, blank=True, null=False, default='')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['historical_item__id']
+        verbose_name = 'Item Partition'
+
+    def __unicode__(self):
+        ret = u''
+
+        # Type, [Shelfmark, locus], [HI.name, locus]
+        if self.item_part.type:
+            ret += u'%s: ' % self.item_part.type
+
+        ret += u'%s, %s' % (self.historical_item.name, self.locus)
+
+        if self.item_part.current_item:
+            ret += u' ('
+            ret += u'%s' % self.item_part.current_item.shelfmark
+            if self.item_part.locus:
+                ret += ', '
+                ret += u'%s' % self.item_part.locus
+            ret += u')'
+
+        if self.item_part.group:
+            group_label = ''
+            if self.item_part.group.locus:
+                group_label = '%s, %s' % (self.item_part.group.current_item.shelfmark, self.item_part.group.locus)
+            else:
+                ipi = ItemPartItems.objects.filter(item_part=self.item_part.group)
+                if ipi.count():
+                    ipi = ipi[0]
+                    group_label = '%s, %s' % (ipi.historical_item.name, ipi.locus)
+            if group_label:
+                ret += ur' [part of %s: %s]' % (self.item_part.group.type, group_label)
+
+        return ret
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
@@ -905,25 +1113,25 @@ class LatinStyle(models.Model):
     def __unicode__(self):
         return u'%s' % (self.style)
 
+class Image(models.Model):
+    item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
 
-class Page(models.Model):
-    item_part = models.ForeignKey(ItemPart, related_name='pages', null=True)
     locus = models.CharField(max_length=64)
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
     # no longer used, to be removed.
     caption = models.CharField(max_length=256)
-    
-    # Legacy field, deprecated. 
+
+    # Legacy field, deprecated.
     # PLEASE USE IIPIMAGE INSTEAD.
     # eg. self.image.url => self.iipimage.name
     image = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True,
             null=True)
-    iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path, 
+    iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path,
             blank=True, null=True, storage=iipimage.storage.image_storage)
-    
-    display_label = models.CharField(max_length=128, editable=False)
+
+    display_label = models.CharField(max_length=128)
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
             help_text='''This field determines if the image is publicly visible and the reason if not.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -935,13 +1143,13 @@ class Page(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
-    
+
     def get_repository(self):
         ret = None
         if self.item_part and self.item_part.current_item and self.item_part.current_item:
             ret = self.item_part.current_item.repository
         return ret
-    
+
     def get_media_permission(self):
         '''Returns the media permission of the page or inherited from repo'''
         ret = self.media_permission
@@ -952,113 +1160,96 @@ class Page(models.Model):
         if not ret:
             ret = Repository.get_default_media_permission()
         return ret
-    
+
     def is_media_private(self):
         return self.get_media_permission().is_private
 
     def get_media_unavailability_reason(self, user=None):
         '''Returns an empty string if the media can be viewed by the user.
-           Returns a message explaining the reason otherwise. 
+           Returns a message explaining the reason otherwise.
         '''
         ret = ''
-        
+
         if not self.iipimage:
             # image is missing, default message
             ret = 'The image was not found'
         else:
             if (user is None) or (not user.is_superuser):
                 permission = self.get_media_permission()
-                if permission.is_private: 
+                if permission.is_private:
                     ret = permission.display_message
                     if not ret:
                         ret = settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE
-                        
+
         return ret
-    
-    def get_locus_label(self):
+
+    def get_locus_label(self, hide_type=False):
+        ''' Returns a label for the locus from the side and number fields.
+            If hide_type is False, don't include p. or f. in the output.
+        '''
         ret = ''
         if self.folio_number:
             ret = ret + self.folio_number
         if self.folio_side:
             ret = ret + self.folio_side
-        
+
         if ret == '0r':
             ret = 'face'
         if ret == '0v':
             ret = 'dorse'
-        
-        if ret and self.folio_number and self.folio_number != '0':
+
+        if ret and self.folio_number and self.folio_number != '0' and not hide_type:
             unit = 'f.'
             if self.item_part and self.item_part.pagination:
                 unit = 'p.'
             ret = unit + ret
-            
+
         return ret
 
     def save(self, *args, **kwargs):
-        # TODO: shouldn't this be turned into a method instead of resetting each time? 
+        # TODO: shouldn't this be turned into a method instead of resetting each time?
         if (self.item_part):
-            #self.display_label = u'%s: %s' % (self.item_part, self.locus)
-            self.display_label = get_list_as_string(self.item_part, ': ', self.locus) 
+            self.display_label = get_list_as_string(self.item_part, ': ', self.locus)
         else:
             self.display_label = u''
-        super(Page, self).save(*args, **kwargs)
+        self.update_number_and_side_from_locus()
+        super(Image, self).save(*args, **kwargs)
+
+    def update_number_and_side_from_locus(self):
+        ''' sets self.folio_number and self.folio_side from self.locus
+            e.g. self.locus = '10r' => self.folio_number = 10, self.folio_side = 'r'
+        '''
+        self.folio_number = None
+        self.folio_side = None
+        if self.locus:
+            m = re.search(ur'(\d+)', self.locus[::-1])
+            if m:
+                self.folio_number = m.group(1)[::-1]
+
+            m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', self.locus[::-1])
+            if m:
+                self.folio_side = m.group(1)[::-1]
 
     def path(self):
         """Returns the path of the image on the image server. The server path
         is composed by combining repository/shelfmark/locus."""
-        #raise RuntimeError('deprecated, partial URL is encapsulated by the iipimage field.')
-        #dplog.debug(self.iipimage.storage.base_url)
-        #print dir(self.iipimage.storage)
         return self.iipimage.name
-
-#        repository = self.item_part.current_item.repository.short_name
-#        shelfmark = self.item_part.current_item.shelfmark
-#
-#        if repository and shelfmark:
-#            repository = normalize_string(repository)
-#            shelfmark = normalize_string(shelfmark)
-#            locus = normalize_string(self.locus)
-#
-#            path = u'%s/%s/%s/%s.%s' % (settings.IMAGE_SERVER_WEB_ROOT,
-#                    repository, shelfmark, locus, settings.IMAGE_SERVER_EXT)
-#
-#        return path
 
     def dimensions(self):
         """Returns a tuple with the image width and height."""
-        # TODO: review the performances of this: 
+        # TODO: review the performances of this:
         # a http request for each image seems prohibitive.
         width = 0
         height = 0
-        
+
         if self.iipimage:
             width, height = self.iipimage._get_image_dimensions()
-        
+
         return int(width), int(height)
-#        if self.path():
-#            h = httplib.HTTPConnection(settings.IMAGE_SERVER_HOST)
-#            h.request('GET', settings.IMAGE_SERVER_METADATA % \
-#                    (settings.IMAGE_SERVER_PATH, self.path()))
-#            response = h.getresponse()
-#
-#            if response:
-#                message = response.read().strip()
-#                matches = re.match(settings.IMAGE_SERVER_METADATA_REGEX,
-#                        message)
-#
-#                if matches:
-#                    width = matches.group(1)
-#                    height = matches.group(2)
-#        elif self.image:
-#            width = self.image.width
-#            height = self.image.height
-#
-#        return int(width), int(height)
 
     def full(self):
         """Returns the URL for the full size image.
-           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG 
+           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
         """
         ret = ''
         path = ''
@@ -1067,55 +1258,48 @@ class Page(models.Model):
             path = settings.IMAGE_SERVER_FULL % \
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
-            
-        return path
-    
-#        if self.path():
-#            src = settings.IMAGE_SERVER_FULL % \
-#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-#                            self.path())
-#        elif self.image:
-#            src = self.image.url
-#
-#        return src
 
-    def thumbnail(self):
+        return path
+
+    def thumbnail_url(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
+        if width is None and height is None:
+            height = settings.IMAGE_SERVER_THUMBNAIL_HEIGHT
         if self.iipimage:
-            src = self.iipimage.thumbnail_url(settings.IMAGE_SERVER_THUMBNAIL_HEIGHT)
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(src)))
+            ret = self.iipimage.thumbnail_url(height, width)
         return ret
-                
-#        dplog.debug('thmb')
-#        if self.path():
-#            src = settings.IMAGE_SERVER_THUMBNAIL % \
-#                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-#                            self.path())
-#            return mark_safe(u'<img src="%s" />' % (src))
-#        elif self.image:
-#            return thumbnail(self.image)
+
+    def thumbnail(self, height=None, width=None):
+        """Returns HTML to display the page image as a thumbnail."""
+        ret = ''
+        print height, width
+        if self.iipimage:
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
+        return ret
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
 
-    def thumbnail_with_link(self):
+    def thumbnail_with_link(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail with a link to
         view the image."""
         ret = ''
         ret = mark_safe(u'<a href="%s">%s</a>' % \
-                (self.full(), self.thumbnail()))
+                (self.full(), self.thumbnail(height, width)))
         return ret
-        
-#        if self.path():
-#            return mark_safe(u'<a href="%s">%s</a>' % \
-#                    (self.full(), self.thumbnail()))
-#        elif self.image:
-#            return mark_safe(u'<a href="%s">%s</a>' % (self.image.url,
-#                thumbnail(self.image)))
 
     thumbnail_with_link.short_description = 'Thumbnail'
     thumbnail_with_link.allow_tags = True
+
+    @classmethod
+    def sort_query_set_by_locus(self, query_set):
+        ''' Returns a query set based on the given one but with
+            results sorted by item part then locus.
+        '''
+        # TODO: fall back for non-postgresql RDBMS
+        # TODO: optimise this by caching the result in a field
+        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify
@@ -1126,9 +1310,13 @@ class Page(models.Model):
             zoomify = settings.IMAGE_SERVER_ZOOMIFY % \
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
-        
+
 
         return zoomify
+''' This is used to build the front-end URL of the item part objects
+    See set_models_absolute_urls()
+'''
+Image.webpath_key = 'Page'
 
 
 def normalize_string(s):
@@ -1168,15 +1356,15 @@ def thumbnail(image, length=settings.MAX_THUMB_LENGTH):
 class Hand(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     num = models.IntegerField()
-    item_part = models.ForeignKey(ItemPart)
+    item_part = models.ForeignKey(ItemPart, related_name='hands')
     script = models.ForeignKey(Script, blank=True, null=True)
-    scribe = models.ForeignKey(Scribe, blank=True, null=True)
+    scribe = models.ForeignKey(Scribe, blank=True, null=True, related_name='hands')
     assigned_date = models.ForeignKey(Date, blank=True, null=True)
     assigned_place = models.ForeignKey(Place, blank=True, null=True)
     # This is an absolute hand (or scribe) number, so we can
     # have multiple Hand records with the same scragg.
     scragg = models.CharField(max_length=6, blank=True, null=True)
-    # This is a hand (or scribe) number, relative to the ker 
+    # This is a hand (or scribe) number, relative to the ker
     # cat number for the historical item (added 04/06/2011)
     ker = models.CharField(max_length=10, blank=True, null=True)
     # TODO: move to HandDescription
@@ -1203,7 +1391,8 @@ class Hand(models.Model):
     imitative = models.NullBooleanField()
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    pages = models.ManyToManyField(Page, blank=True, null=True)
+    #pages = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
+    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1231,12 +1420,12 @@ class Hand(models.Model):
 
     def __unicode__(self):
         #return u'%s' % (self.description or '')
-        # GN: See Jira ticket DIGIPAL-76, 
+        # GN: See Jira ticket DIGIPAL-76,
         # hand.reference has moved to hand.label
         return u'%s' % (self.label or self.description or '')[0:80]
 
-    # self.description is an alias for hd.description 
-    # with hd = self.HandDescription.description such that 
+    # self.description is an alias for hd.description
+    # with hd = self.HandDescription.description such that
     # hd.source.name = 'digipal'.
     def __getattr__(self, name):
         if name == 'description':
@@ -1245,7 +1434,7 @@ class Hand(models.Model):
                 ret = description.description
         else:
             ret = super(Hand, self).__getattr__(name)
-        return ret 
+        return ret
 
     def __setattr__(self, name, value):
         if name == 'description':
@@ -1261,7 +1450,7 @@ class Hand(models.Model):
         '''
         empty_value = description is None or not description.strip()
         if empty_value and not remove_if_empty: return
-        
+
         # TODO: opt: cache the sources
         sources = Source.objects.filter(name=source_name)
         source = None
@@ -1270,7 +1459,7 @@ class Hand(models.Model):
         else:
             source = Source(name=source_name, label=source_name.upper())
             source.save()
-        
+
         if empty_value:
             # remove a desc
             self.descriptions.filter(source=source).delete()
@@ -1283,11 +1472,13 @@ class Hand(models.Model):
                 hand_description = None
             if hand_description is None:
                 hand_description = HandDescription(hand=self, source=source)
-                
+
             hand_description.description = description
             hand_description.save()
-                    
+
             self.descriptions.add(hand_description)
+
+Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, self.image.display_label)
 
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
@@ -1302,7 +1493,7 @@ class HandDescription(models.Model):
 
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
-        return get_list_as_string(self.hand, ' ', self.source) 
+        return get_list_as_string(self.hand, ' ', self.source)
 
 class Alphabet(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -1337,16 +1528,18 @@ class DateEvidence(models.Model):
     def __unicode__(self):
         #return u'%s. %s. %s' % (self.hand, self.date, self.date_description)
         return get_list_as_string(self.hand, '. ', self.date, '. ', self.date_description)
-     
+
 
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
-    hand = models.ForeignKey(Hand)
-    aspects = models.ManyToManyField(Aspect)
+    hand = models.ForeignKey(Hand, related_name='graphs')
+    aspects = models.ManyToManyField(Aspect, null=True, blank=True)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    group = models.ForeignKey('Graph', related_name='parts', blank=True,
+                              null=True, help_text=u'Select a graph that contains this one')
 
     class Meta:
         ordering = ['idiograph']
@@ -1391,7 +1584,9 @@ class Status(models.Model):
 
 
 class Annotation(models.Model):
-    page = models.ForeignKey(Page)
+    # TODO: to remove
+    #page = models.ForeignKey(Image, related_name='to_be_removed')
+    image = models.ForeignKey(Image, null=True, blank=False)
     cutout = models.CharField(max_length=256)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
@@ -1410,11 +1605,68 @@ class Annotation(models.Model):
 
     class Meta:
         ordering = ['graph', 'modified']
-        unique_together = ('page', 'vector_id')
+        unique_together = ('image', 'vector_id')
+
+    def get_coordinates(self, geo_json=None):
+        ''' Returns the coordinates of the graph rectangle
+            E.g. ((602, 56), (998, 184))
+        '''
+        import json
+        if geo_json is None: geo_json = self.geo_json
+
+        # See JIRA-229, some old geo_json format are not standard JSON
+        # and cause trouble with the deserialiser (json.loads()).
+        # The property names are surrounded by single quotes
+        # instead of double quotes.
+        # simplistic conversion but in our case it works well
+        # e.g. {'geometry': {'type': 'Polygon', 'coordinates':
+        #     Returns {"geometry": {"type": "Polygon", "coordinates":
+        geo_json = geo_json.replace('\'', '"')
+
+        ret = json.loads(geo_json)
+        # TODO: test if this exists!
+        ret = ret['geometry']['coordinates'][0]
+        ret = (
+                (min([c[0] for c in ret]),
+                min([c[1] for c in ret])),
+                (max([c[0] for c in ret]),
+                max([c[1] for c in ret]))
+            )
+        return ret
+
+    def set_graph_group(self):
+        # if the graph is contained within another
+        # this function will set self.group to that other graph.
+        group_id = None
+        min_dist = 1e6
+
+        coord = self.get_coordinates()
+
+        # Assumptions made:
+        #    1. all regions are rectangles, no more complex shapes.
+        #    2. nested graphs are saved after their parent graph.
+        if self.graph:
+            level = self.graph.idiograph.allograph.character.ontograph.nesting_level
+            if level > 1:
+                lvl_field = 'graph__idiograph__allograph__character__ontograph__nesting_level';
+                for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
+                    a_coord = self.get_coordinates(a['geo_json'])
+                    if coord[0][0] >= a_coord[0][0] and \
+                        coord[0][1] >= a_coord[0][1] and \
+                        coord[1][0] <= a_coord[1][0] and \
+                        coord[1][1] <= a_coord[1][1]:
+                        dist = abs(coord[0][0] - a_coord[0][0])
+                        if dist < min_dist:
+                            group_id = a['graph_id']
+                            min_dist = dist
+
+            self.graph.group_id = group_id
+            self.graph.save()
 
     def save(self, *args, **kwargs):
         super(Annotation, self).save(*args, **kwargs)
 
+        # TODO: suspicious call to eval. Should call json.loads() instead - GN
         json = eval(self.geo_json)
         coordinates = json['geometry']['coordinates']
 
@@ -1430,8 +1682,8 @@ class Annotation(models.Model):
         min_y = float(min(yy))
         max_y = float(max(yy))
 
-        if self.page.path():
-            img_width, img_height = self.page.dimensions()
+        if self.image.path():
+            img_width, img_height = self.image.dimensions()
             if img_width > 0 and img_height > 0:
                 img_width = float(img_width)
                 img_height = float(img_height)
@@ -1460,13 +1712,13 @@ class Annotation(models.Model):
 
                 self.cutout = settings.IMAGE_SERVER_RGN % \
                         (settings.IMAGE_SERVER_HOST,
-                                settings.IMAGE_SERVER_PATH, self.page.path(),
+                                settings.IMAGE_SERVER_PATH, self.image.path(),
                                 size, left, top, width, height)
-        elif self.page.image:
-            img = pil.open(self.page.image.path)
+        elif self.image.image:
+            img = pil.open(self.image.image.path)
             cropped = img.crop((int(min_x),
-                self.page.image.height - int(max_y), int(max_x),
-                self.page.image.height - min_y))
+                self.image.image.height - int(max_y), int(max_x),
+                self.image.image.height - min_y))
 
             cropped_name = '%d.jpg' % (self.id)
             cropped_path = os.path.join(settings.ANNOTATIONS_ROOT,
@@ -1479,11 +1731,26 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
+    def get_cutout_url(self):
+        ''' Returns the URL of the cutout.
+            Call this function instead of self.cutout, see JIRA 149.
+        '''
+        # graft the query string of self.cutout to self.image.thumbnail_url
+        # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
+        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.image, cgi.escape(self.cutout)))
+        from utils import update_query_string
+        cutout_qs = re.sub(ur'^(.*)\?(.*)$', ur'\2', self.cutout)
+        # This technique doesn't work because of the encoding:
+        # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)
+        # Just concatenate things together instead
+        image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
+        return u'%s?%s' % (image_url, cutout_qs)
+
     def thumbnail(self):
-        return mark_safe(u'<img alt="%s" src="%s" />' % (self.page, cgi.escape(self.cutout)))
+        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url()))
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.cutout),
+        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.get_cutout_url()),
             self.thumbnail()))
 
     thumbnail.short_description = 'Thumbnail'
@@ -1524,7 +1791,6 @@ class Measurement(models.Model):
     def __unicode__(self):
         return u'%s' % (self.label)
 
-
 # Proportions in legacy db
 class Proportion(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -1545,7 +1811,7 @@ class Proportion(models.Model):
         return get_list_as_string(self.hand, '. ', self.measurement)
 
 # Import of Stewart's database
-class StewartRecord(models.Model): 
+class StewartRecord(models.Model):
     scragg = models.CharField(max_length=300, null=True, blank=True, default='')
     repository = models.CharField(max_length=300, null=True, blank=True, default='')
     shelf_mark = models.CharField(max_length=300, null=True, blank=True, default='')
@@ -1575,12 +1841,12 @@ class StewartRecord(models.Model):
 
     def __unicode__(self):
         return ur'Scr%s K%s G%s D%s SP %s' % (self.scragg, self.ker, self.gneuss, self.stokes_db, self.sp)
-    
+
     def get_ids(self):
         ret = []
         if self.scragg: ret.append(u'Scr. %s' % self.scragg)
         if self.gneuss: ret.append(u'G. %s' % self.gneuss)
-        if self.ker: 
+        if self.ker:
             ker = u'K. %s' % self.ker
             if self.ker_hand:
                 ker += '.%s' % self.ker_hand
@@ -1588,21 +1854,21 @@ class StewartRecord(models.Model):
         if self.sp: ret.append(u'SP. %s' % self.sp)
         if self.stokes_db: ret.append(u'L. %s' % self.stokes_db)
         return ', '.join(ret)
-    
+
     def import_field(self, src_field, dst_obj, dst_field, append=False):
         ret = ''
         def normalise_value(value):
             if value is None: value = ''
             return (u'%s' % value).strip()
-        
+
         src_value = normalise_value(getattr(self, src_field, ''))
         dst_value = normalise_value(getattr(dst_obj, dst_field, ''))
-        
+
         if src_value:
             if (not append) or (dst_value.find(src_value) == -1):
                 if (not append) and (dst_value and src_value != dst_value):
                     ret = u'Different values: #%s.%s = "%s" <> %s.#%s.%s = "%s"' % (self.id, src_field, src_value, dst_obj.__class__.__name__, dst_obj.id, dst_field, dst_value)
-            
+
                 if not ret:
                     if append:
                         src_value = dst_value + '\n' + src_value
@@ -1610,9 +1876,9 @@ class StewartRecord(models.Model):
                     dst_obj.save()
 
         if ret: ret += '\n'
-        
+
         return ret
-    
+
     @classmethod
     def get_sources(self):
         sources = getattr(self.__class__, 'sources', {})
@@ -1620,11 +1886,11 @@ class StewartRecord(models.Model):
             sources = {}
             for source in Source.objects.all():
                 sources[source.name] = source
-        
+
             self.__class__.sources = sources
-             
+
         return self.sources
-    
+
     def import_related_object(self, hand, related_name, related_model, related_label_field, value):
         ret = ''
         related_object = getattr(hand, related_name, None)
@@ -1633,7 +1899,7 @@ class StewartRecord(models.Model):
             if existing_value != value:
                 ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)' % (related_name, existing_value, value)
             #else:
-                #ret = u'Already set' 
+                #ret = u'Already set'
         else:
             # does it exists?
             query = {related_label_field+'__iexact': value.lower().strip()}
@@ -1649,7 +1915,7 @@ class StewartRecord(models.Model):
                     ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)' % (related_name, value)
                     if hand.internal_note:
                         hand.internal_note += '\n' + ret
-                    else:                         
+                    else:
                         hand.internal_note = ret
                 else:
                     query = {related_label_field: value.strip()}
@@ -1661,42 +1927,42 @@ class StewartRecord(models.Model):
             # create link
             setattr(hand, related_name, related_object)
             hand.save()
-        
+
         if ret:
             if hand.internal_note:
                 hand.internal_note += '\n' + ret
-            else:                         
+            else:
                 hand.internal_note = ret
             hand.save()
-        
+
         return ret
-    
+
     def import_steward_record(self, single_hand=None):
         '''
             TODO: transfer (Scragg_Description, EM_Description)
-        
+
             [DONE] ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
-            [DONE] sp -> 
-            
+            [DONE] sp ->
+
             # hand number
-            [DONE] scragg -> hand.scragg 
+            [DONE] scragg -> hand.scragg
             [DONE] Locus -> hand.+locus
             [DONE] Selected -> Page (Use this to generate a new Page record)
             [DONE] Notes      Hand.InternalNote
-            
+
             [DONE] * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
             [DONE] Contents      Scragg_Description
             [DONE] EM      Hand.EM_Description (Use description + Source model.)
             [DONE] EEL      MISSING. Use Description + Source model
             # Format is too messy to be imported into the catalogue num
             # we import it into the surrogates field and add a filter
-            
+
             [DONE~] Surrogates      Use Source Model
 
             Date      Hand.AssignedDate
             Location      Hand.AssignedPlace
 
-            [DONE] Glosses      Hand.GlossOnly      
+            [DONE] Glosses      Hand.GlossOnly
             [DONE] Minor      Hand.ScribbleOnly
         '''
         if single_hand:
@@ -1705,40 +1971,40 @@ class StewartRecord(models.Model):
             hands = self.hands.all()
         if not hands:
             return
-        
+
         from datetime import datetime
         now = datetime.now()
-        
+
         for hand in hands:
             messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
-            
+
             # 1. Simple TEXT fields
-            
+
             # hand number
             messages += self.import_field('scragg', hand, 'scragg')
             messages += self.import_field('ker_hand', hand, 'ker')
-            
+
             messages += self.import_field('locus', hand, 'locus')
             messages += self.import_field('selected', hand, 'selected_locus')
             messages += self.import_field('notes', hand, 'internal_note', True)
-            
+
             if hand.gloss_only is None and self.glosses == 'Yes':
                 hand.gloss_only = True
             if hand.scribble_only is None and self.minor == 'Yes':
                 hand.scribble_only = True
-    
+
             # This should be imported as a cat num but format is too inconsistent
             # EEMF, ASMMF, BL Fiche
             messages += self.import_field('surrogates', hand, 'surrogates')
 
             # 2. Description fields
-    
+
             hand.set_description('scragg', self.contents)
             hand.set_description('eel', self.eel)
             hand.set_description('em1060-1220', self.em)
-            
+
             # 3. Related objects
-            
+
             # 3470
             # TODO: import by creating a new date?
             ##messages += self.import_field('adate', hand, 'assigned_date')
@@ -1747,36 +2013,71 @@ class StewartRecord(models.Model):
                 messages += self.import_related_object(hand, 'assigned_place', Place, 'name', self.location)
             if self.adate:
                 messages += self.import_related_object(hand, 'assigned_date', Date, 'date', re.sub(ur'\s*(?:' + u'\xd7' + ur'|x)\s*', u'\xd7', self.adate))
-            
+
             # 4. Catalogue numbers
             # Ker, S/P (NOT Scragg, b/c its a hand number)
             if self.ker or self.sp:
                 def add_catalogue_number(historical_item, source, number):
                     if CatalogueNumber.objects.filter(source=source, number=number).count() == 0:
                         historical_item.catalogue_numbers.add(CatalogueNumber(source=source, number=number))
-                
+
                 sources = self.get_sources()
-                
-                cat_nums = {} 
-                
+
+                cat_nums = {}
+
                 historical_item = hand.item_part.historical_item
                 for cat_num in historical_item.catalogue_numbers.all():
                     cat_nums[cat_num.source.name] = cat_num.number
-                
+
                 if self.ker and 'ker' not in cat_nums:
                     add_catalogue_number(historical_item, sources['ker'], self.ker)
-    
+
                 if self.sp:
                     source_dp = 'sawyer'
                     document_id = self.sp
                     document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
-                    if document_id_p != document_id: 
+                    if document_id_p != document_id:
                         document_id = document_id_p
                         source_dp = 'pelteret'
-                    
-                    if source_dp not in cat_nums:                
+
+                    if source_dp not in cat_nums:
                         add_catalogue_number(historical_item, sources[source_dp], document_id)
-            
+
             self.import_messages += messages
             self.save()
-        
+
+class RequestLog(models.Model):
+    request = models.CharField(max_length=300, null=True, blank=True, default='')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    result_count = models.IntegerField(blank=False, null=False, default=0)
+
+    @classmethod
+    def save_request(cls, request, count=0):
+        last = None
+        # Don't log two consecutive queries if they have the same count
+        # TODO: improve this algorithm, it is to naive
+        if count > 0:
+            try:
+                last = cls.objects.latest('id')
+            except cls.DoesNotExist:
+                pass
+        if not last or last.result_count != count:
+            path = request.build_absolute_uri()
+            rl = cls(result_count=count, request=path)
+            rl.save()
+
+# Assign get_absolute_urls() for all models /digipal/MODEL_PLURAL/ID
+# E.g. /digipal/scribes/101
+def set_models_absolute_urls():
+    def model_get_absolute_url(self):
+        from utils import plural
+        # get custom label if defined in _meta, otehrwise stick to module name
+        webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
+        return '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+
+    for attribute in globals().values():
+        # Among all the symbols accessible here, filter the Model defined in this module
+        if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
+            attribute.get_absolute_url = model_get_absolute_url
+
+set_models_absolute_urls()

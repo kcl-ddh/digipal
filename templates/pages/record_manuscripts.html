@@ -2,63 +2,61 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
+{% block meta_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
+{% block record_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
 
-{% block record_title %}{{ item_part.display_label }}{% endblock %}
+{% block record_tabs %}
+    <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+{% endblock %}
+
 {% block details %}
-{% if request.GET.from_image == "true" %}
-<script>
-    $(document).ready(function($) {
-        $('#data').removeClass('active');
-        $('#myTab li[class=active]').removeClass('active');
-        $('#myTab li a[href=#pages]').parent().addClass('active')
-        $('#pages').addClass('in');
-        $('#pages').addClass('active');
-    });
-</script>
-{% endif %}
-<div class='tabbable'>
-    <div id='myTabContent' class='tab-content'>
-        <div class='tab-pane fade active in' id='data'>
-            <h3 class='header5'>Record Data</h3>
-            <h3>Location</h3>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Repository</th>
-                        <td>{{ item_part.current_item.repository.name }}</td>
-                    </tr>
-                    <tr>
-                        <th>Town or City</th>
-                        <td>{{ item_part.current_item.repository.place }}</td>
-                    </tr>
-                    <tr>
-                        <th>Shelfmark</th>
-                        <td>
-                            {{ item_part.current_item.shelfmark }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <h3>Data</h3>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Date</th>
-                        <td>{{ item_part.historical_item.date }}</td>
-                    </tr>
-                    <tr>
-                        <th>Origin</th>
-                        <td>{% for data in item_part.historical_item.itemorigin_set.all %}
-                        <b>Evidence</b>: {{ data.evidence }}, <b>Dubitable</b>: {{ data.dubitable }}
-                         {% endfor %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class='tab-pane fade' id='descriptions'>
-            <h3 class='header5'>Description</h3>
+    <div class='tabbable'>
+        <div id='myTabContent' class='tab-content'>
+            <div class='tab-pane fade active in' id='data'>
+                <h3>Location</h3>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>Repository</th>
+                            <td>{{ item_part.current_item.repository.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Town or City</th>
+                            <td>{{ item_part.current_item.repository.place }}</td>
+                        </tr>
+                        <tr>
+                            <th>Shelfmark</th>
+                            <td>
+                                {{ item_part.current_item.shelfmark }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Data</h3>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
+                            <th>Date</th>
+                            <td>{{ item_part.historical_item.date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Origin</th>
+                            <td>
+                                {% for data in item_part.historical_item.itemorigin_set.all %}
+                                    <b>Evidence</b>: {{ data.evidence }}
+                                    {% if data.dubitable %}, <b>Dubitable</b>{% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='tab-pane fade' id='descriptions'>
                 <table class="table table-condensed">
                     <tbody>
                         <tr>
@@ -72,78 +70,41 @@
                         <tr>
                             <th>MS Description</th>
                             <td>
-                                {% for desc in item_part.historical_item.description_set.all %}
-                                    {{ desc.description }}
+                                {% for historical_item in item_part.historical_items.all %}
+                                    {% for desc in historical_item.description_set.all %}
+                                        <p>
+                                            {{ desc.description }}
+                                            <br/>
+                                            {{ desc.source.get_display_reference }}
+                                        </p>
+                                    {% endfor %}
                                 {% endfor %}
                             </td>
                         </tr>
                     </tbody>
                 </table>
-        </div>
-        <div class='tab-pane fade' id='pages'>
-            <h3 class='header5'>Pages</h3>
-            <div class='row-fluid'> 
-            {% if pages %}
-                    {% for page in pages %} 
-                        {% if forloop.counter|divisibleby:4 %}
-                            {% if page.thumbnail %}
-                                <div class='row'>
-                                    <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                        <dl class="imageDatabase">
-                                            <dt>
-                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                            </a>
-                                          </dt>
-                                          <dd>
-                                            <p>{{ page }}</p>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <div class='span4' style='width:21%;padding-left:0;margin.left:0;'>
-                                        <dl class="imageDatabase">
-                                            <dt>
-                                                <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                            </a>
-                                          </dt>
-                                          <dd>
-                                            <p>{{ page }}</p>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-
-                    <div class="alert alert-block">
-                        <h4>No Images available</h4>
-                    </div>
-            {% endif %}
             </div>
-    </div>
-    <div class='tab-pane fade' id='hands'>
-        <h3 class='header5'>Hands</h3>
-        <div class='row-fluid'>
-            {% if result.hand_set %}
-                <table class='table table-condensed'>
-                    <tbody>
-                    <tr><th>Hands</th></tr>
-                {% for hand in result.hand_set.all %}
-                    <tr><td>{{ hand }}</td><tr>
-                {% endfor %}
-                 <tbody>
-                </table>
-            {% else %}
-                <div class="alert alert-block">
-                    <h4>No hands available</h4>
+    
+            {% include "pages/tab_images.html" %}
+    
+            <div class='tab-pane fade' id='hands'>
+                <div class='row-fluid'>
+                    {% if hands.count %}
+                        <table class='table table-condensed'>
+                            <tbody>
+                                <tr><th>Hands</th></tr>
+                                {% for hand in hands %}
+                                    <tr><td>{{ hand }}</td><tr>
+                                {% endfor %}
+                            <tbody>
+                        </table>
+                    {% else %}
+                        <div class="alert alert-block">
+                            <h4>No hands available</h4>
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
-</div>
-</div>
 {% endblock %}

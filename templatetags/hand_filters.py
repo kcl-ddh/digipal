@@ -23,6 +23,7 @@ from django.utils.text import normalize_newlines
 from django.template.defaultfilters import stringfilter
 from urllib import unquote
 from hashlib import sha1
+from datetime import datetime
 
 register = Library()
 
@@ -77,9 +78,10 @@ def multiply(value, arg):
     val = float(value) * float(arg)
     return int(val)
 
+
 # TEI conversion
 
-@register.filter()
+@register.filter
 def tei(value):
     "Convert TEI field into XML"
     import re
@@ -107,3 +109,56 @@ def tei(value):
     value = mark_safe(value)
     
     return value
+
+@register.assignment_tag(takes_context=True)
+def load_hands(context, var_name):
+    ''' 
+        Usage:
+            {% load_hands hand_ids as hands %}
+        
+        Loads all the Hand (and preload child graphs and annotations) into the hands template variable.
+    '''
+    
+    hands_ids = context[var_name]
+
+    from digipal.models import Graph
+    # get all the graphs
+    #.prefetch_related('graphs', 'graphs__annotation')
+    # get all the graphs
+    graph_ids_current_page = []
+    for ids in hands_ids:
+        graph_ids_current_page.extend(ids[1:])
+    
+    # get all the graphs on this page
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'annotation').order_by('hand__scribe__name', 'hand__id', 'id')
+    
+    # now organise the output by hand and attach their graphs to it
+    # tbhis assumes that graphs are sorted by hand id
+    ret = []
+    hand = None
+    for graph in graphs:
+        if not hand or graph.hand_id != hand.id:
+            hand = graph.hand
+            ret.append(hand)
+            hand.graphs_template = []
+        hand.graphs_template.append(graph)
+        
+    return ret
+
+@register.simple_tag
+def chrono(label):
+    '''
+        Used to measure how much time is spent rendering parts of any template
+         
+        Usage:
+            {% chrono:"before listing" %}
+        In debug mode it will print this on the std output:
+            before listing: CURRENT DATE TIME
+    '''
+    if getattr(settings, 'DEV_SERVER', False): 
+        t = datetime.now()
+        d = t - chrono.last_time
+        chrono.last_time = t
+        print '%40s %5.4f s.  (%s)' % (label, d.total_seconds(), t)
+    return''
+chrono.last_time = datetime.now()

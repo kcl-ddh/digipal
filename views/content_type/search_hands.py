@@ -6,11 +6,27 @@ from django.db.models import Q
 
 class SearchHands(SearchContentType):
 
-    def set_record_view_context(self, context):
+    def get_fields_info(self):
+        ret = super(SearchHands, self).get_fields_info()
+        # TODO: new search field
+        ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
+        ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
+        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes'}, 'advanced': True}
+        ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['item_part__current_item__repository__place__name, item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
+        ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        return ret
+
+    def set_record_view_context(self, context, request):
+        super(SearchHands, self).set_record_view_context(context, request)
+
         from django.utils.datastructures import SortedDict
-        p = Hand.objects.get(id=context['id'])
-        c = p.graph_set.model.objects.get(id=p.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
+        current_hand = Hand.objects.get(id=context['id'])
+        
+        #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
+        annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id)
         data = SortedDict()
         for annotation in annotation_list:
             hand = annotation.graph.hand
@@ -24,8 +40,20 @@ class SearchHands(SearchContentType):
                 data[hand][allograph_name] = []
 
             data[hand][allograph_name].append(annotation)
+            
             context['data'] = data
-        context['result'] = p
+        
+        # GN: ???
+        context['can_edit'] = request and has_edit_permission(request, Annotation)
+
+        images = current_hand.images.all()
+        if images.count():
+            image = images[0]            
+            context['width'], context['height'] = image.dimensions()
+            context['image_erver_url'] = image.zoomify
+        
+        context['hands_page'] = True
+        context['result'] = current_hand
     
     @property
     def form(self):
@@ -38,8 +66,12 @@ class SearchHands(SearchContentType):
     @property
     def label(self):
         return 'Hands'
+    
+    @property
+    def label_singular(self):
+        return 'Hand'
 
-    def build_queryset(self, request, term):
+    def build_queryset_django(self, request, term):
         type = self.key
         query_hands = Hand.objects.filter(
                     Q(descriptions__description__icontains=term) | \
@@ -48,7 +80,7 @@ class SearchHands(SearchContentType):
                     Q(assigned_date__date__icontains=term) | \
                     Q(item_part__current_item__shelfmark__icontains=term) | \
                     Q(item_part__current_item__repository__name__icontains=term) | \
-                    Q(item_part__historical_item__catalogue_number__icontains=term))
+                    Q(item_part__historical_items__catalogue_number__icontains=term))
         
         scribes = request.GET.get('scribes', '')
         repository = request.GET.get('repository', '')
@@ -56,7 +88,6 @@ class SearchHands(SearchContentType):
         date = request.GET.get('date', '')
         
         self.is_advanced = repository or scribes or place or date
-
         if scribes:
             query_hands = query_hands.filter(scribe__name=scribes)
         if repository:
@@ -86,13 +117,11 @@ class FilterHands(forms.Form):
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.name, m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         label = "",
         required = False,
         widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Repository",
-    )
-
+        initial = "Repository",)
 
     place = forms.ModelChoiceField(
         queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),

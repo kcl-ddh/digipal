@@ -1,0 +1,115 @@
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags hand_filters %}
+{% load html_escape %}
+
+{% block extra_head %}
+{% if can_edit %}
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+
+            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+                                          'x', {{ width }}, {{ height }},
+                                          '{{ image_server_url }}', "{{can_edit}}");
+
+            annotator.hands_page = "{{hands_page}}";
+
+            if(annotator){
+              $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
+            }
+          });
+      </script>
+{% endif %}
+<script type="text/javascript">
+  function selectFeature(id) {
+    window.opener.annotator.selectFeatureByIdAndCentre(id);
+    window.opener.focus();
+    return false;
+  }
+</script>
+{% endblock %}
+{% if data %}
+  <h3>Hands</h3>
+  {% for key, allographs in data.items %}
+      <h5>{{forloop.counter}}) <a class='label' href='#{{key|anchorify}}'>{{key}}</a></h5>
+  {% endfor %}
+  <hr />
+  {% for key, allographs in data.items %}
+
+  <div class="scribe">
+    <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'><b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+        {{image|capfirst}} - {{ key }}</h2>
+    <div class='panel'>
+    {% for key, annotations in allographs.items %}
+
+    <span><a class="label label-info" href='#{{key.id|anchorify}}_{{key|anchorify}}'>{{ key }}</a></span>
+
+    {% endfor %}
+    </div>
+    {% for key, annotations in allographs.items %}
+
+    <div>
+      <h5 class='header5' style='font-size:14px;' id='{{key.id|anchorify}}_{{key|anchorify}}'>{{ key }}</h5>
+      <ul>
+        {% for annotation in annotations %}
+        <li class='annotation_li' data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">
+        <p>
+        {% if not can_edit %}
+        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
+        {% else %}
+        <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
+        {% endif %}
+        {% if can_edit %}
+        <span class='label label-info'>{{forloop.counter}}</span>
+        {% endif %}
+        </p>
+        <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
+        {{ annotation.thumbnail }}
+        </a>
+        </li>
+        {% comment %}
+        {% if forloop.last %}
+          <input type="button" style='margin-top:1%' class="btn check_all_allographs" value ="All" />
+          <input type="button" style='margin-top:1%' class="btn uncheck_all_allographs" value ="Clear" />
+        {% endif %}
+        {% endcomment %}
+        {% endfor %}
+
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+<div><a id='ontop' href='#top' title='Back to Top'></a></div>
+{% else %}
+<div class='alert alert-warning'>No annotations available.</p>
+{% endif %}
+{% if can_edit %}
+<div class="myModal" id='modal_features'>
+  <div class="modal_header">
+    <form id="frmAnnotation" method="get" name="frmAnnotation"><i class='icon icon-remove close'></i>
+    <p class="myModalLabel"><span class='label-modal-value'></span> <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' /> <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' /> <input type='button' class='btn-small btn active' value='Summary' id='show_summary' /> <span title='Maximize window' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right'>&#9633;</span></p>
+    <p style='border-top:1px solid #efefef;padding-top:2%'></p>
+  </div>
+  <div class="modal-body">
+    <p id='status'></p>
+      {% for field in form %}
+
+          {{ field.label_tag }}
+          {{ field }}
+
+      {% endfor %}
+  <div id='features_container'></div>
+
+  </div>
+  <div id='summary'></div>
+  </form>
+
+{% endif %}

@@ -1,151 +1,73 @@
 {% extends "pages/record.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags hand_filters %}
-{% block record_title %}{{result}}{% endblock %}
+
+{% block meta_title %}Hand: {{ result }}{% endblock %}
+{% block record_title %}Hand: {{ result }}{% endblock %}
+
+{% block record_tabs %}
+    <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
+    <li><a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
+    <li><a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+{% endblock %}
 
 {% block details %}
-{% if request.GET.from_image == "true" %}
-<script>
-    $(document).ready(function($) {
-        $('#data').removeClass('active');
-        $('#myTab li[class=active]').removeClass('active');
-        $('#myTab li a[href=#pages]').parent().addClass('active')
-        $('#pages').addClass('in');
-        $('#pages').addClass('active');
-    });
-</script>
-{% endif %}
-  <div class='tabbable'>
-    <div id='myTabContent' class='tab-content'>
-        <div class='tab-pane fade active in' id='data'>
-            <h3 class='header5'>Record Data</h3>
-            <table class="table table-condensed">
-                <tbody>
-                    <tr>
-                        <th>Name</th>
-                        <td>{{ result.label }}</td>
-                    </tr>
-                    <tr>
-                        <th>Manuscript</th>
-                        <td>{{ result.item_part }}</td>
-                    </tr>
-                    <tr>
-                        <th>Script</th>
-                        <td>
-                            {{ result.script }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Scribe</th>
-                        <td>
-                            {{ result.scribe }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Date</th>
-                        <td>
-                            {{ result.assigned_date }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Place</th>
-                        <td>
-                            {{ result.assigned_place }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class='tab-pane fade' id='descriptions'>
-            <h3 class='header5'>Description</h3>
-            <div>
-                {{ result.description|tei }}
-            </div>       
-        </div>
-        <div class='tab-pane fade' id='pages'>
-            <h3 class='header5'>Pages</h3>
-            {% if result.pages.all %}
-                {% for page in result.pages.all %}    
-                        {% if forloop.counter|divisibleby:4 %}
-                            <div class='row-fluid'> 
-                             {% if page.thumbnail %}
-                                <div class='span3' style='width:21%;margin:2%;'>
-                                    <dt>
-                                        <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                        </a>
-                                    </dt>
-                                    <dd>
-                                        <b>{{page}}</b>
-                                    </dd>
-                                </div>
-                            {% endif %}
-                            </div>
-                            {% else %}
-                                <div class='span3' style='width:21%;margin:2%;'>
-                                    <dt>
-                                        <a class="imageDatabase" href="../page/{{ page.id }}/">
-                                            {{ page.thumbnail }}
-                                        </a>
-                                    </dd>
-                                    <dd>
-                                        <b>{{page}}</b>
-                                    </dd>
-                                </div>
-                        {% endif %}
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-block">
-                    <h4>No Images available</h4>
-                </div>
-            {% endif %}
+    <div class='tabbable'>
+        <div id='myTabContent' class='tab-content'>
+            <div class='tab-pane fade active in' id='data'>
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>Name</th>
+                            <td>{{ result.label }}</td>
+                        </tr>
+                        <tr>
+                            <th>Manuscript</th>
+                            <td>{{ result.item_part }}</td>
+                        </tr>
+                        <tr>
+                            <th>Script</th>
+                            <td>
+                                {{ result.script }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Scribe</th>
+                            <td>
+                                {{ result.scribe }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Date</th>
+                            <td>
+                                {{ result.assigned_date }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Place</th>
+                            <td>
+                                {{ result.assigned_place }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        <div class='tab-pane fade' id='graphs'>
-            <h3 class = 'header5'>Graphs</h3>
-            <div class="scribe annotations">
-             {% if data %}
-              {% for key, allographs in data.items %}
-                <div class="scribe">
-                    <div class='panel'>
-                    {% for key, annotations in allographs.items %}
-                        <span><a class="label label-info" href='#{{key}}'>{{ key }}</a></span>
-                    {% endfor %}
-                    </div>
-                    <h3 class='header1'>{{ key }}</h3>
-                        {% for key, annotations in allographs.items %}
-                        
-                          <div><h4 class='header5' id='{{key}}'>{{ key }}</h4></div>
-                          <ul>
-                            {% for annotation in annotations %}
-                                <li>
-                                <p><a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}/">View</a>
-                                {% if can_edit %}
-                                <span> | </span>
-                                <a href="{% url admin:digipal_graph_change annotation.graph.id %}">Edit</a></p>
-                                {% else %}
-                                </p>
-                                {% endif %}
-                                <a href="/digipal/page/{{ annotation.page.id }}/?vector_id={{ annotation.vector_id }}" onclick="selectFeature('{{ annotation.vector_id}}');">
-                                {{ annotation.thumbnail }}
-                                </a> 
-                                </li>
-                            {% endfor %}
-                        </ul>
-                
-                        {% endfor %}
-                        <div><a id='ontop' href='#top' title='On Top'></a></div>
-                    
-                </div>
-                </div>
-          {% endfor %}
-        {% else %}
-            <div class='alert alert-warning'><h4>No annotations available</h4></p>
-        {% endif %}
-    </div>
-    </div>
+            <div class='tab-pane fade' id='descriptions'>
+                <div>
+                    {{ result.description|tei }}
+                </div>       
+            </div>
+    
+            {% include "pages/tab_images.html" with images=result.images.all %}
+    
+            <div class='tab-pane fade' id='graphs'>
+                <div class="scribe annotations">
+                    {% include "digipal/hands.html" %}
+        </div>
+        </div>
+            </div>
+        </div>
         </div>
     </div>
-</div>
-</div>
-
 {% endblock %}

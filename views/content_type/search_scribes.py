@@ -6,11 +6,35 @@ from django.db.models import Q
 
 class SearchScribes(SearchContentType):
 
-    def set_record_view_context(self, context):
+    def get_fields_info(self):
+        ret = super(SearchScribes, self).get_fields_info()
+        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name'}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}}
+        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 1.0}}
+        # TODO: display this field on the front-end
+        #ret['historical_items__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
+
+        # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
+        # filtering is done using the DB
+        ret['idiographs__allograph__character__name'] = {'whoosh': {'type': self.FT_ID, 'name': 'character', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allograph_components__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
+        ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
+        return ret
+
+    def set_record_view_context(self, context, request):
+        super(SearchScribes, self).set_record_view_context(context, request)
         context['scribe'] = Scribe.objects.get(id=context['id'])
-        context['idiograph_components'] = scribe_details(request)[0]
-        context['graphs'] = scribe_details(request)[1]
+        # TODO: naming is confusing here, check if the code still work
+        context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
+        # No longer needed?
+        #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
     
+    def get_model(self):
+        return Scribe
+
     @property
     def form(self):
         return FilterScribes()
@@ -23,7 +47,11 @@ class SearchScribes(SearchContentType):
     def label(self):
         return 'Scribes'
     
-    def build_queryset(self, request, term):
+    @property
+    def label_singular(self):
+        return 'Scribe'    
+    
+    def build_queryset_django(self, request, term):
         type = self.key
         query_scribes = Scribe.objects.filter(
                     Q(name__icontains=term) | \
@@ -68,9 +96,10 @@ class FilterScribes(forms.Form):
         empty_label = "Name",
         required = False)
 
-    scriptorium = forms.ModelChoiceField(
+    # Was previously called 'scriptorium'
+    place = forms.ModelChoiceField(
         queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'scriptorium-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
+        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
         empty_label = "Scriptorium",
         label = "",
         required = False)
@@ -103,3 +132,13 @@ class FilterScribes(forms.Form):
         empty_label = "Feature",
         required = False)
 
+def scribe_details(request):
+    """
+    Get Idiograph, Graph, and Image data for a Scribe,
+    for display in a record view
+    """
+    scribe = Scribe.objects.get(id=request.GET.get('id'))
+    idiographs = Idiograph.objects.filter(scribe=scribe.id)
+    graphs = Graph.objects.filter(
+        idiograph__in=idiographs)
+    return idiographs, graphs

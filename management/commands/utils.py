@@ -1,4 +1,5 @@
 from django.conf import settings
+import urllib2
 
 def fix_sequences(db_alias, silent=False):
     ret = 0
@@ -48,6 +49,16 @@ def sqlSelect(wrapper, command, arguments=[]):
     cur.execute(command, arguments)
     
     return cur
+
+def fetch_all_dic(cursor, key_field_name=None):
+    ret = {}
+    desc = cursor.description
+    if key_field_name is None: key_field_name = desc[0][0]
+    for row in cursor.fetchall():
+        row = dict(zip([col[0] for col in desc], row))
+        ret[row[key_field_name]] = row
+    cursor.close()
+    return ret
 
 def sqlSelectMaxDate(con, table, field):
     ret = None
@@ -128,4 +139,31 @@ class Logger(object):
                 print (u'[%s] %s%s%s' % (timestamp, indent_str, prefixes[log_level], message)).encode('utf-8')
             except UnicodeEncodeError:
                 print '???'
-            
+
+def write_file(file_name, data):
+    f = open(file_name, 'wb')
+    f.write(data)
+    f.close()
+        
+def wget(url):
+    ret = None
+    try:
+        response = urllib2.urlopen(url)
+        ret = response.read()
+    except Exception, e:
+        ret = None
+    return ret
+
+def get_simple_str(str):
+    import re
+    return re.sub(ur'\W+', '_', str.strip().lower())
+
+def is_int(str):
+    try:
+        int(str)
+    except ValueError:
+        return False
+    return True
+
+def get_obj_label(obj):
+    return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 

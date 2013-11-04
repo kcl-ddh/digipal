@@ -122,82 +122,88 @@ fields.ImageFieldFile.thumbnail_url = thumbnail_url
 # See https://github.com/stephenmcd/mezzanine/issues/647
 
 if 'mezzanine.blog' in settings.INSTALLED_APPS:
-
+    
+    keyword_exists = True
     from django.contrib.admin.views.decorators import staff_member_required
     from django.http import HttpResponse, HttpResponseRedirect
-    from mezzanine.generic.models import Keyword, Rating
-    
-    @staff_member_required
-    def admin_keywords_submit(request):
-        """
-        Adds any new given keywords from the custom keywords field in the
-        admin, and returns their IDs for use when saving a model with a
-        keywords field.
-        """
-        ids, titles = [], []
-        for title in request.POST.get("text_keywords", "").split(","):
-            title = "".join([c for c in title if c.isalnum() or c in "- "])
-            title = title.strip()
-            if title:
-                keywords = Keyword.objects.filter(title__iexact=title)
-                
-                # pick a case-sensitive match if it exists.
-                # otherwise pick any other match.
-                for keyword in keywords:
-                    if keyword.title == title:
-                        break
-                
-                # no match at all, create a new keyword.
-                if not keywords.count():
-                    keyword = Keyword(title=title)
-                    keyword.save()                
-                
-                id = str(keyword.id)
-                if id not in ids:
-                    ids.append(id)
-                    titles.append(title)
-        return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
-    
-    import mezzanine.generic.views
-    mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
-    
-    # TODO: move this code to a new view that extends Mezzanine blog_post_detail.
-    # Not documented way of doing it so we stick with this temporary solution for the moment.
-    from mezzanine.blog.models import BlogPost
-    
-    def blogPost_get_related_posts_by_tag(self):
-        # returns a list of BlogPosts with common tags to the current post
-        # the list is reverse chronological order
-        ret = []
+    try:
+        from mezzanine.generic.models import Keyword
+    except Exception, e:
+        keyword_exists = False 
+
+    if keyword_exists:
         
-        from django.contrib.contenttypes.models import ContentType
-        content_type_id = ContentType.objects.get_for_model(self).id
-        select = r'''
-            select p.* 
-            from blog_blogpost p
-            join generic_assignedkeyword ak on (p.id = ak.object_pk)
-            where 
-                ak.content_type_id = %s
-            AND 
-                ak.keyword_id in (select distinct ak2.keyword_id from generic_assignedkeyword ak2 where ak2.object_pk = %s and ak.content_type_id = %s)
-            AND 
-                p.id <> %s
-            order by p.publish_date;
-        '''
-        params = [content_type_id, self.id, content_type_id, self.id]
+        @staff_member_required
+        def admin_keywords_submit(request):
+            """
+            Adds any new given keywords from the custom keywords field in the
+            admin, and returns their IDs for use when saving a model with a
+            keywords field.
+            """
+            ids, titles = [], []
+            for title in request.POST.get("text_keywords", "").split(","):
+                title = "".join([c for c in title if c.isalnum() or c in "- "])
+                title = title.strip()
+                if title:
+                    keywords = Keyword.objects.filter(title__iexact=title)
+                    
+                    # pick a case-sensitive match if it exists.
+                    # otherwise pick any other match.
+                    for keyword in keywords:
+                        if keyword.title == title:
+                            break
+                    
+                    # no match at all, create a new keyword.
+                    if not keywords.count():
+                        keyword = Keyword(title=title)
+                        keyword.save()                
+                    
+                    id = str(keyword.id)
+                    if id not in ids:
+                        ids.append(id)
+                        titles.append(title)
+            return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
         
-        # run the query and remove duplicates
-        posts = {}
-        for post in BlogPost.objects.raw(select, params):
-            posts[post.publish_date] = post
-        keys = posts.keys()
-        keys.sort()
-        for key in keys[::-1]:
-            ret.append(posts[key])
-                
-        return ret
-    
-    BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
+        import mezzanine.generic.views
+        mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
+        
+        # TODO: move this code to a new view that extends Mezzanine blog_post_detail.
+        # Not documented way of doing it so we stick with this temporary solution for the moment.
+        from mezzanine.blog.models import BlogPost
+        
+        def blogPost_get_related_posts_by_tag(self):
+            # returns a list of BlogPosts with common tags to the current post
+            # the list is reverse chronological order
+            ret = []
+            
+            from django.contrib.contenttypes.models import ContentType
+            content_type_id = ContentType.objects.get_for_model(self).id
+            select = r'''
+                select p.* 
+                from blog_blogpost p
+                join generic_assignedkeyword ak on (p.id = ak.object_pk)
+                where 
+                    ak.content_type_id = %s
+                AND 
+                    ak.keyword_id in (select distinct ak2.keyword_id from generic_assignedkeyword ak2 where ak2.object_pk = %s and ak.content_type_id = %s)
+                AND 
+                    p.id <> %s
+                order by p.publish_date;
+            '''
+            params = [content_type_id, self.id, content_type_id, self.id]
+            
+            # run the query and remove duplicates
+            posts = {}
+            for post in BlogPost.objects.raw(select, params):
+                posts[post.publish_date] = post
+            keys = posts.keys()
+            keys.sort()
+            for key in keys[::-1]:
+                ret.append(posts[key])
+                    
+            return ret
+        
+        BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
 
 # Patch 5: bar permissions to some application models in the admin
 # Why not doing it with django permissions and groups?
@@ -231,3 +237,37 @@ def _user_has_perm(user, perm, obj):
 
 django.contrib.auth.models._user_has_perm = _user_has_perm
 
+# Patch 6: Whoosh ReadTooFar bug.
+# See Jira 115: ReadToFar Error on the search page 
+# See Whoosh Issue Tracker: 331
+#  https://bitbucket.org/mchaput/whoosh/issue/331/readtoofar-exception
+from whoosh.matching.combo import ArrayUnionMatcher
+    
+def array_union_matcher_skip_to(self, docnum):
+    if docnum < self._offset:
+        # We've already passed it
+        return
+    elif docnum < self._limit:
+        # It's in the current part
+        self._docnum = docnum
+        self._find_next()
+        return
+
+    # Advance all submatchers
+    submatchers = self._submatchers
+    active = False
+    for subm in submatchers:
+        # GN: patch for the ReadTooFar error.
+        if subm.is_active():
+            subm.skip_to(docnum)
+        active = active or subm.is_active()
+
+    if active:
+        # Rebuffer
+        self._docnum = self._min_id()
+        self._read_part()
+    else:
+        self._docnum = self._doccount
+    
+# Commnented out as the code seem the have been fixed in new version of Whoosh
+##ArrayUnionMatcher.skip_to = array_union_matcher_skip_to

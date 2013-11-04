@@ -1,0 +1,27 @@
+<div class='tab-pane fade' id='pages'>
+    {% for image in images %}
+     
+        {% if forloop.counter0|divisibleby:4 %}
+            <div class="row">
+        {% endif %}
+                <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
+                    <dl class="imageDatabase">
+                        <dt>
+                            <a class="imageDatabase" href="{{ image.get_absolute_url }}">
+                                {{ image.thumbnail }}
+                            </a>
+                        </dt>
+                        <dd>
+                            <p>{{ image }}</p>
+                        </dd>
+                    </dl>
+                </div>
+        {% if forloop.counter|divisibleby:4 or forloop.last %}
+            </div>
+        {% endif %}
+    {% empty %}
+        <div class="alert alert-block">
+            <h4>No Images available</h4>
+        </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags %}
+
+}
+{% block main %}
+<h2 class='header1'>{{ image|capfirst }}</h2>
+
+  <ul class='nav nav-tabs'>
+          <li><a href='../'>View Manuscript</a></li>
+          <li><a class="annotationLink" href="../allographs/">Annotations by Allograph</a></li>
+          <li class='active'><a href=''>View Metadata</a></li>
+          <li><a href='../copyright/'>Image Copyright</a></li>
+  </ul>
+ <h3 class='header5'>Record Data</h3>
+<table class="table table-condecopyright/nsed">
+    <tbody>
+        <tr>
+            <th>Repository</th>
+            <td>{{ image.item_part.current_item.repository.name }}</td>
+        </tr>
+        <tr>
+            <th>Town or City</th>
+            <td>{{ image.item_part.current_item.repository.place }}</td>
+        </tr>
+        <tr>
+            <th>Shelfmark</th>
+            <td>
+                {{ image.item_part.current_item.shelfmark }}
+            </td>
+        </tr>
+        <tr>
+            <th>Locus</th>
+            <td>
+                {{ image.locus }}
+            </td>
+        </tr>
+        
+    </tbody>
+</table>
+<table class='table table-condensed'>
+    <tr>
+            <th>Hands</th>
+    </tr>
+    {% for hand in image.hands.all %}
+        <tr>
+            <td>
+                {{ hand.display_label }}
+            </td>
+            
+        </tr>
+        {% endfor %}
+</table>
+{% endblock %}

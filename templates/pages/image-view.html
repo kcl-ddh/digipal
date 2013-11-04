@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 {% block extra_js %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -8,7 +7,7 @@
 
 {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
 {% endblock %}
 {% block main %}
 <div class="row-fluid">
@@ -63,7 +62,7 @@
                     <dl>
                         <dt>{{ result.idiograph.allograph.name }}</dt>
                         <dd>
-                            <a href="/digipal/page/{{ result.annotation.page.id }}/">{{ result.annotation.thumbnail }}</a>
+                            <a href="/digipal/page/{{ result.annotation.image.id }}/">{{ result.annotation.thumbnail }}</a>
                         </dd>
                     </dl>
                 </li>
@@ -107,7 +106,7 @@
                 <tr class="{% cycle 'bgColour' '' %}">
                     <td>
                         {% for graph in hand.list %}
-                        <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.page.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+                        <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                         {% endfor %}
                     </td>
                     <td>{{ hand.grouper.scribe }}</td>

@@ -58,7 +58,7 @@ class ImageAnnotationForm(forms.Form):
         empty_label = "",)
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
-    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all().order_by('character'),
+    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
         widget = AllographSelect(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
         label = "",
         empty_label = "",

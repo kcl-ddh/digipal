@@ -516,12 +516,14 @@ declaring function to get parameteres from URL
 
 	$("#id_allograph").on("liszt:ready", function() {
 		highlight_vectors();
+		/*
 		$("#id_allograph").append($("#id_allograph option").remove().sort(function(a, b) {
 			var at = $(a).text(),
 				bt = $(b).text();
 			return (at > bt) ? 1 : ((at < bt) ? -1 : 0);
 		}));
 		$(this).trigger("liszt:update");
+		*/
 	});
 
 	$('select').chosen();

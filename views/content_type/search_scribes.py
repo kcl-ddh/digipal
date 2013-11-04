@@ -112,7 +112,7 @@ class FilterScribes(forms.Form):
         required = False)
 
     character = forms.ModelChoiceField(
-        queryset = Character.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Character.objects.values_list('name', flat=True).distinct(),
         widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label = "",
         empty_label = "Character",

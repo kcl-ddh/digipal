@@ -218,6 +218,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		toggle: true,
 		multiple: false,
 		hover: false,
+		toggleKey: 'shiftKey',
 		box: false
 	});
 
@@ -231,7 +232,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	this.dragFeature.onComplete = function(feature, pixel) {
 		_self.setSavedAttribute(feature, Annotator.UNSAVED, true);
-	}
+	};
 
 	// creates a zoom box feature
 	this.zoomBoxFeature = new OpenLayers.Control.ZoomBox({

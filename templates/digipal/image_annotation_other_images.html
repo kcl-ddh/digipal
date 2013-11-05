@@ -1,19 +1,19 @@
 {% load html_escape %}
 {% comment %}
     ----------------------------------------------
-    OTHER IMAGES 
+    OTHER IMAGES
     ----------------------------------------------
 {% endcomment %}
-<div class='pull-right'>
+<div class='pull-right' style='width: 240px;'>
     <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>
         This manuscript has {{ image.item_part.images.count }}
         <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
     </span>
-    
+
     <div id='popupImages' class="row-fluid">
         <div class='arrow'></div>
         <div id='titlePopup'>
-            <p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p> 
+            <p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p>
         </div>
         <div class='span12' id='imagesBoxcontent'>
             {% for p in image.item_part.images.all %}
@@ -43,5 +43,5 @@
             {% endfor %}
         </div>
     </div> {% comment %}DIV popupImages{% endcomment %}
-    
+
 </div> {% comment %}DIV pull-right{% endcomment %}

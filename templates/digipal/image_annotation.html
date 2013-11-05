@@ -131,37 +131,43 @@
                 <span class="label label-success style='margin-right:0;font-size:12.8px;'"><span><b>Hands</b>: {{ hands }}</span></span>
                 {% if annotations > 0 %}
                 <span class="label" style='margin-right:0;font-size:12.8px;'><b>Annotations:</b></span>
-                  <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: bottom;margin-bottom:1.2%;'>
+                  <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: bottom;margin-bottom:1%;'>
                     <input type="checkbox" />
                   </span>
 
                   <div class="btn-toolbar" style='display:inline'>
                     <div class="btn-group" style='margin-bottom:1%'>
-                      <a class='btn' id='filterAllographs'>Filter</a>
+                      <a class='btn btn-small' id='filterAllographs'>Filter</a>
                 {% else %}
                   <div class="btn-toolbar" style='display:inline'>
                     <div class="btn-group" style='margin-bottom:1%'>
                 {% endif %}
-                    <a class="btn" id="settings_annotator">Settings</a>
+                    <a class="btn btn-small" id="settings_annotator">Settings</a>
                   </div>
                 </div>
-                <span style='margin-left:1%' class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
-                </span>
                  {% if can_edit %}
+                <div class="btn-toolbar" style='display:inline'>
+                  <div class="btn-group" style='margin-bottom:1%;margin-left:1%;'>
+                 <span class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
+                </span>
+              </div>
+            </div>
                 <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
                   <div id='form_annotation_hand' style='display:inline;width:35%;'>
                   {{ form }}
                 </form>
-
-
              <div style='display:inline;'>
                 <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span style='margin-right:0' class='number-allographs'></span></span></div>
               </div>
             </div>
             {% else %}
-             <div style='display:inline;'>
-                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )</span></div>
+             <div style='display:inline;margin-left:1%;'>
+              <div class="btn-toolbar" style='display:inline'>
+                    <div class="btn-group" style='margin-bottom:1%'>
+                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )</span></div>
                   </div>
+                </div>
+            </div>
             </div>
             {% endif %}
             <p id='status'></p>

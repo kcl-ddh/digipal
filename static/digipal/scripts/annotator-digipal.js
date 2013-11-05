@@ -270,6 +270,25 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
  *              The feature to display the annotation.
  */
 DigipalAnnotator.prototype.showAnnotation = function(feature) {
+	if (feature.state == 'Insert') {
+		var allograph;
+		var allograph_list = $('#id_allograph option');
+		$.each(allograph_list, function() {
+			if ($(this).text() == feature.feature) {
+				allograph = $(this).val();
+			}
+		});
+		$('#id_allograph').val(allograph).trigger('liszt:updated');
+		var features = annotator.vectorLayer.features;
+		var n = 0;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == feature.feature && features[i].stored) {
+				n++;
+			}
+		}
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
 	if (feature !== null) {
 		if (feature.style !== null) {
 			feature.style.fillColor = 'blue';
@@ -1346,7 +1365,6 @@ function showBox(selectedFeature) {
 
 
 	}
-
 
 	if (selectedFeature) {
 		var n = 0;

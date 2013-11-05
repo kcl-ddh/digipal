@@ -222,19 +222,25 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	var feature = event.feature;
 	if (feature.described) {
 		feature.style.fillColor = 'green';
+		feature.style.strokeColor = 'green';
+		/*
 		if (feature.display_note) {
 			feature.style.strokeColor = 'yellow';
 		} else {
 			feature.style.strokeColor = 'green';
 		}
+		*/
 
 	} else {
 		feature.style.fillColor = '#ee9900';
+		feature.style.strokeColor = '#ee9900';
+		/*
 		if (feature.display_note) {
 			feature.style.strokeColor = 'yellow';
 		} else {
 			feature.style.strokeColor = '#ee9900';
 		}
+		*/
 	}
 	if ($('#id_hide').prop('checked')) {
 		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
@@ -342,12 +348,16 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	div.attr('class', 'loading-div');
 	div.html('<p>Reloading annotations. Please wait...</p></p><img src="/static/digipal/images/ajax-loader3.gif" />');
 	$('body').append(div.fadeIn());
-	var chained = request.then(function(data) {
+	var chained = request.done(function(data) {
+		if (isEmpty(data)) {
+			div.fadeOut().remove();
+			return false;
+		}
 		var layer = annotator.vectorLayer;
 		var format = annotator.format;
 		var annotations = data;
 		var features_request = $.getJSON('vectors/');
-		features_request.then(function(data) {
+		features_request.done(function(data) {
 			var features = [];
 			for (var j in data) {
 				var f = format.read(data[j])[0];
@@ -601,7 +611,7 @@ function reload_described_annotations(div) {
 	$.each(annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
 		var selectedFeature;
-		if (typeof annotator.selectedFeature !== "undefined") {
+		if (typeof annotator.selectedFeature !== "undefined" && typeof annotator.selectedFeature != "null") {
 			selectedFeature = annotator.selectedFeature;
 		}
 		var num_features = annotation.num_features;
@@ -628,10 +638,14 @@ function reload_described_annotations(div) {
 						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
 						feature[h].described = false;
 
-						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && feature[h].graph == selectedFeature.graph) {
-							//stylize(feature[h], 'blue', 'blue', 0.4);
-							feature[h].described = false;
-							annotator.selectFeatureById(feature[h].id);
+						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
+							console.log("feature: " + feature[h]);
+							console.log("selected: " + selectedFeature);
+							if (feature[h].graph == selectedFeature.graph) {
+								//stylize(feature[h], 'blue', 'blue', 0.4);
+								feature[h].described = false;
+								annotator.selectFeatureById(feature[h].id);
+							}
 						}
 
 						/*

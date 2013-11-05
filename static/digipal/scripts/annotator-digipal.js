@@ -462,7 +462,8 @@ function updateFeatureSelect(currentFeatures, id) {
 
 					$.each(features, function(idx) {
 						var value = component_id + '::' + features[idx].id;
-						s += "<p><input type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+						var id = component_id + '_' + features[idx].id;
+						s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
 					});
 					s += "</p></div>";
 				});
@@ -639,8 +640,6 @@ function reload_described_annotations(div) {
 						feature[h].described = false;
 
 						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
-							console.log("feature: " + feature[h]);
-							console.log("selected: " + selectedFeature);
 							if (feature[h].graph == selectedFeature.graph) {
 								//stylize(feature[h], 'blue', 'blue', 0.4);
 								feature[h].described = false;
@@ -1237,11 +1236,12 @@ function showBox(selectedFeature) {
 						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
+							var id = component_id + '_' + features[idx].id;
 							var names = component + ':' + features[idx].name;
 							if (array_features_owned.indexOf(names) >= 0) {
-								s += "<p><input id='" + features[idx].id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+								s += "<p><input id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
 							} else {
-								s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + features[idx].id + "'>" + features[idx].name + "</label>";
+								s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
 							}
 						});
 						s += "</p></div>";

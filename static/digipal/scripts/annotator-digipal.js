@@ -941,7 +941,7 @@ function load_allographs_container(allograph_value, url) {
 			var data_hand;
 			for (var i = 0; i < data.length; i++) {
 				j++;
-				if (!i) {
+				if (i === 0) {
 					s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
 					data_hand = data[i].hand;
 				}
@@ -949,6 +949,11 @@ function load_allographs_container(allograph_value, url) {
 					j = 1;
 					data_hand = data[i].hand;
 					s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+				}
+				if (typeof data[i + 1] == "undefined" && data[i].hand != data[i - 1].hand) {
+					j = 1;
+					data_hand = data[i].hand;
+					s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i].hand_name + "</label>\n";
 				}
 				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map'>" + data[i].image + '</span>\n';
 			}

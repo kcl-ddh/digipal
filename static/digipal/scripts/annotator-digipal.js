@@ -68,6 +68,57 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	this.showAnnotation(event.feature);
 };
 
+/**
+ * Function that is called after a feature is unselected.
+ *
+ * @param event
+ *              The unselect event.
+ */
+DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
+	var _self = this;
+	var feature = event.feature;
+	if (feature.described) {
+		feature.style.fillColor = 'green';
+		feature.style.strokeColor = 'green';
+		/*
+		if (feature.display_note) {
+			feature.style.strokeColor = 'yellow';
+		} else {
+			feature.style.strokeColor = 'green';
+		}
+		*/
+
+	} else {
+		feature.style.fillColor = '#ee9900';
+		feature.style.strokeColor = '#ee9900';
+		/*
+		if (feature.display_note) {
+			feature.style.strokeColor = 'yellow';
+		} else {
+			feature.style.strokeColor = '#ee9900';
+		}
+		*/
+	}
+	if ($('#id_hide').prop('checked')) {
+		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
+			var f = _self.vectorLayer.features[i];
+			if (_self.selectedFeature.id != f.id) {
+				f.style = null;
+			}
+		}
+	}
+	this.vectorLayer.redraw();
+	this.selectedFeature = null;
+	this.last_feature_selected = {
+		'id': $('#id_allograph').val(),
+		'name': $('#id_allograph option:selected').text()
+	};
+	$('#id_allograph').val(undefined).trigger('liszt:updated');
+	$(".number_annotated_allographs .number-allographs").html(0);
+
+};
+
+
 DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
 	var seen = {};
 	var txt;
@@ -211,48 +262,6 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 	}
 	_self.vectorLayer.redraw();
 };
-/**
- * Function that is called after a feature is unselected.
- *
- * @param event
- *              The unselect event.
- */
-DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
-	var _self = this;
-	var feature = event.feature;
-	if (feature.described) {
-		feature.style.fillColor = 'green';
-		feature.style.strokeColor = 'green';
-		/*
-		if (feature.display_note) {
-			feature.style.strokeColor = 'yellow';
-		} else {
-			feature.style.strokeColor = 'green';
-		}
-		*/
-
-	} else {
-		feature.style.fillColor = '#ee9900';
-		feature.style.strokeColor = '#ee9900';
-		/*
-		if (feature.display_note) {
-			feature.style.strokeColor = 'yellow';
-		} else {
-			feature.style.strokeColor = '#ee9900';
-		}
-		*/
-	}
-	if ($('#id_hide').prop('checked')) {
-		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
-			var f = _self.vectorLayer.features[i];
-			if (_self.selectedFeature.id != f.id) {
-				f.style = null;
-			}
-		}
-	}
-	this.vectorLayer.redraw();
-	this.selectedFeature = null;
-};
 
 /**
  * Shows the annotation details for the given feature.
@@ -261,6 +270,25 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
  *              The feature to display the annotation.
  */
 DigipalAnnotator.prototype.showAnnotation = function(feature) {
+	if (feature.state == 'Insert') {
+		var allograph;
+		var allograph_list = $('#id_allograph option');
+		$.each(allograph_list, function() {
+			if ($(this).text() == feature.feature) {
+				allograph = $(this).val();
+			}
+		});
+		$('#id_allograph').val(allograph).trigger('liszt:updated');
+		var features = annotator.vectorLayer.features;
+		var n = 0;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == feature.feature && features[i].stored) {
+				n++;
+			}
+		}
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
 	if (feature !== null) {
 		if (feature.style !== null) {
 			feature.style.fillColor = 'blue';
@@ -1337,7 +1365,6 @@ function showBox(selectedFeature) {
 
 
 	}
-
 
 	if (selectedFeature) {
 		var n = 0;

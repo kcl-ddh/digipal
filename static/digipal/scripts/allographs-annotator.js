@@ -279,7 +279,6 @@ var chained = request.then(function(data) {
 					}
 				});
 
-
 				features_owned.done(function(f) {
 					array_features_owned = [];
 					if (temporary_vectors) {

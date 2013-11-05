@@ -1675,22 +1675,44 @@ function highlight_vectors() {
 
 function highlight_unsaved_vectors() {
 	var features = annotator.unsaved_annotations;
-	$('.number_unsaved_allographs').on('mouseover', function() {
-		for (i = 0; i < features.length; i++) {
-			features[i].feature.originalColor = features[i].feature.style.fillColor;
-			features[i].featureoriginalWidth = 2;
-			features[i].feature.style.strokeColor = 'red';
-			features[i].feature.style.strokeWidth = 6;
+	for (i = 0; i < features.length; i++) {
+		features[i].feature.originalColor = features[i].feature.style.fillColor;
+		features[i].featureoriginalWidth = 2;
+		features[i].feature.style.strokeColor = 'red';
+		features[i].feature.style.strokeWidth = 6;
+	}
+	annotator.vectorLayer.redraw();
+}
+
+
+function unhighlight_unsaved_vectors() {
+	var features = annotator.unsaved_annotations;
+	for (i = 0; i < features.length; i++) {
+		features[i].feature.style.strokeColor = features[i].feature.originalColor;
+		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
+	}
+	annotator.vectorLayer.redraw();
+}
+
+function trigger_highlight_unsaved_vectors() {
+
+
+	$('.number_unsaved_allographs').on('click', function() {
+		if (!$(this).hasClass('active')) {
+			highlight_unsaved_vectors();
+			$(this).addClass('active');
+		} else {
+			unhighlight_unsaved_vectors();
+			$(this).removeClass('active');
 		}
-		annotator.vectorLayer.redraw();
+	});
+
+	$('.number_unsaved_allographs').on('mouseover', function() {
+		highlight_unsaved_vectors();
 	});
 
 	$('.number_unsaved_allographs').on('mouseout', function() {
-		for (i = 0; i < features.length; i++) {
-			features[i].feature.style.strokeColor = features[i].feature.originalColor;
-			features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
-		}
-		annotator.vectorLayer.redraw();
+		unhighlight_unsaved_vectors();
 	});
 
 }
@@ -2001,6 +2023,17 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	$(document).bind('keydown', function(event) {
 		activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
+		if (code == 85) {
+			var button = $('.number_unsaved_allographs');
+			var features = annotator.unsaved_annotations;
+			if (!button.hasClass('active')) {
+				highlight_unsaved_vectors();
+				button.addClass('active');
+			} else {
+				unhighlight_unsaved_vectors();
+				button.removeClass('active');
+			}
+		}
 		if (event.shiftKey) {
 			switch (code) {
 				case 77:

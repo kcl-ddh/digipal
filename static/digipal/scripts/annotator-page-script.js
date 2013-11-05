@@ -157,7 +157,7 @@ declaring function to get parameteres from URL
 					annotator.selectFeatureByIdAndZoom(vector_id_value);
 				}, 500);
 			}
-			highlight_unsaved_vectors();
+			trigger_highlight_unsaved_vectors();
 			reload_described_annotations();
 
 			if (annotator.isAdmin == 'True') {

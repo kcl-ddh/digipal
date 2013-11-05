@@ -5,6 +5,24 @@
 
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script>
+        {% comment %}TODO: GN - moce this to a js lib {% endcomment %}
+        function setCookie(c_name,value,exdays) {
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
+        }
+
+        $('#myTab a').click(function (e) {
+          e.preventDefault();
+          $(this).tab('show');
+          setCookie('view', this.innerHTML, '-1');
+        });
+        $('select').chosen();
+        $('[data-toggle="tooltip"]').tooltip();
+
+    </script>
 {% endblock %}
 
 {% block main %}
@@ -19,28 +37,26 @@
                 </div>
             </form>
         </div>
-        <script>
-            $('select').chosen();
-        </script>
+
     </div>
-    
+
     <div class='container'>
         {% include "digipal/image_list_pagination.html" %}
-                
+
         <div class='span2 pull-right' id='myTab'>
             <ul class="nav nav-pills">
                 <li class="{% if view == 'Images' %}active{% endif %}">
                     <a data-toggle="tooltip" title='Change Manuscripts View to Images' href="#images">Images</a>
                 </li>
-                
+
                 <li class="{% if view == 'List' %}active{% endif %}">
                     <a data-toggle="tooltip" title='Change Manuscripts View to List' href="#list">List</a>
                 </li>
             </ul>
         </div>
-        
+
     </div>
-    
+
     {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
         <div class='breadcrumb'>
           {% comment %} <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span> |{% endcomment %}
@@ -49,14 +65,14 @@
           {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
         </div>
     {% endif %}
-        
+
     {% if page_list %}
-    
+
         <div class='container'>
             <div class="tab-content">
-                
+
                 <div class="tab-pane fade {% if view == 'Images' %}active in{% endif %}" id="images">
-                         
+
                     {% for image in page_list %}
                         {% if forloop.counter|divisibleby:4 %}
                             <div class='row-fluid'>
@@ -70,10 +86,10 @@
                                         {% endifequal %}
                                         <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                                         <p style='line-height:1'>
-                                            <span>Annotations: 
+                                            <span>Annotations:
                                             <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
                                         <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
-            
+
                                     </p>
                                     <dl class="imageDatabase">
                                         <dt>
@@ -81,17 +97,17 @@
                                         </dt>
                                         <dd>
                                             <p><b>{{ image }}</b></p>
-                                        </dd>               
+                                        </dd>
                                     </dl>
                                 </div>
                         {% if forloop.counter|divisibleby:4 %}
                             </div>
                         {% endif %}
                     {% endfor %}
-                </div> 
+                </div>
 
                 <div class="tab-pane fade {% if view == 'List' %}active in{% endif %}" id="list">
-                
+
                     <table class='table table-condensed'>
                         <tbody>
                             <tr>
@@ -114,12 +130,12 @@
                             {% endfor %}
                         </tbody>
                     </table>
-            
+
                 </div>
 
-            </div> 
-        </div> 
-                    
+            </div>
+        </div>
+
     {% else %}
         <script>
             $('#formFilters').show();
@@ -131,28 +147,11 @@
             <h3>No Images available</h3>
         </div>
     {% endif %}
-        
-            
+
+
     <div class='container'>
         {% include "digipal/image_list_pagination.html" %}
     </div>
-    
-    <script>
-        {% comment %}TODO: GN - moce this to a js lib {% endcomment %}
-        function setCookie(c_name,value,exdays) {
-            var exdate=new Date();
-            exdate.setDate(exdate.getDate() + exdays);
-            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-            document.cookie=c_name + "=" + c_value;
-        }
-        
-        $('#myTab a').click(function (e) {
-          e.preventDefault();
-          $(this).tab('show');
-          setCookie('view', this.innerHTML, '-1');
-        });
-        
-        $('[data-toggle="tooltip"]').tooltip();
-        
-    </script>
+
+
 {% endblock %}

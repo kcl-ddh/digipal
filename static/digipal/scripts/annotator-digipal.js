@@ -90,7 +90,11 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 
 	} else {
 		feature.style.fillColor = '#ee9900';
-		feature.style.strokeColor = '#ee9900';
+		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active')) {
+			feature.style.strokeColor = 'red';
+		} else {
+			feature.style.strokeColor = '#ee9900';
+		}
 		/*
 		if (feature.display_note) {
 			feature.style.strokeColor = 'yellow';
@@ -1706,6 +1710,7 @@ function trigger_highlight_unsaved_vectors() {
 		}
 	});
 
+	/*
 	$('.number_unsaved_allographs').on('mouseover', function() {
 		highlight_unsaved_vectors($(this));
 	});
@@ -1713,6 +1718,7 @@ function trigger_highlight_unsaved_vectors() {
 	$('.number_unsaved_allographs').on('mouseout', function() {
 		unhighlight_unsaved_vectors($(this));
 	});
+	*/
 
 }
 /**

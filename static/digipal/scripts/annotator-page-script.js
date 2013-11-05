@@ -504,6 +504,9 @@ declaring function to get parameteres from URL
 	*/
 
 	function findRectangleFeatureAdded(feature) {
+		var unsaved_allographs_button = $('.number_unsaved_allographs');
+		var last_feature_selected = annotator.last_feature_selected;
+
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}
@@ -512,8 +515,13 @@ declaring function to get parameteres from URL
 		//annotator.rectangleFeature.deactivate();
 		//annotator.selectFeature.activate();
 		annotator.unsaved_annotations.push(feature);
-		$('.number_unsaved_allographs').html(annotator.unsaved_annotations.length);
-		var last_feature_selected = annotator.last_feature_selected;
+
+		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
+
+		if (unsaved_allographs_button.hasClass('active')) {
+			highlight_unsaved_vectors();
+		}
+
 		if (last_feature_selected) {
 			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
 			var features = annotator.vectorLayer.features;
@@ -525,6 +533,7 @@ declaring function to get parameteres from URL
 			}
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
+
 
 	}
 

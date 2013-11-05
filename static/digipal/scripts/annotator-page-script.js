@@ -513,6 +513,18 @@ declaring function to get parameteres from URL
 		//annotator.selectFeature.activate();
 		annotator.unsaved_annotations.push(feature);
 		$('.number_unsaved_allographs').html(annotator.unsaved_annotations.length);
+		var last_feature_selected = annotator.last_feature_selected;
+		if (last_feature_selected) {
+			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
+			var features = annotator.vectorLayer.features;
+			var n = 0;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == last_feature_selected.name && features[i].stored) {
+					n++;
+				}
+			}
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
 
 	}
 

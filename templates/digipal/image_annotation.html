@@ -1,255 +1,134 @@
 {% extends "base.html" %}
 {% load html_escape %}
-    {% block extra_css %}
-        <link rel="shortcut icon"
-            href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
 
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
-        <link rel="stylesheet" type="text/css"
-            href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
-    {% endblock %}
-    {% block extra_js %}
-        <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
-        <script>
+{% block meta_title %}
+    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+    {{image|capfirst}}
+{% endblock %}
 
-          var csrftoken = getCookie('csrftoken');
-          $.ajaxSetup({
-              headers: { "X-CSRFToken": csrftoken }
-          });
+{% block extra_css %}
+    <link rel="shortcut icon"
+    href="{{ STATIC_URL }}digipal/images/favicon.ico"/>
+    
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+    <link rel="stylesheet" type="text/css"
+    href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
+{% endblock %}
 
-        </script>
-         <script>
-            $(document).ready(function() {
-              var si = new StoredInputs('digipal_settings');
-              si.registerInput('#ontograph_type');
-
-              annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-                                              'x', {{ width }}, {{ height }},
-                                              '{{ image_server_url }}', "{{is_admin}}");
-
-              {% if not is_admin %}
-              annotator.toolbarPanel.controls.splice(3, 4);
-              annotator.toolbarPanel.controls.splice(4, 4);
-              annotator.toolbarPanel.redraw();
-              annotator.user_annotations = [];
-              {% endif %}
-
-              annotator.hands = {{ hands_list|safe }}
-
-
-              {% if vector_id %}
+{% block extra_js %}
+    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
+    <script>
+        
+        var csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": csrftoken }
+        });
+        
+    </script>
+    <script>
+        $(document).ready(function() {
+            var si = new StoredInputs('digipal_settings');
+            si.registerInput('#ontograph_type');
+            
+            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+            'x', {{ width }}, {{ height }},
+            '{{ image_server_url }}', "{{is_admin}}");
+            
+            {% if not is_admin %}
+                annotator.toolbarPanel.controls.splice(3, 4);
+                annotator.toolbarPanel.controls.splice(4, 4);
+                annotator.toolbarPanel.redraw();
+                annotator.user_annotations = [];
+            {% endif %}
+            
+            annotator.hands = {{ hands_list|safe }}
+            
+            
+            {% if vector_id %}
                 vector_id = true;
                 vector_id_value = "{{ vector_id }}"
-              {% else %}
+            {% else %}
                 vector_id = false;
-              {% endif %}
-
-              {% if request.GET.annotations == "false" %}
+            {% endif %}
+            
+            {% if request.GET.annotations == "false" %}
                 get_annotations = "false"
-              {% else %}
+            {% else %}
                 get_annotations = "true"
-              {% endif %}
-
-              /*
-
-              Calling page script
-
-              */
-              if(annotator){
+            {% endif %}
+            
+            /*
+            
+            Calling page script
+            
+            */
+            if(annotator){
                 $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js")
-              }
-
-            });
+            }
+            
+        });
     </script>
-
-    {% endblock %}
+    
+{% endblock %}
 
 {% block annotations %}
-<div class='container'>
-    <h2 class='header1'>
-        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-        {{image|capfirst}}
-    </h2>
-    {% if no_image_reason %}
-        <p>
-            {{ no_image_reason }}
-        </p>
-    {% endif %}
+    <div class='container'>
+        <h2 class='header1'>
+            {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+            {{image|capfirst}}
+        </h2>
+        
+        {% if no_image_reason %}
+            <p>
+                {{ no_image_reason }}
+            </p>
+        {% endif %}
+    </div>
+    
     {% if not no_image_reason or can_edit %}
-          <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
-        <div class='row'>
-          <div class='span8'>
-              <ul class='nav nav-tabs'>
-                <li class='active'><a>View Manuscript</a></li>
-                <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
-                <li><a href='metadata/'>View Metadata</a></li>
-                <li><a href='copyright/'>Image Copyright</a></li>
-              </ul>
-          </div>
-          <div class='pull-right'>
-            <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>This manuscript has {{ image.item_part.images.count }}
-             {% if image.item_part.images.count == 1 %}
-              <span style='font-weight:bold'>image</span></span>
-              {% else %}
-              <span style='font-weight:bold'>images</span></span>
-              {% endif %}
-                <div id='popupImages' class="row-fluid">
-                  <div class='arrow'></div>
-                  <div id='titlePopup'><p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p> </div>
-                  <div class='span12' id='imagesBoxcontent'>
-                    {% for p in image.item_part.images.all %}
-                    {% if image.item_part.images.count == 1 %}
-                      <p>
-                        <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">{{ p.thumbnail|safe }}
-                            </a>
-                          </p>
-                      {% elif image.item_part.images.count < 3 %}
-                          <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}
-                            </a>
-                      {% else %}
-                        {% if forloop.counter|divisibleby:3 %}
-                          <div class='row'>
-                           <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
-                          </div>
-                      {% else %}
-                          <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
-                    {% endif %}
-                    {% endif %}
-                {% endfor %}
+        <div class='container'>
+            <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
+            
+            <div class='row'>
+                
+                {% comment %} TABS {% endcomment %}
+                <div class='span8'>
+                    <ul class='nav nav-tabs'>
+                        <li class='active'><a>View Manuscript</a></li>
+                        <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
+                        <li><a href='metadata/'>View Metadata</a></li>
+                        <li><a href='copyright/'>Image Copyright</a></li>
+                    </ul>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div class='panel' id='panelImageBox' style='padding:0.8%;padding-bottom: 0.2%;margin-bottom: 5px;'>
-
-                <span class="label label-important" style='margin-right:0;font-size:12.8px;'>
-                  <span>
-                    <b>Annotations</b>: {{ annotations }}
-                  </span>
-               </span>
-
-                <span class="label label-success style='margin-right:0;font-size:12.8px;'">
-                  <span>
-                    <b>Hands</b>: {{ hands }}
-                  </span>
-                </span>
-
-                {% if annotations > 0 %}
-
-                <span class="label" style='margin-right:0;font-size:12.8px;'>
-                  <b>Annotations:</b>
-                </span>
-
-                <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: bottom;margin-bottom:1%;height:17.5px;'>
-                    <input type="checkbox" />
-                </span>
-
-                <div class="btn-toolbar" style='display:inline'>
-                  <div class="btn-group" style='margin-bottom:1%'>
-                    <a class='btn btn-small' id='filterAllographs'>Filter</a>
-                {% else %}
-                <div class="btn-toolbar" style='display:inline'>
-                  <div class="btn-group" style='margin-bottom:1%'>
-                {% endif %}
-                    <a class="btn btn-small" id="settings_annotator">Settings</a>
-                  </div>
-                </div>
-                {% if can_edit %}
-
-                <div class="btn-toolbar" style='display:inline'>
-                  <div class="btn-group" style='margin-bottom:1%;margin-left:1%;'>
-                    <span class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
-                  </div>
-                </div>
-
-                <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
-                  <div id='form_annotation_hand' style='display:inline;width:35%;'>
-                    {{ form }}
-                     <div style='display:inline;'>
-                      <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'>
-                        <i class= 'icon-eye-open'></i>
-                        <span style='margin-right:0' class='number-allographs'></span>
-                      </span>
-                    </div>
-                  </div>
-                </form>
-
-
-
-            </div>
-            </div>
-            {% else %}
-            {% comment %}
-            <div style='display:inline;margin-left:1%;'>
-              <div class="btn-toolbar" style='display:inline'>
-                    <div class="btn-group" style='margin-bottom:1%'>
-                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )</span></div>
-              </div>
-            </div>
-            {% endcomment %}
-            </div>
-            </div>
-            {% endif %}
-            <p id='status'></p>
-
-              <div class='container'>
-                  <div id="map"></div>
-                  <div id="toolbar" class="olControlEditingToolbar"></div>
-              </div>
-
-                <div id='modal_settings' style="display:none;">
-                      <p>
-                        <label>Annotation boxes</label>
-                        <label for='multiple_boxes' style='font-weight:normal;'>Allow multiple boxes <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled {% endif %} /></label>
-                      </p>
-                      <p>
-                        <label>Toolbar position</label>
-                          <label style='font-weight:normal;' for='vertical'>Vertical <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked /></label>
-                          <label style='font-weight:normal;' for='horizontal'>Horizontal <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  /></label>
-                      </p>
-                      <p>
-                        <label>Boxes</label>
-                        <label style='font-weight:normal;' for='boxes_on_click'>Open Boxes on click <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked {% endif %} /></label>
-                      </p>
-                      {% if can_edit %}
-
-                      <p>
-                        <label>Admin</label>
-                        <label style='font-weight:normal;' for='development_annotation'>Annotating <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked /></label>
-                        </p>
-                        <p>
-                       <label>Filter allographs: </label>
-                            <select id="ontograph_type" name="ontograph_type">
-                                <option value="0">Show all</option>
-                                {% for type in ontograph_types %}
-                                    <option value="{{ type.id }}">{{ type.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </span>
-                      </p>
-                  {% endif %}
-
-
-                {% endif %}
-                </div>
-                 </div>
-              </div>
-              <div id='annotations'></div>
-
-</div>
-
-
-{% if not no_image_reason or can_edit %}
-
-    <div class='row-fluid' id='allographs_filtersBox'></div>
-
-{% endif %}
-
+                
+                {% include "digipal/image_annotation_other_images.html" %}
+                
+            </div> {% comment %}DIV row{% endcomment %}
+            
+            {% include "digipal/image_annotation_control_bar.html" %}
+            
+        </div> {% comment %}DIV container{% endcomment %}
+        
+        <p id='status'></p>
+        
+        <div class='container'>
+            <div id="map"></div>
+            <div id="toolbar" class="olControlEditingToolbar"></div>
+        </div>
+        
+        {% include "digipal/image_annotation_settings.html" %}
+        
+        <div id='annotations'></div>
+        
+        <div class='row-fluid' id='allographs_filtersBox'></div>
+        
+    {% endif %}
+    
 {% endblock %}
 

@@ -1722,9 +1722,7 @@ DigipalAnnotator.prototype.saveAnnotation = function() {
 function save(url, feature, data) {
 	var id = feature.id;
 	var temp = feature;
-	console.log(temp);
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
-
 	var geoJson = annotator.format.write(feature);
 	if (annotator.url_allographs) {
 		url = '../' + url;
@@ -1763,7 +1761,7 @@ function save(url, feature, data) {
 							break;
 						}
 					}
-					element.html(parseInt(number_unsaved) - 1);
+					element.html(annotations.length);
 					temp = null;
 				}
 			}

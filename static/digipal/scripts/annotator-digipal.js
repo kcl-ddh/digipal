@@ -27,6 +27,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.annotations = null;
 	this.url_annotations = 'annotations';
 	this.url_allographs = false;
+	this.unsaved_annotations = [];
 	this.isAdmin = isAdmin;
 	this.mediaUrl = mediaUrl;
 	this.allow_multiple_dialogs = false;
@@ -332,7 +333,8 @@ function getFeatureById(id) {
 */
 
 DigipalAnnotator.prototype.refresh_layer = function() {
-	annotator.vectorLayer.destroyFeatures();
+	annotator.vectorLayer.removeAllFeatures();
+	annotator.annotations = [];
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
 	});
@@ -377,6 +379,8 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			var vectors = annotator.vectorLayer.features;
 			if (vectors) {
 				reload_described_annotations(div);
+				annotator.unsaved_annotations = [];
+				$('.number_unsaved_allographs').html(0);
 			}
 		});
 	});
@@ -1072,7 +1076,7 @@ function fill_dialog(id, annotation) {
 			var allograph_id = $(this).val();
 
 			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == allograph) {
+				if (features[i].feature == allograph && features[i].stored) {
 					n++;
 				}
 			}
@@ -1323,7 +1327,7 @@ function showBox(selectedFeature) {
 
 		(function() {
 			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand) {
+				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
 					n++;
 				}
 			}
@@ -1441,6 +1445,7 @@ function updateOptionsForLetter(letterId, annotation) {
 			enableMultiSelect('id_ascender');
 		} else {
 			disableMultiSelect('id_ascender');
+			r
 		}
 		if (data.has_descender) {
 			enableMultiSelect('id_descender');
@@ -1525,7 +1530,7 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 
 	if (doDelete && feature !== null) {
 		var featureId = feature.id;
-
+		var temp = feature;
 		updateStatus('-');
 		layer.destroyFeatures([feature]);
 		var url;
@@ -1548,6 +1553,19 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 						var allograph = $('#id_allograph option:selected').text();
 						var allograph_id = $('#id_allograph').val();
 						refresh_letters_container(allograph, allograph_id);
+					}
+					if (temp['state'] == 'Insert') {
+						var element = $('.number_unsaved_allographs');
+						var number_unsaved = element.html();
+						var annotations = annotator.unsaved_annotations;
+						for (var i = 0; i < annotations.length; i++) {
+							if (annotations[i].feature.id == feature.id) {
+								annotations.splice(i, 1);
+								break;
+							}
+						}
+						element.html(parseInt(number_unsaved) - 1);
+						temp = null;
 					}
 				}
 			}
@@ -1610,6 +1628,28 @@ function highlight_vectors() {
 		annotator.vectorLayer.redraw();
 	});
 }
+
+function highlight_unsaved_vectors() {
+	var features = annotator.unsaved_annotations;
+	$('.number_unsaved_allographs').on('mouseover', function() {
+		for (i = 0; i < features.length; i++) {
+			features[i].feature.originalColor = features[i].feature.style.fillColor;
+			features[i].featureoriginalWidth = 2;
+			features[i].feature.style.strokeColor = 'red';
+			features[i].feature.style.strokeWidth = 6;
+		}
+		annotator.vectorLayer.redraw();
+	});
+
+	$('.number_unsaved_allographs').on('mouseout', function() {
+		for (i = 0; i < features.length; i++) {
+			features[i].feature.style.strokeColor = features[i].feature.originalColor;
+			features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
+		}
+		annotator.vectorLayer.redraw();
+	});
+
+}
 /**
  * Saves an annotation for the currently selected feature.
  */
@@ -1667,7 +1707,8 @@ DigipalAnnotator.prototype.saveAnnotation = function() {
 
 function save(url, feature, data) {
 	var id = feature.id;
-
+	var temp = feature;
+	console.log(temp);
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 
 	var geoJson = annotator.format.write(feature);
@@ -1692,18 +1733,34 @@ function save(url, feature, data) {
 					return parseInt($(this).text()) + 1;
 				});
 */
+				//annotator.refresh_layer();
 				if ($('.letters-allograph-container').length) {
 					var allograph = $('#id_allograph option:selected').text();
 					var allograph_id = $('#id_allograph').val();
 					refresh_letters_container(allograph, allograph_id);
 				}
+				if (temp['state'] == 'Insert') {
+					var element = $('.number_unsaved_allographs');
+					var number_unsaved = element.html();
+					var annotations = annotator.unsaved_annotations;
+					for (var i = 0; i < annotations.length; i++) {
+						if (annotations[i].feature.id == feature.id) {
+							annotations.splice(i, 1);
+							break;
+						}
+					}
+					element.html(parseInt(number_unsaved) - 1);
+					temp = null;
+				}
 			}
 		}
 	});
+	/*
 	save_annotations.done(function() {
 		annotator.loadAnnotations();
 		annotator.vectorLayer.redraw();
 	});
+	*/
 }
 
 
@@ -1885,52 +1942,55 @@ function showAnnotationsOverview(data) {
 
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
-	_self.dragFeature.handler = OpenLayers.Handler.MOD_SHIFT;
-	var deactivateAll = function(activeControls) {
+	var toggleAll = function(activeControls, active) {
 		for (i = 0; i < activeControls.length; i++) {
 			if (activeControls[i].title) {
 				if (activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
-					activeControls[i].deactivate();
-
+					if (active) {
+						activeControls[i].activate();
+					} else {
+						activeControls[i].deactivate();
+					}
 				}
 			}
 		}
 	};
+
 	$(document).bind('keydown', function(event) {
-		var activeControls = _self.map.getControlsBy('active', true);
+		activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
 		if (event.shiftKey) {
 			switch (code) {
 				case 77:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.modifyFeature.activate();
 					break;
 				case 8:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.deleteFeature.activate();
 					break;
 				case 84:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.transformFeature.activate();
 					break;
 				case 68:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.duplicateFeature.activate();
 					break;
 				case 82:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.rectangleFeature.activate();
 					break;
 				case 71:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.selectFeature.activate();
 					break;
 				case 87:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.dragFeature.activate();
 					break;
 				case 90:
-					deactivateAll(activeControls);
+					toggleAll(activeControls, false);
 					_self.zoomBoxFeature.activate();
 					break;
 				case 83:
@@ -1965,4 +2025,5 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 
 	});
+
 };

@@ -383,11 +383,12 @@ var chained = request.then(function(data) {
 									'left': '59.5%',
 									"width": '40%',
 									"height": '100%'
-								}, 300, function() {
+								}, 200, function() {
 									$('#summary').show();
+									$('.modal-body').css("max-height", "100%");
 								}).draggable("destroy");
 
-								$('.modal-body').css("max-height", "100%");
+
 								maximized = true;
 							} else {
 								$('#summary').css("bottom", "88%").hide();
@@ -398,11 +399,12 @@ var chained = request.then(function(data) {
 									'right': '',
 									"width": '30%',
 									"height": '60%'
-								}, 300, function() {
+								}, 200, function() {
 									$('#summary').show();
+									$('.modal-body').css("max-height", "");
 								}).draggable();
 
-								$('.modal-body').css("max-height", "");
+
 
 								maximized = false;
 							}

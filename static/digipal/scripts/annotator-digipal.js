@@ -1673,7 +1673,7 @@ function highlight_vectors() {
 	});
 }
 
-function highlight_unsaved_vectors() {
+function highlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
 	for (i = 0; i < features.length; i++) {
 		features[i].feature.originalColor = features[i].feature.style.fillColor;
@@ -1682,37 +1682,36 @@ function highlight_unsaved_vectors() {
 		features[i].feature.style.strokeWidth = 6;
 	}
 	annotator.vectorLayer.redraw();
+	button.addClass('active');
 }
 
 
-function unhighlight_unsaved_vectors() {
+function unhighlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
 	for (i = 0; i < features.length; i++) {
 		features[i].feature.style.strokeColor = features[i].feature.originalColor;
 		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
 	}
 	annotator.vectorLayer.redraw();
+	button.removeClass('active');
 }
 
 function trigger_highlight_unsaved_vectors() {
 
-
 	$('.number_unsaved_allographs').on('click', function() {
 		if (!$(this).hasClass('active')) {
-			highlight_unsaved_vectors();
-			$(this).addClass('active');
+			highlight_unsaved_vectors($(this));
 		} else {
-			unhighlight_unsaved_vectors();
-			$(this).removeClass('active');
+			unhighlight_unsaved_vectors($(this));
 		}
 	});
 
 	$('.number_unsaved_allographs').on('mouseover', function() {
-		highlight_unsaved_vectors();
+		highlight_unsaved_vectors($(this));
 	});
 
 	$('.number_unsaved_allographs').on('mouseout', function() {
-		unhighlight_unsaved_vectors();
+		unhighlight_unsaved_vectors($(this));
 	});
 
 }
@@ -2027,11 +2026,9 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 			var button = $('.number_unsaved_allographs');
 			var features = annotator.unsaved_annotations;
 			if (!button.hasClass('active')) {
-				highlight_unsaved_vectors();
-				button.addClass('active');
+				highlight_unsaved_vectors(button);
 			} else {
-				unhighlight_unsaved_vectors();
-				button.removeClass('active');
+				unhighlight_unsaved_vectors(button);
 			}
 		}
 		if (event.shiftKey) {

@@ -20,20 +20,24 @@
                 {% if image.item_part.images.count == 1 %}
                     <p>
                         <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">
-                            {{ p.thumbnail|safe }}
+                            {% iip_img p.iipimage width=50 %}
                         </a>
                     </p>
                 {% elif image.item_part.images.count < 3 %}
                     <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">
-                        {{ p.thumbnail|safe }}
+                        {% iip_img p.iipimage width=50 %}
                     </a>
                 {% else %}
                     {% if forloop.counter|divisibleby:3 %}
                         <div class='row'>
-                            <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                            <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">
+                                {% iip_img p.iipimage width=50 %}
+                            </a>
                         </div>
                     {% else %}
-                        <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">{{ p.thumbnail|safe }}</a>
+                        <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">
+                            {% iip_img p.iipimage width=50 %}
+                        </a>
                     {% endif %}
                 {% endif %}
             {% endfor %}

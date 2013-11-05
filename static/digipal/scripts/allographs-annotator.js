@@ -1,10 +1,12 @@
 annotator.url_allographs = true;
 annotator.url_annotations = '../annotations';
 temporary_vectors = [];
+
 if (annotator.hands_page == "True") {
 	annotator.url_annotations = '/digipal/page/61/annotations/';
 }
 var request = $.getJSON(annotator.url_annotations, function(data) {
+
 	annotator.annotations = data;
 });
 
@@ -21,6 +23,7 @@ function style_select(select) {
 
 var chained = request.then(function(data) {
 
+
 	$('#id_allograph').change(function() {
 		updateFeatureSelect();
 	});
@@ -36,6 +39,9 @@ var chained = request.then(function(data) {
 	features_request.then(function(data) {
 		var features = [];
 		var annotations = annotator.annotations;
+		var div = $('.loading-div');
+		div.fadeOut().remove();
+		div = null;
 		for (var j in data) {
 			var f = format.read(data[j])[0];
 			f.id = j;
@@ -339,15 +345,15 @@ var chained = request.then(function(data) {
 
 									}
 								}
-
+								var id = component_id + '_' + features[idx].id;
 								if (array_features_owned.indexOf(names) >= 0) {
 
 									string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
-									var id = component_id + '_' + features[idx].id;
+
 									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 									n++;
 								} else {
-									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
+									s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 								}
 
 							});

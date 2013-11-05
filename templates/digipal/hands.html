@@ -5,7 +5,6 @@
 {% block extra_head %}
 {% if can_edit %}
         <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
-        <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.multiselect.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
@@ -88,6 +87,10 @@
   {% endfor %}
 </div>
 <div><a id='ontop' href='#top' title='Back to Top'></a></div>
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <img src="/static/digipal/images/ajax-loader3.gif" />
+  </div>
 {% else %}
 <div class='alert alert-warning'>No annotations available.</p>
 {% endif %}

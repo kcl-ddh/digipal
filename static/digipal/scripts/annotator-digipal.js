@@ -743,7 +743,7 @@ function create_dialog(selectedFeature, id) {
 		height: 340,
 		minHeight: 340,
 		minWidth: 335,
-		resizable: true,
+		resizable: false,
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
 			if (!$('.dialog_annotations').length) {

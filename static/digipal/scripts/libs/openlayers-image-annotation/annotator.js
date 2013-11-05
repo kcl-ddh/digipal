@@ -318,6 +318,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 				_self.boxes_on_click = true;
 				$('#boxes_on_click').attr('checked', true);
 				this.activate();
+				_self.rectangleFeature.activate();
 			}
 		}
 	});

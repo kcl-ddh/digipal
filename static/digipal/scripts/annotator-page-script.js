@@ -234,7 +234,7 @@ declaring function to get parameteres from URL
 			$('#allographs_filtersBox').dialog({
 				draggable: true,
 				height: 300,
-				resizable: true,
+				resizable: false,
 				width: 320,
 				title: "Filter Annotations",
 				close: function() {
@@ -365,7 +365,7 @@ declaring function to get parameteres from URL
 				$('#modal_settings').dialog({
 					draggable: true,
 					height: 500,
-					resizable: true,
+					resizable: false,
 					width: 320,
 					title: "Settings",
 					close: function(event, ui) {

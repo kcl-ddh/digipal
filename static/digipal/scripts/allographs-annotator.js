@@ -125,7 +125,9 @@ var chained = request.then(function(data) {
 			checkboxes.trigger('click');
 		});
 */
-
+		$('.annotation_li a').click(function(event) {
+			event.stopPropagation();
+		});
 		$('.annotation_li').click(function(event) {
 			var annotation = getFeatureById($(this).data('annotation'));
 			var annotation_li = $(this);
@@ -271,7 +273,10 @@ var chained = request.then(function(data) {
 					dataType: 'json',
 					cache: false,
 					type: 'GET',
-					async: false
+					async: false,
+					error: function(xhr, status, error) {
+						console.log('Error: ' + error);
+					}
 				});
 
 

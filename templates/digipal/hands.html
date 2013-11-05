@@ -87,14 +87,15 @@
   {% endfor %}
 </div>
 <div><a id='ontop' href='#top' title='Back to Top'></a></div>
-<div class='loading-div'>
-    <p>Loading Data. Please wait...</p>
-    <img src="/static/digipal/images/ajax-loader3.gif" />
-  </div>
+
 {% else %}
 <div class='alert alert-warning'>No annotations available.</p>
 {% endif %}
 {% if can_edit %}
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <img src="/static/digipal/images/ajax-loader3.gif" />
+  </div>
 <div class="myModal" id='modal_features'>
   <div class="modal_header">
     <form id="frmAnnotation" method="get" name="frmAnnotation"><i class='icon icon-remove close'></i>

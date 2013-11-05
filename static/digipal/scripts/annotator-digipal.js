@@ -272,8 +272,9 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				'fillOpacity': 0.4
 			};
 		}
+		this.vectorLayer.redraw();
 	}
-	this.vectorLayer.redraw();
+
 
 	if (this.annotations) {
 		var annotation = null;
@@ -286,7 +287,9 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			}
 		}
 		showBox(annotation);
-		if (annotation) {
+		if (!annotation) {
+			return false;
+		} else {
 			if ($('.letters-allograph-container').length) {
 				var allograph_id = $('#id_allograph').val();
 				var allograph = $('#id_allograph option:selected').text();
@@ -573,7 +576,10 @@ function features_owned(selectedFeature, url) {
 		dataType: 'json',
 		cache: false,
 		type: 'GET',
-		async: false
+		async: false,
+		error: function(xhr, status, error) {
+			console.log('Error: ' + error);
+		}
 	});
 
 
@@ -1183,9 +1189,7 @@ function showBox(selectedFeature) {
 	var id = Math.random().toString(36).substring(7);
 	if (annotator.boxes_on_click) {
 		var dialog;
-
 		var can_edit = $('#development_annotation').is(':checked');
-
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
 			fill_dialog(id, null);
@@ -1198,7 +1202,6 @@ function showBox(selectedFeature) {
 				dialog.css('margin', '3%');
 				dialog.html(s);
 			}
-
 			return false;
 		}
 
@@ -1208,9 +1211,7 @@ function showBox(selectedFeature) {
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 
-
 		if (can_edit) {
-
 			var request = $.getJSON("graph/" + selectedFeature.graph);
 			request.done(function(data) {
 				var url;
@@ -1302,6 +1303,9 @@ function showBox(selectedFeature) {
 				cache: false,
 				type: 'GET',
 				async: true,
+				error: function(xhr, status, error) {
+					console.log('Error: ' + error);
+				},
 				success: function(data) {
 					var s = '<ul>';
 					if (!isEmpty(data)) {
@@ -1352,14 +1356,13 @@ function showBox(selectedFeature) {
 		})();
 
 
-		$('#hidden_hand').val(selectedFeature.hidden_hand);
-		$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		//$('#hidden_hand').val(selectedFeature.hidden_hand);
+		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('#id_hand').val(selectedFeature.hidden_hand);
 		$('#id_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
 		if (annotator.isAdmin == "True") {
 			highlight_vectors();
-
 		}
 
 	}

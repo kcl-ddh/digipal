@@ -90,8 +90,16 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 
 	} else {
 		feature.style.fillColor = '#ee9900';
+		var color;
 		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active')) {
-			feature.style.strokeColor = 'red';
+
+			if (feature.features.length) {
+				color = 'blue';
+			} else {
+				color = 'red';
+			}
+
+			feature.style.strokeColor = color;
 		} else {
 			feature.style.strokeColor = '#ee9900';
 		}
@@ -324,14 +332,16 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		} else {
 			if ($('.letters-allograph-container').length) {
 				var allograph_id = $('#id_allograph').val();
-				var allograph = $('#id_allograph option:selected').text();
+				var al = $('#id_allograph option:selected').text();
 				if (current_allograph === undefined) {
-					refresh_letters_container(allograph, allograph_id);
+					refresh_letters_container(al, allograph_id);
 				}
 				if (current_allograph !== undefined && annotation.feature !== current_allograph) {
-					refresh_letters_container(allograph, allograph_id);
+					refresh_letters_container(al, allograph_id);
 				}
 			}
+
+
 		}
 	}
 
@@ -431,9 +441,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -498,7 +508,20 @@ function updateFeatureSelect(currentFeatures, id) {
 					$.each(features, function(idx) {
 						var value = component_id + '::' + features[idx].id;
 						var id = component_id + '_' + features[idx].id;
-						s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
+
+						if (annotator.selectedFeature !== undefined && annotator.selectedFeature.state != 'Insert') {
+							s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
+							s += "<label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
+						} else {
+							var array_features_owned = annotator.selectedFeature.features;
+							if (array_features_owned.indexOf(value) >= 0) {
+								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
+							} else {
+								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
+							}
+							s += "<label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
+						}
+
 					});
 					s += "</p></div>";
 				});
@@ -543,14 +566,22 @@ function updateFeatureSelect(currentFeatures, id) {
 					}
 				});
 
-				dialog.find('#box_features_container p').click(function() {
-					var checkbox = $(this).find('input');
-					if (checkbox.is(':checked')) {
-						checkbox.attr('checked', false);
-					} else {
-						checkbox.attr('checked', "checked");
-					}
-				});
+				if (annotator.selectedFeature && annotator.selectedFeature.state == 'Insert') {
+					$('.features_box').on('change', function() {
+						var checkbox = $(this);
+						var val = checkbox.val();
+						if (checkbox.is(':checked')) {
+							if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+								annotator.selectedFeature.features.push(val);
+							}
+						} else {
+							if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+								annotator.selectedFeature.features.splice(annotator.selectedFeature.features.indexOf(val), 1);
+							}
+						}
+
+					});
+				}
 
 				// Showing all the allographs of a given allograph
 				dialog.parent().find('.number_annotated_allographs').click(function() {
@@ -832,12 +863,13 @@ function create_dialog(selectedFeature, id) {
 
 	dialog.parent().find('.pin-box').click(function() {
 		var dialog = $(this).parent().parent();
+		dialog.css('position', 'fixed');
 		var position;
 		if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
 			dialog.data('pinned', true);
 			position = {
-				'top': $(window).scrollTop() + 200,
-				'left': '70%'
+				'top': "20%",
+				'left': '40%'
 			};
 			dialog.data('position', position);
 		}
@@ -861,7 +893,7 @@ function create_dialog(selectedFeature, id) {
 			annotator.pinned = {
 				'pinned': true,
 				position: {
-					'top': parseInt($(window).scrollTop()) + 10,
+					'top': "20%",
 					'left': '75%'
 				}
 			};
@@ -939,7 +971,6 @@ function load_allographs_container(allograph_value, url) {
 			data = data.sort();
 			var j = 0;
 			var data_hand;
-			console.log(data)
 			if (data.length === 1) {
 				j = 1;
 				s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[0].hand_name + "</label>\n";
@@ -1251,10 +1282,15 @@ function showBox(selectedFeature) {
 		}
 
 		var url = 'graph/' + selectedFeature.graph + '/features/';
-		array_features_owned = features_owned(selectedFeature, url);
+		if (annotator.selectedFeature.state == 'Insert') {
+			array_features_owned = annotator.selectedFeature.features;
+		} else {
+			array_features_owned = features_owned(selectedFeature, url);
+		}
 		create_dialog(selectedFeature, id);
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
+
 
 		if (can_edit) {
 			var request = $.getJSON("graph/" + selectedFeature.graph);
@@ -1283,22 +1319,25 @@ function showBox(selectedFeature) {
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
 							var id = component_id + '_' + features[idx].id;
+
 							var names = component + ':' + features[idx].name;
 							if (array_features_owned.indexOf(names) >= 0) {
-								s += "<p><input id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
+								s += "<p><input name='checkboxes[]' id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
 							} else {
-								s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
+								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
 							}
 						});
 						s += "</p></div>";
-					});
-					s += "</div>";
+						s += "</div>";
 
-					/*
+						/*
                             $('#id_status').val(annotation.status_id);
                             $('#id_before').val(getKeyFromObjField(annotation, 'before'));
                             $('#id_after').val(getKeyFromObjField(annotation, 'after'));
-                            */
+                    */
+
+					});
+
 					$('#id_internal_note').remove();
 					$('#id_display_note').remove();
 
@@ -1310,6 +1349,7 @@ function showBox(selectedFeature) {
 
 					s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Display Note</b></p>";
 					s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
+
 					dialog.html(s);
 
 					$('#label_display_note').after(display_note);
@@ -1319,10 +1359,12 @@ function showBox(selectedFeature) {
 						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
 						checkboxes.attr('checked', true);
 					});
+
 					$('.uncheck_all').click(function() {
 						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
 						checkboxes.attr('checked', false);
 					});
+
 					$('.component_labels').click(function() {
 						var div = $("#" + $(this).data('id'));
 						if (!div.data('hidden')) {
@@ -1336,6 +1378,7 @@ function showBox(selectedFeature) {
 							$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 						}
 					});
+
 
 				});
 			});
@@ -1371,14 +1414,6 @@ function showBox(selectedFeature) {
 			show_url_allograph(dialog);
 		}
 
-		dialog.find('#box_features_container p').click(function() {
-			var checkbox = $(this).find('input');
-			if (checkbox.is(':checked')) {
-				checkbox.attr('checked', false);
-			} else {
-				checkbox.attr('checked', "checked");
-			}
-		});
 
 
 	}
@@ -1692,14 +1727,19 @@ function highlight_vectors() {
 
 function highlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
+	var color;
 	for (i = 0; i < features.length; i++) {
 		features[i].feature.originalColor = features[i].feature.style.fillColor;
 		features[i].featureoriginalWidth = 2;
-		features[i].feature.style.strokeColor = 'red';
+		color = 'red';
+		if (features[i].feature.features.length) {
+			color = 'blue';
+		}
+		features[i].feature.style.strokeColor = color;
 		features[i].feature.style.strokeWidth = 6;
 	}
 	annotator.vectorLayer.redraw();
-	button.addClass('active');
+	button.addClass('active').addClass('btn-primary').removeClass("btn-warning");
 }
 
 
@@ -1710,7 +1750,7 @@ function unhighlight_unsaved_vectors(button) {
 		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
 	}
 	annotator.vectorLayer.redraw();
-	button.removeClass('active');
+	button.removeClass('active').removeClass("btn-primary").addClass("btn-warning");
 }
 
 function trigger_highlight_unsaved_vectors() {
@@ -1951,7 +1991,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
 				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-				this.fullScreen.active = null;
+				annotator.fullScreen.active = null;
 			}
 		});
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');

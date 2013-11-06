@@ -215,14 +215,13 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlDragFeature',
 		title: 'Select',
 		clickout: true,
-		toggle: true,
+		toggle: false,
 		multiple: false,
 		hover: false,
 		toggleKey: 'shiftKey',
 		box: false
 	});
 
-	this.selectFeature.events.toggleKey = 'altKey';
 
 	// creates a drag feature
 	this.dragFeature = new OpenLayers.Control.DragFeature(this.vectorLayer, {
@@ -322,6 +321,8 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			}
 		}
 	});
+
+
 
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,

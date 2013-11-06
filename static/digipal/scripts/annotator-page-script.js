@@ -94,11 +94,13 @@ declaring function to get parameteres from URL
 			// Now the maps zooms just one step ahead
 			map.zoomIn();
 			var navigation = new OpenLayers.Control.Navigation({
-				'zoomBoxEnabled': false
+				'zoomBoxEnabled': false,
+				defaultDblClick: function(event) {
+					return;
+				}
 			});
+
 			map.addControl(navigation);
-
-
 
 			/*
 
@@ -506,7 +508,7 @@ declaring function to get parameteres from URL
 	function findRectangleFeatureAdded(feature) {
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
-
+		feature.feature.features = [];
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}

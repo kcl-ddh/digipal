@@ -93,6 +93,10 @@ declaring function to get parameteres from URL
 			// [was] zooms to the max extent of the map area
 			// Now the maps zooms just one step ahead
 			map.zoomIn();
+			var navigation = new OpenLayers.Control.Navigation({
+				'zoomBoxEnabled': false
+			});
+			map.addControl(navigation);
 
 
 
@@ -149,11 +153,11 @@ declaring function to get parameteres from URL
 							}
 						});
 					*/
-					annotator.selectFeatureByIdAndCentre(vector_id_value);
+					//annotator.selectFeatureByIdAndCentre(vector_id_value);
 					annotator.selectFeatureByIdAndZoom(vector_id_value);
 				}, 500);
 			}
-
+			trigger_highlight_unsaved_vectors();
 			reload_described_annotations();
 
 			if (annotator.isAdmin == 'True') {
@@ -230,7 +234,7 @@ declaring function to get parameteres from URL
 			$('#allographs_filtersBox').dialog({
 				draggable: true,
 				height: 300,
-				resizable: true,
+				resizable: false,
 				width: 320,
 				title: "Filter Annotations",
 				close: function() {
@@ -361,7 +365,7 @@ declaring function to get parameteres from URL
 				$('#modal_settings').dialog({
 					draggable: true,
 					height: 500,
-					resizable: true,
+					resizable: false,
 					width: 320,
 					title: "Settings",
 					close: function(event, ui) {
@@ -455,7 +459,7 @@ declaring function to get parameteres from URL
 		var allograph_id = $(this).val();
 
 		for (var i = 0; i < features.length; i++) {
-			if (features[i].feature == allograph) {
+			if (features[i].feature == allograph && features[i].stored) {
 				n++;
 			}
 		}
@@ -500,10 +504,37 @@ declaring function to get parameteres from URL
 	*/
 
 	function findRectangleFeatureAdded(feature) {
+		var unsaved_allographs_button = $('.number_unsaved_allographs');
+		var last_feature_selected = annotator.last_feature_selected;
+
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}
+
 		annotator.selectFeatureById(feature.feature.id);
+		//annotator.rectangleFeature.deactivate();
+		//annotator.selectFeature.activate();
+		annotator.unsaved_annotations.push(feature);
+
+		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
+
+		if (unsaved_allographs_button.hasClass('active')) {
+			highlight_unsaved_vectors();
+		}
+
+		if (last_feature_selected) {
+			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
+			var features = annotator.vectorLayer.features;
+			var n = 0;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == last_feature_selected.name && features[i].stored) {
+					n++;
+				}
+			}
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
+
+
 	}
 
 	$('#boxes_on_click').on('change', function() {

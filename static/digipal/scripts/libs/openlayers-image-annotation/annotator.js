@@ -163,7 +163,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 		},
 		'setfeature': function(e) {
-			console.log(e.feature);
+			var hand = $('#id_hand').val();
+			var allograph = $('#id_allograph').val();
+			e.feature.hand = hand;
+			e.feature.allograph = allograph;
+			e.feature.feature = $('#id_allograph option:selected').text();
+			e.feature.stored = false;
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
 					_self.transformFeature.unsetFeature();
@@ -210,11 +215,14 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlDragFeature',
 		title: 'Select',
 		clickout: true,
-		toggle: false,
+		toggle: true,
 		multiple: false,
 		hover: false,
+		toggleKey: 'shiftKey',
 		box: false
 	});
+
+	this.selectFeature.events.toggleKey = 'altKey';
 
 	// creates a drag feature
 	this.dragFeature = new OpenLayers.Control.DragFeature(this.vectorLayer, {
@@ -224,11 +232,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	this.dragFeature.onComplete = function(feature, pixel) {
 		_self.setSavedAttribute(feature, Annotator.UNSAVED, true);
-	}
+	};
 
 	// creates a zoom box feature
 	this.zoomBoxFeature = new OpenLayers.Control.ZoomBox({
 		alwaysZoom: true,
+		keyMask: false,
 		displayClass: 'olControlZoomBox'
 	});
 
@@ -309,6 +318,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 				_self.boxes_on_click = true;
 				$('#boxes_on_click').attr('checked', true);
 				this.activate();
+				_self.rectangleFeature.activate();
 			}
 		}
 	});

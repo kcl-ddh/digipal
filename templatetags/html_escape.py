@@ -147,6 +147,29 @@ def reset_recordids():
         ids the previous tab. 
     '''
     return []
+
+@register.simple_tag
+def iip_img(iipfield, *args, **kwargs):
+    '''
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] %}
+        
+        Render a <img src="" /> element with the url referenced by the 
+        iipimage field.
+        width and height are optional. See IIP Image for the way they 
+        are treated. 
+    '''
+    return mark_safe('<img src="%s" />' % iip_url(iipfield, *args, **kwargs))
+
+@register.simple_tag
+def iip_url(iipfield, *args, **kwargs):
+    '''
+        Usage {% iip_url IIPIMAGE_FIELD [width=W] [height=H] %}
+        
+        Render a url referenced by the iipimage field.
+        width and height are optional. See IIP Image for the way they 
+        are treated. 
+    '''
+    return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)))
     
 def escapenewline(value):
     """
@@ -157,3 +180,4 @@ def escapenewline(value):
 escapenewline.is_safe = True
 escapenewline = stringfilter(escapenewline)
 register.filter('escapenewline', escapenewline)
+

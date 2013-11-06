@@ -4,7 +4,11 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
-
+<script>
+    $(document).ready(function(){
+     $('select').chosen();
+    });
+</script>
 {% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
@@ -79,7 +83,7 @@
                     <input type="submit" value="Show Graphs" class='btn btn-primary' />
                     <input type='reset' class='btn' id="reset" />
                 </div>
-                </form> 
+                </form>
              </div>
         <div class='breadcrumb'>
           <span>You are searching for: </span><span><b>Term</b>: {{term}}</span>
@@ -124,9 +128,5 @@
             {% endifequal %}
 </div>
 </div>
-<script>
-$(document).ready(function(){
- $('select').chosen();
-});
-</script>
+
 {% endblock %}

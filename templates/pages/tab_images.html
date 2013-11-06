@@ -1,3 +1,4 @@
+{% load html_escape %}
 <div class='tab-pane fade' id='pages'>
     {% for image in images %}
      
@@ -8,7 +9,7 @@
                     <dl class="imageDatabase">
                         <dt>
                             <a class="imageDatabase" href="{{ image.get_absolute_url }}">
-                                {{ image.thumbnail }}
+                                {% iip_img image.iipimage width=120 %}
                             </a>
                         </dt>
                         <dd>

@@ -1273,7 +1273,6 @@ class Image(models.Model):
     def thumbnail(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
-        print height, width
         if self.iipimage:
             ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
         return ret

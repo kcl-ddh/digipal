@@ -1,10 +1,12 @@
 annotator.url_allographs = true;
 annotator.url_annotations = '../annotations';
 temporary_vectors = [];
+
 if (annotator.hands_page == "True") {
 	annotator.url_annotations = '/digipal/page/61/annotations/';
 }
 var request = $.getJSON(annotator.url_annotations, function(data) {
+
 	annotator.annotations = data;
 });
 
@@ -21,6 +23,7 @@ function style_select(select) {
 
 var chained = request.then(function(data) {
 
+
 	$('#id_allograph').change(function() {
 		updateFeatureSelect();
 	});
@@ -36,6 +39,9 @@ var chained = request.then(function(data) {
 	features_request.then(function(data) {
 		var features = [];
 		var annotations = annotator.annotations;
+		var div = $('.loading-div');
+		div.fadeOut().remove();
+		div = null;
 		for (var j in data) {
 			var f = format.read(data[j])[0];
 			f.id = j;
@@ -119,7 +125,9 @@ var chained = request.then(function(data) {
 			checkboxes.trigger('click');
 		});
 */
-
+		$('.annotation_li a').click(function(event) {
+			event.stopPropagation();
+		});
 		$('.annotation_li').click(function(event) {
 			var annotation = getFeatureById($(this).data('annotation'));
 			var annotation_li = $(this);
@@ -265,9 +273,11 @@ var chained = request.then(function(data) {
 					dataType: 'json',
 					cache: false,
 					type: 'GET',
-					async: false
+					async: false,
+					error: function(xhr, status, error) {
+						console.log('Error: ' + error);
+					}
 				});
-
 
 				features_owned.done(function(f) {
 					array_features_owned = [];
@@ -339,14 +349,15 @@ var chained = request.then(function(data) {
 
 									}
 								}
-
+								var id = component_id + '_' + features[idx].id;
 								if (array_features_owned.indexOf(names) >= 0) {
 
 									string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
-									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + features[idx].id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
+
+									s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 									n++;
 								} else {
-									s += "<p><input id='" + features[idx].id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + features[idx].id + "'>" + features[idx].name + "</label></p>";
+									s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 								}
 
 							});
@@ -383,11 +394,12 @@ var chained = request.then(function(data) {
 									'left': '59.5%',
 									"width": '40%',
 									"height": '100%'
-								}, 300, function() {
+								}, 200, function() {
 									$('#summary').show();
+									$('.modal-body').css("max-height", "100%");
 								}).draggable("destroy");
 
-								$('.modal-body').css("max-height", "100%");
+
 								maximized = true;
 							} else {
 								$('#summary').css("bottom", "88%").hide();
@@ -398,11 +410,12 @@ var chained = request.then(function(data) {
 									'right': '',
 									"width": '30%',
 									"height": '60%'
-								}, 300, function() {
+								}, 200, function() {
 									$('#summary').show();
+									$('.modal-body').css("max-height", "");
 								}).draggable();
 
-								$('.modal-body').css("max-height", "");
+
 
 								maximized = false;
 							}

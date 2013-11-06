@@ -53,21 +53,21 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class='tab-pane fade' id='descriptions'>
                 <div>
                     {{ result.description|tei }}
-                </div>       
-            </div>
-    
-            {% include "pages/tab_images.html" with images=result.images.all %}
-    
-            <div class='tab-pane fade' id='graphs'>
-                <div class="scribe annotations">
-                    {% comment %}{% include "digipal/hands.html" %}{% endcomment %}
                 </div>
             </div>
-            
+
+            {% include "pages/tab_images.html" with images=result.images.all %}
+
+            <div class='tab-pane fade' id='graphs'>
+                <div class="scribe annotations">
+                   {% include "digipal/hands.html" %}
+                </div>
+            </div>
+
         </div>
     </div>
 {% endblock %}

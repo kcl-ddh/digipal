@@ -11,7 +11,7 @@
   <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
   <script type="text/javascript">
       $(document).ready(function(){
-
+        {% if image_server_url %}
         annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
                                     'x', {{ width }}, {{ height }},
                                     '{{ image_server_url }}', "{{can_edit}}");
@@ -21,6 +21,7 @@
         if(annotator){
           $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
         }
+        {% endif %}
     });
   </script>
 {% endif %}
@@ -136,7 +137,7 @@
 {% endif %}
 
  <!-- if is admin -->
-{% if can_edit %}
+{% if can_edit and image_server_url%}
 
    <!-- modal data loading -->
   <div class='loading-div'>

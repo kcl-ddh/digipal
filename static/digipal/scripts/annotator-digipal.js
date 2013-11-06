@@ -441,9 +441,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -1990,17 +1990,27 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
+				$('#panelImageBox').attr('style', null);
 				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-				annotator.fullScreen.active = null;
+				annotator.fullScreen.deactivate();
 			}
 		});
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
+		$('#panelImageBox').css({
+			'position': 'fixed',
+			"top": "0.5%%",
+			"z-index": 2000,
+			"width": "80%",
+			"height": "30px",
+			"left": "8%"
+		});
+
 	} else {
 		this.fullScreen.deactivate();
 		$('#map').attr('style', null);
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-		this.fullScreen.active = null;
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
+		$('#panelImageBox').attr('style', null);
 	}
 };
 

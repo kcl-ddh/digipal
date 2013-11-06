@@ -1,22 +1,22 @@
 {% comment %}
     ----------------------------------------------
-    CONTROL BAR 
+    CONTROL BAR
     ----------------------------------------------
 {% endcomment %}
-<div class='panel' id='panelImageBox' style='padding:0.8%;padding-bottom: 0.2%;margin-bottom: 5px;'>
-    
+<div class='panel' id='panelImageBox' style='margin-bottom: 5px;'>
+
     <span class="label label-important" style='margin-right:0;font-size:12.8px;'>
         <span>
             <b>Annotations</b>: {{ annotations }}
         </span>
     </span>
-    
+
     <span class="label label-success style='margin-right:0;font-size:12.8px;'">
         <span>
             <b>Hands</b>: {{ hands }}
         </span>
     </span>
-    
+
     {% if annotations > 0 %}
         <span class="label" style='margin-right:0;font-size:12.8px;'>
             <b>Annotations</b>:
@@ -25,7 +25,7 @@
             <input type="checkbox" />
         </span>
     {% endif %}
-    
+
     <div class="btn-toolbar" style='display:inline'>
         <div class="btn-group" style='margin-bottom:1%'>
             {% if annotations > 0 %}
@@ -34,15 +34,15 @@
             <a class="btn btn-small" id="settings_annotator">Settings</a>
         </div>
     </div>
-    
+
     {% if can_edit %}
-        
+
         <div class="btn-toolbar" style='display:inline'>
             <div class="btn-group" style='margin-bottom:1%;margin-left:1%;'>
                 <span class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
             </div>
         </div>
-        
+
         <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
             <div id='form_annotation_hand' style='display:inline;width:35%;'>
                 {{ form }}
@@ -54,9 +54,9 @@
                 </div>
             </div>
         </form>
-        
+
     {% else %}
-        
+
         {% comment %}
             <div style='display:inline;margin-left:1%;'>
                 <div class="btn-toolbar" style='display:inline'>
@@ -67,7 +67,7 @@
                 </div>
             </div>
         {% endcomment %}
-        
+
     {% endif %}
-    
+
 </div> {% comment %}DIV panelImageBox{% endcomment %}

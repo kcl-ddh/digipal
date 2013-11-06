@@ -31,6 +31,9 @@ def show_help():
      diff
          Lists the difference across all repos
          
+     hgsub
+         Update .hgsubstate
+         
 Options:
 
      -a --automatic
@@ -83,6 +86,30 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         dir = os.getcwd()
+        
+        if command == 'hgsub':
+            known_command = True
+            
+            try:
+                os.chdir('digipal')
+                output_data = {}
+                system('git log', 'Author:', True, 'Git Error', output_data)
+                commits = re.findall(ur'commit (\w+)', output_data['output'])
+                if commits:
+                    last_commit = commits[0]
+                    os.chdir(dir)
+                    f = open('.hgsubstate', 'r')
+                    content = f.read()
+                    f.close()                    
+                    # Udpate the git commit number in .hgsubstate 
+                    # a81d78f70fd36c6eeb761e877ca783d7e4aae7ac digipal
+                    # => LAST_GIT_COMMIT  digipal
+                    content = re.sub(ur'\w+(\s+digipal)', ur'%s\1' % last_commit, content)
+                    f = open('.hgsubstate', 'w')
+                    f.write(content)
+                    f.close()
+            finally:
+                os.chdir(dir)
         
         if command == 'diff':
             known_command = True
@@ -198,7 +225,7 @@ def read_file(file_path):
         pass
     return ret
 
-def system(command, validity_pattern='', pattern_must_be_found=False, error_message=''):
+def system(command, validity_pattern='', pattern_must_be_found=False, error_message='', output_data=None):
     output = ''
     is_valid = True
     
@@ -213,6 +240,9 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
     if validity_pattern:
         pattern_found = re.search(validity_pattern, output) is not None 
         is_valid = (pattern_found == pattern_must_be_found)
+        
+    if output_data is not None:
+        output_data['output'] = output
         
     if not is_valid:
         raise ExecutionError('%s - ERROR DURING EXECUTION of "%s"' % (error_message, command), output)

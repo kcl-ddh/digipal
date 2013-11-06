@@ -473,6 +473,15 @@ declaring function to get parameteres from URL
 		}
 
 		$(".number_annotated_allographs .number-allographs").html(n);
+		if (annotator.selectedFeature !== undefined && annotator.selectedFeature.state == 'Insert') {
+			annotator.selectedFeature.last_feature_selected = {
+				'id': allograph_id,
+				'name': allograph
+			};
+			annotator.selectedFeature.allograph = allograph_id;
+			annotator.selectedFeature.feature = allograph;
+		}
+
 	});
 
 
@@ -521,7 +530,7 @@ declaring function to get parameteres from URL
 		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
 
 		if (unsaved_allographs_button.hasClass('active')) {
-			highlight_unsaved_vectors();
+			highlight_unsaved_vectors(unsaved_allographs_button);
 		}
 
 		if (last_feature_selected) {

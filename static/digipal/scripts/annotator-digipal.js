@@ -53,6 +53,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	this.selectedFeature = event.feature;
+
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -66,6 +67,10 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	}
 
 	this.showAnnotation(event.feature);
+	if (this.selectedFeature.last_feature_selected) {
+		this.last_feature_selected = this.selectedFeature.last_feature_selected;
+	}
+
 };
 
 /**
@@ -119,12 +124,13 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 			}
 		}
 	}
-	this.vectorLayer.redraw();
-	this.selectedFeature = null;
 	this.last_feature_selected = {
 		'id': $('#id_allograph').val(),
 		'name': $('#id_allograph option:selected').text()
 	};
+	feature.last_feature_selected = this.last_feature_selected;
+	this.vectorLayer.redraw();
+	this.selectedFeature = null;
 	$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
 
@@ -645,9 +651,8 @@ function features_owned(selectedFeature, url) {
 		}
 	});
 
-
+	var array_features_owned = [];
 	features.done(function(f) {
-		array_features_owned = [];
 		for (var i = 0; i < f.length; i++) {
 			for (var j = 0; j < f[i].feature.length; j++) {
 				s = f[i].name;

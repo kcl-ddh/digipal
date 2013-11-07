@@ -228,10 +228,12 @@ var chained = request.then(function(data) {
 					var features = annotator.vectorLayer.features;
 					var features_length = features.length;
 					var selected_features = [];
+					var vectors_list = [];
 					for (var i = 0; i < features_length; i++) {
 						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 								selected_features.push(features[i]);
+								console.log(features[i])
 							}
 						}
 					}
@@ -239,6 +241,9 @@ var chained = request.then(function(data) {
 					var j = 0;
 					for (var i = 0; i < selected_features.length; i++) {
 						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
+						var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
+						console.log(element);
+						element.fadeOut().remove();
 					}
 
 				});

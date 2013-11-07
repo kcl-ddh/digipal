@@ -540,7 +540,7 @@ class Command(BaseCommand):
 			ret_shell = self.run_shell_command(command)
 		
 		if ret_shell:
-			ret = '[CONVERSION ERROR: %s]' % (ret_shell[0], ret_shell[1])
+			ret = '[CONVERSION ERROR: %s (command: %s)]' % (ret_shell[0], ret_shell[1])
 			
 		# remove the tiff file
 		try:

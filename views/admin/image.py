@@ -77,11 +77,15 @@ def image_bulk_edit(request, url=None):
 
 
     if len(action):
+        
         for folio in context['folios']:
             modified = False
 
             if action == 'operations':
-                number = re.findall(r'(?i)0*(\d{1,3})\D*$', folio.iipimage.name)
+                name = folio.iipimage.name
+                # remove file extension
+                name = re.sub(ur'\.\w\w\w$', ur'', name)
+                number = re.findall(r'(?i)0*(\d{1,3})\D*$', name)
                 if str(request.POST.get('manuscript_set', '0')) == '1':
                     folio.item_part = manuscript
                     modified = True
@@ -107,9 +111,9 @@ def image_bulk_edit(request, url=None):
                         folio.folio_number = ''
                     modified = True
                 if str(request.POST.get('folio_side_set', '0')) == '1':
-                    if re.search('(?i)[^a-z]r$', folio.iipimage.name):
+                    if re.search('(?i)[^a-z]r$', name):
                         folio.folio_side = recto
-                    elif re.search('(?i)[^a-z]v$', folio.iipimage.name):
+                    elif re.search('(?i)[^a-z]v$', name):
                         folio.folio_side = verso
                     else:
                         folio.folio_side = recto
@@ -144,10 +148,11 @@ def image_bulk_edit(request, url=None):
                 #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
                 #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
                 #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
-                folio.locus = folio.get_locus_label(True)
                 modified = True
 
-            if modified: folio.save()
+            if modified:
+                folio.locus = folio.get_locus_label(True)
+                folio.save()
 
 
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)

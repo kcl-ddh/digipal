@@ -10,7 +10,8 @@ from django.db.models import Q
 
 class SearchGraphs(SearchContentType):
 
-    def set_record_view_context(self, context):
+    def set_record_view_context(self, context, request):
+        super(SearchGraphs, self).set_record_view_context(context, request)
         from django.utils.datastructures import SortedDict
         p = Hand.objects.get(id=context['id'])
         #c = p.graph_set.model.objects.get(id=p.id)

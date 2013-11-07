@@ -35,6 +35,7 @@ declaring function to get parameteres from URL
   Loading annotations
 
 */
+
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
 	});
@@ -61,6 +62,7 @@ declaring function to get parameteres from URL
 					var hand = annotations[i]['hand'];
 					var image_id = annotations[i]['image_id'];
 					var num_features = annotations[i]['num_features'];
+					var display_note = annotations[i]['display_note'];
 					if (f.id == annotations[i]['vector_id']) {
 						f.feature = allograph;
 						f.character_id = character_id;
@@ -69,6 +71,7 @@ declaring function to get parameteres from URL
 						f.hand = hand;
 						f.image_id = image_id;
 						f.num_features = num_features;
+						f.display_note = display_note;
 
 						// it serves to differentiate stored and temporary annotations
 						f.stored = true;
@@ -90,6 +93,10 @@ declaring function to get parameteres from URL
 			// [was] zooms to the max extent of the map area
 			// Now the maps zooms just one step ahead
 			map.zoomIn();
+			var navigation = new OpenLayers.Control.Navigation({
+				'zoomBoxEnabled': false
+			});
+			map.addControl(navigation);
 
 
 
@@ -129,29 +136,55 @@ declaring function to get parameteres from URL
 
 			if (typeof vector_id != "undefined" && vector_id && vectors) {
 				// vectorLayer event moveend is triggered on first load so flag this
-				//initialLoad = true;
+				initialLoad = true;
 
 				// tries to centre the map every 1/2 second
-				//interval = setInterval(function() {
-				//}, 500);
+				interval = setTimeout(function() {
 
-				/* listen for the moveend event
-				annotator.vectorLayer.events.register('moveend',
-				annotator.vectorLayer, function() {
-				// checks if it is a first load, if not kill the interval
-				if (initialLoad) {
-				initialLoad=false
-				} else {
-				clearInterval(interval);
-				annotator.vectorLayer.events.remove('moveend');
-				}
-				});
-				*/
-				annotator.selectFeatureByIdAndCentre(vector_id_value);
-				annotator.selectFeatureByIdAndZoom(vector_id_value);
+					/* listen for the moveend event
+					annotator.vectorLayer.events.register('moveend',
+						annotator.vectorLayer, function() {
+							// checks if it is a first load, if not kill the interval
+							if (initialLoad) {
+								initialLoad = false;
+							} else {
+								clearInterval(interval);
+								annotator.vectorLayer.events.remove('moveend');
+							}
+						});
+					*/
+					//annotator.selectFeatureByIdAndCentre(vector_id_value);
+					annotator.selectFeatureByIdAndZoom(vector_id_value);
+				}, 500);
 			}
-
+			trigger_highlight_unsaved_vectors();
 			reload_described_annotations();
+
+			if (annotator.isAdmin == 'True') {
+				setTimeout(function() {
+					var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+					paths.unbind();
+					paths.mouseenter(function() {
+						var features = annotator.vectorLayer.features;
+						for (var i = 0; i < features.length; i++) {
+							if ($(this).attr('id') == features[i].geometry.id) {
+								if (features[i].display_note) {
+									createPopup(features[i]);
+								}
+							}
+						}
+					});
+
+					paths.mouseleave(function() {
+						var features = annotator.vectorLayer.features;
+						for (var i = 0; i < features.length; i++) {
+							if (features[i].popup) {
+								deletePopup(features[i]);
+							}
+						}
+					});
+				}, 1000);
+			}
 
 
 		});
@@ -170,88 +203,85 @@ declaring function to get parameteres from URL
 
 			$(this).addClass('active');
 
-			if (!allographs_box) {
-				allographs_box = true;
-				var checkOutput = '<div class="span6" style="padding:2%;border-right:1px dotted #efefef;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
-				var annotations = annotator.annotations;
 
-				if (!isEmpty(annotations)) {
-					var list = [];
-					var vectors = [];
-					for (var i in annotations) {
-						list.push([annotations[i]['feature']]);
-					}
-					list.sort();
-					for (var h = 0; h < list.length; h++) {
-						checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
-							"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='" + vectors[h] + "' type='checkbox' /> <label for = 'id='" + vectors[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
-					}
+			var checkOutput = '<div class="span6" style="padding:2%;border-right:1px dotted #efefef;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
+			var annotations = annotator.annotations;
+
+			if (!isEmpty(annotations)) {
+				var list = [];
+				var vectors = [];
+				for (var i in annotations) {
+					list.push([annotations[i]['feature']]);
 				}
-				checkOutput += "</div>";
-				checkOutput += '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
-				if (!isEmpty(annotations)) {
-					var hands = annotator.hands;
-					for (var h = 0; h < hands.length; h++) {
-						checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
-							"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for = 'id='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
-					}
+				list.sort();
+				for (var h = 0; h < list.length; h++) {
+					checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
+						"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 				}
-				checkOutput += "</div>";
+			}
+			checkOutput += "</div>";
+			checkOutput += '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
+			if (!isEmpty(annotations)) {
+				var hands = annotator.hands;
+				for (var h = 0; h < hands.length; h++) {
+					checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
+						"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+				}
+			}
+			checkOutput += "</div>";
 
 
-				$('#allographs_filtersBox').dialog({
-					draggable: true,
-					height: 300,
-					resizable: true,
-					width: 320,
-					title: "Filter Annotations",
-					closeOnEscape: false,
-					dialogClass: 'no-close'
-				});
+			$('#allographs_filtersBox').dialog({
+				draggable: true,
+				height: 300,
+				resizable: false,
+				width: 320,
+				title: "Filter Annotations",
+				close: function() {
+					$('#filterAllographs').removeClass('active');
+				}
+			});
 
-				$('#ui-dialog-title-allographs_filtersBox').after("<span title='' class='pin-filters-box pull-right'>-</span>");
+			/*$('#ui-dialog-title-allographs_filtersBox').after("<span title='Close box' class='pin-filters-box pull-right'>-</span>");*/
 
-				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-				$('#allographs_filtersBox').html(checkOutput);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			$('#allographs_filtersBox').html(checkOutput);
 
-				annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
-				$('.checkVectors').change(function() {
-					annotator.filterAnnotation($(this), 'feature');
-				});
+			$('.checkVectors').change(function() {
+				annotator.filterAnnotation($(this), 'feature');
+			});
 
-				$('.checkVectors_hands').change(function() {
-					annotator.filterAnnotation($(this), 'hand');
-				});
+			$('.checkVectors_hands').change(function() {
+				annotator.filterAnnotation($(this), 'hand');
+			});
 
-				$('#checkAll').click(function() {
-					annotator.filterCheckboxes('.checkVectors', 'check');
-				});
+			$('#checkAll').click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'check');
+			});
 
-				$('#checkAll_hands').click(function() {
-					annotator.filterCheckboxes('.checkVectors_hands', 'check');
+			$('#checkAll_hands').click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'check');
 
-				});
+			});
 
-				$('#unCheckAll').click(function() {
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-				});
+			$('#unCheckAll').click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'uncheck');
+			});
 
-				$('#unCheckAll_hands').click(function() {
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
+			$('#unCheckAll_hands').click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
 
-				});
+			});
 
+			/*
 				$('.pin-filters-box').click(function() {
 					$('#filterAllographs').removeClass('active');
 					$(this).parent().parent().fadeOut();
 				});
+				*/
 
-			} else {
-				$('.pin-filters-box').parent().parent().fadeIn();
-			}
 
 
 		});
@@ -277,6 +307,7 @@ declaring function to get parameteres from URL
 
 		$('#closeBox').click(function() {
 			$('#popupImages').fadeOut();
+			showImages = 0;
 		});
 
 
@@ -326,18 +357,21 @@ declaring function to get parameteres from URL
 		$('#settings_annotator').click(function() {
 			if (modal_settings) {
 				modal_settings = false;
-				$("#modal_settings").fadeOut();
+				$(this).removeClass('active');
+				$("#modal_settings").parent().remove();
 			} else {
 				modal_settings = true;
+				$(this).addClass('active');
 				$('#modal_settings').dialog({
 					draggable: true,
 					height: 500,
-					resizable: true,
+					resizable: false,
 					width: 320,
 					title: "Settings",
 					close: function(event, ui) {
 						modal_settings = false;
-						$("#modal_settings").fadeOut();
+						$("#modal_settings").parent().remove();
+						$('#settings_annotator').removeClass('active');
 					}
 				});
 			}
@@ -363,9 +397,9 @@ declaring function to get parameteres from URL
 		allow_multiple_dialogs = false;
 		$('#multiple_boxes').change(function() {
 			if ($(this).is(':checked')) {
-				allow_multiple_dialogs = true;
+				annotator.allow_multiple_dialogs = true;
 			} else {
-				allow_multiple_dialogs = false;
+				annotator.allow_multiple_dialogs = false;
 			}
 		});
 
@@ -409,32 +443,98 @@ declaring function to get parameteres from URL
 
 	can_edit.on('change', function() {
 		if ($(this).is(':checked')) {
-			$('#multiple_boxes').attr('disabled', 'disabled');
+			$('#multiple_boxes').attr('disabled', 'disabled').attr('checked', false);
+			annotator.allow_multiple_dialogs = false;
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
 			$('#boxes_on_click').attr('checked', true).trigger('change');
-
 		}
 	});
 
 
 	$('#id_allograph').on('change', function() {
-		updateFeatureSelect();
+		var n = 0;
+		var features = annotator.vectorLayer.features;
+		var allograph = $('#id_allograph option:selected').text();
+		var allograph_id = $(this).val();
+
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == allograph && features[i].stored) {
+				n++;
+			}
+		}
+
+		//updateFeatureSelect($(this).val());
+
+		if ($('.letters-allograph-container').length) {
+			open_allographs();
+		}
+
+		$(".number_annotated_allographs .number-allographs").html(n);
 	});
 
-	$('#id_hand').on('change', function() {
-		$('#hidden_hand').val($(this).val());
-	});
 
 	$('.number_annotated_allographs').click(function() {
 		open_allographs();
 	});
 
 	annotator.rectangleFeature.events.register('featureadded', annotator.rectangleFeature,
-		findRectangleFeaturAadded);
+		findRectangleFeatureAdded);
 
-	function findRectangleFeaturAadded(feature) {
+	/*
+	function check_transform_permission(feature) {
+		var vectors = annotator.user_annotations;
+		console.log(vectors);
+		var flag = false;
+		for (var i = 0; i < vectors.length; i++) {
+			if (vectors[i] == feature.feature.id) {
+				flag = true;
+				break;
+			}
+		}
+		console.log(flag);
+		if (!flag) {
+			annotator.transformFeature.unsetFeature();
+		}
+	}
+
+	if (annotator.isAdmin == "False") {
+		annotator.transformFeature.events.register('beforesetfeature', annotator.transformFeature, check_transform_permission);
+	}
+	*/
+
+	function findRectangleFeatureAdded(feature) {
+		var unsaved_allographs_button = $('.number_unsaved_allographs');
+		var last_feature_selected = annotator.last_feature_selected;
+
+		if (annotator.isAdmin == "False") {
+			annotator.user_annotations.push(feature.feature.id);
+		}
+
 		annotator.selectFeatureById(feature.feature.id);
+		//annotator.rectangleFeature.deactivate();
+		//annotator.selectFeature.activate();
+		annotator.unsaved_annotations.push(feature);
+
+		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
+
+		if (unsaved_allographs_button.hasClass('active')) {
+			highlight_unsaved_vectors();
+		}
+
+		if (last_feature_selected) {
+			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
+			var features = annotator.vectorLayer.features;
+			var n = 0;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == last_feature_selected.name && features[i].stored) {
+					n++;
+				}
+			}
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
+
+
 	}
 
 	$('#boxes_on_click').on('change', function() {
@@ -447,12 +547,23 @@ declaring function to get parameteres from URL
 
 	$("#id_allograph").on("liszt:ready", function() {
 		highlight_vectors();
+		/*
+		$("#id_allograph").append($("#id_allograph option").remove().sort(function(a, b) {
+			var at = $(a).text(),
+				bt = $(b).text();
+			return (at > bt) ? 1 : ((at < bt) ? -1 : 0);
+		}));
+		$(this).trigger("liszt:update");
+		*/
 	});
 
-	$('select[id!=id_feature]').chosen();
+	$('select').chosen();
+
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
 	}
+
+
 
 })();

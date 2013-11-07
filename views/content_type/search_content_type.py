@@ -7,7 +7,7 @@ class SearchContentType(object):
         ret = getattr(digipal.models, self.label[:-1])
         return ret
     
-    def set_record_view_context(self, context):
+    def set_record_view_context(self, context, request):
         context['type'] = self
 
     def __init__(self):
@@ -349,7 +349,9 @@ class SearchContentType(object):
         # Fetch all the records from the DB
         records = (self.get_model()).objects.in_bulk(recordids)
         # Make sure they are in the desired order
-        ret = [records[id] for id in recordids]
+        # 'if id in records' is important because of ghost recordids 
+        # returned by a stale whoosh index.
+        ret = [records[id] for id in recordids if id in records]
         return ret
     
     def get_whoosh_dict(self):

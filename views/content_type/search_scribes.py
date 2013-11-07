@@ -24,8 +24,8 @@ class SearchScribes(SearchContentType):
         ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         return ret
 
-    def set_record_view_context(self, context):
-        super(SearchScribes, self).set_record_view_context(context)
+    def set_record_view_context(self, context, request):
+        super(SearchScribes, self).set_record_view_context(context, request)
         context['scribe'] = Scribe.objects.get(id=context['id'])
         # TODO: naming is confusing here, check if the code still work
         context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
@@ -112,7 +112,7 @@ class FilterScribes(forms.Form):
         required = False)
 
     character = forms.ModelChoiceField(
-        queryset = Character.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Character.objects.values_list('name', flat=True).distinct(),
         widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label = "",
         empty_label = "Character",

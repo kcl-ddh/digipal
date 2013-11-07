@@ -10,6 +10,35 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('select').chosen();
+        });
+    </script>
+    <script>
+        function setCookie(c_name,value,exdays){
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
+        }
+
+        $('#myTab a').click(
+            function (e) {
+              e.preventDefault();
+              $(this).tab('show');
+              setCookie('view', this.innerHTML, '-1');
+            }
+        );
+
+        $('[data-toggle="tooltip"]').tooltip();
+    </script>
+    <script>
+        $('#formFilters').show();
+        $('#filterImages').text('Hide Filters Manuscripts');
+        $('#filterImages').attr('class', 'btn');
+        show_filters = 1;
+    </script>
 {% endblock %}
 
 {% block extra_css %}
@@ -21,7 +50,7 @@
     {% regroup graphs by hand as handlist %}
 
     <div class="row-fluid">
-    
+
     {% ifnotequal style "allograph_list" %}
         {% with r=results|first %}
             <h1 class='header1'>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
@@ -29,7 +58,7 @@
     {% else %}
         <h1 class='header1'>Results for <i>Graphs</i></h1>
     {% endifnotequal %}
-           
+
     {% ifequal style "allograph_list" %} <!-- Display list view, of course -->
         <div class="panel" id='filtersform' style='display:block; margin-bottom: 0;'>
             <h5 class='header5'>Filter Graphs Attributes:</h5>
@@ -41,9 +70,9 @@
                     <input type='reset' class='btn' id="reset"/>
                     <input type="checkbox" name="fullview" id="fullview" class="checkbox"> Select to view the images in one page.</input>
                 </div>
-            </form> 
+            </form>
         </div>
-    
+
         <div class='container'>
             <div class='breadcrumb'style="margin-top:0;margin-bottom:12px;">
               {% if request.GET.script_select %}| <span><b>Script: </b></span><span> {{ request.GET.script_select }}</span>{% endif %}
@@ -52,14 +81,14 @@
               {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</b></span>{% endif %}
               {% if request.GET.allograph_select %}| <span><b>Allograph: </b></span><span>{{ request.GET.allograph_select }}</span>{% endif %}
             </div>
-        
+
             {% if request.GET.fullview != 'on' %}
                 <span>
                     <h4>You are looking at the schematic view</h4>
                     <p>To use the full database view please click <a href="/digipal/graphs/graph/?script_select={% if request.GET.script_select %}{{request.GET.script_select}}{% endif %}&amp;character_select={% if request.GET.character_select %}{{request.GET.character_select}}{% endif %}&amp;allograph_select={% if request.GET.allograph_select %}{{request.GET.allograph_select}}{% endif %}&amp;component_select={% if request.GET.component_select %}{{request.GET.component_select}}{% endif %}&amp;feature_select={% if request.GET.feature_select %}{{request.GET.feature_select}}{% endif %}&amp;terms=&amp;fullview=on">here</a></p>
                 </span>
-    
-        
+
+
                 <div class='span2 pull-right' id='myTab'>
                     <ul class="nav nav-pills">
                         {% if view == 'Images' %}
@@ -79,7 +108,7 @@
                     </ul>
                 </div>
             </div>
-    
+
             {% if page_list %}
                 <div class='container'>
                     <div class="tab-content">
@@ -88,7 +117,7 @@
                         {% else %}
                             <div class="tab-pane fade" id="images">
                         {% endif %}
-                                    
+
                         <div id="centering">
                                     {% autopaginate handlist 18 %}
                                         {% for hand in handlist %}
@@ -101,11 +130,11 @@
                                                                 {% if forloop.counter < 10 %}
                                                                 <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                                 {% endif %}
-                                                                {% endfor %}   
+                                                                {% endfor %}
                                                             </dt>
                                                             <dd>
                                                                 <p><b>{{ hand.grouper }}</b></p>
-                                                            </dd>               
+                                                            </dd>
                                                         </dl>
                                                     </div>
                                                 </div>
@@ -117,11 +146,11 @@
                                                                 {% if forloop.counter < 10 %}
                                                                     <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                                 {% endif %}
-                                                            {% endfor %}                           
+                                                            {% endfor %}
                                                         </dt>
                                                         <dd>
                                                             <p><b>{{ hand.grouper }}</b></p>
-                                                        </dd>               
+                                                        </dd>
                                                     </dl>
                                                 </div>
                                             {% endif %}
@@ -134,13 +163,13 @@
                                     </div>
                                 {% endif %}
                             </div>
-                            
+
                             {% if view == 'List' %}
                                 <div class="tab-pane fade active in" id="list">
-                            {% else %}     
+                            {% else %}
                                 <div class="tab-pane fade" id="list">
                             {% endif %}
-                            
+
                             <table class="table table-condensed">
                                 <tr>
                                     <th>Graphs</th>
@@ -168,7 +197,7 @@
                                                 <td>{{ hand.grouper.item_part.current_item.shelfmark }}</td>
                                                 <td>{{ hand.grouper.item_part.historical_item.catalogue_number }}</td>
                                             </tr>
-                                        {% empty %} 
+                                        {% empty %}
                                             <td>No records to display.<td>
                                     {% endfor %}
                                     {% paginate %}
@@ -176,59 +205,31 @@
                             </table>
                         </div>
                     </div>
-    
+
                 {% else %}
                     <div class="container">
                         <span>
                             <h4>You are looking at the whole database</h4>
-                
+
                             <p>To use the schematic view please click <a href="/digipal/graphs/graph/?script_select={% if request.GET.script_select %}{{request.GET.script_select}}{% endif %}&amp;character_select={% if request.GET.character_select %}{{request.GET.character_select}}{% endif %}&amp;allograph_select={% if request.GET.allograph_select %}{{request.GET.allograph_select}}{% endif %}&amp;component_select={% if request.GET.component_select %}{{request.GET.component_select}}{% endif %}&amp;feature_select={% if request.GET.feature_select %}{{request.GET.feature_select}}{% endif %}&amp;terms=">here</a></p>
                         </span>
-                
+
                         {% for hand in handlist %}
                             {% for graph in hand.list %}
                                 <span class="allogr">
                                     <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                 </span>
-                            {% endfor %}                           
-                        
+                            {% endfor %}
+
                         {% endfor %}
                     </div>
-    
+
                 {% endif %}
-    
+
             {% endifequal %}
-    
+
         </div>
     </div>
-    
-    <script>
-        $(document).ready(function(){
-            $('select').chosen();
-        });
-    </script>
-    <script>
-        function setCookie(c_name,value,exdays){
-            var exdate=new Date();
-            exdate.setDate(exdate.getDate() + exdays);
-            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-            document.cookie=c_name + "=" + c_value;
-        }
-    
-        $('#myTab a').click(
-            function (e) {
-              e.preventDefault();
-              $(this).tab('show');
-              setCookie('view', this.innerHTML, '-1');
-            }
-        );
-        
-        $('[data-toggle="tooltip"]').tooltip();
-    </script>
-    <script>
-        $('#formFilters').show();
-        $('#filterImages').text('Hide Filters Manuscripts');
-        $('#filterImages').attr('class', 'btn');
-        show_filters = 1;
-    </script>
+
+
 {% endblock %}

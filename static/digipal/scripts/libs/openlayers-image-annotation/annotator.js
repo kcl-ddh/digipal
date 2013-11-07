@@ -145,7 +145,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlModifyFeature',
 		title: 'Modify'
 	});
-	
+
 	*/
 	// creates a transform feature
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
@@ -160,14 +160,29 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'transformcomplete': function(e) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
 			_self.selectFeatureById(e.feature.id);
+
+		},
+		'setfeature': function(e) {
+			var hand = $('#id_hand').val();
+			var allograph = $('#id_allograph').val();
+			e.feature.hand = hand;
+			e.feature.allograph = allograph;
+			e.feature.feature = $('#id_allograph option:selected').text();
+			e.feature.stored = false;
+			if (annotator.isAdmin == 'False') {
+				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
+					_self.transformFeature.unsetFeature();
+				}
+			}
 		}
 	});
 
 	// creates a duplicate feature
-	this.duplicateFeature = new DuplicateFeature(this.vectorLayer, {
+	/*this.duplicateFeature = new DuplicateFeature(this.vectorLayer, {
 		displayClass: 'olControlDuplicateFeature',
 		title: 'Duplicate'
 	});
+	*/
 
 	// creates a polygon feature
 	/*
@@ -200,11 +215,14 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		displayClass: 'olControlDragFeature',
 		title: 'Select',
 		clickout: true,
-		toggle: false,
+		toggle: true,
 		multiple: false,
 		hover: false,
+		toggleKey: 'shiftKey',
 		box: false
 	});
+
+	this.selectFeature.events.toggleKey = 'altKey';
 
 	// creates a drag feature
 	this.dragFeature = new OpenLayers.Control.DragFeature(this.vectorLayer, {
@@ -214,11 +232,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	this.dragFeature.onComplete = function(feature, pixel) {
 		_self.setSavedAttribute(feature, Annotator.UNSAVED, true);
-	}
+	};
 
 	// creates a zoom box feature
 	this.zoomBoxFeature = new OpenLayers.Control.ZoomBox({
 		alwaysZoom: true,
+		keyMask: false,
 		displayClass: 'olControlZoomBox'
 	});
 
@@ -259,9 +278,19 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		CLASS_NAME: 'OpenLayers.Control.Refresh'
 	});
 
+	EditorialAnnotations = OpenLayers.Class(OpenLayers.Control, {
+		initialize: function(layer, options) {
+			OpenLayers.Control.prototype.initialize.apply(this, [options]);
+			this.layer = layer;
+		},
+
+		CLASS_NAME: 'OpenLayers.Control.EditorialAnnotations'
+	});
+
 	this.fullScreen = new OpenLayers.Control.Button({
 		displayClass: 'olControlFullScreenFeature',
 		title: 'Full Screen',
+		active: false,
 		trigger: function() {
 			_self.full_Screen();
 		}
@@ -275,12 +304,31 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		}
 	});
 
-	// adds all the control features to the toolbar panel
-	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature, this.dragFeature,
-			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
-			this.transformFeature, this.duplicateFeature, this.rectangleFeature, ]);
+	this.editorial = new OpenLayers.Control.Button({
+		displayClass: 'olControlEditorialFeature',
+		title: 'Editorial Annotations',
+		active: false,
+		trigger: function() {
 
-	// sets the default control to be the drag feature 
+			if (this.active) {
+				_self.boxes_on_click = false;
+				$('#boxes_on_click').attr('checked', false);
+				this.deactivate();
+			} else {
+				_self.boxes_on_click = true;
+				$('#boxes_on_click').attr('checked', true);
+				this.activate();
+				_self.rectangleFeature.activate();
+			}
+		}
+	});
+
+	// adds all the control features to the toolbar panel
+	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,
+			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
+			this.transformFeature, this.rectangleFeature, this.editorial]);
+
+	// sets the default control to be the drag feature
 	this.toolbarPanel.defaultControl = this.selectFeature;
 
 	// adds the toolbar panel to the map

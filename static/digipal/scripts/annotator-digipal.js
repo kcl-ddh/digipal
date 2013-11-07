@@ -1779,10 +1779,207 @@ function trigger_highlight_unsaved_vectors() {
 	*/
 
 }
+
+function load_annotations_allographs(annotation) {
+	if (annotation) {
+		if (selectedAnnotations.annotations.length > 1) {
+			$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
+		} else {
+			$('.myModalLabel .label-modal-value').html(annotation.feature);
+		}
+		$('#hidden_hand').val(annotation.hidden_hand);
+		$('#id_hand').val(annotation.hidden_hand);
+		$('#id_allograph').val(getKeyFromObjField(annotation, 'hidden_allograph'));
+		$('#hidden_allograph').val(getKeyFromObjField(annotation, 'hidden_allograph'));
+		$('#id_display_note').val(annotation.display_note);
+		$('#id_internal_note').val(annotation.internal_note);
+		$('select').trigger('liszt:updated');
+		var url;
+		if (annotator.hands_page == "True") {
+			url = '/digipal/graph/' + annotation.graph + '/features/';
+		} else {
+			url = '../graph/' + annotation.graph + '/features/';
+		}
+
+		$('#id_display_note').parent('p').hide();
+		$('#id_internal_note').parent('p').hide();
+		var url_features = "../graph/" + annotation.graph;
+		if (annotator.hands_page == "True") {
+			url_features = "/digipal/page/61/graph/" + annotation.graph;
+		}
+		var array_features_owned = features_owned(annotation, url);
+		var request = $.getJSON(url_features);
+		var features = annotator.vectorLayer.features;
+		var url2;
+		request.done(function(data) {
+			var allograph_id = data.id;
+			url2 = '../allograph/' + data.id + '/features/';
+			if (annotator.hands_page == "True") {
+				url2 = "/digipal/page/61/allograph/" + data.id + '/features/';
+			}
+			var allographs = $.getJSON(url2);
+			var s = "<div id='box_features_container'>";
+			var string_summary = '';
+			allographs.done(function(data) {
+				$.each(data, function(idx) {
+					var component = data[idx].name;
+					var component_id = data[idx].id;
+					var is_empty;
+					var features = data[idx].features;
+					string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
+
+					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
+
+					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-small'>All</button> <button data-component = '" + component_id + "' class='btn btn-small uncheck_all'>Clear</button></div><div>";
+
+					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+					var n = 0;
+
+					$.each(features, function(idx) {
+						var value = component_id + '::' + features[idx].id;
+						var names = component + ':' + features[idx].name;
+						var f = selectedAnnotations.annotations;
+						var al = '';
+						var d = 0;
+						var title = '';
+						var ann;
+						for (var k = 0; k < f.length; k++) {
+							for (var j = 0; j < f[k].features.length; j++) {
+								if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
+
+									ann = $('input[data-annotation="' + f[k].vector_id + '"]').next().text();
+
+									if (ann) {
+										al += '<span class="label">' + ann + '</span> ';
+										title += ann + ' ';
+									}
+
+									d++;
+
+									temporary_vectors.push(names);
+								}
+
+							}
+						}
+						console.log(al)
+						var id = component_id + '_' + features[idx].id;
+
+						if (temporary_vectors) {
+							array_features_owned = array_features_owned.concat(temporary_vectors);
+						}
+
+						if (array_features_owned.indexOf(names) >= 0) {
+
+							string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+
+							s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
+							n++;
+						} else {
+							s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
+						}
+
+					});
+					s += "</div>";
+					if (!n) {
+						string_summary += "<span class='feature_summary'>undefined</span>";
+					}
+				});
+				s += "</div>";
+				$("#summary").html(string_summary);
+				$('#features_container').html(s);
+				$('.check_all').click(function(event) {
+					var component = $(this).data('component');
+					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
+					checkboxes.attr('checked', true);
+					event.stopPropagation();
+				});
+				$('.uncheck_all').click(function(event) {
+					var component = $(this).data('component');
+					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
+					checkboxes.attr('checked', false);
+					event.stopPropagation();
+				});
+				$('.myModal select').chosen();
+
+				var maximized = false;
+				$('#maximize').click(function(event) {
+					event.preventDefault();
+					$('#summary').css("bottom", "88%").hide();
+					if (!maximized) {
+						$('.myModal').animate({
+							'position': 'fixed',
+							'top': "0px",
+							'left': '59.5%',
+							"width": '40%',
+							"height": '100%'
+						}, 200, function() {
+							$('#summary').show();
+							$('.modal-body').css("max-height", "100%");
+						}).draggable("destroy");
+
+
+						maximized = true;
+					} else {
+						$('#summary').css("bottom", "88%").hide();
+						$('.myModal').animate({
+							'position': 'fixed',
+							'left': "55%",
+							'top': "15%",
+							'right': '',
+							"width": '30%',
+							"height": '60%'
+						}, 200, function() {
+							$('#summary').show();
+							$('#summary').style = null;
+							$('.modal-body').css("max-height", "");
+						}).draggable();
+
+
+
+						maximized = false;
+					}
+				});
+
+				$('.component_labels').click(function() {
+					var div = $("#" + $(this).data('id'));
+					if (!div.data('hidden')) {
+						$(this).next('.checkboxes_div').hide();
+						div.slideUp().data('hidden', true);
+						$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
+					} else {
+						div.slideDown().data('hidden', false);
+						$(this).next('.checkboxes_div').show();
+						$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
+					}
+				});
+
+				//updateFeatureSelect(annotation.features, feature);
+				$('#modal_features .close').click(function() {
+					$("#modal_features").fadeOut();
+					$('#status').html('-');
+					modal = false;
+					selectedAnnotations.allograph = null;
+					selectedAnnotations.annotations = [];
+					$('.annotation_li').removeClass('selected');
+					$('.select_annotation_checkbox').attr('checked', false);
+				});
+
+			});
+			$('select').on("liszt:ready", function() {
+				style_select('#id_hand_chzn');
+				style_select('#id_allograph_chzn');
+			});
+			$('select').chosen();
+
+		});
+	}
+}
+
+
 /**
  * Saves an annotation for the currently selected feature.
  */
-DigipalAnnotator.prototype.saveAnnotation = function() {
+DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 	updateStatus('-');
 	form = $('#frmAnnotation');
 
@@ -1809,7 +2006,7 @@ DigipalAnnotator.prototype.saveAnnotation = function() {
 
 	if (this.selectedFeature) {
 
-		save('save', this.selectedFeature, form_serialized);
+		save('save', this.selectedFeature, form_serialized, ann);
 
 		this.loadAnnotations();
 	} else {
@@ -1817,7 +2014,7 @@ DigipalAnnotator.prototype.saveAnnotation = function() {
 			var feature = this.vectorLayer.features[idx];
 
 			if (!feature.attributes.saved) {
-				save('save', feature, form_serialized);
+				save('save', feature, form_serialized, ann);
 			}
 		}
 	}
@@ -1834,7 +2031,7 @@ DigipalAnnotator.prototype.saveAnnotation = function() {
  *              Additional data for the annotation.
  */
 
-function save(url, feature, data) {
+function save(url, feature, data, ann) {
 	var id = feature.id;
 	var temp = feature;
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
@@ -1879,6 +2076,11 @@ function save(url, feature, data) {
 					element.html(annotations.length);
 					temp = null;
 				}
+			}
+		},
+		complete: function() {
+			if (annotator.url_allographs && ann) {
+				load_annotations_allographs(ann);
 			}
 		}
 	});

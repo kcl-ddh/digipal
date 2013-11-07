@@ -242,7 +242,6 @@ var chained = request.then(function(data) {
 					for (var i = 0; i < selected_features.length; i++) {
 						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
 						var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
-						console.log(element);
 						element.fadeOut().remove();
 					}
 

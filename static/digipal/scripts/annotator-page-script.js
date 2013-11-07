@@ -206,7 +206,7 @@ declaring function to get parameteres from URL
 			$(this).addClass('active');
 
 
-			var checkOutput = '<div class="span6" style="padding:2%;border-right:1px dotted #efefef;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
+			var checkOutput = '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
 			var annotations = annotator.annotations;
 
 			if (!isEmpty(annotations)) {
@@ -534,7 +534,7 @@ declaring function to get parameteres from URL
 		}
 
 		if (last_feature_selected) {
-			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
+			//$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
 			var features = annotator.vectorLayer.features;
 			var n = 0;
 			for (var i = 0; i < features.length; i++) {

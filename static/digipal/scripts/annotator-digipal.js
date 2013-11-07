@@ -53,7 +53,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	this.selectedFeature = event.feature;
-
+	console.log(this.selectedFeature)
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -65,11 +65,11 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		}
 		layer.redraw();
 	}
-
-	this.showAnnotation(event.feature);
 	if (this.selectedFeature.last_feature_selected) {
 		this.last_feature_selected = this.selectedFeature.last_feature_selected;
 	}
+	this.showAnnotation(event.feature);
+
 
 };
 
@@ -104,6 +104,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 				color = 'red';
 			}
 
+
 			feature.style.strokeColor = color;
 		} else {
 			feature.style.strokeColor = '#ee9900';
@@ -116,6 +117,15 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 		}
 		*/
 	}
+	if (feature.state == 'Insert') {
+		this.last_feature_selected = {
+			'id': $('#id_allograph').val(),
+			'name': $('#id_allograph option:selected').text()
+		};
+		feature.last_feature_selected = this.last_feature_selected;
+	}
+
+
 	if ($('#id_hide').prop('checked')) {
 		for (var i = 0; i < _self.vectorLayer.features.length; i++) {
 			var f = _self.vectorLayer.features[i];
@@ -124,14 +134,10 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 			}
 		}
 	}
-	this.last_feature_selected = {
-		'id': $('#id_allograph').val(),
-		'name': $('#id_allograph option:selected').text()
-	};
-	feature.last_feature_selected = this.last_feature_selected;
+
 	this.vectorLayer.redraw();
 	this.selectedFeature = null;
-	$('#id_allograph').val(undefined).trigger('liszt:updated');
+	//$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
 
 };
@@ -787,6 +793,7 @@ function create_dialog(selectedFeature, id) {
 
 	var position = function() {
 		var p;
+		/*
 		try {
 			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
 				p = {
@@ -808,6 +815,12 @@ function create_dialog(selectedFeature, id) {
 				of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 			};
 		}
+		*/
+		p = {
+			my: "right center",
+			at: "right center",
+			of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
+		};
 		return p;
 	};
 
@@ -1179,6 +1192,15 @@ function fill_dialog(id, annotation) {
 				if (features[i].feature == allograph && features[i].stored) {
 					n++;
 				}
+			}
+
+			if (annotator.selectedFeature !== undefined && annotator.selectedFeature.state == 'Insert') {
+				annotator.selectedFeature.last_feature_selected = {
+					'id': allograph_id,
+					'name': allograph
+				};
+				annotator.selectedFeature.allograph = allograph_id;
+				annotator.selectedFeature.feature = allograph;
 			}
 
 			$(".number_annotated_allographs .number-allographs").html(n);
@@ -1980,16 +2002,22 @@ function load_annotations_allographs(annotation) {
  * Saves an annotation for the currently selected feature.
  */
 DigipalAnnotator.prototype.saveAnnotation = function(ann) {
+	if (!ann) {
+		ann = null;
+	}
 	updateStatus('-');
-	form = $('#frmAnnotation');
+	var form = $('#frmAnnotation');
 
-	array_values = [];
-	obj = {};
-	$('.features_box').each(function() {
-		if ($(this).is(':checked')) {
-			array_values.push($(this).val());
-		}
-	});
+	var array_values = [];
+	var obj = {};
+	if ($('.features_box').length) {
+		$('.features_box').each(function() {
+			if ($(this).is(':checked')) {
+				array_values.push($(this).val());
+			}
+		});
+	}
+
 	obj['feature'] = array_values;
 	var form_serialized = form.serialize();
 	var s = '';
@@ -2063,13 +2091,30 @@ function save(url, feature, data, ann) {
 					var allograph_id = $('#id_allograph').val();
 					refresh_letters_container(allograph, allograph_id);
 				}
-				if (temp['state'] == 'Insert') {
+				if (temp.state == 'Insert') {
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
 					var annotations = annotator.unsaved_annotations;
+					var color;
+					var num_features = feature.features.length || 0;
 					for (var i = 0; i < annotations.length; i++) {
 						if (annotations[i].feature.id == feature.id) {
 							annotations.splice(i, 1);
+							if (num_features) {
+								color = 'green';
+								feature.style.fillColor = color;
+								feature.style.strokeColor = color;
+								feature.style.originalColor = color;
+								feature.described = true;
+								feature.num_features = feature.features.length + 1;
+							} else {
+								color = '#ee9900';
+								feature.style.fillColor = color;
+								feature.style.strokeColor = color;
+								feature.style.originalColor = color;
+							}
+							feature.stored = true;
+							feature.last_feature_selected = null;
 							break;
 						}
 					}
@@ -2082,6 +2127,7 @@ function save(url, feature, data, ann) {
 			if (annotator.url_allographs && ann) {
 				load_annotations_allographs(ann);
 			}
+			annotator.vectorLayer.redraw();
 		}
 	});
 	/*
@@ -2209,7 +2255,9 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			"z-index": 2000,
 			"width": "80%",
 			"height": "30px",
-			"left": "8%"
+			"left": "8%",
+			'border-color': '#333',
+			'background-color': '#666'
 		});
 
 	} else {

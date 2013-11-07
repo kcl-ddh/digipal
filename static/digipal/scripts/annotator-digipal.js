@@ -791,8 +791,8 @@ function create_dialog(selectedFeature, id) {
 			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
 				p = {
 					my: "right center",
-					at: "right top",
-					of: $('#map')
+					at: "right center",
+					of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 				};
 			} else {
 				p = {
@@ -804,8 +804,8 @@ function create_dialog(selectedFeature, id) {
 		} catch (e) {
 			p = {
 				my: "right center",
-				at: "right top",
-				of: $('#map')
+				at: "right center",
+				of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 			};
 		}
 		return p;
@@ -1665,7 +1665,7 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 								break;
 							}
 						}
-						element.html(parseInt(number_unsaved) - 1);
+						element.html(annotations.length);
 						temp = null;
 					}
 				}
@@ -2105,68 +2105,73 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 				unhighlight_unsaved_vectors(button);
 			}
 		}
+
+
 		if (event.shiftKey) {
-			switch (code) {
-				case 77:
-					toggleAll(activeControls, false);
-					_self.modifyFeature.activate();
-					break;
-				case 8:
-					toggleAll(activeControls, false);
-					_self.deleteFeature.activate();
-					break;
-				case 84:
-					toggleAll(activeControls, false);
-					_self.transformFeature.activate();
-					break;
-				case 68:
-					toggleAll(activeControls, false);
-					_self.duplicateFeature.activate();
-					break;
-				case 82:
-					toggleAll(activeControls, false);
-					_self.rectangleFeature.activate();
-					break;
-				case 71:
-					toggleAll(activeControls, false);
-					_self.selectFeature.activate();
-					break;
-				case 87:
-					toggleAll(activeControls, false);
-					_self.dragFeature.activate();
-					break;
-				case 90:
-					toggleAll(activeControls, false);
-					_self.zoomBoxFeature.activate();
-					break;
-				case 83:
-					_self.saveButton.trigger();
-					break;
-				case 70:
-					_self.full_Screen();
-					break;
-				case 38:
-					annotator.map.moveByPx(0, -60);
-					annotator.vectorLayer.redraw();
-					break;
-				case 40:
-					annotator.map.moveByPx(0, 60);
-					annotator.vectorLayer.redraw();
-					break;
-				case 37:
-					annotator.map.moveByPx(-60);
-					annotator.vectorLayer.redraw();
-					break;
-				case 39:
-					annotator.map.moveByPx(60);
-					annotator.vectorLayer.redraw();
-					break;
-				case 187:
-					annotator.vectorLayer.map.zoomIn();
-					break;
-				case 189:
-					annotator.vectorLayer.map.zoomOut();
-					break;
+			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
+			if (!isFocus) {
+				switch (code) {
+					case 77:
+						toggleAll(activeControls, false);
+						_self.modifyFeature.activate();
+						break;
+					case 8:
+						toggleAll(activeControls, false);
+						_self.deleteFeature.activate();
+						break;
+					case 84:
+						toggleAll(activeControls, false);
+						_self.transformFeature.activate();
+						break;
+					case 68:
+						toggleAll(activeControls, false);
+						_self.duplicateFeature.activate();
+						break;
+					case 82:
+						toggleAll(activeControls, false);
+						_self.rectangleFeature.activate();
+						break;
+					case 71:
+						toggleAll(activeControls, false);
+						_self.selectFeature.activate();
+						break;
+					case 87:
+						toggleAll(activeControls, false);
+						_self.dragFeature.activate();
+						break;
+					case 90:
+						toggleAll(activeControls, false);
+						_self.zoomBoxFeature.activate();
+						break;
+					case 83:
+						_self.saveButton.trigger();
+						break;
+					case 70:
+						_self.full_Screen();
+						break;
+					case 38:
+						annotator.map.moveByPx(0, -60);
+						annotator.vectorLayer.redraw();
+						break;
+					case 40:
+						annotator.map.moveByPx(0, 60);
+						annotator.vectorLayer.redraw();
+						break;
+					case 37:
+						annotator.map.moveByPx(-60);
+						annotator.vectorLayer.redraw();
+						break;
+					case 39:
+						annotator.map.moveByPx(60);
+						annotator.vectorLayer.redraw();
+						break;
+					case 187:
+						annotator.vectorLayer.map.zoomIn();
+						break;
+					case 189:
+						annotator.vectorLayer.map.zoomOut();
+						break;
+				}
 			}
 		}
 

@@ -96,7 +96,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	} else {
 		feature.style.fillColor = '#ee9900';
 		var color;
-		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active')) {
+		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
 
 			if (feature.features.length) {
 				color = 'blue';
@@ -389,6 +389,14 @@ function getFeatureById(id) {
 }
 
 
+var stylize = function(feature, fill, stroke, opacity) {
+	feature.style = {
+		'strokeColor': stroke,
+		'fillColor': fill,
+		"fillOpacity": opacity
+	};
+};
+
 /*
 
     Function to refresh the layer when saved an annotation
@@ -679,13 +687,7 @@ render the layer according to each allograph
 */
 
 function reload_described_annotations(div) {
-	var stylize = function(feature, fill, stroke, opacity) {
-		feature.style = {
-			'strokeColor': stroke,
-			'fillColor': fill,
-			"fillOpacity": opacity
-		};
-	};
+
 
 	var check_described = null;
 	var annotations = annotator.annotations;
@@ -859,9 +861,9 @@ function create_dialog(selectedFeature, id) {
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span  data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;
@@ -1212,8 +1214,12 @@ function fill_dialog(id, annotation) {
 	}
 
 	dialog.html(s);
+	var url_allograph_button = dialog.parent().find('.url_allograph');
 
-	show_url_allograph(dialog, annotation);
+	url_allograph_button.click(function() {
+		show_url_allograph(dialog, annotation, $(this));
+	});
+
 
 	var hidden_hand = $('#id_hand').val();
 	var hidden_allograph = $('#id_allograph').val();
@@ -1238,44 +1244,43 @@ function get_allograph(allograph) {
 	return allograph_id;
 }
 
-function show_url_allograph(dialog, annotation) {
+function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
-	var url_allograph_button = dialog.parent().find('.url_allograph');
-	url_allograph_button.click(function() {
-		if ($(this).data('hidden')) {
-			$(this).data('hidden', false);
-			var url = $("<div class='allograph_url_div'>");
-			var allograph_url;
-			var input = $('<input type="text" disabled>');
-			var title = $('.name_temporary_annotation').val();
-			var desc = $('.textarea_temporary_annotation').val();
-			var stored;
-			if (annotation !== null) {
-				for (var i = 0; i < features.length; i++) {
-					if (annotation.graph == features[i].graph && features[i].stored) {
-						stored = true;
-					}
+	if (button.data('hidden')) {
+		button.data('hidden', false);
+		var url = $("<div class='allograph_url_div'>");
+		var allograph_url;
+		var input = $('<input type="text" disabled>');
+		var title = $('.name_temporary_annotation').val();
+		var desc = $('.textarea_temporary_annotation').val();
+		var stored;
+		if (annotation !== null) {
+			for (var i = 0; i < features.length; i++) {
+				if (annotation.graph == features[i].graph && features[i].stored) {
+					stored = true;
 				}
 			}
-			if (annotation !== null && stored) {
-				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-			} else {
-				var geometryObject = annotator.selectedFeature;
-				var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
-				geoJSONText.title = title;
-				geoJSONText.desc = desc;
-				allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
-			}
-			input.val(allograph_url);
-			url.append(input);
-			dialog.prepend(url);
-			input.select();
-		} else {
-			$(this).data('hidden', true);
-			var url_allograph_element = dialog.parent().find('.allograph_url_div');
-			url_allograph_element.fadeOut().remove();
 		}
-	});
+		if (annotation !== null && stored) {
+			allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+		} else {
+			var geometryObject = annotator.selectedFeature;
+			var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+			geoJSONText.title = title;
+			geoJSONText.desc = desc;
+			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+		}
+		input.val(allograph_url);
+		url.append(input);
+		dialog.prepend(url);
+		input.select();
+	} else {
+		button.data('hidden', true);
+		var url_allograph_element = dialog.parent().find('.allograph_url_div');
+		url_allograph_element.fadeOut().remove();
+	}
+
+
 }
 
 function showBox(selectedFeature) {
@@ -1309,7 +1314,7 @@ function showBox(selectedFeature) {
 		}
 
 		var url = 'graph/' + selectedFeature.graph + '/features/';
-		if (annotator.selectedFeature.state == 'Insert') {
+		if (annotator.selectedFeature.state == 'Insert' && !annotator.selectedFeature.stored) {
 			array_features_owned = annotator.selectedFeature.features;
 		} else {
 			array_features_owned = features_owned(selectedFeature, url);
@@ -1438,7 +1443,6 @@ function showBox(selectedFeature) {
 					dialog.html(s);
 				}
 			});
-			show_url_allograph(dialog);
 		}
 
 
@@ -1883,7 +1887,6 @@ function load_annotations_allographs(annotation) {
 
 							}
 						}
-						console.log(al)
 						var id = component_id + '_' + features[idx].id;
 
 						if (temporary_vectors) {
@@ -2010,13 +2013,18 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 
 	var array_values = [];
 	var obj = {};
+	var features = {};
+	var has_features = false;
 	if ($('.features_box').length) {
+		has_features = true;
 		$('.features_box').each(function() {
 			if ($(this).is(':checked')) {
 				array_values.push($(this).val());
 			}
 		});
 	}
+	features.has_features = has_features;
+	features.features = array_values;
 
 	obj['feature'] = array_values;
 	var form_serialized = form.serialize();
@@ -2034,7 +2042,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 
 	if (this.selectedFeature) {
 
-		save('save', this.selectedFeature, form_serialized, ann);
+		save('save', this.selectedFeature, form_serialized, ann, features);
 
 		this.loadAnnotations();
 	} else {
@@ -2042,7 +2050,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 			var feature = this.vectorLayer.features[idx];
 
 			if (!feature.attributes.saved) {
-				save('save', feature, form_serialized, ann);
+				save('save', feature, form_serialized, ann, features);
 			}
 		}
 	}
@@ -2059,7 +2067,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
  *              Additional data for the annotation.
  */
 
-function save(url, feature, data, ann) {
+function save(url, feature, data, ann, features) {
 	var id = feature.id;
 	var temp = feature;
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
@@ -2091,35 +2099,50 @@ function save(url, feature, data, ann) {
 					var allograph_id = $('#id_allograph').val();
 					refresh_letters_container(allograph, allograph_id);
 				}
+				var color;
 				if (temp.state == 'Insert') {
+					var num_features;
+					if (temp.stored) {
+						num_features = features.features.length;
+					} else {
+						num_features = feature.features.length || 0;
+					}
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
 					var annotations = annotator.unsaved_annotations;
-					var color;
-					var num_features = feature.features.length || 0;
 					for (var i = 0; i < annotations.length; i++) {
 						if (annotations[i].feature.id == feature.id) {
 							annotations.splice(i, 1);
-							if (num_features) {
-								color = 'green';
-								feature.style.fillColor = color;
-								feature.style.strokeColor = color;
-								feature.style.originalColor = color;
-								feature.described = true;
-								feature.num_features = feature.features.length + 1;
-							} else {
-								color = '#ee9900';
-								feature.style.fillColor = color;
-								feature.style.strokeColor = color;
-								feature.style.originalColor = color;
-							}
-							feature.stored = true;
-							feature.last_feature_selected = null;
 							break;
 						}
 					}
+					if (num_features > 0) {
+						color = 'green';
+						feature.described = true;
+						feature.num_features = feature.features.length + 1;
+					} else {
+						color = '#ee9900';
+						feature.described = false;
+						feature.num_features = 0;
+					}
+					stylize(feature, color, 'blue', 0.4);
+					feature.style.originalColor = color;
+					feature.style.strokeWidth = 2;
+					feature.stored = true;
+					feature.last_feature_selected = null;
 					element.html(annotations.length);
 					temp = null;
+				} else {
+					if (features.has_features) {
+						if (features.features.length) {
+							color = 'green';
+							feature.described = true;
+						} else {
+							color = '#ee9900';
+							feature.described = false;
+						}
+						stylize(feature, color, color, 0.4);
+					}
 				}
 			}
 		},
@@ -2257,7 +2280,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			"height": "30px",
 			"left": "8%",
 			'border-color': '#333',
-			'background-color': '#666'
+			'background-color': 'rgba(10, 10, 10, 0.7)'
 		});
 
 	} else {
@@ -2357,7 +2380,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 
 
-		if (event.shiftKey) {
+		if (event.shiftKey && annotator.isAdmin == 'Trueuu') {
 			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
 			if (!isFocus) {
 				switch (code) {

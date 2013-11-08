@@ -162,16 +162,20 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.selectFeatureById(e.feature.id);
 
 		},
+		'beforeset': function(e) {
+
+		},
 		'setfeature': function(e) {
 			var hand = $('#id_hand').val();
 			var allograph = $('#id_allograph').val();
 			e.feature.hand = hand;
 			e.feature.allograph = allograph;
 			e.feature.feature = $('#id_allograph option:selected').text();
-			e.feature.stored = false;
+
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
-					_self.transformFeature.unsetFeature();
+					annotator.transformFeature.unsetFeature();
+					return false;
 				}
 			}
 		}
@@ -326,8 +330,9 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,
-			this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
-			this.transformFeature, this.rectangleFeature, this.editorial]);
+		this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
+		this.transformFeature, this.rectangleFeature, this.editorial
+	]);
 
 	// sets the default control to be the drag feature
 	this.toolbarPanel.defaultControl = this.selectFeature;

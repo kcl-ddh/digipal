@@ -159,8 +159,9 @@ declaring function to get parameteres from URL
 					annotator.selectFeatureByIdAndZoom(vector_id_value);
 				}, 500);
 			}
-			trigger_highlight_unsaved_vectors();
+
 			reload_described_annotations();
+			trigger_highlight_unsaved_vectors();
 
 			if (annotator.isAdmin == 'True') {
 				setTimeout(function() {
@@ -530,8 +531,9 @@ declaring function to get parameteres from URL
 		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
 
 		if (unsaved_allographs_button.hasClass('active')) {
-			highlight_unsaved_vectors(unsaved_allographs_button);
+			setTimeout(highlight_unsaved_vectors(unsaved_allographs_button), 100);
 		}
+
 
 		if (last_feature_selected) {
 			//$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');

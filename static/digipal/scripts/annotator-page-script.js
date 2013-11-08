@@ -367,7 +367,6 @@ declaring function to get parameteres from URL
 				$(this).addClass('active');
 				$('#modal_settings').dialog({
 					draggable: true,
-					height: 500,
 					resizable: false,
 					width: 320,
 					title: "Settings",

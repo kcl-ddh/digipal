@@ -96,7 +96,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	} else {
 		feature.style.fillColor = '#ee9900';
 		var color;
-		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active')) {
+		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
 
 			if (feature.features.length) {
 				color = 'blue';
@@ -389,6 +389,14 @@ function getFeatureById(id) {
 }
 
 
+var stylize = function(feature, fill, stroke, opacity) {
+	feature.style = {
+		'strokeColor': stroke,
+		'fillColor': fill,
+		"fillOpacity": opacity
+	};
+};
+
 /*
 
     Function to refresh the layer when saved an annotation
@@ -453,9 +461,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -679,13 +687,7 @@ render the layer according to each allograph
 */
 
 function reload_described_annotations(div) {
-	var stylize = function(feature, fill, stroke, opacity) {
-		feature.style = {
-			'strokeColor': stroke,
-			'fillColor': fill,
-			"fillOpacity": opacity
-		};
-	};
+
 
 	var check_described = null;
 	var annotations = annotator.annotations;
@@ -2010,13 +2012,18 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 
 	var array_values = [];
 	var obj = {};
+	var features = {};
+	var has_features = false;
 	if ($('.features_box').length) {
+		has_features = true;
 		$('.features_box').each(function() {
 			if ($(this).is(':checked')) {
 				array_values.push($(this).val());
 			}
 		});
 	}
+	features.has_features = has_features;
+	features.features = array_values;
 
 	obj['feature'] = array_values;
 	var form_serialized = form.serialize();
@@ -2034,7 +2041,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 
 	if (this.selectedFeature) {
 
-		save('save', this.selectedFeature, form_serialized, ann);
+		save('save', this.selectedFeature, form_serialized, ann, features);
 
 		this.loadAnnotations();
 	} else {
@@ -2042,7 +2049,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 			var feature = this.vectorLayer.features[idx];
 
 			if (!feature.attributes.saved) {
-				save('save', feature, form_serialized, ann);
+				save('save', feature, form_serialized, ann, features);
 			}
 		}
 	}
@@ -2059,7 +2066,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
  *              Additional data for the annotation.
  */
 
-function save(url, feature, data, ann) {
+function save(url, feature, data, ann, features) {
 	var id = feature.id;
 	var temp = feature;
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
@@ -2091,28 +2098,27 @@ function save(url, feature, data, ann) {
 					var allograph_id = $('#id_allograph').val();
 					refresh_letters_container(allograph, allograph_id);
 				}
+				var color;
 				if (temp.state == 'Insert') {
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
 					var annotations = annotator.unsaved_annotations;
-					var color;
 					var num_features = feature.features.length || 0;
 					for (var i = 0; i < annotations.length; i++) {
 						if (annotations[i].feature.id == feature.id) {
 							annotations.splice(i, 1);
 							if (num_features) {
 								color = 'green';
-								feature.style.fillColor = color;
-								feature.style.strokeColor = color;
+								stylize(feature, color, color, 0.4);
 								feature.style.originalColor = color;
 								feature.described = true;
 								feature.num_features = feature.features.length + 1;
 							} else {
 								color = '#ee9900';
-								feature.style.fillColor = color;
-								feature.style.strokeColor = color;
+								stylize(feature, color, color, 0.4);
 								feature.style.originalColor = color;
 							}
+							feature.style.strokeWidth = 2;
 							feature.stored = true;
 							feature.last_feature_selected = null;
 							break;
@@ -2120,6 +2126,17 @@ function save(url, feature, data, ann) {
 					}
 					element.html(annotations.length);
 					temp = null;
+				} else {
+					if(features.has_features){
+						if(features.features.length){
+							color = 'green';
+							feature.described = true;
+						} else {
+							color = '#ee9900';
+							feature.described = false;
+						}
+						stylize(feature, color, color, 0.4);
+					}
 				}
 			}
 		},

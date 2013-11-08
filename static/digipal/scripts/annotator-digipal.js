@@ -2280,7 +2280,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			"height": "30px",
 			"left": "8%",
 			'border-color': '#333',
-			'background-color': '#666'
+			'background-color': 'rgba(10, 10, 10, 0.7)'
 		});
 
 	} else {
@@ -2380,7 +2380,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 
 
-		if (event.shiftKey) {
+		if (event.shiftKey && annotator.isAdmin == 'Trueuu') {
 			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
 			if (!isFocus) {
 				switch (code) {

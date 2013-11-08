@@ -518,6 +518,7 @@ declaring function to get parameteres from URL
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
 		feature.feature.features = [];
+		feature.feature.stored = false;
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}

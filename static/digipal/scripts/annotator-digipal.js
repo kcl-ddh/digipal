@@ -117,7 +117,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 		'id': $('#id_allograph').val(),
 		'name': $('#id_allograph option:selected').text()
 	};
-	$('#id_allograph').val(undefined).trigger('liszt:updated');
+	//$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
 
 };

@@ -523,7 +523,7 @@ declaring function to get parameteres from URL
 		}
 
 		if (last_feature_selected) {
-			$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
+			//$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
 			var features = annotator.vectorLayer.features;
 			var n = 0;
 			for (var i = 0; i < features.length; i++) {

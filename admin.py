@@ -303,6 +303,24 @@ class GraphForm(forms.ModelForm):
         except Annotation.DoesNotExist:
             print 'ERROR'
 
+class GraphForm(forms.ModelForm):
+
+    class Meta:
+        model = Graph    
+
+    def __init__(self, *args, **kwargs):
+        # Don't look into other pages for possible grouping graphs.
+        # We know that both the containing (group) graph and the child graphs
+        # belong to the same page.
+        super(GraphForm, self).__init__(*args, **kwargs)
+        object = getattr(self, 'instance', None)
+        try:
+            if object and object.annotation:
+                group_field = self.fields['group']
+                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+        except Annotation.DoesNotExist:
+            print 'ERROR'
+
 class ImageForm(forms.ModelForm):
 
     class Meta:
@@ -855,10 +873,30 @@ class OntographTypeAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
+# This class is used to only display the Hand linked to the Item Part
+# on an Image form.
+class HandsInlineForm(forms.ModelForm):
+    class Meta:
+        model = Hand.images.through
+ 
+    def __init__(self, *args, **kwargs):
+        object = kwargs.get('parent_object', None)
+        if object:
+            kwargs.pop('parent_object')
+        super(HandsInlineForm, self).__init__(*args, **kwargs)
+        if object:
+            self.fields['hand']._set_queryset(Hand.objects.filter(item_part=object.item_part))
+
+# This class is only defined to pass a reference to the current Hand to HandsInlineForm
+class HandsInlineFormSet(forms.models.BaseInlineFormSet):
+    def _construct_form(self, i, **kwargs):
+        kwargs['parent_object'] = self.instance
+        return super(HandsInlineFormSet, self)._construct_form(i, **kwargs)
 
 class HandsInline(admin.StackedInline):
     model = Hand.images.through
-
+    form = HandsInlineForm
+    formset = HandsInlineFormSet
 
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm

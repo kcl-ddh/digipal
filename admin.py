@@ -285,6 +285,17 @@ class HandGlossTextFilter(SimpleListFilter):
 #                       #
 #########################
 
+fieldsets_hand = (
+            #(None, {'fields': ('num', )}),
+            ('Item Part and Scribe', {'fields': ('item_part', 'locus', 'selected_locus', 'scribe')}),
+            ('Labels and notes', {'fields': ('label', 'num', 'display_note', 'internal_note', 'comments')}),
+            ('Images', {'fields': ('images',)}),
+            ('Other Catalogues', {'fields': ('legacy_id', 'ker', 'scragg', 'em_title', 'stewart_record')}),
+            ('Place and Date', {'fields': ('assigned_place', 'assigned_date')}),
+            ('Gloss', {'fields': ('glossed_text', 'num_glossing_hands', 'num_glosses', 'gloss_only')}),
+            ('Appearance and other properties', {'fields': ('script', 'appearance', 'relevant', 'latin_only', 'latin_style', 'scribble_only', 'imitative', 'surrogates', 'membra_disjecta')}),
+            ) 
+
 class GraphForm(forms.ModelForm):
 
     class Meta:
@@ -625,8 +636,21 @@ class HandFilterSurrogates(admin.SimpleListFilter):
         if self.value() == '1':
             return queryset.exclude(q)
 
+class HandForm(forms.ModelForm):
+    class Meta:
+        model = Hand
+    label = forms.CharField(widget=forms.TextInput(attrs={'class': 'vTextField'}))
+
+    # On the hand form we only show the Images connected to the associated Item Part 
+    def __init__(self, *args, **kwargs):
+        hand = kwargs.get('instance', None)
+        super(HandForm, self).__init__(*args, **kwargs)
+        if hand:
+            self.fields['images']._set_queryset(Image.objects.filter(item_part=hand.item_part))
+
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
+    form = HandForm
 
     filter_horizontal = ['images']
     list_display = ['label', 'num', 'item_part', 'script', 'scribe',
@@ -637,9 +661,10 @@ class HandAdmin(reversion.VersionAdmin):
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
     list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter]
+    
+    fieldsets = fieldsets_hand
 
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
-    #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
     
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber
@@ -773,8 +798,11 @@ class ItemOriginAdmin(reversion.VersionAdmin):
 
 class HandInline(admin.StackedInline):
     model = Hand
+    form = HandForm
 
     filter_horizontal = ['images']
+    
+    fieldsets = fieldsets_hand
 
 
 class ImageInline(admin.StackedInline):

@@ -1142,7 +1142,14 @@ class Image(models.Model):
         ordering = ['display_label']
 
     def __unicode__(self):
-        return u'%s' % (self.display_label)
+        ret = u''
+        if self.display_label:
+            ret = u'%s' % self.display_label
+        else:
+            ret = u'Untitled Image #%s' % self.id
+            if self.iipimage:
+                ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
+        return ret
 
     def get_repository(self):
         ret = None
@@ -1354,7 +1361,7 @@ def thumbnail(image, length=settings.MAX_THUMB_LENGTH):
 # Hands in legacy db
 class Hand(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    num = models.IntegerField()
+    num = models.IntegerField(help_text='''The order of display of the Hand label. e.g. 1 for Main Hand, 2 for Gloss.''')
     item_part = models.ForeignKey(ItemPart, related_name='hands')
     script = models.ForeignKey(Script, blank=True, null=True)
     scribe = models.ForeignKey(Scribe, blank=True, null=True, related_name='hands')
@@ -1391,7 +1398,7 @@ class Hand(models.Model):
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     #pages = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
-    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
+    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands', help_text='''Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.''')
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,

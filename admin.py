@@ -102,9 +102,9 @@ class ImageWithHand(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(hand__isnull=False).distinct()
+            return queryset.filter(hands__id__gt=0).distinct()
         if self.value() == 'no':
-            return queryset.filter(hand__isnull=True).distinct()
+            return queryset.exclude(hands__id__gt=0).distinct()
            
 
 class DescriptionFilter(SimpleListFilter):
@@ -284,6 +284,24 @@ class HandGlossTextFilter(SimpleListFilter):
 #        Forms          #
 #                       #
 #########################
+
+class GraphForm(forms.ModelForm):
+
+    class Meta:
+        model = Graph    
+
+    def __init__(self, *args, **kwargs):
+        # Don't look into other pages for possible grouping graphs.
+        # We know that both the containing (group) graph and the child graphs
+        # belong to the same page.
+        super(GraphForm, self).__init__(*args, **kwargs)
+        object = getattr(self, 'instance', None)
+        try:
+            if object and object.annotation:
+                group_field = self.fields['group']
+                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+        except Annotation.DoesNotExist:
+            print 'ERROR'
 
 class GraphForm(forms.ModelForm):
 
@@ -855,20 +873,41 @@ class OntographTypeAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
+# This class is used to only display the Hand linked to the Item Part
+# on an Image form.
+class HandsInlineForm(forms.ModelForm):
+    class Meta:
+        model = Hand.images.through
+ 
+    def __init__(self, *args, **kwargs):
+        object = kwargs.get('parent_object', None)
+        if object:
+            kwargs.pop('parent_object')
+        super(HandsInlineForm, self).__init__(*args, **kwargs)
+        if object:
+            self.fields['hand']._set_queryset(Hand.objects.filter(item_part=object.item_part))
+
+# This class is only defined to pass a reference to the current Hand to HandsInlineForm
+class HandsInlineFormSet(forms.models.BaseInlineFormSet):
+    def _construct_form(self, i, **kwargs):
+        kwargs['parent_object'] = self.instance
+        return super(HandsInlineFormSet, self)._construct_form(i, **kwargs)
 
 class HandsInline(admin.StackedInline):
     model = Hand.images.through
-
+    form = HandsInlineForm
+    formset = HandsInlineFormSet
 
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'thumbnail_with_link', 
-            'media_permission', 'created', 'modified',
-            #'caption', 
+            'get_status_label', 'media_permission', 'created', 'modified',
             'iipimage']
-    list_display_links = list_display
+    list_display_links = ['id', 'display_label', 'thumbnail_with_link', 
+            'media_permission', 'created', 'modified',
+            'iipimage']
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
 
@@ -897,6 +936,17 @@ class ImageAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
     
+    def get_status_label(self, obj):
+        hand_count = obj.hands.count()
+        ret = '%d hands' % hand_count
+        if not hand_count:
+            ret = '<span style="color:red">%s</span>' % ret
+        if obj.item_part is None:
+            ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
+        return ret
+    get_status_label.short_description = 'Status'
+    get_status_label.allow_tags = True 
+
     def get_locus_label(self, obj):
         return obj.get_locus_label()
     get_locus_label.short_description = 'Locus' 

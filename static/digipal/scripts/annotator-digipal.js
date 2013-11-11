@@ -1658,7 +1658,7 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 	if (doDelete && feature !== null) {
 		var featureId = feature.id;
 		var temp = feature;
-		updateStatus('-');
+		updateStatus('Deleting annotations');
 		layer.destroyFeatures([feature]);
 		var url;
 		if (annotator.url_allographs) {
@@ -2010,7 +2010,6 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 	}
 	updateStatus('-');
 	var form = $('#frmAnnotation');
-
 	var array_values = [];
 	var obj = {};
 	var features = {};

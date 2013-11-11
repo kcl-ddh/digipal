@@ -29,11 +29,14 @@
     <div class="btn-toolbar" style='display:inline'>
         <div class="btn-group" style='margin-bottom:1%'>
             {% if annotations > 0 %}
-                <a class='btn btn-small' id='filterAllographs'>Filter</a>
+                <a class='btn btn-small' id='filterAllographs' title='Filter Annotations'>Filter</a>
             {% endif %}
-            <a class="btn btn-small" id="settings_annotator">Settings</a>
+            <a class="btn btn-small" id="settings_annotator" title='Open Settings'>Settings</a>
+            <a class='btn btn-small' href='http://lightbox-dev.dighum.kcl.ac.uk/?images=[{{image.id}}]' title='Work image in the digital lightbox'>Lightbox</a>
         </div>
     </div>
+
+
 
     {% if can_edit %}
 
@@ -43,7 +46,7 @@
             </div>
         </div>
 
-        <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
+        <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin:0;'>
             <div id='form_annotation_hand' style='display:inline;width:35%;'>
                 {{ form }}
                 <div style='display:inline;'>

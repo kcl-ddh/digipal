@@ -87,7 +87,6 @@
           <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
 
           {% else %}
-
           <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
 
           {% endif %}
@@ -107,12 +106,12 @@
           </a>
 
         </li>
-        {% comment %}
+
         {% if forloop.last %}
-          <input type="button" style='margin-top:1%' class="btn check_all_allographs" value ="All" />
-          <input type="button" style='margin-top:1%' class="btn uncheck_all_allographs" value ="Clear" />
+                    <a class='btn btn-small'>To Lightbox</a>
+
         {% endif %}
-        {% endcomment %}
+
         {% endfor %}
 
       </ul>

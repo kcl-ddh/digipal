@@ -102,9 +102,9 @@ class ImageWithHand(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(hand__isnull=False).distinct()
+            return queryset.filter(hands__id__gt=0).distinct()
         if self.value() == 'no':
-            return queryset.filter(hand__isnull=True).distinct()
+            return queryset.exclude(hands__id__gt=0).distinct()
            
 
 class DescriptionFilter(SimpleListFilter):
@@ -903,10 +903,11 @@ class ImageAdmin(reversion.VersionAdmin):
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'thumbnail_with_link', 
-            'media_permission', 'created', 'modified',
-            #'caption', 
+            'get_status_label', 'media_permission', 'created', 'modified',
             'iipimage']
-    list_display_links = list_display
+    list_display_links = ['id', 'display_label', 'thumbnail_with_link', 
+            'media_permission', 'created', 'modified',
+            'iipimage']
     search_fields = ['id', 'folio_side', 'folio_number', 
             'item_part__display_label', 'iipimage']
 
@@ -935,6 +936,17 @@ class ImageAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
     
+    def get_status_label(self, obj):
+        hand_count = obj.hands.count()
+        ret = '%d hands' % hand_count
+        if not hand_count:
+            ret = '<span style="color:red">%s</span>' % ret
+        if obj.item_part is None:
+            ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
+        return ret
+    get_status_label.short_description = 'Status'
+    get_status_label.allow_tags = True 
+
     def get_locus_label(self, obj):
         return obj.get_locus_label()
     get_locus_label.short_description = 'Locus' 

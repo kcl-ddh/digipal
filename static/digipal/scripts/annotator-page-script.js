@@ -417,12 +417,25 @@ declaring function to get parameteres from URL
 				});
 			} else {
 				$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
-				$('.olControlEditingToolbar').css({
-					"left": "72%",
-					"top": 0,
-					"width": "320px",
-					"z-index": 1000
-				});
+				if (annotator.isAdmin == 'False') {
+					$('.olControlEditingToolbar').css({
+						"left": "89%",
+						"top": 0,
+						"width": "120px",
+						'border-top-left-radius': '4px',
+						'border-bottom-left-radius': '4px',
+						"z-index": 1000
+					});
+				} else {
+					$('.olControlEditingToolbar').css({
+						"left": "76%",
+						"top": 0,
+						'border-top-left-radius': '4px',
+						'border-bottom-left-radius': '4px',
+						"width": "260px",
+						"z-index": 1000
+					});
+				}
 			}
 		});
 

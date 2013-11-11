@@ -330,8 +330,8 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,
-		this.zoomBoxFeature, this.saveButton, this.deleteFeature, this.refresh,
-		this.transformFeature, this.rectangleFeature, this.editorial
+		this.zoomBoxFeature, this.editorial, this.saveButton, this.deleteFeature, this.refresh,
+		this.transformFeature, this.rectangleFeature
 	]);
 
 	// sets the default control to be the drag feature

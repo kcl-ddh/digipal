@@ -260,6 +260,16 @@ var chained = request.then(function(data) {
 
 			load_annotations_allographs(annotation);
 
+			var to_lightbox = $('.to_lightbox');
+			to_lightbox.click(function() {
+				var array = [];
+				var annotations = selectedAnnotations.annotations;
+				for (var j = 0; j < annotations.length; j++) {
+					array.push(annotations[j].graph);
+				}
+				location.href = 'http://lightbox-dev.dighum.kcl.ac.uk/?annotations=[' + array.toString() + ']';
+			});
+
 		}
 	});
 });

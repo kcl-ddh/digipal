@@ -17,6 +17,7 @@ from django.forms.formsets import formset_factory
 from django.utils import simplejson
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
+from django.utils.datastructures import SortedDict
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -31,9 +32,89 @@ from django import forms
 #####
 
 
-@staff_member_required
+def get_ms_id_from_image_names(manuscripts, folios):
+    '''
+        Returns (ret, suggested_shelfmark)
+        ret = the id of the itempart which matches the most the given images
+        suggested_shelfmark = a suggested shelfmark
+        The matching is based on similarity of the name (shelfmark) and locus
+    '''
+    ret = None
 
+    # a term is part of the search pattern if its frequency is above the threshold
+    threshold = 0.75
+    
+    # find a pattern among the image paths
+    pattern = SortedDict()
+    
+    folio_count = folios.count()
+    for folio in folios:
+        im_path = folio.iipimage.name
+        
+        # remove the extension
+        im_path = re.sub(ur'\.[^.]{2,4}$', '', im_path)
+        
+        # only keep the image file name and the parent folder
+        parts = im_path.split('/')
+        for i in range(max(0, len(parts) - 2), len(parts)):
+            part = parts[i]
+            for term in re.findall(ur'[^\W_]+', part):
+                pattern[term] = pattern.get(term, 0) + 1            
+    
+    # keep only the terms with frequency > threshold
+    search_terms = [term for term in pattern if pattern[term] > threshold * folio_count]
+    
+    suggested_shelfmark = ' '.join(search_terms)
+    
+    # find the best match 
+    for manuscript in manuscripts:
+        match = True
+        for term in search_terms:
+            if term.lower() not in manuscript.display_label.lower().replace('.', ''):
+                match = False
+        if match and (not ret or len(manuscript.display_label) < len(ret.display_label)):
+            ret = manuscript
+    
+    # find the nearest match in the list of item parts
+    if ret:
+        return ret.id, suggested_shelfmark
+    else:
+        return 0, suggested_shelfmark
+
+def get_requested_itempart(request):
+    item_part = None
+    
+    if str(request.POST.get('manuscript_set', '0')) == '1':
+        current_item = None
+        item_part = request.POST.get('manuscript', None)
+        if item_part == '0': item_part = None
+        if item_part:
+            item_part = ItemPart.objects.get(id=item_part)
+            current_item = item_part.current_item
+        
+        if request.POST.get('itempart_shelfmark', ''):
+            # we need to create a new Current Item with the specified shelfmark
+            new_shelfmark = request.POST.get('itempart_shelfmark_text', '')
+            current_item = CurrentItem(shelfmark=new_shelfmark, repository=Repository.objects.get(id=request.POST.get('itempart_repo', 0)))
+            current_item.save()
+
+        if current_item and (request.POST.get('itempart_shelfmark', '') or request.POST.get('itempart_locus', '')):
+            # we need to create a new Item Part with the specified locus
+            new_locus = request.POST.get('itempart_locus_text', '')
+            item_part = ItemPart(current_item=current_item, locus=new_locus)
+            item_part.save()
+            # create a new default hand for that part
+            hand = Hand(item_part=item_part, num=1, label='Default Hand')
+            hand.save()
+    
+    return item_part
+
+@staff_member_required
 def image_bulk_edit(request, url=None):
+    '''
+        This is the view for the bulk editing of the images.
+        It helps with cataloguing a selection of of images.
+    '''
     context = {}
     context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
     context['folio_sides'] = []
@@ -45,14 +126,21 @@ def image_bulk_edit(request, url=None):
                               {'label': 'Verso and Recto', 'key': 'rv'},
                               ]
     '''
+    # Determine the Item Part to set to those images
+    # Create the Item Part, Current Item and default Hand if needed
+    manuscript = get_requested_itempart(request)
+
     context['manuscripts'] = ItemPart.objects.all().order_by('display_label')
+    
+    context['repos'] = Repository.objects.all().order_by('short_name', 'name')
+    
+    context['title'] = 'Bulk Edit Images'
+    
+    context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(context['manuscripts'], context['folios'])
+     
     context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
 
-    manuscript = request.POST.get('manuscript', None)
-    if manuscript == '0': manuscript = None
-    if manuscript:
-        manuscript = ItemPart.objects.get(id=manuscript)
-
+    # read the selected foliation/pagination options
     page = request.POST.get('page_number', '').strip()
     if page != '':
         page = int(page)

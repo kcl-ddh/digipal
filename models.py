@@ -863,7 +863,6 @@ class CurrentItem(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        #self.display_label = u'%s %s' % (self.repository, self.shelfmark)
         self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark)
         super(CurrentItem, self).save(*args, **kwargs)
 
@@ -1373,19 +1372,11 @@ class Hand(models.Model):
     # This is a hand (or scribe) number, relative to the ker
     # cat number for the historical item (added 04/06/2011)
     ker = models.CharField(max_length=10, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##scragg_description = models.TextField(blank=True, null=True)
     em_title = models.CharField(max_length=256, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##em_description = models.TextField(blank=True, null=True)
-    # TODO: move to HandDescription
-    ##mancass_description = models.TextField(blank=True, null=True)
     label = models.TextField(blank=True, null=True)
     display_note = models.TextField(blank=True, null=True)
     internal_note = models.TextField(blank=True, null=True)
     appearance = models.ForeignKey(Appearance, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##description = models.TextField(blank=True, null=True)
     relevant = models.NullBooleanField()
     latin_only = models.NullBooleanField()
     gloss_only = models.NullBooleanField()
@@ -1397,12 +1388,12 @@ class Hand(models.Model):
     imitative = models.NullBooleanField()
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    #pages = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
     images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands', help_text='''Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.''')
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    
     # Imported from Brookes DB
     locus = models.CharField(max_length=300, null=True, blank=True, default='')
     # TODO: migrate to Cat Num (From Brookes DB)

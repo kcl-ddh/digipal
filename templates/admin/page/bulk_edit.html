@@ -16,21 +16,66 @@
 {{ block.super }}
 
 <style type="text/css">
-table.bulk_options {width: 100%;}
-table.bulk_options tr {width: 100%;}
-tr.section_last td {border-bottom: 3px solid #DDDDDD}
-.txt-folio-number {width:3em;}
-#tbl-selected-folios {border: 1px solid lightgrey}
-.txta-folio-note {width: 8em; height: 6em;}
-#container input.sbm-change {float: left;}
+    table.bulk_options {width: 100%;}
+    table.bulk_options tr {width: 100%;}
+    /* tr.section_last td {border-bottom: 3px solid #DDDDDD} */
+    .txt-folio-number {width:3em;}
+    #tbl-selected-folios {border: 1px solid lightgrey}
+    .txta-folio-note {width: 8em; height: 6em;}
+    #container input.sbm-change {float: left;}
+    .bulk_options tr td label {display:inline; float: none; width: auto;}
+    
+    #itempart_repo_id {display: none;}
+    #itempart_shelfmark_text_id {display: none;}
+    #itempart_locus_text_id {display: none;}
+    
+    span.legend {color:grey;}
 </style>
+
+<script>
+$(function(){
+	function enable(jqe, enabled) {
+		if (enabled) {
+			jqe.removeAttr('disabled');
+		} else {
+			jqe.attr('disabled', 'disabled');
+		}
+	}
+	
+	$('#itempart_shelfmark_id').change(function() {
+		// disable item part and locus drop down when shelfmark selected
+		var checked = $(this).is(':checked');
+		enable($('select[name=manuscript]'), !checked);
+		enable($('#itempart_locus_id'), !checked);
+		$('#itempart_shelfmark_text_id').toggle(checked);
+		$('#itempart_repo_id').toggle(checked);
+		$('#itempart_locus_text_id').toggle(checked);
+		if (checked) {
+			$('#itempart_shelfmark_text_id input').focus();
+		}
+	});
+
+	$('#itempart_locus_id').change(function() {
+		// disable item part and locus drop down when shelfmark selected
+		var checked = $(this).is(':checked');
+		//enable($('select[name=manuscript]'), !checked);
+		enable($('#itempart_shelfmark_id'), !checked);
+		$('#itempart_shelfmark_text_id').toggle(false);
+		$('#itempart_locus_text_id').toggle(checked);
+		if (checked) {
+			$('#itempart_locus_text_id input').focus();
+		}
+	});
+
+});
+</script>
 
 {% endblock %}
 
 
 {% block content %}
 
-<p><a href="/admin/digipal/page">Back to Page list.</a></p>
+<p><a href="/admin/digipal/image">Back to Image list.</a></p>
 
 {% if perms_lacking %}
     <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
@@ -40,12 +85,10 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
     {% endfor %}
     </ul>
 {% else %}
-	<h1>Bulk edit</h1>
-	
     <form action="" method="post">
         {% csrf_token %}
 		<fieldset class="module aligned ">
-		    <h2>Edit the selected pages</h2>
+		    <h2>Edit the selected images</h2>
 	    	<table class="bulk_options">
 	    		<thead>
 		    		<tr>
@@ -60,12 +103,48 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 		    				<label for="manuscript_set_id">Set item part</label>
 		    			</td>
 		    			<td>
+                            Select the correct shelfmark and folio range from this list.
+                            <br/>
 		    				<select name="manuscript">
                                 <option value="0">Unspecified</option>
 					    		{% for manuscript in manuscripts %}
-						    		<option value="{{ manuscript.id }}">{{ manuscript.display_label }}</option>
+						    		<option {% if manuscript.id == selected_manuscript_id %}selected="selected"{% endif %} 
+                                        value="{{ manuscript.id }}">{{ manuscript.display_label }}</option>
 					    		{% endfor %}
 					    	</select>
+                            
+                            <br/>
+                            
+                            <input type="checkbox" name="itempart_shelfmark" id="itempart_shelfmark_id" value="1" />
+                            <label for="itempart_shelfmark_id">The images shelfmark is not in that list</label>
+
+                            <br/>
+
+                            <input type="checkbox" name="itempart_locus" id="itempart_locus_id" value="1" />
+                            <label for="itempart_locus_id">The correct shelfmark is selected but the folio range is not in the list</label>
+                            
+                            <br/>
+                            
+                            <div id="itempart_repo_id">
+                                <label for="itempart_repo">Images repository:</label>
+                                <select name="itempart_repo">
+                                    {% for repo in repos %}
+                                        <option value="{{ repo.id }}">{{ repo }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div id="itempart_shelfmark_text_id">
+                                <label for="itempart_shelfmark_text_id">Images shelfmark:</label>
+                                <input type="text" name="itempart_shelfmark_text" value="{{ suggested_shelfmark }}" />
+                            </div>
+                            
+                            <div id="itempart_locus_text_id" >
+                                <label for="itempart_locus_text_id">Images folio range:</label>
+                                <input type="text" name="itempart_locus_text" value="" />
+                                <span class="legend">e.g. "fols 1-57"</span>
+                            </div>
+                            
 		    			</td>
 		    		</tr>
 		    		<tr>
@@ -167,7 +246,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
     <form action="" method="post">
     {% csrf_token %}
     
-    <h2>Selected pages ({{ folios.count }})</h2>
+    <h2>Selected images ({{ folios.count }})</h2>
 	<table id="tbl-selected-folios" cellspacing="0">
 		<thead>
 			<tr>

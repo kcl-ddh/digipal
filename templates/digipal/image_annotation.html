@@ -41,7 +41,7 @@
             '{{ image_server_url }}', "{{is_admin}}");
 
             {% if not is_admin %}
-                annotator.toolbarPanel.controls.splice(3, 5);
+                annotator.toolbarPanel.controls.splice(4, 4);
                 annotator.toolbarPanel.redraw();
                 annotator.user_annotations = [];
                 annotator.boxes_on_click = true;

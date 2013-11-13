@@ -36,7 +36,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.transformFeature.panel_div.title = 'Transform (shift + t)';
 	//this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
-	this.rectangleFeature.panel_div.title = 'Draw Rectangle (shift + r)';
+	this.rectangleFeature.panel_div.title = 'Create Annotation (shift + r)';
 	this.selectFeature.panel_div.title = 'Select (shift + g)';
 	//this.dragFeature.panel_div.title = 'Drag (shift + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
@@ -1180,7 +1180,7 @@ function show_url_allograph(dialog, annotation) {
 			$(this).data('hidden', false);
 			var url = $("<div class='allograph_url_div'>");
 			var allograph_url;
-			var input = $('<input type="text" disabled>');
+			var input = $('<input type="text">');
 			var title = $('.name_temporary_annotation').val();
 			var desc = $('.textarea_temporary_annotation').val();
 			var stored;

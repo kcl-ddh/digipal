@@ -461,9 +461,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -863,7 +863,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;
@@ -1020,6 +1020,7 @@ function load_allographs_container(allograph_value, url) {
 
 			$(s).find('img').each(function() {
 				$(this).on('load', function() {
+
 					img.remove();
 					container_div.html(s);
 
@@ -1028,7 +1029,7 @@ function load_allographs_container(allograph_value, url) {
 					var container_number = $('.number_annotated_allographs');
 					var images_link = $('.vector_image_link');
 					var features = annotator.vectorLayer.features;
-
+					images_link.fadeIn();
 					button.click(function() {
 						container.fadeOut().remove();
 						container_number.removeClass('active');
@@ -1274,8 +1275,9 @@ function show_url_allograph(dialog, annotation, button) {
 		url.append(input);
 		dialog.prepend(url);
 
-
-		input.select();
+		setTimeout(function() {
+			input.focus().select();
+		}, 0);
 
 
 

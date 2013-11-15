@@ -9,6 +9,9 @@ class SearchContentType(object):
     
     def set_record_view_context(self, context, request):
         context['type'] = self
+        from digipal.models import has_edit_permission
+        if has_edit_permission(request, self.get_model()):
+            context['can_edit'] = True
 
     def __init__(self):
         self.is_advanced = False

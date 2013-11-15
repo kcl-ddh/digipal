@@ -5,10 +5,12 @@
     ----------------------------------------------
 {% endcomment %}
 <div class='pull-right' style='width: 260px;'>
-    <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>
-        This manuscript has {{ image.item_part.images.count }}
-        <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
-    </span>
+    {% if image.item_part %}
+        <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>
+            This manuscript has {{ image.item_part.images.count }}
+            <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
+        </span>
+    {% endif %}
 
     <div id='popupImages' class="row-fluid">
         <div class='arrow'></div>

@@ -3,7 +3,10 @@
 {% load mezzanine_tags pagination_tags %}
 
 {% block meta_title %}Scribe: {{ scribe.name }}{% endblock %}
-{% block record_title %}Scribe: {{ scribe.name }}{% endblock %}
+{% block record_title %}
+    Scribe: {{ scribe.name }}        
+    {% include "digipal/admin_edit.html" with instance=scribe %}
+{% endblock %}
 
 {% block record_tabs %}
     <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>

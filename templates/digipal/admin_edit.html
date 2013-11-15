@@ -1,0 +1,3 @@
+{% if can_edit and instance.get_admin_url %}
+    <a class="admin-edit" href="{{ instance.get_admin_url }}">[Edit in admin]</a>
+{% endif %}

@@ -24,6 +24,8 @@
         {% endif %}
     });
   </script>
+{% else %}
+<script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
 {% endif %}
 <script type="text/javascript">
   function selectFeature(id) {
@@ -107,7 +109,7 @@
 
         </li>
 
-        {% if forloop.last and can_edit %}
+        {% if forloop.last %}
          <a class='btn btn-small to_lightbox'>To Lightbox</a>
 
         {% endif %}

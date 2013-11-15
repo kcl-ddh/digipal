@@ -9,7 +9,11 @@
             <li><a href="context/">Context</a></li>
             {% if not is_popup %}
                 <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
-                {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
+                {% if has_absolute_url %}
+                    <li><a href="{{ adminform.form.instance.get_absolute_url }}" class="viewsitelink">
+                        {% trans "View on site" %}
+                    </a></li>
+                {% endif%}
             {% endif %}
         </ul>
     {% endif %}

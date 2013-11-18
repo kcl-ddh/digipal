@@ -2063,18 +2063,29 @@ class RequestLog(models.Model):
             rl = cls(result_count=count, request=path)
             rl.save()
 
-# Assign get_absolute_urls() for all models /digipal/MODEL_PLURAL/ID
+# Assign get_absolute_url() and get_admin_url() for all models 
+# get_absolute_url() returns /digipal/MODEL_PLURAL/ID
 # E.g. /digipal/scribes/101
-def set_models_absolute_urls():
+def set_additional_models_methods():
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
         webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
-        return '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+        ret = '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+        return ret
 
+    def model_get_admin_url(self):
+        # get_admin_url
+        from django.core.urlresolvers import reverse
+        info = (self._meta.app_label, self._meta.module_name)
+        ret = reverse('admin:%s_%s_change' % info, args=(self.pk,))
+        return ret
+            
     for attribute in globals().values():
         # Among all the symbols accessible here, filter the Model defined in this module
         if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
             attribute.get_absolute_url = model_get_absolute_url
+            attribute.get_admin_url = model_get_admin_url
 
-set_models_absolute_urls()
+
+set_additional_models_methods()

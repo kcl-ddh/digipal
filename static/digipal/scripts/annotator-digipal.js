@@ -2284,6 +2284,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			"z-index": 2000,
 			"width": "80%",
 			"height": "30px",
+			'top': '1%',
 			"left": "8%",
 			'border-color': '#333',
 			'background-color': 'rgba(10, 10, 10, 0.7)'

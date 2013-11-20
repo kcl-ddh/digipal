@@ -66,7 +66,25 @@ $(function(){
 			$('#itempart_locus_text_id input').focus();
 		}
 	});
+	
+	$('#hand_set_id').change(function () {
+		var checked = $(this).is(':checked');
+		enable($('#manuscript_set_id'), !checked);
+	});
 
+	$('#manuscript_set_id').change(function () {
+		var checked = $(this).is(':checked');
+		enable($('#hand_set_id'), !checked);
+	});
+
+	function refresh_links() {
+		$('#manuscript-link').attr('href', '/admin/digipal/itempart/'+$('select[name=manuscript]').val());
+		$('#hand-link').attr('href', '/admin/digipal/hand/'+$('select[name=hand]').val());
+	}
+	
+	$('select[name=manuscript], select[name=hand]').change(refresh_links);
+	
+	refresh_links();	
 });
 </script>
 
@@ -78,12 +96,7 @@ $(function(){
 <p><a href="/admin/digipal/image">Back to Image list.</a></p>
 
 {% if perms_lacking %}
-    <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
-    <ul>
-    {% for obj in perms_lacking %}
-        <li>{{ obj }}</li>
-    {% endfor %}
-    </ul>
+    No permission to edit the images.
 {% else %}
     <form action="" method="post">
         {% csrf_token %}
@@ -106,12 +119,13 @@ $(function(){
                             Select the correct shelfmark and folio range from this list.
                             <br/>
 		    				<select name="manuscript">
-                                <option value="0">Unspecified</option>
+                                <option value="0">Disconnect from Item Part</option>
 					    		{% for manuscript in manuscripts %}
 						    		<option {% if manuscript.id == selected_manuscript_id %}selected="selected"{% endif %} 
                                         value="{{ manuscript.id }}">{{ manuscript.display_label }}</option>
 					    		{% endfor %}
 					    	</select>
+                            <a id="manuscript-link" href="#">[edit]</a>
                             
                             <br/>
                             
@@ -147,6 +161,26 @@ $(function(){
                             
 		    			</td>
 		    		</tr>
+                    {% if hands %}
+                        <tr  class="section_last">
+                            <td>
+                                <input type="checkbox" name="hand_set" id="hand_set_id" value="1" />
+                                <label for="hand_set_id">Set Hand</label>
+                            </td>
+                            <td>
+                                Tick this box and click 'Change' to add a Hand to the selected images.
+                                <br/>
+                                <select name="hand">
+                                    <option value="-1">Disconnect all hand records from those images</option>
+                                    {% for hand in hands %}
+                                        <option {% if forloop.first %}selected="selected"{% endif %}
+                                            value="{{ hand.id }}">{{ hand }}</option>
+                                    {% endfor %}
+                                </select>
+                                <a id="hand-link" href="#">[edit]</a>
+                            </td>
+                        </tr>
+                    {% endif %}
 		    		<tr>
 		    			<td>
 		    				<input type="checkbox" name="folio_set" id="folio_set_id" value="1" />
@@ -256,6 +290,7 @@ $(function(){
 		    	<th>Number</th>
 		    	<th>Side</th>
                 <th>Locus</th>
+                <th>Hands</th>
 		    	<th>View</th>
 		    </tr>
 		</thead>
@@ -264,7 +299,13 @@ $(function(){
 			    <tr class="{% cycle 'row1' 'row2' %}">
 			    	<td><a href="/admin/digipal/image/{{folio.id}}/">{{folio.id}}</a></td>
 			    	<td>{{folio.iipimage.name}}</td>
-			    	<td>{{folio.item_part.display_label}}</td>
+			    	<td>
+                        {% if folio.item_part %}
+                            {{folio.item_part.display_label}}
+                        {% else %}
+                            <span style="color:red">no item part</span>
+                        {% endif %}
+                    </td>
 			    	<td>
 			    		<input class="txt-folio-number" type="text" name="fn-{{folio.id}}" value="{{folio.folio_number|default:''}}" />
 			    	</td>
@@ -273,6 +314,14 @@ $(function(){
 			    	</td>
                     <td>
                         {{ folio.get_locus_label }}
+                    </td>
+                    <td>
+                        {% for hand in folio.hands.all %}
+                            {% if not forloop.first %}, {% endif %}
+                            {{ hand }}
+                        {% empty %}
+                            <span style="color:red">no hand</span>
+                        {% endfor %}
                     </td>
 			    	<td>
 			    		<a class="img-prv" href="{{ folio.full|safe }}">

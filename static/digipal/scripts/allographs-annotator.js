@@ -267,7 +267,7 @@ var chained = request.then(function(data) {
 				for (var j = 0; j < annotations.length; j++) {
 					array.push(annotations[j].graph);
 				}
-				location.href = 'http://lightbox-dev.dighum.kcl.ac.uk/?annotations=[' + array.toString() + ']';
+				location.href = '/lightbox/?annotations=[' + array.toString() + ']';
 			});
 
 		}

@@ -136,8 +136,6 @@ def image_bulk_edit(request, url=None):
     
     context['title'] = 'Bulk Edit Images'
     
-    context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(context['manuscripts'], context['folios'])
-     
     context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
 
     # read the selected foliation/pagination options
@@ -219,6 +217,15 @@ def image_bulk_edit(request, url=None):
                 if str(request.POST.get('unarchived_set', '0')) == '1':
                     folio.archived = False
                     modified = True
+                if str(request.POST.get('hand_set', '0')) == '1':
+                    handid = str(request.POST.get('hand', '0'))
+                    if handid != '0':
+                        if handid == '-1':
+                            folio.hands.through.objects.filter(image=folio).delete()
+                        else:
+                            folio.hands.add(Hand.objects.get(id=handid))
+                    modified = True
+                
 
             if action == 'change_values':
 
@@ -242,6 +249,24 @@ def image_bulk_edit(request, url=None):
                 folio.locus = folio.get_locus_label(True)
                 folio.save()
 
+    context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(context['manuscripts'], context['folios'])
+
+    # common_item_part: the Item Part in common among all the selected images
+    # None if none or more than one
+    common_item_part = None
+    for image in context['folios']:
+        if image.item_part and image.item_part != common_item_part:
+            if common_item_part is None: 
+                common_item_part = image.item_part
+            else:
+                common_item_part = None
+                break
+            
+    if common_item_part:
+        context['hands'] = common_item_part.hands.all().order_by('num')
+        context['selected_manuscript_id'], context['suggested_shelfmark'] = common_item_part.id, ''
+    else:
+        context['hands'] = None
 
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     return render(request, 'admin/page/bulk_edit.html', context)

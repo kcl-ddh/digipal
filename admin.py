@@ -26,6 +26,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
 import reversion
 import django_admin_customisations
 from django.utils.safestring import mark_safe
+from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
 
 import logging
@@ -512,11 +513,9 @@ class CountyAdmin(reversion.VersionAdmin):
 class ItemPartInline(admin.StackedInline):
     model = ItemPart
 
-class ItemPartItemInline(admin.StackedInline):
+class ItemPartItemInline(StackedDynamicInlineAdmin):
     model = ItemPartItem
-    
     verbose_name = 'Historical Item Part'
-
 
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
@@ -797,7 +796,7 @@ class ItemOriginAdmin(reversion.VersionAdmin):
     search_fields = ['evidence']
 
 
-class HandInline(admin.StackedInline):
+class HandInline(StackedDynamicInlineAdmin):
     model = Hand
     form = HandForm
 

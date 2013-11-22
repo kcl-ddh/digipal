@@ -1120,7 +1120,7 @@ class Image(models.Model):
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
     # no longer used, to be removed.
-    caption = models.CharField(max_length=256)
+    caption = models.CharField(max_length=256, blank=True, null=True)
 
     # Legacy field, deprecated.
     # PLEASE USE IIPIMAGE INSTEAD.

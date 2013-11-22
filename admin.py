@@ -808,7 +808,7 @@ class HandInline(StackedDynamicInlineAdmin):
 class ImageInline(admin.StackedInline):
     model = Image
 
-    exclude = ['image']
+    exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number']
 
 
 class ItemPartAdmin(reversion.VersionAdmin):

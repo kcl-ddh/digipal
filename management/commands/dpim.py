@@ -168,16 +168,6 @@ class Command(BaseCommand):
 			dest='links_file',
 			default='',
 			help='Link names'),
-		make_option('--src',
-			action='store',
-			dest='src',
-			default='',
-			help='source'),
-		make_option('--dst',
-			action='store',
-			dest='dst',
-			default='',
-			help='destination'),
 		make_option('--missing',
 			action='store_true',
 			dest='missing',
@@ -251,7 +241,7 @@ class Command(BaseCommand):
 		if not isdir(root):
 			raise CommandError('Image path not found (%s).' % root)
 		if len(args) < 1:
-			raise CommandError('Please provide a command. Try "python manage.py help dpim" for help.')
+			raise CommandError('Please provide a command. Try "python manage.py help dpdb" for help.')
 		command = args[0]
 		if options['db'] not in settings.DATABASES:
 			raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
@@ -262,14 +252,9 @@ class Command(BaseCommand):
 		
 		known_command = False
 		counts = {'online': 0, 'disk': 0, 'disk_only': 0, 'missing': 0}
-	
 		if command == 'fetch':
 			known_command = True
 			self.fetch(*args, **options)
-
-		if command == 'rename':
-			known_command = True
-			self.rename_image_files(*args, **options)
 		
 		if command in ('list', 'upload', 'unstage', 'update', 'remove'):
 			known_command = True
@@ -309,7 +294,7 @@ class Command(BaseCommand):
 					counts['missing'] += 1
 					
 				processed = False
-						
+				
 				if (command == 'upload' and not online) or (command == 'update' and online):
 					processed = True
 					
@@ -375,72 +360,24 @@ class Command(BaseCommand):
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
 	
-	def rename_image_files(self, *args, **options):
-		'''
-			 dpim rename --src=c:\vol\digipal2\images\originals\bl\brookes\BL_Image_Index_revised.csv --dst=c:\vol\digipal2\images\originals\bl\test
-			 
-			 For every name mapping found in the CSV src file, the script will move the image file under the dst folder.
-			 For each file a sub folder is created under dst folder and the file name is also renamed according to the mapping.
-		'''
-		
-		src = options['src']
-		dst = options['dst']
-	
-		if not src:
-			print 'ERROR: missing --src=FILE_PATH option'
-			return
-		if not dst:
-			print 'ERROR: missing --dst=FOLDER_PATH option'
-			return
-	
-		src_folder = os.path.dirname(src)
-		dst_folder = dst
-		csv_path = src
-
-		if not os.path.exists(dst_folder):
-			print 'ERROR: destination folder does not exist (%s)' % dst_folder
-			return 
-
-		import csv
-		with open(csv_path, 'rb') as csvfile:
-			csvreader = csv.reader(csvfile)
-			first_line = True
-			for line in csvreader:
-				if first_line: 
-					first_line = False
-					continue
-				if line and len(line) > 1:
-					file_name = line[0]
-					folio_name = line[1]
-					
-					file_src = os.path.join(src_folder, file_name)
-					
-					file_dst = [dst_folder]
-					# normalise the output path and file name
-					file_dst.extend([p.replace('f.', '').strip().lower().replace('.', '').replace(' ', '_') for p in folio_name.split(',')])
-					file_dst = os.path.join(*file_dst) + '.' + re.sub(ur'^.*\.', ur'', file_src)
-					
-					self.move_file(file_src, file_dst)
-	
-	def move_file(self, file_src, file_dst):
-		''' Moves file_src to file_dst.
-			Creates the last dir in the file_dst path if necessary.
-		'''
-		print 'MOVE %s to %s' % (file_src, file_dst)
-		if not os.path.exists(file_src):
-			print '\tWARNING: source does not exist.'
-		else:
-			dst_folder = os.path.dirname(file_dst)
-			if not os.path.exists(dst_folder):
-				os.mkdir(dst_folder)
-			if not os.path.exists(file_dst):
-				os.rename(file_src, file_dst)
-			else:
-				print '\tWARNING: destination already exist.'
-	
 	def fetch(self, *args, **options):
+		out_path = options['out_path']
+
+		if len(args) > 1:
+			base_url = args[1]
+			i = 5177135
+			# 5177311
+			for i in range(5177218, 5177311 + 1):
+				href = 'http://zzz/j2k/jpegNavMain.jsp?filename=Page%203&pid=' + str(i) + '&VIEWER_URL=/j2k/jpegNav.jsp?&img_size=best_fit&frameId=1&identifier=770&metsId=5176802&application=DIGITOOL-3&locale=en_US&mimetype=image/jpeg&DELIVERY_RULE_ID=770&hideLogo=true&compression=90'
+				i += 1  
+				print i
+				found = self.download_images_from_webpage(href, out_path, str(i) + '.jpg')
+				if not found: break
+				
+
+	def fetch_old(self, *args, **options):
 		'''
-			fetch http://bdigital.sib.uc.pt/bg2/UCBG-Cofre-1/UCBG-Cofre-1_item1/P3.html --links-file "bible1" --op=img1
+			fetch http://zzz//P3.html --links-file "bible1" --op=img1
 			
 			Will save all the jpg images found at that address into a directory called img1.
 			We first download the index from that address then follow each link with a name listed in bible1 file.
@@ -462,7 +399,6 @@ class Command(BaseCommand):
 				links = [link.strip() for link in links]
 				
 			if links:
-				
 				html = utils.wget(url)
 				if not html:
 					print 'ERROR: request to %s failed.' % url
@@ -475,28 +411,41 @@ class Command(BaseCommand):
 							href = re.sub(ur'/[^/]*$', '/' + href, url)
 							print href
 							
-							sub_html = utils.wget(href)
-							
-							if not sub_html:
-								print 'WARNING: request to %s failed.' % sub_html
-							else:
-								# get the jpg image in the page
-								image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
-								for image_url in image_urls:
-									image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
-									print image_url
-									
-									# get the image
-									image = utils.wget(image_url)
-									
-									if not image:
-										print 'WARNING: request to %s failed.' % image_url
-									else:
-										# save it
-										import os
-										image_path = os.path.join(out_path, re.sub(ur'^.*/', '', image_url)) + ''
-										print image_path
-										utils.write_file(image_path, image)
+							self.download_images_from_webpage(href, out_path)
+	
+	def download_images_from_webpage(self, href, out_path=None, img_name=None):
+		ret = False
+		print href
+		sub_html = utils.wget(href)
+		
+		if not sub_html:
+			print 'WARNING: request to %s failed.' % sub_html
+		else:
+			ret = True
+			# get the jpg image in the page
+			#image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
+			#print sub_html
+			image_urls = re.findall(ur'<img [^>]*src\s*=\s*"([^"]*?)"[^>]*?>', sub_html)
+			print image_urls
+			for image_url in image_urls:
+				if not image_url.startswith('/'):
+					image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
+				else:
+					image_url = re.sub(ur'^(.*?//.*?/).*$', r'\1' + image_url, href)
+				print image_url
+				
+				# get the image
+				image = utils.wget(image_url)
+				
+				if not image:
+					print 'WARNING: request to %s failed.' % image_url
+				else:
+					# save it
+					image_path = os.path.join(out_path, img_name or re.sub(ur'^.*/', '', image_url)) + ''
+					print image_path
+					utils.write_file(image_path, image)
+		
+		return ret
 	
 	def processOriginals(self, args, options):
 		''' List or copy the original images. '''

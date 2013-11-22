@@ -74,11 +74,17 @@
        <!-- allographs -->
       <h5 class='header5' style='font-size:14px;' id='{{key.id|anchorify}}_{{key|anchorify}}'>
         {{ key }}
+        <div style='margin-left:2%;display:inline;' class='btn-group'>
+        <button class='btn btn-small to_lightbox'>To Lightbox</button>
+        <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small select_all'>Select All</button>
+        <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
       </h5>
 
-      <ul>
+      <ul data-key = '{{key.id|anchorify}}_{{key|anchorify}}'>
         {% for annotation in annotations %}
-
+         {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
+          <br />
+        {% endif %}
          <!-- graph -->
         <li class='annotation_li' data-graph = "{{ annotation.graph.id }}" data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">
 
@@ -108,11 +114,6 @@
           </a>
 
         </li>
-
-        {% if forloop.last %}
-         <a class='btn btn-small to_lightbox'>To Lightbox</a>
-
-        {% endif %}
 
         {% endfor %}
 

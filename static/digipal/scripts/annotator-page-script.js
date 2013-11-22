@@ -585,6 +585,9 @@ declaring function to get parameteres from URL
 
 	$('select').chosen();
 
+	var basket = localStorage.getItem('lightbox_basket');
+	var basket_elements = JSON.parse(basket);
+	$('#number_images_selected_lightbox').html("(" + basket_elements.annotations.length + " images)");
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;

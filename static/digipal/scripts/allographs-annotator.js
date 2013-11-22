@@ -2,6 +2,11 @@ annotator.url_allographs = true;
 annotator.url_annotations = '../annotations';
 temporary_vectors = [];
 
+var basket = localStorage.getItem('lightbox_basket');
+if (basket) {
+	var basket_elements = JSON.parse(basket);
+	$('#number_images_selected_lightbox').html("(" + basket_elements.annotations.length + " images)");
+}
 
 if (annotator.hands_page == "True") {
 	annotator.url_annotations = '/digipal/page/61/annotations/';
@@ -130,8 +135,9 @@ var chained = request.then(function(data) {
 			event.stopPropagation();
 		});
 
-		$('.annotation_li').click(function(event) {
-			annotation = getFeatureById($(this).data('annotation'));
+		$('.annotation_li').click(function(event, is_triggered) {
+			var annotation = getFeatureById($(this).data('annotation'));
+			var current_basket;
 			var annotation_li = $(this);
 			if (event.target.type != 'checkbox') {
 				if (selectedAnnotations.allograph !== null && selectedAnnotations.allograph != annotation.feature) {
@@ -190,8 +196,83 @@ var chained = request.then(function(data) {
 
 			}
 
+
 			main();
 		});
+
+		$('.deselect_all').click(function() {
+			var key = $(this).data('key');
+			var ul = $('ul[data-key="' + key + '"]');
+			var checkboxes = ul.find('li');
+			selectedAnnotations.annotations = [];
+			temporary_vectors = [];
+			selectedAnnotations.allograph = null;
+			checkboxes.data('selected', false);
+			checkboxes.removeClass('selected');
+			checkboxes.find('input').attr('checked', false);
+			modal = false;
+			main();
+		});
+
+		$('.select_all').click(function() {
+			var key = $(this).data('key');
+			var ul = $('ul[data-key="' + key + '"]');
+			var checkboxes = ul.find('li');
+			var annotation;
+			for (var i = 0; i < checkboxes.length; i++) {
+				annotation = getFeatureById($(checkboxes[i]).data('annotation'));
+				selectedAnnotations.annotations.push(annotation);
+				var a = selectedAnnotations.allograph;
+				if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
+					selectedAnnotations.allograph = null;
+					selectedAnnotations.annotations = [];
+					ul.find('.annotation_li').removeClass('selected');
+					ul.find('.annotation_li').data('selected', false);
+					temporary_vectors = [];
+				}
+
+			}
+
+			selectedAnnotations.allograph = annotation.feature;
+			checkboxes.data('selected', true);
+			checkboxes.addClass('selected');
+			checkboxes.find('input').attr('checked', true);
+			modal = true;
+			$.each(checkboxes, function() {
+				if ($(this).data('allograph') !== selectedAnnotations.allograph) {
+					$(this).attr('checked', false);
+				}
+			});
+			main();
+		});
+
+		var to_lightbox = $('.to_lightbox');
+		to_lightbox.click(function() {
+			var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			var annotations = selectedAnnotations.annotations;
+			if (current_basket) {
+				var flag = true;
+				for (var i = 0; i < annotations.length; i++) {
+					for (var j = 0; j < current_basket.annotations.length; j++) {
+						if (current_basket.annotations[j].graph == annotations[i].graph) {
+							flag = false;
+						}
+					}
+					if (flag) {
+						current_basket.annotations.push(annotations[i]);
+						localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+					}
+				}
+
+			} else {
+				current_basket = selectedAnnotations;
+				localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+			}
+			console.log(current_basket)
+			$('#number_images_selected_lightbox').html("(" + current_basket.annotations.length + " images)");
+
+		});
+
 
 		var initialLoad = true;
 
@@ -260,15 +341,6 @@ var chained = request.then(function(data) {
 
 			load_annotations_allographs(annotation);
 
-			var to_lightbox = $('.to_lightbox');
-			to_lightbox.click(function() {
-				var array = [];
-				var annotations = selectedAnnotations.annotations;
-				for (var j = 0; j < annotations.length; j++) {
-					array.push(annotations[j].graph);
-				}
-				location.href = '/lightbox/?annotations=[' + array.toString() + ']';
-			});
 
 		}
 	});

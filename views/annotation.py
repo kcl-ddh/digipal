@@ -346,7 +346,7 @@ def images_lightbox(request):
             annotations = []
             for graph in graphs:
                 annotation = Annotation.objects.get(graph=graph)
-                annotations.append({'allograph': annotation.graph.idiograph.allograph.human_readable(), 'annotations':[annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label]})
+                annotations.append({'allograph': annotation.graph.idiograph.allograph.human_readable(), 'annotations':[annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, annotation.graph.hand.scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date]})
             return HttpResponse(simplejson.dumps(annotations), mimetype='application/json')
 
 

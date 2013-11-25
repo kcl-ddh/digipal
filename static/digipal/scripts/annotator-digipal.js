@@ -461,9 +461,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -849,21 +849,21 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
+						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span></span>";
 					} else {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 					}
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 				}
 			}
 			return title;
@@ -950,6 +950,30 @@ function create_dialog(selectedFeature, id) {
 	// Showing all the allographs of a given allograph
 	dialog.parent().find('.number_annotated_allographs').click(function() {
 		open_allographs($(this));
+	});
+
+	$('.to_lightbox').click(function() {
+		var graph = $(this).data('graph');
+		if (basket_elements && basket_elements.annotations.length) {
+			var flag = true;
+
+			for (var j = 0; j < basket_elements.annotations.length; j++) {
+				if (basket_elements.annotations[j].graph == graph) {
+					flag = false;
+				}
+			}
+			if (flag) {
+				basket_elements.annotations.push(selectedFeature);
+				localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
+			}
+
+		} else {
+			basket_elements = {
+				annotations: [selectedFeature]
+			};
+			localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
+		}
+		$('#lightbox_button a').html("Lightbox (" + basket_elements.annotations.length + " images)");
 	});
 }
 

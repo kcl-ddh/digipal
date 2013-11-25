@@ -111,6 +111,51 @@ class SearchContentType(object):
         context['pagination'] = ret 
 
     def get_fields_info(self):
+        '''
+            Returns a dictionary of searchable fields.
+            It is a mapping between the fields in the Django Data Model and 
+            the Whoosh index.
+            
+            Format:
+            
+                ret['field_path'] = {'whoosh': {
+                                                'type': self.FT_TITLE
+                                                , 'name': 'whoosh_field_name'
+                                                , 'store_only': True
+                                                , 'ignore': False
+                                                , 'boost': 2.0
+                                                }
+                                    , 'advanced': True
+                                    , 'long_text': True
+                                    }
+            
+            Where:
+            
+                field_path: is a django query set path from the current model 
+                    instance to the desired field
+                    e.g. display_label or related_record__display_label
+                    
+                whoosh: sub dictionary tells Whoosh how to index or query the field
+                    type: one of the predefined types declared in _init_field_types()
+                    name: the name of the field in Whoosh schema
+                    boost: optional parameter to boost the importance of a field (1.0 is normal, 
+                            2.0 is twice as important). Boosting is applied at query time only;
+                            not at indexing time.
+                    ignore: optional; if True the field is searched using the DB
+                            rather than Whoosh.
+                    store_only: optional parameter; if True the field is stored 
+                            in the Whoosh index but not searchable
+                    
+                advanced: optional; if True the field can be searched on using the 
+                            value from the HTTP request GET parameter with the 
+                            same name. 
+                            E.g. ...?whoosh_field_name=123
+                    
+                long_text: optional; if True, the value will be broken into 
+                    separate terms by the indexer; False to treat the value as 
+                    a whole. This is used for the autocomplete index only.                  
+        '''
+        
         ret = {}
         from whoosh.fields import TEXT, ID
         ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'store_only': True}}
@@ -171,8 +216,8 @@ class SearchContentType(object):
                     name = field['whoosh']['name']
                     term_fields.append(name)
                     boosts[name] = field['whoosh'].get('boost', 1.0)
-        #parser = MultifieldParser(term_fields, index.schema, boosts)
-        parser = MultifieldParser(term_fields, index.schema)
+        parser = MultifieldParser(term_fields, index.schema, boosts)
+        #parser = MultifieldParser(term_fields, index.schema)
         return parser
     
     def get_suggestions(self, query, limit=8):
@@ -259,10 +304,16 @@ class SearchContentType(object):
             self.searcher = None
     
     def build_queryset(self, request, term):
+        '''
+            Returns an ordered list or record ids that match the query in the http request.
+            The ids are retrieved using Whoosh or Django QuerySet or both.            
+        '''
         
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
         # TODO: if no search phrase then apply default sorting order
+        
+        ##print '------- %s' % self.__class__
         
         term = term.strip()
         self.query_phrase = term
@@ -300,9 +351,8 @@ class SearchContentType(object):
             query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
 
             # Run the search
-            ## TODO: uncomment
-            ##results = self.search_whoosh(query)
-            results = self.search_whoosh(query, True)
+            results = self.search_whoosh(query)
+            ##results = self.search_whoosh(query, True)
 
             t01 = datetime.now()
             
@@ -310,7 +360,8 @@ class SearchContentType(object):
             # TODO: would it be faster to return the hits only?
             for hit in results:
                 whoosh_dict[int(hit['id'])] = hit
-                terms = hit.matched_terms()
+                ##print '\t%s %s %s' % (hit.rank, hit.score, hit['id'])
+                #terms = hit.matched_terms()
                 
         self.whoosh_dict = whoosh_dict
         

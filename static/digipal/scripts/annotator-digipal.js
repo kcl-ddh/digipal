@@ -461,9 +461,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -521,7 +521,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component_id = data[idx].id;
 					var features = data[idx].features;
 					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-small'>All</button> <button data-component = '" + component_id + "' class='btn btn-small uncheck_all'>Clear</button></div>";
+					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-mini'>All</button> <button data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</button></div>";
 
 					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -849,21 +849,21 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
+						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
 					} else {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-small'>URL</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
 					}
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini'>To Lightbox</span></span>";
 				}
 			}
 			return title;

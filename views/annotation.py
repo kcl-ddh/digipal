@@ -339,6 +339,16 @@ def image_list(request):
 
     return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
 
+def images_lightbox(request):
+    if request.is_ajax():
+        if 'graphs' in request.POST and request.POST.get('graphs', ''):
+            graphs = simplejson.loads(request.POST.get('graphs', ''))
+            annotations = []
+            for graph in graphs:
+                annotation = Annotation.objects.get(graph=graph)
+                annotations.append({'allograph': annotation.graph.idiograph.allograph.human_readable(), 'annotations':[annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label]})
+            return HttpResponse(simplejson.dumps(annotations), mimetype='application/json')
+
 
 
 @login_required

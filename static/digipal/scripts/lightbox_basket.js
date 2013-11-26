@@ -28,7 +28,7 @@ $(document).ready(function() {
 		var s = '';
 		var basket = basket_elements;
 		var graphs = [];
-		if (basket) {
+		if (basket.annotations.length) {
 
 			for (var i = 0; i < basket.annotations.length; i++) {
 				graphs.push(basket.annotations[i].graph);
@@ -41,24 +41,33 @@ $(document).ready(function() {
 					'graphs': JSON.stringify(graphs)
 				},
 				success: function(data) {
-					console.log(data)
 					s += "<table class='table table-condensed'>";
 					s += '<th>Image</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
-					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[0].annotations[0];
+					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'><a href='/digipal/page/" + data[0].annotations[8] + "/?vector_id=" + data[0].annotations[7] + "'>" + data[0].annotations[0] + "</a>";
 					s += "</td>";
 					s += "<td>" + data[0].allograph + "</td>";
-					s += "<td>" + data[0].annotations[3] + "</td>";
-					s += "<td>" + data[0].annotations[4] + "</td>";
+					s += "<td><a href='/digipal/hands/" + data[0].annotations[9] + "'>" + data[0].annotations[3] + "</a></td>";
+
+					if (data[0].annotations[4] != 'null') {
+						s += "<td><a href='/digipal/scribes/" + data[0].annotations[10] + "'>" + data[0].annotations[4] + "</a></td>";
+					} else {
+						s += "<td>None</td>";
+					}
+
 					s += "<td>" + data[0].annotations[5] + "</td>";
 					s += "<td>" + data[0].annotations[6] + "</td>";
 					s += "<td><button style='margin-left:5%;' data-graph = '" + data[0].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					for (i = 1; i < data.length; i++) {
 
-						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[i].annotations[0];
+						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td class='image_label' data-graph = '" + data[i].annotations[1] + "'><a href='/digipal/page/" + data[i].annotations[8] + "/?vector_id=" + data[i].annotations[7] + "'>" + data[i].annotations[0] + "</a>";
 						s += "</td>";
 						s += "<td>" + data[i].allograph + "</td>";
-						s += "<td>" + data[i].annotations[3] + "</td>";
-						s += "<td>" + data[i].annotations[4] + "</td>";
+						s += "<td><a href='/digipal/hands/" + data[i].annotations[9] + "'>" + data[i].annotations[3] + "</a></td>";
+						if (data[i].annotations[4] != 'null') {
+							s += "<td><a href='/digipal/scribes/" + data[i].annotations[10] + "'>" + data[i].annotations[4] + "</a></td>";
+						} else {
+							s += "<td>None</td>";
+						}
 						s += "<td>" + data[i].annotations[5] + "</td>";
 						s += "<td>" + data[i].annotations[6] + "</td>";
 						s += "<td><button style='margin-left:5%;' data-graph = '" + data[i].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
@@ -77,8 +86,12 @@ $(document).ready(function() {
 									break;
 								}
 							}
-							$('*[data-graph="' + graph + '"]').fadeOut().remove();
+							$('tr[data-graph="' + graph + '"]').fadeOut().remove();
 							$('#lightbox_button a').html('Lightbox (' + basket_elements.annotations.length + ' images)');
+							if (!basket_elements.annotations.length) {
+								s = '<div class="container alert alert-warning">The Basket is empty</a>';
+								$('#container_basket').html(s);
+							}
 							localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
 						});
 					});
@@ -99,7 +112,7 @@ $(document).ready(function() {
 
 
 		} else {
-			s += '<div class="alert alert-warning">The Basket is empty</a>';
+			s += '<div class="container alert alert-warning">The Basket is empty</a>';
 			$('#container_basket').html(s);
 		}
 

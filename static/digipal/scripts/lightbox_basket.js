@@ -42,26 +42,25 @@ $(document).ready(function() {
 				},
 				success: function(data) {
 					console.log(data)
-					s += "<table class='table'>";
+					s += "<table class='table table-condensed'>";
 					s += '<th>Image</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
-					s += "<tr><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[0].annotations[0];
+					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[0].annotations[0];
 					s += "</td>";
-					s += "<td>" + data[0].allograph + "<td>";
-					s += "<td>" + data[0].annotations[3] + "<td>";
-					s += "<td>" + data[0].annotations[4] + "<td>";
-					s += "<td>" + data[0].annotations[5] + "<td>";
-					s += "<td>" + data[0].annotations[6] + "<td>";
+					s += "<td>" + data[0].allograph + "</td>";
+					s += "<td>" + data[0].annotations[3] + "</td>";
+					s += "<td>" + data[0].annotations[4] + "</td>";
+					s += "<td>" + data[0].annotations[5] + "</td>";
+					s += "<td>" + data[0].annotations[6] + "</td>";
 					s += "<td><button style='margin-left:5%;' data-graph = '" + data[0].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					for (i = 1; i < data.length; i++) {
 
-						s += "<div class='image_label' data-graph = '" + data[i].annotations[1] + "'>" + data[i].annotations[0];
-						s += "<tr><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[i].annotations[0];
+						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'>" + data[i].annotations[0];
 						s += "</td>";
-						s += "<td>" + data[i].allograph + "<td>";
-						s += "<td>" + data[i].annotations[3] + "<td>";
-						s += "<td>" + data[i].annotations[4] + "<td>";
-						s += "<td>" + data[i].annotations[5] + "<td>";
-						s += "<td>" + data[i].annotations[6] + "<td>";
+						s += "<td>" + data[i].allograph + "</td>";
+						s += "<td>" + data[i].annotations[3] + "</td>";
+						s += "<td>" + data[i].annotations[4] + "</td>";
+						s += "<td>" + data[i].annotations[5] + "</td>";
+						s += "<td>" + data[i].annotations[6] + "</td>";
 						s += "<td><button style='margin-left:5%;' data-graph = '" + data[i].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 
 					}

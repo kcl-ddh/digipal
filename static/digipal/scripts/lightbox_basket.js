@@ -43,7 +43,7 @@ $(document).ready(function() {
 				success: function(data) {
 					s += "<table class='table table-condensed'>";
 					s += '<th>Image</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
-					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td class='image_label' data-graph = '" + data[0].annotations[1] + "'><a href='/digipal/page/" + data[0].annotations[8] + "/?vector_id=" + data[0].annotations[7] + "'>" + data[0].annotations[0] + "</a>";
+					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td data-graph = '" + data[0].annotations[1] + "'><a href='/digipal/page/" + data[0].annotations[8] + "/?vector_id=" + data[0].annotations[7] + "'>" + data[0].annotations[0] + "</a>";
 					s += "</td>";
 					s += "<td>" + data[0].allograph + "</td>";
 					s += "<td><a href='/digipal/hands/" + data[0].annotations[9] + "'>" + data[0].annotations[3] + "</a></td>";
@@ -56,10 +56,10 @@ $(document).ready(function() {
 
 					s += "<td>" + data[0].annotations[5] + "</td>";
 					s += "<td>" + data[0].annotations[6] + "</td>";
-					s += "<td><button style='margin-left:5%;' data-graph = '" + data[0].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+					s += "<td><button data-graph = '" + data[0].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					for (i = 1; i < data.length; i++) {
 
-						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td class='image_label' data-graph = '" + data[i].annotations[1] + "'><a href='/digipal/page/" + data[i].annotations[8] + "/?vector_id=" + data[i].annotations[7] + "'>" + data[i].annotations[0] + "</a>";
+						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td data-graph = '" + data[i].annotations[1] + "'><a href='/digipal/page/" + data[i].annotations[8] + "/?vector_id=" + data[i].annotations[7] + "'>" + data[i].annotations[0] + "</a>";
 						s += "</td>";
 						s += "<td>" + data[i].allograph + "</td>";
 						s += "<td><a href='/digipal/hands/" + data[i].annotations[9] + "'>" + data[i].annotations[3] + "</a></td>";
@@ -70,7 +70,7 @@ $(document).ready(function() {
 						}
 						s += "<td>" + data[i].annotations[5] + "</td>";
 						s += "<td>" + data[i].annotations[6] + "</td>";
-						s += "<td><button style='margin-left:5%;' data-graph = '" + data[i].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td><button data-graph = '" + data[i].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 
 					}
 					s += "</table>";

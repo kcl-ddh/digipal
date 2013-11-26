@@ -21,7 +21,19 @@ Commands:
                         Re-Index all the content 
 
   info
-                        Show the whoosh schema 
+                        Show general info and whoosh schemas
+                        
+  dump
+                        Dump indices
+                        
+Options:
+  
+  --if=INDEX_NAME
+                        Work only with index INDEX_NAME 
+
+  --ctf=CONTENT_TYPE_NAME
+                        Work only with content type CONTENT_TYPE_NAME
+                        e.g. hand
 
 """
     
@@ -32,6 +44,16 @@ Commands:
             dest='dry-run',
             default=False,
             help='Dry run, don\'t change any data.'),
+        make_option('--if',
+            action='store',
+            dest='index_filter',
+            default=None,
+            help='The name of the index to work with (All if unspecified)'),
+        make_option('--ctf',
+            action='store',
+            dest='content_type_filter',
+            default=None,
+            help='The name of the content type to work with (All if unspecified)'),
         ) 
 
     def handle(self, *args, **options):
@@ -60,20 +82,53 @@ Commands:
             known_command = True
             self.info(options)
 
+        if command == 'dump':
+            known_command = True
+            self.dump(options)
+
         if command == 'test':
             known_command = True
             self.test(options)
 
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+        
+        if not known_command:
+            print Command.help
+
+    def dump(self, options):
+        for name in self.get_requested_index_names():
+            print 'Schemas - %s' % name
+            dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, name)
+
+            print '\t%s' % dir_abs
+            
+            from whoosh.index import open_dir
+            from whoosh.query import Every
+            index = open_dir(dir_abs)
+            
+            q = Every()            
+            with index.searcher() as searcher:
+                hits = searcher.search(q, limit=None)
+                for hit in hits:
+                    print ('\t%s' % repr(hit)).encode('ascii', 'ignore')
 
     def info(self, options):
-        import os
         from datetime import datetime
+        
+        print 'Indices:'
+        for name in self.get_requested_index_names():
+            print '\t%s' % name
+
+        print 'Content Types:'
+        for name in self.get_requested_content_types():
+            print '\t%s' % name.__class__.__name__
+        
         for dir in os.listdir(settings.SEARCH_INDEX_PATH):
+            print 'Schemas - %s' % dir
             dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, dir)
 
-            print dir_abs
+            print '\t%s' % dir_abs
             
             if os.path.isdir(dir_abs):
                 # calculate the index size
@@ -121,32 +176,57 @@ Commands:
             #resultids = [result['recid'] for result in results]
 
     def index_all(self, options):
-        self.index_unified(options)
-        self.index_autocomplete(options)
+        for name in self.get_requested_index_names():
+            self.index(name)
+            
+    def get_requested_index_names(self):
+        ret = ['unified', 'autocomplete']
+        index_filter = self.options['index_filter'] 
+        if index_filter:
+            if index_filter not in ret:
+                print 'ERROR: index not found (%s)' % index_filter
+                exit()
+            else:
+                ret = [index_filter]
+        
+        return ret
 
-    def index_autocomplete(self, options):
-        return self.index(options, True)
-        
-    def index_unified(self, options):
-        return self.index(options)
-        
-    def index(self, options, autocomplete=False):
-        index_name = 'unified'
-        if autocomplete: index_name = 'autocomplete'
-        
-        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
-        from whoosh.fields import TEXT, ID, NGRAM
-        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
-        from whoosh.analysis.filters import LowercaseFilter
-        stem_ana = StemmingAnalyzer()        
-        simp_ana = SimpleAnalyzer()
-        print 'Building %s index...' % index_name
-        
+    def get_requested_content_types(self):
+        ''' Returns a list of content type classes.
+            By default returns all the available classes.
+            Unless the --ctf= is used to filter that list.
+        '''
         from digipal.views.content_type.search_hands import SearchHands
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
         from digipal.views.content_type.search_scribes import SearchScribes
-        types = [SearchHands(), SearchManuscripts(), SearchScribes()]
-        ##types = [SearchManuscripts()]
+        
+        options = self.options
+
+        content_type_filter = options['content_type_filter']
+        if content_type_filter:
+            types = []
+            ctf = content_type_filter.title()
+            for cl_name in [ctf, u'Search%s' % ctf, u'Search%ss' % ctf]:
+                cl = locals().get(cl_name, None)
+                if cl:
+                    types.append(cl())
+        else:                
+            types = [SearchHands(), SearchManuscripts(), SearchScribes()]
+            
+        if not types:
+            print 'ERROR: Content Type not found (%s)' % content_type_filter
+            exit()
+            
+        return types        
+        
+    def index(self, index_name='unified'):
+        types = self.get_requested_content_types()
+        
+        from whoosh.fields import TEXT, ID, NGRAM, NUMERIC
+        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
+        from whoosh.analysis.filters import LowercaseFilter
+        simp_ana = SimpleAnalyzer()
+        print 'Building %s index...' % index_name
         
         # build a single schema from the fields exposed by the different search types
         print '\tSchema:' 
@@ -157,19 +237,20 @@ Commands:
                     print '\t\t%s' % info
                     field_type = info['whoosh']['type']
                     
-                    if autocomplete:
+                    if index_name == 'autocomplete':
                         # break the long text fields into terms, leave the others as single expression
-                        if info.get('long_text', False):
-                            field_type = TEXT(analyzer=simp_ana)
-                        else:
-                            field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
+                        if not (field_type.__class__ == NUMERIC):
+                            if info.get('long_text', False):
+                                field_type = TEXT(analyzer=simp_ana)
+                            else:
+                                field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
                     print '\t\t%s' % field_type          
                     fields[info['whoosh']['name']] = field_type
         
         from whoosh.fields import Schema
         schema = Schema(**fields)
         
-        # create the index
+        # Create the index schema
         import os.path
         from whoosh.index import create_in
         path = settings.SEARCH_INDEX_PATH
@@ -184,17 +265,20 @@ Commands:
         # TODO: check if this REcreate the existing index
         index = create_in(path, schema)
         
-        # Write the index
+        # Add documents to the index
         print '\tWrite indexes:'
         writer = index.writer()
         for type in types:
-            count = type.write_index(writer)
+            count = type.write_index(writer, self.is_verbose())
             print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
         
         writer.commit()
 
     def is_dry_run(self):
         return self.options.get('dry-run', False)
-    
+
+    def is_verbose(self):
+        return int(self.options.get('verbosity', 1)) > 1
+
     def log(self, *args, **kwargs):
         self.logger.log(*args, **kwargs)

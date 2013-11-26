@@ -7,16 +7,23 @@ from django.db.models import Q
 class SearchManuscripts(SearchContentType):
 
     def get_fields_info(self):
+        ''' See SearchContentType.get_fields_info() for a description of the field structure '''
+        
         ret = super(SearchManuscripts, self).get_fields_info()
         ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
-        ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
         ret['current_item__repository__place__name, current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['historical_items__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
-        ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
+        # Boosting set to 0.3 so a 'Vespasian' will rank record with Vespasian shelfmark higher than those that have it in the description.  
+        ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.2}, 'long_text': True}
         ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
-
+    
+    def get_sort_fields(self):
+        ''' returns a list of django field names necessary to sort the results ''' 
+        return ['display_label']
+    
     def set_record_view_context(self, context, request):
         super(SearchManuscripts, self).set_record_view_context(context, request)
         context['item_part'] = ItemPart.objects.get(id=context['id'])

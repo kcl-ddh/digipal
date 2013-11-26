@@ -268,8 +268,7 @@ var chained = request.then(function(data) {
 				current_basket = selectedAnnotations;
 				localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 			}
-			console.log(current_basket)
-			$('#number_images_selected_lightbox').html("(" + current_basket.annotations.length + " images)");
+			$('#lightbox_button a').html("Lightbox (" + current_basket.annotations.length + " images)");
 
 		});
 

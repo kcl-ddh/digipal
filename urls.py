@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns, url
 from django.conf import settings
+from mezzanine.core.views import direct_to_template
 from views.facet import facet_search
 
 urlpatterns = patterns('digipal.views.annotation',
@@ -26,6 +27,11 @@ urlpatterns = patterns('digipal.views.annotation',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
+                       url(r'^page/lightbox/basket/$', direct_to_template, {
+                          'template': 'digipal/lightbox_basket.html'
+                        }),
+                       (r'^page/lightbox/basket/images/$',
+                        'images_lightbox'),
                        )
 
 urlpatterns += patterns('digipal.views.search',

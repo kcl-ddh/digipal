@@ -70,8 +70,13 @@ def image(request, image_id):
     hands_list = []
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
+
     for h in hands_object.values():
-        hand = {'id': h['id'], 'name': h['label'].encode("utf-8")}
+        if h['label'] == None:
+            label = "None"
+        else:
+            label = h['label'].encode("utf-8")
+        hand = {'id': h['id'], 'name': label}
         hands_list.append(hand)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
@@ -338,6 +343,18 @@ def image_list(request):
         context['view'] = 'Images'
 
     return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
+
+def images_lightbox(request):
+    if request.is_ajax():
+        if 'graphs' in request.POST and request.POST.get('graphs', ''):
+            graphs = simplejson.loads(request.POST.get('graphs', ''))
+            print graphs
+            annotations = []
+            for graph in graphs:
+                annotation = Annotation.objects.get(graph=graph)
+                #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id]
+                annotations.append({'allograph': annotation.graph.idiograph.allograph.human_readable(), 'annotations':[annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, annotation.graph.hand.scribe.name, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe.id]})
+            return HttpResponse(simplejson.dumps(annotations), mimetype='application/json')
 
 
 

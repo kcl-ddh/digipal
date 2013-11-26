@@ -585,13 +585,13 @@ declaring function to get parameteres from URL
 
 	$('select').chosen();
 
-	var basket = localStorage.getItem('lightbox_basket');
-	var basket_elements = JSON.parse(basket);
-	$('#lightbox_button a').html("Lightbox (" + basket_elements.annotations.length + " images)");
-
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
 	}
+
+	$("#image_to_lightbox").click(function() {
+		add_to_lightbox($(this), 'image', annotator.image_id, false);
+	});
 
 
 

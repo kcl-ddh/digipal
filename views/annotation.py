@@ -265,7 +265,6 @@ def image_allographs(request, image_id):
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))
-    print hands_list
     hands = []
     for i in hands_list:
         h = Hand.objects.get(id=i)
@@ -346,15 +345,24 @@ def image_list(request):
 
 def images_lightbox(request):
     if request.is_ajax():
-        if 'graphs' in request.POST and request.POST.get('graphs', ''):
-            graphs = simplejson.loads(request.POST.get('graphs', ''))
-            print graphs
-            annotations = []
-            for graph in graphs:
-                annotation = Annotation.objects.get(graph=graph)
-                #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id]
-                annotations.append({'allograph': annotation.graph.idiograph.allograph.human_readable(), 'annotations':[annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, annotation.graph.hand.scribe.name, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe.id]})
-            return HttpResponse(simplejson.dumps(annotations), mimetype='application/json')
+        if 'data' in request.POST and request.POST.get('data', ''):
+            graphs = simplejson.loads(request.POST.get('data', ''))
+            data = {}
+            if 'annotations' in graphs:
+                annotations = []
+                for graph in graphs['annotations']:
+                    annotation = Annotation.objects.get(graph=graph)
+                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph_name]
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, annotation.graph.hand.scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe, annotation.graph.idiograph.allograph.human_readable()])
+                data['annotations'] = annotations
+            if 'images' in graphs:
+                images = []
+                for img in graphs['images']:
+                    image = Image.objects.get(id=img)
+                    images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                data['images'] = images
+            print data
+            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
 

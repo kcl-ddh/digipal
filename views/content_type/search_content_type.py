@@ -30,7 +30,7 @@ class SearchContentType(object):
         from whoosh.fields import TEXT, ID
         # TODO: shall we use stop words? e.g. 'A and B' won't work? 
         from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer
-        # ID: as is; SimpleAnalyzer: break into terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
+        # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
         # minsize=1 because we want to search for 'Scribe 2'
         
         # A paragraph or more. 
@@ -39,8 +39,8 @@ class SearchContentType(object):
         self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1))
         # A title (e.g. British Library)
         self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None))
-        # A code (e.g. K. 402)
-        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer())
+        # A code (e.g. K. 402, Royal 7.C.xii)
+        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))
         # An ID (e.g. 708-AB)
         self.FT_ID = ID()
     
@@ -124,6 +124,7 @@ class SearchContentType(object):
                                                 , 'store_only': True
                                                 , 'ignore': False
                                                 , 'boost': 2.0
+                                                , 'virtual': False
                                                 }
                                     , 'advanced': True
                                     , 'long_text': True
@@ -141,8 +142,15 @@ class SearchContentType(object):
                     boost: optional parameter to boost the importance of a field (1.0 is normal, 
                             2.0 is twice as important). Boosting is applied at query time only;
                             not at indexing time.
+                            Convention:
+                                3.0 for default sorting field
+                                0.3 which are not displayed
+                                2.0 for cat num
+                                1.0 otherwise
                     ignore: optional; if True the field is searched using the DB
-                            rather than Whoosh.
+                            rather than indexed by Whoosh
+                    virtual: optional; if True the field does not exist in the DB.
+                            e.g. 'type' or 'sort_order'
                     store_only: optional parameter; if True the field is stored 
                             in the Whoosh index but not searchable
                     
@@ -157,37 +165,71 @@ class SearchContentType(object):
         '''
         
         ret = {}
-        from whoosh.fields import TEXT, ID
+        from whoosh.fields import TEXT, ID, NUMERIC
         ret['id'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'id', 'store_only': True}}
-        ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type'}}
+        ret['type'] = {'whoosh': {'type': TEXT(stored=True), 'name': 'type', 'virtual': True}}
+        ret['sort_order'] = {'whoosh': {'type': NUMERIC(stored=False, sortable=True), 'name': 'sort_order', 'store_only': True, 'virtual': True}}
         return ret
     
-    def write_index(self, writer):
+    def get_qs_all(self):
+        ''' returns a django query set with all the instances of this content type '''
+        return (self.get_model()).objects.all()
+    
+    def get_sort_fields(self):
+        ''' returns a list of django field names necessary to sort the results ''' 
+        return []
+    
+    def get_sorted_records(self, records):
+        ''' Returns a list of django records with all the searchable instances 
+            of this content type.
+            The order of the returned list will influence the order of 
+            display on the result sets.
+        '''
+        import re
+        sort_fields = self.get_sort_fields()
+        if sort_fields:
+            # Natural sort order based on a concatenation of the sort fields
+            # obtained from get_sort_fields()
+            from digipal.utils import natural_sort_key
+            def sort_order(record):
+                sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
+                # remove non words at the beginning
+                # e.g. 'Hemming'
+                sort_key = re.sub(ur'^\W+', ur'', sort_key)
+                return natural_sort_key(sort_key)
+            records = sorted(records, key=lambda record: sort_order(record))
+        
+        return records
+    
+    def write_index(self, writer, verbose=False):
         fields = self.get_fields_info()
         
         # extract all the fields names from the content type schema
         # Note that a schema entry can be an expressions made of multiple field names
         # e.g. "current_item__repository__place__name, current_item__repository__name"
         import re 
-        django_fields = []
+        django_fields = self.get_sort_fields()
         for k in fields: 
-            if k != 'type' and not fields[k]['whoosh'].get('ignore', False):
+            if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
                 django_fields.extend(re.findall(ur'\w+', k))
         
         # Retrieve all the records from the database
-        query = (self.get_model()).objects.all().values(*django_fields).distinct()
-        ret = query.count()
+        records = self.get_qs_all().values(*django_fields).distinct()
+        records = self.get_sorted_records(records)
+        ret = len(records)
         
         # For each record, create a Whoosh document
-        for record in query:
-            document = {'type': u'%s' % self.key}
+        sort_order = 0
+        for record in records:
+            sort_order += 1
+            document = {'type': u'%s' % self.key, 'sort_order': sort_order}
             
             # The document is made of the Content Type Schema where
             # The django fields in the schema entries are replaced by their
             # value in the database record.
             #
             for k in fields:
-                if k != 'type' and not fields[k]['whoosh'].get('ignore', False):
+                if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
                     val = u'%s' % k
                     for field_name in re.findall(ur'\w+', k):
                         v = record[field_name]
@@ -197,6 +239,8 @@ class SearchContentType(object):
                         document[fields[k]['whoosh']['name']] = val
                     
             if document:
+                if verbose:
+                    print document
                 writer.add_document(**document)
         
         return ret
@@ -290,10 +334,14 @@ class SearchContentType(object):
         index = self.get_whoosh_index(index_name=index_name)
         self.searcher = index.searcher()
         
-        # TODO: custom weight, e.g. less for description
         parser = self.get_parser(index)
         query = parser.parse(query)
-        ret = self.searcher.search(query, limit=None, terms=matched_terms)
+        
+        # See http://pythonhosted.org/Whoosh/facets.html
+        from whoosh import sorting
+        sortedby = [sorting.ScoreFacet(), sorting.FieldFacet("sort_order")]
+        #print query
+        ret = self.searcher.search(query, limit=None, terms=matched_terms, sortedby=sortedby)
         
         return ret
     
@@ -360,7 +408,7 @@ class SearchContentType(object):
             # TODO: would it be faster to return the hits only?
             for hit in results:
                 whoosh_dict[int(hit['id'])] = hit
-                ##print '\t%s %s %s' % (hit.rank, hit.score, hit['id'])
+                #print '\t%s %s %s' % (hit.rank, hit.score, hit['id'])
                 #terms = hit.matched_terms()
                 
         self.whoosh_dict = whoosh_dict

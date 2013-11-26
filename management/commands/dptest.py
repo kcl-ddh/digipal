@@ -7,6 +7,7 @@ import subprocess
 import re
 from optparse import make_option
 from django.db import IntegrityError
+from digipal.models import *
 
 class Command(BaseCommand):
 	help = """
@@ -60,10 +61,28 @@ Commands:
 			known_command = True
 			self.test_locus(options)
 
+		if command == 'natsort':
+			known_command = True
+			self.test_natsort(options)
+
 		if command == 'email':
 			known_command = True
 			self.test_email(options)
 	
+	def test_natsort(self, options):
+		#[ ItemPart.objects.filter(display_label__icontains='royal')]
+		l = list(ItemPart.objects.filter(display_label__icontains='royal').order_by('display_label'))
+			
+		import re
+
+		_nsre = re.compile('([0-9]+)')
+		def natural_sort_key(s):
+			return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
+		l = sorted(l, key=lambda i: natural_sort_key(i.display_label))
+		
+		for i in l:
+			print (i.display_label).encode('ascii', 'ignore')
+
 	def test_email(self, options):
 		#from django.core.mail import send_mail
 	   	#send_mail('Subject here', 'Here is the message.', 'gnoelp@yahoo.com', ['gnoelp@yahoo.com'], fail_silently=False)

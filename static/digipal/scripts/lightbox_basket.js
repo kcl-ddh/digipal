@@ -60,6 +60,9 @@ $(document).ready(function() {
 			data: {
 				'data': JSON.stringify(data)
 			},
+			beforeSend: function() {
+
+			},
 			success: function(data) {
 
 				if (data['annotations']) {
@@ -157,6 +160,9 @@ $(document).ready(function() {
 						localStorage.setItem('lightbox_basket', JSON.stringify(basket));
 					});
 				});
+			},
+			complete: function() {
+				$(".loading-div").fadeOut().remove();
 			}
 		});
 

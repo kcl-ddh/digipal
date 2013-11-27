@@ -2311,15 +2311,19 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	var flag, i, j, elements;
 	if (multiple) {
 		if (current_basket) {
-			flag = true;
 			for (i = 0; i < annotations.length; i++) {
+				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
 					if (current_basket.annotations[j].graph == annotations[i].graph) {
 						flag = false;
+					} else {
+						continue;
 					}
 				}
 				if (flag) {
 					current_basket.annotations.push(annotations[i]);
+				} else {
+					continue;
 				}
 			}
 
@@ -2342,8 +2346,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 
 		if (basket_elements && elements && elements.length) {
-			flag = true;
 			for (j = 0; j < elements.length; j++) {
+				flag = true;
 				if (type == 'annotation') {
 					if (elements[j].graph == graph) {
 						flag = false;

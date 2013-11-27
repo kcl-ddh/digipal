@@ -186,18 +186,24 @@ class SearchContentType(object):
             display on the result sets.
         '''
         import re
+        from digipal.utils import natural_sort_key
+        
         sort_fields = self.get_sort_fields()
         if sort_fields:
             # Natural sort order based on a concatenation of the sort fields
             # obtained from get_sort_fields()
-            from digipal.utils import natural_sort_key
             def sort_order(record):
                 sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
-                # remove non words at the beginning
-                # e.g. 'Hemming'
-                sort_key = re.sub(ur'^\W+', ur'', sort_key)
-                return natural_sort_key(sort_key)
+                # remove non-words characters at the beginning
+                # e.g. 'Hemming' -> Hemming
+                sort_key = re.sub(ur'(?u)^\W+', ur'', sort_key)
+                return natural_sort_key(sort_key, True)
             records = sorted(records, key=lambda record: sort_order(record))
+            
+#             for record in records:
+#                 sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
+#                 print repr(sort_key)
+#                 print '\t%s' % repr(natural_sort_key(sort_key, True))
         
         return records
     

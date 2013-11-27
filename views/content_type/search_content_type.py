@@ -444,6 +444,7 @@ class SearchContentType(object):
                 # Intersection between Whoosh results and Django results.
                 # We can't do .filter(id__in=whooshids) because it would 
                 # ignore the order stored in whooshids.
+                ret = list(ret)
                 l = len(ret)
                 for i in range(l-1, -1, -1):
                     if ret[i] not in self.whoosh_dict:

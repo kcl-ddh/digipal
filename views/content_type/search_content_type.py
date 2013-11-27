@@ -333,9 +333,10 @@ class SearchContentType(object):
         import os
         return open_dir(os.path.join(settings.SEARCH_INDEX_PATH, index_name))
     
-    def search_whoosh(self, query, matched_terms=False, index_name='unified'):
-        ret = []
-        
+    def search_whoosh(self, query=None, matched_terms=False, index_name='unified'):
+        '''
+            Run a search with the provided query using Whoosh.
+        '''
         self.close_whoosh_searcher()
         index = self.get_whoosh_index(index_name=index_name)
         self.searcher = index.searcher()
@@ -397,10 +398,24 @@ class SearchContentType(object):
         from django.utils.datastructures import SortedDict
         whoosh_dict = SortedDict()
         use_whoosh = term or query_advanced
+        
+        # The code was originally designed to work without Whoosh if we can 
+        # retrieve the information from the database.
+        # However now we use whoosh in every case because we need to retrieve 
+        # the proper sort order this may change in the future if we sort the 
+        # result using the DB/Django but keep in mind that the sort order is 
+        # not trivial (see get_sort_fields() and search_whoosh()).
+        sort_with_whoosh = True
+        if sort_with_whoosh:
+            use_whoosh = True
+        
         if use_whoosh:
             # Build the query
             # filter the content type (e.g. manuscripts) and other whoosh fields
-            query = ('%s %s type:%s' % (term, query_advanced, self.key)).strip()
+            query = ur''
+            if term or query_advanced:
+                query = (ur'%s %s type:%s' % (term, query_advanced, self.key)).strip()
+            query = (query + ur' type:%s' % self.key).strip()
 
             # Run the search
             results = self.search_whoosh(query)
@@ -461,6 +476,10 @@ class SearchContentType(object):
         return ret
     
     def get_whoosh_dict(self):
+        ''' 
+            Returns a sorted dictionary of hits from the last search
+            SortedDict ret such that ret[record.id] = hit
+        '''
         return getattr(self, 'whoosh_dict', None)
 
     def _get_query_terms(self):

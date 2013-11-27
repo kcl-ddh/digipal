@@ -23,7 +23,7 @@ class SearchHands(SearchContentType):
 
     def get_sort_fields(self):
         ''' returns a list of django field names necessary to sort the results ''' 
-        return ['item_part__current_item__shelfmark', 'num']
+        return ['item_part__current_item__repository__place__name', 'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'num']
 
     def set_record_view_context(self, context, request):
         super(SearchHands, self).set_record_view_context(context, request)

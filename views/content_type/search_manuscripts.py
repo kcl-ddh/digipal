@@ -22,7 +22,7 @@ class SearchManuscripts(SearchContentType):
     
     def get_sort_fields(self):
         ''' returns a list of django field names necessary to sort the results ''' 
-        return ['display_label']
+        return ['current_item__repository__place__name', 'current_item__repository__name', 'current_item__shelfmark', 'locus']
     
     def set_record_view_context(self, context, request):
         super(SearchManuscripts, self).set_record_view_context(context, request)

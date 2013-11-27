@@ -8,6 +8,7 @@ import re
 from optparse import make_option
 from django.db import IntegrityError
 from digipal.models import *
+from digipal.utils import natural_sort_key
 
 class Command(BaseCommand):
 	help = """
@@ -71,17 +72,26 @@ Commands:
 	
 	def test_natsort(self, options):
 		#[ ItemPart.objects.filter(display_label__icontains='royal')]
-		l = list(ItemPart.objects.filter(display_label__icontains='royal').order_by('display_label'))
-			
-		import re
-
-		_nsre = re.compile('([0-9]+)')
-		def natural_sort_key(s):
-			return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
-		l = sorted(l, key=lambda i: natural_sort_key(i.display_label))
-		
-		for i in l:
-			print (i.display_label).encode('ascii', 'ignore')
+		sms = ['A.897.abc.ixv', 'Hereford Cathedral Library O.IX.2', 'Hereford Cathedral Library O.VI.11']
+		for s in sms:
+			print s, natural_sort_key(s)
+		print sorted(sms, key=lambda i: natural_sort_key(i))
+		#print natural_sort_key('A.897.abc.ixv')
+		#print natural_sort_key('Hereford Cathedral Library O.IX.2')
+		#'Hereford Cathedral Library O.VI.11'
+		return
+	
+# 		l = list(ItemPart.objects.filter(display_label__icontains='royal').order_by('display_label'))
+# 			
+# 		import re
+# 
+# 		_nsre = re.compile('([0-9]+)')
+# 		def natural_sort_key(s):
+# 			return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
+# 		l = sorted(l, key=lambda i: natural_sort_key(i.display_label))
+# 		
+# 		for i in l:
+# 			print (i.display_label).encode('ascii', 'ignore')
 
 	def test_email(self, options):
 		#from django.core.mail import send_mail

@@ -1,7 +1,31 @@
 import re
-_nsre = re.compile('([0-9]+)')
+#_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
+_nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
+_nsre = re.compile(ur'(?iu)([0-9]+)')
 
-def natural_sort_key(s):
+def natural_sort_key(s, roman_numbers=False):
+    '''
+        Returns a list of tokens from a string.
+        This list of tokens can be feed into a sorting function to come up with a natural sorting.
+        Natural sorting is number-aware: e.g. 'word 2' < 'word 100'.
+        
+        If roman_numbers is True, roman numbers will be converted to ints.
+        Note that there is no fool-proof was to detect roman numerals
+        e.g. MS A; MS B; MS C. In this case C is a letter and not 500. 
+            MS A.ix In this case ix is a number
+        So as a heuristic we only consider roman number if preceded by '.'  
+    '''
+    
+    if roman_numbers:
+        while True:
+            m = _nsre_romans.search(s)
+            if m is None: break
+            # convert the roman number into base 10 number
+            number = get_int_from_roman_number(m.group(1))
+            if number:
+                # substition
+                s = s[:m.start(1)] + str(number) + s[m.end(1):]
+                
     return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
 
 def plural(value, count=2):
@@ -129,3 +153,60 @@ def find_first(pattern, text, default=''):
     matches = re.findall(pattern, text)
     if matches: ret = matches[0]
     return ret
+
+def get_int_from_roman_number(input):
+    """
+    From 
+    http://code.activestate.com/recipes/81611-roman-numerals/
+    
+    Convert a roman numeral to an integer.
+    
+    >>> r = range(1, 4000)
+    >>> nums = [int_to_roman(i) for i in r]
+    >>> ints = [roman_to_int(n) for n in nums]
+    >>> print r == ints
+    1
+    
+    >>> roman_to_int('VVVIV')
+    Traceback (most recent call last):
+    ...
+    ValueError: input is not a valid roman numeral: VVVIV
+    >>> roman_to_int(1)
+    Traceback (most recent call last):
+    ...
+    TypeError: expected string, got <type 'int'>
+    >>> roman_to_int('a')
+    Traceback (most recent call last):
+    ...
+    ValueError: input is not a valid roman numeral: A
+    >>> roman_to_int('IL')
+    Traceback (most recent call last):
+    ...
+    ValueError: input is not a valid roman numeral: IL
+    """
+    if not isinstance(input, basestring):
+        return None
+    input = input.upper()
+    nums = ['M', 'D', 'C', 'L', 'X', 'V', 'I']
+    ints = [1000, 500, 100, 50,  10,  5,   1]
+    places = []
+    for c in input:
+        if not c in nums:
+            #raise ValueError, "input is not a valid roman numeral: %s" % input
+            return None
+    for i in range(len(input)):
+        c = input[i]
+        value = ints[nums.index(c)]
+        # If the next place holds a larger number, this value is negative.
+        try:
+            nextvalue = ints[nums.index(input[i +1])]
+            if nextvalue > value:
+                value *= -1
+        except IndexError:
+            # there is no next place.
+            pass
+        places.append(value)
+    sum = 0
+    for n in places: sum += n
+    return sum
+

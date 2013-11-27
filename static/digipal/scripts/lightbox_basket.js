@@ -33,7 +33,7 @@ $(document).ready(function() {
 
 		if (length_basket_elements()) {
 			if (basket.annotations && basket.annotations.length) {
-				s += "<h3>Annotations</h3>";
+				s += "<h3>Annotations (" + basket.annotations.length + ")</h3>";
 				for (var i = 0; i < basket.annotations.length; i++) {
 					graphs.push(basket.annotations[i].graph);
 				}
@@ -56,7 +56,6 @@ $(document).ready(function() {
 					'data': JSON.stringify(data)
 				},
 				success: function(data) {
-					console.log(data)
 					s += "<table class='table table-condensed'>";
 					s += '<th>Image</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
 
@@ -66,7 +65,7 @@ $(document).ready(function() {
 						s += "</td>";
 						s += "<td>" + annotation[11] + "</td>";
 						s += "<td><a href='/digipal/hands/" + annotation[9] + "'>" + annotation[3] + "</a></td>";
-						if (annotation[4] != 'null') {
+						if (annotation[4] !== null && annotation[4] != 'null') {
 							s += "<td><a href='/digipal/scribes/" + annotation[10] + "'>" + annotation[4] + "</a></td>";
 						} else {
 							s += "<td>None</td>";
@@ -79,7 +78,7 @@ $(document).ready(function() {
 					s += "</table>";
 
 					if (basket.images && basket.images.length) {
-						s += "<h3>Images</h3>";
+						s += "<h3>Images (" + basket.images.length + ")</h3>";
 					}
 
 					s += "<table class='table table-condensed'>";
@@ -120,12 +119,22 @@ $(document).ready(function() {
 
 
 			$('#to_lightbox').click(function() {
-				var graphs = [];
-				for (i = 0; i < basket_elements.annotations.length; i++) {
-					var element = basket_elements.annotations[i].graph;
-					graphs.push(element);
+				var graphs = [],
+					images = [],
+					element;
+				if (basket_elements && basket_elements.annotations.length) {
+					for (i = 0; i < basket_elements.annotations.length; i++) {
+						element = basket_elements.annotations[i].graph;
+						graphs.push(element);
+					}
 				}
-				location.href = '/lightbox/?annotations=[' + graphs.toString() + ']';
+				if (basket_elements && basket_elements.images.length) {
+					for (i = 0; i < basket_elements.images.length; i++) {
+						element = basket_elements.images[i].id;
+						images.push(element);
+					}
+				}
+				location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 			});
 
 

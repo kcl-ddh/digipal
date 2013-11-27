@@ -353,7 +353,11 @@ def images_lightbox(request):
                 for graph in graphs['annotations']:
                     annotation = Annotation.objects.get(graph=graph)
                     #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph_name]
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, annotation.graph.hand.scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe, annotation.graph.idiograph.allograph.human_readable()])
+                    try:
+                        scribe = annotation.graph.hand.scribe.name
+                    except:
+                        scribe = "null"
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe, annotation.graph.idiograph.allograph.human_readable()])
                 data['annotations'] = annotations
             if 'images' in graphs:
                 images = []

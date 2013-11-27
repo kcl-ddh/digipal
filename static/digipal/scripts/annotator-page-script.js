@@ -559,6 +559,7 @@ declaring function to get parameteres from URL
 			}
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
+		highlight_vectors();
 
 
 	}

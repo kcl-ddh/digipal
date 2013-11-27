@@ -353,14 +353,14 @@ def images_lightbox(request):
                 annotations = []
                 for graph in graphs['annotations']:
                     annotation = Annotation.objects.get(graph=graph)
-                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph_name]
+                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name]
                     try:
                         scribe = annotation.graph.hand.scribe.name
                         scribe_id = annotation.graph.hand.scribe.id
                     except:
                         scribe = "null"
                         scribe_id = 'null'
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable()])
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name])
                 data['annotations'] = annotations
             if 'images' in graphs:
                 images = []

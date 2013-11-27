@@ -69,15 +69,15 @@ $(document).ready(function() {
 							var annotation = data['annotations'][i];
 							s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 							s += "</td>";
-							s += "<td>" + annotation[11] + "</td>";
+							s += "<td><a href='/digipal/search/graph/?character_select=" + annotation[13] + "&allograph_select=" + annotation[12] + "'>" + annotation[11] + "</a></td>";
 							s += "<td><a href='/digipal/hands/" + annotation[9] + "'>" + annotation[3] + "</a></td>";
 							if (annotation[4] !== null && annotation[4] != 'null') {
 								s += "<td><a href='/digipal/scribes/" + annotation[10] + "'>" + annotation[4] + "</a></td>";
 							} else {
 								s += "<td>None</td>";
 							}
-							s += "<td>" + annotation[5] + "</td>";
-							s += "<td>" + annotation[6] + "</td>";
+							s += "<td><a href='/digipal/page/?town_or_city=" + annotation[5] + "'>" + annotation[5] + "</a></td>";
+							s += "<td><a href='/digipal/page/?date=" + annotation[6] + "'>" + annotation[6] + "</a></td>";
 							s += "<td><button data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 						}
 					}

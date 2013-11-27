@@ -68,8 +68,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		this.last_feature_selected = this.selectedFeature.last_feature_selected;
 	}
 	this.showAnnotation(event.feature);
-
-
 };
 
 /**
@@ -312,8 +310,8 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
-	if (feature !== null) {
-		if (feature.style !== null) {
+	if (feature) {
+		if (feature.style) {
 			feature.style.fillColor = 'blue';
 			feature.style.strokeColor = 'blue';
 		} else {
@@ -338,21 +336,20 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			}
 		}
 		showBox(annotation);
-		if (!annotation) {
-			return false;
-		} else {
+		if (annotation) {
 			if ($('.letters-allograph-container').length) {
+
 				var allograph_id = $('#id_allograph').val();
 				var al = $('#id_allograph option:selected').text();
+
 				if (current_allograph === undefined) {
 					refresh_letters_container(al, allograph_id);
 				}
+
 				if (current_allograph !== undefined && annotation.feature !== current_allograph) {
 					refresh_letters_container(al, allograph_id);
 				}
 			}
-
-
 		}
 	}
 
@@ -460,15 +457,14 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
-	var url;
-	var allograph_selected;
+	var url, allograph_selected;
 	var annotations = annotator.annotations;
 	if ($.isNumeric(currentFeatures)) {
 		allograph_selected = currentFeatures;
@@ -555,6 +551,7 @@ function updateFeatureSelect(currentFeatures, id) {
 				} else {
 					dialog = $('.modal-body');
 				}
+
 				if (!annotator.editorial.active) {
 					dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
 				}
@@ -746,12 +743,7 @@ function reload_described_annotations(div) {
 		if (typeof div != "undefined") {
 			div.fadeOut().remove();
 		}
-
-
 	}
-
-
-
 }
 
 
@@ -869,7 +861,9 @@ function create_dialog(selectedFeature, id) {
 		},
 		position: position()
 	}).addClass('dialog_annotations');
+
 	var pin;
+
 	if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
 		pin = "<span title='Minimize box' style='font-size:20px;line-height:1.5;' class='pull-right pin-box'>&#9633;</span>";
 	} else {
@@ -960,6 +954,7 @@ function load_allographs_container(allograph_value, url) {
 	var features = $.getJSON(url);
 
 	var div = $("<div>");
+
 	div.attr('class', 'letters-allograph-container');
 	div.css({
 		'position': 'fixed',
@@ -1253,11 +1248,10 @@ function show_url_allograph(dialog, annotation, button) {
 	if (button.data('hidden')) {
 		button.data('hidden', false);
 		var url = $("<div class='allograph_url_div'>");
-		var allograph_url;
+		var allograph_url, stored;
 		var input = $('<input type="text">');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').val();
-		var stored;
 		if (annotation !== null) {
 			for (var i = 0; i < features.length; i++) {
 				if (annotation.graph == features[i].graph && features[i].stored) {
@@ -1582,7 +1576,6 @@ function updateOptionsForLetter(letterId, annotation) {
 			enableMultiSelect('id_ascender');
 		} else {
 			disableMultiSelect('id_ascender');
-			r
 		}
 		if (data.has_descender) {
 			enableMultiSelect('id_descender');
@@ -1739,6 +1732,7 @@ function serializeObject(obj) {
 }
 
 function highlight_vectors() {
+
 	$('#id_allograph_chzn .active-result').on('mouseover', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
@@ -1752,6 +1746,7 @@ function highlight_vectors() {
 		}
 		annotator.vectorLayer.redraw();
 	});
+
 	$('#id_allograph_chzn .active-result').on('mouseout', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
@@ -1759,11 +1754,11 @@ function highlight_vectors() {
 			if (features[i].feature == text) {
 				features[i].style.strokeColor = features[i].originalColor;
 				features[i].style.strokeWidth = features[i].originalWidth;
-
 			}
 		}
 		annotator.vectorLayer.redraw();
 	});
+
 }
 
 function highlight_unsaved_vectors(button) {
@@ -2316,15 +2311,19 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	var flag, i, j, elements;
 	if (multiple) {
 		if (current_basket) {
-			flag = true;
 			for (i = 0; i < annotations.length; i++) {
+				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
 					if (current_basket.annotations[j].graph == annotations[i].graph) {
 						flag = false;
+					} else {
+						continue;
 					}
 				}
 				if (flag) {
 					current_basket.annotations.push(annotations[i]);
+				} else {
+					continue;
 				}
 			}
 
@@ -2347,8 +2346,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 
 		if (basket_elements && elements && elements.length) {
-			flag = true;
 			for (j = 0; j < elements.length; j++) {
+				flag = true;
 				if (type == 'annotation') {
 					if (elements[j].graph == graph) {
 						flag = false;
@@ -2358,17 +2357,18 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						flag = false;
 					}
 				}
-			}
-			if (flag) {
-				if (type == 'annotation') {
-					elements.push(annotations);
-				} else {
-					elements.push({
-						'id': annotator.image_id
-					});
+				if (flag) {
+					if (type == 'annotation') {
+						elements.push(annotations);
+					} else {
+						elements.push({
+							'id': annotator.image_id
+						});
+					}
+
 				}
-				localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
 			}
+			localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
 
 		} else {
 			if (type == 'annotation') {

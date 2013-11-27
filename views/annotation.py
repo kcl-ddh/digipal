@@ -357,10 +357,14 @@ def images_lightbox(request):
                     try:
                         scribe = annotation.graph.hand.scribe.name
                         scribe_id = annotation.graph.hand.scribe.id
+                        place_name = annotation.graph.hand.assigned_place.name
+                        date = annotation.graph.hand.assigned_date.date
                     except:
-                        scribe = "null"
-                        scribe_id = 'null'
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name])
+                        scribe = 'Unknown'
+                        scribe_id = 'Unknown'
+                        place_name = 'Unknown'
+                        date = 'Unknown'
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name])
                 data['annotations'] = annotations
             if 'images' in graphs:
                 images = []

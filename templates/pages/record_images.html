@@ -2,7 +2,6 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
-}
 {% block main %}
 <h2 class='header1'>{{ image|capfirst }}</h2>
 
@@ -35,7 +34,7 @@
                 {{ image.locus }}
             </td>
         </tr>
-        
+
     </tbody>
 </table>
 <table class='table table-condensed'>
@@ -47,7 +46,7 @@
             <td>
                 {{ hand.display_label }}
             </td>
-            
+
         </tr>
         {% endfor %}
 </table>

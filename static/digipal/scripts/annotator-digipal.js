@@ -53,7 +53,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	this.selectedFeature = event.feature;
-	console.log(this.selectedFeature)
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -461,9 +460,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {

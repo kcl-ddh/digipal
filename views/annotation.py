@@ -347,6 +347,7 @@ def images_lightbox(request):
     if request.is_ajax():
         if 'data' in request.POST and request.POST.get('data', ''):
             graphs = simplejson.loads(request.POST.get('data', ''))
+            print graphs
             data = {}
             if 'annotations' in graphs:
                 annotations = []
@@ -355,9 +356,11 @@ def images_lightbox(request):
                     #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph_name]
                     try:
                         scribe = annotation.graph.hand.scribe.name
+                        scribe_id = annotation.graph.hand.scribe.id
                     except:
                         scribe = "null"
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, annotation.graph.hand.scribe, annotation.graph.idiograph.allograph.human_readable()])
+                        scribe_id = 'null'
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, annotation.graph.hand.assigned_place.name, annotation.graph.hand.assigned_date.date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable()])
                 data['annotations'] = annotations
             if 'images' in graphs:
                 images = []

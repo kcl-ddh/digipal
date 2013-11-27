@@ -4,8 +4,11 @@
 
 {% block meta_title %}Scribe: {{ scribe.name }}{% endblock %}
 {% block record_title %}
-    Scribe: {{ scribe.name }}        
+    Scribe: {{ scribe.name }}
     {% include "digipal/admin_edit.html" with instance=scribe %}
+    {% if can_edit %}
+    <a class='admin-edit' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>[Edit Ideographs]</a>
+    {% endif %}
 {% endblock %}
 
 {% block record_tabs %}
@@ -17,11 +20,11 @@
 
 {% block details %}
     <div class='tabbable'>
-    
+
         <div id='myTabContent' class='tab-content'>
             <div class='tab-pane fade active in' id='data'>
                 <h3>Location</h3>
-    
+
                 <table class="table table-condensed">
                     <tbody>
                         <tr>
@@ -39,7 +42,7 @@
                     </tbody>
                 </table>
             </div>
-    
+
             <div class='tab-pane fade' id='hands'>
                 <div class='row-fluid'>
                     <table class="table table-condensed">
@@ -50,7 +53,7 @@
                         {% for hand in scribe.hands.all %}
                             {% if hand %}
                                 <tr>
-                                    <td>{{hand.item_part}}</td> 
+                                    <td>{{hand.item_part}}</td>
                                     <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
                                 </tr>
                             {% else %}
@@ -59,11 +62,11 @@
                                 </tr>
                             {% endif %}
                         {% endfor %}
-    
+
                     </table>
                 </div>
             </div>
-            
+
             <div class='tab-pane fade' id='pages'>
                 <table class='table table-condensed'>
                     <tr>
@@ -76,7 +79,7 @@
                             <tr>
                                 <td>
                                     <p><a href="{{ image.get_absolute_url }}">{{ image }}</a></p>
-        
+
                                 </td>
                                 <td>
                                     <p>{{ hand }}</p>
@@ -86,16 +89,16 @@
                                         {{ image.thumbnail  }}
                                     </a>
                                 </td>
-                               
+
                             </tr>
                         {% endfor %}
                     {% endfor %}
                 </table>
             </div>
-            
+
             <div class='tab-pane fade' id='idiographs'>
                 <div id='idiographsView'>
-                <a class='btn btn-primary' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>Edit Ideographs</a>
+
                 {% if idiograph_components %}
                     {% for idiograph in idiograph_components.all %}
                     <div class="idiograph_scribe">
@@ -117,7 +120,7 @@
                 {% endif %}
                 </div>
             </div>
-            
+
         </div>
     </div>
 {% endblock %}

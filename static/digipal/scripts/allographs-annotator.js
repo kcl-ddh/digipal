@@ -191,12 +191,8 @@ var chained = request.then(function(data) {
 							$(this).attr('checked', false);
 						}
 					});
-
 				}
-
 			}
-
-
 			main();
 		});
 
@@ -248,28 +244,7 @@ var chained = request.then(function(data) {
 
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function() {
-			var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
-			var annotations = selectedAnnotations.annotations;
-			if (current_basket) {
-				var flag = true;
-				for (var i = 0; i < annotations.length; i++) {
-					for (var j = 0; j < current_basket.annotations.length; j++) {
-						if (current_basket.annotations[j].graph == annotations[i].graph) {
-							flag = false;
-						}
-					}
-					if (flag) {
-						current_basket.annotations.push(annotations[i]);
-						localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
-					}
-				}
-
-			} else {
-				current_basket = selectedAnnotations;
-				localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
-			}
-			$('#lightbox_button a').html("Lightbox (" + current_basket.annotations.length + " images)");
-
+			add_to_lightbox($(this), 'annotation', selectedAnnotations.annotations, true);
 		});
 
 

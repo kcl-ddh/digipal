@@ -45,8 +45,9 @@
                 annotator.toolbarPanel.redraw();
                 annotator.user_annotations = [];
                 annotator.boxes_on_click = true;
-            {% endif %}
 
+            {% endif %}
+            annotator.image_id = {{ image.id }}
             annotator.hands = {{ hands_list|safe }}
 
 

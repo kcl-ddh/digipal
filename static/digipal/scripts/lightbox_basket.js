@@ -27,53 +27,70 @@ $(document).ready(function() {
 
 		var s = '';
 		var basket = basket_elements;
-		var graphs = [];
-		if (basket.annotations.length) {
+		var graphs = [],
+			images = [],
+			data = {};
 
-			for (var i = 0; i < basket.annotations.length; i++) {
-				graphs.push(basket.annotations[i].graph);
+		if (length_basket_elements()) {
+			if (basket.annotations && basket.annotations.length) {
+				s += "<h3>Annotations</h3>";
+				for (var i = 0; i < basket.annotations.length; i++) {
+					graphs.push(basket.annotations[i].graph);
+				}
+				data.annotations = graphs;
+			}
+
+
+
+			if (basket.images && basket.images.length) {
+				for (d = 0; d < basket.images.length; d++) {
+					images.push(basket.images[d].id);
+				}
+				data.images = images;
 			}
 
 			$.ajax({
 				type: 'POST',
 				url: 'images/',
 				data: {
-					'graphs': JSON.stringify(graphs)
+					'data': JSON.stringify(data)
 				},
 				success: function(data) {
+					console.log(data)
 					s += "<table class='table table-condensed'>";
 					s += '<th>Image</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
-					s += "<tr data-graph = '" + data[0].annotations[1] + "'><td data-graph = '" + data[0].annotations[1] + "'><a href='/digipal/page/" + data[0].annotations[8] + "/?vector_id=" + data[0].annotations[7] + "'>" + data[0].annotations[0] + "</a>";
-					s += "</td>";
-					s += "<td>" + data[0].allograph + "</td>";
-					s += "<td><a href='/digipal/hands/" + data[0].annotations[9] + "'>" + data[0].annotations[3] + "</a></td>";
 
-					if (data[0].annotations[4] != 'null') {
-						s += "<td><a href='/digipal/scribes/" + data[0].annotations[10] + "'>" + data[0].annotations[4] + "</a></td>";
-					} else {
-						s += "<td>None</td>";
-					}
-
-					s += "<td>" + data[0].annotations[5] + "</td>";
-					s += "<td>" + data[0].annotations[6] + "</td>";
-					s += "<td><button data-graph = '" + data[0].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
-					for (i = 1; i < data.length; i++) {
-
-						s += "<tr data-graph = '" + data[i].annotations[1] + "'><td data-graph = '" + data[i].annotations[1] + "'><a href='/digipal/page/" + data[i].annotations[8] + "/?vector_id=" + data[i].annotations[7] + "'>" + data[i].annotations[0] + "</a>";
+					for (i = 0; i < data['annotations'].length; i++) {
+						var annotation = data['annotations'][i];
+						s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
-						s += "<td>" + data[i].allograph + "</td>";
-						s += "<td><a href='/digipal/hands/" + data[i].annotations[9] + "'>" + data[i].annotations[3] + "</a></td>";
-						if (data[i].annotations[4] != 'null') {
-							s += "<td><a href='/digipal/scribes/" + data[i].annotations[10] + "'>" + data[i].annotations[4] + "</a></td>";
+						s += "<td>" + annotation[11] + "</td>";
+						s += "<td><a href='/digipal/hands/" + annotation[9] + "'>" + annotation[3] + "</a></td>";
+						if (annotation[4] != 'null') {
+							s += "<td><a href='/digipal/scribes/" + annotation[10] + "'>" + annotation[4] + "</a></td>";
 						} else {
 							s += "<td>None</td>";
 						}
-						s += "<td>" + data[i].annotations[5] + "</td>";
-						s += "<td>" + data[i].annotations[6] + "</td>";
-						s += "<td><button data-graph = '" + data[i].annotations[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td>" + annotation[5] + "</td>";
+						s += "<td>" + annotation[6] + "</td>";
+						s += "<td><button data-graph = '" + annotation[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 
 					}
 					s += "</table>";
+
+					if (basket.images && basket.images.length) {
+						s += "<h3>Images</h3>";
+					}
+
+					s += "<table class='table table-condensed'>";
+					s += '<th>Image</th><th>Label</td><th>Hand</th><th>Remove</th>';
+					for (i = 0; i < data['images'].length; i++) {
+						var image = data['images'][i];
+						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<td>" + image[2] + "</td>";
+						s += "<td>" + image[3] + "</td>";
+						s += "<td><button data-graph = '" + image[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+					}
 					$(s).find('img').on('load', function() {
 						$('#container_basket').html(s);
 
@@ -99,6 +116,8 @@ $(document).ready(function() {
 				}
 
 			});
+
+
 
 			$('#to_lightbox').click(function() {
 				var graphs = [];

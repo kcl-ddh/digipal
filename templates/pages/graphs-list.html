@@ -186,7 +186,8 @@
                                             <tr class="{% cycle 'bgColour' '' %}">
                                                 <td>
                                                     {% for graph in hand.list %}
-                                                    <a title={{ hand.grouper.id }} href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
+
+                                                    <a title="{{ hand.grouper.id }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">{{ graph.annotation.thumbnail }}</a>
                                                     {% endfor %}
                                                 </td>
                                                 <td>{{ hand.grouper }}</td>

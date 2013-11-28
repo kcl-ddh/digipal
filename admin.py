@@ -653,7 +653,7 @@ class HandAdmin(reversion.VersionAdmin):
     form = HandForm
 
     filter_horizontal = ['images']
-    list_display = ['label', 'num', 'item_part', 'script', 'scribe',
+    list_display = ['item_part', 'num', 'label', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = list_display

@@ -161,7 +161,7 @@ $(function(){
                             
 		    			</td>
 		    		</tr>
-                    {% if hands %}
+                    {% if can_set_hand %}
                         <tr  class="section_last">
                             <td>
                                 <input type="checkbox" name="hand_set" id="hand_set_id" value="1" />
@@ -171,6 +171,9 @@ $(function(){
                                 Tick this box and click 'Change' to add a Hand to the selected images.
                                 <br/>
                                 <select name="hand">
+                                    {% if not hands %}
+                                        <option value="-2">Assign a new default Hand record</option>
+                                    {% endif %}
                                     <option value="-1">Disconnect all hand records from those images</option>
                                     {% for hand in hands %}
                                         <option {% if forloop.first %}selected="selected"{% endif %}

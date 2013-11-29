@@ -937,7 +937,7 @@ class ImageAdmin(reversion.VersionAdmin):
     list_display_links = ['id', 'display_label', 
             'media_permission', 'created', 'modified',
             'iipimage']
-    search_fields = ['id', 'folio_side', 'folio_number', 
+    search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
@@ -952,6 +952,20 @@ class ImageAdmin(reversion.VersionAdmin):
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
                 ) 
     inlines = [HandsInline]
+    
+    def get_changelist(self, request, **kwargs):
+        ''' Override this function in order to enforce a sort order on the folio number and side'''
+        from django.contrib.admin.views.main import ChangeList
+         
+        class SortedChangeList(ChangeList):
+            def get_query_set(self, *args, **kwargs):
+                qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
+                return Image.sort_query_set_by_locus(qs)
+                 
+        if request.GET.get('o'):
+            return ChangeList
+             
+        return SortedChangeList        
     
     def get_thumbnail(self, image):
         from digipal.templatetags.html_escape import iip_img_a

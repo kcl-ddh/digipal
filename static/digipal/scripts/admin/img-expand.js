@@ -24,12 +24,16 @@ $(function() {
 		var total_padding = 62;
 		if (!expanded_div.size()) {
 			// we create a permanent div 
-			$('body').append('<div id="img-expand-div" style="background-color:white;line-height:0px;display:none;position:fixed;top:0px;padding:20px;margin:10px;border:1px solid grey; box-shadow: 5px 5px 5px #888888;"><img style="border:1px solid grey;" src="img-expand-div"/></div>');
+			$('body').append('<div id="img-expand-div" style="background-color:white;line-height:0px;display:none;position:fixed;top:0px;padding:20px;margin:10px;border:1px solid grey; box-shadow: 5px 5px 5px #888888;"><img style="border:1px solid grey;" src="img-expand-div"/><p>Loading the image, please wait...</p></div>');
 			expanded_div = $('#img-expand-div');
+			var expanded_img = expanded_div.children('img');
+			expanded_img.load(function () { expanded_img.show(); expanded_div.children('p').hide(); });
 		}
 		
 		if (!hide) {
-			var expanded_img = $('#img-expand-div').children('img');
+			var expanded_img = expanded_div.children('img');
+			expanded_img.hide();
+			expanded_div.children('p').show();
 			
 			var expanded_img_x = [0, (thumbnail_img.offset()).left + thumbnail_img.width() - $(document).scrollLeft()];
 			
@@ -55,7 +59,7 @@ $(function() {
 				dimension_request = '&HEI=' + Math.round(expanded_max_height);
 			} else {
 				// use the full width
-				dimension_request = '&WID=' + Math.round(max_expanded_width);
+				dimension_request = '&WID=' + Math.round(max_expanded_width[right_or_left]);
 			}
 			dimension_request += '&QLT=100&CVT=JPG';
 			

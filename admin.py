@@ -928,12 +928,13 @@ class HandsInline(admin.StackedInline):
 
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
+    change_list_template = 'admin/digipal/change_list.html'
 
     exclude = ['image', 'caption']
-    list_display = ['id', 'display_label', 'thumbnail_with_link', 
+    list_display = ['id', 'display_label', 'get_thumbnail', 
             'get_status_label', 'media_permission', 'created', 'modified',
             'iipimage']
-    list_display_links = ['id', 'display_label', 'thumbnail_with_link', 
+    list_display_links = ['id', 'display_label', 
             'media_permission', 'created', 'modified',
             'iipimage']
     search_fields = ['id', 'folio_side', 'folio_number', 
@@ -951,6 +952,12 @@ class ImageAdmin(reversion.VersionAdmin):
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
                 ) 
     inlines = [HandsInline]
+    
+    def get_thumbnail(self, image):
+        from digipal.templatetags.html_escape import iip_img_a
+        return iip_img_a(image.iipimage, width=70, cls='img-expand')
+    get_thumbnail.short_description = 'Thumbnail'
+    get_thumbnail.allow_tags = True 
 
     def action_regen_display_label(self, request, queryset):
         for image in queryset.all():

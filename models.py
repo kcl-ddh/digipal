@@ -1257,7 +1257,6 @@ class Image(models.Model):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
         """
-        ret = ''
         path = ''
         if self.iipimage:
             #path = self.iipimage.full_base_url

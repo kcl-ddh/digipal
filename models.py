@@ -1138,7 +1138,7 @@ class Image(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['display_label']
+        ordering = ['item_part__display_label', 'folio_number', 'folio_side']
 
     def __unicode__(self):
         ret = u''
@@ -1303,7 +1303,7 @@ class Image(models.Model):
         '''
         # TODO: fall back for non-postgresql RDBMS
         # TODO: optimise this by caching the result in a field
-        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn')
+        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify

@@ -24,6 +24,9 @@ $(document).ready(function() {
 		}
 	});
 
+	var element_basket = $('#lightbox_button a');
+	var container_basket = $('#container_basket');
+
 	function main() {
 		var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 		var s = '';
@@ -59,9 +62,6 @@ $(document).ready(function() {
 			url: 'images/',
 			data: {
 				'data': JSON.stringify(data)
-			},
-			beforeSend: function() {
-
 			},
 			success: function(data) {
 
@@ -123,7 +123,7 @@ $(document).ready(function() {
 
 				$(s).find('img').on('load', function() {
 
-					$('#container_basket').html(s);
+					container_basket.html(s);
 
 					$('.remove_graph').click(function() {
 						var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
@@ -154,20 +154,36 @@ $(document).ready(function() {
 
 						$('tr[data-graph="' + graph + '"]').fadeOut().remove();
 
-						$('#lightbox_button a').html('Lightbox (' + length_basket_elements(basket) + ' images)');
+						var length_basket = length_basket_elements(basket_elements);
+						if (length_basket == 1) {
+							element_basket.html("Lightbox (" + length_basket + " image)");
+						} else {
+							element_basket.html("Lightbox (" + length_basket + " images)");
+						}
+
 						if (!basket.annotations.length && !basket.images.length) {
 							s = '<div class="container alert alert-warning">The Basket is empty</a>';
-							$('#container_basket').html(s);
+							container_basket.html(s);
 						}
 						localStorage.setItem('lightbox_basket', JSON.stringify(basket));
 					});
 				});
 			},
-			complete: function() {
-				if ($(".loading-div").length) {
-					$(".loading-div").fadeOut().remove();
-				}
 
+			complete: function() {
+				var loading_div = $(".loading-div");
+				if (loading_div.length) {
+					loading_div.fadeOut().remove();
+				}
+			},
+
+			error: function() {
+				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</a>';
+				container_basket.html(s);
+				var loading_div = $(".loading-div");
+				if (loading_div.length) {
+					loading_div.fadeOut().remove();
+				}
 			}
 		});
 
@@ -194,15 +210,26 @@ $(document).ready(function() {
 			}
 			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 		});
-		$('#lightbox_button a').html('Lightbox (' + length_basket_elements(basket) + ' images)');
+
+		var length_basket = length_basket_elements(basket_elements);
+		if (length_basket == 1) {
+			element_basket.html("Lightbox (" + length_basket + " image)");
+		} else {
+			element_basket.html("Lightbox (" + length_basket + " images)");
+		}
 	}
 
 	var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+
 	if (length_basket_elements(basket)) {
 		main();
 		setInterval(main, 5000);
 	} else {
-		var s = '<div class="container alert alert-warning">The Basket is empty</a>';
-		$('#container_basket').html(s);
+		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Basket is empty</a>';
+		container_basket.html(s);
+		var loading_div = $(".loading-div");
+		if (loading_div.length) {
+			loading_div.fadeOut().remove();
+		}
 	}
 });

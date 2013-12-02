@@ -2308,6 +2308,9 @@ DigipalAnnotator.prototype.full_Screen = function() {
 
 function add_to_lightbox(button, type, annotations, multiple) {
 	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+	if (!current_basket) {
+		current_basket = {};
+	}
 	var flag, i, j, elements;
 	if (multiple) {
 		if (current_basket) {
@@ -2339,15 +2342,22 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		var graph;
 		if (type == 'annotation') {
 			graph = button.data('graph');
-			elements = basket_elements.annotations;
+			if (current_basket.annotations === undefined) {
+				current_basket.annotations = [];
+			}
+			elements = current_basket.annotations;
 		} else {
 			graph = annotations;
-			elements = basket_elements.images;
+			if (current_basket.images === undefined) {
+				current_basket.images = [];
+			}
+			elements = current_basket.images;
 		}
 
-		if (basket_elements && elements && elements.length) {
+		if (current_basket && elements && elements.length) {
 			for (j = 0; j < elements.length; j++) {
 				flag = true;
+
 				if (type == 'annotation') {
 					if (elements[j].graph == graph) {
 						flag = false;
@@ -2357,6 +2367,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						flag = false;
 					}
 				}
+
 				if (flag) {
 					if (type == 'annotation') {
 						elements.push(annotations);
@@ -2365,41 +2376,44 @@ function add_to_lightbox(button, type, annotations, multiple) {
 							'id': annotator.image_id
 						});
 					}
-
+				} else {
+					continue;
 				}
 			}
-			localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
+
+			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 
 		} else {
 			if (type == 'annotation') {
-				if (basket_elements.hasOwnProperty('images')) {
-					basket_elements.annotations = [];
-					basket_elements.annotations.push(selectedFeature);
+				if (current_basket.hasOwnProperty('images')) {
+					current_basket.annotations = [];
+					current_basket.annotations.push(annotations);
 				} else {
-					basket_elements = {};
-					basket_elements.annotations = [];
-					basket_elements.annotations.push(selectedFeature);
+					current_basket = {};
+					current_basket.annotations = [];
+					current_basket.annotations.push(annotations);
 				}
 
 			} else {
-				if (basket_elements.hasOwnProperty('annotations')) {
-					basket_elements.images = [];
-					basket_elements.images.push({
+				if (current_basket.hasOwnProperty('annotations')) {
+					current_basket.images = [];
+					current_basket.images.push({
 						id: annotator.image_id
 					});
 				} else {
-					basket_elements = {};
-					basket_elements.images = [];
-					basket_elements.images.push({
+					current_basket = {};
+					current_basket.images = [];
+					current_basket.images.push({
 						id: annotator.image_id
 					});
 				}
 			}
-
-			localStorage.setItem('lightbox_basket', JSON.stringify(basket_elements));
+			console.log(current_basket);
+			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 		}
 
 	}
+
 	var length_basket_elements = function() {
 		var n = 0;
 		var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));

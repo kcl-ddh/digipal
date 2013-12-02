@@ -135,6 +135,7 @@ $(document).ready(function() {
 								element = basket.annotations[i];
 								if (graph == element.graph) {
 									basket.annotations.splice(i, 1);
+									i--;
 									break;
 								}
 							}
@@ -144,6 +145,7 @@ $(document).ready(function() {
 								element = basket.images[i];
 								if (graph == element.id) {
 									basket.images.splice(i, 1);
+									i--;
 									break;
 								}
 							}
@@ -162,7 +164,10 @@ $(document).ready(function() {
 				});
 			},
 			complete: function() {
-				$(".loading-div").fadeOut().remove();
+				if ($(".loading-div").length) {
+					$(".loading-div").fadeOut().remove();
+				}
+
 			}
 		});
 

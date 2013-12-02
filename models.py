@@ -1303,7 +1303,7 @@ class Image(models.Model):
         '''
         # TODO: fall back for non-postgresql RDBMS
         # TODO: optimise this by caching the result in a field
-        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
+        return query_set.extra(select={'fn': ur'''CASE WHEN digipal_image.folio_number~E'^\\d+$' THEN digipal_image.folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify

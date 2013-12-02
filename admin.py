@@ -653,7 +653,7 @@ class HandAdmin(reversion.VersionAdmin):
     form = HandForm
 
     filter_horizontal = ['images']
-    list_display = ['label', 'num', 'item_part', 'script', 'scribe',
+    list_display = ['item_part', 'num', 'label', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = list_display
@@ -928,15 +928,16 @@ class HandsInline(admin.StackedInline):
 
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
+    change_list_template = 'admin/digipal/change_list.html'
 
     exclude = ['image', 'caption']
-    list_display = ['id', 'display_label', 'thumbnail_with_link', 
+    list_display = ['id', 'display_label', 'get_thumbnail', 
             'get_status_label', 'media_permission', 'created', 'modified',
             'iipimage']
-    list_display_links = ['id', 'display_label', 'thumbnail_with_link', 
+    list_display_links = ['id', 'display_label', 
             'media_permission', 'created', 'modified',
             'iipimage']
-    search_fields = ['id', 'folio_side', 'folio_number', 
+    search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
@@ -951,6 +952,26 @@ class ImageAdmin(reversion.VersionAdmin):
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
                 ) 
     inlines = [HandsInline]
+    
+    def get_changelist(self, request, **kwargs):
+        ''' Override this function in order to enforce a sort order on the folio number and side'''
+        from django.contrib.admin.views.main import ChangeList
+         
+        class SortedChangeList(ChangeList):
+            def get_query_set(self, *args, **kwargs):
+                qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
+                return Image.sort_query_set_by_locus(qs)
+                 
+        if request.GET.get('o'):
+            return ChangeList
+             
+        return SortedChangeList        
+    
+    def get_thumbnail(self, image):
+        from digipal.templatetags.html_escape import iip_img_a
+        return iip_img_a(image.iipimage, width=70, cls='img-expand')
+    get_thumbnail.short_description = 'Thumbnail'
+    get_thumbnail.allow_tags = True 
 
     def action_regen_display_label(self, request, queryset):
         for image in queryset.all():

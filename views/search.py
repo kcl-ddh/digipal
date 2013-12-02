@@ -75,21 +75,25 @@ def search_page_view(request):
     # check if the search was executed or not (e.g. form not submitted or invalid form)
     if context.has_key('results'):
         # Tab Selection Logic =
-        #     we pick the tab the user has selected
-        #     if none, we select a tab with non empty result
-        #        with preference for already selected tab 
-        #     if none we select the first type
+        #     we pick the tab the user has selected even if it is empty. END
+        #     if none, we select a the advanced search content type
+        #     if none or its result is empty we select the first non empty type 
+        #     if none we select the first type. END
         result_type = request.GET.get('result_type', '')
+
         if not result_type:
+            first_non_empty_type = None
             for type in context['types']:
-                if not type.is_empty:
-                    result_type = type.key
-                    if type.key == context['search_type']:
-                        break
+                if type.key == context['search_type'] and not type.is_empty:
+                    result_type = context['search_type']
+                    break
+                if not first_non_empty_type and not type.is_empty:
+                    first_non_empty_type = type.key
+            if not result_type: result_type = first_non_empty_type
         
         result_type = result_type or context['types'][0].key
         context['result_type'] = result_type
-
+        
         # No result at all?
         for type in context['types']:
             if not type.is_empty:

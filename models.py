@@ -1138,7 +1138,7 @@ class Image(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['display_label']
+        ordering = ['item_part__display_label', 'folio_number', 'folio_side']
 
     def __unicode__(self):
         ret = u''
@@ -1257,7 +1257,6 @@ class Image(models.Model):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
         """
-        ret = ''
         path = ''
         if self.iipimage:
             #path = self.iipimage.full_base_url
@@ -1304,7 +1303,7 @@ class Image(models.Model):
         '''
         # TODO: fall back for non-postgresql RDBMS
         # TODO: optimise this by caching the result in a field
-        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn')
+        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify
@@ -1389,7 +1388,12 @@ class Hand(models.Model):
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands', help_text='''Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.''')
+    
+    # GN: we might want to ignore display_label, it is not used on the admin 
+    # form or the search or record views on the front end.
+    # Use label instead. 
     display_label = models.CharField(max_length=128, editable=False)
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -1410,7 +1414,7 @@ class Hand(models.Model):
             return None
 
     class Meta:
-        ordering = ['display_label']
+        ordering = ['item_part', 'num']
 
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
@@ -1438,6 +1442,16 @@ class Hand(models.Model):
             self.set_description('digipal', value, True)
         else:
             super(Hand, self).__setattr__(name, value)
+            
+    def validate_unique(self, exclude=None):
+        # Unique constraint for new records only: (item_part, label)
+        # Not as unique_together because we already have records violating this  
+        super(Hand, self).validate_unique(exclude)
+        if Hand.objects.filter(label=self.label, item_part=self.item_part).exclude(id=self.id).exists():
+            from django.core.exceptions import ValidationError
+            errors = {}
+            errors.setdefault('label', []).append(ur'Insertion failed, another record with the same label and item part already exists')
+            raise ValidationError(errors)
 
     def set_description(self, source_name, description=None, remove_if_empty=False):
         ''' Set the description of a hand according to a source (e.g. ker, sawyer).

@@ -117,6 +117,7 @@ def image_bulk_edit(request, url=None):
     '''
     context = {}
     context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
+    
     context['folio_sides'] = []
     '''
     context['folio_sides'] = [
@@ -164,6 +165,7 @@ def image_bulk_edit(request, url=None):
 
     if len(action):
         
+        handid = str(request.POST.get('hand', '0'))
         for folio in context['folios']:
             modified = False
 
@@ -218,7 +220,11 @@ def image_bulk_edit(request, url=None):
                     folio.archived = False
                     modified = True
                 if str(request.POST.get('hand_set', '0')) == '1':
-                    handid = str(request.POST.get('hand', '0'))
+                    if handid == '-2':
+                        if folio.item_part:                                
+                            hand = Hand(item_part=folio.item_part, num=1, label='Default Hand')
+                            hand.save()
+                            handid = hand.id
                     if handid != '0':
                         if handid == '-1':
                             folio.hands.through.objects.filter(image=folio).delete()
@@ -263,6 +269,7 @@ def image_bulk_edit(request, url=None):
                 break
             
     if common_item_part:
+        context['can_set_hand'] = True
         context['hands'] = common_item_part.hands.all().order_by('num')
         context['selected_manuscript_id'], context['suggested_shelfmark'] = common_item_part.id, ''
     else:

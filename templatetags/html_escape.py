@@ -149,16 +149,31 @@ def reset_recordids():
     return []
 
 @register.simple_tag
+def iip_img_a(iipfield, *args, **kwargs):
+    '''
+        Usage {% iip_img_a IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] %}
+        
+        Render a <a href=""><img src="" /></a> element with the url referenced 
+        by the iipimage field.
+        width and height are optional. See IIP Image for the way they 
+        are treated. 
+    '''
+    return mark_safe('<a href="%s&RST=*&QLT=100&CVT=JPG">%s</a>' % (iipfield.full_base_url, iip_img(iipfield, *args, **kwargs)))
+
+@register.simple_tag
 def iip_img(iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] %}
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] %}
         
         Render a <img src="" /> element with the url referenced by the 
         iipimage field.
         width and height are optional. See IIP Image for the way they 
         are treated. 
     '''
-    return mark_safe('<img src="%s" />' % iip_url(iipfield, *args, **kwargs))
+    cls = ''
+    if 'cls' in kwargs:
+        cls = ' class="%s" ' % kwargs['cls']
+    return mark_safe('<img src="%s" %s/>' % (iip_url(iipfield, *args, **kwargs), cls))
 
 @register.simple_tag
 def iip_url(iipfield, *args, **kwargs):

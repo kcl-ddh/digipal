@@ -34,6 +34,7 @@ $(document).ready(function() {
 		var graphs = [],
 			images = [],
 			data = {};
+
 		if (basket.annotations && basket.annotations.length) {
 			s += "<h3 id='header_annotations'>Annotations (" + basket.annotations.length + ")</h3>";
 			for (var i = 0; i < basket.annotations.length; i++) {
@@ -47,15 +48,12 @@ $(document).ready(function() {
 			data.annotations = graphs;
 		}
 
-
-
 		if (basket.images && basket.images.length) {
 			for (d = 0; d < basket.images.length; d++) {
 				images.push(basket.images[d].id);
 			}
 			data.images = images;
 		}
-
 
 		$.ajax({
 			type: 'POST',
@@ -133,9 +131,14 @@ $(document).ready(function() {
 						if (type == 'annotation') {
 							for (i = 0; i < basket.annotations.length; i++) {
 								element = basket.annotations[i];
-								if (graph == element.graph) {
+								var element_graph;
+								if (element.hasOwnProperty('graph')) {
+									element_graph = element.graph;
+								} else {
+									element_graph = element;
+								}
+								if (graph == element_graph) {
 									basket.annotations.splice(i, 1);
-									i--;
 									break;
 								}
 							}
@@ -145,7 +148,6 @@ $(document).ready(function() {
 								element = basket.images[i];
 								if (graph == element.id) {
 									basket.images.splice(i, 1);
-									i--;
 									break;
 								}
 							}
@@ -154,7 +156,8 @@ $(document).ready(function() {
 
 						$('tr[data-graph="' + graph + '"]').fadeOut().remove();
 
-						var length_basket = length_basket_elements(basket_elements);
+						var length_basket = length_basket_elements(basket);
+
 						if (length_basket == 1) {
 							element_basket.html("Lightbox (" + length_basket + " image)");
 						} else {
@@ -165,7 +168,9 @@ $(document).ready(function() {
 							s = '<div class="container alert alert-warning">The Basket is empty</a>';
 							container_basket.html(s);
 						}
+
 						localStorage.setItem('lightbox_basket', JSON.stringify(basket));
+
 					});
 				});
 			},
@@ -211,7 +216,7 @@ $(document).ready(function() {
 			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 		});
 
-		var length_basket = length_basket_elements(basket_elements);
+		var length_basket = length_basket_elements(basket);
 		if (length_basket == 1) {
 			element_basket.html("Lightbox (" + length_basket + " image)");
 		} else {

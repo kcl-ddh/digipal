@@ -71,38 +71,38 @@ $(document).ready(function() {
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
-						s += "<td><a href='/digipal/search/graph/?character_select=" + annotation[13] + "&allograph_select=" + annotation[12] + "'>" + annotation[11] + "</a></td>";
+						s += "<td><a title='Go to " + annotation[11] + "' href='/digipal/search/graph/?character_select=" + annotation[13] + "&allograph_select=" + annotation[12] + "'>" + annotation[11] + "</a></td>";
 
 						if (annotation[3] !== null && annotation[3] != 'Unknown') {
-							s += "<td><a href='/digipal/hands/" + annotation[9] + "'>" + annotation[3] + "</a></td>";
+							s += "<td><a title='Go to Hand' href='/digipal/hands/" + annotation[9] + "'>" + annotation[3] + "</a></td>";
 						} else {
 							s += "<td>Unknown</td>";
 						}
 
 
 						if (annotation[4] !== null && annotation[4] != 'Unknown') {
-							s += "<td><a href='/digipal/scribes/" + annotation[10] + "'>" + annotation[4] + "</a></td>";
+							s += "<td><a title = 'Go to Scribe' href='/digipal/scribes/" + annotation[10] + "'>" + annotation[4] + "</a></td>";
 						} else {
 							s += "<td>Unknown</td>";
 						}
 
 						if (annotation[5] !== null && annotation[5] != 'Unknown') {
-							s += "<td><a href='/digipal/page/?town_or_city=" + annotation[5] + "'>" + annotation[5] + "</a></td>";
+							s += "<td><a title = 'Explore manuscripts in " + annotation[5] + "' href='/digipal/page/?town_or_city=" + annotation[5] + "'>" + annotation[5] + "</a></td>";
 						} else {
 							s += "<td>Unknown</td>";
 						}
 
 						if (annotation[6] !== null && annotation[6] != 'Unknown') {
-							s += "<td><a href='/digipal/page/?date=" + annotation[6] + "'>" + annotation[6] + "</a></td>";
+							s += "<td><a title = 'Explore manuscripts written in " + annotation[6] + "' href='/digipal/page/?date=" + annotation[6] + "'>" + annotation[6] + "</a></td>";
 						} else {
 							s += "<td>Unknown</td>";
 						}
 
 
-						s += "<td><button data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title = 'Remove from basket' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					}
 				}
 
@@ -114,10 +114,10 @@ $(document).ready(function() {
 					s += '<th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
-						s += "<td data-graph = '" + image[1] + "'><a href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
+						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					}
 				}
 

@@ -844,17 +844,17 @@ function create_dialog(selectedFeature, id) {
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span></span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span></span>";
 					} else {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span>";
 					}
 				}
 			} else {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span>";
 				}
 			}
 			return title;

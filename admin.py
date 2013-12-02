@@ -47,9 +47,15 @@ class ImageAnnotationNumber(SimpleListFilter):
         return (
             ('1', ('At least five annotations')),
             ('2', ('Fewer than five annotations')),
+            ('3', ('At least one annotation')),
+            ('0', ('No annotation')),
         )        
 
     def queryset(self, request, queryset):
+        if self.value() == '0':
+            return queryset.exclude(annotation__id__gt=0)
+        if self.value() == '3':
+            return queryset.filter(annotation__id__gt=0).distinct()
         if self.value() == '1':
             return queryset.annotate(num_annot = Count('annotation__image__item_part')).exclude(num_annot__lt = 5)
         if self.value() == '2':

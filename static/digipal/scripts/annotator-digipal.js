@@ -373,6 +373,7 @@ function getFeatureById(id) {
 			feature = null;
 		}
 	}
+
 	for (var idx in annotator.annotations) {
 		annotation = annotator.annotations[idx];
 		if (annotation.vector_id == feature.id) {
@@ -2317,16 +2318,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			for (i = 0; i < annotations.length; i++) {
 				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
+					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
 					if (current_basket.annotations[j].graph == annotations[i].graph) {
 						flag = false;
-					} else {
-						continue;
 					}
 				}
+				console.log(flag)
 				if (flag) {
+					console.log(annotations[i]);
 					current_basket.annotations.push(annotations[i]);
-				} else {
-					continue;
 				}
 			}
 

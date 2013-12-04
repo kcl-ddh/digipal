@@ -11,7 +11,6 @@
   <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
   <script type="text/javascript">
       $(document).ready(function(){
-        {% if image_server_url %}
         annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
                                     'x', {{ width }}, {{ height }},
                                     '{{ image_server_url }}', "{{can_edit}}");
@@ -21,7 +20,7 @@
         if(annotator){
           $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
         }
-        {% endif %}
+
     });
   </script>
 {% else %}
@@ -95,7 +94,7 @@
           <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
 
           {% else %}
-          <input class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
+          <input data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
 
           {% endif %}
 

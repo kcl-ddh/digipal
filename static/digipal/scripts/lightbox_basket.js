@@ -27,8 +27,8 @@ $(document).ready(function() {
 	var element_basket = $('#lightbox_button a');
 	var container_basket = $('#container_basket');
 
-	function main() {
-		var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+	function main(basket) {
+
 		var s = '';
 
 		var graphs = [],
@@ -117,6 +117,7 @@ $(document).ready(function() {
 						s += "<td>" + image[3] + "</td>";
 						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
 					}
+					s += "</table>";
 				}
 
 				$(s).find('img').on('load', function() {
@@ -165,7 +166,7 @@ $(document).ready(function() {
 						}
 
 						if (!basket.annotations.length && !basket.images.length) {
-							s = '<div class="container alert alert-warning">The Basket is empty</a>';
+							s = '<div class="container alert alert-warning">The Basket is empty</div>';
 							container_basket.html(s);
 						}
 
@@ -183,8 +184,10 @@ $(document).ready(function() {
 			},
 
 			error: function() {
-				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</a>';
+
+				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
 				container_basket.html(s);
+
 				var loading_div = $(".loading-div");
 				if (loading_div.length) {
 					loading_div.fadeOut().remove();
@@ -217,21 +220,42 @@ $(document).ready(function() {
 		});
 
 		var length_basket = length_basket_elements(basket);
+
 		if (length_basket == 1) {
 			element_basket.html("Lightbox (" + length_basket + " image)");
 		} else {
 			element_basket.html("Lightbox (" + length_basket + " images)");
 		}
+
+		global_length_basket = length_basket;
 	}
 
-	var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 
-	if (length_basket_elements(basket)) {
-		main();
-		setInterval(main, 5000);
+	// Initial call
+
+	var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+	var length_basket = length_basket_elements(basket);
+	if (length_basket) {
+
+		main(basket); // launch main()
+
+		setInterval(function() {
+
+			var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			var length_basket = length_basket_elements(basket);
+
+			// if the length of the last called object is different from the newest
+			if (global_length_basket != length_basket) {
+				main(basket); // recall main
+			}
+
+		}, 8000); // Repeat main every 5 seconds
+
 	} else {
-		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Basket is empty</a>';
+
+		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Basket is empty</div>';
 		container_basket.html(s);
+
 		var loading_div = $(".loading-div");
 		if (loading_div.length) {
 			loading_div.fadeOut().remove();

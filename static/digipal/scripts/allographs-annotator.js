@@ -1,7 +1,6 @@
 annotator.url_allographs = true;
 annotator.url_annotations = '../annotations';
 temporary_vectors = [];
-
 var basket = localStorage.getItem('lightbox_basket');
 if (basket) {
 	var basket_elements = JSON.parse(basket);
@@ -196,29 +195,34 @@ var chained = request.then(function(data) {
 			main();
 		});
 
-		$('.deselect_all').click(function() {
+		$('.deselect_all').click(function(event) {
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
+			var inputs = $('input[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
 			selectedAnnotations.annotations = [];
 			temporary_vectors = [];
 			selectedAnnotations.allograph = null;
 			checkboxes.data('selected', false);
 			checkboxes.removeClass('selected');
-			checkboxes.find('input').attr('checked', false);
-			modal = false;
-			main();
+			$.each(inputs, function() {
+				$(this).attr('checked', false);
+			});
+
+
+			event.stopPropagation();
 		});
 
-		$('.select_all').click(function() {
+		$('.select_all').click(function(event) {
+			var annotations_li = $('.annotation_li');
+			annotations_li.removeClass('selected');
+			annotations_li.find('input').attr('checked', false);
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
 				annotation = getFeatureById($(checkboxes[i]).data('annotation'));
-				selectedAnnotations.annotations.push(annotation);
-				var a = selectedAnnotations.allograph;
 				if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
 					selectedAnnotations.allograph = null;
 					selectedAnnotations.annotations = [];
@@ -227,8 +231,12 @@ var chained = request.then(function(data) {
 					temporary_vectors = [];
 				}
 
-			}
+				selectedAnnotations.annotations.push(annotation);
+				var a = selectedAnnotations.allograph;
+				console.log(i)
 
+			}
+			console.log(selectedAnnotations.annotations)
 			selectedAnnotations.allograph = annotation.feature;
 			checkboxes.data('selected', true);
 			checkboxes.addClass('selected');
@@ -240,6 +248,7 @@ var chained = request.then(function(data) {
 				}
 			});
 			main();
+			event.stopPropagation();
 		});
 
 		var to_lightbox = $('.to_lightbox');
@@ -288,13 +297,12 @@ var chained = request.then(function(data) {
 						for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
 							if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 								selected_features.push(features[i]);
-								console.log(features[i])
 							}
 						}
 					}
 
-					var j = 0;
-					for (var i = 0; i < selected_features.length; i++) {
+					j = 0;
+					for (i = 0; i < selected_features.length; i++) {
 						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
 						var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
 						element.fadeOut().remove();

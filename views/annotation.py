@@ -372,7 +372,6 @@ def images_lightbox(request):
                     image = Image.objects.get(id=img)
                     images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 data['images'] = images
-            print data
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 

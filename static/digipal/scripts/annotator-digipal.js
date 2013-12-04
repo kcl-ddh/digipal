@@ -2367,17 +2367,14 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						flag = false;
 					}
 				}
-
-				if (flag) {
-					if (type == 'annotation') {
-						elements.push(annotations);
-					} else {
-						elements.push({
-							'id': annotator.image_id
-						});
-					}
+			}
+			if (flag) {
+				if (type == 'annotation') {
+					elements.push(annotations);
 				} else {
-					continue;
+					elements.push({
+						'id': annotator.image_id
+					});
 				}
 			}
 

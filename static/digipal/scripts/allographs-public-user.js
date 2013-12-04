@@ -17,7 +17,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			current_basket.annotations = current_basket.annotations.filter(function(elem, pos, self) {
 				return self.indexOf(elem) == pos;
 			});
-			console.log(current_basket)
 
 		} else {
 			current_basket = {};

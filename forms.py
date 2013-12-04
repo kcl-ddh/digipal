@@ -166,12 +166,11 @@ class SearchPageForm(forms.Form):
             'id': 'search-terms',
             'class':'textEntry',
             'placeholder': 'Enter search terms',
-            'required': 'required',
+            #'required': 'required',
             "autocomplete":"off"})
     )
     basic_search_type = forms.ChoiceField(
         label='',
-        #required=True,
         #error_messages={'required': 'Please select something to search for'},
         required=False,
         widget=forms.RadioSelect(),

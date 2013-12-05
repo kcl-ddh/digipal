@@ -123,7 +123,15 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			});
 		},
 		clickFeature: function(feature) {
-			_self.deleteAnnotation(this.layer, feature);
+			console.log(annotator.selectedAnnotations)
+			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
+				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+					var f = annotator.selectedAnnotations[i];
+					_self.deleteAnnotation(this.layer, f);
+				}
+			} else {
+				_self.deleteAnnotation(this.layer, feature);
+			}
 		},
 		setMap: function(map) {
 			this.handler.setMap(map);

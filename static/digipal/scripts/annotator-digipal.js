@@ -41,7 +41,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	//this.dragFeature.panel_div.title = 'Drag (shift + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
 	this.saveButton.panel_div.title = 'Save (shift + s)';
-
+	this.selectedAnnotations = [];
 }
 
 /**
@@ -52,7 +52,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
  */
 
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
+
 	this.selectedFeature = event.feature;
+
+	if (allow_multiple()) {
+		this.selectedAnnotations.push(this.selectedFeature);
+	}
+
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -64,9 +70,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		}
 		layer.redraw();
 	}
-	if (this.selectedFeature.last_feature_selected) {
-		this.last_feature_selected = this.selectedFeature.last_feature_selected;
-	}
+
 	this.showAnnotation(event.feature);
 };
 
@@ -79,6 +83,16 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 	var _self = this;
 	var feature = event.feature;
+
+	if (allow_multiple()) {
+		for (var i = 0; i < this.selectedAnnotations.length; i++) {
+			if (feature.vector_id == this.selectedAnnotations[i].vector_id) {
+				this.selectedAnnotations.splice(i, 1);
+				break;
+			}
+		}
+	}
+
 	if (feature.described) {
 		feature.style.fillColor = 'green';
 		feature.style.strokeColor = 'green';
@@ -394,6 +408,13 @@ var stylize = function(feature, fill, stroke, opacity) {
 	};
 };
 
+function allow_multiple() {
+	var multiple_checkbox = $("#multiple_annotations");
+	if (multiple_checkbox.is(':checked')) {
+		return true;
+	}
+	return false;
+}
 /*
 
     Function to refresh the layer when saved an annotation
@@ -458,9 +479,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -2044,7 +2065,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 	if ($('#id_internal_note').val()) {
 		form_serialized += "&internal_note=" + $('#id_internal_note').val();
 	}
-
+	var feature;
 	if (this.selectedFeature) {
 
 		save('save', this.selectedFeature, form_serialized, ann, features);
@@ -2052,11 +2073,18 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 		this.loadAnnotations();
 	} else {
 		for (var idx = 0; idx < this.vectorLayer.features.length; idx++) {
-			var feature = this.vectorLayer.features[idx];
+			feature = this.vectorLayer.features[idx];
 
 			if (!feature.attributes.saved) {
 				save('save', feature, form_serialized, ann, features);
 			}
+		}
+	}
+	if (allow_multiple() && this.selectedAnnotations.length) {
+		for (var i = 0; i < this.selectedAnnotations.length; i++) {
+			feature = this.selectedAnnotations[i];
+			save('save', feature, form_serialized, ann, features);
+			this.loadAnnotations();
 		}
 	}
 };

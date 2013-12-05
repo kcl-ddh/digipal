@@ -123,12 +123,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			});
 		},
 		clickFeature: function(feature) {
-			console.log(annotator.selectedAnnotations)
 			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
 				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 					var f = annotator.selectedAnnotations[i];
 					_self.deleteAnnotation(this.layer, f);
 				}
+				annotator.selectedAnnotations = [];
 			} else {
 				_self.deleteAnnotation(this.layer, feature);
 			}

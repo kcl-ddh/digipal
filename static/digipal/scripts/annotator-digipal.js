@@ -479,9 +479,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -2086,6 +2086,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 			save('save', feature, form_serialized, ann, features);
 			this.loadAnnotations();
 		}
+		this.selectedAnnotations = [];
 	}
 };
 

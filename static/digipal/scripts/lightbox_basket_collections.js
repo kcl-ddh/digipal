@@ -44,7 +44,7 @@ function Collections() {
 		var collection_name = collection.data('collection');
 		var collection_id = collection.attr('id');
 		delete this.collections[collection_id];
-		localStorage.setItem('collections', this.collections);
+		localStorage.setItem('collections', JSON.stringify(this.collections));
 		$('#' + collection_name).fadeOut().remove();
 		if ($.isEmptyObject(this.collections)) {
 			var container = $('#container_collections');

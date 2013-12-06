@@ -1680,49 +1680,10 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 
 	var doDelete = confirm(msg);
 
-	if (doDelete && feature !== null) {
-		var featureId = feature.id;
-		var temp = feature;
-		updateStatus('Deleting annotations');
-		layer.destroyFeatures([feature]);
-		var url;
-		if (annotator.url_allographs) {
-			url = '../delete/' + featureId + '/';
-		} else {
-			url = 'delete/' + featureId + '/';
-		}
-		$.ajax({
-			url: url,
-			data: '',
-			error: function(xhr, textStatus, errorThrown) {
-				alert('Error: ' + textStatus);
-			},
-			success: function(data) {
-				if (!handleErrors(data)) {
-					updateStatus('Annotation deleted.', 'success');
-					_self.loadAnnotations();
-					if ($('.letters-allograph-container').length) {
-						var allograph = $('#id_allograph option:selected').text();
-						var allograph_id = $('#id_allograph').val();
-						refresh_letters_container(allograph, allograph_id);
-					}
-					if (temp['state'] == 'Insert') {
-						var element = $('.number_unsaved_allographs');
-						var number_unsaved = element.html();
-						var annotations = annotator.unsaved_annotations;
-						for (var i = 0; i < annotations.length; i++) {
-							if (annotations[i].feature.id == feature.id) {
-								annotations.splice(i, 1);
-								break;
-							}
-						}
-						element.html(annotations.length);
-						temp = null;
-					}
-				}
-			}
-		});
+	if (doDelete && feature !== null && feature !== undefined) {
+		delete_annotation(layer, feature, number_annotations);
 	}
+
 };
 
 /**
@@ -1735,6 +1696,51 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 function deleteAnnotationByFeatureId(id) {
 	annotator.selectFeatureByIdAndCentre(id);
 	annotator.deleteAnnotation(annotator.vectorLayer, annotator.vectorLayer.getFeatureById(id));
+}
+
+function delete_annotation(layer, feature, number_annotations) {
+
+	var featureId = feature.id;
+	var temp = feature;
+	updateStatus('Deleting annotations');
+	layer.destroyFeatures([feature]);
+	var url;
+	if (annotator.url_allographs) {
+		url = '../delete/' + featureId + '/';
+	} else {
+		url = 'delete/' + featureId + '/';
+	}
+	$.ajax({
+		url: url,
+		data: '',
+		error: function(xhr, textStatus, errorThrown) {
+			alert('Error: ' + textStatus);
+		},
+		success: function(data) {
+			if (!handleErrors(data)) {
+				updateStatus('Annotation deleted.', 'success');
+				_self.loadAnnotations();
+				if ($('.letters-allograph-container').length) {
+					var allograph = $('#id_allograph option:selected').text();
+					var allograph_id = $('#id_allograph').val();
+					refresh_letters_container(allograph, allograph_id);
+				}
+				if (temp['state'] == 'Insert') {
+					var element = $('.number_unsaved_allographs');
+					var number_unsaved = element.html();
+					var annotations = annotator.unsaved_annotations;
+					for (var i = 0; i < annotations.length; i++) {
+						if (annotations[i].feature.id == feature.id) {
+							annotations.splice(i, 1);
+							break;
+						}
+					}
+					element.html(annotations.length);
+					temp = null;
+				}
+			}
+		}
+	});
 }
 
 function serializeObject(obj) {

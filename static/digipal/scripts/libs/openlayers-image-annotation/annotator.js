@@ -123,14 +123,22 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			});
 		},
 		clickFeature: function(feature) {
+			var msg, doDelete;
 			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
+
+				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + '. It cannot be restored at a later time! Continue?';
+				doDelete = confirm(msg);
+
 				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 					var f = annotator.selectedAnnotations[i];
-					_self.deleteAnnotation(this.layer, f);
+					delete_annotation(this.layer, f, annotator.selectedAnnotations.length);
 				}
+
 				annotator.selectedAnnotations = [];
 			} else {
-				_self.deleteAnnotation(this.layer, feature);
+				msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
+				doDelete = confirm(msg);
+				delete_annotation(this.layer, feature);
 			}
 		},
 		setMap: function(map) {

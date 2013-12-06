@@ -6,7 +6,12 @@
 {% block meta-title %}Lightbox Basket{% endblock %}
 
 {% block main %}
-<h1>Lightbox Basket <button  title = 'Send collected images to the Lightbox' id='to_lightbox' class="btn offset1">Go to Lightbox</button></h1>
+<h1>Lightbox Basket  <button title = 'Save basket as collection' id='add_collection' class="btn offset1">Save as Collection</button> <button  title = 'Send collected images to the Lightbox' id='to_lightbox' class="btn">Go to Lightbox</button></h1>
+<ul class="nav nav-pills pull-right">
+    <li class='active' >
+        <a title='Manage collections' href="collections/">Collections</a>
+    </li>
+</ul>
 <div id="container_basket">
 
 </div>

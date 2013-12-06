@@ -302,12 +302,14 @@ var chained = request.then(function(data) {
 					}
 
 					j = 0;
-					for (i = 0; i < selected_features.length; i++) {
-						annotator.deleteAnnotation(annotator.vectorLayer, selected_features[i], selected_features.length);
-						var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
-						element.fadeOut().remove();
+					var msg = 'You are about to delete ' + selectedAnnotations.annotations.length + '. It cannot be restored at a later time! Continue?';
+					if (confirm(msg)) {
+						for (i = 0; i < selected_features.length; i++) {
+							delete_annotation(annotator.vectorLayer, selected_features[i], selected_features.length);
+							var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
+							element.fadeOut().remove();
+						}
 					}
-
 				});
 			}
 

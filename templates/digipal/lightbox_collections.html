@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load html_escape %}
+{% block extra_js %}
+  <script src ='/static/digipal/scripts/lightbox_basket_collections.js'></script>
+{% endblock %}
+{% block meta-title %}Lightbox Basket Collections{% endblock %}
+
+{% block main %}
+
+<h1>Lightbox Basket Collections</h1>
+
+<ul class="nav nav-pills pull-right">
+    <li class='active'>
+        <a title='Go to current lightbox basket' href="../">Current Lightbox Basket</a>
+    </li>
+</ul>
+<div id="container_collections">
+
+</div>
+
+{% endblock %}

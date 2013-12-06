@@ -16,6 +16,29 @@ $(document).ready(function() {
 		return cookieValue;
 	}
 
+	function getParameter(paramName) {
+		var searchString = window.location.search.substring(1),
+			i, val, params = searchString.split("&");
+		var parameters = [];
+		for (i = 0; i < params.length; i++) {
+			val = params[i].split("=");
+			if (val[0] == paramName) {
+				parameters.push(unescape(val[1]));
+			}
+		}
+		return parameters;
+	}
+
+	uniqueid = function() {
+		var text = "";
+		var possible = "0123456789";
+
+		for (var i = 0; i < 3; i++)
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+		return text;
+	};
+
 	var csrftoken = getCookie('csrftoken');
 
 	$.ajaxSetup({
@@ -65,11 +88,14 @@ $(document).ready(function() {
 
 				if (data['annotations']) {
 					s += "<table class='table table-condensed'>";
-					s += '<th>Annotation</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
+					s += '<th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
 						s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "</td>";
+
+						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
 						s += "</td>";
 
 						s += "<td><a title='Go to " + annotation[11] + "' href='/digipal/search/graph/?character_select=" + annotation[13] + "&allograph_select=" + annotation[12] + "'>" + annotation[11] + "</a></td>";
@@ -219,6 +245,50 @@ $(document).ready(function() {
 			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 		});
 
+		$('#add_collection').click(function(event) {
+			var collections = JSON.parse(localStorage.getItem('collections'));
+			var window_save_collection = $('<div>');
+			var lightbox_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			var s = '';
+			window_save_collection.attr('class', 'loading-div');
+			s += '<h3>Save Collection</h3><form><div class="input-append"><input placeholder="Type collection name" type="text" id= "name_collection" />';
+			s += '<button class="btn" id="save_collection" type="button">Save</button></div><form>';
+			s += '<button style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" type="button">Close window</button>';
+			window_save_collection.html(s);
+			window_save_collection.css('height', '20%');
+			$('body').append(window_save_collection);
+
+			$('#save_collection').click(function(event) {
+				var collection_name = $('#name_collection').val();
+				var id;
+				if (collection_name) {
+					if (collections) {
+						id = uniqueid();
+						if (collections[collection_name]) {
+							collection_name += id;
+						}
+						collections[collection_name] = {};
+						collections[collection_name]['basket'] = lightbox_basket;
+						collections[collection_name]['id'] = id;
+					} else {
+						collections = {};
+						id = uniqueid();
+						collections[collection_name] = {};
+						collections[collection_name]['basket'] = lightbox_basket;
+						collections[collection_name]['id'] = id;
+					}
+					localStorage.setItem("collections", JSON.stringify(collections));
+					window_save_collection.fadeOut().remove();
+				}
+				event.stopPropagation();
+			});
+
+			$('#close_window_collections').click(function(event) {
+				window_save_collection.fadeOut().remove();
+				event.stopPropagation();
+			});
+		});
+
 		var length_basket = length_basket_elements(basket);
 
 		if (length_basket == 1) {
@@ -233,7 +303,14 @@ $(document).ready(function() {
 
 	// Initial call
 
-	var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+	var basket;
+	if (getParameter('collection').length) {
+		var collection = JSON.parse(localStorage.getItem('collections'));
+		basket = collection[getParameter('collection')[0]]['basket'];
+	} else {
+		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+	}
+
 	var length_basket = length_basket_elements(basket);
 	if (length_basket) {
 
@@ -241,7 +318,12 @@ $(document).ready(function() {
 
 		setInterval(function() {
 
-			var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			if (getParameter('collection').length) {
+				var collection = JSON.parse(localStorage.getItem('collections'));
+				basket = collection[getParameter('collection')[0]]['basket'];
+			} else {
+				basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			}
 			var length_basket = length_basket_elements(basket);
 
 			// if the length of the last called object is different from the newest

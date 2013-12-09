@@ -1136,6 +1136,9 @@ class Image(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    
+    transcription = models.TextField(blank=True, null=True)
+    internal_notes = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']

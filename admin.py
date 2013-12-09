@@ -956,6 +956,7 @@ class ImageAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('display_label',)}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
+                ('Internal and editorial information', {'fields': ('internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
     

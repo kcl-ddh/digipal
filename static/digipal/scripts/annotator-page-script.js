@@ -594,6 +594,18 @@ declaring function to get parameteres from URL
 		add_to_lightbox($(this), 'image', annotator.image_id, false);
 	});
 
+	$('#multiple_annotations').on('change', function() {
+		if (!$(this).is(':checked')) {
+			annotator.selectedAnnotations = [];
+			annotator.selectFeature.multiple = false;
+		} else {
+			annotator.selectFeature.multiple = true;
+			if (annotator.selectedFeature !== undefined) {
+				annotator.selectedAnnotations.push(annotator.selectedFeature);
+			}
+		}
+
+	});
 
 
 })();

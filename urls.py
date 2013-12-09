@@ -32,6 +32,10 @@ urlpatterns = patterns('digipal.views.annotation',
                         }),
                        (r'^page/lightbox/basket/images/$',
                         'images_lightbox'),
+                       (r'^page/lightbox/basket/collections/$',
+                        direct_to_template, {
+                          'template': 'digipal/lightbox_collections.html'
+                        })
                        )
 
 urlpatterns += patterns('digipal.views.search',

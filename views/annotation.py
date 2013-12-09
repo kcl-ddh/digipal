@@ -353,7 +353,7 @@ def images_lightbox(request):
                 annotations = []
                 for graph in graphs['annotations']:
                     annotation = Annotation.objects.get(graph=graph)
-                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name]
+                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:
                         scribe = annotation.graph.hand.scribe.name
                         scribe_id = annotation.graph.hand.scribe.id
@@ -364,7 +364,7 @@ def images_lightbox(request):
                         scribe_id = 'Unknown'
                         place_name = 'Unknown'
                         date = 'Unknown'
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name])
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
                 data['annotations'] = annotations
             if 'images' in graphs:
                 images = []
@@ -372,7 +372,6 @@ def images_lightbox(request):
                     image = Image.objects.get(id=img)
                     images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 data['images'] = images
-            print data
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 

@@ -92,7 +92,13 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.onFeatureSelect(e);
 		},
 		'featureunselected': function(e) {
-			_self.onFeatureUnSelect(e);
+			if (e.feature.linked_to.length) {
+				$.each(e.feature.linked_to[0], function(index, value) {
+					_self.onFeatureUnSelect(value, false);
+				});
+			} else {
+				_self.onFeatureUnSelect(e, true);
+			}
 		},
 		'featuremodified': function(e) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
@@ -128,17 +134,20 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + '. It cannot be restored at a later time! Continue?';
 				doDelete = confirm(msg);
+				if (doDelete) {
+					for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+						var f = annotator.selectedAnnotations[i];
+						delete_annotation(this.layer, f, annotator.selectedAnnotations.length);
+					}
 
-				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
-					var f = annotator.selectedAnnotations[i];
-					delete_annotation(this.layer, f, annotator.selectedAnnotations.length);
+					annotator.selectedAnnotations = [];
 				}
-
-				annotator.selectedAnnotations = [];
 			} else {
 				msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
 				doDelete = confirm(msg);
-				delete_annotation(this.layer, feature);
+				if (doDelete) {
+					delete_annotation(this.layer, feature);
+				}
 			}
 		},
 		setMap: function(map) {

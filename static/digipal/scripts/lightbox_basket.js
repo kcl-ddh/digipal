@@ -224,8 +224,16 @@ $(document).ready(function() {
 		$('#to_lightbox').click(function() {
 			var graphs = [],
 				images = [],
-				element;
-			var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+				element,
+				basket;
+
+			if (getParameter('collection').length) {
+				var collection = JSON.parse(localStorage.getItem('collections'));
+				basket = collection[getParameter('collection')[0]]['basket'];
+			} else {
+				basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			}
+
 			if (basket && basket.annotations && basket.annotations.length) {
 				for (i = 0; i < basket.annotations.length; i++) {
 					if (basket.annotations[i].hasOwnProperty('graph')) {
@@ -251,7 +259,8 @@ $(document).ready(function() {
 			var lightbox_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
-			s += '<h3>Save Collection</h3><form><div class="input-append"><input placeholder="Type collection name" type="text" id= "name_collection" />';
+			s += '<h3>Save Collection</h3><form>';
+			s += '<div class="input-append"><input placeholder="Type collection name" type="text" id= "name_collection" />';
 			s += '<button class="btn" id="save_collection" type="button">Save</button></div><form>';
 			s += '<button style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" type="button">Close window</button>';
 			window_save_collection.html(s);
@@ -316,11 +325,12 @@ $(document).ready(function() {
 
 		main(basket); // launch main()
 
-		setInterval(function() {
+		var interval = setInterval(function() {
 
 			if (getParameter('collection').length) {
 				var collection = JSON.parse(localStorage.getItem('collections'));
 				basket = collection[getParameter('collection')[0]]['basket'];
+				clearInterval(interval);
 			} else {
 				basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 			}

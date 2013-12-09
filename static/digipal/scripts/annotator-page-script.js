@@ -77,7 +77,7 @@ declaring function to get parameteres from URL
 						f.stored = true;
 					}
 				}
-
+				f.linked_to = [];
 				/*
 
       annotator.vectorLayer.features is the array to access to all the features
@@ -186,7 +186,7 @@ declaring function to get parameteres from URL
 							}
 						}
 					});
-				}, 1000);
+				}, 1500);
 			}
 
 
@@ -460,9 +460,11 @@ declaring function to get parameteres from URL
 		if ($(this).is(':checked')) {
 			$('#multiple_boxes').attr('disabled', 'disabled').attr('checked', false);
 			annotator.allow_multiple_dialogs = false;
+			enable_annotation_tools();
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
 			$('#boxes_on_click').attr('checked', true).trigger('change');
+			disable_annotation_tools();
 		}
 	});
 
@@ -598,8 +600,10 @@ declaring function to get parameteres from URL
 		if (!$(this).is(':checked')) {
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
+			annotator.selectFeature.toggle = false;
 		} else {
 			annotator.selectFeature.multiple = true;
+			annotator.selectFeature.toggle = true;
 			if (annotator.selectedFeature !== undefined) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);
 			}

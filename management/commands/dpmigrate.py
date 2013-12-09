@@ -845,6 +845,7 @@ Commands:
             
             utils.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src, self.is_dry_run())
             c = c + 1
+            #print c
             #break
             
         self.log('Copied %s records' % c, 2)

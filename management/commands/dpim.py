@@ -316,7 +316,7 @@ class Command(BaseCommand):
 							# todo: which rules should we apply here?
 							image.display_label = os.path.basename(file_relative)
 
-						# cpnvert the image to jp2
+						# convert the image to jp2
 						if command == 'upload':
 							error_message = self.convert_image(image)
 							if error_message:
@@ -353,7 +353,7 @@ class Command(BaseCommand):
 				
 			print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
 			
-		if command in ['copy', 'originals']:
+		if command in ['copy', 'originals', 'copy_convert']:
 			known_command = True
 			self.processOriginals(args, options)
 
@@ -501,15 +501,26 @@ class Command(BaseCommand):
 			if copied: status = 'COPIED'				
 			print '[%6s] %s' % (status, file_relative)
 
-			if command  == 'copy':
+			if command in ['copy', 'copy_convert']:
 				# create the folders
 				path = os.path.dirname(target)
-				print '\tCopy to %s' % target
 				if not os.path.exists(path):
 					os.makedirs(path)
+					
 				# copy the file
-				shutil.copyfile(join(original_path, file_relative), target)
-		
+				if command == 'copy':
+					print '\tCopy to %s' % target
+					shutil.copyfile(join(original_path, file_relative), target)
+					
+				if command == 'copy_convert':
+					# convert the file jp2
+					status = 'COPIED+CONVERTED'
+					
+					from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
+					shell_command = CONVERT_TO_JP2 % (join(original_path, file_relative), re.sub(ur'\.[^.]+$', ur'.jp2', target))
+ 					ret_shell = self.run_shell_command(shell_command)
+ 					if ret_shell:
+ 						status = 'CONVERSION ERROR: %s (command: %s)' % (ret_shell[0], ret_shell[1])
 	
 	def getNormalisedPath(self, path):
 		''' Turn the path and file names into something the image server won't complain about

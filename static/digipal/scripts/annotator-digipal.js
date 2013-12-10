@@ -67,14 +67,14 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		layer.redraw();
 	}
 
-	if (self.selectedFeature.linked_to.length && allow_multiple()) {
+	if (self.selectedFeature && self.selectedFeature.linked_to.length && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			self.showAnnotation(value);
 			self.selectedAnnotations.push(value);
 			var msg = self.selectedAnnotations.length + ' annotation selected';
 			updateStatus(msg, 'success');
 		});
-	} else if (!self.selectedFeature.linked_to.length && allow_multiple()) {
+	} else if (self.selectedFeature && !self.selectedFeature.linked_to.length && allow_multiple()) {
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');

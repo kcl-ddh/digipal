@@ -68,6 +68,10 @@ $(function() {
 
 			// update the image in the div
 			var img_url = thumbnail_img.attr('src').replace(/^([^?]+)\?.*(FIF=[^&]+).*$/i, '$1?$2');
+			// Trick: need to clear the src attribute first. This solves the problem were the user
+			// moves the mouse over the same thumbnail again. Browsers won't trigger a load event
+			// and the img element will therefore not be made visible.
+			expanded_img.attr('src', '');
 			expanded_img.attr('src', img_url + dimension_request);
 		}
 		

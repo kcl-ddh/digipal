@@ -67,14 +67,14 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		layer.redraw();
 	}
 
-	if (self.selectedFeature && self.selectedFeature.linked_to.length && allow_multiple()) {
+	if (self.selectedFeature && self.selectedFeature.linked_to && self.selectedFeature.linked_to.length && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			self.showAnnotation(value);
 			self.selectedAnnotations.push(value);
 			var msg = self.selectedAnnotations.length + ' annotation selected';
 			updateStatus(msg, 'success');
 		});
-	} else if (self.selectedFeature && !self.selectedFeature.linked_to.length && allow_multiple()) {
+	} else if (self.selectedFeature && self.selectedFeature.linked_to && !self.selectedFeature.linked_to.length && allow_multiple()) {
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
@@ -1377,7 +1377,7 @@ function show_url_allograph(dialog, annotation, button) {
 			var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
 			geoJSONText.title = title;
 			geoJSONText.desc = desc;
-			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + encodeURIComponent(JSON.stringify(geoJSONText));
 		}
 		input.val(allograph_url);
 		url.append(input);

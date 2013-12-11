@@ -151,29 +151,54 @@ def reset_recordids():
 @register.simple_tag
 def iip_img_a(iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img_a IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] %}
+        Usage {% iip_img_a IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
         
         Render a <a href=""><img src="" /></a> element with the url referenced 
         by the iipimage field.
         width and height are optional. See IIP Image for the way they 
         are treated. 
     '''
-    return mark_safe('<a href="%s&RST=*&QLT=100&CVT=JPG">%s</a>' % (iipfield.full_base_url, iip_img(iipfield, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&RST=*&QLT=100&CVT=JPG">%s</a>' % (iipfield.full_base_url, iip_img(iipfield, *args, **kwargs)))
 
 @register.simple_tag
 def iip_img(iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] %}
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
         
         Render a <img src="" /> element with the url referenced by the 
         iipimage field.
         width and height are optional. See IIP Image for the way they 
         are treated. 
+        If lazy is True the image will be loaded only when visible in 
+        the browser. 
     '''
-    cls = ''
+    return img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+
+@register.simple_tag
+def annotation_img(annotation, *args, **kwargs):
+    '''
+        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        
+        See iip_img() for more information
+    '''
+    return img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+
+@register.simple_tag
+def img(src, *args, **kwargs):
+    more = ''
+    
+    if 'alt' in kwargs:
+        more += ur' alt="%s" ' % kwargs['alt']
+    
     if 'cls' in kwargs:
-        cls = ' class="%s" ' % kwargs['cls']
-    return mark_safe('<img src="%s" %s/>' % (iip_url(iipfield, *args, **kwargs), cls))
+        more += ur' class="%s" ' % kwargs['cls']
+    
+    if kwargs.get('lazy', False):
+        more += ur' data-lazy-img-src="%s" ' % src
+        src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        
+    ret = ur'<img src="%s" %s/>' % (src, more)
+    return mark_safe(ret)    
 
 @register.simple_tag
 def iip_url(iipfield, *args, **kwargs):

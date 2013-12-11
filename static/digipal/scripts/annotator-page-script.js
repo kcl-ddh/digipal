@@ -113,8 +113,8 @@ declaring function to get parameteres from URL
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
 				var temporary_vector = getParameter('temporary_vector');
-				var geo_json = JSON.parse(temporary_vector);
-				for (var i = 0; i < temporary_vector.length; i++) {
+				var geo_json = JSON.parse(decodeURIComponent(temporary_vector));
+				for (i = 0; i < temporary_vector.length; i++) {
 					var object = geoJSON.read(temporary_vector[i]);
 					var objectGeometry = object[0];
 					objectGeometry.layer = annotator.vectorLayer;
@@ -129,7 +129,7 @@ declaring function to get parameteres from URL
 					annotator.selectFeatureByIdAndZoom(objectGeometry.id);
 				}
 				if ($('.dialog_annotations').length) {
-					var title = geo_json.title;
+					var title = decodeURIComponent(geo_json.title.replace('Ã', 'Æ'));
 					var desc = geo_json.desc;
 					$('.name_temporary_annotation').val(title);
 					$('.textarea_temporary_annotation').val(desc);
@@ -288,6 +288,7 @@ declaring function to get parameteres from URL
 
 
 		});
+
 		$('#map').css('border', '1px solid #efefef');
 		$('#map').css('border-radius', '3px');
 		//$("a[data-toggle=tooltip]").tooltip()
@@ -335,10 +336,12 @@ declaring function to get parameteres from URL
 		}
 
 		var modal = false;
+
 		$("#modal_features").draggable({
 			zIndex: 1005,
 			stack: ".ui-dialog"
 		});
+
 		$('#editGraph').click(function() {
 			if (modal) {
 				modal = false;
@@ -530,6 +533,14 @@ declaring function to get parameteres from URL
 	*/
 
 	function findRectangleFeatureAdded(feature) {
+		feature.feature.linked_to = [];
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 50) {
+			console.log('feature too small');
+			feature.feature.destroy();
+			$('circle').add('polyline').remove();
+			return false;
+		}
+
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
 		feature.feature.features = [];
@@ -561,6 +572,8 @@ declaring function to get parameteres from URL
 			}
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
+
+
 		highlight_vectors();
 
 

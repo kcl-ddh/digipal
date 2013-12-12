@@ -1019,7 +1019,7 @@ class ItemPart(models.Model):
     # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
             default=settings.ITEM_PART_DEFAULT_LOCUS)
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     pagination = models.BooleanField(blank=False, null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1036,7 +1036,13 @@ class ItemPart(models.Model):
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
-        self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
+        if self.current_item:
+            self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
+        else:
+            iphis = self.constitutionalities.all()
+            if iphis.count():
+                iphi = iphis[0]
+                self.display_label = get_list_as_string(iphi.historical_item, ', ', iphi.locus)
         super(ItemPart, self).save(*args, **kwargs)
 
     @property

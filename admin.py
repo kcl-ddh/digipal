@@ -816,7 +816,6 @@ class ImageInline(admin.StackedInline):
 
     exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number']
 
-
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
@@ -827,8 +826,9 @@ class ItemPartAdmin(reversion.VersionAdmin):
             'historical_items__display_label', 'type__name']
     list_filters = ('type',)
 
+    readonly_fields = ('display_label',)
     fieldsets = (
-                (None, {'fields': ('type',)}),
+                (None, {'fields': ('display_label', 'type',)}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
                 ('It belongs (or belonged) to another part...', {'fields': ('group',)}),
                 ('Owners', {'fields': ('owners',)}),

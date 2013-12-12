@@ -58,7 +58,10 @@ Commands:
  						Returns duplicate CIs
   
   add_cartulary_his
-  						Create missing cartulary HIs from the SS HIs 
+  						Create missing cartulary HIs from the SS HIs
+  						
+  merge_rf
+  						Merge Reconstructed Folios (ScandiPal) 
  						
 	"""
 	
@@ -85,7 +88,30 @@ Commands:
 			dest='dry-run',
 			default=False,
 			help='Dry run, don\'t change any data.'),
-		) 
+		)
+	
+	def merge_rf(self): 
+		'''
+		* Merge the RF
+		* Make sure display label = HI + locus
+		* Add a new field to the Image: custom_label
+			* On save display_label = custom_label if not blank
+			* Show the display_label and custom_label in the admin
+		* Find all the RF with a r and v
+			* Remove CI from RF
+			* Reconnect RFv to RFr?
+				* Reconnect Image from RFv to RFr
+				* Set Image.locus = 'recto'/'verso'
+				* Set Image.custom_label = IP display label
+			* Remove RFv
+			* Remove 'recto' from RFr
+		
+		IP #231
+		
+	 	'''
+		
+		
+		pass
 	
 	def dropTables(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -961,6 +987,10 @@ Commands:
 		if command == 'drop_tables':
 			known_command = True
 			self.dropTables(options)
+			
+		if command == 'merge_rf':
+			known_command = True
+			self.merge_rf(options)
 		
 		if command == 'checkdata1':
 			known_command = True

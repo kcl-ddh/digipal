@@ -159,47 +159,87 @@ class HistoricalItemDescriptionFilter(SimpleListFilter):
             k = q.exclude(description__description__contains = "FIX")
             return k
 
-class CurrentItemPartNumberFilter(SimpleListFilter):
+class RelatedObjectNumberFilter(SimpleListFilter):
+    title = ('Number of Related Objects')
+    parameter_name = ('n')
+    
+    related_table = 'digipal_image'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    this_key = 'id'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('None')),
+            ('1', ('One')),
+            ('1p', ('One or more')),
+            ('2p', ('More than one')),
+        )   
+
+    def queryset(self, request, queryset):
+        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
+        select += ur'%s )'
+        if self.value() == '0':
+            return queryset.extra(where=[select % ' = 0'])
+        if self.value() == '1':
+            return queryset.extra(where=[select % ' = 1'])
+        if self.value() == '1p':
+            return queryset.extra(where=[select % ' >= 1'])
+        if self.value() == '2p':
+            return queryset.extra(where=[select % ' > 1'])
+
+class ItemPartHasGroupGroupFilter(SimpleListFilter):
+    title = ('Membership')
+
+    parameter_name = ('hg')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('not part of a group')),
+            ('1', ('part of a group')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(group__isnull = False)
+        if self.value() == '0':
+            return queryset.filter(group__isnull = True)
+
+class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of parts')
+
+    parameter_name = ('np')
+
+    related_table = 'digipal_itempart'
+    foreign_key = 'group_id'
+    this_table = 'digipal_itempart'
+    
+class ItemPartImageNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of Images')
+
+    parameter_name = ('ni')
+
+    related_table = 'digipal_image'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    
+class CurrentItemPartNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Parts')
 
     parameter_name = ('ci_nip')
 
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('2p', ('Two or more')),
-        )   
+    related_table = 'digipal_itempart'
+    foreign_key = 'current_item_id'
+    this_table = 'digipal_currentitem'
 
-    def queryset(self, request, queryset):
-        select = ur'''(SELECT COUNT(*) FROM digipal_itempart WHERE current_item_id = digipal_currentitem.id) %s'''
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
-
-class HistoricalItemItemPartNumberFilter(SimpleListFilter):
+class HistoricalItemItemPartNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Parts')
 
     parameter_name = ('hi_nip')
 
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('2p', ('Two or more')),
-        )   
-
-    def queryset(self, request, queryset):
-        select = ur'''(SELECT COUNT(*) FROM digipal_itempartitem WHERE historical_item_id = digipal_historicalitem.id) %s'''
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
+    related_table = 'digipal_itempartitem'
+    foreign_key = 'historical_item_id'
+    this_table = 'digipal_historicalitem'
 
 class HistoricalItemKerFilter(SimpleListFilter):
     title = ('Ker')
@@ -530,10 +570,17 @@ class CurrentItemAdmin(reversion.VersionAdmin):
     list_display_links = list_display
     search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
     list_filter = ['repository', CurrentItemPartNumberFilter]
+    
+    readonly_fields = ('display_label',)
+    
+    fieldsets = (
+                (None, {'fields': ('display_label', 'repository', 'shelfmark', 'description')}),
+                ('Owners', {'fields': ('owners', )}),
+                ('Legacy', {'fields': ('legacy_id',)}),
+                ) 
 
     inlines = [ItemPartInline]
     filter_horizontal = ['owners']
-
 
 class DateEvidenceInline(admin.StackedInline):
     model = DateEvidence
@@ -720,13 +767,15 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
                    HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
     
     fieldsets = (
-                (None, {'fields': ('catalogue_number', 'name', 'date', )}),
+                (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),
                 ('Classifications', {'fields': ('historical_item_type', 'historical_item_format', 'categories')}),
                 ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
                 ('Owners', {'fields': ('owners',)}),
                 ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),
                 ) 
-    readonly_fields = ['catalogue_number']
+    
+    readonly_fields = ['catalogue_number', 'display_label']
+    
     filter_horizontal = ['categories', 'owners']
     inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
@@ -819,18 +868,22 @@ class ImageInline(admin.StackedInline):
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
-    list_display = ['historical_item', 'current_item', 'locus', 'type', 
-            'created', 'modified']
+    # 'current_item', 'locus', 
+    list_display = ['id', 'display_label', 'historical_label', 'type', 
+                    'get_image_count', 'get_part_count', 
+                    'created', 'modified']
     list_display_links = list_display
     search_fields = ['locus', 'display_label',
-            'historical_items__display_label', 'type__name']
-    list_filters = ('type',)
-
-    readonly_fields = ('display_label',)
+            'historical_items__display_label', 'current_item__display_label',
+            'subdivisions__display_label', 'group__display_label', 
+            'type__name']
+    list_filter = ('type', ItemPartImageNumberFilter, ItemPartMembersNumberFilter, ItemPartHasGroupGroupFilter)
+    
+    readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
-                (None, {'fields': ('display_label', 'type',)}),
+                (None, {'fields': ('display_label', 'historical_label', 'type',)}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
-                ('It belongs (or belonged) to another part...', {'fields': ('group',)}),
+                ('It belongs (or belonged) to another part...', {'fields': ('group', 'group_locus')}),
                 ('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
@@ -953,7 +1006,7 @@ class ImageAdmin(reversion.VersionAdmin):
     readonly_fields = ('display_label', 'folio_number', 'folio_side')
     
     fieldsets = (
-                (None, {'fields': ('display_label',)}),
+                (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
                 ('Internal and editorial information', {'fields': ('internal_notes', 'transcription')})

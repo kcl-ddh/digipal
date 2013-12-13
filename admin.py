@@ -758,8 +758,8 @@ class ItemLayoutInline(admin.StackedInline):
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
-    search_fields = ['catalogue_number', 'date', 'name']
-    list_display = ['catalogue_number', 'name', 'date', 'historical_item_type', 
+    search_fields = ['id', 'catalogue_number', 'date', 'name']
+    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
     list_filter = ['historical_item_type', 'historical_item_format', 

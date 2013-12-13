@@ -1101,7 +1101,7 @@ class ItemPartItem(models.Model):
 
     def __unicode__(self):
         ret = u''
-
+        
         # Type, [Shelfmark, locus], [HI.name, locus]
         if self.item_part.type:
             ret += u'%s: ' % self.item_part.type
@@ -1121,7 +1121,7 @@ class ItemPartItem(models.Model):
             if self.item_part.group.locus:
                 group_label = '%s, %s' % (self.item_part.group.current_item.shelfmark, self.item_part.group.locus)
             else:
-                ipi = ItemPartItems.objects.filter(item_part=self.item_part.group)
+                ipi = ItemPartItem.objects.filter(item_part=self.item_part.group)
                 if ipi.count():
                     ipi = ipi[0]
                     group_label = '%s, %s' % (ipi.historical_item.name, ipi.locus)

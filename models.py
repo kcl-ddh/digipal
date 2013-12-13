@@ -484,7 +484,7 @@ class HistoricalItem(models.Model):
     neumed = models.NullBooleanField()
     owners = models.ManyToManyField(Owner, blank=True, null=True)
     catalogue_number = models.CharField(max_length=128, editable=False)
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -849,7 +849,7 @@ class CurrentItem(models.Model):
     repository = models.ForeignKey(Repository)
     shelfmark = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     owners = models.ManyToManyField(Owner, blank=True, null=True, default=None, related_name='current_items')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1015,10 +1015,14 @@ class ItemPartType(models.Model):
 class ItemPart(models.Model):
     historical_items = models.ManyToManyField(HistoricalItem, through='ItemPartItem', related_name='item_parts')
     current_item = models.ForeignKey(CurrentItem, blank=True, null=True, default=None)
-    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True)
+    
+    # the reference to a grouping part and the locus of this part in the group 
+    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True, help_text='the item part which contains this one')
+    group_locus = models.CharField(max_length=64, blank=True, null=True, help_text='the locus of this part in the group')
+    
     # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
-            default=settings.ITEM_PART_DEFAULT_LOCUS)
+            default=settings.ITEM_PART_DEFAULT_LOCUS, help_text='the location of this part in the Current Item')
     display_label = models.CharField(max_length=128)
     pagination = models.BooleanField(blank=False, null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -1034,16 +1038,38 @@ class ItemPart(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
+    def get_image_count(self):
+        return self.images.all().count()
+    get_image_count.short_description = 'Images'
+    get_image_count.allow_tags = False
+    
+    def get_part_count(self):
+        return self.subdivisions.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
+
     def save(self, *args, **kwargs):
         #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
         if self.current_item:
             self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
         else:
-            iphis = self.constitutionalities.all()
-            if iphis.count():
-                iphi = iphis[0]
-                self.display_label = get_list_as_string(iphi.historical_item, ', ', iphi.locus)
+            label = self.historical_label
+            if label:
+                self.display_label = label
         super(ItemPart, self).save(*args, **kwargs)
+
+    @property
+    def historical_label(self):
+        ret= ''
+        # label is 'HI, locus'
+        iphis = self.constitutionalities.all()
+        if iphis.count():
+            ret = get_list_as_string(iphis[0].historical_item, ', ', iphis[0].locus)
+        else:
+            # label is 'group.historical_label, group_locus'
+            if self.group:
+                ret = get_list_as_string(self.group.historical_label, ', ', group_locus)
+        return ret
 
     @property
     def historical_item(self):
@@ -1137,6 +1163,9 @@ class Image(models.Model):
             blank=True, null=True, storage=iipimage.storage.image_storage)
 
     display_label = models.CharField(max_length=128)
+    # optional the display label provided by the user
+    custom_label = models.CharField(max_length=128, blank=True, null=True, help_text='Leave blank unless you want to customise the value of the display label field')
+    
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
             help_text='''This field determines if the image is publicly visible and the reason if not.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -1223,10 +1252,14 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time?
-        if (self.item_part):
-            self.display_label = get_list_as_string(self.item_part, ': ', self.locus)
+        self.custom_label = self.custom_label.strip()
+        if self.custom_label:
+            self.display_label = self.custom_label
         else:
-            self.display_label = u''
+            if (self.item_part):
+                self.display_label = get_list_as_string(self.item_part, ': ', self.locus)
+            else:
+                self.display_label = u''
         self.update_number_and_side_from_locus()
         super(Image, self).save(*args, **kwargs)
 

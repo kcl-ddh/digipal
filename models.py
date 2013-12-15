@@ -508,6 +508,11 @@ class HistoricalItem(models.Model):
         else:
             self.catalogue_number = u'NOCATNO'
 
+    def get_part_count(self):
+        return self.item_parts.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
+
     def save(self, *args, **kwargs):
         self.set_catalogue_number()
         #self.display_label = u'%s %s %s' % (self.historical_item_type,
@@ -1037,6 +1042,11 @@ class ItemPart(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def clean(self):
+        if self.group_id == self.id:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('An Item Part cannot be its own group.')
 
     def get_image_count(self):
         return self.images.all().count()

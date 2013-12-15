@@ -759,7 +759,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
     search_fields = ['id', 'catalogue_number', 'date', 'name']
-    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 
+    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 'get_part_count', 
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
     list_filter = ['historical_item_type', 'historical_item_format', 
@@ -865,6 +865,16 @@ class ImageInline(admin.StackedInline):
 
     exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number']
 
+class ItemSubPartInline(StackedDynamicInlineAdmin):
+    model = ItemPart
+    
+    readonly_fields = ['display_label']
+    fieldsets = (
+                (None, {'fields': ('display_label', 'type',)}),
+                ('Locus of this part in the group', {'fields': ('group_locus', )}),
+                ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
+                ) 
+
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
@@ -887,7 +897,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    inlines = [ItemPartItemInline, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType

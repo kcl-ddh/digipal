@@ -92,8 +92,10 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.onFeatureSelect(e);
 		},
 		'featureunselected': function(e) {
-			if (e.feature.linked_to && e.feature.linked_to.length) {
+			console.log(e.feature.linked_to.length)
+			if (e.feature.linked_to.length) {
 				$.each(e.feature.linked_to[0], function(index, value) {
+					console.log(value)
 					_self.onFeatureUnSelect(value, false);
 				});
 			} else {
@@ -195,7 +197,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			var allograph = $('#id_allograph').val();
 			e.feature.hand = hand;
 			e.feature.allograph = allograph;
-			e.feature.feature = $('#id_allograph option:selected').text();
+			e.feature.feature = $('#id_allolgraph option:selected').text();
 
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {

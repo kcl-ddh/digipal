@@ -108,7 +108,7 @@
 
           <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
 
-          {{ annotation.thumbnail }}
+            {% annotation_img annotation lazy=1 %}
 
           </a>
 
@@ -125,7 +125,6 @@
   </div>
 
   {% endfor %}
-</div>
 
 <div>
   <a id='ontop' href='#top' title='Back to Top'></a>
@@ -161,6 +160,7 @@
         <span title='Maximize window' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right'>&#9633;</span>
       </p>
       <p style='border-top:1px solid #efefef;padding-top:2%'></p>
+    </form>
   </div>
 
   <!-- body -->
@@ -175,7 +175,7 @@
 
   <!-- features summary -->
   <div id='summary'></div>
-
-  </form>
+  
+</div>
 
 {% endif %}

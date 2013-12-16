@@ -1,4 +1,4 @@
-/*
+/**
  * Expand thumbnails on mouse overs.
  * 
  * Usage:
@@ -16,6 +16,11 @@ $(function() {
 	
 	function show_expanded_img(event, img, hide) {
 		var thumbnail_img = $(img);
+		
+		// abort if the src is not a IIP image
+		if (thumbnail_img.attr('src').indexOf('FIF=') == -1) {
+			return;
+		}
 		
 		// get or create the div that contains the image
 		var expanded_div = $('#img-expand-div');
@@ -82,3 +87,51 @@ $(function() {
 	$('.img-expand').mouseenter(function(event){ show_expanded_img(event, this, false); });
 	$('.img-expand').mouseleave(function(event){ show_expanded_img(event, this, true); });
 });
+
+
+/**
+ * Lazy-loading images.
+ * 
+ * Usage:
+ * 	<img src="dummyimg.gif" data-lazy-img-src="realpath.gif" />
+ * 
+ *  Just add the image URL in the data-lazy-img-src attribute of the img element.
+ *  dummyimg.gif is a default image to display, e.g. 1 white pixel or a spinner.
+ *  
+ * The image will be automatically loaded when it is visible in
+ * the browser.
+ * 
+ */
+$(function() {
+	function load_lazy_images() {
+		// load lazy images which are now visible in the browser window.
+		$('img[data-lazy-img-src]').each(function() {
+			var jq_img = $(this);
+			if (is_element_visible(jq_img)) {
+				jq_img.attr('src', jq_img.attr('data-lazy-img-src'));
+				jq_img.removeAttr('data-lazy-img-src');
+			}
+		});
+	}
+	
+	function is_element_visible(jq_element) {
+		// Returns true if jq_element is currently on the visible part of 
+		// the html page.
+		
+		// element must not be hidden
+		if (!jq_element.is(":visible")) return false;		
+		// element is invisible if its bottom is above the top of the window
+		if ((jq_element.offset().top + jq_element.height()) < $(window).scrollTop()) return false;
+		// or its top below the bottom of the window
+		if (jq_element.offset().top > ($(window).scrollTop() + $(window).height())) return false;
+		return true;
+	}
+	
+	$('#myTab a').click(load_lazy_images);
+	
+	$(window).scroll(load_lazy_images);
+	$(window).resize(load_lazy_images);
+	
+	load_lazy_images();
+})
+

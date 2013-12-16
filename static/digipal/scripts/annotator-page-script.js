@@ -584,9 +584,11 @@ declaring function to get parameteres from URL
 		feature.feature.linked_to = [];
 		feature.feature.stored = false;
 		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 80) {
-			console.log('feature too small');
+
 			feature.feature.destroy();
-			$('circle').add('polyline').remove();
+			$('circle').remove();
+			$('polyline').remove();
+
 			return false;
 		}
 		if (annotator.isAdmin == "False") {

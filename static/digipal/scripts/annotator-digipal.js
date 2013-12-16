@@ -192,6 +192,9 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 	var features = self.selectedAnnotations;
 	if (features.length) {
 		for (var i = 0; i < features.length; i++) {
+			if (features[i].linked_to.length) {
+				features[i].linked_to = [];
+			}
 			var feature = {};
 			for (var j = 0; j < features.length; j++) {
 				feature[features[j].id] = features[j];
@@ -538,9 +541,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 
 function updateFeatureSelect(currentFeatures, id) {

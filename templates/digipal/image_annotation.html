@@ -41,7 +41,7 @@
             '{{ image_server_url }}', "{{is_admin}}");
             
             {% if not is_admin %}
-                annotator.toolbarPanel.controls.splice(3, 4);
+                annotator.toolbarPanel.controls.splice(3, 5);
                 annotator.toolbarPanel.controls.splice(4, 4);
                 annotator.toolbarPanel.redraw();
                 annotator.user_annotations = [];
@@ -82,6 +82,7 @@
         <h2 class='header1'>
             {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
             {{image|capfirst}}
+            {% include "digipal/admin_edit.html" with instance=image %}
         </h2>
         
         {% if no_image_reason %}

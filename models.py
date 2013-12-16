@@ -484,7 +484,7 @@ class HistoricalItem(models.Model):
     neumed = models.NullBooleanField()
     owners = models.ManyToManyField(Owner, blank=True, null=True)
     catalogue_number = models.CharField(max_length=128, editable=False)
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -507,6 +507,11 @@ class HistoricalItem(models.Model):
                 cn.number) for cn in self.catalogue_numbers.all()]).strip()
         else:
             self.catalogue_number = u'NOCATNO'
+
+    def get_part_count(self):
+        return self.item_parts.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
 
     def save(self, *args, **kwargs):
         self.set_catalogue_number()
@@ -849,7 +854,7 @@ class CurrentItem(models.Model):
     repository = models.ForeignKey(Repository)
     shelfmark = models.CharField(max_length=128)
     description = models.TextField(blank=True, null=True)
-    display_label = models.CharField(max_length=128, editable=False)
+    display_label = models.CharField(max_length=128)
     owners = models.ManyToManyField(Owner, blank=True, null=True, default=None, related_name='current_items')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -863,9 +868,13 @@ class CurrentItem(models.Model):
         return u'%s' % (self.display_label)
 
     def save(self, *args, **kwargs):
-        #self.display_label = u'%s %s' % (self.repository, self.shelfmark)
         self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark)
         super(CurrentItem, self).save(*args, **kwargs)
+
+    def get_part_count(self):
+        return self.itempart_set.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
 
 
 # OwnerText in legacy db
@@ -1016,11 +1025,15 @@ class ItemPartType(models.Model):
 class ItemPart(models.Model):
     historical_items = models.ManyToManyField(HistoricalItem, through='ItemPartItem', related_name='item_parts')
     current_item = models.ForeignKey(CurrentItem, blank=True, null=True, default=None)
-    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True)
+    
+    # the reference to a grouping part and the locus of this part in the group 
+    group = models.ForeignKey('self', related_name='subdivisions', null=True, blank=True, help_text='the item part which contains this one')
+    group_locus = models.CharField(max_length=64, blank=True, null=True, help_text='the locus of this part in the group')
+    
     # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
-            default=settings.ITEM_PART_DEFAULT_LOCUS)
-    display_label = models.CharField(max_length=128, editable=False)
+            default=settings.ITEM_PART_DEFAULT_LOCUS, help_text='the location of this part in the Current Item')
+    display_label = models.CharField(max_length=128)
     pagination = models.BooleanField(blank=False, null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1034,11 +1047,44 @@ class ItemPart(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
+    
+    def clean(self):
+        if self.group_id == self.id:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('An Item Part cannot be its own group.')
+
+    def get_image_count(self):
+        return self.images.all().count()
+    get_image_count.short_description = 'Images'
+    get_image_count.allow_tags = False
+    
+    def get_part_count(self):
+        return self.subdivisions.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
-        self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
+        if self.current_item:
+            self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
+        else:
+            label = self.historical_label
+            if label:
+                self.display_label = label
         super(ItemPart, self).save(*args, **kwargs)
+
+    @property
+    def historical_label(self):
+        ret= ''
+        # label is 'HI, locus'
+        iphis = self.constitutionalities.all()
+        if iphis.count():
+            ret = get_list_as_string(iphis[0].historical_item, ', ', iphis[0].locus)
+        else:
+            # label is 'group.historical_label, group_locus'
+            if self.group:
+                ret = get_list_as_string(self.group.historical_label, ', ', group_locus)
+        return ret
 
     @property
     def historical_item(self):
@@ -1070,7 +1116,7 @@ class ItemPartItem(models.Model):
 
     def __unicode__(self):
         ret = u''
-
+        
         # Type, [Shelfmark, locus], [HI.name, locus]
         if self.item_part.type:
             ret += u'%s: ' % self.item_part.type
@@ -1090,7 +1136,7 @@ class ItemPartItem(models.Model):
             if self.item_part.group.locus:
                 group_label = '%s, %s' % (self.item_part.group.current_item.shelfmark, self.item_part.group.locus)
             else:
-                ipi = ItemPartItems.objects.filter(item_part=self.item_part.group)
+                ipi = ItemPartItem.objects.filter(item_part=self.item_part.group)
                 if ipi.count():
                     ipi = ipi[0]
                     group_label = '%s, %s' % (ipi.historical_item.name, ipi.locus)
@@ -1121,7 +1167,7 @@ class Image(models.Model):
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
     # no longer used, to be removed.
-    caption = models.CharField(max_length=256)
+    caption = models.CharField(max_length=256, blank=True, null=True)
 
     # Legacy field, deprecated.
     # PLEASE USE IIPIMAGE INSTEAD.
@@ -1132,17 +1178,30 @@ class Image(models.Model):
             blank=True, null=True, storage=iipimage.storage.image_storage)
 
     display_label = models.CharField(max_length=128)
+    # optional the display label provided by the user
+    custom_label = models.CharField(max_length=128, blank=True, null=True, help_text='Leave blank unless you want to customise the value of the display label field')
+    
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
             help_text='''This field determines if the image is publicly visible and the reason if not.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    
+    transcription = models.TextField(blank=True, null=True)
+    internal_notes = models.TextField(blank=True, null=True)
 
     class Meta:
-        ordering = ['display_label']
+        ordering = ['item_part__display_label', 'folio_number', 'folio_side']
 
     def __unicode__(self):
-        return u'%s' % (self.display_label)
+        ret = u''
+        if self.display_label:
+            ret = u'%s' % self.display_label
+        else:
+            ret = u'Untitled Image #%s' % self.id
+            if self.iipimage:
+                ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
+        return ret
 
     def get_repository(self):
         ret = None
@@ -1208,10 +1267,14 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time?
-        if (self.item_part):
-            self.display_label = get_list_as_string(self.item_part, ': ', self.locus)
+        self.custom_label = self.custom_label.strip()
+        if self.custom_label:
+            self.display_label = self.custom_label
         else:
-            self.display_label = u''
+            if (self.item_part):
+                self.display_label = get_list_as_string(self.item_part, ': ', self.locus)
+            else:
+                self.display_label = u''
         self.update_number_and_side_from_locus()
         super(Image, self).save(*args, **kwargs)
 
@@ -1251,7 +1314,6 @@ class Image(models.Model):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
         """
-        ret = ''
         path = ''
         if self.iipimage:
             #path = self.iipimage.full_base_url
@@ -1298,7 +1360,7 @@ class Image(models.Model):
         '''
         # TODO: fall back for non-postgresql RDBMS
         # TODO: optimise this by caching the result in a field
-        return query_set.extra(select={'fn': ur'''CASE WHEN folio_number~E'^\\d+$' THEN folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn')
+        return query_set.extra(select={'fn': ur'''CASE WHEN digipal_image.folio_number~E'^\\d+$' THEN digipal_image.folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify
@@ -1354,7 +1416,7 @@ def thumbnail(image, length=settings.MAX_THUMB_LENGTH):
 # Hands in legacy db
 class Hand(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    num = models.IntegerField()
+    num = models.IntegerField(help_text='''The order of display of the Hand label. e.g. 1 for Main Hand, 2 for Gloss.''')
     item_part = models.ForeignKey(ItemPart, related_name='hands')
     script = models.ForeignKey(Script, blank=True, null=True)
     scribe = models.ForeignKey(Scribe, blank=True, null=True, related_name='hands')
@@ -1366,19 +1428,11 @@ class Hand(models.Model):
     # This is a hand (or scribe) number, relative to the ker
     # cat number for the historical item (added 04/06/2011)
     ker = models.CharField(max_length=10, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##scragg_description = models.TextField(blank=True, null=True)
     em_title = models.CharField(max_length=256, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##em_description = models.TextField(blank=True, null=True)
-    # TODO: move to HandDescription
-    ##mancass_description = models.TextField(blank=True, null=True)
     label = models.TextField(blank=True, null=True)
-    display_note = models.TextField(blank=True, null=True)
-    internal_note = models.TextField(blank=True, null=True)
+    display_note = models.TextField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
+    internal_note = models.TextField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')
     appearance = models.ForeignKey(Appearance, blank=True, null=True)
-    # TODO: move to HandDescription
-    ##description = models.TextField(blank=True, null=True)
     relevant = models.NullBooleanField()
     latin_only = models.NullBooleanField()
     gloss_only = models.NullBooleanField()
@@ -1390,12 +1444,17 @@ class Hand(models.Model):
     imitative = models.NullBooleanField()
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    #pages = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
-    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands')
+    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands', help_text='''Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.''')
+    
+    # GN: we might want to ignore display_label, it is not used on the admin 
+    # form or the search or record views on the front end.
+    # Use label instead. 
     display_label = models.CharField(max_length=128, editable=False)
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+    
     # Imported from Brookes DB
     locus = models.CharField(max_length=300, null=True, blank=True, default='')
     # TODO: migrate to Cat Num (From Brookes DB)
@@ -1412,7 +1471,7 @@ class Hand(models.Model):
             return None
 
     class Meta:
-        ordering = ['display_label']
+        ordering = ['item_part', 'num']
 
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
@@ -1440,6 +1499,16 @@ class Hand(models.Model):
             self.set_description('digipal', value, True)
         else:
             super(Hand, self).__setattr__(name, value)
+            
+    def validate_unique(self, exclude=None):
+        # Unique constraint for new records only: (item_part, label)
+        # Not as unique_together because we already have records violating this  
+        super(Hand, self).validate_unique(exclude)
+        if Hand.objects.filter(label=self.label, item_part=self.item_part).exclude(id=self.id).exists():
+            from django.core.exceptions import ValidationError
+            errors = {}
+            errors.setdefault('label', []).append(ur'Insertion failed, another record with the same label and item part already exists')
+            raise ValidationError(errors)
 
     def set_description(self, source_name, description=None, remove_if_empty=False):
         ''' Set the description of a hand according to a source (e.g. ker, sawyer).
@@ -1595,8 +1664,8 @@ class Annotation(models.Model):
             related_name='allograph_after')
     vector_id = models.TextField()
     geo_json = models.TextField()
-    display_note = models.TextField(blank=True, null=True)
-    internal_note = models.TextField(blank=True, null=True)
+    display_note = models.TextField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
+    internal_note = models.TextField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -2065,18 +2134,29 @@ class RequestLog(models.Model):
             rl = cls(result_count=count, request=path)
             rl.save()
 
-# Assign get_absolute_urls() for all models /digipal/MODEL_PLURAL/ID
+# Assign get_absolute_url() and get_admin_url() for all models 
+# get_absolute_url() returns /digipal/MODEL_PLURAL/ID
 # E.g. /digipal/scribes/101
-def set_models_absolute_urls():
+def set_additional_models_methods():
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
         webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
-        return '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+        ret = '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+        return ret
 
+    def model_get_admin_url(self):
+        # get_admin_url
+        from django.core.urlresolvers import reverse
+        info = (self._meta.app_label, self._meta.module_name)
+        ret = reverse('admin:%s_%s_change' % info, args=(self.pk,))
+        return ret
+            
     for attribute in globals().values():
         # Among all the symbols accessible here, filter the Model defined in this module
         if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
             attribute.get_absolute_url = model_get_absolute_url
+            attribute.get_admin_url = model_get_admin_url
 
-set_models_absolute_urls()
+
+set_additional_models_methods()

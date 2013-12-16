@@ -70,8 +70,13 @@ def image(request, image_id):
     hands_list = []
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
+    
     for h in hands_object.values():
-        hand = {'id': h['id'], 'name': h['label'].encode("utf-8")}
+        if h['label'] == None:
+            label = "None"
+        else:
+            label = h['label'].encode("utf-8")
+        hand = {'id': h['id'], 'name': label}
         hands_list.append(hand)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))

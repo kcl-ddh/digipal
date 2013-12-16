@@ -25,6 +25,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 		Annotator.call(this, imageUrl, imageWidth, imageHeight, false);
 	}
 	this.annotations = null;
+	this.annotating = true;
 	this.url_annotations = 'annotations';
 	this.url_allographs = false;
 	this.unsaved_annotations = [];
@@ -67,14 +68,14 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		layer.redraw();
 	}
 
-	if (self.selectedFeature && self.selectedFeature.linked_to && self.selectedFeature.linked_to.length && allow_multiple()) {
+	if (typeof self.selectedFeature.linked_to != 'undefined' && self.selectedFeature.linked_to.length && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			self.showAnnotation(value);
 			self.selectedAnnotations.push(value);
 			var msg = self.selectedAnnotations.length + ' annotation selected';
 			updateStatus(msg, 'success');
 		});
-	} else if (self.selectedFeature && self.selectedFeature.linked_to && !self.selectedFeature.linked_to.length && allow_multiple()) {
+	} else if (typeof self.selectedFeature.linked_to != 'undefined' && !self.selectedFeature.linked_to.length && allow_multiple()) {
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
@@ -193,7 +194,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 		for (var i = 0; i < features.length; i++) {
 			var feature = {};
 			for (var j = 0; j < features.length; j++) {
-				feature[features[j].graph] = features[j];
+				feature[features[j].id] = features[j];
 			}
 			features[i].linked_to.push(feature);
 		}
@@ -283,6 +284,7 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 			feature.style.strokeColor = color;
 		}
 	}
+
 	var allographs = $('.checkVectors');
 	var hands = $('.checkVectors_hands');
 	var hand;
@@ -293,7 +295,7 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 		for (var i = 0; i < features_length; i++) {
 			for (var h = 0; h < hands_length; h++) {
 				hand = $(hands[h]);
-				if (features[i].hand == hand.val() && hand.is(':checked')) {
+				if (features[i].hand == hand.val() && hand.is(':checked') && features[i].stored) {
 					if (!features[i].style) {
 						features[i].style = {
 							'fillOpacity': 0.4,
@@ -323,23 +325,25 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 		$(checkboxes).attr('checked', false);
 		var max = features.length;
 		for (var i = 0; i < max; i++) {
-			if (!features[i].style) {
-				features[i].style = {
-					'fillOpacity': 0,
-					'strokeOpacity': 0
-				};
-				if (features[i].described) {
-					stylize('green', features[i]);
+			if (features[i].stored) {
+				if (!features[i].style) {
+					features[i].style = {
+						'fillOpacity': 0,
+						'strokeOpacity': 0
+					};
+					if (features[i].described) {
+						stylize('green', features[i]);
+					} else {
+						stylize('#ee9900', features[i]);
+					}
 				} else {
-					stylize('#ee9900', features[i]);
-				}
-			} else {
-				features[i].style.fillOpacity = 0;
-				features[i].style.strokeOpacity = 0;
-				if (features[i].described) {
-					stylize('green', features[i]);
-				} else {
-					stylize('#ee9900', features[i]);
+					features[i].style.fillOpacity = 0;
+					features[i].style.strokeOpacity = 0;
+					if (features[i].described) {
+						stylize('green', features[i]);
+					} else {
+						stylize('#ee9900', features[i]);
+					}
 				}
 			}
 		}
@@ -925,6 +929,11 @@ function create_dialog(selectedFeature, id) {
 					} else {
 						title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
 					}
+
+				} else if (!annotator.annotating) {
+
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span>";
+
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
@@ -935,7 +944,12 @@ function create_dialog(selectedFeature, id) {
 							title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
 						}
 					} else {
-						title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span>";
+						title = "<span class='allograph_label'>Group</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span>";
+						if (allow_multiple() && annotator.selectedAnnotations.length) {
+							title += " <span class='btn btn-mini link_graphs'>Group<span>";
+						} else {
+							title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
+						}
 					}
 				}
 			} else {
@@ -950,6 +964,7 @@ function create_dialog(selectedFeature, id) {
 		position: position()
 	}).addClass('dialog_annotations');
 
+	/*
 	var pin;
 
 	if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
@@ -1013,12 +1028,18 @@ function create_dialog(selectedFeature, id) {
 			dialog.data('pinned', true);
 		}
 	});
+    */
 
-	if (annotator.isAdmin == "False") {
+
+	if (annotator.isAdmin == "False" || !annotator.annotating) {
+
 		$('.name_temporary_annotation').focus();
 		$('.ui-dialog-title').on('click', function() {
 			$('.name_temporary_annotation').focus();
 		});
+
+		annotator.selectedFeature.isTemporary = true;
+
 	}
 
 	if (typeof selectedFeature === "null" || typeof selectedFeature === "undefined") {
@@ -1330,6 +1351,24 @@ function fill_dialog(id, annotation) {
 		show_url_allograph(dialog, annotation, $(this));
 	});
 
+	var name_temporary_annotation = $('.name_temporary_annotation');
+	var content_temporary_annotation = $('.textarea_temporary_annotation');
+
+	if (annotator.selectedFeature.contentAnnotations) {
+		content_temporary_annotation.val(annotator.selectedFeature.contentAnnotations);
+	}
+
+	if (annotator.selectedFeature.contentTitle) {
+		name_temporary_annotation.val(annotator.selectedFeature.contentTitle);
+	}
+
+	name_temporary_annotation.on('keydown', function() {
+		annotator.selectedFeature.contentTitle = $(this).val();
+	});
+
+	content_temporary_annotation.on('keydown', function() {
+		annotator.selectedFeature.contentAnnotation = $(this).val();
+	});
 
 	var hidden_hand = $('#id_hand').val();
 	var hidden_allograph = $('#id_allograph').val();
@@ -1357,12 +1396,31 @@ function get_allograph(allograph) {
 function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
 	if (button.data('hidden')) {
+
+
 		button.data('hidden', false);
 		var url = $("<div class='allograph_url_div'>");
 		var allograph_url, stored;
 		var input = $('<input type="text">');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').val();
+
+		// get annotations visibility status
+		var getAnnotationsVisibility = $('#toggle-state-switch').bootstrapSwitch('status');
+
+		var layerZoom = annotator.map.zoom;
+
+		var dialogPosition = $('.dialog_annotations').offset();
+
+		var checkboxesOff = [];
+		var checkboxes = $('.checkVectors');
+
+		checkboxes.each(function() {
+			if (!$(this).is(':checked')) {
+				checkboxesOff.push($(this).parent('p').data('annotation'));
+			}
+		});
+
 		if (annotation !== null) {
 			for (var i = 0; i < features.length; i++) {
 				if (annotation.graph == features[i].graph && features[i].stored) {
@@ -1370,15 +1428,27 @@ function show_url_allograph(dialog, annotation, button) {
 				}
 			}
 		}
+
 		if (annotation !== null && stored) {
 			allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 		} else {
+
 			var geometryObject = annotator.selectedFeature;
 			var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+
 			geoJSONText.title = title;
 			geoJSONText.desc = desc;
-			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + encodeURIComponent(JSON.stringify(geoJSONText));
+			geoJSONText.dialogPosition = dialogPosition;
+			geoJSONText.zoom = layerZoom;
+			geoJSONText.visibility = getAnnotationsVisibility;
+
+			if (checkboxesOff.length) {
+				geoJSONText.checkboxes = checkboxesOff;
+			}
+
+			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
 		}
+
 		input.val(allograph_url);
 		url.append(input);
 		dialog.prepend(url);
@@ -1386,7 +1456,6 @@ function show_url_allograph(dialog, annotation, button) {
 		setTimeout(function() {
 			input.focus().select();
 		}, 0);
-
 
 
 	} else {
@@ -2033,20 +2102,24 @@ function load_annotations_allographs(annotation) {
 					}
 				});
 				s += "</div>";
+
 				$("#summary").html(string_summary);
 				$('#features_container').html(s);
+
 				$('.check_all').click(function(event) {
 					var component = $(this).data('component');
 					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 					checkboxes.attr('checked', true);
 					event.stopPropagation();
 				});
+
 				$('.uncheck_all').click(function(event) {
 					var component = $(this).data('component');
 					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 					checkboxes.attr('checked', false);
 					event.stopPropagation();
 				});
+
 				$('.myModal select').chosen();
 
 				var maximized = false;
@@ -2508,124 +2581,6 @@ DigipalAnnotator.prototype.full_Screen = function() {
  *              The annotation data.
  */
 
-function add_to_lightbox(button, type, annotations, multiple) {
-	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
-	if (!current_basket) {
-		current_basket = {};
-	}
-	var flag, i, j, elements;
-	if (multiple) {
-		if (current_basket) {
-			for (i = 0; i < annotations.length; i++) {
-				flag = true;
-				for (j = 0; j < current_basket.annotations.length; j++) {
-					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
-					if (current_basket.annotations[j].graph == annotations[i].graph) {
-						flag = false;
-					}
-				}
-				console.log(flag)
-				if (flag) {
-					console.log(annotations[i]);
-					current_basket.annotations.push(annotations[i]);
-				}
-			}
-
-		} else {
-			current_basket = {};
-			current_basket.annotations = [];
-			for (i = 0; i < annotations.length; i++) {
-				current_basket.annotations.push(annotations[i]);
-			}
-		}
-		localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
-	} else {
-		var graph;
-		if (type == 'annotation') {
-			graph = button.data('graph');
-			if (current_basket.annotations === undefined) {
-				current_basket.annotations = [];
-			}
-			elements = current_basket.annotations;
-		} else {
-			graph = annotations;
-			if (current_basket.images === undefined) {
-				current_basket.images = [];
-			}
-			elements = current_basket.images;
-		}
-
-		if (current_basket && elements && elements.length) {
-			for (j = 0; j < elements.length; j++) {
-				flag = true;
-
-				if (type == 'annotation') {
-					if (elements[j].graph == graph) {
-						flag = false;
-					}
-				} else {
-					if (elements[j].id == graph) {
-						flag = false;
-					}
-				}
-			}
-			if (flag) {
-				if (type == 'annotation') {
-					elements.push(annotations);
-				} else {
-					elements.push({
-						'id': annotator.image_id
-					});
-				}
-			}
-
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
-
-		} else {
-			if (type == 'annotation') {
-				if (current_basket.hasOwnProperty('images')) {
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
-				} else {
-					current_basket = {};
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
-				}
-
-			} else {
-				if (current_basket.hasOwnProperty('annotations')) {
-					current_basket.images = [];
-					current_basket.images.push({
-						id: annotator.image_id
-					});
-				} else {
-					current_basket = {};
-					current_basket.images = [];
-					current_basket.images.push({
-						id: annotator.image_id
-					});
-				}
-			}
-			console.log(current_basket);
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
-		}
-
-	}
-
-	var length_basket_elements = function() {
-		var n = 0;
-		var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
-		if (current_basket) {
-			$.each(current_basket, function() {
-				n += this.length;
-			});
-		}
-		return n;
-	};
-
-	$('#lightbox_button a').html("Lightbox (" + length_basket_elements() + " images)");
-
-}
 
 
 function getCookie(name) {

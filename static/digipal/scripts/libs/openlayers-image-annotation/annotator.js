@@ -92,7 +92,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.onFeatureSelect(e);
 		},
 		'featureunselected': function(e) {
-			if (e.feature.linked_to && e.feature.linked_to.length) {
+			if (typeof e.feature.linked_to !== "undefined" && e.feature.linked_to.length) {
 				$.each(e.feature.linked_to[0], function(index, value) {
 					_self.onFeatureUnSelect(value, false);
 				});

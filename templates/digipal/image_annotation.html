@@ -23,6 +23,7 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
     <script>
 
         var csrftoken = getCookie('csrftoken');
@@ -49,7 +50,6 @@
             {% endif %}
             annotator.image_id = {{ image.id }}
             annotator.hands = {{ hands_list|safe }}
-
 
             {% if vector_id %}
                 vector_id = true;

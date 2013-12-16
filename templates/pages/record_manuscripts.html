@@ -38,7 +38,7 @@
                         </tr>
                     </tbody>
                 </table>
-                
+
                 <h3>Data</h3>
                 <table class="table table-condensed">
                     <tbody>
@@ -87,9 +87,9 @@
                     </tbody>
                 </table>
             </div>
-    
+
             {% include "pages/tab_images.html" %}
-    
+
             <div class='tab-pane fade' id='hands'>
                 <div class='row-fluid'>
                     {% if hands.count %}
@@ -110,4 +110,62 @@
             </div>
         </div>
     </div>
+    <div id='basket_collector'>
+        <p>Add Image to Basket</p>
+        <p>
+            <img src='/static/images/shopping-cart-icon.png' />
+        </p>
+    </div>
+    {% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
+
+    <script>
+    $(document).ready(function(){
+        var basket_collector = $('#basket_collector');
+        basket_collector.droppable({
+            accept: "a.droppable_image",
+            hoverClass: "ui-state-active",
+            drop: function(event, ui){
+                var element = $(ui.helper[0]);
+                add_to_lightbox(element, 'image', element.data('id'), false);
+                var s = '<p>Imaged added to Lightbox!</p>';
+                s += '<p><img src="/static/images/success-icon.png" /></p>';
+                $(this).html(s);
+                setTimeout(function(){
+                    s = '<p>Add image to Basket</p>';
+                    s += '<p><img src="/static/images/shopping-cart-icon.png" /></p>';
+                    basket_collector.html(s);
+                }, 2500);
+            },
+            out: function(){
+                $(this).css('background', 'rgba(0, 0, 0, 0.5)');
+            },
+            over:function(){
+                $(this).css('background', 'rgba(100, 100, 100, 0.5)');
+            }
+        });
+
+        var images = $('a.droppable_image');
+        images.draggable({
+            containment: 'window',
+            revert: true,
+            stack: 'div',
+            scroll: true,
+            zIndex: 6000,
+            helper: "clone",
+            start: function(){
+                $('#basket_collector').animate({
+                    left: '85%'
+                }, 350);
+            },
+            stop: function(){
+                $('#basket_collector').animate({
+                    left: '100%'
+                }, 350);
+            }
+        });
+    });
+    </script>
+    {% endblock %}
+
 {% endblock %}

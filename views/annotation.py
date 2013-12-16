@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.contrib.auth.decorators import login_required
 from django.core import urlresolvers
 from django.db import transaction
@@ -8,6 +10,8 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys
+from django.utils.safestring import mark_safe
+
 
 from digipal.forms import ImageAnnotationForm, FilterManuscriptsImages
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
@@ -75,8 +79,9 @@ def image(request, image_id):
         if h['label'] == None:
             label = "None"
         else:
-            label = h['label'].encode("utf-8")
-        hand = {'id': h['id'], 'name': label}
+            label = mark_safe(h['label'])
+            print label
+        hand = {'id': h['id'], 'name': label.encode('cp1252')}
         hands_list.append(hand)
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))

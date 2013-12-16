@@ -1,3 +1,8 @@
+/**
+ * Intiial script loading in the annotator page
+   -- Digipal Project --> digipal.eu
+ */
+
 (function() {
 
 	/*
@@ -113,27 +118,65 @@ declaring function to get parameteres from URL
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
 				var temporary_vector = getParameter('temporary_vector');
-				var geo_json = JSON.parse(decodeURIComponent(temporary_vector));
-				for (i = 0; i < temporary_vector.length; i++) {
+				var geo_json = JSON.parse(temporary_vector);
+				for (var i = 0; i < temporary_vector.length; i++) {
+
 					var object = geoJSON.read(temporary_vector[i]);
 					var objectGeometry = object[0];
+
+					console.log(geo_json)
+
 					objectGeometry.layer = annotator.vectorLayer;
+
 					objectGeometry.style = {
 						'fillColor': 'red',
 						'strokeColor': 'red',
 						"fillOpacity": 0.4
 					};
+
 					objectGeometry.described = false;
 					objectGeometry.stored = false;
+					objectGeometry.contentAnnotations = geo_json.desc;
+					objectGeometry.contentTitle = geo_json.title;
+
 					annotator.vectorLayer.features.push(object[0]);
-					annotator.selectFeatureByIdAndZoom(objectGeometry.id);
+
+					// select feature
+					annotator.selectFeatureById(objectGeometry.id);
+
+					annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
+
+					// zoom map to extent
+					annotator.map.zoomTo(geo_json.zoom);
+
+					// switch annotations if not visible
+					if (!geo_json.visibility) {
+						switcher.bootstrapSwitch('toggleState');
+					}
+
 				}
+
 				if ($('.dialog_annotations').length) {
-					var title = decodeURIComponent(geo_json.title.replace('Ã', 'Æ'));
+					var title = geo_json.title;
 					var desc = geo_json.desc;
 					$('.name_temporary_annotation').val(title);
 					$('.textarea_temporary_annotation').val(desc);
 				}
+
+				$('div[role=dialog]').css({
+					'top': geo_json.dialogPosition.top,
+					'left': geo_json.dialogPosition.left
+				});
+
+				/*
+				if (typeof geo_json.checkboxes != 'undefined') {
+					var checkboxes = $('.checkboxes');
+					for (var i = 0; i < geo_json.checkboxes.length; i++) {
+						var checkboxOff = geo_json.checkboxes[i];
+						$('.paragraph_allograph_check[data-annotation="' + checkboxOff + '"]').find('input').attr('checked', false);
+					}
+				}
+				*/
 			}
 
 			if (typeof vector_id != "undefined" && vector_id && vectors) {
@@ -288,7 +331,6 @@ declaring function to get parameteres from URL
 
 
 		});
-
 		$('#map').css('border', '1px solid #efefef');
 		$('#map').css('border-radius', '3px');
 		//$("a[data-toggle=tooltip]").tooltip()
@@ -316,14 +358,15 @@ declaring function to get parameteres from URL
 
 
 		// activating bootstrap plugin for switching on and off annotations
-		$('#toggle-state-switch').bootstrapSwitch('toggleState');
+		var switcher = $('#toggle-state-switch');
+		switcher.bootstrapSwitch('toggleState');
 
-		$('#toggle-state-switch').on('click', function() {
-			$('#toggle-state-switch').bootstrapSwitch('toggleState');
+		switcher.on('click', function() {
+			switcher.bootstrapSwitch('toggleState');
 		});
 
 
-		$('#toggle-state-switch').on('switch-change', function(e, data) {
+		switcher.on('switch-change', function(e, data) {
 			if ($(this).bootstrapSwitch('status')) {
 				annotator.vectorLayer.setVisibility(true);
 			} else {
@@ -332,12 +375,12 @@ declaring function to get parameteres from URL
 		});
 
 		if (typeof get_annotations != "undefined" && get_annotations == "false") {
-			$('#toggle-state-switch').bootstrapSwitch('toggleState');
+			switcher.bootstrapSwitch('toggleState');
 		}
 
 		var modal = false;
-
-		$("#modal_features").draggable({
+		var modal_element = $("#modal_features");
+		modal_element.draggable({
 			zIndex: 1005,
 			stack: ".ui-dialog"
 		});
@@ -345,12 +388,12 @@ declaring function to get parameteres from URL
 		$('#editGraph').click(function() {
 			if (modal) {
 				modal = false;
-				$("#modal_features").fadeOut();
+				modal_element.fadeOut();
 			} else {
 				modal = true;
-				$("#modal_features").fadeIn();
-				$('#modal_features .close').click(function() {
-					$("#modal_features").fadeOut();
+				modal_element.fadeIn();
+				modal_element.find('.close').click(function() {
+					modal_element.fadeOut();
 					modal = false;
 				});
 			}
@@ -463,10 +506,12 @@ declaring function to get parameteres from URL
 		if ($(this).is(':checked')) {
 			$('#multiple_boxes').attr('disabled', 'disabled').attr('checked', false);
 			annotator.allow_multiple_dialogs = false;
+			annotator.annotating = true;
 			enable_annotation_tools();
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
 			$('#boxes_on_click').attr('checked', true).trigger('change');
+			annotator.annotating = false;
 			disable_annotation_tools();
 		}
 	});
@@ -533,18 +578,17 @@ declaring function to get parameteres from URL
 	*/
 
 	function findRectangleFeatureAdded(feature) {
+		var unsaved_allographs_button = $('.number_unsaved_allographs');
+		var last_feature_selected = annotator.last_feature_selected;
+		feature.feature.features = [];
 		feature.feature.linked_to = [];
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 50) {
+		feature.feature.stored = false;
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 80) {
 			console.log('feature too small');
 			feature.feature.destroy();
 			$('circle').add('polyline').remove();
 			return false;
 		}
-
-		var unsaved_allographs_button = $('.number_unsaved_allographs');
-		var last_feature_selected = annotator.last_feature_selected;
-		feature.feature.features = [];
-		feature.feature.stored = false;
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}
@@ -560,7 +604,6 @@ declaring function to get parameteres from URL
 			setTimeout(highlight_unsaved_vectors(unsaved_allographs_button), 100);
 		}
 
-
 		if (last_feature_selected) {
 			//$('#id_allograph').val(last_feature_selected.id).trigger('liszt:updated');
 			var features = annotator.vectorLayer.features;
@@ -572,11 +615,7 @@ declaring function to get parameteres from URL
 			}
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
-
-
 		highlight_vectors();
-
-
 	}
 
 	$('#boxes_on_click').on('change', function() {

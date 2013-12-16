@@ -1,15 +1,15 @@
 {% load html_escape %}
 <div class='tab-pane fade' id='pages'>
     {% for image in images %}
-     
+
         {% if forloop.counter0|divisibleby:4 %}
             <div class="row">
         {% endif %}
                 <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
                     <dl class="imageDatabase">
                         <dt>
-                            <a class="imageDatabase" href="{{ image.get_absolute_url }}">
-                                {% iip_img image.iipimage width=120 lazy=0 %}
+                            <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
+                                {% iip_img image.iipimage width=120 %}
                             </a>
                         </dt>
                         <dd>

@@ -1,3 +1,8 @@
+/**
+ * Digipal Basket
+   -- Digipal Project --> digipal.eu
+ */
+
 $(document).ready(function() {
 
 	function getCookie(name) {

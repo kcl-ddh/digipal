@@ -538,9 +538,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	});
 };
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 
 function updateFeatureSelect(currentFeatures, id) {
@@ -932,7 +932,7 @@ function create_dialog(selectedFeature, id) {
 
 				} else if (!annotator.annotating) {
 
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
 
 				} else {
 					if (annotator.editorial.active) {
@@ -956,7 +956,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini'>URL</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
 				}
 			}
 			return title;
@@ -1354,8 +1354,8 @@ function fill_dialog(id, annotation) {
 	var name_temporary_annotation = $('.name_temporary_annotation');
 	var content_temporary_annotation = $('.textarea_temporary_annotation');
 
-	if (annotator.selectedFeature.contentAnnotations) {
-		content_temporary_annotation.val(annotator.selectedFeature.contentAnnotations);
+	if (annotator.selectedFeature.contentAnnotation) {
+		content_temporary_annotation.val(annotator.selectedFeature.contentAnnotation);
 	}
 
 	if (annotator.selectedFeature.contentTitle) {

@@ -136,7 +136,7 @@ declaring function to get parameteres from URL
 
 					objectGeometry.described = false;
 					objectGeometry.stored = false;
-					objectGeometry.contentAnnotations = geo_json.desc;
+					objectGeometry.contentAnnotation = geo_json.desc;
 					objectGeometry.contentTitle = geo_json.title;
 
 					annotator.vectorLayer.features.push(object[0]);
@@ -474,11 +474,11 @@ declaring function to get parameteres from URL
 					});
 				} else {
 					$('.olControlEditingToolbar').css({
-						"left": "76%",
+						"left": "86%",
 						"top": 0,
 						'border-top-left-radius': '4px',
 						'border-bottom-left-radius': '4px',
-						"width": "260px",
+						"width": "145px",
 						"z-index": 1000
 					});
 				}

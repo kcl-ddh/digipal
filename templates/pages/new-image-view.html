@@ -4,16 +4,6 @@
 
 {% block meta_title %}Graphs{% endblock %}
 
-{% block extra_js %}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
-{% endblock %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui.css">
-{% endblock %}
-
 {% block main %}
     {% chrono "start template:" %}
 
@@ -119,7 +109,7 @@
                                                         <dt>
                                                             {% for graph in hand.graphs_template %}
                                                                 {% if forloop.counter < 10 %}
-                                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.pk }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                                    <a data-graph="{{ graph.id }}" class='droppable_image' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.pk }}/?vector_id={{ graph.annotation.vector_id }}">
                                                                         {{ graph.annotation.thumbnail }}
                                                                     </a>
                                                                 {% endif %}
@@ -157,7 +147,7 @@
                                         <tr class="{% cycle 'bgColour' '' %}">
                                             <td>
                                                 {% for graph in hand.graphs_template %}
-                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                    <a data-graph="{{ graph.id }}" class='droppable_image' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                         {{ graph.annotation.thumbnail }}
                                                     </a>
                                                 {% endfor %}
@@ -192,35 +182,88 @@
 
         {% endifequal %}
     </div>
+    <div id='basket_collector'>
+        <p>Add Image to Basket</p>
+        <p>
+            <img src='/static/images/shopping-cart-icon.png' />
+        </p>
+    </div>
 
+    {% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
     <script>
         $(document).ready(function(){
             $('select').chosen();
+            function setCookie(c_name,value,exdays){
+                var exdate=new Date();
+                exdate.setDate(exdate.getDate() + exdays);
+                var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+                document.cookie=c_name + "=" + c_value;
+            }
+
+            $('#myTab a').click(function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                setCookie('view', this.innerHTML, '-1');
+            });
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+
+            $('#formFilters').show();
+            $('#filterImages').text('Hide Filters Manuscripts');
+            $('#filterImages').attr('class', 'btn');
+            show_filters = 1;
+
+            var basket_collector = $('#basket_collector');
+            basket_collector.droppable({
+                accept: "a.droppable_image",
+                hoverClass: "ui-state-active",
+                drop: function(event, ui){
+                    var element = $(ui.helper[0]);
+                    add_to_lightbox(element, 'annotation', element.data('graph'), false);
+                    var s = '<p>Imaged added to Lightbox!</p>';
+                    s += '<p><img src="/static/images/success-icon.png" /></p>';
+                    $(this).html(s);
+                    setTimeout(function(){
+                        s = '<p>Add image to Basket</p>';
+                        s += '<p><img src="/static/images/shopping-cart-icon.png" /></p>';
+                        basket_collector.html(s);
+                    }, 2500);
+                },
+                out: function(){
+                    $(this).css('background', 'rgba(0, 0, 0, 0.5)');
+                },
+                over:function(){
+                    $(this).css('background', 'rgba(100, 100, 100, 0.5)');
+                }
+            });
+
+            var images = $('a.droppable_image');
+            images.draggable({
+                containment: 'window',
+                revert: true,
+                stack: 'div',
+                scroll: true,
+                zIndex: 6000,
+                helper: "clone",
+                start: function(){
+                    $('#basket_collector').animate({
+                        left: '85%'
+                    }, 350);
+                },
+                stop: function(){
+                    $('#basket_collector').animate({
+                        left: '100%'
+                    }, 350);
+                }
+            });
         });
-
-
-        function setCookie(c_name,value,exdays){
-            var exdate=new Date();
-            exdate.setDate(exdate.getDate() + exdays);
-            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-            document.cookie=c_name + "=" + c_value;
-        }
-
-        $('#myTab a').click(function (e) {
-            e.preventDefault();
-            $(this).tab('show');
-            setCookie('view', this.innerHTML, '-1');
-        });
-
-        $('[data-toggle="tooltip"]').tooltip();
-
-
-        $('#formFilters').show();
-        $('#filterImages').text('Hide Filters Manuscripts');
-        $('#filterImages').attr('class', 'btn');
-        show_filters = 1;
     </script>
-
+    {% endblock %}
     {% chrono ":end template" %}
 
 {% endblock %}

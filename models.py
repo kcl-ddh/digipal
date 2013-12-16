@@ -871,6 +871,11 @@ class CurrentItem(models.Model):
         self.display_label = get_list_as_string(self.repository, ' ', self.shelfmark)
         super(CurrentItem, self).save(*args, **kwargs)
 
+    def get_part_count(self):
+        return self.itempart_set.all().count()
+    get_part_count.short_description = 'Parts'
+    get_part_count.allow_tags = False
+
 
 # OwnerText in legacy db
 class Person(models.Model):

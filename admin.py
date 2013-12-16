@@ -561,12 +561,19 @@ class ItemPartInline(admin.StackedInline):
 
 class ItemPartItemInline(StackedDynamicInlineAdmin):
     model = ItemPartItem
-    verbose_name = 'Historical Item Part'
+
+class ItemPartItemInlineFromHistoricalItem(ItemPartItemInline):
+    verbose_name = 'Item Part'
+    verbose_name_plural = 'Item Parts'
+
+class ItemPartItemInlineFromItemPart(ItemPartItemInline):
+    verbose_name = 'Historical Item'
+    verbose_name_plural = 'Historical Items'
 
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
-    list_display = ['display_label', 'repository', 'shelfmark', 'created', 'modified']
+    list_display = ['id', 'display_label', 'repository', 'shelfmark', 'get_part_count', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
     list_filter = ['repository', CurrentItemPartNumberFilter]
@@ -777,7 +784,7 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     readonly_fields = ['catalogue_number', 'display_label']
     
     filter_horizontal = ['categories', 'owners']
-    inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
+    inlines = [ItemPartItemInlineFromHistoricalItem, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
             ItemOriginInline, ItemLayoutInline]
 
@@ -868,6 +875,9 @@ class ImageInline(admin.StackedInline):
 class ItemSubPartInline(StackedDynamicInlineAdmin):
     model = ItemPart
     
+    verbose_name = 'Item Part'
+    verbose_name_plural = 'Sub-parts In This Group'
+    
     readonly_fields = ['display_label']
     fieldsets = (
                 (None, {'fields': ('display_label', 'type',)}),
@@ -897,7 +907,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInline, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType

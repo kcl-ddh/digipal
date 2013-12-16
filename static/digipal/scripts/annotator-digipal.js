@@ -136,11 +136,14 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		feature.style.fillColor = '#ee9900';
 		var color;
 		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
+
 			if (feature.features.length) {
 				color = 'blue';
 			} else {
 				color = 'red';
 			}
+
+
 			feature.style.strokeColor = color;
 		} else {
 			feature.style.strokeColor = '#ee9900';
@@ -174,9 +177,11 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 
 	this.vectorLayer.redraw();
 
+
 	this.selectedFeature = null;
 	//$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
+
 
 
 };
@@ -188,11 +193,8 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 		for (var i = 0; i < features.length; i++) {
 			var feature = {};
 			for (var j = 0; j < features.length; j++) {
-				if (features[j]) {
-					feature[features[j].id] = features[j];
-				}
+				feature[features[j].graph] = features[j];
 			}
-			console.log(feature)
 			features[i].linked_to.push(feature);
 		}
 	}
@@ -863,35 +865,34 @@ function create_dialog(selectedFeature, id) {
 
 	var position = function() {
 		var p;
-		if (annotator.allow_multiple_dialogs) {
-			try {
-				if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
-					p = {
-						my: "right center",
-						at: "right center",
-						of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
-					};
-				} else {
-					p = {
-						my: 'right top',
-						at: 'right bottom',
-						of: $(path)
-					};
-				}
-			} catch (e) {
+		/*
+		try {
+			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
 				p = {
 					my: "right center",
 					at: "right center",
 					of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 				};
+			} else {
+				p = {
+					my: 'right top',
+					at: 'right bottom',
+					of: $(path)
+				};
 			}
-		} else {
+		} catch (e) {
 			p = {
 				my: "right center",
 				at: "right center",
 				of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 			};
 		}
+		*/
+		p = {
+			my: "right center",
+			at: "right center",
+			of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
+		};
 		return p;
 	};
 
@@ -924,16 +925,6 @@ function create_dialog(selectedFeature, id) {
 					} else {
 						title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
 					}
-
-				} else if (annotator.selectedAnnotations.length && !annotator.editorial.active) {
-					title = "<span class='allograph_label'>" + annotator.selectedFeature.feature +
-						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + annotator.selectedFeature.graph + "'>To Lightbox</span>";
-					if (allow_multiple()) {
-						title += " <span class='btn btn-mini link_graphs'>Group<span>";
-					} else {
-						title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
-					}
-
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +

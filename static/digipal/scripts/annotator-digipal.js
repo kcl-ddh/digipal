@@ -26,6 +26,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	}
 	this.annotations = null;
 	this.annotating = true;
+	this.events = false;
 	this.url_annotations = 'annotations';
 	this.url_allographs = false;
 	this.unsaved_annotations = [];
@@ -55,7 +56,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	var self = this;
 	this.selectedFeature = event.feature;
-
+	if (!annotator.events) {
+		registerEvents();
+	}
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -602,6 +605,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component_id = data[idx].id;
 					var features = data[idx].features;
 					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+
 					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div>";
 
 					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
@@ -1551,9 +1555,12 @@ function showBox(selectedFeature) {
 						component_id = data[idx].id;
 						var features = data[idx].features;
 						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
-						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span class='check_all btn btn-mini'>All</span> <span class='btn btn-mini uncheck_all'>Clear</span></div>";
 
+						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'>";
+						s += "<span class='check_all btn btn-mini'>All</span> <span class='btn btn-mini uncheck_all'>Clear</span>";
+						s += "</div>";
 						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
 							var id = component_id + '_' + features[idx].id;
@@ -1566,7 +1573,7 @@ function showBox(selectedFeature) {
 							}
 						});
 						s += "</p></div>";
-						s += "</div>";
+						//s += "</div>";
 
 						/*
                             $('#id_status').val(annotation.status_id);
@@ -1671,7 +1678,6 @@ function showBox(selectedFeature) {
 			}
 		})();
 
-
 		//$('#hidden_hand').val(selectedFeature.hidden_hand);
 		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('#id_hand').val(selectedFeature.hidden_hand);
@@ -1710,7 +1716,6 @@ function getKeyFromObjField(obj, field) {
 
 function getValueFromObjField(obj, field) {
 	var value = null;
-
 	if (obj[field]) {
 		value = obj[field];
 		value = value.substring(value.indexOf('::') + 1);
@@ -2068,7 +2073,7 @@ function load_annotations_allographs(annotation) {
 					var features = data[idx].features;
 					string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 
-					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
+					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
 					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div><div>";
 
@@ -2118,7 +2123,7 @@ function load_annotations_allographs(annotation) {
 						}
 
 					});
-					s += "</div>";
+					s += "</p></div>";
 					if (!n) {
 						string_summary += "<span class='feature_summary'>undefined</span>";
 					}
@@ -2469,6 +2474,51 @@ function updateStatus(msg, status) {
 	}
 }
 
+
+function registerEvents() {
+	if (annotator.isAdmin == 'True') {
+		annotator.events = true;
+		var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+		paths.unbind();
+		paths.mouseenter(function() {
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if ($(this).attr('id') == features[i].geometry.id) {
+					if (features[i].display_note) {
+						createPopup(features[i]);
+					}
+				}
+			}
+		});
+
+		paths.mouseleave(function() {
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].popup) {
+					deletePopup(features[i]);
+				}
+			}
+		});
+
+
+		paths.dblclick(function(event) {
+			var id = $(this).attr('id');
+			var feature;
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].geometry.id == id) {
+					feature = features[i].id;
+				}
+			}
+			annotator.boxes_on_click = true;
+			annotator.showAnnotation(feature);
+			annotator.boxes_on_click = false;
+			event.stopPropagation();
+			return false;
+		});
+	}
+	return false;
+}
 
 function disable_annotation_tools() {
 	var editorial, delete_icon, edit;

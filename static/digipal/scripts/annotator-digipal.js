@@ -2450,11 +2450,12 @@ function handleErrors(data) {
  */
 
 function updateStatus(msg, status) {
-	$('#status').html(msg).fadeIn();
+	var status_element = $('#status');
+	status_element.html(msg).fadeIn();
 	status_class = status ? ' alert-' + status : '';
-	$('#status').attr('class', 'alert' + status_class);
+	status_element.attr('class', 'alert' + status_class);
 	setTimeout(function() {
-		$('#status').fadeOut();
+		status_element.fadeOut();
 	}, 5000);
 	//
 	// GN: bugfix, JIRA 77

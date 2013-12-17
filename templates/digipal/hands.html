@@ -133,7 +133,6 @@
 
   <!-- body -->
   <div class="modal-body">
-      <p id='status'></p>
       {% for field in form %}
           {{ field.label_tag }}
           {{ field }}
@@ -151,6 +150,7 @@
       <img src='/static/digipal/images/shopping-cart-icon.png' />
   </p>
 </div>
+<div id='status'></div>
 {% block extra_js %}
 {% if can_edit %}
   <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>

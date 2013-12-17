@@ -8,7 +8,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	if (!current_basket) {
 		current_basket = {};
 	}
-	var flag, i, j, elements;
+	var flag, i, j, elements, image_id;
 	if (multiple) {
 		if (current_basket) {
 			for (i = 0; i < annotations.length; i++) {
@@ -19,10 +19,11 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						flag = false;
 					}
 				}
-				console.log(flag)
 				if (flag) {
-					console.log(annotations[i]);
 					current_basket.annotations.push(annotations[i]);
+				} else {
+					notify('Image already in the basket', 'danger');
+					return false;
 				}
 			}
 
@@ -55,9 +56,18 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				flag = true;
 
 				if (type == 'annotation') {
-					if (elements[j].graph == graph) {
+					var el;
+
+					if (elements[j].hasOwnProperty('graph')) {
+						el = elements[j].graph;
+					} else {
+						el = elements[j];
+					}
+
+					if (el == graph) {
 						flag = false;
 					}
+
 				} else {
 					if (elements[j].id == graph) {
 						flag = false;
@@ -65,7 +75,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 			}
 			if (flag) {
-				var image_id
 				if (type == 'annotation') {
 					elements.push(annotations);
 				} else {
@@ -78,12 +87,14 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						'id': image_id
 					});
 				}
+			} else {
+				notify('Image already in the basket!', 'danger');
+				return false;
 			}
 
 			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 
 		} else {
-			console.log(annotations);
 			if (type == 'annotation') {
 				if (current_basket.hasOwnProperty('images')) {
 					current_basket.annotations = [];
@@ -95,8 +106,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 
 			} else {
-
-				var image_id;
 
 				if (typeof annotator != 'undefined') {
 					image_id = annotator.image_id;
@@ -117,10 +126,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					});
 				}
 			}
-			console.log(current_basket);
 			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 		}
-
 	}
 
 	var length_basket = length_basket_elements(JSON.parse(localStorage.getItem('lightbox_basket')));
@@ -130,5 +137,21 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	} else {
 		basket_element.html("Lightbox (" + length_basket + " images)");
 	}
+	notify('Image added to the basket!', 'success');
+	return true;
+}
 
+function notify(msg, status) {
+	var status_element = $('#status');
+	if (!status_element.length) {
+		status_element = $('<div id="status">');
+		$('body').append(status_element.hide());
+	}
+	status_class = status ? ' alert-' + status : '';
+	status_element.attr('class', 'alert' + status_class);
+	status_element.html(msg).fadeIn();
+
+	setTimeout(function() {
+		status_element.fadeOut();
+	}, 5000);
 }

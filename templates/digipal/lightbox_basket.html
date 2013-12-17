@@ -6,10 +6,19 @@
 {% block meta-title %}Digipal Basket{% endblock %}
 
 {% block main %}
-<h1>Digipal Basket  <button title = 'Save basket as collection' id='add_collection' class="btn offset1">Save as Collection</button> <button  title = 'Send collected images to the Lightbox' id='to_lightbox' class="btn">Go to Lightbox</button></h1>
+<h1 class='header1'>Digipal Basket</h1>
 <ul class="nav nav-pills pull-right">
-    <li class='active' >
-        <a title='Manage collections' href="collections/">Collections</a>
+    <li>
+        <a style='cursor:pointer;' title = 'Send collected images to the Lightbox' id='to_lightbox'>Go to Lightbox</a>
+    </li>
+    <li>
+        <a style='cursor:pointer;' title = 'Save basket as collection' id='add_collection'>Save Collection</a>
+    </li>
+    <li class='active'>
+        <a style='cursor:pointer;' title = 'Go to current basket' href='#'>Current Basket</a>
+    </li>
+    <li>
+        <a title='Manage collections' href="collections/">Manage Collections</a>
     </li>
 </ul>
 <div id="container_basket">

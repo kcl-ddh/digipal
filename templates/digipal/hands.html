@@ -1,39 +1,7 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags hand_filters %}
 {% load html_escape %}
-{% block extra_head %}
-{% if can_edit %}
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-  <script type="text/javascript">
-      $(document).ready(function(){
-        annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-                                    'x', {{ width }}, {{ height }},
-                                    '{{ image_server_url }}', "{{can_edit}}");
 
-        annotator.hands_page = "{{hands_page}}";
-
-        if(annotator){
-          $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
-        }
-
-    });
-  </script>
-{% else %}
-<script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
-{% endif %}
-<script type="text/javascript">
-  function selectFeature(id) {
-    window.opener.annotator.selectFeatureByIdAndCentre(id);
-    window.opener.focus();
-    return false;
-  }
-</script>
-{% endblock %}
 {% if data %}
 
   <h3>Hands</h3>
@@ -74,7 +42,7 @@
       <h5 class='header5' style='font-size:14px;' id='{{key.id|anchorify}}_{{key|anchorify}}'>
         {{ key }}
         <div style='margin-left:2%;display:inline;' class='btn-group'>
-        <button class='btn btn-small to_lightbox'>To Lightbox</button>
+        <button class='btn btn-small to_lightbox'>To Basket</button>
         <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small select_all'>Select All</button>
         <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
       </h5>
@@ -106,7 +74,7 @@
 
         </p>
 
-          <a href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
+          <a data-graph = '{{ annotation.graph.id }}' class='droppable_image' href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
 
             {% annotation_img annotation lazy=1 %}
 
@@ -175,7 +143,93 @@
 
   <!-- features summary -->
   <div id='summary'></div>
-  
-</div>
 
+</div>
+<div id='basket_collector'>
+  <p>Add Image to Basket</p>
+  <p>
+      <img src='/static/digipal/images/shopping-cart-icon.png' />
+  </p>
+</div>
+{% block extra_js %}
+{% if can_edit %}
+  <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery.tools.min.js"></script>
+  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+  <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+  <script src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function(){
+        annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+                                    'x', {{ width }}, {{ height }},
+                                    '{{ image_server_url }}', "{{can_edit}}");
+
+        annotator.hands_page = "{{hands_page}}";
+
+        if(annotator){
+          $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
+        }
+
+        var basket_collector = $('#basket_collector');
+            basket_collector.droppable({
+                accept: "a.droppable_image",
+                hoverClass: "ui-state-active",
+                drop: function(event, ui){
+                    var element = $(ui.helper[0]);
+                    add_to_lightbox(element, 'annotation', element.data('graph'), false);
+                    var s = '<p>Imaged added to Lightbox!</p>';
+                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
+                    $(this).html(s);
+                    setTimeout(function(){
+                        s = '<p>Add image to Basket</p>';
+                        s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
+                        basket_collector.html(s);
+                    }, 2500);
+                },
+                out: function(){
+                    $(this).css('background', 'rgba(0, 0, 0, 0.5)');
+                },
+                over:function(){
+                    $(this).css('background', 'rgba(100, 100, 100, 0.5)');
+                }
+            });
+
+            var images = $('a.droppable_image');
+            images.draggable({
+                containment: 'window',
+                revert: true,
+                stack: 'div',
+                scroll: true,
+                cursor: 'move',
+                zIndex: 6000,
+                helper: "clone",
+                start: function(){
+                    $('#basket_collector').animate({
+                        left: '85%'
+                    }, 350);
+                },
+                stop: function(){
+                    $('#basket_collector').animate({
+                        left: '100%'
+                    }, 350);
+                }
+            });
+
+
+
+    });
+  </script>
+{% else %}
+<script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+{% endif %}
+<script type="text/javascript">
+  function selectFeature(id) {
+    window.opener.annotator.selectFeatureByIdAndCentre(id);
+    window.opener.focus();
+    return false;
+  }
+</script>
+{% endblock %}
 {% endif %}

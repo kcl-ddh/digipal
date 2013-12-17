@@ -1408,7 +1408,8 @@ function show_url_allograph(dialog, annotation, button) {
 		$('.link_graphs').after(' <img src="/static/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div'>");
 		var allograph_url, stored;
-		var input = $('<input type="text">');
+		var a = $('<a>');
+		a.attr('target', '_tab');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').val();
 
@@ -1469,13 +1470,10 @@ function show_url_allograph(dialog, annotation, button) {
 					return false;
 				} else {
 					$('#url_allograph_gif').fadeOut().remove();
-					input.val(resp.id);
-					url.append(input);
+					a.attr('href', resp.id);
+					a.text(resp.id);
+					url.append(a);
 					dialog.prepend(url);
-
-					setTimeout(function() {
-						input.focus().select();
-					}, 0);
 				}
 			});
 		});

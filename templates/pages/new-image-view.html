@@ -185,7 +185,7 @@
     <div id='basket_collector'>
         <p>Add Image to Basket</p>
         <p>
-            <img src='/static/images/shopping-cart-icon.png' />
+            <img src='/static/digipal/images/shopping-cart-icon.png' />
         </p>
     </div>
 
@@ -226,11 +226,11 @@
                     var element = $(ui.helper[0]);
                     add_to_lightbox(element, 'annotation', element.data('graph'), false);
                     var s = '<p>Imaged added to Lightbox!</p>';
-                    s += '<p><img src="/static/images/success-icon.png" /></p>';
+                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
                     $(this).html(s);
                     setTimeout(function(){
                         s = '<p>Add image to Basket</p>';
-                        s += '<p><img src="/static/images/shopping-cart-icon.png" /></p>';
+                        s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                         basket_collector.html(s);
                     }, 2500);
                 },
@@ -248,6 +248,7 @@
                 revert: true,
                 stack: 'div',
                 scroll: true,
+                cursor: 'move',
                 zIndex: 6000,
                 helper: "clone",
                 start: function(){

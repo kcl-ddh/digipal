@@ -600,7 +600,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component_id = data[idx].id;
 					var features = data[idx].features;
 					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
-					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-mini'>All</button> <button data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</button></div>";
+					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div>";
 
 					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -1400,8 +1400,8 @@ function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
 	if (button.data('hidden')) {
 
-
 		button.data('hidden', false);
+		$('.link_graphs').after(' <img src="/static/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div'>");
 		var allograph_url, stored;
 		var input = $('<input type="text">');
@@ -1464,6 +1464,7 @@ function show_url_allograph(dialog, annotation, button) {
 					console.log(resp);
 					return false;
 				} else {
+					$('#url_allograph_gif').fadeOut().remove();
 					input.val(resp.id);
 					url.append(input);
 					dialog.prepend(url);
@@ -1548,7 +1549,7 @@ function showBox(selectedFeature) {
 						component_id = data[idx].id;
 						var features = data[idx].features;
 						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
-						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><input type='button' class='check_all btn btn-small' value='All' /> <input type='button' class='btn btn-small uncheck_all' value='Clear' /></div>";
+						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span class='check_all btn btn-mini'>All</span> <span class='btn btn-mini uncheck_all'>Clear</span></div>";
 
 						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						$.each(features, function(idx) {
@@ -2067,7 +2068,7 @@ function load_annotations_allographs(annotation) {
 
 					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b></p>";
 
-					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><button data-component = '" + component_id + "' class='check_all btn btn-small'>All</button> <button data-component = '" + component_id + "' class='btn btn-small uncheck_all'>Clear</button></div><div>";
+					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div><div>";
 
 					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 					var n = 0;

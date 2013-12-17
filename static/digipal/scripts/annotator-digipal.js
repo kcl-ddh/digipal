@@ -1449,16 +1449,32 @@ function show_url_allograph(dialog, annotation, button) {
 				geoJSONText.checkboxes = checkboxesOff;
 			}
 
-			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+			allograph_url = window.location.hostname +
+				document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
 		}
 
-		input.val(allograph_url);
-		url.append(input);
-		dialog.prepend(url);
+		gapi.client.load('urlshortener', 'v1', function() {
+			var request = gapi.client.urlshortener.url.insert({
+				'resource': {
+					'longUrl': allograph_url
+				}
+			});
+			var resp = request.execute(function(resp) {
+				if (resp.error) {
+					console.log(resp);
+					return false;
+				} else {
+					input.val(resp.id);
+					url.append(input);
+					dialog.prepend(url);
 
-		setTimeout(function() {
-			input.focus().select();
-		}, 0);
+					setTimeout(function() {
+						input.focus().select();
+					}, 0);
+				}
+			});
+		});
+
 
 
 	} else {

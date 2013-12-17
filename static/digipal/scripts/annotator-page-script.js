@@ -46,7 +46,11 @@ declaring function to get parameteres from URL
 	});
 
 	var chained = request.then(function(data) {
+
 		var map = annotator.map;
+		// [was] zooms to the max extent of the map area
+		// Now the maps zooms just one step ahead
+		map.zoomToMaxExtent();
 		var layer = annotator.vectorLayer;
 		var format = annotator.format;
 		var annotations = data;
@@ -95,9 +99,7 @@ declaring function to get parameteres from URL
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
 
-			// [was] zooms to the max extent of the map area
-			// Now the maps zooms just one step ahead
-			map.zoomIn();
+
 			var navigation = new OpenLayers.Control.Navigation({
 				'zoomBoxEnabled': false,
 				defaultDblClick: function(event) {
@@ -147,7 +149,7 @@ declaring function to get parameteres from URL
 					annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
-					annotator.map.zoomTo(geo_json.zoom);
+					annotator.map.zoomToExtent(geo_json.extent);
 
 					// switch annotations if not visible
 					if (!geo_json.visibility) {

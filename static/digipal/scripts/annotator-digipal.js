@@ -1416,7 +1416,7 @@ function show_url_allograph(dialog, annotation, button) {
 		// get annotations visibility status
 		var getAnnotationsVisibility = $('#toggle-state-switch').bootstrapSwitch('status');
 
-		var layerZoom = annotator.map.zoom;
+		var layerExtent = annotator.map.getExtent();
 
 		var dialogPosition = $('.dialog_annotations').offset();
 
@@ -1447,7 +1447,7 @@ function show_url_allograph(dialog, annotation, button) {
 			geoJSONText.title = title;
 			geoJSONText.desc = desc;
 			geoJSONText.dialogPosition = dialogPosition;
-			geoJSONText.zoom = layerZoom;
+			geoJSONText.extent = layerExtent;
 			geoJSONText.visibility = getAnnotationsVisibility;
 
 			if (checkboxesOff.length) {
@@ -1466,12 +1466,12 @@ function show_url_allograph(dialog, annotation, button) {
 			});
 			var resp = request.execute(function(resp) {
 				if (resp.error) {
-					console.log(resp);
 					return false;
 				} else {
 					$('#url_allograph_gif').fadeOut().remove();
 					a.attr('href', resp.id);
 					a.text(resp.id);
+					button.data('url', resp.id);
 					url.append(a);
 					dialog.prepend(url);
 				}

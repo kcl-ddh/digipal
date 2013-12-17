@@ -65,9 +65,8 @@
                                         {% endifequal %}
                                         <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                                         <p style='line-height:1'>
-                                            <span>Annotations:
-                                            <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
-                                        <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
+                                            <span class="label label-important">{{ image.annotation_set.all.count }} Annotations</span>
+                                        <span class="label label-success">{{ image.hands.all.count }} Hands</span>
 
                                     </p>
                                     <dl class="imageDatabase">

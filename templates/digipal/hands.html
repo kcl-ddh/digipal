@@ -59,7 +59,7 @@
 
           {% if not can_edit %}
 
-          <a title='View image in manuscript viewer' class='label label-important' href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
+          <a title='View image in manuscript viewer' class='label_link_annotation' href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
 
           {% else %}
           <input data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
@@ -178,6 +178,7 @@
   </script>
 {% else %}
 <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+{% endif %}
 <script>
         $(document).ready(function(){
             var basket_collector = $('#basket_collector');
@@ -225,13 +226,12 @@
                 }
             });
     });
-</script>
-{% endif %}
-<script type="text/javascript">
+
   function selectFeature(id) {
     window.opener.annotator.selectFeatureByIdAndCentre(id);
     window.opener.focus();
     return false;
   }
 </script>
+
 {% endblock %}

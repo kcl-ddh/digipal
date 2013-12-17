@@ -149,7 +149,7 @@ function notify(msg, status) {
 	}
 	status_class = status ? ' alert-' + status : '';
 	status_element.attr('class', 'alert' + status_class);
-	status_element.html(msg).fadeIn();
+	status_element.html("<a style='color:#468847;' href='/digipal/page/lightbox/basket'>" + msg + "</a>").fadeIn();
 
 	setTimeout(function() {
 		status_element.fadeOut();

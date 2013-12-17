@@ -103,7 +103,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		feature = event;
 	}
 
-	var boxes = $('div[role=dialog');
+	var boxes = $('.dialog_annotations');
 	if (allow_multiple()) {
 		var max = this.selectedAnnotations.length;
 		for (var i = 0; i < max; i++) {
@@ -112,13 +112,15 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 				break;
 			}
 		}
-		if (this.selectedAnnotations.length && boxes.length) {
+		if (this.selectedAnnotations.length && boxes.length && !annotator.allow_multiple_dialogs) {
 			boxes.remove();
 		}
 		var msg = this.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
 	} else {
-		boxes.remove();
+		if (!annotator.allow_multiple_dialogs) {
+			boxes.remove();
+		}
 	}
 
 
@@ -872,34 +874,36 @@ function create_dialog(selectedFeature, id) {
 
 	var position = function() {
 		var p;
-		/*
-		try {
-			if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+		if (annotator.allow_multiple_dialogs) {
+			try {
+				if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
+					p = {
+						my: "right center",
+						at: "right center",
+						of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
+					};
+				} else {
+					p = {
+						my: 'right top',
+						at: 'right bottom',
+						of: $(path)
+					};
+				}
+			} catch (e) {
 				p = {
 					my: "right center",
 					at: "right center",
 					of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 				};
-			} else {
-				p = {
-					my: 'right top',
-					at: 'right bottom',
-					of: $(path)
-				};
 			}
-		} catch (e) {
+		} else {
+
 			p = {
 				my: "right center",
 				at: "right center",
 				of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
 			};
 		}
-		*/
-		p = {
-			my: "right center",
-			at: "right center",
-			of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
-		};
 		return p;
 	};
 

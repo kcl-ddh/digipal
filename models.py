@@ -1049,7 +1049,7 @@ class ItemPart(models.Model):
         return u'%s' % (self.display_label)
     
     def clean(self):
-        if self.group_id == self.id:
+        if self.group_id and self.group_id == self.id:
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 
@@ -1083,7 +1083,7 @@ class ItemPart(models.Model):
         else:
             # label is 'group.historical_label, group_locus'
             if self.group:
-                ret = get_list_as_string(self.group.historical_label, ', ', group_locus)
+                ret = get_list_as_string(self.group.historical_label, ', ', self.group_locus)
         return ret
 
     @property

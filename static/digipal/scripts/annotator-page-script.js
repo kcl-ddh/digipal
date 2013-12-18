@@ -628,10 +628,10 @@ declaring function to get parameteres from URL
 		if (!$(this).is(':checked')) {
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
-			annotator.selectFeature.toggle = false;
+			//annotator.selectFeature.toggle = false;
 		} else {
 			annotator.selectFeature.multiple = true;
-			annotator.selectFeature.toggle = true;
+			//annotator.selectFeature.toggle = true;
 			if (annotator.selectedFeature !== undefined) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);
 			}

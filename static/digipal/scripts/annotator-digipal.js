@@ -71,18 +71,30 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		layer.redraw();
 	}
 
+	var group_button = $('.link_graphs');
+
 	if (typeof self.selectedFeature.linked_to != 'undefined' && self.selectedFeature.linked_to.length && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			self.showAnnotation(value);
 			self.selectedAnnotations.push(value);
 			var msg = self.selectedAnnotations.length + ' annotation selected';
 			updateStatus(msg, 'success');
+			if (group_button.length && self.selectedAnnotations.length > 1 && group_button.hasClass('disabled')) {
+				group_button.removeClass('disabled');
+			}
 		});
 	} else if (typeof self.selectedFeature.linked_to != 'undefined' && !self.selectedFeature.linked_to.length && allow_multiple()) {
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
 		self.showAnnotation(self.selectedFeature);
+
+		if (self.selectedAnnotations.length < 2) {
+			if (group_button.length && !group_button.hasClass('disabled')) {
+				group_button.addClass('disabled');
+			}
+		}
+
 	} else {
 		self.showAnnotation(event.feature);
 	}
@@ -376,7 +388,7 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		});
 		$('#id_allograph').val(allograph).trigger('liszt:updated');
 		var features = annotator.vectorLayer.features;
-		var features_length = features.length
+		var features_length = features.length;
 		var n = 0;
 		for (var i = 0; i < features_length; i++) {
 			if (features[i].feature == feature.feature && features[i].stored) {
@@ -934,7 +946,7 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
+						"</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Basket</span>";
 					if (allow_multiple() && annotator.selectedAnnotations.length) {
 						title += " <span class='btn btn-mini link_graphs'>Group<span>";
 					} else {
@@ -943,19 +955,22 @@ function create_dialog(selectedFeature, id) {
 
 				} else if (!annotator.annotating) {
 
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span> ";
 
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation (Note)</span>" +
-							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span>";
+							" <span style='position:relative;left:6%;'></span><span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> ";
 						if (allow_multiple() && annotator.selectedAnnotations.length) {
 							title += " <span class='btn btn-mini link_graphs'>Group<span>";
 						} else {
 							title += " <span class='btn btn-mini link_graphs disabled'>Group<span>";
 						}
 					} else {
-						title = "<span class='allograph_label'>Group</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span>";
+						title = "<span class='allograph_label'>Annotation</span> <span style='position:relative;left:6%;'> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> ";
+						if (annotator.selectedFeature) {
+							title += "<span class='to_lightbox btn btn-mini' data-graph = '" + annotator.selectedFeature.graph + "'>To Basket</span>";
+						}
 						if (allow_multiple() && annotator.selectedAnnotations.length) {
 							title += " <span class='btn btn-mini link_graphs'>Group<span>";
 						} else {
@@ -965,7 +980,7 @@ function create_dialog(selectedFeature, id) {
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Lightbox</span>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Basket</span>";
 				} else {
 					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
 				}
@@ -1064,6 +1079,10 @@ function create_dialog(selectedFeature, id) {
 	dialog.parent().find('.number_annotated_allographs').click(function() {
 		open_allographs($(this), true);
 	});
+
+	if (annotator.selectedFeature && !selectedFeature) {
+		selectedFeature = annotator.selectedFeature.graph;
+	}
 
 	$('.to_lightbox').click(function() {
 		add_to_lightbox($(this), 'annotation', selectedFeature, false);
@@ -1357,7 +1376,7 @@ function fill_dialog(id, annotation) {
 
 	dialog.html(s);
 	var url_allograph_button = dialog.parent().find('.url_allograph');
-
+	console.log(dialog + ' ' + annotation)
 	url_allograph_button.click(function() {
 		show_url_allograph(dialog, annotation, $(this));
 	});
@@ -1411,7 +1430,7 @@ function show_url_allograph(dialog, annotation, button) {
 		button.data('hidden', false);
 		$('.link_graphs').after(' <img src="/static/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div'>");
-		var allograph_url, stored;
+		var allograph_url, stored = false;
 		var a = $('<a>');
 		a.attr('target', '_tab');
 		var title = $('.name_temporary_annotation').val();
@@ -1425,6 +1444,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var dialogPosition = $('.dialog_annotations').offset();
 
 		var checkboxesOff = [];
+
 		var checkboxes = $('.checkVectors');
 
 		checkboxes.each(function() {
@@ -1441,7 +1461,13 @@ function show_url_allograph(dialog, annotation, button) {
 			}
 		}
 
-		if (annotation !== null && stored) {
+		if (annotator.selectedFeature.stored) {
+			annotation = annotator.selectedFeature;
+			stored = true;
+		}
+
+
+		if (annotation !== null && typeof annotation !== "undefined" && stored) {
 			allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 		} else {
 
@@ -1502,7 +1528,6 @@ function showBox(selectedFeature) {
     }
     */
 
-
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
 	if (annotator.boxes_on_click) {
@@ -1532,8 +1557,6 @@ function showBox(selectedFeature) {
 		create_dialog(selectedFeature, id);
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
-
-
 		if (can_edit) {
 			var request = $.getJSON("graph/" + selectedFeature.graph);
 			request.done(function(data) {
@@ -2503,16 +2526,23 @@ function registerEvents() {
 
 		paths.dblclick(function(event) {
 			var id = $(this).attr('id');
-			var feature;
+			var feature, boxes_on_click = false;
 			var features = annotator.vectorLayer.features;
 			for (var i = 0; i < features.length; i++) {
 				if (features[i].geometry.id == id) {
 					feature = features[i].id;
 				}
 			}
+			if (annotator.boxes_on_click) {
+				boxes_on_click = true;
+			}
 			annotator.boxes_on_click = true;
 			annotator.showAnnotation(feature);
-			annotator.boxes_on_click = false;
+			if (!boxes_on_click) {
+				annotator.boxes_on_click = false;
+				var boxes_on_click_element = $("#boxes_on_click");
+				boxes_on_click_element.attr('checked', false);
+			}
 			event.stopPropagation();
 			return false;
 		});

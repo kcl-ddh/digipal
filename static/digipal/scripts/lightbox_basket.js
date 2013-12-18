@@ -339,6 +339,8 @@ $(document).ready(function() {
 	if (getParameter('collection').length) {
 		var collection = JSON.parse(localStorage.getItem('collections'));
 		basket = collection[getParameter('collection')[0]]['basket'];
+		var header = $('.header1');
+		header.html('Digipal Basket | ' + getParameter('collection')[0]);
 	} else {
 		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	}

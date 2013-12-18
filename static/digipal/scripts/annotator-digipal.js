@@ -1909,7 +1909,7 @@ function deleteAnnotationByFeatureId(id) {
 }
 
 function delete_annotation(layer, feature, number_annotations) {
-
+	console.log(feature)
 	var featureId = feature.id;
 	var temp = feature;
 	updateStatus('Deleting annotations');
@@ -2634,6 +2634,7 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 
 DigipalAnnotator.prototype.full_Screen = function() {
 	if (!(this.fullScreen.active)) {
+		this.rectangleFeature.activate();
 		this.fullScreen.activate();
 		$('#map').css({
 			'width': '100%',
@@ -2659,7 +2660,6 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			"top": "0.5%%",
 			"z-index": 2000,
 			"width": "80%",
-			"height": "30px",
 			'top': '1%',
 			"left": "8%",
 			'border-color': '#333',

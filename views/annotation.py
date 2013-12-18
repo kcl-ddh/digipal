@@ -80,7 +80,6 @@ def image(request, image_id):
             label = "None"
         else:
             label = mark_safe(h['label'])
-            print label
         hand = {'id': h['id'], 'name': label.encode('cp1252')}
         hands_list.append(hand)
 

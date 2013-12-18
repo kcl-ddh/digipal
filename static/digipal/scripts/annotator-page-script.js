@@ -557,7 +557,7 @@ declaring function to get parameteres from URL
 		feature.feature.features = [];
 		feature.feature.linked_to = [];
 		feature.feature.stored = false;
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 80) {
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 50) {
 
 			feature.feature.destroy();
 			$('circle').remove();

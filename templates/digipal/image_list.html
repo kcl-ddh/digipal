@@ -65,9 +65,8 @@
                                         {% endifequal %}
                                         <a data-toggle="tooltip" title="View Image only" class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                                         <p style='line-height:1'>
-                                            <span>Annotations:
-                                            <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
-                                        <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
+                                            <span class="label label-important">{{ image.annotation_set.all.count }} Annotations</span>
+                                        <span class="label label-success">{{ image.hands.all.count }} Hands</span>
 
                                     </p>
                                     <dl class="imageDatabase">
@@ -136,7 +135,7 @@
     <div id='basket_collector'>
         <p>Add Image to Basket</p>
         <p>
-            <img src='/static/images/shopping-cart-icon.png' />
+            <img src='/static/digipal/images/shopping-cart-icon.png' />
         </p>
     </div>
 
@@ -170,11 +169,11 @@
                     var element = $(ui.helper[0]);
                     add_to_lightbox(element, 'image', element.data('id'), false);
                     var s = '<p>Imaged added to Lightbox!</p>';
-                    s += '<p><img src="/static/images/success-icon.png" /></p>';
+                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
                     $(this).html(s);
                     setTimeout(function(){
                         s = '<p>Add image to Basket</p>';
-                        s += '<p><img src="/static/images/shopping-cart-icon.png" /></p>';
+                        s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                         basket_collector.html(s);
                     }, 2500);
                 },
@@ -191,6 +190,7 @@
                 containment: 'window',
                 revert: true,
                 stack: 'div',
+                cursor: 'move',
                 scroll: true,
                 zIndex: 6000,
                 helper: "clone",

@@ -34,6 +34,21 @@ $(document).ready(function() {
 		return parameters;
 	}
 
+	function notify(msg, status) {
+		var status_element = $('#status');
+		if (!status_element.length) {
+			status_element = $('<div id="status">');
+			$('body').append(status_element.hide());
+		}
+		status_class = status ? ' alert-' + status : '';
+		status_element.attr('class', 'alert' + status_class);
+		status_element.html(msg).fadeIn();
+
+		setTimeout(function() {
+			status_element.fadeOut();
+		}, 5000);
+	}
+
 	uniqueid = function() {
 		var text = "";
 		var possible = "0123456789";
@@ -265,7 +280,7 @@ $(document).ready(function() {
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
 			s += '<h3>Save Collection</h3><form>';
-			s += '<div class="input-append"><input placeholder="Type collection name" type="text" id= "name_collection" />';
+			s += '<div class="input-append"><input required placeholder="Enter here collection name" type="text" id= "name_collection" />';
 			s += '<button class="btn" id="save_collection" type="button">Save</button></div><form>';
 			s += '<button style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" type="button">Close window</button>';
 			window_save_collection.html(s);
@@ -293,6 +308,9 @@ $(document).ready(function() {
 					}
 					localStorage.setItem("collections", JSON.stringify(collections));
 					window_save_collection.fadeOut().remove();
+					notify('Collection saved succesfully', "success");
+				} else {
+					notify('Please enter a name for this collection', "danger");
 				}
 				event.stopPropagation();
 			});
@@ -321,6 +339,8 @@ $(document).ready(function() {
 	if (getParameter('collection').length) {
 		var collection = JSON.parse(localStorage.getItem('collections'));
 		basket = collection[getParameter('collection')[0]]['basket'];
+		var header = $('.header1');
+		header.html('Digipal Basket | ' + getParameter('collection')[0]);
 	} else {
 		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	}

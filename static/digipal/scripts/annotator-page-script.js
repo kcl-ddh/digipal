@@ -46,7 +46,11 @@ declaring function to get parameteres from URL
 	});
 
 	var chained = request.then(function(data) {
+
 		var map = annotator.map;
+		// [was] zooms to the max extent of the map area
+		// Now the maps zooms just one step ahead
+		map.zoomToMaxExtent();
 		var layer = annotator.vectorLayer;
 		var format = annotator.format;
 		var annotations = data;
@@ -95,9 +99,7 @@ declaring function to get parameteres from URL
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
 
-			// [was] zooms to the max extent of the map area
-			// Now the maps zooms just one step ahead
-			map.zoomIn();
+
 			var navigation = new OpenLayers.Control.Navigation({
 				'zoomBoxEnabled': false,
 				defaultDblClick: function(event) {
@@ -124,8 +126,6 @@ declaring function to get parameteres from URL
 					var object = geoJSON.read(temporary_vector[i]);
 					var objectGeometry = object[0];
 
-					console.log(geo_json)
-
 					objectGeometry.layer = annotator.vectorLayer;
 
 					objectGeometry.style = {
@@ -147,7 +147,7 @@ declaring function to get parameteres from URL
 					annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
-					annotator.map.zoomTo(geo_json.zoom);
+					annotator.map.zoomToExtent(geo_json.extent);
 
 					// switch annotations if not visible
 					if (!geo_json.visibility) {
@@ -205,32 +205,6 @@ declaring function to get parameteres from URL
 
 			reload_described_annotations();
 			trigger_highlight_unsaved_vectors();
-
-			if (annotator.isAdmin == 'True') {
-				setTimeout(function() {
-					var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-					paths.unbind();
-					paths.mouseenter(function() {
-						var features = annotator.vectorLayer.features;
-						for (var i = 0; i < features.length; i++) {
-							if ($(this).attr('id') == features[i].geometry.id) {
-								if (features[i].display_note) {
-									createPopup(features[i]);
-								}
-							}
-						}
-					});
-
-					paths.mouseleave(function() {
-						var features = annotator.vectorLayer.features;
-						for (var i = 0; i < features.length; i++) {
-							if (features[i].popup) {
-								deletePopup(features[i]);
-							}
-						}
-					});
-				}, 1500);
-			}
 
 
 		});
@@ -583,7 +557,7 @@ declaring function to get parameteres from URL
 		feature.feature.features = [];
 		feature.feature.linked_to = [];
 		feature.feature.stored = false;
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 80) {
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 50) {
 
 			feature.feature.destroy();
 			$('circle').remove();
@@ -654,16 +628,17 @@ declaring function to get parameteres from URL
 		if (!$(this).is(':checked')) {
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
-			annotator.selectFeature.toggle = false;
+			//annotator.selectFeature.toggle = false;
 		} else {
 			annotator.selectFeature.multiple = true;
-			annotator.selectFeature.toggle = true;
+			//annotator.selectFeature.toggle = true;
 			if (annotator.selectedFeature !== undefined) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);
 			}
 		}
 
 	});
+
 
 
 })();

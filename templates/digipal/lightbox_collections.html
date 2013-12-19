@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 {% load html_escape %}
 {% block extra_js %}
-  <script src ='/static/digipal/scripts/lightbox_basket_collections.js'></script>
+    <script src ='/static/digipal/scripts/lightbox_basket_collections.js'></script>
 {% endblock %}
 {% block meta-title %}Digipal Basket Collections{% endblock %}
 
 {% block main %}
 
-<h1>Digipal Basket Collections</h1>
-
+<h1 class='header1'>Digipal Basket Collections</h1>
 <ul class="nav nav-pills pull-right">
+    <li>
+        <a style='cursor:pointer;' title = 'Send collected images to the Lightbox' id='to_lightbox'>Go to Lightbox</a>
+    </li>
+    <li>
+        <a style='cursor:pointer;' title = 'Go to current basket' href='../'>Current Basket</a>
+    </li>
     <li class='active'>
-        <a title='Go to current lightbox basket' href="../">Current Digipal Basket</a>
+        <a title='Manage collections' href="collections/">Manage Collections</a>
     </li>
 </ul>
 <div id="container_collections">

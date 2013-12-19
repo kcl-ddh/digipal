@@ -377,6 +377,8 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		}
 	}
+
+
 	/*
 	this.vectorLayer.onFeatureInsert = function(feature) {
 		_self.selectFeatureById(feature.id);

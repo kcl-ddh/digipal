@@ -1947,7 +1947,6 @@ DigipalAnnotator.prototype.full_Screen = function() {
 				$('#map').attr('style', null);
 				$('#panelImageBox').attr('style', null);
 				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-				this.fullScreen.active = null;
 				annotator.fullScreen.deactivate();
 			}
 		});

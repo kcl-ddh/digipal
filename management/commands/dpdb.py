@@ -12,6 +12,7 @@ from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Col
 from digipal.models import Text
 from digipal.models import HistoricalItem, ItemPart
 from django.db.models import Q
+from digipal.models import *
 
 class Command(BaseCommand):
 	help = """
@@ -58,7 +59,10 @@ Commands:
  						Returns duplicate CIs
   
   add_cartulary_his
-  						Create missing cartulary HIs from the SS HIs 
+  						Create missing cartulary HIs from the SS HIs
+  						
+  merge_rf
+  						Merge Reconstructed Folios (ScandiPal) 
  						
 	"""
 	
@@ -85,8 +89,140 @@ Commands:
 			dest='dry-run',
 			default=False,
 			help='Dry run, don\'t change any data.'),
-		) 
+		)
 	
+	def merge_rf(self): 
+		'''
+		* Merge the RF
+		* Make sure display label = HI + locus
+		* Add a new field to the Image: custom_label
+			* On save display_label = custom_label if not blank
+			* Show the display_label and custom_label in the admin
+		* Find all the RF with a r and v
+			* Remove CI from RF
+			* Reconnect RFv to RFr?
+				* Reconnect Image from RFv to RFr
+				* Set Image.locus = 'recto'/'verso'
+				* Set Image.custom_label = IP display label
+			* Remove RFv
+			* Remove 'recto' from RFr
+		
+		IP #231
+	 	'''
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+		
+		rf_type = ItemPartType.objects.get(name='Reconstructed Folio')
+		rfs_merged = []
+		for hi in HistoricalItem.objects.all():
+			print 'HI #%s, %s' % (hi.id, hi)
+			
+			# get the reconstructed folios
+			rfs = hi.item_parts.filter(type=rf_type)
+			
+			for rf in rfs:
+				if rf.locus and re.search(ur'(?i)verso', rf.locus):
+					# we got a verso, find the corresponding recto
+					for rf2 in rfs:
+						if (rf2.current_item == rf.current_item) and \
+							re.sub(ur'\s', '', rf2.locus.lower()) == re.sub(ur'\s', '', rf.locus.lower().replace('verso', 'recto')):
+							self.merge_rf_verso_into_recto(rf, rf2)
+							rfs_merged.append(rf2)
+							break
+
+		# RFr.group_id = RFv.id and vice versa! After merging it becomes RF.group_id = RF.id
+		# We remove this
+		for ip in ItemPart.objects.all().order_by('id'):
+			if ip.group and ip.group.id == ip.id:
+				print 'Remove self-grouping, Item Part #%d cannot be its own group' % id
+				ip.group = None
+				ip.group_locus = None
+				ip.save() 
+		
+		# remove the reference to the CI if it already exists in one of the fragments
+		rfs = ItemPart.objects.filter(type=rf_type).order_by('id')
+		for rf in rfs:
+			if rf.current_item and ItemPart.objects.filter(group = rf, current_item = rf.current_item).count():
+				print '\tREMOVE CI (IP #%s, %s)' % (rf.id, rf) 
+				rf.current_item = None
+			else:
+				pass
+				print '\tLEAVE IP #%d %s' % (rf.id, rf)
+			if not rf.current_item:
+				rf.locus = None
+			rf.save()
+		
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
+		con.leave_transaction_management()
+		
+	def merge_rf_verso_into_recto(self, rfv, rfr):
+		print '\tMerge RF #%s into RF #%s' % (rfv.id, rfr.id)
+		# merge verso into recto
+		rf_type = ItemPartType.objects.get(name='Reconstructed Folio')
+		
+ 		if rfr.group and rfr.group.id == rfv.id:
+ 			rfr.group = None
+ 			rfr.group_locus = None
+ 			rfr.save()
+		
+		# reconnect images
+		for image in rfr.images.all():
+			image.custom_label = image.display_label		
+			image.locus = 'recto'
+			image.save()
+			print '\t\tImage %d (recto) : %s' % (image.id, image.custom_label)
+			
+		for image in rfv.images.all():
+			image.custom_label = image.display_label		
+			image.item_part = rfr
+			image.locus = 'verso'
+			image.save()
+			print '\t\tImage %d (verso) : %s' % (image.id, image.custom_label)
+		
+		# reconnect parts/fragments
+		for fragment in rfr.subdivisions.exclude(type=rf_type):
+			fragment.group_locus = 'recto'
+			fragment.save()
+			print '\t\tFragment %d (recto) : %s' % (fragment.id, fragment.display_label)
+		
+		for fragment in rfv.subdivisions.exclude(type=rf_type):
+			fragment.group = rfr
+			fragment.group_locus = 'verso'
+			fragment.save()
+			print '\t\tFragment %d (verso) : %s' % (fragment.id, fragment.display_label)
+
+		# merge/reconnect the hands
+		for handv in rfv.hands.all():
+			handr = rfr.hands.filter(label=handv.label)
+			if handr.count():
+				handr = handr[0]
+				print '\t\tHands to merge : #%d %s (verso) -> #%d %s (recto)' % (handv.id, handv, handr.id, handr)
+				# reconnect to images from handv to handr 
+				for image in handv.images.all():
+					print '\t\t\tConnect recto hand #%d to image #%d' % (handr.id, image.id)
+					handr.images.add(image)
+					handr.save()
+				# reconnect the graphs to the recto hand
+				for graph in handv.graphs.all():
+					print '\t\t\tConnect verso graph #%d to recto hand #%d' % (graph.id, handr.id)
+					graph.hand = handr
+					graph.save()					
+				handv.delete()
+			else:
+				print '\t\tHand to reconnect: #%d %s' % (handv.id, handv)
+				handv.item_part = rfr
+				handv.save()
+		
+		# delete verso
+		rfv.group = None
+		rfv.delete()
+		
 	def dropTables(self, options):
 		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 		con = connections[options.get('db')]
@@ -961,6 +1097,10 @@ Commands:
 		if command == 'drop_tables':
 			known_command = True
 			self.dropTables(options)
+			
+		if command == 'merge_rf':
+			known_command = True
+			self.merge_rf()
 		
 		if command == 'checkdata1':
 			known_command = True

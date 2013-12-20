@@ -36,7 +36,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.transformFeature.panel_div.title = 'Transform (shift + t)';
 	//this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
 	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
-	this.rectangleFeature.panel_div.title = 'Draw Rectangle (shift + r)';
+	this.rectangleFeature.panel_div.title = 'Create Annotation (shift + r)';
 	this.selectFeature.panel_div.title = 'Select (shift + g)';
 	//this.dragFeature.panel_div.title = 'Drag (shift + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
@@ -117,7 +117,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event) {
 		'id': $('#id_allograph').val(),
 		'name': $('#id_allograph option:selected').text()
 	};
-	$('#id_allograph').val(undefined).trigger('liszt:updated');
+	//$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
 
 };
@@ -810,9 +810,9 @@ function create_dialog(selectedFeature, id) {
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span class='url_allograph btn btn-small'>URL</span>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-small'>URL</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span  data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:24%;'><span data-hidden='true'  class='url_allograph btn btn-small'>URL</span></span>";
 				}
 			}
 			return title;
@@ -1154,8 +1154,12 @@ function fill_dialog(id, annotation) {
 	}
 
 	dialog.html(s);
+	var url_allograph_button = dialog.parent().find('.url_allograph');
 
-	show_url_allograph(dialog, annotation);
+	url_allograph_button.click(function() {
+		show_url_allograph(dialog, annotation, $(this));
+	});
+
 
 	var hidden_hand = $('#id_hand').val();
 	var hidden_allograph = $('#id_allograph').val();
@@ -1180,44 +1184,44 @@ function get_allograph(allograph) {
 	return allograph_id;
 }
 
-function show_url_allograph(dialog, annotation) {
+function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
 	var url_allograph_button = dialog.parent().find('.url_allograph');
-	url_allograph_button.click(function() {
-		if ($(this).data('hidden')) {
-			$(this).data('hidden', false);
-			var url = $("<div class='allograph_url_div'>");
-			var allograph_url;
-			var input = $('<input type="text" disabled>');
-			var title = $('.name_temporary_annotation').val();
-			var desc = $('.textarea_temporary_annotation').val();
-			var stored;
-			if (annotation !== null) {
-				for (var i = 0; i < features.length; i++) {
-					if (annotation.graph == features[i].graph && features[i].stored) {
-						stored = true;
-					}
+	if (button.data('hidden')) {
+		button.data('hidden', false);
+		var url = $("<div class='allograph_url_div'>");
+		var allograph_url;
+		var input = $('<input type="text" disabled>');
+		var title = $('.name_temporary_annotation').val();
+		var desc = $('.textarea_temporary_annotation').val();
+		var stored;
+		if (annotation !== null) {
+			for (var i = 0; i < features.length; i++) {
+				if (annotation.graph == features[i].graph && features[i].stored) {
+					stored = true;
 				}
 			}
-			if (annotation !== null && stored) {
-				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-			} else {
-				var geometryObject = annotator.selectedFeature;
-				var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
-				geoJSONText.title = title;
-				geoJSONText.desc = desc;
-				allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
-			}
-			input.val(allograph_url);
-			url.append(input);
-			dialog.prepend(url);
-			input.select();
-		} else {
-			$(this).data('hidden', true);
-			var url_allograph_element = dialog.parent().find('.allograph_url_div');
-			url_allograph_element.fadeOut().remove();
 		}
-	});
+		if (annotation !== null && stored) {
+			allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+		} else {
+			var geometryObject = annotator.selectedFeature;
+			var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+			geoJSONText.title = title;
+			geoJSONText.desc = desc;
+			allograph_url = window.location.hostname + document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+		}
+		input.val(allograph_url);
+		url.append(input);
+		dialog.prepend(url);
+		input.select();
+	} else {
+		button.data('hidden', true);
+		var url_allograph_element = dialog.parent().find('.allograph_url_div');
+		url_allograph_element.fadeOut().remove();
+	}
+
+
 }
 
 function showBox(selectedFeature) {
@@ -1368,7 +1372,6 @@ function showBox(selectedFeature) {
 					dialog.html(s);
 				}
 			});
-			show_url_allograph(dialog);
 		}
 
 		dialog.find('#box_features_container p').click(function() {
@@ -1950,17 +1953,27 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$('#map').attr('style', null);
+				$('#panelImageBox').attr('style', null);
 				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-				this.fullScreen.active = null;
+				annotator.fullScreen.deactivate();
 			}
 		});
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
+		$('#panelImageBox').css({
+			'position': 'fixed',
+			"top": "0.5%%",
+			"z-index": 2000,
+			"width": "80%",
+			"height": "30px",
+			"left": "8%"
+		});
+
 	} else {
 		this.fullScreen.deactivate();
 		$('#map').attr('style', null);
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
-		this.fullScreen.active = null;
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
+		$('#panelImageBox').attr('style', null);
 	}
 };
 

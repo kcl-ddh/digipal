@@ -7,13 +7,15 @@ from django.db.models import Q
 class SearchScribes(SearchContentType):
 
     def get_fields_info(self):
+        ''' See SearchContentType.get_fields_info() for a description of the field structure '''
+        
         ret = super(SearchScribes, self).get_fields_info()
-        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name'}, 'advanced': True}
+        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name', 'boost': 3.0}, 'advanced': True}
         ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
-        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
-        ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
-        ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}}
-        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 1.0}}
+        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date', 'boost': 1.0}, 'advanced': True}
+        ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 0.3}}
+        ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository', 'boost': 0.3}}
+        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 0.3}}
         # TODO: display this field on the front-end
         #ret['historical_items__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
 
@@ -23,6 +25,10 @@ class SearchScribes(SearchContentType):
         ret['idiographs__allograph__allograph_components__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
         ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         return ret
+
+    def get_sort_fields(self):
+        ''' returns a list of django field names necessary to sort the results ''' 
+        return ['name']
 
     def set_record_view_context(self, context, request):
         super(SearchScribes, self).set_record_view_context(context, request)

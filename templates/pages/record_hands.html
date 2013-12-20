@@ -3,7 +3,10 @@
 {% load mezzanine_tags pagination_tags hand_filters %}
 
 {% block meta_title %}Hand: {{ result }}{% endblock %}
-{% block record_title %}Hand: {{ result }}{% endblock %}
+{% block record_title %}
+    Hand: {{ result }}
+    {% include "digipal/admin_edit.html" with instance=result %}
+{% endblock %}
 
 {% block record_tabs %}
     <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>

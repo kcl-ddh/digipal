@@ -153,7 +153,7 @@ class SearchPageForm(forms.Form):
             args = list(args)[:]
             args[0] = args[0].copy()
         if 'basic_search_type' not in args[0]:
-            args[0]['basic_search_type'] = 'hands'
+            args[0]['basic_search_type'] = 'manuscripts'
         super(SearchPageForm, self).__init__(*args, **kwargs)
 
     terms = forms.CharField(
@@ -176,10 +176,10 @@ class SearchPageForm(forms.Form):
         required=False,
         widget=forms.RadioSelect(),
         choices = [
-                ('hands', 'Hands'),
                 ('manuscripts', 'Manuscripts'),
+                ('hands', 'Hands'),
                 ('scribes', 'Scribes')],
-        initial='hands',
+        initial='manuscripts',
 #             attrs={'required': 'required'}),
     )
     ordering = forms.CharField(

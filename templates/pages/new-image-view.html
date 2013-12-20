@@ -119,7 +119,7 @@
                                                         <dt>
                                                             {% for graph in hand.graphs_template %}
                                                                 {% if forloop.counter < 10 %}
-                                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.pk }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                                         {{ graph.annotation.thumbnail }}
                                                                     </a>
                                                                 {% endif %}
@@ -157,7 +157,7 @@
                                         <tr class="{% cycle 'bgColour' '' %}">
                                             <td>
                                                 {% for graph in hand.graphs_template %}
-                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.page_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                    <a data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                         {{ graph.annotation.thumbnail }}
                                                     </a>
                                                 {% endfor %}

@@ -7,17 +7,23 @@ from django.db.models import Q
 class SearchHands(SearchContentType):
 
     def get_fields_info(self):
+        ''' See SearchContentType.get_fields_info() for a description of the field structure '''
+        
         ret = super(SearchHands, self).get_fields_info()
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
-        ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description'}, 'long_text': True}
-        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes'}, 'advanced': True}
+        ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.3}, 'long_text': True}
+        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes', 'boost': 0.3}, 'advanced': True}
         ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
-        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark'}}
+        ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
         ret['item_part__current_item__repository__place__name, item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
+
+    def get_sort_fields(self):
+        ''' returns a list of django field names necessary to sort the results ''' 
+        return ['item_part__current_item__repository__place__name', 'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'num']
 
     def set_record_view_context(self, context, request):
         super(SearchHands, self).set_record_view_context(context, request)

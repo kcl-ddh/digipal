@@ -26,6 +26,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
 import reversion
 import django_admin_customisations
 from django.utils.safestring import mark_safe
+from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
 
 import logging
@@ -46,9 +47,15 @@ class ImageAnnotationNumber(SimpleListFilter):
         return (
             ('1', ('At least five annotations')),
             ('2', ('Fewer than five annotations')),
+            ('3', ('At least one annotation')),
+            ('0', ('No annotation')),
         )        
 
     def queryset(self, request, queryset):
+        if self.value() == '0':
+            return queryset.exclude(annotation__id__gt=0)
+        if self.value() == '3':
+            return queryset.filter(annotation__id__gt=0).distinct()
         if self.value() == '1':
             return queryset.annotate(num_annot = Count('annotation__image__item_part')).exclude(num_annot__lt = 5)
         if self.value() == '2':
@@ -102,9 +109,9 @@ class ImageWithHand(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(hand__isnull=False).distinct()
+            return queryset.filter(hands__id__gt=0).distinct()
         if self.value() == 'no':
-            return queryset.filter(hand__isnull=True).distinct()
+            return queryset.exclude(hands__id__gt=0).distinct()
            
 
 class DescriptionFilter(SimpleListFilter):
@@ -152,47 +159,87 @@ class HistoricalItemDescriptionFilter(SimpleListFilter):
             k = q.exclude(description__description__contains = "FIX")
             return k
 
-class CurrentItemPartNumberFilter(SimpleListFilter):
+class RelatedObjectNumberFilter(SimpleListFilter):
+    title = ('Number of Related Objects')
+    parameter_name = ('n')
+    
+    related_table = 'digipal_image'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    this_key = 'id'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('None')),
+            ('1', ('One')),
+            ('1p', ('One or more')),
+            ('2p', ('More than one')),
+        )   
+
+    def queryset(self, request, queryset):
+        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
+        select += ur'%s )'
+        if self.value() == '0':
+            return queryset.extra(where=[select % ' = 0'])
+        if self.value() == '1':
+            return queryset.extra(where=[select % ' = 1'])
+        if self.value() == '1p':
+            return queryset.extra(where=[select % ' >= 1'])
+        if self.value() == '2p':
+            return queryset.extra(where=[select % ' > 1'])
+
+class ItemPartHasGroupGroupFilter(SimpleListFilter):
+    title = ('Membership')
+
+    parameter_name = ('hg')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('not part of a group')),
+            ('1', ('part of a group')),
+        )   
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(group__isnull = False)
+        if self.value() == '0':
+            return queryset.filter(group__isnull = True)
+
+class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of parts')
+
+    parameter_name = ('np')
+
+    related_table = 'digipal_itempart'
+    foreign_key = 'group_id'
+    this_table = 'digipal_itempart'
+    
+class ItemPartImageNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of Images')
+
+    parameter_name = ('ni')
+
+    related_table = 'digipal_image'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    
+class CurrentItemPartNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Parts')
 
     parameter_name = ('ci_nip')
 
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('2p', ('Two or more')),
-        )   
+    related_table = 'digipal_itempart'
+    foreign_key = 'current_item_id'
+    this_table = 'digipal_currentitem'
 
-    def queryset(self, request, queryset):
-        select = ur'''(SELECT COUNT(*) FROM digipal_itempart WHERE current_item_id = digipal_currentitem.id) %s'''
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
-
-class HistoricalItemItemPartNumberFilter(SimpleListFilter):
+class HistoricalItemItemPartNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Parts')
 
     parameter_name = ('hi_nip')
 
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('2p', ('Two or more')),
-        )   
-
-    def queryset(self, request, queryset):
-        select = ur'''(SELECT COUNT(*) FROM digipal_itempartitem WHERE historical_item_id = digipal_historicalitem.id) %s'''
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
+    related_table = 'digipal_itempartitem'
+    foreign_key = 'historical_item_id'
+    this_table = 'digipal_historicalitem'
 
 class HistoricalItemKerFilter(SimpleListFilter):
     title = ('Ker')
@@ -284,6 +331,36 @@ class HandGlossTextFilter(SimpleListFilter):
 #        Forms          #
 #                       #
 #########################
+
+fieldsets_hand = (
+            #(None, {'fields': ('num', )}),
+            ('Item Part and Scribe', {'fields': ('item_part', 'scribe')}),
+            ('Labels and notes', {'fields': ('label', 'num', 'display_note', 'internal_note', 'comments')}),
+            ('Images', {'fields': ('images',)}),
+            ('Other Catalogues', {'fields': ('legacy_id', 'ker', 'scragg', 'em_title')}),
+            ('Place and Date', {'fields': ('assigned_place', 'assigned_date')}),
+            ('Gloss', {'fields': ('glossed_text', 'num_glossing_hands', 'num_glosses', 'gloss_only')}),
+            ('Appearance and other properties', {'fields': ('script', 'appearance', 'relevant', 'latin_only', 'latin_style', 'scribble_only', 'imitative', 'membra_disjecta')}),
+            ('Brookes Database', {'fields': ('stewart_record', 'selected_locus', 'locus', 'surrogates')}),
+            ) 
+
+class GraphForm(forms.ModelForm):
+
+    class Meta:
+        model = Graph    
+
+    def __init__(self, *args, **kwargs):
+        # Don't look into other pages for possible grouping graphs.
+        # We know that both the containing (group) graph and the child graphs
+        # belong to the same page.
+        super(GraphForm, self).__init__(*args, **kwargs)
+        object = getattr(self, 'instance', None)
+        try:
+            if object and object.annotation:
+                group_field = self.fields['group']
+                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+        except Annotation.DoesNotExist:
+            print 'ERROR'
 
 class GraphForm(forms.ModelForm):
 
@@ -482,23 +559,35 @@ class CountyAdmin(reversion.VersionAdmin):
 class ItemPartInline(admin.StackedInline):
     model = ItemPart
 
-class ItemPartItemInline(admin.StackedInline):
+class ItemPartItemInline(StackedDynamicInlineAdmin):
     model = ItemPartItem
-    
-    verbose_name = 'Historical Item Part'
 
+class ItemPartItemInlineFromHistoricalItem(ItemPartItemInline):
+    verbose_name = 'Item Part'
+    verbose_name_plural = 'Item Parts'
+
+class ItemPartItemInlineFromItemPart(ItemPartItemInline):
+    verbose_name = 'Historical Item'
+    verbose_name_plural = 'Historical Items'
 
 class CurrentItemAdmin(reversion.VersionAdmin):
     model = CurrentItem
 
-    list_display = ['display_label', 'repository', 'shelfmark', 'created', 'modified']
+    list_display = ['id', 'display_label', 'repository', 'shelfmark', 'get_part_count', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
     list_filter = ['repository', CurrentItemPartNumberFilter]
+    
+    readonly_fields = ('display_label',)
+    
+    fieldsets = (
+                (None, {'fields': ('display_label', 'repository', 'shelfmark', 'description')}),
+                ('Owners', {'fields': ('owners', )}),
+                ('Legacy', {'fields': ('legacy_id',)}),
+                ) 
 
     inlines = [ItemPartInline]
     filter_horizontal = ['owners']
-
 
 class DateEvidenceInline(admin.StackedInline):
     model = DateEvidence
@@ -607,11 +696,24 @@ class HandFilterSurrogates(admin.SimpleListFilter):
         if self.value() == '1':
             return queryset.exclude(q)
 
+class HandForm(forms.ModelForm):
+    class Meta:
+        model = Hand
+    label = forms.CharField(widget=forms.TextInput(attrs={'class': 'vTextField'}))
+
+    # On the hand form we only show the Images connected to the associated Item Part 
+    def __init__(self, *args, **kwargs):
+        hand = kwargs.get('instance', None)
+        super(HandForm, self).__init__(*args, **kwargs)
+        if hand:
+            self.fields['images']._set_queryset(Image.objects.filter(item_part=hand.item_part))
+
 class HandAdmin(reversion.VersionAdmin):
     model = Hand
+    form = HandForm
 
     filter_horizontal = ['images']
-    list_display = ['label', 'num', 'item_part', 'script', 'scribe',
+    list_display = ['item_part', 'num', 'label', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = list_display
@@ -619,9 +721,10 @@ class HandAdmin(reversion.VersionAdmin):
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
     list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter]
+    
+    fieldsets = fieldsets_hand
 
     inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
-    #exclude = ('scragg_description', 'em_description', 'description', 'mancass_description')
     
 class CatalogueNumberInline(admin.StackedInline):
     model = CatalogueNumber
@@ -662,8 +765,8 @@ class ItemLayoutInline(admin.StackedInline):
 class HistoricalItemAdmin(reversion.VersionAdmin):
     model = HistoricalItem
 
-    search_fields = ['catalogue_number', 'date', 'name']
-    list_display = ['catalogue_number', 'name', 'date', 'historical_item_type', 
+    search_fields = ['id', 'catalogue_number', 'date', 'name']
+    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 'get_part_count', 
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
     list_filter = ['historical_item_type', 'historical_item_format', 
@@ -671,15 +774,17 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
                    HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
     
     fieldsets = (
-                (None, {'fields': ('catalogue_number', 'name', 'date', )}),
+                (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),
                 ('Classifications', {'fields': ('historical_item_type', 'historical_item_format', 'categories')}),
                 ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
                 ('Owners', {'fields': ('owners',)}),
                 ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),
                 ) 
-    readonly_fields = ['catalogue_number']
+    
+    readonly_fields = ['catalogue_number', 'display_label']
+    
     filter_horizontal = ['categories', 'owners']
-    inlines = [ItemPartItemInline, CatalogueNumberInline, CollationInline,
+    inlines = [ItemPartItemInlineFromHistoricalItem, CatalogueNumberInline, CollationInline,
             DecorationInline, DescriptionInline, ItemDateInline,
             ItemOriginInline, ItemLayoutInline]
 
@@ -753,36 +858,56 @@ class ItemOriginAdmin(reversion.VersionAdmin):
     search_fields = ['evidence']
 
 
-class HandInline(admin.StackedInline):
+class HandInline(StackedDynamicInlineAdmin):
     model = Hand
+    form = HandForm
 
     filter_horizontal = ['images']
+    
+    fieldsets = fieldsets_hand
 
 
 class ImageInline(admin.StackedInline):
     model = Image
 
-    exclude = ['image']
+    exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number']
 
+class ItemSubPartInline(StackedDynamicInlineAdmin):
+    model = ItemPart
+    
+    verbose_name = 'Item Part'
+    verbose_name_plural = 'Sub-parts In This Group'
+    
+    readonly_fields = ['display_label']
+    fieldsets = (
+                (None, {'fields': ('display_label', 'type',)}),
+                ('Locus of this part in the group', {'fields': ('group_locus', )}),
+                ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
+                ) 
 
 class ItemPartAdmin(reversion.VersionAdmin):
     model = ItemPart
 
-    list_display = ['historical_item', 'current_item', 'locus', 'type', 
-            'created', 'modified']
+    # 'current_item', 'locus', 
+    list_display = ['id', 'display_label', 'historical_label', 'type', 
+                    'get_image_count', 'get_part_count', 
+                    'created', 'modified']
     list_display_links = list_display
     search_fields = ['locus', 'display_label',
-            'historical_items__display_label', 'type__name']
-    list_filters = ('type',)
-
+            'historical_items__display_label', 'current_item__display_label',
+            'subdivisions__display_label', 'group__display_label', 
+            'type__name']
+    list_filter = ('type', ItemPartImageNumberFilter, ItemPartMembersNumberFilter, ItemPartHasGroupGroupFilter)
+    
+    readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
-                (None, {'fields': ('type',)}),
+                (None, {'fields': ('display_label', 'historical_label', 'type',)}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
-                ('It belongs (or belonged) to another part...', {'fields': ('group',)}),
+                ('It belongs (or belonged) to another part...', {'fields': ('group', 'group_locus')}),
                 ('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType
@@ -855,21 +980,43 @@ class OntographTypeAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
+# This class is used to only display the Hand linked to the Item Part
+# on an Image form.
+class HandsInlineForm(forms.ModelForm):
+    class Meta:
+        model = Hand.images.through
+ 
+    def __init__(self, *args, **kwargs):
+        object = kwargs.get('parent_object', None)
+        if object:
+            kwargs.pop('parent_object')
+        super(HandsInlineForm, self).__init__(*args, **kwargs)
+        if object:
+            self.fields['hand']._set_queryset(Hand.objects.filter(item_part=object.item_part))
+
+# This class is only defined to pass a reference to the current Hand to HandsInlineForm
+class HandsInlineFormSet(forms.models.BaseInlineFormSet):
+    def _construct_form(self, i, **kwargs):
+        kwargs['parent_object'] = self.instance
+        return super(HandsInlineFormSet, self)._construct_form(i, **kwargs)
 
 class HandsInline(admin.StackedInline):
     model = Hand.images.through
-
+    form = HandsInlineForm
+    formset = HandsInlineFormSet
 
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
+    change_list_template = 'admin/digipal/change_list.html'
 
     exclude = ['image', 'caption']
-    list_display = ['id', 'display_label', 'thumbnail_with_link', 
-            'media_permission', 'created', 'modified',
-            #'caption', 
+    list_display = ['id', 'display_label', 'get_thumbnail', 
+            'get_status_label', 'media_permission', 'created', 'modified',
             'iipimage']
-    list_display_links = list_display
-    search_fields = ['id', 'folio_side', 'folio_number', 
+    list_display_links = ['id', 'display_label', 
+            'media_permission', 'created', 'modified',
+            'iipimage']
+    search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
@@ -879,11 +1026,32 @@ class ImageAdmin(reversion.VersionAdmin):
     readonly_fields = ('display_label', 'folio_number', 'folio_side')
     
     fieldsets = (
-                (None, {'fields': ('display_label',)}),
+                (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
+                ('Internal and editorial information', {'fields': ('internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
+    
+    def get_changelist(self, request, **kwargs):
+        ''' Override this function in order to enforce a sort order on the folio number and side'''
+        from django.contrib.admin.views.main import ChangeList
+         
+        class SortedChangeList(ChangeList):
+            def get_query_set(self, *args, **kwargs):
+                qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
+                return Image.sort_query_set_by_locus(qs)
+                 
+        if request.GET.get('o'):
+            return ChangeList
+             
+        return SortedChangeList        
+    
+    def get_thumbnail(self, image):
+        from digipal.templatetags.html_escape import iip_img_a
+        return iip_img_a(image.iipimage, width=70, cls='img-expand')
+    get_thumbnail.short_description = 'Thumbnail'
+    get_thumbnail.allow_tags = True 
 
     def action_regen_display_label(self, request, queryset):
         for image in queryset.all():
@@ -897,6 +1065,17 @@ class ImageAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
     
+    def get_status_label(self, obj):
+        hand_count = obj.hands.count()
+        ret = '%d hands' % hand_count
+        if not hand_count:
+            ret = '<span style="color:red">%s</span>' % ret
+        if obj.item_part is None:
+            ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
+        return ret
+    get_status_label.short_description = 'Status'
+    get_status_label.allow_tags = True 
+
     def get_locus_label(self, obj):
         return obj.get_locus_label()
     get_locus_label.short_description = 'Locus' 

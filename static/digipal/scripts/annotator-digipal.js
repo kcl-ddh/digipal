@@ -219,7 +219,107 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			features[i].linked_to.push(feature);
 		}
 	}
+	if (!isEmpty(annotator.selectedFeature.linked_to[0])) {
+		var num_linked = 0;
+		var elements_linked = [];
+
+		for (var g in annotator.selectedFeature.linked_to[0]) {
+			num_linked++;
+			elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
+		}
+
+		$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />');
+
+		$(".show_group").click(function() {
+
+			var element = "<div class='elements_linked'>";
+
+			$.each(elements_linked, function() {
+				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right icon-remove ungroup' data-id='" + this.id + "' /></p>";
+			});
+
+			element += '</div>';
+
+			if ($('.elements_linked').length) {
+				$('.elements_linked').replaceWith(element);
+			} else {
+				$('.dialog_annotations').prepend(element);
+			}
+
+			var el_link = $('.elements_linked');
+			if ($(this).data('hidden')) {
+				el_link.fadeIn();
+				$(this).data('hidden', false);
+			} else {
+				el_link.fadeOut();
+				$(this).data('hidden', true);
+			}
+
+			$('.elements_linked').find('p').on('mouseover', function(event) {
+				var id = $(this).data('id');
+				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+					var f = annotator.vectorLayer.features[i];
+					if (f.id == id) {
+						f.style.strokeColor = 'red';
+						f.style.strokeWidth = 6;
+					}
+				}
+				annotator.vectorLayer.redraw();
+			}).on('mouseout', function(event) {
+				var id = $(this).data('id');
+				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+					var f = annotator.vectorLayer.features[i];
+					if (f.id == id) {
+						f.style.strokeColor = 'blue';
+						f.style.strokeWidth = 2;
+					}
+				}
+				annotator.vectorLayer.redraw();
+			});
+
+			$('.ungroup').click(function() {
+				var id = $(this).data('id');
+				$(this).parent('p').fadeOut().remove();
+				ungroup(id);
+			});
+
+		});
+	}
 };
+
+function ungroup(element_id) {
+	var a;
+	for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+		var annotation = annotator.selectedAnnotations[i];
+
+		if (annotation.linked_to[0][element_id]) {
+			delete annotation.linked_to[0][element_id];
+		}
+
+		if (annotation.id == element_id) {
+			annotation.linked_to = [];
+			annotator.selectedAnnotations.splice(i, 1);
+			a = annotation;
+		}
+
+	}
+
+	annotator.selectFeature.unselect(a);
+
+	for (i = 0; i < annotator.vectorLayer.features.length; i++) {
+		var f = annotator.vectorLayer.features[i];
+
+		if (f.id == element_id) {
+			f.style.strokeWidth = 2;
+		}
+	}
+	annotator.vectorLayer.redraw();
+
+	var num_linked = parseInt($('.num_linked').text(), 10) - 1;
+	$('.num_linked').html(num_linked);
+
+
+}
 
 DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
 	var seen = {};
@@ -439,6 +539,7 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				}
 			}
 		}
+
 	}
 
 };
@@ -655,7 +756,73 @@ function updateFeatureSelect(currentFeatures, id) {
 				}
 
 				if (!annotator.editorial.active) {
-					dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
+					if (!isEmpty(annotator.selectedFeature.linked_to[0])) {
+						var num_linked = 0;
+						elements_linked = [];
+						for (var g in annotator.selectedFeature.linked_to[0]) {
+							num_linked++;
+							elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
+						}
+
+						$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />');
+
+						$(".show_group").click(function() {
+
+							var element = "<div class='elements_linked'>";
+
+							$.each(elements_linked, function() {
+								element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right icon-remove ungroup' data-id='" + this.id + "' /></p>";
+							});
+
+							element += '</div>';
+
+							if ($('.elements_linked').length) {
+								$('.elements_linked').replaceWith(element);
+							} else {
+								$('.dialog_annotations').prepend(element);
+							}
+
+							var el_link = $('.elements_linked');
+							if ($(this).data('hidden')) {
+								el_link.fadeIn();
+								$(this).data('hidden', false);
+							} else {
+								el_link.fadeOut();
+								$(this).data('hidden', true);
+							}
+
+							$('.elements_linked').find('p').on('mouseover', function(event) {
+								var id = $(this).data('id');
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									var f = annotator.vectorLayer.features[i];
+									if (f.id == id) {
+										f.style.strokeColor = 'red';
+										f.style.strokeWidth = 6;
+									}
+								}
+								annotator.vectorLayer.redraw();
+							}).on('mouseout', function(event) {
+								var id = $(this).data('id');
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									var f = annotator.vectorLayer.features[i];
+									if (f.id == id) {
+										f.style.strokeColor = 'blue';
+										f.style.strokeWidth = 2;
+									}
+								}
+								annotator.vectorLayer.redraw();
+							});
+
+							$('.ungroup').click(function() {
+								var id = $(this).data('id');
+								$(this).parent('p').fadeOut().remove();
+								ungroup(id);
+							});
+
+						});
+					} else {
+						dialog.parent().find('.allograph_label').html($('#id_allograph option:selected').text());
+					}
 				}
 
 				dialog.find('#box_features_container').html(s);
@@ -1091,6 +1258,7 @@ function create_dialog(selectedFeature, id) {
 	$('.link_graphs').click(function() {
 		annotator.linkAnnotations();
 	});
+
 }
 
 function load_allographs_container(allograph_value, url, show) {
@@ -1129,7 +1297,6 @@ function load_allographs_container(allograph_value, url, show) {
 
 	container_div.css('padding', '1.5%');
 	div.append(container_div);
-	console.log(show)
 	if (show) {
 		$('body').append(div);
 	}
@@ -1343,8 +1510,6 @@ function fill_dialog(id, annotation) {
         });
         */
 
-
-
 		$('#id_allograph').on('change', function() {
 			var n = 0;
 			var features = annotator.vectorLayer.features;
@@ -1376,7 +1541,7 @@ function fill_dialog(id, annotation) {
 
 	dialog.html(s);
 	var url_allograph_button = dialog.parent().find('.url_allograph');
-	console.log(dialog + ' ' + annotation)
+
 	url_allograph_button.click(function() {
 		show_url_allograph(dialog, annotation, $(this));
 	});
@@ -1410,6 +1575,7 @@ function fill_dialog(id, annotation) {
 		var allograph_id = get_allograph(annotation.feature);
 		refresh_letters_container(annotation.feature, allograph_id, true);
 	}
+
 }
 
 function get_allograph(allograph) {
@@ -1615,6 +1781,7 @@ function showBox(selectedFeature) {
 			array_features_owned = features_owned(selectedFeature, url);
 		}
 		create_dialog(selectedFeature, id);
+
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 		if (can_edit) {
@@ -1707,7 +1874,6 @@ function showBox(selectedFeature) {
 						}
 					});
 
-
 				});
 			});
 
@@ -1741,9 +1907,8 @@ function showBox(selectedFeature) {
 			});
 		}
 
-
-
 	}
+
 
 	if (selectedFeature) {
 		var n = 0;

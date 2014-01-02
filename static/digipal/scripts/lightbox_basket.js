@@ -211,7 +211,7 @@ $(document).ready(function() {
 							element_basket.html("Lightbox (" + length_basket + " images)");
 						}
 
-						if (!basket.annotations.length && !basket.images.length) {
+						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
 							s = '<div class="container alert alert-warning">The Basket is empty</div>';
 							container_basket.html(s);
 						}
@@ -350,7 +350,7 @@ $(document).ready(function() {
 
 		main(basket); // launch main()
 
-		var interval = setInterval(function() {
+		/*var interval = setInterval(function() {
 
 			if (getParameter('collection').length) {
 				var collection = JSON.parse(localStorage.getItem('collections'));
@@ -366,7 +366,7 @@ $(document).ready(function() {
 				main(basket); // recall main
 			}
 
-		}, 8000); // Repeat main every 5 seconds
+		}, 8000); // Repeat main every 5 seconds*/
 
 	} else {
 

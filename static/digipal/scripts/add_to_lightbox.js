@@ -49,6 +49,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.images = [];
 			}
 			elements = current_basket.images;
+			console.log(elements);
 		}
 
 		if (current_basket && elements && elements.length) {
@@ -71,6 +72,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				} else {
 					if (elements[j].id == graph) {
 						flag = false;
+						break;
 					}
 				}
 			}
@@ -91,6 +93,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				notify('Image already in the basket!', 'danger');
 				return false;
 			}
+
 
 			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 
@@ -142,16 +145,36 @@ function add_to_lightbox(button, type, annotations, multiple) {
 }
 
 function notify(msg, status) {
+
+	var running = running || true;
+
+	if (running) {
+		clearInterval(timeout);
+		$('#status').remove();
+	}
+
 	var status_element = $('#status');
+
 	if (!status_element.length) {
 		status_element = $('<div id="status">');
 		$('body').append(status_element.hide());
 	}
+
+	status_element.css('z-index', 5000);
 	status_class = status ? ' alert-' + status : '';
 	status_element.attr('class', 'alert' + status_class);
-	status_element.html("<a style='color:#468847;' href='/digipal/page/lightbox/basket'>" + msg + "</a>").fadeIn();
 
-	setTimeout(function() {
-		status_element.fadeOut();
-	}, 5000);
+	if (status == 'success') {
+		status_element.html("<a style='color:#468847;' href='/digipal/page/lightbox/basket'>" + msg + "</a>").fadeIn();
+	} else {
+		status_element.html(msg).fadeIn();
+	}
+
+	var timeout =
+		setTimeout(function() {
+			status_element.fadeOut();
+			running = false;
+		}, 5000);
+
+
 }

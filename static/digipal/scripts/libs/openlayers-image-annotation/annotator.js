@@ -92,7 +92,15 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.onFeatureSelect(e);
 		},
 		'featureunselected': function(e) {
-			if (typeof e.feature.linked_to !== "undefined" && e.feature.linked_to.length) {
+			// function to check if an object is empty, boolean returned
+			var isEmpty = function(obj) {
+				for (var prop in obj) {
+					if (obj.hasOwnProperty(prop)) return false;
+				}
+				return true;
+			};
+
+			if (typeof e.feature.linked_to !== "undefined" && !isEmpty(e.feature.linked_to[0])) {
 				$.each(e.feature.linked_to[0], function(index, value) {
 					_self.onFeatureUnSelect(value, false);
 				});

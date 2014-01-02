@@ -158,6 +158,7 @@
           $(this).tab('show');
           setCookie('view', this.innerHTML, '-1');
         });
+
         $('select').chosen();
         $('[data-toggle="tooltip"]').tooltip();
 
@@ -166,16 +167,32 @@
                 accept: "a.droppable_image",
                 hoverClass: "ui-state-active",
                 drop: function(event, ui){
+
                     var element = $(ui.helper[0]);
-                    add_to_lightbox(element, 'image', element.data('id'), false);
-                    var s = '<p>Imaged added to Lightbox!</p>';
-                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
-                    $(this).html(s);
+                    if(add_to_lightbox(element, 'image', element.data('id'), false)){
+
+                        var s = '<p>Image added to Lightbox!</p>';
+                        s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
+                        $(this).html(s);
+
+                        element.animate({
+                            width: 0,
+                            height: 0
+                        }, 650).remove();
+
+                    }
+
                     setTimeout(function(){
                         s = '<p>Add image to Basket</p>';
                         s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                         basket_collector.html(s);
-                    }, 2500);
+
+                        basket_collector.animate({
+                            left: '100%'
+                        }, 350);
+
+                    }, 3000);
+
                 },
                 out: function(){
                     $(this).css('background', 'rgba(0, 0, 0, 0.5)');
@@ -188,21 +205,25 @@
             var images = $('a.droppable_image');
             images.draggable({
                 containment: 'window',
-                revert: true,
                 stack: 'div',
                 cursor: 'move',
+                revert: true,
                 scroll: true,
                 zIndex: 6000,
-                helper: "clone",
                 start: function(){
-                    $('#basket_collector').animate({
+                    basket_collector.animate({
                         left: '85%'
                     }, 350);
                 },
                 stop: function(){
-                    $('#basket_collector').animate({
-                        left: '100%'
-                    }, 350);
+
+                    setTimeout(function(){
+
+                        basket_collector.animate({
+                            left: '100%'
+                        }, 350);
+
+                    });
                 }
             });
     });

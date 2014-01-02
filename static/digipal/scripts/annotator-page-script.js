@@ -5,25 +5,6 @@
 
 (function() {
 
-	/*
-
-declaring function to get parameteres from URL
-
-*/
-
-	function getParameter(paramName) {
-		var searchString = window.location.search.substring(1),
-			i, val, params = searchString.split("&");
-		var parameters = [];
-		for (i = 0; i < params.length; i++) {
-			val = params[i].split("=");
-			if (val[0] == paramName) {
-				parameters.push(unescape(val[1]));
-			}
-		}
-		return parameters;
-	}
-
 
 	/*
 
@@ -119,11 +100,18 @@ declaring function to get parameteres from URL
 			var temporary_vectors = getParameter('temporary_vector');
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
-				var temporary_vector = getParameter('temporary_vector');
-				var geo_json = JSON.parse(temporary_vector);
-				for (var i = 0; i < temporary_vector.length; i++) {
 
-					var object = geoJSON.read(temporary_vector[i]);
+				if (temporary_vectors.length > 1) {
+					annotator.selectFeature.multiple = true;
+				}
+
+				for (var i = 0; i < temporary_vectors.length; i++) {
+
+
+					var temp = temporary_vectors[i];
+					var geo_json = JSON.parse(temp);
+
+					var object = geoJSON.read(temp);
 					var objectGeometry = object[0];
 
 					objectGeometry.layer = annotator.vectorLayer;
@@ -144,7 +132,7 @@ declaring function to get parameteres from URL
 					// select feature
 					annotator.selectFeatureById(objectGeometry.id);
 
-					annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
+					//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
 					annotator.map.zoomToExtent(geo_json.extent);
@@ -199,13 +187,23 @@ declaring function to get parameteres from URL
 						});
 					*/
 					//annotator.selectFeatureByIdAndCentre(vector_id_value);
-					annotator.selectFeatureByIdAndZoom(vector_id_value);
+					console.log(vector_id_value);
+					if (vector_id_value.length == 1) {
+						annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
+
+					} else {
+						for (var i = 0; i < vector_id_value.length; i++) {
+							annotator.selectFeature.multiple = true;
+							//annotator.selectFeature.toggle = true;
+
+							annotator.selectFeatureById(vector_id_value[i]);
+						}
+					}
 				}, 500);
 			}
 
 			reload_described_annotations();
 			trigger_highlight_unsaved_vectors();
-
 
 		});
 

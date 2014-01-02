@@ -223,16 +223,27 @@
                 accept: "a.droppable_image",
                 hoverClass: "ui-state-active",
                 drop: function(event, ui){
+
                     var element = $(ui.helper[0]);
-                    add_to_lightbox(element, 'annotation', element.data('graph'), false);
-                    var s = '<p>Imaged added to Lightbox!</p>';
-                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
-                    $(this).html(s);
+
+                    if(add_to_lightbox(element, 'annotation', element.data('graph'), false)){
+                        var s = '<p>Image added to Lightbox!</p>';
+                        s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
+                        $(this).html(s);
+                    }
+
                     setTimeout(function(){
+
                         s = '<p>Add image to Basket</p>';
                         s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                         basket_collector.html(s);
-                    }, 2500);
+
+                        basket_collector.animate({
+                            left: '100%'
+                        }, 350);
+
+                    }, 3000);
+
                 },
                 out: function(){
                     $(this).css('background', 'rgba(0, 0, 0, 0.5)');
@@ -250,7 +261,6 @@
                 scroll: true,
                 cursor: 'move',
                 zIndex: 6000,
-                helper: "clone",
                 start: function(){
                     $('#basket_collector').animate({
                         left: '85%'

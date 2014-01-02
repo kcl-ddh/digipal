@@ -1453,7 +1453,7 @@ function show_url_allograph(dialog, annotation, button) {
 			}
 		});
 
-		if (annotation !== null) {
+		if (annotation !== null && annotation) {
 			for (var i = 0; i < features.length; i++) {
 				if (annotation.graph == features[i].graph && features[i].stored) {
 					stored = true;
@@ -1466,26 +1466,88 @@ function show_url_allograph(dialog, annotation, button) {
 			stored = true;
 		}
 
-
+		var multiple = false,
+			url_temp;
 		if (annotation !== null && typeof annotation !== "undefined" && stored) {
-			allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
-		} else {
 
-			var geometryObject = annotator.selectedFeature;
-			var geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+			if (annotator.selectedAnnotations.length &&
+				annotator.selectedFeature.linked_to != 'undefined' &&
+				annotator.selectedFeature.linked_to.length && allow_multiple()) {
 
-			geoJSONText.title = title;
-			geoJSONText.desc = desc;
-			geoJSONText.dialogPosition = dialogPosition;
-			geoJSONText.extent = layerExtent;
-			geoJSONText.visibility = getAnnotationsVisibility;
+				multiple = true;
+				allograph_url = [];
 
-			if (checkboxesOff.length) {
-				geoJSONText.checkboxes = checkboxesOff;
+				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+
+					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].id;
+
+					allograph_url.push(url_temp);
+
+				}
+
+				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&');
+				console.log(allograph_url);
+
+
+			} else {
+
+				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+
 			}
 
-			allograph_url = window.location.hostname +
-				document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+		} else {
+			var geometryObject, geoJSONText;
+			if (annotator.selectedAnnotations.length &&
+				annotator.selectedFeature.linked_to != 'undefined' &&
+				annotator.selectedFeature.linked_to.length && allow_multiple()) {
+
+				allograph_url = [];
+
+				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+
+					geometryObject = annotator.selectedAnnotations[i];
+					geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+
+					geoJSONText.title = title;
+					geoJSONText.desc = desc;
+					geoJSONText.dialogPosition = dialogPosition;
+					geoJSONText.extent = layerExtent;
+					geoJSONText.visibility = getAnnotationsVisibility;
+
+					if (checkboxesOff.length) {
+						geoJSONText.checkboxes = checkboxesOff;
+					}
+
+					url_temp = 'temporary_vector=' + JSON.stringify(geoJSONText);
+
+					allograph_url.push(url_temp);
+
+				}
+
+				allograph_url = window.location.hostname +
+					document.location.pathname + '?' + allograph_url.join('&');
+				console.log(allograph_url);
+
+
+			} else {
+
+				geometryObject = annotator.selectedFeature;
+				geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+
+				geoJSONText.title = title;
+				geoJSONText.desc = desc;
+				geoJSONText.dialogPosition = dialogPosition;
+				geoJSONText.extent = layerExtent;
+				geoJSONText.visibility = getAnnotationsVisibility;
+
+				if (checkboxesOff.length) {
+					geoJSONText.checkboxes = checkboxesOff;
+				}
+
+				allograph_url = window.location.hostname +
+					document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
+
+			}
 		}
 
 		gapi.client.load('urlshortener', 'v1', function() {
@@ -1507,8 +1569,6 @@ function show_url_allograph(dialog, annotation, button) {
 				}
 			});
 		});
-
-
 
 	} else {
 		button.data('hidden', true);
@@ -2684,7 +2744,24 @@ DigipalAnnotator.prototype.full_Screen = function() {
  *              The annotation data.
  */
 
+/*
 
+declaring function to get parameteres from URL
+
+*/
+
+function getParameter(paramName) {
+	var searchString = window.location.search.substring(1),
+		i, val, params = searchString.split("&");
+	var parameters = [];
+	for (i = 0; i < params.length; i++) {
+		val = params[i].split("=");
+		if (val[0] == paramName) {
+			parameters.push(unescape(val[1]));
+		}
+	}
+	return parameters;
+}
 
 function getCookie(name) {
 	var cookieValue = null;

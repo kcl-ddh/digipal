@@ -64,6 +64,8 @@ Commands:
   merge_rf
   						Merge Reconstructed Folios (ScandiPal) 
  						
+  merge_frg
+  						Merge Fragments (ScandiPal) 
 	"""
 	
 	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
@@ -91,6 +93,115 @@ Commands:
 			help='Dry run, don\'t change any data.'),
 		)
 	
+	def merge_frg(self):
+		'''
+		* Merge the Fragments
+		'''
+		from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+		con = connections['default']
+		con.enter_transaction_management()
+		con.managed()
+
+		# Find all the couple of fragment where the SHelfmark + locus only vary on the side info
+		fragments = {}
+		for fragment in ItemPart.objects.filter(type=1).order_by('id'):
+			#print (ur'Fragment #%d %s' % (fragment.id, fragment)).encode('ascii', 'ignore')
+			key = '%s, %s' % (fragment.current_item.shelfmark, fragment.locus)
+			key = re.sub(ur'\W+', '', key.lower())
+			val = fragments.get(key, [])
+			if not val: fragments[key] = val
+			val.append(fragment)
+
+		for key, val in fragments.iteritems():
+			fragment = val[0]
+			if len(val) > 1:
+				print 'WARNING: fragments with the same shelfmark + locus: %s %s' % (key, ', '.join(['#%s' % fragment.id for fragment in val]))
+				continue
+			if key.endswith('verso'):
+				# search for the recto to merge into
+				keyr = key[0:-5] + 'recto'
+				fragmentr = fragments.get(keyr, [None])[0]
+				if not fragmentr:
+					print 'WARNING: no recto found %s %s' % (fragment.id, keyr)
+				else:
+					self.merge_frg_verso_into_recto(fragment, fragmentr)
+		
+		# Make sure they belong to the same group
+		if self.is_dry_run():
+			con.rollback()
+			print 'Nothing actually written (remove --dry-run option for permanent changes).'
+		else:
+			con.commit()
+		con.leave_transaction_management()
+		 
+	def merge_frg_verso_into_recto(self, fv, fr):
+		print ('Merge pair %s: #%s (verso) -> #%s (recto)' % (fv.display_label, fv.id, fr.id)).encode('ascii', 'ignore')
+
+		# last checks
+		if fv.group != fr.group:
+			print '\tWARNING: the pair of fragments belong to different groups.'
+			if fr.group:
+				print '\t\t#%s %s' % (fr.group.id, fr.group)
+			if fv.group:
+				print '\t\t#%s %s' % (fv.group.id, fv.group)
+			return
+
+		# Check that the f's HI = group HI
+		for f in [fv, fr]:
+			if f.group and f.group.historical_item != f.historical_item:
+				print '\tWARNING: Fragment #%s has different HI than group.' % f.id
+				return
+		
+		# now it's safe to merge
+
+		# remove side info from merged fragment
+		fr.locus = re.sub(ur'\s*,?\s*recto\s*$', ur'', fr.locus)
+		fr.group_locus = ''
+		fr.save()
+
+		# reconnect images
+		for image in fr.images.all():
+			if image.locus and image.locus.strip():
+				print '\tWARNING: image has locus: #%s "%s"' % (image.id, image.locus)
+			else: 
+				image.locus = 'recto'
+			image.save()
+			print '\t\tImage #%d (recto) : %s' % (image.id, image.custom_label)
+			
+		for image in fv.images.all():
+			if image.locus and image.locus.strip():
+				print '\tWARNING: image has locus: #%s "%s"' % (image.id, image.locus)
+			else: 
+				image.locus = 'verso'
+			image.item_part = fr
+			image.save()
+			print '\t\tImage #%d (verso) : %s' % (image.id, image.custom_label)
+		
+		# merge/reconnect the hands
+		for handv in fv.hands.all():
+			handr = fr.hands.filter(label=handv.label)
+			if handr.count():
+				handr = handr[0]
+				print '\t\tHands to merge : #%d %s (verso) -> #%d %s (recto)' % (handv.id, handv, handr.id, handr)
+				# reconnect to images from handv to handr 
+				for image in handv.images.all():
+					print '\t\t\tConnect recto hand #%d to image #%d' % (handr.id, image.id)
+					handr.images.add(image)
+					handr.save()
+				# reconnect the graphs to the recto hand
+				for graph in handv.graphs.all():
+					print '\t\t\tConnect verso graph #%d to recto hand #%d' % (graph.id, handr.id)
+					graph.hand = handr
+					graph.save()					
+				handv.delete()
+			else:
+				print '\t\tHand to reconnect: #%d %s' % (handv.id, handv)
+				handv.item_part = fr
+				handv.save()
+
+		# delete the verso
+		fv.delete()		
+			 
 	def merge_rf(self): 
 		'''
 		* Merge the RF
@@ -1101,6 +1212,10 @@ Commands:
 		if command == 'merge_rf':
 			known_command = True
 			self.merge_rf()
+			
+		if command == 'merge_frg':
+			known_command = True
+			self.merge_frg()
 		
 		if command == 'checkdata1':
 			known_command = True

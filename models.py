@@ -1267,6 +1267,7 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         # TODO: shouldn't this be turned into a method instead of resetting each time?
+        if self.custom_label is None: self.custom_label = ''
         self.custom_label = self.custom_label.strip()
         if self.custom_label:
             self.display_label = self.custom_label

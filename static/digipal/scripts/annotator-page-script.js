@@ -100,6 +100,7 @@
 			var temporary_vectors = getParameter('temporary_vector');
 			if (temporary_vectors.length) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
+				var geo_json;
 
 				if (temporary_vectors.length > 1) {
 					annotator.selectFeature.multiple = true;
@@ -107,9 +108,8 @@
 
 				for (var i = 0; i < temporary_vectors.length; i++) {
 
-
 					var temp = temporary_vectors[i];
-					var geo_json = JSON.parse(temp);
+					geo_json = JSON.parse(temp);
 
 					var object = geoJSON.read(temp);
 					var objectGeometry = object[0];
@@ -207,7 +207,7 @@
 					}
 
 					// zoom map to extent
-					annotator.map.zoomToExtent(layerExtent);
+					annotator.map.zoomToExtent(extent);
 
 				}, 500);
 			}

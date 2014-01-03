@@ -1660,8 +1660,6 @@ function show_url_allograph(dialog, annotation, button) {
 				multiple = true;
 				allograph_url = [];
 
-				var layerExtent = annotator.map.getExtent();
-
 				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 
 					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].id;

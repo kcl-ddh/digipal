@@ -276,6 +276,10 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 					}
 				}
 				annotator.vectorLayer.redraw();
+			}).on('click', function() {
+				var id = $(this).data('id');
+				annotator.selectFeatureById(id);
+				console.log(id);
 			});
 
 			$('.ungroup').click(function() {
@@ -810,6 +814,10 @@ function updateFeatureSelect(currentFeatures, id) {
 									}
 								}
 								annotator.vectorLayer.redraw();
+							}).on('click', function() {
+								var id = $(this).data('id');
+								annotator.selectFeatureById(id);
+								console.log(id);
 							});
 
 							$('.ungroup').click(function() {
@@ -1652,6 +1660,8 @@ function show_url_allograph(dialog, annotation, button) {
 				multiple = true;
 				allograph_url = [];
 
+				var layerExtent = annotator.map.getExtent();
+
 				for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 
 					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].id;
@@ -1660,9 +1670,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 				}
 
-				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&');
-				console.log(allograph_url);
-
+				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
 

@@ -135,7 +135,9 @@
 					//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
-					annotator.map.zoomToExtent(geo_json.extent);
+					var extent_parsed = JSON.parse(json.extent);
+					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+					annotator.map.zoomToExtent(extent);
 
 					// switch annotations if not visible
 					if (!geo_json.visibility) {
@@ -187,7 +189,11 @@
 						});
 					*/
 					//annotator.selectFeatureByIdAndCentre(vector_id_value);
-					console.log(vector_id_value);
+					// zoom map to extent
+					var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
+					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+
+					annotator.map.zoomToExtent(extent);
 					if (vector_id_value.length == 1) {
 						annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
 
@@ -199,6 +205,10 @@
 							annotator.selectFeatureById(vector_id_value[i]);
 						}
 					}
+
+					// zoom map to extent
+					annotator.map.zoomToExtent(layerExtent);
+
 				}, 500);
 			}
 

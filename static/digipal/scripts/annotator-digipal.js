@@ -130,7 +130,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		if (this.selectedAnnotations.length && boxes.length && !annotator.allow_multiple_dialogs) {
 			boxes.remove();
 		}
-		var msg = this.selectedAnnotations.length + ' annotation selected';
+		var msg = this.selectedAnnotations.length + ' annotations selected';
 		updateStatus(msg, 'success');
 	} else {
 		if (!annotator.allow_multiple_dialogs) {
@@ -235,6 +235,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			var element = "<div class='elements_linked'>";
 
 			$.each(elements_linked, function() {
+				this.feature = this.feature || 'Undefined annotation';
 				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right icon-remove ungroup' data-id='" + this.id + "' /></p>";
 			});
 
@@ -291,14 +292,12 @@ function ungroup(element_id) {
 	var a;
 	for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 		var annotation = annotator.selectedAnnotations[i];
-
-		if (annotation.linked_to[0][element_id]) {
+		if (!isEmpty(annotation.linked_to[0]) && typeof annotation.linked_to[0][element_id] !== "undefined") {
 			delete annotation.linked_to[0][element_id];
 		}
 
 		if (annotation.id == element_id) {
 			annotation.linked_to = [];
-			annotator.selectedAnnotations.splice(i, 1);
 			a = annotation;
 		}
 
@@ -1252,7 +1251,17 @@ function create_dialog(selectedFeature, id) {
 	}
 
 	$('.to_lightbox').click(function() {
-		add_to_lightbox($(this), 'annotation', selectedFeature, false);
+
+		if (!isEmpty(annotator.selectedFeature.linked_to[0])) {
+			var links = [];
+			for (var l in annotator.selectedFeature.linked_to[0]) {
+				links.push(annotator.annotations[annotator.selectedFeature.linked_to[0][l].graph]);
+			}
+			add_to_lightbox($(this), 'annotation', links, true);
+		} else {
+			add_to_lightbox($(this), 'annotation', selectedFeature, false);
+		}
+
 	});
 
 	$('.link_graphs').click(function() {

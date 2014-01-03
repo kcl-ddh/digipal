@@ -22,8 +22,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				if (flag) {
 					current_basket.annotations.push(annotations[i]);
 				} else {
-					notify('Image already in the basket', 'danger');
-					return false;
+					//notify('Image already in the basket', 'danger');
+					continue;
 				}
 			}
 

@@ -8,19 +8,57 @@
 
 	/*
 
-  Setting keyboard shortcuts
+	Setting keyboard shortcuts
 
-  */
+	*/
 
 	annotator.activateKeyboardShortcuts();
 
+	/*
 
+	Setting default settings
+
+	*/
+
+	var annotating = false;
+
+	if (annotator.isAdmin == 'True') {
+		annotating = true;
+	}
+
+	var digipal_settings = localStorage.getItem('digipal_settings');
+
+	if (!digipal_settings) {
+		digipal_settings = {
+			'allow_multiple_dialogs': false,
+			'toolbar_position': 'Vertical',
+			'boxes_on_click': false,
+			'annotating': annotating,
+			'select_multiple_annotations': false
+		};
+	} else {
+		digipal_settings = JSON.parse(digipal_settings);
+	}
+
+	localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+
+	(function() {
+		$('#allow_multiple_dialogs').attr('checked', digipal_settings.allow_multiple_dialogs);
+		if (digipal_settings.toolbar_position == 'Vertical') {
+			$('#vertical').attr('checked', true);
+		} else {
+			$('#horizontal').attr('checked', true);
+		}
+		$('#boxes_on_click').attr('checked', digipal_settings.boxes_on_click);
+		$('#annotating').attr('checked', digipal_settings.annotating);
+		$('#multiple_annotations').attr('checked', digipal_settings.select_multiple_annotations);
+	})();
 
 	/*
 
-  Loading annotations
+	Loading annotations
 
-*/
+	*/
 
 	var request = $.getJSON('annotations/', function(data) {
 		annotator.annotations = data;
@@ -29,8 +67,7 @@
 	var chained = request.then(function(data) {
 
 		var map = annotator.map;
-		// [was] zooms to the max extent of the map area
-		// Now the maps zooms just one step ahead
+		// zooms to the max extent of the map area
 		map.zoomToMaxExtent();
 		var layer = annotator.vectorLayer;
 		var format = annotator.format;
@@ -79,7 +116,6 @@
 			// adds all the vectors to the vector layer
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
-
 
 			var navigation = new OpenLayers.Control.Navigation({
 				'zoomBoxEnabled': false,
@@ -135,7 +171,7 @@
 					//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
-					var extent_parsed = JSON.parse(json.extent);
+					var extent_parsed = JSON.parse(geo_json.extent);
 					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
 					annotator.map.zoomToExtent(extent);
 
@@ -443,8 +479,10 @@
 					"width": "25px",
 					"z-index": 1000
 				});
+				digipal_settings.toolbar_position = 'Vertical';
 			} else {
 				$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
+				digipal_settings.toolbar_position = 'Horizontal';
 				if (annotator.isAdmin == 'False') {
 					$('.olControlEditingToolbar').css({
 						"left": "89%",
@@ -465,6 +503,7 @@
 					});
 				}
 			}
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 		});
 
 	});
@@ -489,11 +528,15 @@
 			$('#multiple_boxes').attr('disabled', 'disabled').attr('checked', false);
 			annotator.allow_multiple_dialogs = false;
 			annotator.annotating = true;
+			digipal_settings.annotating = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 			enable_annotation_tools();
 		} else {
 			$('#multiple_boxes').attr('disabled', false);
 			$('#boxes_on_click').attr('checked', true).trigger('change');
 			annotator.annotating = false;
+			digipal_settings.annotating = false;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 			disable_annotation_tools();
 		}
 	});
@@ -599,14 +642,44 @@
 			}
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
+
 		highlight_vectors();
+
+		var path = $('#' + feature.feature.geometry.id);
+		path.dblclick(function(event) {
+			var id = $(this).attr('id');
+			var feature, boxes_on_click = false;
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].geometry.id == id) {
+					feature = features[i].id;
+				}
+			}
+			if (annotator.boxes_on_click) {
+				boxes_on_click = true;
+			}
+			annotator.boxes_on_click = true;
+			annotator.showAnnotation(feature);
+			if (!boxes_on_click) {
+				annotator.boxes_on_click = false;
+				var boxes_on_click_element = $("#boxes_on_click");
+				boxes_on_click_element.attr('checked', false);
+			}
+			event.stopPropagation();
+			return false;
+		});
+
 	}
 
 	$('#boxes_on_click').on('change', function() {
 		if ($(this).is(':checked')) {
 			annotator.boxes_on_click = true;
+			digipal_settings.boxes_on_click = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 		} else {
 			annotator.boxes_on_click = false;
+			digipal_settings.boxes_on_click = false;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 		}
 	});
 
@@ -626,6 +699,8 @@
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
+		digipal_settings.boxes_on_click = true;
+		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 	}
 
 	$("#image_to_lightbox").click(function() {
@@ -637,8 +712,12 @@
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
 			//annotator.selectFeature.toggle = false;
+			digipal_settings.select_multiple_annotations = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 		} else {
 			annotator.selectFeature.multiple = true;
+			digipal_settings.select_multiple_annotations = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 			//annotator.selectFeature.toggle = true;
 			if (annotator.selectedFeature !== undefined) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);

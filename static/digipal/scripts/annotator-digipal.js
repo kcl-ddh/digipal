@@ -128,7 +128,10 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 			}
 		}
 		if (this.selectedAnnotations.length && boxes.length && !annotator.allow_multiple_dialogs) {
-			boxes.remove();
+			if (!isEmpty(feature.linked_to[0])) {
+				boxes.remove();
+			}
+
 		}
 		var msg = this.selectedAnnotations.length + ' annotations selected';
 		updateStatus(msg, 'success');
@@ -209,7 +212,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 	var features = self.selectedAnnotations;
 	if (features.length) {
 		for (var i = 0; i < features.length; i++) {
-			if (features[i].linked_to.length) {
+			if (!isEmpty(features[i].linked_to[0]) || typeof features[i].linked_to == 'undefined') {
 				features[i].linked_to = [];
 			}
 			var feature = {};
@@ -1692,7 +1695,7 @@ function show_url_allograph(dialog, annotation, button) {
 					geoJSONText.title = title;
 					geoJSONText.desc = desc;
 					geoJSONText.dialogPosition = dialogPosition;
-					geoJSONText.extent = layerExtent;
+					geoJSONText.extent = JSON.stringify(layerExtent);
 					geoJSONText.visibility = getAnnotationsVisibility;
 
 					if (checkboxesOff.length) {
@@ -2718,13 +2721,32 @@ function handleErrors(data) {
  */
 
 function updateStatus(msg, status) {
+	var running = running || true;
+
+	if (running) {
+		clearInterval(timeout);
+		$('#status').remove();
+	}
+
 	var status_element = $('#status');
-	status_element.html(msg).fadeIn();
+
+	if (!status_element.length) {
+		status_element = $('<div id="status">');
+		$('body').append(status_element.hide());
+	}
+
+	status_element.css('z-index', 5000);
 	status_class = status ? ' alert-' + status : '';
 	status_element.attr('class', 'alert' + status_class);
-	setTimeout(function() {
-		status_element.fadeOut();
-	}, 5000);
+
+	status_element.html(msg).fadeIn();
+
+
+	var timeout =
+		setTimeout(function() {
+			status_element.fadeOut();
+			running = false;
+		}, 5000);
 	//
 	// GN: bugfix, JIRA 77
 	// The message will push the openlayer div down and cause

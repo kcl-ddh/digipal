@@ -74,16 +74,28 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	var group_button = $('.link_graphs');
 
 	if (typeof self.selectedFeature.linked_to != 'undefined' && self.selectedFeature.linked_to.length && allow_multiple()) {
+
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
-			self.showAnnotation(value);
-			self.selectedAnnotations.push(value);
-			var msg = self.selectedAnnotations.length + ' annotation selected';
-			updateStatus(msg, 'success');
-			if (group_button.length && self.selectedAnnotations.length > 1 && group_button.hasClass('disabled')) {
-				group_button.removeClass('disabled');
+			if (value) {
+				self.showAnnotation(value);
+				self.selectedAnnotations.push(value);
+				var msg = self.selectedAnnotations.length + ' annotation selected';
+				updateStatus(msg, 'success');
+
+				if (group_button.length && self.selectedAnnotations.length > 1 && group_button.hasClass('disabled')) {
+					group_button.removeClass('disabled');
+				}
 			}
 		});
+
+		if (annotator.selectedAnnotations.length > 1) {
+			if (group_button.hasClass('disabled')) {
+				group_button.removeClass('disabled');
+			}
+		}
+
 	} else if (typeof self.selectedFeature.linked_to != 'undefined' && !self.selectedFeature.linked_to.length && allow_multiple()) {
+
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
@@ -124,6 +136,8 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		for (var i = 0; i < max; i++) {
 			if (feature.vector_id == this.selectedAnnotations[i].vector_id) {
 				this.selectedAnnotations.splice(i, 1);
+				//console.log($('p[data-id="' + feature.vector_id + '"]'))
+				//$('p[data-id="' + feature.vector_id + '"]').remove();
 				break;
 			}
 		}
@@ -131,8 +145,8 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 			if (!isEmpty(feature.linked_to[0])) {
 				boxes.remove();
 			}
-
 		}
+
 		var msg = this.selectedAnnotations.length + ' annotations selected';
 		updateStatus(msg, 'success');
 	} else {
@@ -289,6 +303,11 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				var id = $(this).data('id');
 				$(this).parent('p').fadeOut().remove();
 				ungroup(id);
+				$.each(elements_linked, function(index, value) {
+					if (value && value.id == id) {
+						elements_linked.splice(index, 1);
+					}
+				});
 			});
 
 		});
@@ -322,9 +341,13 @@ function ungroup(element_id) {
 	annotator.vectorLayer.redraw();
 
 	var num_linked = parseInt($('.num_linked').text(), 10) - 1;
-	$('.num_linked').html(num_linked);
 
-
+	if (num_linked === 0) {
+		var boxes = $('.dialog_annotations');
+		boxes.remove();
+	} else {
+		$('.num_linked').html(num_linked);
+	}
 }
 
 DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
@@ -827,6 +850,11 @@ function updateFeatureSelect(currentFeatures, id) {
 								var id = $(this).data('id');
 								$(this).parent('p').fadeOut().remove();
 								ungroup(id);
+								$.each(elements_linked, function(index, value) {
+									if (value.id == id) {
+										elements_linked.splice(index, 1);
+									}
+								});
 							});
 
 						});

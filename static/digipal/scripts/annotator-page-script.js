@@ -42,17 +42,7 @@
 
 	localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 
-	(function() {
-		$('#allow_multiple_dialogs').attr('checked', digipal_settings.allow_multiple_dialogs);
-		if (digipal_settings.toolbar_position == 'Vertical') {
-			$('#vertical').attr('checked', true);
-		} else {
-			$('#horizontal').attr('checked', true);
-		}
-		$('#boxes_on_click').attr('checked', digipal_settings.boxes_on_click);
-		$('#annotating').attr('checked', digipal_settings.annotating);
-		$('#multiple_annotations').attr('checked', digipal_settings.select_multiple_annotations);
-	})();
+
 
 	/*
 
@@ -226,14 +216,17 @@
 					*/
 					//annotator.selectFeatureByIdAndCentre(vector_id_value);
 					// zoom map to extent
-					var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
-					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+					if (getParameter('map_extent').length) {
+						var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
+						var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
 
-					annotator.map.zoomToExtent(extent);
+						annotator.map.zoomToExtent(extent);
+					}
+
 					if (vector_id_value.length == 1) {
 						annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
-
 					} else {
+
 						for (var i = 0; i < vector_id_value.length; i++) {
 							annotator.selectFeature.multiple = true;
 							//annotator.selectFeature.toggle = true;
@@ -243,7 +236,7 @@
 					}
 
 					// zoom map to extent
-					annotator.map.zoomToExtent(extent);
+					// annotator.map.zoomToExtent(extent);
 
 				}, 500);
 			}
@@ -349,8 +342,7 @@
 
 
 		});
-		$('#map').css('border', '1px solid #efefef');
-		$('#map').css('border-radius', '3px');
+		$('#map').css('border', '1px solid #efefef').css('border-radius', '3px');
 		//$("a[data-toggle=tooltip]").tooltip()
 
 
@@ -712,19 +704,31 @@
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
 			//annotator.selectFeature.toggle = false;
-			digipal_settings.select_multiple_annotations = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			digipal_settings.select_multiple_annotations = false;
+
 		} else {
 			annotator.selectFeature.multiple = true;
 			digipal_settings.select_multiple_annotations = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 			//annotator.selectFeature.toggle = true;
-			if (annotator.selectedFeature !== undefined) {
+			if (annotator.selectedFeature) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);
 			}
 		}
-
+		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
 	});
+
+
+	(function() {
+		$('#allow_multiple_dialogs').attr('checked', digipal_settings.allow_multiple_dialogs).trigger('change');
+		if (digipal_settings.toolbar_position == 'Vertical') {
+			$('#vertical').attr('checked', true).trigger('change');
+		} else {
+			$('#horizontal').attr('checked', true).trigger('change');
+		}
+		$('#boxes_on_click').attr('checked', digipal_settings.boxes_on_click).trigger('change');
+		$('#development_annotation').attr('checked', digipal_settings.annotating).trigger('change');
+		$('#multiple_annotations').attr('checked', digipal_settings.select_multiple_annotations).trigger('change');
+	})();
 
 
 

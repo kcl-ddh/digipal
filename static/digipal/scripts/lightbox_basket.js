@@ -273,46 +273,58 @@ $(document).ready(function() {
 			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 		});
 
+		function save_collection(collections, lightbox_basket) {
+			var collection_name = $('#name_collection').val();
+			var window_save_collection = $('.loading-div');
+			var id;
+			if (collection_name) {
+				if (collections) {
+					id = uniqueid();
+					if (collections[collection_name]) {
+						collection_name += id;
+					}
+					collections[collection_name] = {};
+					collections[collection_name]['basket'] = lightbox_basket;
+					collections[collection_name]['id'] = id;
+				} else {
+					collections = {};
+					id = uniqueid();
+					collections[collection_name] = {};
+					collections[collection_name]['basket'] = lightbox_basket;
+					collections[collection_name]['id'] = id;
+				}
+				localStorage.setItem("collections", JSON.stringify(collections));
+				window_save_collection.fadeOut().remove();
+				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
+			} else {
+				notify('Please enter a name for this collection', "danger");
+			}
+			event.stopPropagation();
+		}
+
 		$('#add_collection').click(function(event) {
 			var collections = JSON.parse(localStorage.getItem('collections'));
 			var window_save_collection = $('<div>');
 			var lightbox_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
-			s += '<h3>Save Collection</h3><form>';
+			s += '<h3>Save Collection</h3>';
 			s += '<div class="input-append"><input required placeholder="Enter here collection name" type="text" id= "name_collection" />';
-			s += '<button class="btn" id="save_collection" type="button">Save</button></div><form>';
-			s += '<button style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" type="button">Close window</button>';
+			s += '<input type = "button" class="btn" id="save_collection" type="button" value="Save" /></div>';
+			s += '<input type = "button" style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" value="Close Window" />';
 			window_save_collection.html(s);
 			window_save_collection.css('height', '20%');
 			$('body').append(window_save_collection);
 
 			$('#save_collection').click(function(event) {
-				var collection_name = $('#name_collection').val();
-				var id;
-				if (collection_name) {
-					if (collections) {
-						id = uniqueid();
-						if (collections[collection_name]) {
-							collection_name += id;
-						}
-						collections[collection_name] = {};
-						collections[collection_name]['basket'] = lightbox_basket;
-						collections[collection_name]['id'] = id;
-					} else {
-						collections = {};
-						id = uniqueid();
-						collections[collection_name] = {};
-						collections[collection_name]['basket'] = lightbox_basket;
-						collections[collection_name]['id'] = id;
-					}
-					localStorage.setItem("collections", JSON.stringify(collections));
-					window_save_collection.fadeOut().remove();
-					notify('Collection saved succesfully', "success");
-				} else {
-					notify('Please enter a name for this collection', "danger");
+				save_collection(collections, lightbox_basket);
+			});
+
+			$(document).on('keydown', function(event) {
+				var code = (event.keyCode ? event.keyCode : event.which);
+				if ($('#name_collection').is(':focus') && code == 13) {
+					save_collection(collections, lightbox_basket);
 				}
-				event.stopPropagation();
 			});
 
 			$('#close_window_collections').click(function(event) {

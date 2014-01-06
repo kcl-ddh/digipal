@@ -52,6 +52,35 @@ def record_view(request, content_type='', objectid=''):
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
+def index_view(request, content_type=''):
+    context = {}
+    
+    types = get_search_types()
+    
+    from datetime import datetime
+    t0 = datetime.now()
+    for type in types:
+        if type.key == content_type:
+            type.set_index_view_context(context, request)
+            break
+    t1 = datetime.now()
+    #print '%s' % (t1 - t0)
+    
+    # pagination
+    page_letter = request.GET.get('pl', '').lower()
+    context['pages'] = [{'label': 'All', 'id': '', 'selected': (not page_letter)}]
+    context['selected_page'] = context['pages'][0]
+    for i in range(ord('a'), ord('z') + 1):
+        page = {'label': ('%s' % chr(i)).upper(), 'id': chr(i), 'selected': (chr(i) == page_letter)}
+        context['pages'].append(page)
+        if page['selected']:
+            context['selected_page'] = page
+     
+    
+    template = 'pages/record_index.html'
+    
+    return render_to_response(template, context, context_instance=RequestContext(request))
+
 def search_page_view(request):
     # Backward compatibility.
     #

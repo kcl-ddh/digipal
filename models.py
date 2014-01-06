@@ -250,25 +250,6 @@ class Text(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
-class TextItemPart(models.Model):
-    item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
-    text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
-    locus = models.CharField(max_length=20, blank=True, null=True)
-    date = models.CharField(max_length=128, blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
-
-    class Meta:
-        unique_together = ['item_part', 'text']
-
-    def __unicode__(self):
-        locus = ''
-        if self.locus:
-            locus = u' (%s)' % self.locus
-        return u'%s in %s%s' % (self.text.name, self.item_part.display_label, locus)
-
-
 class Script(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=128)
@@ -1144,6 +1125,24 @@ class ItemPartItem(models.Model):
                 ret += ur' [part of %s: %s]' % (self.item_part.group.type, group_label)
 
         return ret
+
+class TextItemPart(models.Model):
+    item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
+    text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
+    locus = models.CharField(max_length=20, blank=True, null=True)
+    date = models.CharField(max_length=128, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        unique_together = ['item_part', 'text']
+
+    def __unicode__(self):
+        locus = ''
+        if self.locus:
+            locus = u' (%s)' % self.locus
+        return u'%s in %s%s' % (self.text.name, self.item_part.display_label, locus)
 
 # LatinStyleText in legacy db
 class LatinStyle(models.Model):
@@ -2139,6 +2138,7 @@ class RequestLog(models.Model):
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID
 # E.g. /digipal/scribes/101
 def set_additional_models_methods():
+    
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name

@@ -10,7 +10,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	}
 	var flag, i, j, elements, image_id;
 	if (multiple) {
-		if (current_basket) {
+		if (current_basket && current_basket.annotations) {
 			for (i = 0; i < annotations.length; i++) {
 				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {

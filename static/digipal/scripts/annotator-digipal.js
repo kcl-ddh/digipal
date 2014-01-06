@@ -245,9 +245,12 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
 		}
 
-		$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />');
+		$('.allograph_label')
+			.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
+			.css('cursor', 'pointer')
+			.data('hidden', true);
 
-		$(".show_group").click(function() {
+		$(".allograph_label").click(function() {
 
 			var element = "<div class='elements_linked'>";
 
@@ -269,7 +272,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				el_link.slideDown();
 				$(this).data('hidden', false);
 			} else {
-				el_link.slideUp();
+				el_link.slideUp(500);
 				$(this).data('hidden', true);
 			}
 
@@ -793,9 +796,11 @@ function updateFeatureSelect(currentFeatures, id) {
 							elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
 						}
 
-						$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />');
+						$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
+							.css('cursor', 'pointer')
+							.data('hidden', true);
 
-						$(".show_group").click(function() {
+						$(".allograph_label").click(function() {
 
 							var element = "<div class='elements_linked'>";
 
@@ -816,7 +821,7 @@ function updateFeatureSelect(currentFeatures, id) {
 								el_link.slideDown();
 								$(this).data('hidden', false);
 							} else {
-								el_link.slideUp();
+								el_link.slideUp(500);
 								$(this).data('hidden', true);
 							}
 
@@ -2487,7 +2492,7 @@ function load_annotations_allographs(annotation) {
 					var div = $("#" + $(this).data('id'));
 					if (!div.data('hidden')) {
 						$(this).next('.checkboxes_div').hide();
-						div.slideUp().data('hidden', true);
+						div.slideUp(500).data('hidden', true);
 						$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 					} else {
 						div.slideDown().data('hidden', false);
@@ -2925,7 +2930,7 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 
 DigipalAnnotator.prototype.full_Screen = function() {
 	if (!(this.fullScreen.active)) {
-		this.rectangleFeature.activate();
+		//this.rectangleFeature.activate();
 		this.fullScreen.activate();
 		$('#map').css({
 			'width': '100%',

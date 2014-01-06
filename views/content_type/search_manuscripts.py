@@ -30,6 +30,48 @@ class SearchManuscripts(SearchContentType):
         context['images'] = context['item_part'].images.all().order_by('-folio_number')
         context['hands'] = context['item_part'].hands.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
 
+    def get_index_records(self):
+        ret = super(SearchManuscripts, self).get_index_records()
+        # this greatly reduces the time to render all the records
+        ret = ret.select_related('current_item', 'current_item__repository', 'current_item__repository__place')
+        return ret
+    
+    def get_record_index_label(self, itempart, nolocus=False):
+        ret = ''
+        if itempart:
+            ret = u'%s, %s, %s' % (itempart.current_item.repository.place.name, itempart.current_item.repository.name, itempart.current_item.shelfmark)
+            if itempart.locus and not nolocus:
+                ret += u', %s' % itempart.locus
+        return ret
+
+    def group_index_records(self, itemparts):
+        # we group the records by current item
+        itempart_group = None
+        i = 0
+        
+        # The list is already sorted by CI so we can easily spot consecutive items to be grouped
+        while i < len(itemparts):
+            itempart = itemparts[i]
+            if itempart_group and itempart.current_item == itempart_group.current_item:
+                # The IP is the same as the previous one
+                subrecords = getattr(itempart_group, 'subrecords', [])
+                
+                if not subrecords:
+                    # second item in the group so we need to create the group,
+                    # add the first item there and  
+                    # remove its locus from the label of the group
+                    subrecords.append({'get_absolute_url': itempart_group.get_absolute_url(), 'index_label': itempart_group.locus})
+                    itempart_group.index_label = self.get_record_index_label(itempart_group, True)
+                    itempart_group.subrecords = subrecords
+                
+                # then we add the item part to the group as well  
+                itemparts[i].index_label = itemparts[i].locus
+                subrecords.append(itemparts[i])
+                del(itemparts[i])
+            else:
+                itempart_group = itempart
+                i += 1
+
     @property
     def form(self):
         return FilterManuscripts()

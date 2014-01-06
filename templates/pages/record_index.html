@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags html_escape %}
+
+{% block meta_title %}{{ content_type.label }} ({{ selected_page.label }}){% endblock %}
+
+{% block extra_js %}
+{% endblock %}
+
+{% block head %}
+    <h1 class='header1'>{{ content_type.label }} Index</h1>
+{% endblock %}
+
+{% block main %}
+    <div class='pagination'>
+        <ul>
+            {% for page in pages %}
+                <li class="{% if page.selected %} active {% endif %}">
+                    <a href="?pl={{ page.id }}">{{ page.label }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class='row-fluid'>
+        {% if records %}
+            <ul class="record-list">
+                {% for record in records %}
+                    <li>
+                        <a href="{{record.get_absolute_url}}">{{ record.index_label }}</a>
+                        {% if record.subrecords %}
+                            (
+                                {% for subrecord in record.subrecords %}
+                                    {% if not forloop.first %}, {% endif %}
+                                    <a href="{{subrecord.get_absolute_url}}">{{ subrecord.index_label }}</a>
+                                {% endfor %}
+                            )
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            
+            <p>
+                {{ records|length }} {{ content_type.label_singular|plural:records }}
+            </p>
+            
+        {% else %}
+            <p>
+                We have no {{ content_type.label_singular }} starting with '{{ selected_page.label }}'
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

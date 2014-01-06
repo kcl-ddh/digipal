@@ -52,11 +52,16 @@
             annotator.image_id = {{ image.id }}
             annotator.hands = {{ hands_list|safe }}
 
+            no_image_reason = false;
             {% if vector_id %}
                 vector_id = true;
                 vector_id_value = (getParameter('vector_id'));
             {% else %}
                 vector_id = false;
+            {% endif %}
+
+            {% if no_image_reason %}
+                no_image_reason = true;
             {% endif %}
 
             {% if request.GET.annotations == "false" %}

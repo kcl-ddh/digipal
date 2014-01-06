@@ -13,7 +13,7 @@
             if (tab_key) {
                 $('a[data-target=#'+tab_key+']').click();
             }
-            
+
             // Update the webpath in the address bar when the tab is changed
             // See JIRA 155, 140
             $('#myTab a').click(function (e) {
@@ -22,10 +22,10 @@
                     $(this).tab('show');
                     window.history.replaceState({foo: 'bat'}, '', $(this).attr('href'));
                 } else {
-                    {% comment %} 
-                        The browser does not support replaceState (e.g. IE 9), 
-                        we just load the page. 
-                    {% endcomment %} 
+                    {% comment %}
+                        The browser does not support replaceState (e.g. IE 9),
+                        we just load the page.
+                    {% endcomment %}
                     window.location.href = $(this).attr('href');
                     return true;
                 }
@@ -36,10 +36,10 @@
 
 {% block head %}
     <h1 class='header1'>{% block record_title %}{% endblock %}</h1>
-    
+
     <div class='container'>
         <div class='span12'>
-    
+
             <div class='span5'>
                 <ul class="nav nav-tabs" id='myTab'>
                     {% filter add_query_params:request.META.QUERY_STRING %}
@@ -48,9 +48,13 @@
                     {% endfilter %}
                 </ul>
             </div>
-            
+
             {% if pagination %}
-                <div class='span5 pull-right offset2'>
+                {% if pagination.total > 1 %}
+                    <div class='span4 pull-right'>
+                {% else %}
+                    <div class='span3 pull-right'>
+                {% endif %}
                     <ul class="nav nav-pills">
                         <li class="active"><a href='#'>{{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}</a></li>
                         {% if pagination.previous_url %}
@@ -63,7 +67,7 @@
                     </ul>
                 </div>
             {% endif %}
-            
+
         </div>
     </div>
 

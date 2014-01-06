@@ -232,6 +232,8 @@
                         $(this).html(s);
                     }
 
+                    element.fadeOut().remove();
+
                     setTimeout(function(){
 
                         s = '<p>Add image to Basket</p>';
@@ -255,10 +257,12 @@
 
             var images = $('a.droppable_image');
             images.draggable({
-                containment: 'window',
-                revert: true,
-                stack: 'div',
+                containment: 'html',
+                revert: 'invalid',
+                stack: '*',
+                appendTo: 'html',
                 scroll: true,
+                opacity:0.8,
                 cursor: 'move',
                 zIndex: 6000,
                 start: function(){

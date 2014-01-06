@@ -266,10 +266,10 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			var el_link = $('.elements_linked');
 			if ($(this).data('hidden')) {
-				el_link.fadeIn();
+				el_link.slideDown();
 				$(this).data('hidden', false);
 			} else {
-				el_link.fadeOut();
+				el_link.slideUp();
 				$(this).data('hidden', true);
 			}
 
@@ -813,10 +813,10 @@ function updateFeatureSelect(currentFeatures, id) {
 
 							var el_link = $('.elements_linked');
 							if ($(this).data('hidden')) {
-								el_link.fadeIn();
+								el_link.slideDown();
 								$(this).data('hidden', false);
 							} else {
-								el_link.fadeOut();
+								el_link.slideUp();
 								$(this).data('hidden', true);
 							}
 
@@ -2158,7 +2158,6 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 	}
 
 	var doDelete = confirm(msg);
-	console.log(doDelete)
 	if (doDelete) {
 		if (feature !== null && feature !== undefined) {
 			delete_annotation(layer, feature, number_annotations);
@@ -2180,7 +2179,6 @@ function deleteAnnotationByFeatureId(id) {
 }
 
 function delete_annotation(layer, feature, number_annotations) {
-	console.log(feature)
 	var featureId = feature.id;
 	var temp = feature;
 	updateStatus('Deleting annotations');
@@ -2203,8 +2201,6 @@ function delete_annotation(layer, feature, number_annotations) {
 				var allograph = $('#id_allograph option:selected').text();
 				var allograph_id = $('#id_allograph').val();
 				refresh_letters_container(allograph, allograph_id, false);
-
-
 				if (temp['state'] == 'Insert') {
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
@@ -2217,6 +2213,11 @@ function delete_annotation(layer, feature, number_annotations) {
 					}
 					element.html(annotations.length);
 					temp = null;
+				}
+
+				var boxes = $(".dialog_annotations");
+				if (boxes.length) {
+					boxes.remove();
 				}
 			}
 		}

@@ -124,7 +124,7 @@
 			*/
 
 			var temporary_vectors = getParameter('temporary_vector');
-			if (temporary_vectors.length) {
+			if (temporary_vectors.length && !no_image_reason) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
 				var geo_json;
 
@@ -195,7 +195,7 @@
 				*/
 			}
 
-			if (typeof vector_id != "undefined" && vector_id && vectors) {
+			if (typeof vector_id != "undefined" && vector_id && vectors && !no_image_reason) {
 				// vectorLayer event moveend is triggered on first load so flag this
 				initialLoad = true;
 
@@ -342,7 +342,6 @@
 
 
 		});
-		$('#map').css('border', '1px solid #efefef').css('border-radius', '3px');
 		//$("a[data-toggle=tooltip]").tooltip()
 
 

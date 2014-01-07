@@ -2,17 +2,6 @@ from django.conf import settings
 
 class SearchContentType(object):
     
-    def get_model(self):
-        import digipal.models
-        ret = getattr(digipal.models, self.label[:-1])
-        return ret
-    
-    def set_record_view_context(self, context, request):
-        context['type'] = self
-        from digipal.models import has_edit_permission
-        if has_edit_permission(request, self.get_model()):
-            context['can_edit'] = True
-
     def __init__(self):
         self.is_advanced = False
         self._queryset = []
@@ -44,6 +33,57 @@ class SearchContentType(object):
         # An ID (e.g. 708-AB)
         self.FT_ID = ID()
     
+    def get_model(self):
+        import digipal.models
+        ret = getattr(digipal.models, self.label[:-1])
+        return ret
+    
+    def set_record_view_context(self, context, request):
+        context['type'] = self
+        from digipal.models import has_edit_permission
+        if has_edit_permission(request, self.get_model()):
+            context['can_edit'] = True
+
+    def set_index_view_context(self, context, request):
+        ret = context
+        
+        # Todo:
+        #     pagination
+        #     add to menu
+        #
+        model = self.get_model()
+        ret['content_type'] = self
+
+        # get all the records
+        ret['records'] = self.get_index_records()
+        
+        # filter by the letter specified in the pagination
+        page_letter = request.GET.get('pl', '')
+        if page_letter:
+            letter_filter = {}
+            letter_filter[self.get_sort_fields()[0] + '__istartswith'] = page_letter
+            ret['records'] = ret['records'].filter(**letter_filter)
+        
+        # sort the result
+        ret['records'] = self.get_sorted_records(ret['records'])
+        
+        # additional info for each record  
+        for record in ret['records']:
+            record.index_label = getattr(record, 'index_label', self.get_record_index_label(record))
+        
+        self.group_index_records(ret['records'])
+        
+        return ret
+    
+    def group_index_records(self, records):
+        pass
+
+    def get_index_records(self):
+        return self.get_model().objects.all()
+    
+    def get_record_index_label(self, record):
+        return u'%s' % (record or '')
+
     @property
     def result_type_qs(self):
         return "result_type=%s" % self.key
@@ -189,11 +229,15 @@ class SearchContentType(object):
         from digipal.utils import natural_sort_key
         
         sort_fields = self.get_sort_fields()
+        
         if sort_fields:
             # Natural sort order based on a concatenation of the sort fields
             # obtained from get_sort_fields()
             def sort_order(record):
-                sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
+                if isinstance(record, dict):
+                    sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
+                else:
+                    sort_key = ' '.join([ur'%s' % eval('record.' + field.replace('__', '.')) for field in sort_fields])
                 # remove non-words characters at the beginning
                 # e.g. 'Hemming' -> Hemming
                 sort_key = re.sub(ur'(?u)^\W+', ur'', sort_key)
@@ -208,20 +252,11 @@ class SearchContentType(object):
         return records
     
     def write_index(self, writer, verbose=False):
-        fields = self.get_fields_info()
-        
-        # extract all the fields names from the content type schema
-        # Note that a schema entry can be an expressions made of multiple field names
-        # e.g. "current_item__repository__place__name, current_item__repository__name"
         import re 
-        django_fields = self.get_sort_fields()
-        for k in fields: 
-            if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
-                django_fields.extend(re.findall(ur'\w+', k))
-        
-        # Retrieve all the records from the database
-        records = self.get_qs_all().values(*django_fields).distinct()
-        records = self.get_sorted_records(records)
+
+        fields = self.get_fields_info()
+
+        records = self.get_all_records_sorted()
         ret = len(records)
         
         # For each record, create a Whoosh document
@@ -250,7 +285,30 @@ class SearchContentType(object):
                 writer.add_document(**document)
         
         return ret
+    
+    def get_all_records_sorted(self):
+        ''' Returns an array with all the records
+            Each record is an dictionary of field_name -> value
+            The output is sorted according to get_sort_fields
+            and natural sort. 
+        '''
+        import re 
+
+        fields = self.get_fields_info()
         
+        # extract all the fields names from the content type schema
+        # Note that a schema entry can be an expressions made of multiple field names
+        # e.g. "current_item__repository__place__name, current_item__repository__name"
+        django_fields = self.get_sort_fields()
+        for k in fields: 
+            if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
+                django_fields.extend(re.findall(ur'\w+', k))
+        
+        # Retrieve all the records from the database
+        records = self.get_qs_all().values(*django_fields).distinct()
+        ret = self.get_sorted_records(records)
+        return ret
+    
     def get_parser(self, index):
         from whoosh.qparser import MultifieldParser
         

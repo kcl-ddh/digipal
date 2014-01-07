@@ -40,6 +40,19 @@ def plural(value, count=2):
                 * convert 'ss' at the end into 'e'               (witness -> witnesse)
                 * add a 's' at the end is none already there     (nation -> nations)
     '''
+    
+    if count is not None:
+        try:
+            count = int(float(count))
+        except ValueError:
+            pass
+        except TypeError:
+            pass
+        try:
+            count = len(count)
+        except TypeError:
+            pass
+    
     words = value.split(' ')
     if len(words) > 1:
         # We got a phrase. Pluralise each word separately.

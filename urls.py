@@ -47,6 +47,7 @@ urlpatterns += patterns('digipal.views.search',
                        (r'^search/suggestions.json/?$', 'search_suggestions'),
                        # Record views
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(?:/|$)', 'record_view'),
+                       (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)(?:/|$)', 'index_view'),
                        )
 
 urlpatterns += patterns('digipal.views.image',

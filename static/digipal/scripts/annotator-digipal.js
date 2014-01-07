@@ -249,7 +249,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			.css('cursor', 'pointer')
 			.data('hidden', true);
 
-		$(".allograph_label").click(function() {
+		$(".allograph_label").unbind().click(function() {
 
 			var element = "<div class='elements_linked'>";
 
@@ -799,7 +799,7 @@ function updateFeatureSelect(currentFeatures, id) {
 							.css('cursor', 'pointer')
 							.data('hidden', true);
 
-						$(".allograph_label").click(function() {
+						$(".allograph_label").unbind().click(function() {
 
 							var element = "<div class='elements_linked'>";
 

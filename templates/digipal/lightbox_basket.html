@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% load html_escape %}
 {% block extra_js %}
-    <script src='https://apis.google.com/js/client.js'></script>
-
     <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+    <script src='https://apis.google.com/js/client.js'></script>
 
 {% endblock %}
 {% block meta-title %}Digipal Basket{% endblock %}
@@ -24,7 +23,7 @@
         <a title='Manage collections' href="collections/">Manage Collections</a>
     </li>
     <li>
-        <a title='Share basket or collection' id='share_collection' href="">Share</a>
+        <a title='Share this basket' id='share_collection' href="">Share</a>
     </li>
 </ul>
 <div id="container_basket">

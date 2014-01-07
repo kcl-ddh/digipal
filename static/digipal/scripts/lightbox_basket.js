@@ -366,15 +366,21 @@ $(document).ready(function() {
 				document.location.pathname +
 				'?basket=' + encodeURIComponent(JSON.stringify(b));
 
-			var div = $('<div class="loading-div">');
-			div.html('<h3>Share basket URL</h3>');
-			div.append('<p><a id="basket_url" ><img src="/static/images/ajax-loader.gif" /></a></p>');
-			div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
-			$('body').append(div);
+			var scriptTwitter = '<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>';
+			var div = $('#share_basket_div');
+			if (!div.length) {
+				div = $('<div class="loading-div" id="share_basket_div">');
+				div.html('<h3>Share basket URL</h3>');
+				div.append('<p><a id="basket_url" ><img src="/static/images/ajax-loader.gif" /></a></p>');
+				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
+				$('body').append(div);
 
-			div.find('button').click(function() {
-				div.fadeOut().remove();
-			});
+				div.find('button').click(function() {
+					div.fadeOut();
+				});
+			} else {
+				div.fadeIn();
+			}
 
 			gapi.client.load('urlshortener', 'v1', function() {
 
@@ -389,7 +395,14 @@ $(document).ready(function() {
 						console.log(resp);
 						return false;
 					} else {
-						$("#basket_url").attr('href', resp.id).text(resp.id);
+
+						$("#basket_url").attr('href', resp.id).text(resp.id).addClass('basket_url');
+						var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + resp.id + '">Tweet</a>';
+						if (!$('.twitter-hashtag-button').length) {
+							$('#basket_url').after(linkTwitter + scriptTwitter);
+						} else {
+							twttr.widgets.load();
+						}
 					}
 				});
 			});

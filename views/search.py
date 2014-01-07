@@ -57,6 +57,7 @@ def index_view(request, content_type=''):
     
     types = get_search_types()
     
+    # search & sort
     from datetime import datetime
     t0 = datetime.now()
     for type in types:
@@ -71,11 +72,10 @@ def index_view(request, content_type=''):
     context['pages'] = [{'label': 'All', 'id': '', 'selected': (not page_letter)}]
     context['selected_page'] = context['pages'][0]
     for i in range(ord('a'), ord('z') + 1):
-        page = {'label': ('%s' % chr(i)).upper(), 'id': chr(i), 'selected': (chr(i) == page_letter)}
+        page = {'label': ('%s' % chr(i)).upper(), 'id': chr(i), 'selected': (chr(i) == page_letter), 'disabled': not(chr(i) in context['active_letters'])}
         context['pages'].append(page)
         if page['selected']:
             context['selected_page'] = page
-     
     
     template = 'pages/record_index.html'
     

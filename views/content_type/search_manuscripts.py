@@ -27,14 +27,16 @@ class SearchManuscripts(SearchContentType):
     def set_record_view_context(self, context, request):
         super(SearchManuscripts, self).set_record_view_context(context, request)
         context['item_part'] = ItemPart.objects.get(id=context['id'])
-        context['images'] = context['item_part'].images.extra(select={'folio': 'CAST(folio_number as INTEGER)'}, order_by=['folio'])
+        context['images'] = Image.sort_query_set_by_locus(context['item_part'].images.all())
         context['hands'] = context['item_part'].hands.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
 
     def get_index_records(self):
-        ret = super(SearchManuscripts, self).get_index_records()
+        recs = super(SearchManuscripts, self).get_index_records()
         # this greatly reduces the time to render all the records
-        ret = ret.select_related('current_item', 'current_item__repository', 'current_item__repository__place')
-        return ret
+        recs = recs.select_related('current_item', 'current_item__repository', 'current_item__repository__place', 'current_item__repository__media_permission')
+        #recs = recs.prefetch_related('images', 'images__media_permission')
+        recs = recs.filter(id__in=Image.filter_public_permissions(Image.objects.all()).values_list('item_part_id', flat=True))
+        return recs
     
     def get_record_index_label(self, itempart, nolocus=False):
         ret = ''
@@ -52,6 +54,9 @@ class SearchManuscripts(SearchContentType):
         # The list is already sorted by CI so we can easily spot consecutive items to be grouped
         while i < len(itemparts):
             itempart = itemparts[i]
+            itempart.get_absolute_url = itempart.get_absolute_url() + 'pages/'
+            
+            # grouping by CI
             if itempart_group and itempart.current_item == itempart_group.current_item:
                 # The IP is the same as the previous one
                 subrecords = getattr(itempart_group, 'subrecords', [])
@@ -60,7 +65,7 @@ class SearchManuscripts(SearchContentType):
                     # second item in the group so we need to create the group,
                     # add the first item there and  
                     # remove its locus from the label of the group
-                    subrecords.append({'get_absolute_url': itempart_group.get_absolute_url(), 'index_label': itempart_group.locus})
+                    subrecords.append({'get_absolute_url': itempart_group.get_absolute_url, 'index_label': itempart_group.locus})
                     itempart_group.index_label = self.get_record_index_label(itempart_group, True)
                     itempart_group.subrecords = subrecords
                 
@@ -68,9 +73,14 @@ class SearchManuscripts(SearchContentType):
                 itemparts[i].index_label = itemparts[i].locus
                 subrecords.append(itemparts[i])
                 del(itemparts[i])
-            else:
-                itempart_group = itempart
-                i += 1
+                continue
+
+            itempart_group = itempart
+            i += 1
+
+    def get_index_message(self, context, request):
+        ret = 'List of manuscripts with images'
+        return ret
 
     @property
     def form(self):

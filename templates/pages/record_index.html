@@ -15,12 +15,18 @@
     <div class='pagination'>
         <ul>
             {% for page in pages %}
-                <li class="{% if page.selected %} active {% endif %}">
+                <li class="{% if page.selected %} active {% endif %}{% if page.disabled %} disabled {% endif %}">
                     <a href="?pl={{ page.id }}">{{ page.label }}</a>
                 </li>
             {% endfor %}
         </ul>
     </div>
+    
+    {% if message %}
+        <p>
+            {{ message }}
+        </p>
+    {% endif %}
     
     <div class='row-fluid'>
         {% if records %}

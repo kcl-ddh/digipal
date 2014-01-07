@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
-from django.contrib.contenttypes import generic
-from django.db.models import Avg, Max, Min, Count
+from django.db.models import Count
 from django import forms
 from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
@@ -25,7 +24,6 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart
 import reversion
 import django_admin_customisations
-from django.utils.safestring import mark_safe
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
 
@@ -354,29 +352,11 @@ class GraphForm(forms.ModelForm):
         # We know that both the containing (group) graph and the child graphs
         # belong to the same page.
         super(GraphForm, self).__init__(*args, **kwargs)
-        object = getattr(self, 'instance', None)
+        obj = getattr(self, 'instance', None)
         try:
-            if object and object.annotation:
+            if obj and obj.annotation:
                 group_field = self.fields['group']
-                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
-        except Annotation.DoesNotExist:
-            print 'ERROR'
-
-class GraphForm(forms.ModelForm):
-
-    class Meta:
-        model = Graph    
-
-    def __init__(self, *args, **kwargs):
-        # Don't look into other pages for possible grouping graphs.
-        # We know that both the containing (group) graph and the child graphs
-        # belong to the same page.
-        super(GraphForm, self).__init__(*args, **kwargs)
-        object = getattr(self, 'instance', None)
-        try:
-            if object and object.annotation:
-                group_field = self.fields['group']
-                group_field._set_queryset(Graph.objects.filter(annotation__image=object.annotation.image).exclude(id=object.id))
+                group_field._set_queryset(Graph.objects.filter(annotation__image=obj.annotation.image).exclude(id=obj.id))
         except Annotation.DoesNotExist:
             print 'ERROR'
 
@@ -1061,7 +1041,6 @@ class ImageAdmin(reversion.VersionAdmin):
     def bulk_editing(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        from django.core.urlresolvers import reverse
         return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
     
@@ -1313,14 +1292,12 @@ class StewartRecordAdmin(reversion.VersionAdmin):
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        from django.core.urlresolvers import reverse
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_match') + '?ids=' + ','.join(selected) )
     match_hands.short_description = 'Match with DigiPal hand records'
     
     def merge_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        from django.core.urlresolvers import reverse
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
     

@@ -93,7 +93,11 @@ $(document).ready(function() {
 
 		if (basket.images && basket.images.length) {
 			for (d = 0; d < basket.images.length; d++) {
-				images.push(basket.images[d].id);
+				if (typeof basket.images[d] != 'number') {
+					images.push(basket.images[d].id);
+				} else {
+					images.push(basket.images[d]);
+				}
 			}
 			data.images = images;
 		}
@@ -333,6 +337,67 @@ $(document).ready(function() {
 			});
 		});
 
+		$('#share_collection').click(function(event) {
+			var b = {},
+				i = 0;
+
+			if (basket.annotations.length) {
+				var annotations = [];
+				for (i = 0; i < basket.annotations.length; i++) {
+					if (basket.annotations[i].graph) {
+						annotations.push(basket.annotations[i].graph);
+					}
+				}
+				b.annotations = annotations;
+			}
+
+			if (basket.images.length) {
+				var images = [];
+				for (i = 0; i < basket.images.length; i++) {
+					if (basket.images[i].id) {
+						images.push(basket.images[i].id);
+					}
+
+				}
+				b.images = images;
+			}
+
+			var url = window.location.hostname +
+				document.location.pathname +
+				'?basket=' + encodeURIComponent(JSON.stringify(b));
+
+			var div = $('<div class="loading-div">');
+			div.html('<h3>Share basket URL</h3>');
+			div.append('<p><a id="basket_url" ><img src="/static/images/ajax-loader.gif" /></a></p>');
+			div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
+			$('body').append(div);
+
+			div.find('button').click(function() {
+				div.fadeOut().remove();
+			});
+
+			gapi.client.load('urlshortener', 'v1', function() {
+
+				var request = gapi.client.urlshortener.url.insert({
+					'resource': {
+						'longUrl': url
+					}
+				});
+
+				var resp = request.execute(function(resp) {
+					if (resp.error) {
+						console.log(resp);
+						return false;
+					} else {
+						$("#basket_url").attr('href', resp.id).text(resp.id);
+					}
+				});
+			});
+
+
+			event.preventDefault();
+		});
+
 		var length_basket = length_basket_elements(basket);
 
 		if (length_basket == 1) {
@@ -359,6 +424,9 @@ $(document).ready(function() {
 			localStorage.setItem('lightbox_basket', JSON.stringify(basket));
 			notify(getParameter('collection')[0] + ' set as default basket', "success");
 		});
+	} else if (getParameter('basket').length) {
+		basket = JSON.parse(decodeURIComponent(getParameter('basket')[0]));
+		console.log(basket)
 	} else {
 		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	}

@@ -376,6 +376,7 @@ def images_lightbox(request):
 
                 data['annotations'] = annotations
             if 'images' in graphs:
+                print  graphs['images']
                 images = []
                 for img in graphs['images']:
                     image = Image.objects.get(id=img)

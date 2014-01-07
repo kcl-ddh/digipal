@@ -45,34 +45,49 @@ class SearchContentType(object):
             context['can_edit'] = True
 
     def set_index_view_context(self, context, request):
+        ''' Populate the given [context] dictionary with those entries:
+                'records': a list of record instances
+                'content_type': content type object e.g. SearchManuscripts
+                'message': an intro message e.g. 'list of manuscript with images' 
+                'active_letters': a list of letters for the pagination. 
+                    If we have records starting with b then ('b' in context['active_letters'])
+        '''
         ret = context
         
-        # Todo:
-        #     pagination
-        #     add to menu
-        #
-        model = self.get_model()
         ret['content_type'] = self
 
         # get all the records
         ret['records'] = self.get_index_records()
         
-        # filter by the letter specified in the pagination
-        page_letter = request.GET.get('pl', '')
-        if page_letter:
-            letter_filter = {}
-            letter_filter[self.get_sort_fields()[0] + '__istartswith'] = page_letter
-            ret['records'] = ret['records'].filter(**letter_filter)
         
         # sort the result
         ret['records'] = self.get_sorted_records(ret['records'])
         
-        # additional info for each record  
-        for record in ret['records']:
+        # additional info for each record
+        # and filter by the letter specified in the pagination
+        page_letter = request.GET.get('pl', '').lower()          
+        ret['active_letters'] = {'': len(ret['records'])}
+        recs = ret['records']
+        ret['records'] = []
+        for record in recs:
             record.index_label = getattr(record, 'index_label', self.get_record_index_label(record))
+            letter = ''
+            if record.index_label: 
+                letter = record.index_label[0].lower()
+                ret['active_letters'][letter] = 1
+            if (not page_letter) or (letter == page_letter):
+                ret['records'].append(record)
+        
+        ret['message'] = self.get_index_message(context, request)
         
         self.group_index_records(ret['records'])
         
+        ret['active_letters'] = ret['active_letters'].keys()
+        
+        return ret
+
+    def get_index_message(self, context, request):
+        ret = ''
         return ret
     
     def group_index_records(self, records):

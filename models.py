@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.utils.safestring import mark_safe
+from django.db.models import Q
 from PIL import Image as pil
-import httplib
 import os
 import re
 import string
@@ -827,7 +827,7 @@ class Repository(models.Model):
         return self.media_permission or Repository.get_default_media_permission()
 
     def is_media_private(self):
-        return get_media_permission().is_private
+        return self.get_media_permission().is_private
 
 
 class CurrentItem(models.Model):
@@ -1240,6 +1240,14 @@ class Image(models.Model):
                         ret = settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE
 
         return ret
+    
+    @classmethod
+    def filter_public_permissions(cls, image_queryset):
+        '''Filter an Image queryset to keep only the images with public permissions.
+            Returns the modified query set.
+        '''
+        ret = image_queryset.filter(Q(media_permission__is_private=False) | (Q(media_permission__is_private__isnull=True) & Q(item_part__current_item__repository__media_permission__is_private=False)))
+        return ret
 
     def get_locus_label(self, hide_type=False):
         ''' Returns a label for the locus from the side and number fields.
@@ -1345,7 +1353,6 @@ class Image(models.Model):
     def thumbnail_with_link(self, height=None, width=None):
         """Returns HTML to display the page image as a thumbnail with a link to
         view the image."""
-        ret = ''
         ret = mark_safe(u'<a href="%s">%s</a>' % \
                 (self.full(), self.thumbnail(height, width)))
         return ret
@@ -1806,7 +1813,7 @@ class Annotation(models.Model):
         # graft the query string of self.cutout to self.image.thumbnail_url
         # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
         #return mark_safe(u'<img alt="%s" src="%s" />' % (self.image, cgi.escape(self.cutout)))
-        from utils import update_query_string
+        #from utils import update_query_string
         cutout_qs = re.sub(ur'^(.*)\?(.*)$', ur'\2', self.cutout)
         # This technique doesn't work because of the encoding:
         # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)

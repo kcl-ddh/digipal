@@ -134,10 +134,9 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 	if (allow_multiple()) {
 		var max = this.selectedAnnotations.length;
 		for (var i = 0; i < max; i++) {
-			if (feature.vector_id == this.selectedAnnotations[i].vector_id) {
+			if (feature.graph == this.selectedAnnotations[i].graph) {
 				this.selectedAnnotations.splice(i, 1);
-				//console.log($('p[data-id="' + feature.vector_id + '"]'))
-				//$('p[data-id="' + feature.vector_id + '"]').remove();
+				i--;
 				break;
 			}
 		}
@@ -788,7 +787,7 @@ function updateFeatureSelect(currentFeatures, id) {
 				}
 
 				if (!annotator.editorial.active) {
-					if (!isEmpty(annotator.selectedFeature.linked_to[0])) {
+					if (annotator.selectedFeature.linked_to && !isEmpty(annotator.selectedFeature.linked_to[0])) {
 						var num_linked = 0;
 						elements_linked = [];
 						for (var g in annotator.selectedFeature.linked_to[0]) {
@@ -1295,7 +1294,9 @@ function create_dialog(selectedFeature, id) {
 	}
 
 	$('.to_lightbox').click(function() {
-
+		if (!annotator.selectedFeature) {
+			annotator.selectedFeature = annotator.selectedAnnotations[selectedAnnotations.length];
+		}
 		if (!isEmpty(annotator.selectedFeature.linked_to[0])) {
 			var links = [];
 			for (var l in annotator.selectedFeature.linked_to[0]) {
@@ -2202,7 +2203,12 @@ function delete_annotation(layer, feature, number_annotations) {
 		},
 		success: function(data) {
 			if (!handleErrors(data)) {
-				updateStatus('Annotation deleted.', 'success');
+				if (number_annotations > 1) {
+					updateStatus('Annotations deleted.', 'success');
+				} else {
+					updateStatus('Annotation deleted.', 'success');
+				}
+
 				var allograph = $('#id_allograph option:selected').text();
 				var allograph_id = $('#id_allograph').val();
 				refresh_letters_container(allograph, allograph_id, false);

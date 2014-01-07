@@ -140,7 +140,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			var msg, doDelete;
 			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
 
-				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + '. It cannot be restored at a later time! Continue?';
+				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + ' annotations. They cannot be restored at a later time! Continue?';
 				doDelete = confirm(msg);
 				if (doDelete) {
 					for (var i = 0; i < annotator.selectedAnnotations.length; i++) {

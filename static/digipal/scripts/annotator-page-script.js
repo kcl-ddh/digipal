@@ -720,8 +720,10 @@
 	(function() {
 		$('#allow_multiple_dialogs').attr('checked', digipal_settings.allow_multiple_dialogs).trigger('change');
 		if (digipal_settings.toolbar_position == 'Vertical') {
+			//$('input[name=toolbar_position]').val('Vertical').trigger('change');
 			$('#vertical').attr('checked', true).trigger('change');
 		} else {
+			//$('input[name=toolbar_position]').val('Horizontal').trigger('change');
 			$('#horizontal').attr('checked', true).trigger('change');
 		}
 		$('#boxes_on_click').attr('checked', digipal_settings.boxes_on_click).trigger('change');

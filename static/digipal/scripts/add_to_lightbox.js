@@ -15,6 +15,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
 					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
+					if (!annotations[i]) {
+						notify('Image not saved yet', 'danger');
+						return false;
+					}
 					if (current_basket.annotations[j].graph == annotations[i].graph) {
 						flag = false;
 					}
@@ -39,6 +43,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		var graph;
 		if (type == 'annotation') {
 			graph = button.data('graph');
+			if (graph == 'undefined' || !graph) {
+				notify('Annotation not saved yet', 'danger');
+				return false;
+			}
 			if (current_basket.annotations === undefined) {
 				current_basket.annotations = [];
 			}
@@ -49,7 +57,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.images = [];
 			}
 			elements = current_basket.images;
-			console.log(elements);
 		}
 
 		if (current_basket && elements && elements.length) {
@@ -78,6 +85,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			}
 			if (flag) {
 				if (type == 'annotation') {
+					if (annotations == 'undefined' || !annotations) {
+						notify('Annotation not saved yet', 'danger');
+						return false;
+					}
 					elements.push(annotations);
 				} else {
 					if (typeof annotator != 'undefined') {

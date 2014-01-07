@@ -353,6 +353,12 @@ $(document).ready(function() {
 		basket = collection[getParameter('collection')[0]]['basket'];
 		var header = $('.header1');
 		header.html('Digipal Basket | ' + getParameter('collection')[0]);
+		header.append('<ul class="nav nav-pills pull-right"><li><a style="cursor:pointer;font-size:14px;" title="" id="default_basket">Set as default Basket</a></li></ul>');
+
+		$('#default_basket').click(function() {
+			localStorage.setItem('lightbox_basket', JSON.stringify(basket));
+			notify(getParameter('collection')[0] + ' set as default basket', "success");
+		});
 	} else {
 		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	}

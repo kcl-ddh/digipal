@@ -195,17 +195,17 @@
 
                 },
                 out: function(){
-                    $(this).css('background', 'rgba(0, 0, 0, 0.5)');
+                    $(this).css('background', 'rgba(0, 0, 0, 0.7)');
                 },
                 over:function(){
-                    $(this).css('background', 'rgba(100, 100, 100, 0.5)');
+                    $(this).css('background', 'rgba(100, 100, 100, 0.7)');
                 }
             });
 
             var images = $('a.droppable_image');
             images.draggable({
                 containment: 'window',
-                stack: 'div',
+                stack: '*',
                 cursor: 'move',
                 revert: true,
                 scroll: true,

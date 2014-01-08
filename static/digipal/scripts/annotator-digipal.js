@@ -59,6 +59,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	if (!annotator.events) {
 		registerEvents();
 	}
+	/*
 	if ($('#id_hide').prop('checked')) {
 		var layer = this.vectorLayer;
 		for (var i = 0; i < layer.features.length; i++) {
@@ -70,6 +71,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		}
 		layer.redraw();
 	}
+	*/
 
 	var group_button = $('.link_graphs');
 
@@ -170,14 +172,11 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		feature.style.fillColor = '#ee9900';
 		var color;
 		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
-
 			if (feature.features.length) {
 				color = 'blue';
 			} else {
 				color = 'red';
 			}
-
-
 			feature.style.strokeColor = color;
 		} else {
 			feature.style.strokeColor = '#ee9900';
@@ -190,6 +189,9 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		}
 		*/
 	}
+	i
+
+	/*
 	if (feature.state == 'Insert') {
 		this.last_feature_selected = {
 			'id': $('#id_allograph').val(),
@@ -197,7 +199,6 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		};
 		feature.last_feature_selected = this.last_feature_selected;
 	}
-
 
 	if ($('#id_hide').prop('checked')) {
 		var max = _self.vectorLayer.features.length;
@@ -209,11 +210,12 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		}
 	}
 
+	*/
+
 	this.vectorLayer.redraw();
 
 
 	this.selectedFeature = null;
-	//$('#id_allograph').val(undefined).trigger('liszt:updated');
 	$(".number_annotated_allographs .number-allographs").html(0);
 
 
@@ -1729,7 +1731,7 @@ function show_url_allograph(dialog, annotation, button) {
 					geoJSONText.title = title;
 					geoJSONText.desc = desc;
 					geoJSONText.dialogPosition = dialogPosition;
-					geoJSONText.extent = JSON.stringify(layerExtent);
+					geoJSONText.extent = layerExtent;
 					geoJSONText.visibility = getAnnotationsVisibility;
 
 					if (checkboxesOff.length) {

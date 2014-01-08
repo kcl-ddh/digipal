@@ -124,7 +124,7 @@
             })();
         </script>
         <div class='alert alert-warning'>
-            <h3>No Images available</h3>
+            <h6>No Images available</h6>
         </div>
     {% endif %}
 
@@ -192,6 +192,8 @@
                         }, 350);
 
                     }, 3000);
+
+                    $('html, body').css('cursor', 'initial');
 
                 },
                 out: function(){

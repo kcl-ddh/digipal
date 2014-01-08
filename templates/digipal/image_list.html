@@ -182,13 +182,13 @@
 
                     }
 
-                    setTimeout(function(){
+                    var interval = setTimeout(function(){
                         s = '<p>Add image to Basket</p>';
                         s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                         basket_collector.html(s);
 
                         basket_collector.animate({
-                            left: '100%'
+                            bottom: '-28%'
                         }, 350);
 
                     }, 3000);
@@ -204,7 +204,7 @@
 
             var images = $('a.droppable_image');
             images.draggable({
-                containment: 'window',
+                containment: false,
                 stack: '*',
                 cursor: 'move',
                 revert: true,
@@ -212,7 +212,7 @@
                 zIndex: 6000,
                 start: function(){
                     basket_collector.animate({
-                        left: '85%'
+                        bottom: '0'
                     }, 350);
                 },
                 stop: function(){
@@ -220,10 +220,10 @@
                     setTimeout(function(){
 
                         basket_collector.animate({
-                            left: '100%'
+                            bottom: '-28%'
                         }, 350);
 
-                    });
+                    }, 1000);
                 }
             });
     });

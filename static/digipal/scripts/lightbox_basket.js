@@ -414,9 +414,9 @@ $(document).ready(function() {
 		var length_basket = length_basket_elements(basket);
 
 		if (length_basket == 1) {
-			element_basket.html("Lightbox (" + length_basket + " image)");
+			element_basket.html("Basket (" + length_basket + " image)");
 		} else {
-			element_basket.html("Lightbox (" + length_basket + " images)");
+			element_basket.html("Basket (" + length_basket + " images)");
 		}
 
 		global_length_basket = length_basket;

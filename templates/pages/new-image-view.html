@@ -147,7 +147,7 @@
                                         <tr class="{% cycle 'bgColour' '' %}">
                                             <td>
                                                 {% for graph in hand.graphs_template %}
-                                                    <a data-graph="{{ graph.id }}" class='droppable_image' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                    <a data-graph="{{ graph.id }}" class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                         {{ graph.annotation.thumbnail }}
                                                     </a>
                                                 {% endfor %}
@@ -241,7 +241,7 @@
                         basket_collector.html(s);
 
                         basket_collector.animate({
-                            left: '100%'
+                            bottom: '-28%'
                         }, 350);
 
                     }, 3000);
@@ -257,23 +257,30 @@
 
             var images = $('a.droppable_image');
             images.draggable({
-                containment: 'html',
+                containment: false,
                 revert: 'invalid',
                 stack: '*',
                 appendTo: 'html',
                 scroll: true,
                 opacity:0.8,
+                helper:'clone',
                 cursor: 'move',
                 start: function(){
-                    $('#basket_collector').animate({
-                        left: '85%'
+                    basket_collector.animate({
+                        bottom: '0'
                     }, 350);
                 },
                 stop: function(){
-                    $('#basket_collector').animate({
-                        left: '100%'
-                    }, 350);
-                }
+
+                    setTimeout(function(){
+
+                        basket_collector.animate({
+                            bottom: '-28%'
+                        }, 350);
+
+                    }, 1000);
+                },
+
             });
         });
     </script>

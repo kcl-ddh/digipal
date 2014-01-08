@@ -126,17 +126,16 @@
 			var temporary_vectors = getParameter('temporary_vector');
 			if (temporary_vectors.length && !no_image_reason) {
 				var geoJSON = new OpenLayers.Format.GeoJSON();
-				var geo_json;
+				var geo_json, extent, extent_parsed;
 
 				if (temporary_vectors.length > 1) {
 					annotator.selectFeature.multiple = true;
 				}
 
-				for (var i = 0; i < temporary_vectors.length; i++) {
+				for (var t = 0; t < temporary_vectors.length; t++) {
 
-					var temp = temporary_vectors[i];
+					var temp = temporary_vectors[t];
 					geo_json = JSON.parse(temp);
-
 					var object = geoJSON.read(temp);
 					var objectGeometry = object[0];
 
@@ -161,9 +160,10 @@
 					//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 					// zoom map to extent
-					var extent_parsed = JSON.parse(geo_json.extent);
-					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
-					annotator.map.zoomToExtent(extent);
+					extent_parsed = geo_json.extent;
+					console.log(extent_parsed)
+					extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+
 
 					// switch annotations if not visible
 					if (!geo_json.visibility) {
@@ -171,6 +171,8 @@
 					}
 
 				}
+
+				annotator.map.zoomToExtent(extent);
 
 				if ($('.dialog_annotations').length) {
 					var title = geo_json.title;

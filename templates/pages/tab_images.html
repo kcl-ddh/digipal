@@ -1,28 +1,24 @@
 {% load html_escape %}
 <div class='tab-pane fade' id='pages'>
-    {% for image in images %}
-
-        {% if forloop.counter0|divisibleby:4 %}
-            <div class="row">
-        {% endif %}
-                <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
-                    <dl class="imageDatabase">
-                        <dt>
-                            <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
-                                {% iip_img image.iipimage width=120 %}
-                            </a>
-                        </dt>
-                        <dd>
-                            <p>{{ image }}</p>
-                        </dd>
-                    </dl>
+    {% if images %}
+        {% for image in images %}
+            {% if forloop.counter0|divisibleby:4 %}
+                <div class="row-fluid">
+            {% endif %}
+                    <div class='span3' style="text-align:center">
+                        <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
+                            {% iip_img image.iipimage width=120 %}
+                            <br/>
+                            {{ image.locus }}
+                        </a>
+                    </div>
+            {% if forloop.counter|divisibleby:4 or forloop.last %}
                 </div>
-        {% if forloop.counter|divisibleby:4 or forloop.last %}
-            </div>
-        {% endif %}
-    {% empty %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
         <div class="alert alert-block">
             <h4>No Images available</h4>
         </div>
-    {% endfor %}
+    {% endif %}
 </div>

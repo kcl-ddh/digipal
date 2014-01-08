@@ -352,7 +352,7 @@
 			if (!showImages) {
 				var position = $(this).position();
 				$('#popupImages').css('top', position['top'] + 40);
-				$('#popupImages').css('left', position['left'] - 40);
+				$('#popupImages').css('left', position['left'] - 55);
 				$('#popupImages').fadeIn();
 				showImages = 1;
 			} else {

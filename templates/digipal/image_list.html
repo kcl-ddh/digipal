@@ -103,7 +103,7 @@
                                     <td>{{image.item_part.current_item.repository.name}}</td>
                                     <td>{{ image.annotation_set.all.count }}</td>
                                     <td>{{ image.hands.all.count }}</td>
-                                    <td><a class='btn btn-primary' href='{{ image.id }}/'>View</a></td>
+                                    <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

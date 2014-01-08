@@ -1166,7 +1166,7 @@ function create_dialog(selectedFeature, id) {
 
 				} else if (!annotator.annotating) {
 
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span> ";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 10%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span> ";
 
 				} else {
 					if (annotator.editorial.active) {
@@ -1193,7 +1193,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Basket</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='position:relative;left:20%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 10%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
 				}
 			}
 			return title;
@@ -1592,10 +1592,11 @@ function fill_dialog(id, annotation) {
 		});
 
 	} else {
-		s = "<textarea class='textarea_temporary_annotation'></textarea>";
+		s = "<textarea class='textarea_temporary_annotation' placeholder='Type description here...'></textarea>";
 	}
 
 	dialog.html(s);
+
 	var url_allograph_button = dialog.parent().find('.url_allograph');
 
 	url_allograph_button.click(function() {
@@ -1631,7 +1632,9 @@ function fill_dialog(id, annotation) {
 		var allograph_id = get_allograph(annotation.feature);
 		refresh_letters_container(annotation.feature, allograph_id, true);
 	}
-
+	if (name_temporary_annotation.length) {
+		$('.ui-dialog-title').css('margin-left', '-4%');
+	}
 }
 
 function get_allograph(allograph) {

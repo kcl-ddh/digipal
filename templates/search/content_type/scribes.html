@@ -7,15 +7,15 @@
         <th>Scriptorium</th>
         <th>Actions</th>
     </tr>
-    
+
     {% filter tag_phrase_terms:terms %}
         {% for scribe in records %}
             <tr class="{% cycle 'bgColour' '' %}">
-                <td>{{ scribe.name }} 
+                <td>{{ scribe.name }}
                     {% if scribe.images.all %}
                         <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
                             <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.images.count}} images' />
-                        </a> 
+                        </a>
                         ({{scribe.images.count}})
                     {% endif %}
                 </td>
@@ -23,12 +23,12 @@
                 <td>{{ scribe.scriptorium.name }}</td>
                 <td>
                     {% if can_edit %}
-                        <a class="btn" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
+                        <a class="view_button" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
             </tr>
         {% endfor %}
     {% endfilter %}
-    
+
 </table>

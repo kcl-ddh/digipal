@@ -29,6 +29,9 @@
                     window.location.href = $(this).attr('href');
                     return true;
                 }
+                if (typeof window.load_lazy_images == 'function') { 
+                	window.load_lazy_images(); 
+               	};
             });
         });
     </script>

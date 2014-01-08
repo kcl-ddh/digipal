@@ -197,6 +197,14 @@ def img(src, *args, **kwargs):
         more += ur' data-lazy-img-src="%s" ' % src
         src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
         
+        # default dimensions 
+        size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
+        for d in size:
+            s = size[d]
+            if s == -1:
+                s = max(size.values())
+            more += ' %s="%s" ' % (d, s)
+        
     ret = ur'<img src="%s" %s/>' % (src, more)
     return mark_safe(ret)    
 

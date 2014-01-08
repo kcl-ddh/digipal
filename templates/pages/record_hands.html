@@ -9,8 +9,10 @@
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
+    <li class="{% if result.description %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Description</a>
+    </li>
     <li><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
     <li><a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
@@ -27,7 +29,7 @@
                         </tr>
                         <tr>
                             <th>Manuscript</th>
-                            <td>{{ result.item_part }}</td>
+                            <td><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></td>
                         </tr>
                         <tr>
                             <th>Script</th>
@@ -38,7 +40,7 @@
                         <tr>
                             <th>Scribe</th>
                             <td>
-                                {{ result.scribe }}
+                                <a href="{{ result.scribe.get_absolute_url }}">{{ result.scribe }}</a>
                             </td>
                         </tr>
                         <tr>
@@ -58,12 +60,18 @@
             </div>
 
             <div class='tab-pane fade' id='descriptions'>
-                <div>
-                    {{ result.description|tei }}
-                </div>
+                {% if result.description %}
+                    <div>
+                        {{ result.description|tei }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No description available</h4>
+                    </div>
+                {% endif %}
             </div>
 
-            {% include "pages/tab_images.html" with images=result.images.all %}
+            {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
 
             <div class='tab-pane fade' id='graphs'>
                 <div class="scribe annotations">

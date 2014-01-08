@@ -9,7 +9,11 @@
                         <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
                             {% iip_img image.iipimage width=120 %}
                             <br/>
-                            {{ image.locus }}
+                            {% if full_label %}
+                                {{ image }}
+                            {% else %}
+                                {{ image.locus }}
+                            {% endif %}
                         </a>
                     </div>
             {% if forloop.counter|divisibleby:4 or forloop.last %}

@@ -2,15 +2,15 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
 
-{% block meta_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
+{% block meta_title %}{{ item_part.historical_item.historical_item_type|title }}: {{ item_part.display_label }}{% endblock %}
 {% block record_title %}
-    Manuscript: {{ item_part.display_label }}
+    {{ item_part.historical_item.historical_item_type|title }}: {{ item_part.display_label }}
     {% include "digipal/admin_edit.html" with instance=item_part %}
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
+    <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
+    <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
     <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
     <li><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
@@ -19,7 +19,7 @@
     <div class='tabbable'>
         <div id='myTabContent' class='tab-content'>
             <div class='tab-pane fade active in' id='data'>
-                <h3>Location</h3>
+                <h3>Current location</h3>
                 <table class="table table-condensed">
                     <tbody>
                         <tr>
@@ -39,9 +39,23 @@
                     </tbody>
                 </table>
 
-                <h3>Data</h3>
+                <h3>Other information</h3>
                 <table class="table table-condensed">
                     <tbody>
+                        {% if item_part.historical_item.name %}
+                            <tr>
+                                <th>Name</th>
+                                <td>{{ item_part.historical_item.name }} </td>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Catalogue Numbers</th>
+                            <td>{{ item_part.historical_item.catalogue_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Format</th>
+                            <td>{{ item_part.historical_item.historical_item_format }}</td>
+                        </tr>
                         <tr>
                             {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
                             <th>Date</th>
@@ -61,53 +75,54 @@
             </div>
             
             <div class='tab-pane fade' id='descriptions'>
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>MS Name</th>
-                            <td>{{ item_part.historical_item.name }} </td>
-                        </tr>
-                        <tr>
-                            <th>Index</th>
-                            <td>{{ item_part.historical_item.catalogue_number }}</td>
-                        </tr>
-                        <tr>
-                            <th>MS Description</th>
-                            <td>
+                {% if item_part.historical_item.description_set.count %}
+                    <table class="table table-condensed">
+                        <tbody>
+                            <tr>
                                 {% for historical_item in item_part.historical_items.all %}
                                     {% for desc in historical_item.description_set.all %}
-                                        <p>
-                                            {{ desc.description }}
-                                            <br/>
-                                            {{ desc.source.get_display_reference }}
-                                        </p>
+                                        <th>
+                                            {{ desc.source.get_display_reference }} 
+                                            {% for catnum in historical_item.catalogue_numbers.all %}
+                                                {% if catnum.source == desc.source %}
+                                                    <br/>
+                                                    ({{ catnum }})
+                                                {% endif %}
+                                            {% endfor %}
+                                        </th>
+                                        <td>
+                                            <p>
+                                                {{ desc.description }}
+                                            </p>
+                                        </td>
                                     {% endfor %}
                                 {% endfor %}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No descriptions available</h4>
+                    </div>
+                {% endif %}
             </div>
 
             {% include "pages/tab_images.html" %}
 
             <div class='tab-pane fade' id='hands'>
-                <div class='row-fluid'>
-                    {% if hands.count %}
-                        <table class='table table-condensed'>
-                            <tbody>
-                                <tr><th>Hands</th></tr>
-                                {% for hand in hands %}
-                                    <tr><td>{{ hand }}</td><tr>
-                                {% endfor %}
-                            <tbody>
-                        </table>
-                    {% else %}
-                        <div class="alert alert-block">
-                            <h4>No hands available</h4>
+                {% if hands.count %}
+                    {% for hand in hands %}
+                        <div class='row-fluid'>
+                            <a href="{{ hand.get_absolute_url }}">
+                                {{ hand }}
+                            </a>
                         </div>
-                    {% endif %}
-                </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-block">
+                        <h4>No hands available</h4>
+                    </div>
+                {% endif %}
             </div>
             
         </div>

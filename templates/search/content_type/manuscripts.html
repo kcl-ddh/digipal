@@ -18,15 +18,15 @@
                         {% if not forloop.first %}, {% endif %}
                         {{ item.catalogue_number }}
                     {% endfor %}
-                
+
                     {% if manuscript.images.all %}
                         <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
                             <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' />
-                        </a> 
+                        </a>
                         ({{manuscript.images.count}})
                     {% endif %}
                 </td>
-                
+
                 <td>{{ manuscript.current_item.repository.place.name }}, {{ manuscript.current_item.repository.name }}</td>
                 <td>{{ manuscript.current_item.shelfmark }}</td>
                 <td>{{ manuscript.locus }}</td>
@@ -35,9 +35,9 @@
                 </td>
                 <td>
                     {% if can_edit %}
-                        <a class="btn" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
+                        <a class="view_button" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
             </tr>
         {% endfor %}

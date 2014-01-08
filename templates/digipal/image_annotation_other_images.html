@@ -6,7 +6,7 @@
 {% endcomment %}
 <div class='pull-right' style='width: 260px;'>
     {% if image.item_part %}
-        <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>
+        <span id='showImages' data-toggle="tooltip" title="Show all the pages of {{image}}" class="alert alert-success" style='line-height:3;cursor:pointer;'>
             This manuscript has {{ image.item_part.images.count }}
             <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
         </span>
@@ -15,7 +15,7 @@
     <div id='popupImages' class="row-fluid">
         <div class='arrow'></div>
         <div id='titlePopup'>
-            <p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p>
+            <p>Pages of {{image}}<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p>
         </div>
         <div class='span12' id='imagesBoxcontent'>
             {% for p in image.item_part.images.all %}

@@ -14,9 +14,9 @@
 
 {% block record_tabs %}
     <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
+    <li class="{% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
     <li><a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
+    <li class="{% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
 {% endblock %}
 
 {% block details %}
@@ -110,7 +110,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-block">
-                        <h4>No Idiographs available</h4>
+                        <h6>No Idiographs available</h6>
                     </div>
                 {% endif %}
                 </div>

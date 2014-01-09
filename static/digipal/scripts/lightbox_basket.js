@@ -341,7 +341,7 @@ $(document).ready(function() {
 			var b = {},
 				i = 0;
 
-			if (basket.annotations.length) {
+			if (basket.annotations && basket.annotations.length) {
 				var annotations = [];
 				for (i = 0; i < basket.annotations.length; i++) {
 					if (basket.annotations[i].graph) {
@@ -351,7 +351,7 @@ $(document).ready(function() {
 				b.annotations = annotations;
 			}
 
-			if (basket.images.length) {
+			if (basket.images && basket.images.length) {
 				var images = [];
 				for (i = 0; i < basket.images.length; i++) {
 					if (basket.images[i].id) {
@@ -371,7 +371,7 @@ $(document).ready(function() {
 			if (!div.length) {
 				div = $('<div class="loading-div" id="share_basket_div">');
 				div.html('<h3>Share basket URL</h3>');
-				div.append('<p><a id="basket_url" ><img src="/static/images/ajax-loader.gif" /></a></p>');
+				div.append('<p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
 				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
 				$('body').append(div);
 
@@ -407,8 +407,9 @@ $(document).ready(function() {
 				});
 			});
 
-
+			event.stopPropagation();
 			event.preventDefault();
+			return false;
 		});
 
 		var length_basket = length_basket_elements(basket);

@@ -147,9 +147,9 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	var length_basket = length_basket_elements(JSON.parse(localStorage.getItem('lightbox_basket')));
 	var basket_element = $('#lightbox_button a');
 	if (length_basket == 1) {
-		basket_element.html("Lightbox (" + length_basket + " image)");
+		basket_element.html("Basket (" + length_basket + " image)");
 	} else {
-		basket_element.html("Lightbox (" + length_basket + " images)");
+		basket_element.html("Basket (" + length_basket + " images)");
 	}
 	notify('Image added to the basket!', 'success');
 	return true;

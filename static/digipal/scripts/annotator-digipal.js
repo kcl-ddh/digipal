@@ -1166,7 +1166,7 @@ function create_dialog(selectedFeature, id) {
 
 				} else if (!annotator.annotating) {
 
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 10%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span> ";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span> ";
 
 				} else {
 					if (annotator.editorial.active) {
@@ -1193,7 +1193,7 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <span data-hidden='true' class='url_allograph btn btn-mini'>URL</span> <span class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>To Basket</span>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 10%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><span data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</span>";
 				}
 			}
 			return title;

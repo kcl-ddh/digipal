@@ -10,9 +10,9 @@
 
 {% block record_tabs %}
     <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
-    <li><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
-    <li><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
-    <li><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+    <li class="{% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
+    <li class="{% if images.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
+    <li class="{% if hands.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
 
 {% block details %}
@@ -73,7 +73,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class='tab-pane fade' id='descriptions'>
                 {% if item_part.historical_item.description_set.count %}
                     <table class="table table-condensed">
@@ -82,7 +82,7 @@
                                 {% for historical_item in item_part.historical_items.all %}
                                     {% for desc in historical_item.description_set.all %}
                                         <th>
-                                            {{ desc.source.get_display_reference }} 
+                                            {{ desc.source.get_display_reference }}
                                             {% for catnum in historical_item.catalogue_numbers.all %}
                                                 {% if catnum.source == desc.source %}
                                                     <br/>
@@ -102,7 +102,7 @@
                     </table>
                 {% else %}
                     <div class="alert alert-block">
-                        <h4>No descriptions available</h4>
+                        <h6>No descriptions available</h6>
                     </div>
                 {% endif %}
             </div>
@@ -120,11 +120,11 @@
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-block">
-                        <h4>No hands available</h4>
+                        <h6>No hands available</h6>
                     </div>
                 {% endif %}
             </div>
-            
+
         </div>
     </div>
     <div id='basket_collector'>
@@ -133,9 +133,9 @@
             <img src='/static/images/shopping-cart-icon.png' />
         </p>
     </div>
-    
+
     {% block extra_js %}
-    
+
     {{ block.super }}
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
 

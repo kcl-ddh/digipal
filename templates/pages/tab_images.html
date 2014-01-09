@@ -7,7 +7,7 @@
             {% endif %}
                     <div class='span3' style="text-align:center">
                         <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
-                            {% iip_img image.iipimage width=120 %}
+                            {% iip_img image.iipimage width=120 lazy=1 %}
                             <br/>
                             {% if full_label %}
                                 {{ image }}

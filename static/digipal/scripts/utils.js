@@ -108,6 +108,10 @@ $(function() {
 		$('img[data-lazy-img-src]').each(function() {
 			var jq_img = $(this);
 			if (is_element_visible(jq_img)) {
+				jq_img.load(function() {
+					$(this).removeAttr('width');
+					$(this).removeAttr('height');
+				});
 				jq_img.attr('src', jq_img.attr('data-lazy-img-src'));
 				jq_img.removeAttr('data-lazy-img-src');
 			}
@@ -127,10 +131,10 @@ $(function() {
 		return true;
 	}
 	
-	$('#myTab a').click(load_lazy_images);
-	
 	$(window).scroll(load_lazy_images);
 	$(window).resize(load_lazy_images);
+	/* try to load when a boostrap tab becomes visible */
+	$('a[data-toggle="tab"]').on('shown', load_lazy_images);
 	
 	load_lazy_images();
 })

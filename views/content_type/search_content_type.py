@@ -63,18 +63,22 @@ class SearchContentType(object):
         # sort the result
         ret['records'] = self.get_sorted_records(ret['records'])
         
-        # additional info for each record
-        # and filter by the letter specified in the pagination
+        # Add a label to each record
+        # Filter by the letter of the current result page
+        # Find all the letters which have at least one record
         page_letter = request.GET.get('pl', '').lower()          
         ret['active_letters'] = {'': len(ret['records'])}
         recs = ret['records']
         ret['records'] = []
         for record in recs:
+            # generate a label for the record
             record.index_label = getattr(record, 'index_label', self.get_record_index_label(record))
             letter = ''
+            # find active letters
             if record.index_label: 
                 letter = record.index_label[0].lower()
                 ret['active_letters'][letter] = 1
+            # filtering by letter/page
             if (not page_letter) or (letter == page_letter):
                 ret['records'].append(record)
         
@@ -97,7 +101,8 @@ class SearchContentType(object):
         return self.get_model().objects.all()
     
     def get_record_index_label(self, record):
-        return u'%s' % (record or '')
+        ret =  u'%s' % (record or '')
+        return ret
 
     @property
     def result_type_qs(self):

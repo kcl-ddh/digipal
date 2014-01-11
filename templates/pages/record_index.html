@@ -30,21 +30,26 @@
     
     <div class='row-fluid'>
         {% if records %}
-            <ul class="record-list">
-                {% for record in records %}
-                    <li>
-                        <a href="{{record.get_absolute_url}}">{{ record.index_label }}</a>
-                        {% if record.subrecords %}
-                            (
+        
+            <table class="table table-striped">
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td>
+                                {% if record.get_absolute_url %}<a href="{{record.get_absolute_url}}">{% endif %}
+                                    {{ record.index_label }}
+                                {% if record.get_absolute_url %}</a>{% endif %}
+                            </td>
+                            <td>
                                 {% for subrecord in record.subrecords %}
                                     {% if not forloop.first %}, {% endif %}
                                     <a href="{{subrecord.get_absolute_url}}">{{ subrecord.index_label }}</a>
                                 {% endfor %}
-                            )
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             
             <p>
                 {{ records|length }} {{ content_type.label_singular|plural:records }}

@@ -1248,6 +1248,12 @@ class Image(models.Model):
         '''
         ret = image_queryset.filter(Q(media_permission__is_private=False) | (Q(media_permission__is_private__isnull=True) & Q(item_part__current_item__repository__media_permission__is_private=False)))
         return ret
+    
+    @classmethod
+    def get_all_public_images(cls):
+        if not hasattr(cls, 'public_images'):
+            cls.public_images = Image.filter_public_permissions(Image.objects.all())
+        return cls.public_images
 
     def get_locus_label(self, hide_type=False):
         ''' Returns a label for the locus from the side and number fields.
@@ -1297,7 +1303,13 @@ class Image(models.Model):
             if m:
                 self.folio_number = m.group(1)[::-1]
 
-            m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', self.locus[::-1])
+            locus = u'%s' % self.locus
+            locus = locus.replace('face', 'recto')
+            locus = locus.replace('dorse', 'verso')
+            locus = locus.replace('recto', 'r')
+            locus = locus.replace('verso', 'v')
+
+            m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', locus[::-1])
             if m:
                 self.folio_side = m.group(1)[::-1]
 
@@ -1361,13 +1373,15 @@ class Image(models.Model):
     thumbnail_with_link.allow_tags = True
 
     @classmethod
-    def sort_query_set_by_locus(self, query_set):
+    def sort_query_set_by_locus(self, query_set, ignore_item_part=False):
         ''' Returns a query set based on the given one but with
             results sorted by item part then locus.
         '''
         # TODO: fall back for non-postgresql RDBMS
         # TODO: optimise this by caching the result in a field
-        return query_set.extra(select={'fn': ur'''CASE WHEN digipal_image.folio_number~E'^\\d+$' THEN digipal_image.folio_number::integer ELSE 0 END'''}, ).order_by('item_part__display_label',  'fn', 'folio_side')
+        sort_fields = ['fn', 'folio_side']
+        if not ignore_item_part: sort_fields.insert(0, 'item_part__display_label')
+        return query_set.extra(select={'fn': ur'''CASE WHEN digipal_image.folio_number~E'^\\d+$' THEN digipal_image.folio_number::integer ELSE 0 END'''}, ).order_by(*sort_fields)
 
     def zoomify(self):
         """Returns the URL to view the image from the image server as zoomify
@@ -2149,6 +2163,8 @@ def set_additional_models_methods():
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
+        if self._meta.module_name in ['currentitem']: 
+            return None            
         webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
         ret = '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
         return ret

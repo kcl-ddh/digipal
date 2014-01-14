@@ -63,7 +63,9 @@
                     </table>
                 </div>
             </div>
-
+            <script>
+                var i = 0;
+            </script>
             <div class='tab-pane fade' id='pages'>
                 <table class='table table-condensed'>
                     <tr>
@@ -73,6 +75,9 @@
                     </tr>
                     {% for hand in scribe.hands.all %}
                         {% for image in hand.images.all %}
+                        <script>
+                            i++;
+                        </script>
                             <tr>
                                 <td>
                                     <a href="{{ image.get_absolute_url }}">{{ image }}</a>
@@ -88,6 +93,15 @@
                             </tr>
                         {% endfor %}
                     {% endfor %}
+                    <script>
+                            var pages_tab = document.querySelector("a[data-target='#pages']");
+                            pages_tab.innerHTML = 'Pages (' + i + ')';
+                            if(!i){
+                                pages_tab.className += ' disabled';
+                                var pages_element = document.querySelector('#pages');
+                                pages.innerHTML = '<div class="alert alert-block"><h6>No pages available</h6></div>';
+                            }
+                    </script>
                 </table>
             </div>
 

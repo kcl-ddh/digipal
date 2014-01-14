@@ -34,50 +34,56 @@ class SearchManuscripts(SearchContentType):
         recs = super(SearchManuscripts, self).get_index_records()
         # this greatly reduces the time to render all the records
         recs = recs.select_related('current_item', 'current_item__repository', 'current_item__repository__place', 'current_item__repository__media_permission')
-        #recs = recs.prefetch_related('images', 'images__media_permission')
-        recs = recs.filter(id__in=Image.filter_public_permissions(Image.objects.all()).values_list('item_part_id', flat=True))
+        recs = recs.prefetch_related('images', 'images__media_permission')
+        recs = recs.filter(id__in=(Image.get_all_public_images()).values_list('item_part_id', flat=True))
         return recs
     
     def get_record_index_label(self, itempart, nolocus=False):
         ret = ''
-        if itempart:
+        if itempart and itempart.current_item:
             ret = u'%s, %s, %s' % (itempart.current_item.repository.place.name, itempart.current_item.repository.name, itempart.current_item.shelfmark)
             if itempart.locus and not nolocus:
                 ret += u', %s' % itempart.locus
         return ret
 
     def group_index_records(self, itemparts):
-        # we group the records by current item
-        itempart_group = None
+        # We group the IP into CIs
+        # and list all the images under each group
         i = 0
         
-        # The list is already sorted by CI so we can easily spot consecutive items to be grouped
+        public_images = {}
+        for image in Image.sort_query_set_by_locus(Image.get_all_public_images(), True):
+            try:
+                key = image.item_part.current_item.id
+                if key not in public_images: public_images[key] = []
+                public_images[key].append({'index_label': '%s' % image.locus, 'get_absolute_url': image.get_absolute_url()})
+            except:
+                pass
+        
+        last_ci = None
         while i < len(itemparts):
-            itempart = itemparts[i]
-            itempart.get_absolute_url = itempart.get_absolute_url() + 'pages/'
-            
-            # grouping by CI
-            if itempart_group and itempart.current_item == itempart_group.current_item:
-                # The IP is the same as the previous one
-                subrecords = getattr(itempart_group, 'subrecords', [])
+            ip = itemparts[i]
+
+            same_ci_as_previous = (last_ci and last_ci == ip.current_item)
+            if not same_ci_as_previous:
+                last_ci = ip.current_item
+                last_ci.subrecords = []
                 
-                if not subrecords:
-                    # second item in the group so we need to create the group,
-                    # add the first item there and  
-                    # remove its locus from the label of the group
-                    subrecords.append({'get_absolute_url': itempart_group.get_absolute_url, 'index_label': itempart_group.locus})
-                    itempart_group.index_label = self.get_record_index_label(itempart_group, True)
-                    itempart_group.subrecords = subrecords
-                
-                # then we add the item part to the group as well  
-                itemparts[i].index_label = itemparts[i].locus
-                subrecords.append(itemparts[i])
+                # define the label of the CI
+                last_ci.index_label = u'%s, %s, %s' % (last_ci.repository.place.name, last_ci.repository.name, last_ci.shelfmark)
+
+                # add all the images as subrecords
+                last_ci.subrecords = public_images[last_ci.id]
+
+            itemparts[i] = last_ci
+
+            # Same CI, no need to keep it
+            if same_ci_as_previous:
                 del(itemparts[i])
                 continue
-
-            itempart_group = itempart
+            
             i += 1
-
+        
     def get_index_message(self, context, request):
         ret = 'List of manuscripts with images'
         return ret

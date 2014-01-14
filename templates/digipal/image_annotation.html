@@ -11,6 +11,57 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
 {% endblock %}
 
+{% block main %}
+    <h2 class='header1'>
+        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+        <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
+        {% include "digipal/admin_edit.html" with instance=image %}
+    </h2>
+
+    {% if no_image_reason %}
+        <p>
+            {{ no_image_reason }}
+        </p>
+    {% endif %}
+
+    {% if not no_image_reason or can_edit %}
+
+            <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
+
+            <div class='row'>
+
+                {% comment %} TABS {% endcomment %}
+                <div class='span8'>
+                    <ul class='nav nav-tabs'>
+                        <li class='active'><a>View Manuscript</a></li>
+                        <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
+                        <li><a href='metadata/'>View Metadata</a></li>
+                        <li><a href='copyright/'>Image Copyright</a></li>
+
+                    </ul>
+                </div>
+
+                {% include "digipal/image_annotation_other_images.html" %}
+
+            </div> {% comment %}DIV row{% endcomment %}
+
+            {% include "digipal/image_annotation_control_bar.html" %}
+
+        <div id="map"></div>
+        <div id="toolbar" class="olControlEditingToolbar"></div>
+
+
+        {% include "digipal/image_annotation_settings.html" %}
+
+        <div id='annotations'></div>
+
+        <div class='row-fluid' id='allographs_filtersBox'></div>
+        <p id='status'></p>
+
+    {% endif %}
+
+{% endblock %}
+
 {% block extra_js %}
     <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
@@ -79,61 +130,3 @@
     </script>
 
 {% endblock %}
-
-{% block annotations %}
-    <div class='container'>
-        <h2 class='header1'>
-            {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-            <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
-            {% include "digipal/admin_edit.html" with instance=image %}
-        </h2>
-
-        {% if no_image_reason %}
-            <p>
-                {{ no_image_reason }}
-            </p>
-        {% endif %}
-    </div>
-
-    {% if not no_image_reason or can_edit %}
-        <div class='container'>
-            <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
-
-            <div class='row'>
-
-                {% comment %} TABS {% endcomment %}
-                <div class='span8'>
-                    <ul class='nav nav-tabs'>
-                        <li class='active'><a>View Manuscript</a></li>
-                        <li><a class="annotationLink" href="allographs/">Annotations by Allograph</a></li>
-                        <li><a href='metadata/'>View Metadata</a></li>
-                        <li><a href='copyright/'>Image Copyright</a></li>
-
-                    </ul>
-                </div>
-
-                {% include "digipal/image_annotation_other_images.html" %}
-
-            </div> {% comment %}DIV row{% endcomment %}
-
-            {% include "digipal/image_annotation_control_bar.html" %}
-
-        </div> {% comment %}DIV container{% endcomment %}
-
-        <p id='status'></p>
-
-        <div class='container'>
-            <div id="map"></div>
-            <div id="toolbar" class="olControlEditingToolbar"></div>
-        </div>
-
-        {% include "digipal/image_annotation_settings.html" %}
-
-        <div id='annotations'></div>
-
-        <div class='row-fluid' id='allographs_filtersBox'></div>
-
-    {% endif %}
-
-{% endblock %}
-

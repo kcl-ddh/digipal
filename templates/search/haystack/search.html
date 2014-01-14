@@ -25,108 +25,9 @@
             </div>
         </div>
     </div>
-         <script>
-            $(document).ready(function(){
-                $('#radio ul').contents().unwrap();
-                $('#radio li').contents().unwrap();
-                // Then move the input to outside of the label
-                $('#radio > label > input').each(function() {
-                    $(this).parent().before(this);
-                });
-                // Then apply the jQuery UI buttonset
-                $("#radio").buttonset();
-                $('#radio .ui-button-text').css('padding','3px 7px');
-                var radio = $("#searchform input[type='radio']");
-                // Setting default radio
-                var container = $('#containerFilters');
-                var content = $('{{ filterHands.as_ul|escapejs }}');
-                container.html(content);
-                // Setting default label
-                var labelFilters = $('#labelFilters');
-                var label = "<h5 class='header5'>Show Hands filtered by:</h5>";
-                labelFilters.html(label);
 
-
-                advancedSearch = 0;
-                $('#advanced').click(function(){
-                    if(advancedSearch == 0){
-                        $('#advancedSearch').slideDown();
-                        $('#advanced').text('Hide Advanced Search');
-                        advancedSearch = 1;
-                    } else {
-                        $('#advancedSearch').slideUp();
-                        $('#advanced').text('Advanced Search');
-                        advancedSearch = 0;
-                    }
-                    $('select').chosen();
-                });
-
-                {% if request.GET.from_link %}
-                    $('#advancedSearch').show();
-                    advancedSearch = 1;
-                    $('select').chosen();
-                {% endif %}
-
-                // event onchange on radios
-                radio.change(function(){
-                    content = '';
-                    label = '';                       
-                    if($("#searchform input[type='radio']:checked").val() == 'hands'){
-                        content += "{{ filterHands.as_ul|escapejs }}";
-                        label += "<h5 class='header5'>Show Hands filtered by:</h5>";
-                    } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
-                        content += "{{filterManuscripts.as_ul|escapejs}}";
-                        label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
-                    } else {
-                        content += "{{filterScribes.as_ul|escapejs}}";
-                        label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
-                    }
-                    labelFilters.html(label);
-                    container.html(content).hide().fadeIn(500);
-                    $('select').chosen();
-                        $('select').change(function(){
-                        result = false; 
-                        for(i = 0; i < $(this).length; i++){
-                            if(($(this)[i].value != '')){
-                                result = true;
-                            }
-                        }
-                        if(!result){
-                            $('#textEntry').attr('required', 'required');
-                        } else {
-                            $('#textEntry').attr('required', false);
-                        }
-                    });
-               });
-
-                  tags = {{ suggestions|safe }}
-                    $("#textEntry").typeahead({
-                        source:tags,
-                        items: 8,
-                        minLength: 0
-                    });
-
-
-
-                $('select').change(function(){
-                    result = false; 
-                    for(i = 0; i < $(this).length; i++){
-                        if(($(this)[i].value != '')){
-                            result = true;
-                        }
-                    }
-                    if(!result){
-                        $('#textEntry').attr('required', 'required');
-                    } else {
-                        $('#textEntry').attr('required', false);
-                    }
-                });
-
-
-        });
-        </script>
         <div class='container'>
-            <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
+            <a id='advanced' class='btn btn-link'>Advanced Search</a>
             <div id='advancedSearch'>
                 <div id='labelFilters'></div>
                 <div id='containerFilters' class = "form-inline"></div>
@@ -233,5 +134,116 @@
                 {% if page.has_next %}<a href="?q={{ query }}&amp;{{ active_facets|querystring }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
             </div>
             {% endif %}
-    
+
+{% endblock %}
+{% block extra_js %}
+<script>
+        $(document).ready(function(){
+
+            var radio =  $('#radio');
+            radio.find('ul').contents().unwrap();
+            radio.find('li').contents().unwrap();
+            // Then move the input to outside of the label
+             radio.children('label').children('input').each(function() {
+                $(this).parent().before(this);
+            });
+            // Then apply the jQuery UI buttonset
+            radio.buttonset();
+            radio.('.ui-button-text').css('padding','3px 7px');
+
+            var radio_forms = $("#searchform input[type='radio']");
+            // Setting default radio
+            var container = $('#containerFilters');
+            var content = $('{{ filterHands.as_ul|escapejs }}');
+            container.html(content);
+            // Setting default label
+            var labelFilters = $('#labelFilters');
+            var label = "<h5 class='header5'>Show Hands filtered by:</h5>";
+            labelFilters.html(label);
+
+            var advanced_link = $('#advanced');
+            var advanced_search = $('#advancedSearch');
+            var advancedSearch = 0;
+            var select_elements = $('select');
+            advanced_link.click(function(){
+                if(advancedSearch === 0){
+                    advanced_search.slideDown();
+                    advanced_link.text('Hide Advanced Search');
+                    advancedSearch = 1;
+                } else {
+                    advanced_search.slideUp();
+                    advanced_link.text('Advanced Search');
+                    advancedSearch = 0;
+                }
+                select.chosen();
+            });
+
+            {% if request.GET.from_link %}
+                advanced_search.show();
+                advancedSearch = 1;
+                select.chosen();
+            {% endif %}
+
+            // event onchange on radios
+            radio_forms.change(function(){
+                var content = '';
+                var label = '';
+                if($("#searchform input[type='radio']:checked").val() == 'hands'){
+                    content += "{{ filterHands.as_ul|escapejs }}";
+                    label += "<h5 class='header5'>Show Hands filtered by:</h5>";
+                } else if($("#searchform input[type='radio']:checked").val() == 'manuscripts') {
+                    content += "{{filterManuscripts.as_ul|escapejs}}";
+                    label += "<h5 class='header5'><b>Show Manuscripts filtered by:</h5>";
+                } else {
+                    content += "{{filterScribes.as_ul|escapejs}}";
+                    label += "<h5 class='header5'>Show Scribes filtered by:</h5>";
+                }
+                labelFilters.html(label);
+                container.html(content).hide().fadeIn(500);
+                select.chosen();
+
+                select.change(function(){
+                    var result = false;
+
+                    for(i = 0; i < $(this).length; i++){
+                        if(($(this)[i].value != '')){
+                            result = true;
+                        }
+                    }
+
+                    var text_entry = $('#textEntry');
+                    if(!result){
+                        text_entry.attr('required', 'required');
+                    } else {
+                        text_entry.attr('required', false);
+                    }
+                });
+            });
+
+            tags = {{ suggestions|safe }}
+            text_entry.typeahead({
+                source:tags,
+                items: 8,
+                minLength: 0
+            });
+
+            select.change(function(){
+                var result = false;
+
+                for(var i = 0; i < $(this).length; i++){
+                    if(($(this)[i].value != '')){
+                        result = true;
+                    }
+                }
+
+                var text_entry = $('#textEntry');
+                if(!result){
+                    text_entry.attr('required', 'required');
+                } else {
+                    text_entry.attr('required', false);
+                }
+
+            });
+    });
+</script>
 {% endblock %}

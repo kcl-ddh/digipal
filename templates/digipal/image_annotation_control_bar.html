@@ -5,34 +5,33 @@
 {% endcomment %}
 <div class='panel' id='panelImageBox' style='margin-bottom: 5px;'>
 
-    <span class="label label-important" style='margin-right:0;font-size:12.8px;'>
+    <span class="label label-important">
         <span>
             <b>Annotations</b>: {{ annotations }}
         </span>
     </span>
 
-    <span class="label label-success style='margin-right:0;font-size:12.8px;'">
+    <span class="label label-success">
         <span>
             <b>Hands</b>: {{ hands }}
         </span>
     </span>
 
     {% if annotations > 0 %}
-        <span class="label" style='margin-right:0;font-size:12.8px;'>
+        <span class="label" id='label-switcher'>
             <b>Annotations</b>:
         </span>
-        <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: bottom;margin-bottom:1%;height:17.5px;'>
-            <input type="checkbox" />
-        </span>
+        <input id="toggle-state-switch" type="checkbox" class="switch-small" checked>
+
     {% endif %}
 
     <div class="btn-toolbar" style='display:inline'>
-        <div class="btn-group" style='margin-bottom:1%'>
+        <div class="btn-group" style='margin-bottom:0.7%'>
             {% if annotations > 0 %}
                 <a class='btn btn-small' id='filterAllographs' title='Filter Annotations'>Filter</a>
             {% endif %}
             <a class="btn btn-small" id="settings_annotator" title='Open Settings'>Settings</a>
-            <a class="btn btn-small" id="image_to_lightbox" title='Add image to Basket'>To Basket</a>
+            <a class="btn btn-small" id="image_to_lightbox" title='Add image to Collection'>To Collection</a>
         </div>
     </div>
 

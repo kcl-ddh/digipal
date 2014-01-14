@@ -194,6 +194,25 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
 			_self.selectFeatureById(e.feature.id);
 
+			/*
+				prevent the vector to be too narrow
+				it also prevents a openlayers bug
+			*/
+
+		},
+		'transform': function(e) {
+			var feature = e.object.feature;
+
+			if (feature.geometry.bounds.right - feature.geometry.bounds.left < 8) {
+				console.log('mhm, too narrow');
+				feature.destroy();
+				$('circle').remove();
+				$('polyline').remove();
+
+				return false;
+			}
+
+
 		},
 		'beforeset': function(e) {
 
@@ -345,7 +364,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		title: 'Editorial Annotations',
 		active: false,
 		trigger: function() {
-
+			var activeControls = this.map.getControlsBy('active', true);
 			if (this.active) {
 				_self.boxes_on_click = false;
 				$('#boxes_on_click').attr('checked', false);
@@ -353,6 +372,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			} else {
 				_self.boxes_on_click = true;
 				$('#boxes_on_click').attr('checked', true);
+				_self.toggleAll(activeControls, false);
 				this.activate();
 				_self.rectangleFeature.activate();
 			}
@@ -538,4 +558,19 @@ Annotator.prototype.setSavedAttribute = function(feature, saved, redraw) {
 	if (redraw) {
 		this.vectorLayer.drawFeature(feature, 'default');
 	}
-}
+};
+
+Annotator.prototype.toggleAll = function(activeControls, active) {
+	for (i = 0; i < activeControls.length; i++) {
+		if (activeControls[i].title) {
+			if (activeControls[i].displayClass != 'olControlFullScreenFeature') {
+				if (active) {
+					activeControls[i].activate();
+				} else {
+					activeControls[i].deactivate();
+					annotator.editorial.deactivate();
+				}
+			}
+		}
+	}
+};

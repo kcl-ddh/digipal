@@ -199,6 +199,7 @@ $(document).ready(function() {
 								element = basket.images[i];
 								if (graph == element.id) {
 									basket.images.splice(i, 1);
+
 									break;
 								}
 							}
@@ -216,7 +217,7 @@ $(document).ready(function() {
 						}
 
 						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
-							s = '<div class="container alert alert-warning">The Basket is empty</div>';
+							s = '<div class="container alert alert-warning">The Collection is empty</div>';
 							container_basket.html(s);
 						}
 
@@ -370,7 +371,7 @@ $(document).ready(function() {
 			var div = $('#share_basket_div');
 			if (!div.length) {
 				div = $('<div class="loading-div" id="share_basket_div">');
-				div.html('<h3>Share basket URL</h3>');
+				div.html('<h3>Share Collection URL</h3>');
 				div.append('<p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
 				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
 				$('body').append(div);
@@ -415,9 +416,9 @@ $(document).ready(function() {
 		var length_basket = length_basket_elements(basket);
 
 		if (length_basket == 1) {
-			element_basket.html("Basket (" + length_basket + " image)");
+			element_basket.html("Collection (" + length_basket + " image)");
 		} else {
-			element_basket.html("Basket (" + length_basket + " images)");
+			element_basket.html("Collection (" + length_basket + " images)");
 		}
 
 		global_length_basket = length_basket;
@@ -431,8 +432,8 @@ $(document).ready(function() {
 		var collection = JSON.parse(localStorage.getItem('collections'));
 		basket = collection[getParameter('collection')[0]]['basket'];
 		var header = $('.header1');
-		header.html('Digipal Basket | ' + getParameter('collection')[0]);
-		header.append('<ul class="nav nav-pills pull-right"><li><a style="cursor:pointer;font-size:14px;" title="" id="default_basket">Set as default Basket</a></li></ul>');
+		header.html('Collection, ' + getParameter('collection')[0]);
+		header.append('<ul class="nav nav-pills pull-right"><li><a style="cursor:pointer;font-size:14px;" title="" id="default_basket">Set as default Collection</a></li></ul>');
 
 		$('#default_basket').click(function() {
 			localStorage.setItem('lightbox_basket', JSON.stringify(basket));
@@ -440,7 +441,6 @@ $(document).ready(function() {
 		});
 	} else if (getParameter('basket').length) {
 		basket = JSON.parse(decodeURIComponent(getParameter('basket')[0]));
-		console.log(basket)
 	} else {
 		basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	}
@@ -470,7 +470,7 @@ $(document).ready(function() {
 
 	} else {
 
-		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Basket is empty</div>';
+		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Collection is empty</div>';
 		container_basket.html(s);
 
 		var loading_div = $(".loading-div");

@@ -71,7 +71,10 @@
                                     </p>
                                     <dl class="imageDatabase">
                                         <dt>
-                                             <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">{% iip_img image.iipimage width=200 %}</a>
+
+                                            <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
+                                                <span class="drag_caption">Drag Image to basket</span>
+                                                {% iip_img image.iipimage width=200 %}</a>
                                         </dt>
                                         <dd>
                                             <p><b>{{ image }}</b></p>
@@ -228,6 +231,17 @@
                     }, 1000);
                 }
             });
+
+            $('.imageDatabase').on('mouseenter', function(event){
+                $(this).find('.drag_caption').slideDown();
+                event.stopPropagation();
+                return false;
+            }).on('mouseleave', function(event){
+                $(this).find('.drag_caption').slideUp();
+                event.stopPropagation();
+                return false;
+            });
+
     });
     </script>
     {% endblock %}

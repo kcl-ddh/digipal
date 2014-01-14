@@ -1,20 +1,16 @@
 {% extends "base.html" %}
 {% load html_escape %}
-{% block extra_js %}
-    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
-    <script src='https://apis.google.com/js/client.js'></script>
 
-{% endblock %}
-{% block meta_title %}Digipal Basket{% endblock %}
+{% block meta_title %}Digipal Collection{% endblock %}
 
 {% block main %}
-<h1 class='header1'>Digipal Basket</h1>
+<h1 class='header1'>Collection</h1>
 <ul class="nav nav-pills pull-right">
     <li>
         <a style='cursor:pointer;' title = 'Send collected images to the Lightbox' id='to_lightbox'>Go to Lightbox</a>
     </li>
     <li>
-        <a style='cursor:pointer;' title = 'Save basket as collection' id='add_collection'>Save Collection</a>
+        <a style='cursor:pointer;' title = 'Save Collection' id='add_collection'>Save Collection</a>
     </li>
     <li class='active'>
         <a style='cursor:pointer;' title = 'Go to current basket' href='#'>Current Basket</a>
@@ -23,7 +19,7 @@
         <a title='Manage collections' href="collections/">Manage Collections</a>
     </li>
     <li>
-        <a title='Share this basket' id='share_collection' href="#">Share</a>
+        <a title='Share this Collection' id='share_collection' href="#">Share</a>
     </li>
 </ul>
 <div id="container_basket">
@@ -32,7 +28,12 @@
 <div class='loading-div'>
     <p>Loading Data. Please wait...</p>
     <p>
-      <img src="/static/digipal/images/ajax-loader.gif" />
+      <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
     </p>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+    <script src='https://apis.google.com/js/client.js'></script>
 {% endblock %}

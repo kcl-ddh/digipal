@@ -195,6 +195,17 @@
                 }, 350);
             }
         });
+
+
+        $('.imageDatabase').on('mouseenter', function(event){
+                $(this).find('.drag_caption').slideDown();
+                event.stopPropagation();
+                return false;
+            }).on('mouseleave', function(event){
+                $(this).find('.drag_caption').slideUp();
+                event.stopPropagation();
+                return false;
+            });
     });
     </script>
     {% endblock %}

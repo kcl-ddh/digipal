@@ -1,5 +1,5 @@
 /**
- * Intiial script loading in the annotator page
+ * Intiial annotator script loading
    -- Digipal Project --> digipal.eu
  */
 
@@ -41,7 +41,6 @@
 	}
 
 	localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
-
 
 
 	/*
@@ -274,7 +273,7 @@
 				}
 				list.sort();
 				for (var h = 0; h < list.length; h++) {
-					checkOutput += "<p class='paragraph_allograph_check' style='padding:2%;' data-annotation = '" + list[h] + "'>" +
+					checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h] + "'>" +
 						"<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_" + list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 				}
 			}
@@ -345,6 +344,7 @@
 
 		});
 		//$("a[data-toggle=tooltip]").tooltip()
+		// activating bootstrap plugin for switching on and off annotations
 
 
 		var showImages = 0;
@@ -366,28 +366,6 @@
 			$('#popupImages').fadeOut();
 			showImages = 0;
 		});
-
-
-		// activating bootstrap plugin for switching on and off annotations
-		var switcher = $('#toggle-state-switch');
-		switcher.bootstrapSwitch('toggleState');
-
-		switcher.on('click', function() {
-			switcher.bootstrapSwitch('toggleState');
-		});
-
-
-		switcher.on('switch-change', function(e, data) {
-			if ($(this).bootstrapSwitch('status')) {
-				annotator.vectorLayer.setVisibility(true);
-			} else {
-				annotator.vectorLayer.setVisibility(false);
-			}
-		});
-
-		if (typeof get_annotations != "undefined" && get_annotations == "false") {
-			switcher.bootstrapSwitch('toggleState');
-		}
 
 		var modal = false;
 		var modal_element = $("#modal_features");
@@ -501,6 +479,26 @@
 
 	});
 
+	var switcher = $('#toggle-state-switch');
+	switcher.bootstrapSwitch();
+	switcher.bootstrapSwitch('setSizeClass', 'switch-small');
+	switcher.on('click', function() {
+		switcher.bootstrapSwitch('toggleState');
+	});
+
+
+	switcher.on('switch-change', function(e, data) {
+		if ($(this).bootstrapSwitch('state')) {
+			annotator.vectorLayer.setVisibility(true);
+		} else {
+			annotator.vectorLayer.setVisibility(false);
+		}
+	});
+
+	if (typeof get_annotations != "undefined" && get_annotations == "false") {
+		switcher.bootstrapSwitch('toggleState');
+	}
+
 	$('#modal_features').click(function() {
 		$(this).focus();
 	});
@@ -601,7 +599,9 @@
 		feature.feature.features = [];
 		feature.feature.linked_to = [];
 		feature.feature.stored = false;
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 50) {
+		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
+		console.log(feature.feature);
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 10 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 15) {
 
 			feature.feature.destroy();
 			$('circle').remove();
@@ -688,7 +688,8 @@
 		*/
 	});
 
-	$('select').chosen();
+	var select_elements = $('select');
+	select_elements.chosen();
 
 	if ($('#boxes_on_click').is(':checked')) {
 		annotator.boxes_on_click = true;
@@ -732,7 +733,5 @@
 		$('#development_annotation').attr('checked', digipal_settings.annotating).trigger('change');
 		$('#multiple_annotations').attr('checked', digipal_settings.select_multiple_annotations).trigger('change');
 	})();
-
-
 
 })();

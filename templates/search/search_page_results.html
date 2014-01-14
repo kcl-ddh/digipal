@@ -3,18 +3,8 @@
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 {% block meta_title %}
-    Search 
+    Search
     {% if terms %}({{ terms }}){% endif %}
-{% endblock %}
-
-{% block extra_js %}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
-    <script type="text/javascript">
-        init_search_page({{ search_page_options_json|safe }});
-    </script>
 {% endblock %}
 
 {% block extra_css %}
@@ -25,7 +15,8 @@
 
     {% if not submitted %}
         <div class="row-fluid">
-            <h3>Please type in keyword to search for {{ search_types_display }} and use filters to narrow down your search results</h3>
+            <h3>Please type in keyword to search for {{ search_types_display }} and
+             use filters to narrow down your search results</h3>
         </div>
     {% endif %}
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
@@ -35,22 +26,10 @@
                 <div id='radio'>
                     <h3 class='header5'>Search</h3>
                     <ul>{{ advanced_search_form.as_ul }}</ul>
-                    <script>
-                        // TODO: move this into search_page.js
-                        $('#radio ul').contents().unwrap();
-                        $('#radio li').contents().unwrap();
-                        // Then move the input to outside of the label
-                        $('#radio > label > input').each(function() {
-                            $(this).parent().before(this);
-                        });
-                        // Then apply the jQuery UI buttonset
-                        $("#radio").buttonset();
-                        $('#radio .ui-button-text').css('padding','.2em 1em');
-                    </script>  
                 </div>
             </div>
         </div>
-        
+
         <div class='container'>
             <a id='advanced' class='btn btn-link' style='margin-left:0;padding-left:0;'>Advanced Search</a>
             <div id='advancedSearch'>
@@ -64,26 +43,26 @@
             <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
         </div>
     </form>
-      
+
     <div class="panel" id='filtersform'>
         <h5 class='header5'>Show Graphs filtered by:</h5>
         <form class="container form-inline"  method="GET" action="/digipal/search/graph">
             <ul>{{ drilldownform.as_ul }}</ul>
-           
+
             <div class='container'>
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
                 <input type='reset' class='btn' />
             </div>
-        </form> 
+        </form>
     </div>
-         
+
     {% if submitted %}
         {% if terms %}
             <div class='breadcrumb'>
                 <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
             </div>
         {% endif %}
-    
+
         {% if not is_empty %}
             <div class='container'>
                 <ul class="nav nav-tabs" id='myTab'>
@@ -94,7 +73,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            
+
             <div class='tabbable'>
                 <div id='myTabContent' class='tab-content'>
                     {% for type in types %}
@@ -105,17 +84,17 @@
                                 {% reset_recordids as recordids %}
                                 {% autopaginate type.queryset 9 as recordids %}
                                 {% get_records_from_ids type recordids as records %}
-                                
+
                                 {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}
                                 {% endfilter %}
-                                
+
                                 {% include type.template_path with template_type=type.key %}
-                                
+
                                 {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}
                                 {% endfilter %}
-                                
+
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -127,7 +106,28 @@
                 <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
             </div>
         {% endif %}
-    
+
     {% endif %}
 
 {% endblock main %}
+{% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
+    <script type="text/javascript">
+        // TODO: move this into search_page.js
+
+        var radio = $('#radio');
+        radio.find('ul').contents().unwrap();
+        radio.find('li').contents().unwrap();
+        // Then move the input to outside of the label
+        radio.children('label').children('input').each(function() {
+            $(this).parent().before(this);
+        });
+        // Then apply the jQuery UI buttonset
+        radio.buttonset();
+        radio.find('.ui-button-text').css('padding','.2em 1em');
+        init_search_page({{ search_page_options_json|safe }});
+    </script>
+{% endblock %}

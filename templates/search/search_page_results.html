@@ -15,6 +15,7 @@
 
     {% if not submitted %}
         <div class="row-fluid">
+            <h1 class='header1'>Search</h1>
             <h3>Please type in keyword to search for {{ search_types_display }} and
              use filters to narrow down your search results</h3>
         </div>
@@ -24,7 +25,6 @@
             {# {% csrf_token %} #}
             <div class='span9'>
                 <div id='radio'>
-                    <h3 class='header5'>Search</h3>
                     <ul>{{ advanced_search_form.as_ul }}</ul>
                 </div>
             </div>

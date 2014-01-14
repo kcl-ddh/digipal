@@ -105,7 +105,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				return false;
 			}
 
-
 			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
 
 		} else {
@@ -186,6 +185,4 @@ function notify(msg, status) {
 			status_element.fadeOut();
 			running = false;
 		}, 5000);
-
-
 }

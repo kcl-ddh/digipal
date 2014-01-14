@@ -128,13 +128,14 @@
         </div>
     </div>
     <div id='basket_collector'>
-        <p>Add Image to Basket</p>
+        <p>Add Image to Collection</p>
         <p>
             <img src='/static/images/shopping-cart-icon.png' />
         </p>
     </div>
+{% endblock %}
 
-    {% block extra_js %}
+{% block extra_js %}
 
     {{ block.super }}
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
@@ -151,22 +152,29 @@
 
 
                 if(add_to_lightbox(element, 'image', element.data('id'), false)){
-                    var s = '<p>Image added to Lightbox!</p>';
+                    var s = '<p>Image added to Collection!</p>';
                     s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
                     $(this).html(s);
+
+                    element.animate({
+                        width: 0,
+                        height: 0
+                    }, 650).remove();
                 }
 
                 setTimeout(function(){
 
-                    s = '<p>Add image to Basket</p>';
+                    s = '<p>Add image to Collection</p>';
                     s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
                     basket_collector.html(s);
 
                     basket_collector.animate({
-                        left: '100%'
+                         bottom: '-28%'
                     }, 350);
 
                 }, 3000);
+
+                $('html, body').css('cursor', 'initial');
 
             },
             out: function(){
@@ -179,35 +187,34 @@
 
         var images = $('a.droppable_image');
         images.draggable({
-            containment: 'window',
-            revert: true,
-            stack: 'div',
-            scroll: true,
-            zIndex: 6000,
+             containment: false,
+                stack: '*',
+                cursor: 'move',
+                revert: true,
+                scroll: true,
+                zIndex: 6000,
             start: function(){
                 $('#basket_collector').animate({
-                    left: '85%'
+                     bottom: 0
                 }, 350);
             },
             stop: function(){
                 $('#basket_collector').animate({
-                    left: '100%'
+                    bottom: '-28%'
                 }, 350);
             }
         });
 
-
-        $('.imageDatabase').on('mouseenter', function(event){
-                $(this).find('.drag_caption').slideDown();
-                event.stopPropagation();
-                return false;
-            }).on('mouseleave', function(event){
-                $(this).find('.drag_caption').slideUp();
-                event.stopPropagation();
-                return false;
-            });
+        var img_database = $('.imageDatabase');
+        img_database.on('mouseenter', function(event){
+            $(this).find('.drag_caption').slideDown();
+            event.stopPropagation();
+            return false;
+        }).on('mouseleave', function(event){
+            $(this).find('.drag_caption').slideUp();
+            event.stopPropagation();
+            return false;
+        });
     });
     </script>
     {% endblock %}
-
-{% endblock %}

@@ -74,7 +74,7 @@
 
                                             <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
                                                 <span class="drag_caption">Drag Image to basket</span>
-                                                {% iip_img image.iipimage width=200 %}</a>
+                                                {% iip_img image width=200 %}</a>
                                         </dt>
                                         <dd>
                                             <p><b>{{ image }}</b></p>
@@ -138,7 +138,7 @@
     <div id='basket_collector'>
         <p>Add Image to Basket</p>
         <p>
-            <img src='/static/digipal/images/shopping-cart-icon.png' />
+            <img src='/static/digipal/images/shopping-cart-icon.png' alt="add to collection" />
         </p>
     </div>
 {% endblock %}

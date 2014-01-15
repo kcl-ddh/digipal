@@ -149,22 +149,7 @@
 
     <script>
     $(document).ready(function(){
-        {% comment %}TODO: GN - moce this to a js lib {% endcomment %}
-        function setCookie(c_name,value,exdays) {
-            var exdate=new Date();
-            exdate.setDate(exdate.getDate() + exdays);
-            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-            document.cookie=c_name + "=" + c_value;
-        }
-
-        $('#myTab a').click(function (e) {
-          e.preventDefault();
-          $(this).tab('show');
-          setCookie('view', this.innerHTML, '-1');
-        });
-
         $('select').chosen();
-        $('[data-toggle="tooltip"]').tooltip();
 
         var basket_collector = $('#basket_collector');
             basket_collector.droppable({

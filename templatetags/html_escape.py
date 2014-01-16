@@ -1,6 +1,6 @@
 from django.template import Library
 from django.template.defaultfilters import stringfilter
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, escape
 from django.utils.safestring import mark_safe
 import re
 
@@ -158,10 +158,10 @@ def iip_img_a(iipfield, *args, **kwargs):
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG">%s</a>' % (iipfield.full_base_url, iip_img(iipfield, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG">%s</a>' % (escape(iipfield.full_base_url), iip_img(iipfield, *args, **kwargs)))
 
 @register.simple_tag
-def iip_img(iipfield, *args, **kwargs):
+def iip_img(image_or_iipfield, *args, **kwargs):
     '''
         Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
 
@@ -172,6 +172,13 @@ def iip_img(iipfield, *args, **kwargs):
         If lazy is True the image will be loaded only when visible in
         the browser.
     '''
+    iipfield = image_or_iipfield        
+    if image_or_iipfield and hasattr(image_or_iipfield, 'iipimage'):
+        # it's an instance of the Image model
+        image = iipfield
+        iipfield = image.iipimage
+        kwargs['alt'] = u'%s' % image
+    
     return img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
 
 @register.simple_tag
@@ -185,13 +192,17 @@ def annotation_img(annotation, *args, **kwargs):
 
 @register.simple_tag
 def img(src, *args, **kwargs):
+    '''
+        Returns a <img src="" alt=""> element.
+        XML special chars in the attributes are encoded with &. 
+    '''
     more = ''
 
     if 'alt' in kwargs:
-        more += ur' alt="%s" ' % kwargs['alt']
+        more += ur' alt="%s" ' % escape(kwargs['alt'])
 
     if 'cls' in kwargs:
-        more += ur' class="%s" ' % kwargs['cls']
+        more += ur' class="%s" ' % escape(kwargs['cls'])
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % src
@@ -205,7 +216,7 @@ def img(src, *args, **kwargs):
                 s = max(size.values())
             more += ' %s="%s" ' % (d, s)
 
-    ret = ur'<img src="%s" %s/>' % (src, more)
+    ret = ur'<img src="%s" %s/>' % (escape(src), more)
     return mark_safe(ret)
 
 @register.simple_tag

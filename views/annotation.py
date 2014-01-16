@@ -66,7 +66,8 @@ def allograph_features(request, image_id, allograph_id):
 def image(request, image_id):
     """Returns a image annotation form."""
     image = Image.objects.get(id=image_id)
-    annotations = image.annotation_set.values('graph').count()
+    annotations_count = image.annotation_set.values('graph').count()
+    annotations = image.annotation_set.all()
     hands = image.hands.count()
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
@@ -74,6 +75,7 @@ def image(request, image_id):
     hands_list = []
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
+    data_allographs = SortedDict()
 
     for h in hands_object.values():
         if h['label'] == None:
@@ -82,6 +84,20 @@ def image(request, image_id):
             label = mark_safe(h['label'])
         hand = {'id': h['id'], 'name': label.encode('cp1252')}
         hands_list.append(hand)
+
+    #annotations by allograph
+    for a in annotations:
+        hand_label = a.graph.hand
+        allograph_name = a.graph.idiograph.allograph
+        if hand_label in data_allographs:
+            if allograph_name not in data_allographs[hand_label]:
+                data_allographs[hand_label][allograph_name] = []
+        else:
+            data_allographs[hand_label] = SortedDict()
+            data_allographs[hand_label][allograph_name] = []
+
+        data_allographs[hand_label][allograph_name].append(a)
+
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
     form = ImageAnnotationForm()
@@ -94,15 +110,16 @@ def image(request, image_id):
     is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
-
     context = {
                'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               'image_link': image_link, 'annotations': annotations,
+               'image_link': image_link, 'annotations': annotations_count,
+               'annotations_list': data_allographs,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
+               'repositories': Repository.objects.filter(currentitem__itempart__images=image_id)
                }
 
     if vector_id:
@@ -139,12 +156,14 @@ def image_vectors(request, image_id):
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
+
     if annotations_page:
         annotation_list = Annotation.objects.filter(image=image_id)
     else:
         annotation_list = Annotation.objects.filter(graph__hand=hand)
 
     data = {}
+    hands = []
     for a in annotation_list:
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
@@ -158,6 +177,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['num_features'] = len(features_list)
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
+
+        hand = a.graph.hand.label
+        hands.append(a.graph.hand.id)
+        allograph_name = a.graph.idiograph.allograph.name
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
@@ -183,6 +206,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
                 for f in gc.features.all():
                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
                         f.id))
+
     if annotations_page:
         return HttpResponse(simplejson.dumps(data), mimetype='application/json')
     else:
@@ -217,6 +241,8 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
                 'hand': hand[0].id,
                 'hand_name': hand[0].label,
                 'image': i.thumbnail(),
+                'image_id': i.image.id,
+                'graph' : i.graph.id,
                 'vector_id': i.vector_id
             }
             annotations_list.append(annotation)
@@ -292,8 +318,7 @@ def image_copyright(request, image_id):
     #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
     #context['copyright'] = repository.values_list('copyright_notice', flat = True)
     # TODO: check this path
-    context['repositories'] = Repository.objects.filter(currentitem__itempart__images=image_id)
-    context['image'] = image
+
     return render_to_response('pages/copyright.html', context,
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice

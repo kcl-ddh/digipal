@@ -1,5 +1,5 @@
+{% comment %}
 {% extends "base.html" %}
-
 {% block meta_title %}
     {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
     {{image|capfirst}}
@@ -19,6 +19,7 @@
           <li class='active'><a href='../copyright/'>Image Copyright</a></li>
   </ul>
 
+{% endcomment %}
 <div class="alert alert-block">
     {% for repository in repositories %}
         <p>
@@ -26,4 +27,3 @@
         </p>
     {% endfor %}
 </div>
-{% endblock %}

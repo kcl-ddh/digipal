@@ -1,150 +1,145 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags hand_filters %}
 {% load html_escape %}
+{# {annotations_list} #}
+{% if annotations_list %}
 
-{% if data %}
+    <h3>Hands</h3>
 
-  <h3>Hands</h3>
-
-  <!-- links to hands -->
-  {% for key, allographs in data.items %}
-      <h5>{{forloop.counter}}) <a class='label' href='#{{key|anchorify}}'>{{key}}</a></h5>
-  {% endfor %}
-
-  <hr />
-
-  {% for key, allographs in data.items %}
-
-  <div class="scribe">
-
-     <!-- hand record -->
-    <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'>
-      <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-        {{image|capfirst}} - {{ key }}
-    </h2>
-
-    <div class='panel'>
-       <!-- links to allographs -->
-      {% for key, annotations in allographs.items %}
-
-        <span>
-          <a class="label label-info" href='#{{key.id|anchorify}}_{{key|anchorify}}'>{{ key }}</a>
-        </span>
-
-      {% endfor %}
-
-    </div>
-
-    {% for key, annotations in allographs.items %}
-
-    <div>
-       <!-- allographs -->
-      <h5 class='header5' style='font-size:14px;' id='{{key.id|anchorify}}_{{key|anchorify}}'>
-        {{ key }}
-        <div style='margin-left:2%;display:inline;' class='btn-group'>
-        <button class='btn btn-small to_lightbox'>To Collection</button>
-        <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small select_all'>Select All</button>
-        <button data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
-      </h5>
-
-      <ul data-key = '{{key.id|anchorify}}_{{key|anchorify}}'>
-        {% for annotation in annotations %}
-         {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
-          <br />
-        {% endif %}
-         <!-- graph -->
-        <li class='annotation_li' data-graph = "{{ annotation.graph.id }}" data-annotation = "{{ annotation.vector_id }}" data-image="{{ annotation.image_id }}">
-
-        <p>
-
-          {% if not can_edit %}
-
-          <a title='View image in manuscript viewer' class='label_link_annotation' href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map">View</a>
-
-          {% else %}
-          <input data-key = '{{key.id|anchorify}}_{{key|anchorify}}' class='select_annotation_checkbox' type='checkbox' data-allograph = "{{key}}" data-annotation = "{{ annotation.vector_id }}" />
-
-          {% endif %}
-
-          {% if can_edit %}
-           <!-- graph number -->
-          <span class='label label-info'>{{forloop.counter}}</span>
-
-          {% endif %}
-
-        </p>
-
-          <a data-graph = '{{ annotation.graph.id }}' class='droppable_image' href="/digipal/page/{{ annotation.image.id }}/?vector_id={{ annotation.vector_id }}#map" onclick="selectFeature('{{ annotation.vector_id}}');">
-
-            {% annotation_img annotation lazy=1 %}
-
-          </a>
-
-        </li>
-
-        {% endfor %}
-
-      </ul>
-
-    </div>
-
+    <!-- links to hands -->
+    {% for key in annotations_list %}
+        <h5>{{forloop.counter}}) <a class='label' href='#{{key|anchorify}}'>{{key}}</a></h5>
     {% endfor %}
 
-  </div>
+    <hr />
 
-  {% endfor %}
+    {% for key in annotations_list %}
 
-<div>
-  <a id='ontop' href='#top' title='Back to Top'></a>
-</div>
+         <!-- hand record -->
+        <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'>
+          <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+            {{image|capfirst}} - {{ key }}
+        </h2>
+
+
+        <div class='panel'>
+           <!-- links to allographs -->
+
+          {% for key, allographs in annotations_list.items %}
+            {% for allograph in allographs %}
+              <span>
+                <a class="label label-info" href='#{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
+              </span>
+            {% endfor %}
+
+          {% endfor %}
+        </div>
+             <!-- allographs -->
+
+            {% for key, allographs in annotations_list.items %}
+              {#{ key }#}
+              {#{ allographs }#}
+              {% for allograph, graphs in allographs.items %}
+
+                <h5 class='header5' style='display:inline;' id='{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+                  {{  allograph }}
+                </h5>
+
+                <div style='margin-left:2%;display:inline;' class='btn-group'>
+                    <button class='btn btn-small to_lightbox'>Collect</button>
+                    <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small select_all'>Select All</button>
+                    <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
+                </div>
+
+                <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+
+                {% for graph in graphs %}
+
+                  {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
+                  <br />
+                  {% endif %}
+                 <!-- graph -->
+                <li class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}">
+
+                <p>
+
+                  {% if not can_edit %}
+
+                  <a title='View image in manuscript viewer' class='label_link_annotation' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map">View</a>
+
+                  {% endif %}
+
+                  {% if can_edit %}
+                   <!-- graph number -->
+                  <span class='label label-info'>{{forloop.counter}}</span>
+
+                  {% endif %}
+
+                </p>
+
+                  <a data-graph = '{{ graph.graph.id }}' class='droppable_image' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map" onclick="selectFeature('{{ graph.vector_id}}');">
+                    {% annotation_img graph lazy=1 %}
+                  </a>
+
+                </li>
+              {% endfor %}
+            </ul>
+          {% endfor %}
+          {% endfor %}
+      {% endfor %}
+
+    <div>
+      <a id='ontop' href='#top' title='Back to Top'></a>
+    </div>
 
 {% else %}
 
-<div class='alert alert-warning'><h6>No annotations available.</h6></p>
+<div class='alert alert-warning'><h6>No annotations available.</h6></div>
 
 {% endif %}
 
  <!-- if is admin -->
 {% if can_edit and image_server_url%}
 
-   <!-- modal data loading -->
+   <!-- modal data loading
   <div class='loading-div'>
     <p>Loading Data. Please wait...</p>
     <p>
       <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...'/>
     </p>
   </div>
+  -->
 
  <!-- features container -->
 <div class="myModal" id='modal_features'>
 
   <!-- header -->
-  <div class="modal_header">
-    <form id="frmAnnotation" method="get" name="frmAnnotation">
-      <i class='icon icon-remove close'></i>
-      <p class="myModalLabel">
-        <span class='label-modal-value'></span>
-        <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' />
-        <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' />
-        <input type='button' class='btn-small btn active' value='Summary' id='show_summary' />
-        <span title='Maximize window' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right'>&#9633;</span>
-      </p>
-      <p style='border-top:1px solid #efefef;padding-top:2%'></p>
-    </form>
-  </div>
+    <div class="modal_header">
+      <form class="frmAnnotation" method="get" name="frmAnnotation">
+        <i class='icon icon-remove close'></i>
+        <p class="myModalLabel">
+          <span class='label-modal-value'></span>
+          <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' />
+          <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' />
+          <input type='button' class='btn-small btn active' value='Summary' id='show_summary' />
+          <span title='Maximize window' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right'>&#9633;</span>
+        </p>
+        <p style='border-top:1px solid #efefef;padding-top:2%'></p>
 
-  <!-- body -->
-  <div class="modal-body">
-      {% for field in form %}
-          {{ field.label_tag }}
-          {{ field }}
-      {% endfor %}
-      <div id='features_container'></div>
-  </div>
+    </div>
+
+    <!-- body -->
+    <div class="modal-body">
+        {% for field in form %}
+            {{ field.label_tag }}
+            {{ field }}
+        {% endfor %}
+        <div id='features_container'></div>
+    </div>
 
   <!-- features summary -->
   <div id='summary'></div>
-
+   </form>
 </div>
 
 {% endif %}
@@ -154,4 +149,3 @@
       <img src='/static/digipal/images/shopping-cart-icon.png' />
   </p>
 </div>
-<div id='status'></div>

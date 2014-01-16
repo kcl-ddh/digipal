@@ -304,6 +304,10 @@ $(document).ready(function() {
 			} else {
 				notify('Please enter a name for this collection', "danger");
 			}
+			var container = $('#container_collections');
+			container.html('');
+			var cl = new Collections();
+			cl.init();
 			event.stopPropagation();
 		}
 
@@ -478,4 +482,13 @@ $(document).ready(function() {
 			loading_div.fadeOut().remove();
 		}
 	}
+
+	$('a[data-toggle="tab"]').on('shown', function(e) {
+		var filter = $('#filter');
+		if (e.target.innerHTML == 'Manage Collections') {
+			filter.attr('disabled', false);
+		} else {
+			filter.attr('disabled', true);
+		}
+	});
 });

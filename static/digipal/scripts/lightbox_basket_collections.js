@@ -6,6 +6,7 @@ function Collections() {
 	};
 
 	this.get = function() {
+		var self = this;
 		var collections = JSON.parse(localStorage.getItem('collections'));
 		this.collections = collections;
 		if (!$.isEmptyObject(collections)) {
@@ -54,11 +55,36 @@ function Collections() {
 		}
 	};
 
+	this.filter = function(pattern) {
+		var re = new RegExp(pattern, "gi");
+		$.each(this.collections, function(index, value) {
+			var element = $('.collection[id="' + value.id + '"');
+			if (!index.match(re)) {
+				element.fadeOut();
+			} else {
+				element.fadeIn();
+			}
+		});
+	};
+
 }
 
 function main() {
 	collections = new Collections();
 	collections.init();
+
+	var filter = $('#filter');
+	filter.on('keydown', function() {
+		collections.filter($(this).val());
+	});
+
+	filter.on('keyup', function() {
+		collections.filter($(this).val());
+	});
+
+	filter.on('change', function() {
+		collections.filter($(this).val());
+	});
 }
 
 $(document).ready(function() {

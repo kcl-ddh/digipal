@@ -1,3 +1,4 @@
+{% comment %}
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
@@ -21,8 +22,9 @@
           <li><a href='../copyright/'>Image Copyright</a></li>
   </ul>
 
+{% endcomment %}
 <h3 class='header5'>Current Location</h3>
- 
+
 <table class="table table-condecopyright/nsed">
     <tbody>
         <tr>
@@ -62,4 +64,3 @@
         </tr>
     {% endfor %}
 </table>
-{% endblock %}

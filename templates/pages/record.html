@@ -16,7 +16,7 @@
 
             // Update the webpath in the address bar when the tab is changed
             // See JIRA 155, 140
-            $('#record-tab-switch a').click(function (e) {
+            $('#myTab a').click(function (e) {
                 if (window.history && window.history.pushState) {
                     e.preventDefault();
                     $(this).tab('show');
@@ -42,7 +42,7 @@
 
     <div class="row-fluid">
         <div class='span8'>
-            <ul class="nav nav-tabs" id='record-tab-switch'>
+            <ul class="nav nav-tabs" id='myTab'>
                 {% filter add_query_params:request.META.QUERY_STRING %}
                     {% block record_tabs %}
                     {% endblock %}
@@ -51,23 +51,30 @@
         </div>
     
         {% if pagination %}
-            <div class="span4 pull-right" style="margin-top: -1em;">
-                <ul class="pager">
-                    <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
-                        <a href="{{ pagination.previous_url }}">Previous</a>
-                    </li>
-                
-                    <li>
-                        <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Return to the result page">
-                            {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}
-                        </a>
-                    </li>
-
-                    <li class="next {% if not pagination.next_url %}disabled{% endif %}">
-                        <a href="{{ pagination.next_url }}">Next</a>
-                    </li>
-                </ul>
-            </div>
+            {% comment %}
+            {% if pagination.total > 1 %}
+                <div class='span4 pull-right'>
+            {% else %}
+                <div class='span3 pull-right'>
+            {% endif %}
+            {% endcomment %}
+                <div class="span4 pull-right" style="margin-top: -1em;">
+                    <ul class="pager">
+                        <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
+                            <a href="{{ pagination.previous_url }}">Previous</a>
+                        </li>
+                    
+                        <li>
+                            <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Return to the result page">
+                                {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}
+                            </a>
+                        </li>
+    
+                        <li class="next {% if not pagination.next_url %}disabled{% endif %}">
+                            <a href="{{ pagination.next_url }}">Next</a>
+                        </li>
+                    </ul>
+                </div>
         {% endif %}
     </div>
 

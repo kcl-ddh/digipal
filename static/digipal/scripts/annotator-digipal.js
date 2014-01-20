@@ -503,9 +503,11 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				allograph = $(this).val();
 			}
 		});
+		console.log(allograph);
 		if (allograph) {
-			select_allograph.val(allograph).trigger('liszt:updated');
+			select_allograph.val(allograph);
 		}
+		$('select').trigger('liszt:updated');
 		var features = annotator.vectorLayer.features;
 		var features_length = features.length;
 		var n = 0;
@@ -1447,7 +1449,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 								c++;
 							}
 						});
-						$(hand).append(" <span class='num_all_hands'>" + c + "</span>");
+						$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
 					});
 				});
 			});

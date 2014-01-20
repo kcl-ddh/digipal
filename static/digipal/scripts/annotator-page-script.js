@@ -160,7 +160,6 @@
 
 					// zoom map to extent
 					extent_parsed = geo_json.extent;
-					console.log(extent_parsed)
 					extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
 
 

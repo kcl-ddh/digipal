@@ -71,11 +71,15 @@ function Allographs() {
 		a_images.click(function(event) {
 			var id = $(this).parent('.annotation_li').data('annotation');
 			self.methods.to_annotator(id);
+
+			/*
 			var panel = $('#panelImageBox');
 			$('body').animate({
 				scrollLeft: panel.position().left,
 				scrollTop: panel.position().top
 			});
+			*/
+
 			event.stopPropagation();
 			event.preventDefault();
 		});
@@ -215,6 +219,11 @@ function Allographs() {
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
 			annotator.selectFeatureByIdAndZoom(annotation_id);
+			var select_allograph = $('#panelImageBox');
+			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+			var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
+			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
+			$('select').trigger('liszt:updated');
 		}
 	};
 
@@ -539,7 +548,6 @@ function Allographs() {
 					var currentTab = $('.tab-pane.active'),
 						tab;
 					if (code == 37) { // left
-						console.log('prev');
 						var prevTab;
 						if (!currentTab.prev().length) {
 							return false;
@@ -550,7 +558,6 @@ function Allographs() {
 						}
 					}
 					if (code == 39) { // right
-						console.log('next');
 						var nextTab;
 						if (!currentTab.next().length) {
 							return false;

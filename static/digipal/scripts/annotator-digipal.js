@@ -36,11 +36,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.boxes_on_click = false;
 	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
 	this.transformFeature.panel_div.title = 'Modify (shift + m)';
-	//this.duplicateFeature.panel_div.title = 'Duplicate (shift + d)';
-	//this.polygonFeature.panel_div.title = 'Draw Polygon (alt + p)';
 	this.rectangleFeature.panel_div.title = 'Draw Annotation (shift + d)';
 	this.selectFeature.panel_div.title = 'Select (shift + g)';
-	//this.dragFeature.panel_div.title = 'Drag (shift + w)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
 	this.saveButton.panel_div.title = 'Save (shift + s)';
 	this.selectedAnnotations = [];
@@ -56,27 +53,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	var self = this;
 	this.selectedFeature = event.feature;
+
 	if (!annotator.events) {
 		registerEvents();
 	}
-	/*
-	if ($('#id_hide').prop('checked')) {
-		var layer = this.vectorLayer;
-		for (var i = 0; i < layer.features.length; i++) {
-			var f = layer.features[i];
-			if (event.feature.id != f.id) {
-				f.style = {};
-				f.style.display = 'none';
-			}
-		}
-		layer.redraw();
-	}
-	*/
 
 	var group_button = $('.link_graphs');
-
 	if (self.selectedFeature.linked_to && !isEmpty(self.selectedFeature.linked_to[0]) && allow_multiple()) {
-
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			if (value) {
 				self.showAnnotation(value);
@@ -118,7 +101,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	} else {
 		self.showAnnotation(event.feature);
 	}
-
 
 };
 
@@ -172,17 +154,10 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		}
 	}
 
-
 	if (feature.described) {
 		feature.style.fillColor = 'green';
 		feature.style.strokeColor = 'green';
-		/*
-		if (feature.display_note) {
-			feature.style.strokeColor = 'yellow';
-		} else {
-			feature.style.strokeColor = 'green';
-		}
-		*/
+
 
 	} else {
 		feature.style.fillColor = '#ee9900';
@@ -197,35 +172,8 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		} else {
 			feature.style.strokeColor = '#ee9900';
 		}
-		/*
-		if (feature.display_note) {
-			feature.style.strokeColor = 'yellow';
-		} else {
-			feature.style.strokeColor = '#ee9900';
-		}
-		*/
-	}
 
-	/*
-	if (feature.state == 'Insert') {
-		this.last_feature_selected = {
-			'id': $('#panelImageBox .allograph_form').val(),
-			'name': $('#panelImageBox .allograph_form option:selected').text()
-		};
-		feature.last_feature_selected = this.last_feature_selected;
 	}
-
-	if ($('#id_hide').prop('checked')) {
-		var max = _self.vectorLayer.features.length;
-		for (var i = 0; i < max; i++) {
-			var f = _self.vectorLayer.features[i];
-			if (_self.selectedFeature.id != f.id) {
-				f.style = null;
-			}
-		}
-	}
-
-	*/
 
 	this.vectorLayer.redraw();
 
@@ -263,13 +211,10 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
 		}
 
-		$('.allograph_label')
-			.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
-			.css('cursor', 'pointer')
-			.data('hidden', true);
+		var allograph_label = $('.allograph_label');
+		allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />').css('cursor', 'pointer').data('hidden', true);
 
-		$(".allograph_label").unbind().click(function() {
-
+		allograph_label.unbind().click(function() {
 			var element = "<div class='elements_linked'>";
 
 			$.each(elements_linked, function() {
@@ -279,10 +224,11 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			element += '</div>';
 
+
 			if ($('.elements_linked').length) {
 				$('.elements_linked').replaceWith(element);
 			} else {
-				$('.dialog_annotations').prepend(element);
+				$('.ui-dialog .frmAnnotation').prepend(element);
 			}
 
 			var el_link = $('.elements_linked');
@@ -294,7 +240,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				$(this).data('hidden', true);
 			}
 
-			$('.elements_linked').find('p').on('mouseover', function(event) {
+			el_link.find('p').on('mouseover', function(event) {
 				var id = $(this).data('id');
 				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
 					var f = annotator.vectorLayer.features[i];
@@ -317,10 +263,11 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			}).on('click', function() {
 				var id = $(this).data('id');
 				annotator.selectFeatureById(id);
-				console.log(id);
 			});
 
-			$('.ungroup').click(function() {
+			var ungroup_elements = $('.ungroup');
+
+			ungroup_elements.click(function() {
 				var id = $(this).data('id');
 				$(this).parent('p').fadeOut().remove();
 				ungroup(id);
@@ -1388,8 +1335,6 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 	div.append(top_div);
 
 	var container_div = $("<div id='container-letters-popup'>");
-
-	container_div.css('padding', '1.5%');
 	div.append(container_div);
 	if (show) {
 		$('#annotator').append(div);
@@ -1410,27 +1355,26 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 			var j = 0;
 			var data_hand;
 			if (data.length === 1) {
-
 				j = 1;
-				s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[0].hand_name + "</label>\n";
+				s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
 				data_hand = data[0].hand;
 				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[0].vector_id + "' title='Click on the image to center the map'>" + data[0].image + '</span>\n';
 			} else {
 				for (var i = 0; i < data.length; i++) {
 					j++;
 					if (i === 0) {
-						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "' style='border-bottom:1px dotted #efefef;'>Hand: " + data[i].hand_name + "</label>\n";
+						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "'>Hand: " + data[i].hand_name + "</label>\n";
 						data_hand = data[i].hand;
 					}
 					if (typeof data[i - 1] != "undefined" && typeof data[i + 1] != "undefined" && data[i].hand != data[i - 1].hand) {
 						j = 1;
 						data_hand = data[i].hand;
-						s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i + 1].hand_name + "</label>\n";
+						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i + 1].hand_name + "</label>\n";
 					}
 					if (typeof data[i + 1] == "undefined" && data[i].hand != data[i - 1].hand) {
 						j = 1;
 						data_hand = data[i].hand;
-						s += "<span style='display:block;margin:3px;'></span><label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "' style='border-bottom:1px dotted #efefef;margin-top:1%;'>Hand: " + data[i].hand_name + "</label>\n";
+						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
 					}
 					s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map'>" + data[i].image + '</span>\n';
 				}
@@ -1503,7 +1447,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 								c++;
 							}
 						});
-						$(hand).after(" <span class='num_all_hands label'>" + c + "</span><span style='display:block;margin:3px;'></span>");
+						$(hand).append(" <span class='num_all_hands'>" + c + "</span>");
 					});
 				});
 			});
@@ -1519,7 +1463,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 				el += '<li class="annotation_li" data-graph="' + data[h].graph + '" data-annotation="' + data[h].vector_id + '" data-image="' + data[h].image_id + '">';
 				el += '<p><span class="label label-info">' + (h + 1) + '</span></p>' + data[h].image + '</li>';
 			}
-			ul.append(el);
+			ul.html(el);
 
 
 		} else {
@@ -2304,7 +2248,8 @@ function serializeObject(obj) {
 
 function highlight_vectors() {
 
-	$('#panelImageBox .allograph_form_chzn .active-result').on('mouseover', function() {
+	var allograph_form_id = $('#panelImageBox .allograph_form').attr('id');
+	$('#' + allograph_form_id + '_chzn').find('.active-result').on('mouseover', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
 		for (i = 0; i < features.length; i++) {
@@ -2318,7 +2263,7 @@ function highlight_vectors() {
 		annotator.vectorLayer.redraw();
 	});
 
-	$('#panelImageBox .allograph_form_chzn .active-result').on('mouseout', function() {
+	$('#' + allograph_form_id + '_chzn').find('.active-result').on('mouseout', function() {
 		var text = $(this).text();
 		var features = annotator.vectorLayer.features;
 		for (i = 0; i < features.length; i++) {
@@ -2387,200 +2332,6 @@ function trigger_highlight_unsaved_vectors() {
 
 }
 
-function load_annotations_allographs(annotation) {
-
-	if (annotation) {
-		var select_allograph;
-		if ($('.tab-pane.active').attr('id') == 'annotator') {
-			select_allograph = $('#panelImageBox');
-		} else {
-			select_allograph = $('.modal-body');
-		}
-		if (selectedAnnotations.annotations.length > 1) {
-			$('.myModalLabel .label-modal-value').html(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
-		} else {
-			$('.myModalLabel .label-modal-value').html(annotation.feature);
-		}
-		$('#hidden_hand').val(annotation.hidden_hand);
-		select_allograph.find('.hand_form').val(annotation.hidden_hand);
-		select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation, 'hidden_allograph'));
-		$('#hidden_allograph').val(getKeyFromObjField(annotation, 'hidden_allograph'));
-		$('#id_display_note').val(annotation.display_note);
-		$('#id_internal_note').val(annotation.internal_note);
-		$('select').trigger('liszt:updated');
-		var url = 'graph/' + annotation.graph + '/features/';
-		$('#id_display_note').parent('p').hide();
-		$('#id_internal_note').parent('p').hide();
-		var url_features = "graph/" + annotation.graph;
-		var array_features_owned = features_owned(annotation, url);
-		var request = $.getJSON(url_features);
-		var features = annotator.vectorLayer.features;
-		var url2;
-		request.done(function(data) {
-			var allograph_id = data.id;
-			url2 = 'allograph/' + data.id + '/features/';
-			var allographs = $.getJSON(url2);
-			var s = "<div id='box_features_container'>";
-			var string_summary = '';
-			allographs.done(function(data) {
-				$.each(data, function(idx) {
-					var component = data[idx].name;
-					var component_id = data[idx].id;
-					var is_empty;
-					var features = data[idx].features;
-					string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
-
-					s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
-
-					s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div><div>";
-
-					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-					var n = 0;
-
-					$.each(features, function(idx) {
-						var value = component_id + '::' + features[idx].id;
-						var names = component + ':' + features[idx].name;
-						var f = selectedAnnotations.annotations;
-						var al = '';
-						var d = 0;
-						var title = '';
-						var ann;
-						for (var k = 0; k < f.length; k++) {
-							for (var j = 0; j < f[k].features.length; j++) {
-								if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
-
-									ann = $('input[data-annotation="' + f[k].vector_id + '"]').next().text();
-
-									if (ann) {
-										al += '<span class="label">' + ann + '</span> ';
-										title += ann + ' ';
-									}
-
-									d++;
-
-									temporary_vectors.push(names);
-								}
-
-							}
-						}
-						var id = component_id + '_' + features[idx].id;
-
-						if (temporary_vectors) {
-							array_features_owned = array_features_owned.concat(temporary_vectors);
-						}
-
-						if (array_features_owned.indexOf(names) >= 0) {
-
-							string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
-
-							s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
-							n++;
-						} else {
-							s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
-						}
-
-					});
-					s += "</p></div>";
-					if (!n) {
-						string_summary += "<span class='feature_summary'>undefined</span>";
-					}
-				});
-				s += "</div>";
-
-				$("#summary").html(string_summary);
-				$('#features_container').html(s);
-
-				$('.check_all').click(function(event) {
-					var component = $(this).data('component');
-					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
-					checkboxes.attr('checked', true);
-					event.stopPropagation();
-				});
-
-				$('.uncheck_all').click(function(event) {
-					var component = $(this).data('component');
-					var checkboxes = $('#component_' + component).find("input[type=checkbox]");
-					checkboxes.attr('checked', false);
-					event.stopPropagation();
-				});
-
-				$('.myModal select').chosen();
-
-				var maximized = false;
-				$('#maximize').click(function(event) {
-					event.preventDefault();
-					$('#summary').css("bottom", "88%").hide();
-					if (!maximized) {
-						$('.myModal').animate({
-							'position': 'fixed',
-							'top': "0px",
-							'left': '59.5%',
-							"width": '40%',
-							"height": '100%'
-						}, 200, function() {
-							$('#summary').show();
-							$('.modal-body').css("max-height", "100%");
-						}).draggable("destroy");
-
-
-						maximized = true;
-					} else {
-						$('#summary').css("bottom", "88%").hide();
-						$('.myModal').animate({
-							'position': 'fixed',
-							'left': "55%",
-							'top': "15%",
-							'right': '',
-							"width": '30%',
-							"height": '60%'
-						}, 200, function() {
-							$('#summary').show();
-							$('#summary').style = null;
-							$('.modal-body').css("max-height", "");
-						}).draggable();
-						maximized = false;
-					}
-				});
-
-				$('.component_labels').click(function() {
-					var div = $("#" + $(this).data('id'));
-					if (!div.data('hidden')) {
-						$(this).next('.checkboxes_div').hide();
-						div.slideUp(500).data('hidden', true);
-						$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
-					} else {
-						div.slideDown().data('hidden', false);
-						$(this).next('.checkboxes_div').show();
-						$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
-					}
-				});
-
-				//updateFeatureSelect(annotation.features, feature);
-				$('#modal_features .close').click(function() {
-					$("#modal_features").fadeOut();
-					$('#status').html('-');
-					modal = false;
-					selectedAnnotations.allograph = null;
-					selectedAnnotations.annotations = [];
-					$('.annotation_li').removeClass('selected');
-					$('.select_annotation_checkbox').attr('checked', false);
-				});
-
-			});
-
-			/*
-			$('select').on("liszt:ready", function() {
-				style_select('#panelImageBox .hand_form_chzn');
-				style_select('#panelImageBox .allograph_form_chzn');
-			});
-*/
-			var select_list = $('select');
-			select_list.chosen();
-
-		});
-	}
-}
-
 
 function make_form() {
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
@@ -2608,7 +2359,6 @@ function make_form() {
 	obj['feature'] = array_values;
 
 	var form_serialized = form.serialize();
-	console.log(form_serialized)
 	var s = '';
 
 	for (i = 0; i < array_values.length; i++) {
@@ -2635,10 +2385,14 @@ function make_form() {
 /**
  * Saves an annotation for the currently selected feature.
  */
-DigipalAnnotator.prototype.saveAnnotation = function(ann) {
+DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 
 	if (!ann) {
 		ann = null;
+	}
+
+	if (typeof allographs_page == 'undefined') {
+		allographs_page = false;
 	}
 
 	if (this.selectedAnnotations.length) {
@@ -2650,14 +2404,12 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann) {
 	var feature;
 	var data = make_form();
 
-	if (allow_multiple() && this.selectedAnnotations.length > 1) {
+	if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
 		var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
-		var save_annotations = confirm(msg);
-		if (save_annotations) {
+		if (confirm(msg)) {
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
 				feature = this.selectedAnnotations[i];
 				save('save', feature, data.form_serialized, ann, data.features);
-				//this.loadAnnotations();
 			}
 		} else {
 			return false;
@@ -3024,44 +2776,31 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 /* FullScreen Mode */
 
 DigipalAnnotator.prototype.full_Screen = function() {
+	var map = $('#map');
+	var panel = $('#panelImageBox');
 	if (!(this.fullScreen.active)) {
-		//this.rectangleFeature.activate();
 		this.fullScreen.activate();
-		$('#map').css({
-			'width': '100%',
-			'height': '100%',
-			'position': 'fixed',
-			'top': 0,
-			'left': 0,
-			'z-index': 1000,
-			'background-color': 'rgba(0, 0, 0, 0.95)'
-		});
+		map.addClass("fullScreenMap");
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.85)");
+
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
-				$('#map').attr('style', null);
-				$('#panelImageBox').attr('style', null);
+				map.removeClass('fullScreenMap');
+				panel.removeClass('fullScreenPanel');
 				$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 				annotator.fullScreen.deactivate();
 			}
 		});
+
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
-		$('#panelImageBox').css({
-			'position': 'fixed',
-			"z-index": 2000,
-			"width": "80%",
-			'top': '1%',
-			"left": "8%",
-			'border-color': '#333',
-			'background-color': 'rgba(10, 10, 10, 0.7)'
-		});
+		panel.addClass('fullScreenPanel');
 
 	} else {
 		this.fullScreen.deactivate();
-		$('#map').attr('style', null);
+		map.removeClass('fullScreenMap');
 		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
-		$('#panelImageBox').attr('style', null);
+		panel.removeClass('fullScreenPanel');
 	}
 };
 
@@ -3108,35 +2847,6 @@ function getCookie(name) {
 	}
 	return cookieValue;
 }
-
-function showAnnotationsOverview(data) {
-	var _self = this.annotator;
-
-	$('#overview').children().remove();
-
-	var previousLetter = '';
-	var letterCounter = 0;
-
-	$.each(data, function(idx) {
-		var a = data[idx];
-		var fid = a.vector_id;
-		var letter = a.allograph;
-
-		var li = document.createElement('li');
-		li.setAttribute('id', fid);
-
-		if (letter != previousLetter) {
-			letterCounter = 0;
-		}
-
-		previousLetter = letter;
-
-		li.innerHTML = '<dfn>' + (letter ? letter : '-') + ++letterCounter + '</dfn>' + '<a href="javascript: annotator.selectFeatureByIdAndCentre(\'' + fid + '\');"' + 'title="' + fid + '">' + '<img src="' + _self.mediaUrl + 'uploads/annotations/' + idx + '.jpg" width="15px" />' + '</a>';
-
-		$('#overview').append(li);
-	});
-}
-
 
 /**
  * Turns on keyboard shortcuts for the controls.

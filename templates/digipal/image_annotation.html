@@ -35,8 +35,8 @@
                         <li class='active'>
                             <a data-toggle="tab" data-target='#annotator' href='#'>View Manuscript</a>
                         </li>
-                        <li>
-                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="allographs/">Annotations by Allograph</a>
+                        <li {% if annotations == 0 %} class='disabled' {% endif %}>
+                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="allographs/">Annotations by Allograph ({{annotations}})</a>
                         </li>
                         <li>
                             <a data-toggle="tab" data-target='#metadata' href='metadata/'>View Metadata</a>
@@ -72,13 +72,14 @@
                          {% include "pages/record_images.html" %}
                     </div>
 
+                    <div class="tab-pane fade" id='copyright'>
+                        {% include "pages/copyright.html" %}
+                    </div>
+
                     <div class="tab-pane fade" id='pages'>
                         {% include "digipal/image_annotation_other_images.html" %}
                     </div>
 
-                    <div class="tab-pane fade" id='copyright'>
-                        {% include "pages/copyright.html" %}
-                    </div>
                 </div>
 
             </div>
@@ -155,7 +156,11 @@
             */
             if(annotator){
                 $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
-                $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
+                if(annotator.isAdmin == 'True'){
+                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
+                } else {
+                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
+                }
             }
 
         });

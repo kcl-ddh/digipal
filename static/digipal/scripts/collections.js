@@ -25,14 +25,14 @@ function Collections() {
 				var collection = $('<div>');
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
-				collection.addClass('span1');
+				collection.addClass('span1 span1');
 				collection.append('<a href="?collection=' + index + '"><img title="Send collection to basket" src="/static/img/folder.png" /></a>');
 				collection.append('<label>' + index + '<label>');
 				collection.append("<button id = '" + index + "' data-collection =  '" + value.id + "' class='remove_collection btn btn-danger btn-mini'>Remove</button>");
 				container.append(collection);
 			});
 		} else {
-			var s = '<div class="container alert alert-warning">No collections saved</div>';
+			var s = '<div class="alert alert-warning">No collections saved</div>';
 			container.append(s);
 		}
 		$('.remove_collection').click(function(event) {
@@ -49,7 +49,7 @@ function Collections() {
 		$('#' + collection_name).fadeOut().remove();
 		if ($.isEmptyObject(this.collections)) {
 			var container = $('#container_collections');
-			var s = '<div class="container alert alert-warning" style="margin-top:5%">No collections saved</div>';
+			var s = '<div class="alert alert-warning">No collections saved</div>';
 			container.html(s);
 			localStorage.removeItem('collections');
 		}

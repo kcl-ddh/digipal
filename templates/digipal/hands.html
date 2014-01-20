@@ -13,7 +13,7 @@
 
     <hr />
 
-    {% for key in annotations_list %}
+    {% for key, allographs in annotations_list.items %}
 
          <!-- hand record -->
         <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'>
@@ -21,71 +21,66 @@
             {{image|capfirst}} - {{ key }}
         </h2>
 
-
         <div class='panel'>
-           <!-- links to allographs -->
-
-          {% for key, allographs in annotations_list.items %}
-            {% for allograph in allographs %}
-              <span>
-                <a class="label label-info" href='#{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
-              </span>
-            {% endfor %}
-
-          {% endfor %}
+         <!-- links to allographs -->
+          {% for allograph, graphs in allographs.items %}
+            <span>
+              <a class="label label-info" href='#{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
+            </span>
+           {% endfor %}
         </div>
-             <!-- allographs -->
 
-            {% for key, allographs in annotations_list.items %}
-              {#{ key }#}
-              {#{ allographs }#}
-              {% for allograph, graphs in allographs.items %}
+        <!-- allographs -->
 
-                <h5 class='header5' style='display:inline;' id='{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
-                  {{  allograph }}
-                </h5>
+        {% for allograph, graphs in allographs.items %}
+          <div class="allographs-list">
+              <h5 class='header5' style='display:inline;' id='{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+                {{  allograph }}
+              </h5>
 
-                <div style='margin-left:2%;display:inline;' class='btn-group'>
-                    <button class='btn btn-small to_lightbox'>Collect</button>
-                    <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small select_all'>Select All</button>
-                    <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
-                </div>
+              <div style='margin-left:2%;display:inline;' class='btn-group'>
+                  <button class='btn btn-small to_lightbox'>Collect</button>
+                  <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small select_all'>Select All</button>
+                  <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
+              </div>
 
-                <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+              <!-- ul hand -->
+              <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
 
-                {% for graph in graphs %}
+              {% for graph in graphs %}
 
-                  {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
-                  <br />
-                  {% endif %}
-                 <!-- graph -->
-                <li class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}">
+                {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
+                <br />
+                {% endif %}
 
-                <p>
+                  <!-- graph -->
+                  <li class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}">
 
-                  {% if not can_edit %}
+              <p>
 
-                  <a title='View image in manuscript viewer' class='label_link_annotation' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map">View</a>
+                {% if not can_edit %}
 
-                  {% endif %}
+                <a title='View image in manuscript viewer' class='label_link_annotation' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map">View</a>
 
-                  {% if can_edit %}
-                   <!-- graph number -->
-                  <span class='label label-info'>{{forloop.counter}}</span>
+                {% endif %}
 
-                  {% endif %}
+                {% if can_edit %}
+                 <!-- graph number -->
+                <span class='label label-info'>{{forloop.counter}}</span>
 
-                </p>
+                {% endif %}
 
-                  <a data-graph = '{{ graph.graph.id }}' class='droppable_image' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map" onclick="selectFeature('{{ graph.vector_id}}');">
-                    {% annotation_img graph lazy=1 %}
-                  </a>
+              </p>
 
-                </li>
-              {% endfor %}
-            </ul>
+                <a data-graph = '{{ graph.graph.id }}' class='droppable_image' href="/digipal/page/{{ graph.image.id }}/?vector_id={{ graph.vector_id }}#map" onclick="selectFeature('{{ graph.vector_id}}');">
+                  {% annotation_img graph lazy=1 %}
+                </a>
+
+              </li>
+            {% endfor %}
+            </div>
           {% endfor %}
-          {% endfor %}
+        </ul>
       {% endfor %}
 
     <div>

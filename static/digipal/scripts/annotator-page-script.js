@@ -262,7 +262,7 @@
 			$(this).addClass('active');
 
 
-			var checkOutput = '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
+			var checkOutput = '<div class="span6 span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll">All</span> <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
 			var annotations = annotator.annotations;
 
 			if (!isEmpty(annotations)) {
@@ -278,7 +278,7 @@
 				}
 			}
 			checkOutput += "</div>";
-			checkOutput += '<div class="span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
+			checkOutput += '<div class="span6 span6" style="padding:2%;"><span class="btn btn-small pull-left" id="checkAll_hands">All</span> <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
 			if (!isEmpty(annotations)) {
 				var hands = annotator.hands;
 				for (var h = 0; h < hands.length; h++) {

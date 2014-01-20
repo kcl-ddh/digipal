@@ -358,11 +358,11 @@ function Allographs() {
 					var select_allograph = $('.myModal .allograph_form');
 					var summary = $('#summary');
 					var features_container = $('#features_container');
-					summary.html(string_summary);
-					features_container.html(s);
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
 
+					summary.html(string_summary);
+					features_container.html(s);
 
 					check_all.click(function(event) {
 						var component = $(this).data('component');
@@ -383,7 +383,7 @@ function Allographs() {
 					var maximized = false;
 					var myModal = $('.myModal');
 					$('#maximize').click(function(event) {
-						event.preventDefault();
+
 						summary.css("bottom", "88%").hide();
 						if (!maximized) {
 							myModal.animate({
@@ -392,7 +392,7 @@ function Allographs() {
 								'left': '59.5%',
 								"width": '40%',
 								"height": '100%'
-							}, 200, function() {
+							}, 400, function() {
 								summary.show();
 								myModal.find('.modal-body').css("max-height", "100%");
 							}).draggable("destroy");
@@ -408,12 +408,14 @@ function Allographs() {
 								'right': '',
 								"width": '30%',
 								"height": '60%'
-							}, 200, function() {
+							}, 400, function() {
 								summary.show().style = null;
 								myModal.find('.modal-body').css("max-height", "");
 							}).draggable();
 							maximized = false;
 						}
+						event.preventDefault();
+						event.stopPropagation();
 					});
 
 					$('.component_labels').click(function() {
@@ -487,8 +489,7 @@ function Allographs() {
 								for (var j = 0; j < f[k].features.length; j++) {
 									if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
 
-										ann = $('input[data-annotation="' + f[k].vector_id + '"]').next().text();
-
+										ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
 										if (ann) {
 											al += '<span class="label">' + ann + '</span> ';
 											title += ann + ' ';
@@ -507,12 +508,14 @@ function Allographs() {
 
 							if (array_features_owned.indexOf(names) >= 0) {
 
-								string_summary += "<span title='" + title + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+								string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
 
-								s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
+								s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' />";
+								s += "<label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 								n++;
 							} else {
-								s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/> <label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
+								s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
+								s += "<label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 							}
 
 						});

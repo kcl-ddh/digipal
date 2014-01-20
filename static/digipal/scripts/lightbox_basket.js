@@ -217,7 +217,7 @@ $(document).ready(function() {
 						}
 
 						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
-							s = '<div class="container alert alert-warning">The Collection is empty</div>';
+							s = '<div class="alert alert-warning">The Collection is empty</div>';
 							container_basket.html(s);
 						}
 
@@ -236,7 +236,7 @@ $(document).ready(function() {
 
 			error: function() {
 
-				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
+				var s = '<div class="alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
 				container_basket.html(s);
 
 				var loading_div = $(".loading-div");
@@ -301,13 +301,14 @@ $(document).ready(function() {
 				localStorage.setItem("collections", JSON.stringify(collections));
 				window_save_collection.fadeOut().remove();
 				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
+				var container_collections = $('#container_collections');
+				var collection_folder = $('<div class="span1 collection" id="' + id + '">');
+				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Send collection to basket" src="/static/img/folder.png"><label>' + collection_name + '</label></a><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-mini">Remove</button>');
+
+				container_collections.append(collection_folder);
 			} else {
 				notify('Please enter a name for this collection', "danger");
 			}
-			var container = $('#container_collections');
-			container.html('');
-			var cl = new Collections();
-			cl.init();
 			event.stopPropagation();
 		}
 
@@ -428,6 +429,20 @@ $(document).ready(function() {
 		global_length_basket = length_basket;
 	}
 
+	var filter = $('#filter');
+	var add_collection_button = $('#add_collection');
+	var share_collection_button = $('#share_collection');
+	$('a[data-toggle="tab"]').on('shown', function(e) {
+		if (e.target.innerHTML != 'Manage Collections') {
+			filter.attr('disabled', true);
+			add_collection_button.attr('disabled', false);
+			share_collection_button.attr('disabled', false);
+		} else {
+			filter.attr('disabled', false);
+			add_collection_button.attr('disabled', true);
+			share_collection_button.attr('disabled', true);
+		}
+	});
 
 	// Initial call
 
@@ -474,7 +489,7 @@ $(document).ready(function() {
 
 	} else {
 
-		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Collection is empty</div>';
+		var s = '<div class="alert alert-warning">The Collection is empty</div>';
 		container_basket.html(s);
 
 		var loading_div = $(".loading-div");
@@ -482,13 +497,4 @@ $(document).ready(function() {
 			loading_div.fadeOut().remove();
 		}
 	}
-
-	$('a[data-toggle="tab"]').on('shown', function(e) {
-		var filter = $('#filter');
-		if (e.target.innerHTML == 'Manage Collections') {
-			filter.attr('disabled', false);
-		} else {
-			filter.attr('disabled', true);
-		}
-	});
 });

@@ -20,11 +20,8 @@ $(function() {
     
     /**
      * Save the last selected tab in a cookie
-     * TODO: test conflict with other tabs
-     * This should only be applied to the view tabs
-     * 
      */    
-    $('#view-switch a').click(
+    $('#myTab a').click(
         function (e) {
           e.preventDefault();
           $(this).tab('show');

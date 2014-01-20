@@ -7,10 +7,6 @@
     {% if terms %}({{ terms }}){% endif %}
 {% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui.css">
-{% endblock %}
-
 {% block main %}
 
     {% if not submitted %}
@@ -65,7 +61,7 @@
 
         {% if not is_empty %}
             <div class='container'>
-                <ul class="nav nav-tabs" id='myTab'>
+                <ul class="nav nav-tabs" id='result-types-switch'>
                     {% for type in types %}
                         <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
                             <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.count|default:'0'}})</a>
@@ -75,7 +71,7 @@
             </div>
 
             <div class='tabbable'>
-                <div id='myTabContent' class='tab-content'>
+                <div id='result-tab-content' class='tab-content'>
                     {% for type in types %}
                         <div class='tab-pane fade {% if result_type == type.key %}active in{% endif %}' id='{{type.key}}'>
                             {% if type.is_empty %}
@@ -116,18 +112,6 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/search_page.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
     <script type="text/javascript">
-        // TODO: move this into search_page.js
-
-        var radio = $('#radio');
-        radio.find('ul').contents().unwrap();
-        radio.find('li').contents().unwrap();
-        // Then move the input to outside of the label
-        radio.children('label').children('input').each(function() {
-            $(this).parent().before(this);
-        });
-        // Then apply the jQuery UI buttonset
-        radio.buttonset();
-        radio.find('.ui-button-text').css('padding','.2em 1em');
-        init_search_page({{ search_page_options_json|safe }});
+	    init_search_page({{ search_page_options_json|safe }});
     </script>
 {% endblock %}

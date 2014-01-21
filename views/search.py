@@ -34,8 +34,8 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
-def record_view(request, content_type='', objectid=''):
-    context = {}
+def record_view(request, content_type='', objectid='', tabid=''):
+    context = {'tabid': tabid}
     
     # We need to do a search to show the next and previous record
     # Only when we come from the the search image.

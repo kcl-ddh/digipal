@@ -64,7 +64,9 @@
                 <ul class="nav nav-tabs" id='result-types-switch'>
                     {% for type in types %}
                         <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
-                            <a href='#{{ type.key }}' data-content-type="{{ type.key }}">{{ type.label }} ({{type.count|default:'0'}})</a>
+                            <a href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' data-toggle="tab" data-target="#{{ type.key }}">
+                                {{ type.label }} ({{type.count|default:'0'}})
+                            </a>
                         </li>
                     {% endfor %}
                 </ul>

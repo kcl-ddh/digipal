@@ -19,12 +19,9 @@
             {% endif %}
             <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                 <p class='imageDetails'>
-                    {% ifequal image.annotation_set.all.count 0 %}
-                    <span data-toggle="tooltip" title="View Image Annotations" class='btn btn-link'>View Annotations</span>
-                    {% else %}
-                    <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link' href='{{ p.id }}/'>View Annotations</a>
-                    {% endifequal %}
-                    <a data-toggle="tooltip" title="View Image only" style='font-weight:bold;'  href="{{ p.id }}/?annotations=false">View Image</a></p>
+                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' href='#' {% else %} href='{{ image.id }}/' {% endifequal %} style='font-weight:bold;' data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
+                    |
+                    <a data-toggle="tooltip" title="View Image only" style='font-weight:bold;'  href="../{{ p.id }}/?annotations=false">View Image</a></p>
 
                 <dt>
                     <a class='imageDatabase' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" href = "/digipal/page/{{p.id}}">
@@ -35,8 +32,14 @@
                     <a href="/digipal/page/{{p.id}}" style='font-weight:bold'>{{ image }}</a>
                 </dd>
                 <p style='line-height:1.5'>
-                    <span class="label label-important">{{ p.annotation_set.all.count }} Annotations</span>
-                    <span class="label label-success">{{ p.hands.all.count }} Hands</span>
+                    <span class="label label-important">
+                        {{ p.annotation_set.all.count }}
+                        {% if p.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}
+                    </span>
+                    <span class="label label-important">
+                        {{ p.hands.all.count }}
+                        {% if p.hands.all.count == 1 %} Hand {%else %} Hands {% endif %}
+                    </span>
                 </p>
             </div>
             {% if forloop.counter|divisibleby:4 %}

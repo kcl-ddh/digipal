@@ -64,7 +64,7 @@
               {% endif %}
 
                 <!-- graph -->
-                <li class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}">
+                <li class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}" title='Click here to select this allograph'>
 
             <p>
 
@@ -82,7 +82,7 @@
 
             </p>
 
-              <a data-graph = '{{ graph.graph.id }}' class='droppable_image' title="View graph in the manuscript">
+              <a data-graph = '{{ graph.graph.id }}' class='droppable_image' title="View graph in the manuscript or drag to collection">
                 {% annotation_img graph lazy=1 %}
               </a>
 

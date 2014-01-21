@@ -303,7 +303,7 @@ $(document).ready(function() {
 				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
 				var container_collections = $('#container_collections');
 				var collection_folder = $('<div class="span1 collection" id="' + id + '">');
-				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Send collection to basket" src="/static/img/folder.png"><label>' + collection_name + '</label></a><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-mini">Remove</button>');
+				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Send collection to basket" src="/static/img/folder.png"></a><label>' + collection_name + '</label><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-mini">Remove</button>');
 
 				container_collections.append(collection_folder);
 			} else {

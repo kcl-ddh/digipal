@@ -2,41 +2,6 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags html_escape %}
 
-{% block extra_js %}
-    <script type="text/javascript">
-        $(function() {
-            // We select the tab according to the webpath
-            // e.g. /digipal/manuscripts/533/pages will open the 'pages' tab
-            // get the last part in the web path
-            // 'http://localhost/digipal/manuscripts/1067/pages/' => 'pages'
-            var tab_key = window.location.href.replace(/[^#?]*\/([^/?#]+).*/, '$1');
-            if (tab_key) {
-                $('a[data-target=#'+tab_key+']').click();
-            }
-
-            // Update the webpath in the address bar when the tab is changed
-            // See JIRA 155, 140
-            $('#record-tab-switch a').click(function (e) {
-                if (window.history && window.history.pushState) {
-                    e.preventDefault();
-                    $(this).tab('show');
-                    window.history.replaceState({foo: 'bat'}, '', $(this).attr('href'));
-                } else {
-                    {% comment %}
-                        The browser does not support replaceState (e.g. IE 9),
-                        we just load the page.
-                    {% endcomment %}
-                    window.location.href = $(this).attr('href');
-                    return true;
-                }
-                if (typeof window.load_lazy_images == 'function') { 
-                	window.load_lazy_images(); 
-               	};
-            });
-        });
-    </script>
-{% endblock %}
-
 {% block head %}
     <h1 class='header1'>{% block record_title %}{% endblock %}</h1>
 

@@ -1,3 +1,4 @@
+from django.utils.html import conditional_escape, escape
 import re
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
@@ -120,6 +121,8 @@ def update_query_string(url, updates, url_wins=False):
     
     # Place the query string back into the URL
     ret = urlunparse(parts)
+    
+    ret = escape(ret)
     
     return ret
 

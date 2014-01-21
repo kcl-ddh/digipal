@@ -76,7 +76,7 @@ def update_query_params_internal(content, updates, url_wins=False):
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
         content = content[0:m.start()] + (template % new_url) + content[m.end():]
-
+    
     return content
 
 @register.filter

@@ -13,17 +13,25 @@
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a></li>
-    <li class="{% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a>
+    </li>
+    <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
+    </li>
+    <li class="{% if tabid = "pages" %}active in{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a>
+    </li>
+    <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>
+    </li>
 {% endblock %}
 
 {% block details %}
     <div class='tabbable'>
 
         <div id='record-tab-content' class='tab-content'>
-            <div class='tab-pane fade active in' id='data'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
                 <h3>Date and Place</h3>
 
                 <table class="table table-condensed">
@@ -40,7 +48,7 @@
                 </table>
             </div>
 
-            <div class='tab-pane fade' id='hands'>
+            <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
                 <div class='row-fluid'>
                     <table class="table table-condensed">
                         <tr>
@@ -70,7 +78,7 @@
                 <table class='table table-condensed'>
                     <tr>
                         <th>Page</th>
-                        <th>Hand</td>
+                        <th>Hand</th>
                         <th>Image</th>
                     </tr>
                     {% for hand in scribe.hands.all %}

@@ -346,9 +346,12 @@ def image_list(request):
     images = images.filter(item_part_id__gt = 0)
     images = Image.sort_query_set_by_locus(images)
 
+    context = {}
+    filterImages = FilterManuscriptsImages()
+
+    '''    
     paginator = Paginator(images, 24)
     page = request.GET.get('page')
-    filterImages = FilterManuscriptsImages()
 
     try:
         page_list = paginator.page(page)
@@ -362,8 +365,10 @@ def image_list(request):
     for page in page_list:
         page.view_thumbnail = page.thumbnail(None, 210)
 
-    context = {}
     context['page_list'] = page_list
+    '''
+    context['images'] = images
+    
     context['filterImages'] = filterImages
     try:
         context['view'] = request.COOKIES['view']

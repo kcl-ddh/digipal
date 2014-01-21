@@ -140,7 +140,6 @@ class SearchContentType(object):
             set context['navigation'] = {'total': , 'index1': , 'previous_url': , 'next_url':, 'no_record_url': }
             This entries are used by the record.html template to show the navigation above the record details
         '''
-        from digipal.utils import update_query_string
         import re
 
         # TODO: optimise this, we should not have to retrieve the whole result 

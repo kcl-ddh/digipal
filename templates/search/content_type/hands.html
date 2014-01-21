@@ -3,6 +3,7 @@
 <table class="table table-condensed">
     <tr>
         <!--<th>Scribe</th>-->
+        <th>&nbsp;</th>
         <th>Hand</th>
         <th>Repository</th>
         <th>Shelfmark</th>
@@ -10,12 +11,18 @@
         <th>Place</th>
         <th>Date</th>
         <th>Catalogue Number</th>
-        <th>Actions</th>
     </tr>
 
     {% filter tag_phrase_terms:terms %}
         {% for hand in records %}
             <tr class="{% cycle 'bgColour' '' %}">
+
+                <td>
+                    {% if can_edit %}
+                        <a class="view_button" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
+                    {% endif %}
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
 
                 <td>Digipal Hand {{ hand.num }}</td>
 
@@ -37,12 +44,6 @@
                         {% if not forloop.first %}, {% endif %}
                         {{ item.catalogue_number }}
                     {% endfor %}
-                </td>
-                <td>
-                    {% if can_edit %}
-                        <a class="view_button" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
-                    {% endif %}
-                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
             </tr>
         {% endfor %}

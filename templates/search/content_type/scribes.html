@@ -2,15 +2,21 @@
 
 <table class="table table-condensed">
     <tr>
+        <th>&nbsp;</th>
         <th>Name</th>
         <th>Date</th>
         <th>Scriptorium</th>
-        <th>Actions</th>
     </tr>
 
     {% filter tag_phrase_terms:terms %}
         {% for scribe in records %}
             <tr class="{% cycle 'bgColour' '' %}">
+                <td>
+                    {% if can_edit %}
+                        <a class="view_button" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
+                    {% endif %}
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
                 <td>{{ scribe.name }}
                     {% if scribe.images.all %}
                         <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
@@ -21,12 +27,6 @@
                 </td>
                 <td>{{ scribe.date }}</td>
                 <td>{{ scribe.scriptorium.name }}</td>
-                <td>
-                    {% if can_edit %}
-                        <a class="view_button" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
-                    {% endif %}
-                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
-                </td>
             </tr>
         {% endfor %}
     {% endfilter %}

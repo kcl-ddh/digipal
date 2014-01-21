@@ -76,7 +76,7 @@ def update_query_params_internal(content, updates, url_wins=False):
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
         content = content[0:m.start()] + (template % new_url) + content[m.end():]
-
+    
     return content
 
 @register.filter
@@ -205,7 +205,7 @@ def img(src, *args, **kwargs):
         more += ur' class="%s" ' % escape(kwargs['cls'])
 
     if kwargs.get('lazy', False):
-        more += ur' data-lazy-img-src="%s" ' % src
+        more += ur' data-lazy-img-src="%s" ' % escape(src)
         src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
         # default dimensions
@@ -214,6 +214,8 @@ def img(src, *args, **kwargs):
             s = size[d]
             if s == -1:
                 s = max(size.values())
+            if s == -1:
+                s = 1
             more += ' %s="%s" ' % (d, s)
 
     ret = ur'<img src="%s" %s/>' % (escape(src), more)

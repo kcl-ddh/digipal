@@ -59,11 +59,12 @@
                                 <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
                                     <p class='imageDetails'>
                                         {% ifequal image.annotation_set.all.count 0 %}
-                                        <span data-toggle="tooltip" title="View Image Annotations" class='btn btn-link'>View Annotations</span>
+                                            <span data-toggle="tooltip" title="View Image Annotations" class='btn btn-link'>View Annotations</span>
                                         {% else %}
-                                        <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link' href='{{ image.id }}/' class='label label-info'>View Annotations</a>
+                                            <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link' href='{{ image.id }}/'>View Annotations</a>
                                         {% endifequal %}
-                                        <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a></p>
+                                        <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a>
+                                    </p>
                                     <dl class="imageDatabase">
                                         <dt>
                                             <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">

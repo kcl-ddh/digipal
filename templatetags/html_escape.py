@@ -205,7 +205,7 @@ def img(src, *args, **kwargs):
         more += ur' class="%s" ' % escape(kwargs['cls'])
 
     if kwargs.get('lazy', False):
-        more += ur' data-lazy-img-src="%s" ' % src
+        more += ur' data-lazy-img-src="%s" ' % escape(src)
         src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
         # default dimensions

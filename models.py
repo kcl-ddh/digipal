@@ -1014,7 +1014,7 @@ class ItemPart(models.Model):
     # This is the locus in the current item
     locus = models.CharField(max_length=64, blank=True, null=True,
             default=settings.ITEM_PART_DEFAULT_LOCUS, help_text='the location of this part in the Current Item')
-    display_label = models.CharField(max_length=128)
+    display_label = models.CharField(max_length=300)
     pagination = models.BooleanField(blank=False, null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,

@@ -101,7 +101,7 @@
                                 <th>Hands</th>
                                 <th>View</th>
                             </tr>
-                            {% for image in page_list %}
+                            {% for image in images_on_this_page %}
                                 <tr>
                                     <td><a data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
                                     <td>{{image.item_part.current_item.repository.place}}</td>

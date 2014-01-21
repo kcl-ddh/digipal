@@ -6,21 +6,21 @@
 
 {% block main %}
     <h1 class='header1'>Manuscript Images</h1>
-    <div class='container'>
-        <div id='formFilters'>
-            <form id='searchform' class="form-inline panel" action='.'>
-                <h3 class='header5'>Filter Manuscripts Images</h3>
-                <ul>{{ filterImages.as_ul }}</ul>
-                <div class='container'>
-                    <input type='submit' value='Filter Images' class='btn btn-primary'>
-                </div>
-            </form>
+
+    <form id='searchform' class="form-inline panel" action='.'>
+        <h3 class='header5'>Filter Manuscripts Images</h3>
+        <div class="flat-list">
+            {{ filterImages.as_ul }}
         </div>
+        <input type='submit' value='Filter Images' class='btn btn-primary'>
+    </form>
 
-    </div>
-
-    <div class='container'>
-        {% include "digipal/image_list_pagination.html" %}
+    <div class='row-fluid'>
+        {# {% include "digipal/image_list_pagination.html" %} #}
+        <div class="span8">
+            {% autopaginate images 12 as images_on_this_page %}
+            {% paginate %}
+        </div>
 
         <div class='span2 pull-right' id='view-switch'>
             <ul class="nav nav-pills">
@@ -45,18 +45,18 @@
         </div>
     {% endif %}
 
-    {% if page_list %}
+    {% if images_on_this_page %}
 
         <div class='container'>
             <div class="tab-content">
 
                 <div class="tab-pane fade {% if view == 'Images' %}active in{% endif %}" id="images">
 
-                    {% for image in page_list %}
-                        {% if forloop.counter|divisibleby:4 %}
-                            <div class='row-fluid'>
+                    {% for image in images_on_this_page %}
+                        {% if forloop.counter0|divisibleby:4 %}
+                            <div class="row-fluid">
                         {% endif %}
-                                <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+                                <div class='span3 panel centered' >
                                     <p class='imageDetails'>
                                         {% ifequal image.annotation_set.all.count 0 %}
                                             <span data-toggle="tooltip" title="View Image Annotations" class='btn btn-link'>View Annotations</span>
@@ -68,8 +68,9 @@
                                     <dl class="imageDatabase">
                                         <dt>
                                             <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
-                                            <span class="drag_caption">Drag Image to basket</span>
-                                                {% iip_img image width=200 lazy=1 %}</a>
+                                                <span class="drag_caption">Drag Image to basket</span>
+                                                {% iip_img image width=200 lazy=1 %}
+                                            </a>
                                         </dt>
                                         <dd>
                                             <a style='font-weight:bold' href="{{ image.id }}/">{{ image }}</a>
@@ -80,7 +81,7 @@
                                         <span class="label label-success">{{ image.hands.all.count }} Hands</span>
                                     </p>
                                 </div>
-                        {% if forloop.counter|divisibleby:4 %}
+                        {% if forloop.counter|divisibleby:4 or forloop.last %}
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -130,9 +131,8 @@
         </div>
     {% endif %}
 
-
-    <div class='container'>
-        {% include "digipal/image_list_pagination.html" %}
+    <div class="row-fluid">
+        {% paginate %}
     </div>
 
     <div id='basket_collector'>

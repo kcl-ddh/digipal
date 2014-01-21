@@ -80,7 +80,7 @@
                                 <div class='alert alert-warning'><h4>No results found for <b>{{type.label}}</b></h4></div>
                             {% else %}
                                 {% reset_recordids as recordids %}
-                                {% autopaginate type.queryset 9 as recordids %}
+                                {% autopaginate type.queryset 10 as recordids %}
                                 {% get_records_from_ids type recordids as records %}
 
                                 {% filter update_query_params:type.result_type_qs %}

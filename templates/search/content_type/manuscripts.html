@@ -2,17 +2,23 @@
 
 <table class="table table-condensed">
     <tr>
+        <th>&nbsp;</th>
         <th>Index</th>
         <th>Repository</th>
         <th>Shelfmark</th>
         <th>Folio(s)</th>
         <th>Description</th>
-        <th>Actions</th>
     </tr>
 
     {% filter tag_phrase_terms:terms %}
         {% for manuscript in records %}
             <tr>
+                <td>
+                    {% if can_edit %}
+                        <a class="view_button" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
+                    {% endif %}
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
                 <td>
                     {% for item in manuscript.historical_items.all %}
                         {% if not forloop.first %}, {% endif %}
@@ -32,12 +38,6 @@
                 <td>{{ manuscript.locus }}</td>
                 <td>
                     {{ manuscript.description_snippet }}
-                </td>
-                <td>
-                    {% if can_edit %}
-                        <a class="view_button" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>
-                    {% endif %}
-                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
             </tr>
         {% endfor %}

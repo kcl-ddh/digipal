@@ -78,8 +78,8 @@
                                             {% if image.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}
                                         </span>
                                         <span class="label label-important">
-                                            {{ image.annotation_set.all.count }}
-                                            {% if image.annotation_set.all.count == 1 %} Hand {% else %} Hands {% endif %}
+                                            {{ image.hands.all.count }}
+                                            {% if image.hands.all.count == 1 %} Hand {% else %} Hands {% endif %}
                                         </span>
                                     </p>
                                 </div>

@@ -418,12 +418,12 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 
 	var allographs = $('.checkVectors');
 	var hands = $('.checkVectors_hands');
-	var hand;
+	var hand, i;
 	if (check == 'check') {
 		$(checkboxes).attr('checked', true);
 		var features_length = features.length;
 		var hands_length = hands.length;
-		for (var i = 0; i < features_length; i++) {
+		for (i = 0; i < features_length; i++) {
 			for (var h = 0; h < hands_length; h++) {
 				hand = $(hands[h]);
 				if (features[i].hand == hand.val() && hand.is(':checked') && features[i].stored) {
@@ -455,7 +455,7 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
 	} else if (check == 'uncheck') {
 		$(checkboxes).attr('checked', false);
 		var max = features.length;
-		for (var i = 0; i < max; i++) {
+		for (i = 0; i < max; i++) {
 			if (features[i].stored) {
 				if (!features[i].style) {
 					features[i].style = {
@@ -784,11 +784,12 @@ function updateFeatureSelect(currentFeatures, id) {
 							elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
 						}
 
-						$('.allograph_label').html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
+						var allograph_label = $('.allograph_label');
+						allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
 							.css('cursor', 'pointer')
 							.data('hidden', true);
 
-						$(".allograph_label").unbind().click(function() {
+						allograph_label.unbind().click(function() {
 
 							var element = "<div class='elements_linked'>";
 
@@ -813,7 +814,7 @@ function updateFeatureSelect(currentFeatures, id) {
 								$(this).data('hidden', true);
 							}
 
-							$('.elements_linked').find('p').on('mouseover', function(event) {
+							el_link.find('p').on('mouseover', function(event) {
 								var id = $(this).data('id');
 								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
 									var f = annotator.vectorLayer.features[i];
@@ -838,7 +839,9 @@ function updateFeatureSelect(currentFeatures, id) {
 								annotator.selectFeatureById(id);
 							});
 
-							$('.ungroup').click(function() {
+							var ungroup_elements = $('.ungroup');
+
+							ungroup_elements.click(function() {
 								var id = $(this).data('id');
 								$(this).parent('p').fadeOut().remove();
 								ungroup(id);
@@ -923,6 +926,7 @@ function createPopup(feature) {
 			controls['selector'].unselectAll();
 		}
 	);
+
 	//feature.popup.closeOnMove = true;
 	map.addPopup(feature.popup);
 	$('.olPopupCloseBox').click(function() {
@@ -1882,27 +1886,30 @@ function showBox(selectedFeature) {
 					$('#label_display_note').after(display_note);
 					$('#label_internal_note').after(internal_note);
 
-					$('.check_all').click(function() {
+					var check_all = $('.check_all');
+					check_all.click(function() {
 						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
 						checkboxes.attr('checked', true);
 					});
 
-					$('.uncheck_all').click(function() {
+					var uncheck_all = $('.uncheck_all');
+					uncheck_all.click(function() {
 						var checkboxes = $(this).parent().next().children().find('input[type=checkbox]');
 						checkboxes.attr('checked', false);
 					});
 
-					$('.component_labels').click(function() {
+					var component_labels = $('.component_labels');
+					component_labels.click(function() {
+						var component = $(this);
 						var div = $("#" + $(this).data('id'));
 						if (!div.data('hidden')) {
 							div.slideUp().data('hidden', true);
-							$(this).next('.checkboxes_div').hide();
-							$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
-
+							component.next('.checkboxes_div').hide();
+							component.find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
 						} else {
 							div.slideDown().data('hidden', false);
-							$(this).next('.checkboxes_div').show();
-							$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
+							component.next('.checkboxes_div').show();
+							component.find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
 						}
 					});
 
@@ -1918,7 +1925,8 @@ function showBox(selectedFeature) {
 				type: 'GET',
 				async: true,
 				error: function(xhr, status, error) {
-					console.log('Error: ' + error);
+					console.warn('Error: ' + error);
+					throw new Error(error);
 				},
 				success: function(data) {
 					var s = '<ul>';
@@ -1957,7 +1965,6 @@ function showBox(selectedFeature) {
 					n++;
 				}
 			}
-
 			if ($(".number_annotated_allographs").length) {
 				$(".number_annotated_allographs .number-allographs").html(n);
 			}
@@ -1971,11 +1978,7 @@ function showBox(selectedFeature) {
 		if (annotator.isAdmin == "True") {
 			highlight_vectors();
 		}
-
 	}
-
-
-
 }
 
 
@@ -1991,7 +1994,6 @@ function getKeyFromObjField(obj, field) {
 		key = obj[field];
 		key = key.substring(0, key.indexOf('::'));
 	}
-
 	return key;
 }
 
@@ -2005,125 +2007,7 @@ function getValueFromObjField(obj, field) {
 		value = obj[field];
 		value = value.substring(value.indexOf('::') + 1);
 	}
-
 	return value;
-}
-
-/**
- * Updates the select element according to the given values.
- *
- * @param elementId
- *              The id of select element to update.
- * @param values
- *              The values to update the element with.
- */
-
-function updateSelectOptions(elementId, values) {
-
-	$('#' + elementId + ' :selected').removeAttr('selected');
-
-	var detail = '';
-
-	for (var idx in values) {
-		var key = values[idx].substring(0, values[idx].indexOf(':'));
-		var value = values[idx].substring(values[idx].indexOf(':') + 1);
-
-		$('#' + elementId + ' option').each(function() {
-			if ($(this).val() == key) {
-				$(this).attr('selected', 'selected');
-
-				detail += value + '; ';
-			}
-		});
-	}
-
-	$('#' + elementId).multiselect('refresh');
-
-	if (detail) {
-		$('#' + elementId + '_detail').text(detail);
-	} else {
-		full_Screen
-		$('#' + elementId + '_detail').text('-');
-	}
-}
-
-/**
- * Updates the Feature select field according to the given letter and
- * annotation.
- *
- * @param letterId
- *              The id of the letter.
- * @param annotation
- *              The annotation.
- */
-
-function updateOptionsForLetter(letterId, annotation) {
-	$.getJSON('letter/' + letterId + '/features/', function(data) {
-		if (data.has_minim) {
-			enableMultiSelect('id_minim');
-		} else {
-			disableMultiSelect('id_minim');
-		}
-		if (data.has_ascender) {
-			enableMultiSelect('id_ascender');
-		} else {
-			disableMultiSelect('id_ascender');
-		}
-		if (data.has_descender) {
-			enableMultiSelect('id_descender');
-		} else {
-			disableMultiSelect('id_descender');
-		}
-
-		$('#id_feature option').each(function() {
-			$(this).remove();
-		});
-
-		$('#id_feature').multiselect('refresh');
-
-		var features = data.features;
-
-		$.each(features, function(idx) {
-			var value = features[idx];
-			$('#id_feature').append($('<option>', {
-				value: idx
-			}).text(value));
-		});
-
-		$('#id_feature').multiselect('refresh');
-
-		if (annotation !== null) {
-			updateSelectOptions('id_feature', annotation.fields['feature']);
-		}
-	});
-}
-
-/**
- * Enables a multiselect element given its id.
- *
- * @param elementId
- *              The id of the element to enable.
- */
-
-function enableMultiSelect(elementId) {
-	$('#' + elementId).removeAttr('disabled');
-	$('#' + elementId).multiselect('enable');
-}
-
-/**
- * Disables a multiselect element given its id.
- *
- * @param elementId
- *              The id of the element to disable.
- */
-
-function disableMultiSelect(elementId) {
-	$('#' + elementId + ' option').each(function() {
-		$(this).removeAttr('selected');
-	});
-	$('#' + elementId).multiselect('refresh');
-	$('#' + elementId).attr('disabled', 'disabled');
-	$('#' + elementId).multiselect('disable');
 }
 
 /**
@@ -2185,6 +2069,8 @@ function delete_annotation(layer, feature, number_annotations) {
 		data: '',
 		error: function(xhr, textStatus, errorThrown) {
 			alert('Error: ' + textStatus);
+			console.warn('Error: ' + textStatus);
+			throw new Error(textStatus);
 		},
 		success: function(data) {
 			if (!handleErrors(data)) {
@@ -2215,7 +2101,6 @@ function delete_annotation(layer, feature, number_annotations) {
 				if (boxes.length) {
 					boxes.remove();
 				}
-
 
 				// deleting from annotations by allograph
 				$('li[data-graph="' + feature.graph + ']"').remove();
@@ -2305,7 +2190,6 @@ function unhighlight_unsaved_vectors(button) {
 }
 
 function trigger_highlight_unsaved_vectors() {
-
 	$('.number_unsaved_allographs').on('click', function() {
 		if (!$(this).hasClass('active')) {
 			highlight_unsaved_vectors($(this));
@@ -2523,8 +2407,8 @@ function save(url, feature, data, ann, features) {
 			var f = annotator.vectorLayer.features;
 			var f_length = annotator.vectorLayer.features.length;
 			var n = 0;
-			for (var i = 0; i < f_length; i++) {
-				if (f[i].feature == feature.feature && f[i].stored) {
+			for (g = 0; g < f_length; g++) {
+				if (f[g].feature == feature.feature && f[g].stored) {
 					n++;
 				}
 			}
@@ -2540,12 +2424,6 @@ function save(url, feature, data, ann, features) {
 			annotator.vectorLayer.redraw();
 		}
 	});
-	/*
-	save_annotations.done(function() {
-		annotator.loadAnnotations();
-		annotator.vectorLayer.redraw();
-	});
-	*/
 }
 
 
@@ -2798,20 +2676,6 @@ DigipalAnnotator.prototype.full_Screen = function() {
 	}
 };
 
-/* End FullScreen Mode */
-
-/**
- * Displays annotations overview.
- *
- * @param data
- *              The annotation data.
- */
-
-/*
-
-declaring function to get parameteres from URL
-
-*/
 
 function getParameter(paramName) {
 	var searchString = window.location.search.substring(1),
@@ -2874,7 +2738,6 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 				unhighlight_unsaved_vectors(button);
 			}
 		}
-
 
 		if (event.shiftKey && annotator.isAdmin == 'True') {
 			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');

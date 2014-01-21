@@ -63,7 +63,7 @@ function Allographs() {
 		/* event to show summary */
 		var show_summary = $('#show_summary');
 		show_summary.click(function() {
-			self.dialog.show_summary();
+			self.dialog.show_summary($(this));
 		});
 
 		/* event to redirect from letters to annotator */
@@ -173,8 +173,8 @@ function Allographs() {
 			});
 
 			var modal_features = $("#modal_features");
-			if (modal_features.length) {
-				modal_features.remove();
+			if (modal_features.css('display') == 'block') {
+				modal_features.fadeout();
 			}
 		},
 
@@ -196,6 +196,7 @@ function Allographs() {
 					self.temporary_vectors = [];
 				}
 				self.selectedAnnotations.annotations.push(annotation);
+				console.log(self.selectedAnnotations.annotations);
 				var a = self.selectedAnnotations.allograph;
 				self.main(annotation);
 			}
@@ -281,7 +282,7 @@ function Allographs() {
 					});
 				});
 				self.summary = false;
-				summary.removeClass('active');
+				button.removeClass('active');
 			} else {
 				summary.css({
 					'display': 'block'
@@ -391,7 +392,9 @@ function Allographs() {
 
 					var maximized = false;
 					var myModal = $('.myModal');
-					$('#maximize').click(function(event) {
+					var maximize_icon = $('#maximize');
+
+					maximize_icon.click(function(event) {
 
 						summary.css("bottom", "88%").hide();
 						if (!maximized) {
@@ -404,9 +407,8 @@ function Allographs() {
 							}, 400, function() {
 								summary.show();
 								myModal.find('.modal-body').css("max-height", "100%");
+								maximize_icon.attr('title', 'Minimize box').removeClass('icon-resize-full').addClass('icon-resize-small');
 							}).draggable("destroy");
-
-
 							maximized = true;
 						} else {
 							summary.css("bottom", "88%").hide();
@@ -420,6 +422,7 @@ function Allographs() {
 							}, 400, function() {
 								summary.show().style = null;
 								myModal.find('.modal-body').css("max-height", "");
+								maximize_icon.attr('title', 'Maximize box').removeClass('icon-resize-small').addClass('icon-resize-full');
 							}).draggable();
 							maximized = false;
 						}

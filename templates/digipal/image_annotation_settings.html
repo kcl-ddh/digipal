@@ -4,46 +4,46 @@
     ----------------------------------------------
 {% endcomment %}
 <div id='modal_settings' style="display:none;">
-    <p>
-        <label>Annotation boxes</label>
+    <div>
+        <h4>Annotation boxes</h4>
         <label for='multiple_boxes' style='font-weight:normal;'>Allow multiple boxes
             <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
         </label>
-    </p>
-    <p>
-        <label>Toolbar position</label>
+    </div>
+    <div>
+        <h4>Toolbar position</h4>
         <label style='font-weight:normal;' for='vertical'>Vertical
             <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked />
         </label>
         <label style='font-weight:normal;' for='horizontal'>Horizontal
             <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  />
         </label>
-    </p>
+    </div>
 
     {% if can_edit %}
-         <p>
-            <label>Boxes</label>
+         <div>
+            <h4>Boxes</h4>
             <label style='font-weight:normal;' for='boxes_on_click'>Open Boxes on click
                 <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked="checked" {% endif %} />
             </label>
-        </p>
-        <p>
-            <label>Admin</label>
+        </div>
+        <div>
+            <h4>Admin</h4>
             <label style='font-weight:normal;' for='development_annotation'>Annotating
                 <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked />
             </label>
             <label style='font-weight:normal;' for='multiple_annotations'>Select multiple annotations
                 <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='multiple_annotations' />
             </label>
-        </p>
-        <p>
-            <label>Filter allographs: </label>
+        </div>
+        <div>
+            <h4>Filter allographs: </h4>
             <select id="ontograph_type" name="ontograph_type">
                 <option value="0">Show all</option>
                 {% for type in ontograph_types %}
                     <option value="{{ type.id }}">{{ type.name }}</option>
                 {% endfor %}
             </select>
-        </p>
+        </div>
     {% endif %}
 </div>

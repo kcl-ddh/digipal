@@ -21,7 +21,7 @@
 
         <div class="row-fluid">
           <!-- hand record -->
-          <h2 id='{{key|anchorify}}' class='header1 header' style='padding-top: 1.5%'>
+          <h2 id='{{key|anchorify}}' class='header1' style='padding-top: 1.5%'>
             <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
               {{image|capfirst}} - {{ key }}
           </h2>
@@ -32,7 +32,7 @@
            <!-- links to allographs -->
             {% for allograph, graphs in allographs.items %}
               <span>
-                <a title='Go to {{allograph}}' class="label label-info" href='#{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
+                <a title='Go to {{allograph}}' class="label label-info" href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
               </span>
              {% endfor %}
           </div>
@@ -44,18 +44,18 @@
         {% for allograph, graphs in allographs.items %}
           <div class="allograph-item panel">
 
-            <h5 class='header5 pull-left' id='{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+            <h5 class='header5 pull-left' id='{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
               {{  allograph }}
             </h5>
 
             <div class='btn-group pull-right'>
                 <button class='btn btn-small to_lightbox'>Collect</button>
-                <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small select_all'>Select All</button>
-                <button data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
+                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small select_all'>Select All</button>
+                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-small deselect_all'>Deselect All</button>
             </div>
 
             <!-- ul hand -->
-            <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+            <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
 
             {% for graph in graphs %}
 
@@ -128,7 +128,7 @@
           <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' />
           <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' />
           <input type='button' class='btn-small btn active' value='Summary' id='show_summary' />
-          <span title='Maximize window' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right'>&#9633;</span>
+          <span title='Maximize box' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right icon-resize-full'></span>
         </p>
         <p style='border-top:1px solid #efefef;padding-top:2%'></p>
 

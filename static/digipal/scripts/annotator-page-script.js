@@ -8,8 +8,7 @@ function AnnotatorLoader() {
 	var self = this;
 
 	this.init = function() {
-		var digipal_settings = self.get_initial_settings(); // loading settings
-
+		self.digipal_settings = self.get_initial_settings(); // loading settings
 		var annotating = false;
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
 			annotating = true; // if logged in as admin, the variable annotations is set as true
@@ -26,7 +25,7 @@ function AnnotatorLoader() {
 			self.events(); // events get launched
 		});
 
-		self.set_settings(digipal_settings); // setting settings
+		self.set_settings(self.digipal_settings); // setting settings
 	};
 
 	this.events = function() {
@@ -43,22 +42,22 @@ function AnnotatorLoader() {
 		});
 
 		// activating event on settings button
-		var modal_settings = false;
+
 		var settings_button = $('#settings_annotator');
 		settings_button.click(function() {
-			self.show_settings_window($(this), modal_settings);
+			self.show_settings_window($(this));
 		});
 
 		var ontograph_type = $("#ontograph_type");
-		ontograph_type.change(function(event) {
+		ontograph_type.on('change', function(event) {
 			self.change_ontograph($(event.target).val());
 		});
 
-		ontograph_type.change(); // Filter just after page is loaded.
+		ontograph_type.trigger('change'); // Filter just after page is loaded.
 
 		var allow_multiple_dialogs = false;
 		var multiple_boxes = $('#multiple_boxes');
-		multiple_boxes.change(function() {
+		multiple_boxes.on('change', function() {
 			if ($(this).is(':checked')) {
 				annotator.allow_multiple_dialogs = true;
 			} else {
@@ -96,7 +95,7 @@ function AnnotatorLoader() {
 
 		var allograph_form = $('#panelImageBox .allograph_form');
 		allograph_form.on('change', function() {
-			self.update_allographs_counter($(this.val()));
+			self.update_allographs_counter($(this).val());
 		});
 
 		$('.number_annotated_allographs').click(function() {
@@ -109,13 +108,13 @@ function AnnotatorLoader() {
 
 		var boxes_on_click = $('#boxes_on_click');
 		boxes_on_click.on('change', function() {
-			self.boxes_on_click($(this.is(':checked')));
+			self.boxes_on_click($(this).is(':checked'));
 		});
 
 		if (boxes_on_click.is(':checked')) {
 			annotator.boxes_on_click = true;
-			digipal_settings.boxes_on_click = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			self.digipal_settings.boxes_on_click = true;
+			localStorage.setItem('self.digipal_settings', JSON.stringify(self.digipal_settings));
 		}
 
 		var image_to_lightbox = $("#image_to_lightbox");
@@ -132,7 +131,7 @@ function AnnotatorLoader() {
 		var tabs = $('a[data-toggle="tab"]');
 		tabs.on('shown', function(e) {
 			var dialog = $('.ui-dialog');
-			if (e.target.innerHTML != 'View Manuscript') {
+			if (e.target.getAttribute('data-target') != '#annotator') {
 				if (dialog.length) {
 					dialog.fadeOut();
 				}
@@ -171,22 +170,22 @@ function AnnotatorLoader() {
 
 	/*
 		* function set_settings
-		@parameter digipal_settings
+		@parameter self.digipal_settings
 			- settings loaded through the function @get_initial_settings
 	*/
 
 	this.set_settings = function(digipal_settings) {
-		$('#allow_multiple_dialogs').attr('checked', digipal_settings.allow_multiple_dialogs).trigger('change');
-		if (digipal_settings.toolbar_position == 'Vertical') {
+		$('#allow_multiple_dialogs').attr('checked', self.digipal_settings.allow_multiple_dialogs).trigger('change');
+		if (self.digipal_settings.toolbar_position == 'Vertical') {
 			//$('input[name=toolbar_position]').val('Vertical').trigger('change');
 			$('#vertical').attr('checked', true).trigger('change');
 		} else {
 			//$('input[name=toolbar_position]').val('Horizontal').trigger('change');
 			$('#horizontal').attr('checked', true).trigger('change');
 		}
-		$('#boxes_on_click').attr('checked', digipal_settings.boxes_on_click).trigger('change');
-		$('#development_annotation').attr('checked', digipal_settings.annotating).trigger('change');
-		$('#multiple_annotations').attr('checked', digipal_settings.select_multiple_annotations).trigger('change');
+		$('#boxes_on_click').attr('checked', self.digipal_settings.boxes_on_click).trigger('change');
+		$('#development_annotation').attr('checked', self.digipal_settings.annotating).trigger('change');
+		$('#multiple_annotations').attr('checked', self.digipal_settings.select_multiple_annotations).trigger('change');
 	};
 
 	/*
@@ -516,12 +515,13 @@ function AnnotatorLoader() {
 	});
 */
 
-	this.show_settings_window = function(button, modal_settings) {
+	this.show_settings_window = function(button) {
+		var modal_settings = false;
 		var modal_settings_window = $("#modal_settings");
 		if (modal_settings) {
 			modal_settings = false;
 			button.removeClass('active');
-			modal_settings_window.remove();
+			modal_settings_window.parent('.ui-dialog').remove();
 		} else {
 			modal_settings = true;
 			button.addClass('active');
@@ -532,7 +532,7 @@ function AnnotatorLoader() {
 				title: "Settings",
 				close: function(event, ui) {
 					modal_settings = false;
-					modal_settings_window.remove();
+					modal_settings_window.parent('.ui-dialog').remove();
 					button.removeClass('active');
 				}
 			});
@@ -544,12 +544,12 @@ function AnnotatorLoader() {
 	// Each time an ontograph type is selected in the settings,
 	// we enable only the relevant options in the allograph Select.
 	this.change_ontograph = function(type_id) {
-		var allograph_form = $('.allograph_form');
+		var allograph_form = $('#panelImageBox .allograph_form');
 		if (type_id == '0') {
 			allograph_form.find('option').removeAttr('disabled');
 		} else {
-			allograph_form.attr('disabled', 'disabled');
-			allograph_form('option[class=type-' + type_id + ']').removeAttr('disabled');
+			allograph_form.find('option').attr('disabled', 'disabled');
+			allograph_form.find('option[class=type-' + type_id + ']').removeAttr('disabled');
 		}
 		allograph_form.trigger("liszt:updated");
 		highlight_vectors();
@@ -565,10 +565,10 @@ function AnnotatorLoader() {
 				"width": "25px",
 				"z-index": 1000
 			});
-			digipal_settings.toolbar_position = 'Vertical';
+
 		} else {
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
-			digipal_settings.toolbar_position = 'Horizontal';
+			self.digipal_settings.toolbar_position = 'Horizontal';
 			if (annotator.isAdmin == 'False') {
 				$('.olControlEditingToolbar').css({
 					"left": "89%",
@@ -589,7 +589,7 @@ function AnnotatorLoader() {
 				});
 			}
 		}
-		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
 	this.switch_mode = function(checkbox) {
@@ -599,15 +599,15 @@ function AnnotatorLoader() {
 			multiple_boxes.attr('disabled', 'disabled').attr('checked', false);
 			annotator.allow_multiple_dialogs = false;
 			annotator.annotating = true;
-			digipal_settings.annotating = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			self.digipal_settings.annotating = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 			enable_annotation_tools();
 		} else {
 			multiple_boxes.attr('disabled', false);
 			boxes_on_click.attr('checked', true).trigger('change');
 			annotator.annotating = false;
-			digipal_settings.annotating = false;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			self.digipal_settings.annotating = false;
+			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 			disable_annotation_tools();
 		}
 	};
@@ -703,12 +703,12 @@ function AnnotatorLoader() {
 	this.boxes_on_click = function(is_checked) {
 		if (is_checked) {
 			annotator.boxes_on_click = true;
-			digipal_settings.boxes_on_click = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			self.digipal_settings.boxes_on_click = true;
+			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		} else {
 			annotator.boxes_on_click = false;
-			digipal_settings.boxes_on_click = false;
-			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+			self.digipal_settings.boxes_on_click = false;
+			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		}
 	};
 
@@ -717,17 +717,17 @@ function AnnotatorLoader() {
 			annotator.selectedAnnotations = [];
 			annotator.selectFeature.multiple = false;
 			//annotator.selectFeature.toggle = false;
-			digipal_settings.select_multiple_annotations = false;
+			self.digipal_settings.select_multiple_annotations = false;
 
 		} else {
 			annotator.selectFeature.multiple = true;
-			digipal_settings.select_multiple_annotations = true;
+			self.digipal_settings.select_multiple_annotations = true;
 			//annotator.selectFeature.toggle = true;
 			if (annotator.selectedFeature) {
 				annotator.selectedAnnotations.push(annotator.selectedFeature);
 			}
 		}
-		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 }
 

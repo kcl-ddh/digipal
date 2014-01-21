@@ -214,6 +214,8 @@ def img(src, *args, **kwargs):
             s = size[d]
             if s == -1:
                 s = max(size.values())
+            if s == -1:
+                s = 1
             more += ' %s="%s" ' % (d, s)
 
     ret = ur'<img src="%s" %s/>' % (escape(src), more)

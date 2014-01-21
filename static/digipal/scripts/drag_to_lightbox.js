@@ -33,7 +33,7 @@ $(document).ready(function(){
 
                 var interval = setTimeout(function(){
                     s = '<p>Add image to Basket</p>';
-                    s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" /></p>';
+                    s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" alt="add to collection" /></p>';
                     basket_collector.html(s);
 
                     basket_collector.animate({

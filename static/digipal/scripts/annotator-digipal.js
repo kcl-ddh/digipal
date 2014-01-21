@@ -59,7 +59,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	}
 
 	var group_button = $('.link_graphs');
-	if (self.selectedFeature.linked_to && !isEmpty(self.selectedFeature.linked_to[0]) && allow_multiple()) {
+	if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
 			if (value) {
 				self.showAnnotation(value);
@@ -81,7 +81,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 			group_button.addClass('disabled').attr('disabled', true);
 		}
 
-	} else if (typeof self.selectedFeature.linked_to != 'undefined' && isEmpty(self.selectedFeature.linked_to[0]) && allow_multiple()) {
+	} else if (typeof self.selectedFeature.linked_to != 'undefined' && $.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 
 		self.selectedAnnotations.push(self.selectedFeature);
 		var msg = self.selectedAnnotations.length + ' annotation selected';
@@ -132,7 +132,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 		}
 
 		if (this.selectedAnnotations.length && boxes.length && !annotator.allow_multiple_dialogs) {
-			if (!isEmpty(feature.linked_to[0])) {
+			if (!$.isEmptyObject(feature.linked_to[0])) {
 				boxes.remove();
 			}
 		}
@@ -192,7 +192,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 	var features = self.selectedAnnotations;
 	if (features.length) {
 		for (var i = 0; i < features.length; i++) {
-			if (!isEmpty(features[i].linked_to[0]) || typeof features[i].linked_to == 'undefined') {
+			if (!$.isEmptyObject(features[i].linked_to[0]) || typeof features[i].linked_to == 'undefined') {
 				features[i].linked_to = [];
 			}
 			var feature = {};
@@ -202,7 +202,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 			features[i].linked_to.push(feature);
 		}
 	}
-	if (annotator.selectedFeature.linked_to.length && !isEmpty(annotator.selectedFeature.linked_to[0])) {
+	if (annotator.selectedFeature.linked_to.length && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
 		var num_linked = 0;
 		var elements_linked = [];
 
@@ -287,7 +287,7 @@ function ungroup(element_id) {
 
 	for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
 		var annotation = annotator.selectedAnnotations[i];
-		if (!isEmpty(annotation.linked_to[0]) && typeof annotation.linked_to[0][element_id] !== "undefined") {
+		if (!$.isEmptyObject(annotation.linked_to[0]) && typeof annotation.linked_to[0][element_id] !== "undefined") {
 			delete annotation.linked_to[0][element_id];
 		}
 
@@ -630,7 +630,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	div.html('<p>Reloading annotations. Please wait...</p></p><img src="/static/digipal/images/ajax-loader3.gif" />');
 	$('#annotator').append(div.fadeIn());
 	var chained = request.done(function(data) {
-		if (isEmpty(data)) {
+		if ($.isEmptyObject(data)) {
 			div.fadeOut().remove();
 			return false;
 		}
@@ -776,7 +776,7 @@ function updateFeatureSelect(currentFeatures, id) {
 				}
 
 				if (!annotator.editorial.active) {
-					if (annotator.selectedFeature.linked_to && !isEmpty(annotator.selectedFeature.linked_to[0])) {
+					if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
 						var num_linked = 0;
 						elements_linked = [];
 						for (var g in annotator.selectedFeature.linked_to[0]) {
@@ -909,14 +909,6 @@ function updateFeatureSelect(currentFeatures, id) {
 	}
 	return false;
 }
-
-// function to check if an object is empty, boolean returned
-var isEmpty = function(obj) {
-	for (var prop in obj) {
-		if (obj.hasOwnProperty(prop)) return false;
-	}
-	return true;
-};
 
 
 function createPopup(feature) {
@@ -1286,7 +1278,7 @@ function create_dialog(selectedFeature, id) {
 		if (!annotator.selectedFeature) {
 			annotator.selectedFeature = annotator.selectedAnnotations[annotator.selectedAnnotations.length];
 		}
-		if (annotator.selectedFeature.linked_to && !isEmpty(annotator.selectedFeature.linked_to[0])) {
+		if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
 			var links = [];
 			for (var l in annotator.selectedFeature.linked_to[0]) {
 				links.push(annotator.annotations[annotator.selectedFeature.linked_to[0][l].graph]);
@@ -1930,7 +1922,7 @@ function showBox(selectedFeature) {
 				},
 				success: function(data) {
 					var s = '<ul>';
-					if (!isEmpty(data)) {
+					if (!$.isEmptyObject(data)) {
 						for (i = 0; i < data.length; i++) {
 							var component = data[i]['name'];
 							s += "<li class='component'><b>" + component + "</b></li>";

@@ -8,33 +8,22 @@
     <h1 class='header1'>Manuscript Images</h1>
 
     <form id='searchform' class="form-inline panel" action='.'>
-        <h3 class='header5'>Filter Manuscripts Images</h3>
-        <div class="flat-list">
-            {{ filterImages.as_ul }}
+        <div class="row-fluid">
+            <div class="span1">
+                Filter by
+            </div>
+            <div class="span8">
+                <ul class="flat-list">
+                    {{ filterImages.as_ul }}
+                </ul>
+            </div>
+            <div class="span3">
+                <input type='submit' value='Filter Images' class='btn btn-primary'>
+            </div>
         </div>
-        <input type='submit' value='Filter Images' class='btn btn-primary'>
+        <div class="row-fluid">
+        </div>
     </form>
-
-    <div class='row-fluid'>
-        {# {% include "digipal/image_list_pagination.html" %} #}
-        <div class="span8">
-            {% autopaginate images 12 as images_on_this_page %}
-            {% paginate %}
-        </div>
-
-        <div class='span2 pull-right' id='view-switch'>
-            <ul class="nav nav-pills">
-                <li class="{% if view == 'Images' %}active{% endif %}">
-                    <a data-toggle="tooltip" title='Change Manuscripts View to Images' href="#images">Images</a>
-                </li>
-
-                <li class="{% if view == 'List' %}active{% endif %}">
-                    <a data-toggle="tooltip" title='Change Manuscripts View to List' href="#list">List</a>
-                </li>
-            </ul>
-        </div>
-
-    </div>
 
     {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
         <div class='breadcrumb'>
@@ -45,7 +34,29 @@
         </div>
     {% endif %}
 
+    <div class='row-fluid'>
+        {# {% include "digipal/image_list_pagination.html" %} #}
+        <div class="span8">
+            {% autopaginate images 12 as images_on_this_page %}
+            {% paginate %}
+        </div>
+
+        <div class='span2 pull-right' id='view-switch'>
+            <ul class="nav nav-pills">
+                <li class="{% if view == 'images' %}active{% endif %}">
+                    <a data-target="#images" data-toggle="pill" title='Change Manuscripts View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
+                </li>
+
+                <li class="{% if view == 'list' %}active{% endif %}">
+                    <a data-target="#list" data-toggle="pill" title='Change Manuscripts View to List' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=list{% endfilter %}">List</a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
     {% if images_on_this_page %}
+
 
         <div class='container'>
             <div class="tab-content">
@@ -84,49 +95,72 @@
                                     </p>
                                 </div>
                         {% if forloop.counter|divisibleby:4 or forloop.last %}
+
+        <div class="tab-content">
+
+            <div class="tab-pane fade {% if view == 'images' %}active in{% endif %}" id="images">
+
+                {% for image in images_on_this_page %}
+                    {% if forloop.counter0|divisibleby:4 %}
+                        <div class="row-fluid">
+                    {% endif %}
+                            <div class='span3 panel centered' >
+                                <p class='imageDetails'>
+                                    <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link {% if not image.annotation_set.all.count %}disabled{% endif %}' href='{{ image.id }}/'>View Annotations</a>
+                                    <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a>
+                                </p>
+                                <dl class="imageDatabase">
+                                    <dt>
+                                        <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
+                                            <span class="drag_caption">Drag Image to basket</span>
+                                            {% iip_img image width=200 lazy=1 %}
+                                        </a>
+                                    </dt>
+                                    <dd>
+                                        <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
+                                    </dd>
+                                </dl>
+                                <p>
+                                    <span class="label label-important">{{ image.annotation_set.all.count }} Annotations</span>
+                                    <span class="label label-success">{{ image.hands.all.count }} Hands</span>
+                                </p>
                             </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                    {% if forloop.counter|divisibleby:4 or forloop.last %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-                <div class="tab-pane fade {% if view == 'List' %}active in{% endif %}" id="list">
+            <div class="tab-pane fade {% if view == 'list' %}active in{% endif %}" id="list">
 
-                    <table class='table table-condensed'>
-                        <tbody>
+                <table class='table table-condensed'>
+                    <tbody>
+                        <tr>
+                            <th>&nbsp;</th>
+                            <th>Page</th>
+                            <th>Place</th>
+                            <th>Repository</th>
+                            <th>Annotations</th>
+                            <th>Hands</th>
+                        </tr>
+                        {% for image in images_on_this_page %}
                             <tr>
-                                <th>Page</th>
-                                <th>Place</th>
-                                <th>Repository</th>
-                                <th>Annotations</th>
-                                <th>Hands</th>
-                                <th>View</th>
+                                <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
+                                <td><a data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
+                                <td>{{image.item_part.current_item.repository.place}}</td>
+                                <td>{{image.item_part.current_item.repository.name}}</td>
+                                <td>{{ image.annotation_set.all.count }}</td>
+                                <td>{{ image.hands.all.count }}</td>
                             </tr>
-                            {% for image in images_on_this_page %}
-                                <tr>
-                                    <td><a data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
-                                    <td>{{image.item_part.current_item.repository.place}}</td>
-                                    <td>{{image.item_part.current_item.repository.name}}</td>
-                                    <td>{{ image.annotation_set.all.count }}</td>
-                                    <td>{{ image.hands.all.count }}</td>
-                                    <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-
-                </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
             </div>
+
         </div>
 
     {% else %}
-        <script>
-            (function(){
-                $('#formFilters').show();
-                $('#filterImages').text('Hide Filters Manuscripts').attr('class', 'btn');
-                show_filters = 1;
-            })();
-        </script>
         <div class='alert alert-warning'>
             <h6>No Images available</h6>
         </div>

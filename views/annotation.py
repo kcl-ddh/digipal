@@ -370,10 +370,8 @@ def image_list(request):
     context['images'] = images
     
     context['filterImages'] = filterImages
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
+    context['view'] = request.GET.get('view', 'images')
+    print context['view']
 
     return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
 

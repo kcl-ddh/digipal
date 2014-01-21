@@ -9,18 +9,21 @@
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if result.description %}{% else %}disabled{% endif %}">
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.description %}{% else %}disabled{% endif %}">
         <a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Description</a>
     </li>
-    <li class="{% if result.images.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
-    <li class="{% if result.graphs.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
+    <li class="{% if tabid = "graphs" %}active in{% endif %} {% if result.graphs.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
 
 {% block details %}
     <div class='tabbable'>
         <div id='record-tab-content' class='tab-content'>
-            <div class='tab-pane fade active in' id='data'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
                 <table class="table table-condensed">
                     <tbody>
                         <tr>
@@ -59,7 +62,7 @@
                 </table>
             </div>
 
-            <div class='tab-pane fade' id='descriptions'>
+            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% if result.description %}
                     <div>
                         {{ result.description|tei }}
@@ -73,7 +76,7 @@
 
             {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
 
-            <div class='tab-pane fade' id='graphs'>
+            <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
                 <div class="scribe annotations">
                     {% include "digipal/hands.html" %}
                 </div>

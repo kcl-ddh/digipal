@@ -9,16 +9,20 @@
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
-    <li class="{% if images.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
-    <li class="{% if hands.count > 0 %}{% else %}disabled{% endif %}"><a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}descriptions/"  data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
+    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
 
 {% block details %}
     <div class='tabbable'>
         <div id='record-tab-content' class='tab-content'>
-            <div class='tab-pane fade active in' id='data'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
                 <h3>Current location</h3>
                 <table class="table table-condensed">
                     <tbody>
@@ -74,7 +78,7 @@
                 </table>
             </div>
 
-            <div class='tab-pane fade' id='descriptions'>
+            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% if item_part.historical_item.description_set.count %}
                     <table class="table table-condensed">
                         <tbody>
@@ -109,7 +113,7 @@
 
             {% include "pages/tab_images.html" %}
 
-            <div class='tab-pane fade' id='hands'>
+            <div class='tab-pane fade {% if tabid = "hands" %}active in{% endif %}' id='hands'>
                 {% if hands.count %}
                     {% for hand in hands %}
                         <div class='row-fluid'>

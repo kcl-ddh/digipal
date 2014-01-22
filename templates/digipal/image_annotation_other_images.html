@@ -3,13 +3,6 @@
     ----------------------------------------------
     OTHER IMAGES
     ----------------------------------------------
-
-    {% if image.item_part %}
-        <span id='showImages' data-toggle="tooltip" title="Show all the pages of {{image}}" class="alert alert-success" style='line-height:3;cursor:pointer;'>
-            This manuscript has {{ image.item_part.images.count }}
-            <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
-        </span>
-    {% endif %}
 {% endcomment %}
 {% if image.item_part.images.all.count > 1 %}
     {% for p in image.item_part.images.all %}
@@ -17,21 +10,27 @@
             {% if forloop.counter|divisibleby:4 %}
                 <div class='row-fluid'>
             {% endif %}
-            <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='span3 panel image'>
                 <p class='imageDetails'>
-                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' href='#' {% else %} href='{{ image.id }}/' {% endifequal %} style='font-weight:bold;' data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
+                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' {% else %} href='../{{ p.id }}/' {% endifequal %} data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
                     |
-                    <a data-toggle="tooltip" title="View Image only" style='font-weight:bold;'  href="../{{ p.id }}/?annotations=false">View Image</a></p>
-
+                    <a data-toggle="tooltip" title="View Image only" href="../{{ p.id }}/?annotations=false">View Image</a>
+                </p>
                 <dt>
-                    <a class='imageDatabase' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" href = "/digipal/page/{{p.id}}">
+                    <a class='imageDatabase' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}">
                         {% iip_img p.iipimage width=200 %}
                     </a>
                 </dt>
                 <dd>
-                    <a href="/digipal/page/{{p.id}}" style='font-weight:bold'>{{ p.folio_number }}</a>
+                    <a href="/digipal/page/{{p.id}}">
+                        {% if p.folio_number %}
+                            {{ p.folio_number }}
+                        {% else %}
+                            {{ p }}
+                        {% endif %}
+                    </a>
                 </dd>
-                <p style='line-height:1.5'>
+                <p id='annotations_count_images'>
                     <span class="label label-important">
                         {{ p.annotation_set.all.count }}
                         {% if p.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}

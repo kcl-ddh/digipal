@@ -21,7 +21,7 @@
 
         <div class="row-fluid">
           <!-- hand record -->
-          <h2 id='{{key|anchorify}}' class='header1' style='padding-top: 1.5%'>
+          <h2 id='{{key|anchorify}}' class='header1'>
             <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
               {{image|capfirst}} - {{ key }}
           </h2>
@@ -125,13 +125,11 @@
         <i class='icon icon-remove close'></i>
         <p class="myModalLabel">
           <span class='label-modal-value'></span>
-          <input style='margin-left:2%' type='button' class='btn btn-success btn-small' value='Save' id='save' />
+          <input type='button' class='btn btn-success btn-small' value='Save' id='save' />
           <input type='button' class='btn btn-danger btn-small' value='Delete' id='delete' />
           <input type='button' class='btn-small btn active' value='Summary' id='show_summary' />
-          <span title='Maximize box' style='cursor:pointer;line-height: 1;margin-right: 2%;' id='maximize' class='pull-right icon-resize-full'></span>
+          <span title='Maximize box' id='maximize' class='pull-right icon-resize-full'></span>
         </p>
-        <p style='border-top:1px solid #efefef;padding-top:2%'></p>
-
     </div>
 
     <!-- body -->

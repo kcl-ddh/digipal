@@ -17,9 +17,9 @@
 {% block main %}
     <div class="row-fluid">
         <h3>Please select the requested filters from the Filter Graphs below. Leave empty to view the whole database.</h3>
-    
+
         {% ifequal style "allograph_list" %} <!-- Display list view, of course -->
-            <div class="panel" id='filtersform' style='display:block;'>
+            <div class="panel visible" id='filtersform'>
                 <h5 class='header5'>Filter Graphs Attributes:</h5>
                 <form></form>
                 <form id='filterGraphs' class='container form-inline'  method="GET" action="/digipal/graphs/graph">
@@ -29,11 +29,11 @@
                         <input type='reset' class='btn' id="reset"/>
                          <input type="checkbox" name="fullview" id="fullview" class="checkbox"> Select to view the images in one page.</input>
                     </div>
-                </form> 
+                </form>
             </div>
         {% endifequal %}
     </div>
-    
+
     <script>
         $(document).ready(function(){
             $('select').chosen();

@@ -14,14 +14,14 @@
                 {% endfilter %}
             </ul>
         </div>
-    
+
         {% if pagination %}
-            <div class="span4 pull-right" style="margin-top: -1em;">
+            <div class="span4 pull-right" style="margin-top:-1em;">
                 <ul class="pager">
                     <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
                         <a href="{{ pagination.previous_url }}">Previous</a>
                     </li>
-                
+
                     <li>
                         <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Return to the result page">
                             {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}

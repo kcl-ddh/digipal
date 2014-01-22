@@ -3,7 +3,7 @@
     CONTROL BAR
     ----------------------------------------------
 {% endcomment %}
-<div class='panel' id='panelImageBox' style='margin-bottom: 5px;'>
+<div class='panel' id='panelImageBox'>
 
     <span class="label label-important">
         <span>
@@ -25,8 +25,8 @@
 
     {% endif %}
 
-    <div class="btn-toolbar" style='display:inline'>
-        <div class="btn-group" style='margin-bottom:0.7%'>
+    <div id='annotator-action-buttons' class="btn-toolbar">
+        <div class="btn-group">
             {% if annotations > 0 %}
                 <a class='btn btn-small' id='filterAllographs' title='Filter Annotations'>Filter</a>
             {% endif %}
@@ -38,20 +38,20 @@
 
     {% if can_edit %}
 
-        <div style='margin-left:3%;display:inline;'>
+        <div id='div_unsaved_annotations_counter'>
             <span class="label">Unsaved</span>
             <span class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
         </div>
 
-        <form name='frmAnnotation' method="get" class='frmAnnotation' style='display:inline;float:right;margin:0;'>
-            <div id='form_annotation_hand' style='display:inline;width:35%;'>
+        <form name='frmAnnotation' method="get" class='frmAnnotation pull-right'>
+            <div id='form_annotation_hand'>
                 {{ form }}
-                <div style='display:inline;'>
-                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'>
-                        <i class= 'icon-eye-open'></i>
-                        <span style='margin-right:0' class='number-allographs'></span>
-                    </span>
-                </div>
+
+                <span class='btn btn-small btn-primary number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
+                    <i class='icon-eye-open'></i>
+                    <span class='number-allographs'></span>
+                </span>
+
             </div>
         </form>
 

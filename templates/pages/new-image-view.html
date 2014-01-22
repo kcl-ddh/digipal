@@ -18,18 +18,18 @@
         {% ifequal style "allograph_list" %}
             <h1 class='header1'>Results for <i>Graphs</i></h1>
 
-            <div class="panel" id='filtersform' style='display:block;'>
+            <div class="panel visible" id='filtersform'>
                 <h5 class='header5'>Filter Graphs Attributes:</h5>
                 {% comment %}TODO: this empty form should be removed, find out why it is needed. {% endcomment %}
 
                 {% chrono "form:" %}
 
                 <form></form>
-                <form id='filterGraphs' class='container form-inline'  method="GET" action="/digipal/search/graph">
+                <form id='filterGraphs' class='container form-inline' method="GET" action="/digipal/search/graph">
                     <ul id="drilldownformID">
                         {{ drilldownform.as_ul }}
                         {% if request.GET.terms %}
-                            |<div style="display: none; visibility: hidden;"><select name="terms" class="hidden" style="display: none; visibility: hidden;"><option selected="selected" value="{{ request.GET.terms }}">{{ request.GET.terms }}</option></select></div>
+                            |<div><select name="terms" class="hidden"><option selected="selected" value="{{ request.GET.terms }}">{{ request.GET.terms }}</option></select></div>
                         {% endif %}
                     </ul>
                     <div>
@@ -43,7 +43,7 @@
 
             </div>
 
-            <div class="breadcrumb" style="margin-top:0;margin-bottom:5px;">
+            <div class="breadcrumb" id='breadcrumb_graphs'>
                 {% if request.GET.terms %}| <span><b>Term: </b></span><span> {{ request.GET.terms }}</span>{% endif %}
                 {% if request.GET.character_select %}| <span><b>Character: </b></span><span> {{ request.GET.character_select }}</span>{% endif %}
                 {% if request.GET.component_select %}| <span><b>Component: </b></span><span>{{ request.GET.component_select }}</span>{% endif %}
@@ -104,7 +104,7 @@
                                         {% if forloop.counter|divisibleby:6 %}
                                             <div class='row-fluid'>
                                         {% endif %}
-                                                <div class='span2 panel image' style='margin-left:0;padding-left:0;padding-top:0;margin-top:0;margin-bottom:0;padding-bottom:0;'>
+                                                <div class='span2 panel image'>
                                                     <dl class="imageDatabase">
                                                         <dt>
                                                             {% for graph in hand.graphs_template %}

@@ -3,37 +3,37 @@
     SETTINGS WINDOW FOR THE ANNOTATION PAGE
     ----------------------------------------------
 {% endcomment %}
-<div id='modal_settings' style="display:none;">
+<div id='modal_settings'>
     <div>
         <h4>Annotation boxes</h4>
-        <label for='multiple_boxes' style='font-weight:normal;'>Allow multiple boxes
-            <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
+        <label for='multiple_boxes'>Allow multiple boxes
+            <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
         </label>
     </div>
     <div>
         <h4>Toolbar position</h4>
-        <label style='font-weight:normal;' for='vertical'>Vertical
-            <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='vertical' value='Vertical' checked />
+        <label for='vertical'>Vertical
+            <input type='radio' name='toolbar_position' id='vertical' value='Vertical' checked />
         </label>
-        <label style='font-weight:normal;' for='horizontal'>Horizontal
-            <input style='margin-left:4%;margin-bottom: 1%;' type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  />
+        <label for='horizontal'>Horizontal
+            <input type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  />
         </label>
     </div>
 
     {% if can_edit %}
          <div>
             <h4>Boxes</h4>
-            <label style='font-weight:normal;' for='boxes_on_click'>Open Boxes on click
-                <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked="checked" {% endif %} />
+            <label for='boxes_on_click'>Open Boxes on click
+                <input type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked="checked" {% endif %} />
             </label>
         </div>
         <div>
             <h4>Admin</h4>
-            <label style='font-weight:normal;' for='development_annotation'>Annotating
-                <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='development_annotation' checked />
+            <label for='development_annotation'>Annotating
+                <input type='checkbox'  id='development_annotation' checked />
             </label>
-            <label style='font-weight:normal;' for='multiple_annotations'>Select multiple annotations
-                <input style='margin-left:4%;margin-bottom: 1%;' type='checkbox'  id='multiple_annotations' />
+            <label for='multiple_annotations'>Select multiple annotations
+                <input type='checkbox'  id='multiple_annotations' />
             </label>
         </div>
         <div>

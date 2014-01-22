@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags hand_filters %}
+{% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
 {% block meta_title %}Graphs{% endblock %}
 
@@ -105,7 +105,7 @@
                                 {% if forloop.counter0|divisibleby:6 %}
                                     <div class='row-fluid'>
                                 {% endif %}
-                                        <div class='span2 panel image'>
+                                        <div class='span2 panel'>
                                             <dl class="imageDatabase">
                                                 <dt>
                                                     {% for graph in hand.graphs_template %}

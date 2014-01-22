@@ -216,6 +216,7 @@ def allographHandSearch(request):
     context['submitted'] = request.GET.get('submitted', '') or term or script or character or allograph or component or feature
     context['style']= 'allograph_list'
     context['term'] = term
+    context['view'] = request.GET.get('view', 'images')
     
     from datetime import datetime
     
@@ -303,11 +304,6 @@ def allographHandSearch(request):
         #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
         
     context['drilldownform'] = DrilldownForm()
-
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
 
     t5 = datetime.now()
     

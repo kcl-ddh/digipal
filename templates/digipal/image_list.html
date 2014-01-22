@@ -20,7 +20,7 @@
             <div class="span3">
                 <input type='hidden' name="page" value='1' />
                 <input type='hidden' name="view" value='{{ view }}' />
-                <input type='submit' value='Filter Images' class='btn btn-primary'/>
+                <input type='submit' value='Filter Images' class='btn'/>
             </div>
         </div>
     </form>
@@ -66,8 +66,9 @@
                     {% endif %}
                             <div class='span3 panel centered' >
                                 <p class='imageDetails'>
-                                    <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link {% if not image.annotation_set.all.count %}disabled{% endif %}' href='{{ image.id }}/'>View Annotations</a>
-                                    <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a>
+                                    <a {% if image.annotation_set.all.count == 0 %} class='disabled' href='#' {% else %} href='{{ image.id }}/' {% endif %} style='font-weight:bold;' data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
+                                    |
+                                    <a data-toggle="tooltip" title="View Image only" style='font-weight:bold;'  href="../{{ p.id }}/?annotations=false">View Image</a></p>
                                 </p>
                                 <dl class="imageDatabase">
                                     <dt>
@@ -80,9 +81,15 @@
                                         <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
                                     </dd>
                                 </dl>
-                                <p>
-                                    <span class="label label-important">{{ image.annotation_set.all.count }} Annotations</span>
-                                    <span class="label label-success">{{ image.hands.all.count }} Hands</span>
+                                <p style='line-height:1.5'>
+                                    <span class="label label-important">
+                                        {{ image.annotation_set.all.count  }}
+                                        {% if image.annotation_set.all.count  == 1 %} Annotation {% else %} Annotations {% endif %}
+                                    </span>
+                                    <span class="label label-important">
+                                        {{ image.hands.all.count }}
+                                        {% if image.hands.all.count == 1 %} Hand {%else %} Hands {% endif %}
+                                    </span>
                                 </p>
                             </div>
                     {% if forloop.counter|divisibleby:4 or forloop.last %}

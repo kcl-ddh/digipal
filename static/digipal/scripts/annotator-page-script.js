@@ -392,6 +392,10 @@ function AnnotatorLoader() {
 		trigger_highlight_unsaved_vectors();
 	};
 
+	/*
+		* function filter_allographs
+			-  filter allographs according to hands and allographs
+	*/
 
 	this.filter_allographs = function(button) {
 		button.addClass('active');
@@ -483,6 +487,7 @@ function AnnotatorLoader() {
 	};
 
 	// activating bootstrap plugin for switching on and off annotations
+
 	this.switch_annotations = function() {
 		var switcher = $('#toggle-state-switch');
 		switcher.bootstrapSwitch();
@@ -505,15 +510,7 @@ function AnnotatorLoader() {
 		}
 	};
 
-
-	/*
-	var modal = false;
-	var modal_element = $("#modal_features");
-	modal_element.draggable({
-		zIndex: 1005,
-		stack: ".ui-dialog"
-	});
-*/
+	// shows settings window
 
 	this.show_settings_window = function(button) {
 		var modal_settings = false;
@@ -555,6 +552,7 @@ function AnnotatorLoader() {
 		highlight_vectors();
 	};
 
+	// changes toolbar position
 	this.change_toolbar_position = function(checkbox_value) {
 		if (checkbox_value == "Vertical") {
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "fixed", "important");
@@ -592,6 +590,7 @@ function AnnotatorLoader() {
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
+	// switches mode annotating or not annotating
 	this.switch_mode = function(checkbox) {
 		var multiple_boxes = $('#multiple_boxes');
 		var boxes_on_click = $('#boxes_on_click');
@@ -612,6 +611,7 @@ function AnnotatorLoader() {
 		}
 	};
 
+	// updated allographs counter of selected allograph according to the allographs select
 	this.update_allographs_counter = function(allograph_id) {
 		var n = 0;
 		var features = annotator.vectorLayer.features;
@@ -632,7 +632,7 @@ function AnnotatorLoader() {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	};
 
-
+	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
@@ -700,6 +700,7 @@ function AnnotatorLoader() {
 		});
 	};
 
+	// sets options to open or not boxes when a vector gets clicked on
 	this.boxes_on_click = function(is_checked) {
 		if (is_checked) {
 			annotator.boxes_on_click = true;
@@ -712,6 +713,7 @@ function AnnotatorLoader() {
 		}
 	};
 
+	// sets options to select multiple vectors
 	this.multiple_annotations = function(is_checked) {
 		if (!is_checked) {
 			annotator.selectedAnnotations = [];

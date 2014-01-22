@@ -1,7 +1,40 @@
 /**
- * Add elements to Lightbox function
+ * Add elements to Lightbox function, updates the collection counter in the main menu
    -- Digipal Project --> digipal.eu
  */
+
+function length_basket_elements(elements) {
+	var n = 0;
+	if (elements) {
+		$.each(elements, function() {
+			n += this.length;
+		});
+	}
+	return n;
+}
+
+function update_collection_counter() {
+
+	var basket = localStorage.getItem('lightbox_basket');
+	var basket_elements = JSON.parse(basket);
+	var menu_links = $('.navLink');
+	var basket_element;
+
+	for (var ind = 0; ind < menu_links.length; ind++) {
+		if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
+			basket_element = $(menu_links[ind]);
+			basket_element.attr('id', 'collection_link');
+		}
+	}
+
+	if (!basket_element) {
+		basket_element = $('#collection_link');
+	}
+
+	var length_basket = length_basket_elements(basket_elements);
+	basket_element.html("Collection (" + length_basket + ")");
+
+}
 
 function add_to_lightbox(button, type, annotations, multiple) {
 	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
@@ -143,13 +176,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 	}
 
-	var length_basket = length_basket_elements(JSON.parse(localStorage.getItem('lightbox_basket')));
-	var basket_element = $('#lightbox_button');
-	if (length_basket == 1) {
-		basket_element.html("Collection (" + length_basket + " image)");
-	} else {
-		basket_element.html("Collection (" + length_basket + " images)");
-	}
+	update_collection_counter();
 	notify('Image added to the basket!', 'success');
 	return true;
 }
@@ -186,3 +213,7 @@ function notify(msg, status) {
 			running = false;
 		}, 5000);
 }
+
+(function() {
+	update_collection_counter();
+})();

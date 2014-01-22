@@ -368,20 +368,19 @@ function Allographs() {
 					var select_allograph = $('.myModal .allograph_form');
 					var summary = $('#summary');
 					var features_container = $('#features_container');
-					var check_all = $('.check_all');
-					var uncheck_all = $('.uncheck_all');
-
 					summary.html(string_summary);
 					features_container.html(s);
 
-					check_all.click(function(event) {
+					var check_all = $('.check_all');
+					var uncheck_all = $('.uncheck_all');
+					check_all.on('click', function(event) {
 						var component = $(this).data('component');
 						var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 						checkboxes.attr('checked', true);
 						event.stopPropagation();
 					});
 
-					uncheck_all.click(function(event) {
+					uncheck_all.on('click', function(event) {
 						var component = $(this).data('component');
 						var checkboxes = $('#component_' + component).find("input[type=checkbox]");
 						checkboxes.attr('checked', false);
@@ -482,9 +481,9 @@ function Allographs() {
 						var features = data[idx].features;
 						string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 
-						s += "<p class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
+						s += "<div class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
-						s += "<div class='checkboxes_div pull-right' style='margin: 1%;'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div><div>";
+						s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div></div>";
 
 						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						var n = 0;
@@ -531,12 +530,12 @@ function Allographs() {
 							}
 
 						});
-						s += "</p></div>";
+						s += "</div>";
 						if (!n) {
 							string_summary += "<span class='feature_summary'>undefined</span>";
 						}
 					});
-					s += "</div>";
+
 					callback(s, string_summary);
 				});
 			});

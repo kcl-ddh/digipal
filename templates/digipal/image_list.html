@@ -23,8 +23,6 @@
                 <input type='submit' value='Filter Images' class='btn'/>
             </div>
         </div>
-        <div class="row-fluid">
-        </div>
     </form>
 
     {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
@@ -68,9 +66,14 @@
                     {% endif %}
                             <div class='span3 panel centered' >
                                 <p class='imageDetails'>
-                                    <a {% if image.annotation_set.all.count == 0 %} class='disabled' href='#' {% else %} href='{{ image.id }}/' {% endif %} style='font-weight:bold;' data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
-                                    |
-                                    <a data-toggle="tooltip" title="View Image only" style='font-weight:bold;'  href="../{{ p.id }}/?annotations=false">View Image</a></p>
+                                    <strong>
+                                        <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>
+                                    </strong>
+                                    {% if image.annotation_set.all.count %}
+                                        <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ image.get_absolute_url }}?annotations=false">
+                                            (without annotations)
+                                        </a>
+                                    {% endif %}
                                 </p>
                                 <dl class="imageDatabase">
                                     <dt>
@@ -83,14 +86,14 @@
                                         <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
                                     </dd>
                                 </dl>
-                                <p style='line-height:1.5'>
+                                <p>
                                     <span class="label label-important">
                                         {{ image.annotation_set.all.count  }}
-                                        {% if image.annotation_set.all.count  == 1 %} Annotation {% else %} Annotations {% endif %}
+                                        {{ "Annotation"|plural:image.annotation_set.all.count }}
                                     </span>
                                     <span class="label label-important">
                                         {{ image.hands.all.count }}
-                                        {% if image.hands.all.count == 1 %} Hand {%else %} Hands {% endif %}
+                                        {{ "Hand"|plural:image.hands.all.count }}
                                     </span>
                                 </p>
                             </div>
@@ -135,9 +138,7 @@
         </div>
     {% endif %}
 
-    <div class="row-fluid">
-        {% paginate %}
-    </div>
+    {% paginate %}
 
     <div id='basket_collector'>
         <p>Add Image to Basket</p>

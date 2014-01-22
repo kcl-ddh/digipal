@@ -13,6 +13,7 @@ import unicodedata
 import cgi
 import iipimage.fields
 import iipimage.storage
+from django.utils.html import conditional_escape, escape
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -1820,9 +1821,10 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url(self):
+    def get_cutout_url(self, esc=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
+            If esc is True, special chars are turned into entities (e.g. & -> &amp;) 
         '''
         # graft the query string of self.cutout to self.image.thumbnail_url
         # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
@@ -1833,14 +1835,15 @@ class Annotation(models.Model):
         # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)
         # Just concatenate things together instead
         image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
-        return u'%s?%s' % (image_url, cutout_qs)
+        ret = u'%s?%s' % (image_url, cutout_qs)
+        if esc: ret = escape(ret)
+        return ret
 
     def thumbnail(self):
-        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url()))
+        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.get_cutout_url()),
-            self.thumbnail()))
+        return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True

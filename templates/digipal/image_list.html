@@ -23,8 +23,6 @@
                 <input type='submit' value='Filter Images' class='btn btn-primary'/>
             </div>
         </div>
-        <div class="row-fluid">
-        </div>
     </form>
 
     {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
@@ -128,9 +126,7 @@
         </div>
     {% endif %}
 
-    <div class="row-fluid">
-        {% paginate %}
-    </div>
+    {% paginate %}
 
     <div id='basket_collector'>
         <p>Add Image to Basket</p>

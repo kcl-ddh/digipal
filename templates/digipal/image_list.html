@@ -56,45 +56,36 @@
     </div>
 
     {% if images_on_this_page %}
+        <div class="tab-content">
 
+            <div class="tab-pane fade {% if view == 'images' %}active in{% endif %}" id="images">
 
-        <div class='container'>
-            <div class="tab-content">
-
-                <div class="tab-pane fade {% if view == 'Images' %}active in{% endif %}" id="images">
-
-                    {% for image in images_on_this_page %}
-                        {% if forloop.counter0|divisibleby:4 %}
-                            <div class="row-fluid">
-                        {% endif %}
-                                <div class='span3 panel centered' >
-                                    <p class='imageDetails'>
-                                        <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' href='#' {% else %} href='{{ image.id }}/' {% endifequal %} style='font-weight:bold;' data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
-                                        |
-                                        <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a></p>
-                                    <dl class="imageDatabase">
-                                        <dt>
-                                            <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
-                                                <span class="drag_caption">Drag Image to basket</span>
-                                                {% iip_img image width=200 lazy=1 %}
-                                            </a>
-                                        </dt>
-                                        <dd>
-                                            <a style='font-weight:bold' href="{{ image.id }}/">{{ image }}</a>
-                                        </dd>
-                                    </dl>
-                                    <p style='line-height:1'>
-                                        <span class="label label-important">
-                                            {{ image.annotation_set.all.count }}
-                                            {% if image.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}
-                                        </span>
-                                        <span class="label label-important">
-                                            {{ image.hands.all.count }}
-                                            {% if image.hands.all.count == 1 %} Hand {% else %} Hands {% endif %}
-                                        </span>
-                                    </p>
-                                </div>
-                        {% if forloop.counter|divisibleby:4 or forloop.last %}
+                {% for image in images_on_this_page %}
+                    {% if forloop.counter0|divisibleby:4 %}
+                        <div class="row-fluid">
+                    {% endif %}
+                            <div class='span3 panel centered' >
+                                <p class='imageDetails'>
+                                    <a data-toggle="tooltip" title="View Image Annotations" class='btn btn-link {% if not image.annotation_set.all.count %}disabled{% endif %}' href='{{ image.id }}/'>View Annotations</a>
+                                    <a data-toggle="tooltip" style='font-weight:bold;' title="View Image only" href="{{ image.id }}/?annotations=false">View Image</a>
+                                </p>
+                                <dl class="imageDatabase">
+                                    <dt>
+                                        <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
+                                            <span class="drag_caption">Drag Image to basket</span>
+                                            {% iip_img image width=200 lazy=1 %}
+                                        </a>
+                                    </dt>
+                                    <dd>
+                                        <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
+                                    </dd>
+                                </dl>
+                                <p>
+                                    <span class="label label-important">{{ image.annotation_set.all.count }} Annotations</span>
+                                    <span class="label label-success">{{ image.hands.all.count }} Hands</span>
+                                </p>
+                            </div>
+                    {% if forloop.counter|divisibleby:4 or forloop.last %}
                         </div>
                     {% endif %}
                 {% endfor %}

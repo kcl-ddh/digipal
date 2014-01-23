@@ -116,12 +116,15 @@ Commands:
 				# image
 				'digipal/page/364/',
 				'digipal/page/364/allographs',
-				'digipal/page/364/copyright',
+				'digipal/page/364/copyright/',
 				# static pages
 				'about',
+				'about/how-to-use-digipal/',
+				'feedback/',
 				# blog and news
-				'blog/category/blog',
-				'blog/category/news',
+				'blog/category/blog/',
+				'blog/category/news/',
+				'blog/bl-labs-launch-palaeographers-speak-with-forked-ascenders/',
 				# records
 				'digipal/hands/278/?basic_search_type=manuscripts&result_type=hands',
 				'digipal/scribes/96/',

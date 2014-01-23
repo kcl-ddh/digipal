@@ -87,12 +87,7 @@
             <p id='status'></p>
 
     {% endif %}
-
 {% endblock %}
-
-
-
-
 
 {% block extra_js %}
     <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
@@ -111,59 +106,91 @@
             headers: { "X-CSRFToken": csrftoken }
         });
 
-    </script>
-    <script>
         $(document).ready(function() {
             var si = new StoredInputs('digipal_settings');
             si.registerInput('#ontograph_type');
+            var url = "{{ url }}";
+            var image_id = "{{ image.id }}";
 
-            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-            'x', {{ width }}, {{ height }},
-            '{{ image_server_url }}', "{{is_admin}}");
+            if(url == image_id){
+                main();
+            }
 
-            {% if not is_admin %}
+            var tabs = $('a[data-toggle="tab"]');
+
+            tabs.on('shown', function(e) {
+                var dialog = $('.ui-dialog');
+                if (e.target.getAttribute('data-target') != '#annotator') {
+
+                    if (window.history && window.history.pushState) {
+                        history.pushState(null, null, $(this).attr('href'));
+                    } else {
+                        window.location.href = $(this).attr('href');
+                    }
+
+                    if (dialog.length) {
+                        dialog.fadeOut();
+                    }
+                } else {
+
+                    if(typeof annotator.annotations == 'undefined'){
+                        main();
+                    }
+
+                    if (dialog.length) {
+                        dialog.fadeIn();
+                    }
+
+                    history.pushState(null, null, '/digipal/page/' + annotator.image_id);
+                }
+                return false;
+            });
+
+            function main(){
+                annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+                'x', {{ width }}, {{ height }},
+                '{{ image_server_url }}', "{{is_admin}}");
+
+                {% if not is_admin %}
                 annotator.toolbarPanel.controls.splice(4, 4);
                 annotator.toolbarPanel.redraw();
                 annotator.user_annotations = [];
                 annotator.boxes_on_click = true;
+                {% endif %}
 
-            {% endif %}
-            annotator.image_id = {{ image.id }}
-            annotator.hands = {{ hands_list|safe }}
-            annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
-            no_image_reason = false;
-            {% if vector_id %}
+                annotator.image_id = {{ image.id }};
+                annotator.hands = {{ hands_list|safe }}
+                annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
+                no_image_reason = false;
+
+                {% if vector_id %}
                 vector_id = true;
                 vector_id_value = (getParameter('vector_id'));
-            {% else %}
-                vector_id = false;
-            {% endif %}
+                {% else %}
+                 vector_id = false;
+                {% endif %}
 
-            {% if no_image_reason %}
+                {% if no_image_reason %}
                 no_image_reason = true;
-            {% endif %}
+                {% endif %}
 
-            {% if request.GET.annotations == "false" %}
+                {% if request.GET.annotations == "false" %}
                 get_annotations = "false"
-            {% else %}
+                {% else %}
                 get_annotations = "true"
-            {% endif %}
+                {% endif %}
 
-            /*
+                /* Calling page script */
 
-            Calling page script
-
-            */
-            if(annotator){
-                $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
-                if(annotator.isAdmin == 'True'){
-                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
-                } else {
-                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
+                if(annotator){
+                    $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
+                    if(annotator.isAdmin == 'True'){
+                        $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
+                    } else {
+                        $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
+                    }
                 }
             }
-
         });
     </script>
-
 {% endblock %}

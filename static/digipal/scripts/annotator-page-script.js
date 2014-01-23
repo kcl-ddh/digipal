@@ -126,28 +126,6 @@ function AnnotatorLoader() {
 			self.multiple_annotations($(this).is(':checked'));
 		});
 
-		// hides annotation dialogs if tab gets switched and it is not the annotator one
-		var tabs = $('a[data-toggle="tab"]');
-		tabs.on('shown', function(e) {
-			var dialog = $('.ui-dialog');
-			if (e.target.getAttribute('data-target') != '#annotator') {
-				if (window.history && window.history.pushState) {
-					history.pushState(null, null, $(this).attr('href'));
-				} else {
-					window.location.href = $(this).attr('href');
-					return true;
-				}
-				if (dialog.length) {
-					dialog.fadeOut();
-				}
-			} else {
-				if (dialog.length) {
-					dialog.fadeIn();
-				}
-				history.pushState(null, null, '/digipal/page/' + annotator.image_id);
-			}
-			return false;
-		});
 
 	};
 

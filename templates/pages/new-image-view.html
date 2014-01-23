@@ -21,11 +21,11 @@
         {% comment %}TODO: this empty form should be removed, find out why it is needed. {% endcomment %}
         <form></form>
 
-        <form class='form-inline panel'  method="GET" action=".">
+        <form  id='searchform' class='form-inline panel'  method="GET" action=".">
             <p>
                 Filter by
             </p>
-            <ul id="drilldownformID" class="flat-list">
+            <ul id="drilldownformID" class="flat-list use-chosen">
                 {{ drilldownform.as_ul }}
                 {% if request.GET.terms %}
                     {# TODO: GN, what is this for? #}
@@ -38,6 +38,7 @@
             </ul>
             <p>
                 <input type="hidden" value="1" name="submitted" />
+                <input type='hidden' name="view" value='{{ view }}' />
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
                 <input type='reset' class='btn' id="reset"/>
             </p>
@@ -188,13 +189,17 @@
         </p>
     </div>
 
-    {% block extra_js %}
+    {% chrono ":end template" %}
+
+{% endblock %}
+
+{% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    {% endblock %}
+{% endblock %}
     {% chrono ":end template" %}
 
-{% endblock %}
+{% endblock %}}

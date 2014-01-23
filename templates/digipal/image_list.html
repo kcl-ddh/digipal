@@ -18,7 +18,6 @@
                 </ul>
             </div>
             <div class="span3">
-                <input type='hidden' name="page" value='1' />
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn'/>
             </div>
@@ -34,7 +33,7 @@
         </div>
     {% endif %}
 
-    <div class='row-fluid browse-images'>
+    <div class='row-fluid'>
         {# {% include "digipal/image_list_pagination.html" %} #}
         <div class="span8">
             {% autopaginate images 12 as images_on_this_page %}

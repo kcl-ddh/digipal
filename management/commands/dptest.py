@@ -18,7 +18,9 @@ Commands:
 
 	locus
 	
-	email	
+	email
+	
+	validate	
 
 """
 	
@@ -88,6 +90,114 @@ Commands:
 		if command == 'correct_annotations':
 			known_command = True
 			self.correct_annotations(args[1])
+
+		if command == 'validate':
+			known_command = True
+			self.fetch_and_test(*args[1:])
+
+	def fetch_and_test(self, root=None):
+		from utils import web_fetch
+		
+		if not root:
+			root = 'http://localhost/'
+		print 'Base URL: %s' % root
+		
+		stats = []
+		
+		pages = [
+				'',
+				# main search
+				'digipal/search/',
+				'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type='
+				# search graph
+				'digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',
+				# browse images
+				'digipal/page',
+				# image
+				'digipal/page/364/',
+				'digipal/page/364/allographs',
+				'digipal/page/364/copyright',
+				# static pages
+				'about',
+				# blog and news
+				'blog/category/blog',
+				'blog/category/news',
+				
+				]
+		
+		for page in pages:
+			url = root + page
+
+			sp = {'url': url, 'msgs': [], 'body': ''}
+			stats.append(sp) 
+
+			print 'Request %s' % url
+			res = web_fetch(url)
+			if res['status'] != '200':
+				print 'ERROR: %s' % res['status']
+				continue
+			if res['error']:
+				print 'ERROR: %s' % res['error']
+				continue
+			if res['body']:
+				# prefix the line with numbers
+				ln = 0
+				lines = []
+				sp['msgs'] = self.find_errors(res['body'])
+				for line in res['body'].split('\n'):
+					ln += 1
+					lines.append('%6s %s' % (ln, line))
+				sp['body'] = '\n'.join(lines)
+			print '\n'.join(sp['msgs'])
+			
+
+	def find_errors(self, body):
+		ret = []
+		
+		# custom validations
+		ln = 0
+		containers = 0
+		print '\t %s KB' % (len(body) / 1024)
+		for line in body.split('\n'):
+			ln += 1
+			msg = ''
+			if line.find('<script') > -1 and line.find('src') == -1:
+				msg = 'Inline script'
+			if re.search('style\s*=\s*"', line):
+				msg = 'Inline style'
+			if re.search('class.+\Wcontainer\W', line):
+				containers += 1
+			if msg:
+				ret.append('%6s: %s (%s)' % (ln, msg, line.strip()))
+		if containers > 0:
+			ret.append('%6s: %s containers' % ('', containers))
+		
+		# HTML validation
+		import urllib2, time
+		attempts = 0
+		ok = True
+		while True:
+			attempts += 1
+			ok = True
+			from py_w3c.validators.html.validator import HTMLValidator
+			vld = HTMLValidator()
+			try:
+				vld.validate_fragment(body)
+			except urllib2.HTTPError:
+				time.sleep(1)
+				ok = False
+			if ok: break
+			if attempts > 2: break
+
+		if ok:
+			for info in vld.warnings:
+				ret.append('%6s: [W3C WARNING] %s' % (info['line'], info['message']))
+			for info in vld.errors:
+				ret.append('%6s: [W3C ERROR  ] %s' % (info['line'], info['message']))
+		else:
+			ret.append('\tFailed to call W3C validation.')
+		
+		return ret
 
 	def adjust_offsets(self, offset_path, target_path):
 		# we calculate a better offset for the annotations by searching for a 

@@ -31,7 +31,16 @@ $(function() {
     
     // enable bootstrap tooltip on elements with data-toggle attribute
     $('[data-toggle="tooltip"]').tooltip();
-
+    
+    // convert HTML select to chosen drop downs
+    if ($.fn.chosen) {
+        $('.use-chosen select, select.use-chosen').chosen();
+    }
+    
+    // carousel rotation
+    $('.carousel').carousel({
+        interval: 5000
+    })
 });
 
 /**

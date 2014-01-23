@@ -147,6 +147,7 @@ function AnnotatorLoader() {
 				if (dialog.length) {
 					dialog.fadeIn();
 				}
+				history.pushState(null, null, '/digipal/page/' + annotator.image_id);
 			}
 			return false;
 		});

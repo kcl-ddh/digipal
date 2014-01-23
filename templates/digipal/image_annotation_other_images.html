@@ -12,9 +12,9 @@
             {% endif %}
             <div class='span3 panel image'>
                 <p class='imageDetails'>
-                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' {% else %} href='../{{ p.id }}/' {% endifequal %} data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
+                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' {% else %} href='/digipal/page/{{ p.id }}/' {% endifequal %} data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
                     |
-                    <a data-toggle="tooltip" title="View Image only" href="../{{ p.id }}/?annotations=false">View Image</a>
+                    <a data-toggle="tooltip" title="View Image only" href="/digipal/page/{{ p.id }}/?annotations=false">View Image</a>
                 </p>
                 <dt>
                     <a class='imageDatabase' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}">

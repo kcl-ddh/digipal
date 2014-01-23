@@ -27,7 +27,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.annotations = null;
 	this.annotating = true;
 	this.events = false;
-	this.url_annotations = 'annotations';
 	this.url_allographs = false;
 	this.unsaved_annotations = [];
 	this.isAdmin = isAdmin;
@@ -658,9 +657,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -689,7 +688,7 @@ function updateFeatureSelect(currentFeatures, id) {
 
 	if (annotator.isAdmin === "True") {
 		var allograph = select_allograph.val();
-		var url = 'allograph/' + allograph_selected + '/features/';
+		var url = '/digipal/page/ ' + annotator.image_id + '/allograph/' + allograph_selected + '/features/';
 		var s = '';
 
 		if (typeof allograph_selected != 'undefined' && allograph_selected) {
@@ -1385,7 +1384,7 @@ function open_allographs(allograph, show) {
 		if (!feature && !character) {
 			return false;
 		}
-		var url = "graph/" + feature + "/" + character + "/allographs_by_graph/";
+		var url = "digipal/page/" + annotator.image_id + "/graph/" + feature + "/" + character + "/allographs_by_graph/";
 		load_allographs_container(allograph_value, url, show, allograph_id);
 	}
 }
@@ -1410,7 +1409,7 @@ function refresh_letters_container(allograph, allograph_id, show) {
 	if (typeof character_id == "undefined") {
 		return false;
 	}
-	var url = "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
+	var url = "/digipal/page/" + annotator.image_id + "/allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	load_allographs_container(allograph, url, show);
 }
 
@@ -1671,7 +1670,7 @@ function showBox(selectedFeature) {
 			return false;
 		}
 
-		var url = 'graph/' + selectedFeature.graph + '/features/';
+		var url = '/digipal/page/' + annotator.image_id + '/graph/' + selectedFeature.graph + '/features/';
 		if (annotator.selectedFeature.state == 'Insert' && !annotator.selectedFeature.stored) {
 			array_features_owned = annotator.selectedFeature.features;
 		} else {
@@ -1684,7 +1683,7 @@ function showBox(selectedFeature) {
 		if (can_edit) {
 			var request = $.getJSON("graph/" + selectedFeature.graph);
 			request.done(function(data) {
-				var url = 'allograph/' + data.id + '/features/';
+				var url = '/digipal/page/' + annotator.image_id + '/allograph/' + data.id + '/features/';
 				var s = '<form class="frmAnnotation" method="get" name="frmAnnotation">';
 				s += "<input type='hidden' name ='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
 				var allographs = $.getJSON(url);
@@ -2316,6 +2315,23 @@ function handleErrors(data) {
  * @param status
  *              Either 'error', 'success' or ''
  */
+
+DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
+	var seen = {};
+	var txt;
+	$(element).each(function() {
+		if (text) {
+			txt = $(this).text();
+			attribute = null;
+		} else {
+			txt = $(this).attr(attribute);
+		}
+		if (seen[txt])
+			$(this).remove();
+		else
+			seen[txt] = true;
+	});
+};
 
 function updateStatus(msg, status) {
 	var running = running || true;

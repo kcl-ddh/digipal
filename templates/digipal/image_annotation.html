@@ -36,16 +36,16 @@
                             <a data-toggle="tab" data-target='#annotator'>Manuscript Image</a>
                         </li>
                         <li {% if annotations == 0 %} class='disabled' {% endif %}>
-                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="allographs/">Annotations by Allograph ({{annotations}})</a>
+                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="/digipal/page/{{ image.id }}/allographs/">Annotations by Allograph ({{annotations}})</a>
                         </li>
                         <li>
-                            <a data-toggle="tab" data-target='#metadata' href='metadata/'>Metadata</a>
+                            <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata'>Metadata</a>
                         </li>
                         <li>
-                            <a data-toggle="tab" data-target='#copyright' href='copyright/'>Image Copyright</a>
+                            <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                         </li>
                         <li>
-                            <a {% if image.item_part.images.all.count == 1 %} class='disabled' {% endif %} data-toggle="tab" data-target="#pages" href='pages/'>Other Pages ({{ image.item_part.images.all.count|add:'-1' }})</a>
+                            <a {% if image.item_part.images.all.count == 1 %} class='disabled' {% endif %} data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Pages ({{ image.item_part.images.all.count|add:'-1' }})</a>
                         </li>
                     </ul>
                 </div>
@@ -130,7 +130,7 @@
             {% endif %}
             annotator.image_id = {{ image.id }}
             annotator.hands = {{ hands_list|safe }}
-
+            annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
             no_image_reason = false;
             {% if vector_id %}
                 vector_id = true;

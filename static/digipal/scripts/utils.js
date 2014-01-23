@@ -33,7 +33,14 @@ $(function() {
     $('[data-toggle="tooltip"]').tooltip();
     
     // convert HTML select to chosen drop downs
-    $('.use-chosen select, select.use-chosen').chosen();
+    if ($.fn.chosen) {
+        $('.use-chosen select, select.use-chosen').chosen();
+    }
+    
+    // carousel rotation
+    $('.carousel').carousel({
+        interval: 5000
+    })
 });
 
 /**

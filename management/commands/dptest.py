@@ -106,12 +106,23 @@ Commands:
 		
 		pages = [
 				'',
+				# main search
 				'digipal/search/',
 				'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type='
-				'page',
+				# search graph
+				'digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',
+				# browse images
+				'digipal/page',
+				# image
+				'digipal/page/364/',
+				'digipal/page/364/allographs',
+				'digipal/page/364/copyright',
+				# static pages
 				'about',
+				# blog and news
 				'blog/category/blog',
 				'blog/category/news',
+				
 				]
 		
 		for page in pages:

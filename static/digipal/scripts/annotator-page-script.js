@@ -13,10 +13,8 @@ function AnnotatorLoader() {
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
 			annotator.annotating = true; // if logged in as admin, the variable annotations is set as true
 		}
-
 		var allographs_box = false,
 			allographs_loaded = false;
-
 		var select_elements = $('select');
 		select_elements.chosen();
 		self.switch_annotations();

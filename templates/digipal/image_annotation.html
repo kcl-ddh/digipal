@@ -32,10 +32,10 @@
                 {% comment %} TABS {% endcomment %}
                 <div class='span8'>
                     <ul class='nav nav-tabs'>
-                        <li {% if url == image.id|slugify %} class='active in' {% endif %}>
+                        <li {% if url == image.id|slugify or url == 'allographs' %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>Manuscript Image</a>
                         </li>
-                        <li {% if url == 'allographs' %} class='active in' {% endif %} {% if annotations == 0 %} class='disabled' {% endif %}>
+                        <li {% if annotations == 0 %} class='disabled' {% endif %}>
                             <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="/digipal/page/{{ image.id }}/allographs/">Annotations by Allograph ({{annotations}})</a>
                         </li>
                         <li {% if url == 'metadata' %} class='active in' {% endif %}>
@@ -53,8 +53,7 @@
             </div> {% comment %}DIV row{% endcomment %}
             <div class="tabbable">
                 <div class="tab-content">
-                    <div class="tab-pane fade {% if url == image.id|slugify %} active in {% endif %}" id='annotator'>
-
+                    <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
                         {% include "digipal/image_annotation_control_bar.html" %}
                         <div id="map"></div>
                         <div id="toolbar" class="olControlEditingToolbar"></div>
@@ -64,7 +63,7 @@
 
                     </div>
 
-                    <div class="tab-pane fade {% if url == 'allographs' %} active in {% endif %}" id='allographs'>
+                    <div class="tab-pane fade" id='allographs'>
                         {% include "digipal/hands.html" %}
                     </div>
 
@@ -111,9 +110,9 @@
             si.registerInput('#ontograph_type');
             var url = "{{ url }}";
             var image_id = "{{ image.id }}";
-
-            if(url == image_id){
+            if(url == image_id || url == 'allographs'){
                 main();
+                $('a[data-target="#allographs"').tab('show');
             }
 
             var tabs = $('a[data-toggle="tab"]');
@@ -131,6 +130,7 @@
                     if (dialog.length) {
                         dialog.fadeOut();
                     }
+
                 } else {
 
                     if(typeof annotator.annotations == 'undefined'){
@@ -145,8 +145,9 @@
                 }
                 return false;
             });
+        });
 
-            function main(){
+        function main(){
                 annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
                 'x', {{ width }}, {{ height }},
                 '{{ image_server_url }}', "{{is_admin}}");
@@ -167,7 +168,7 @@
                 vector_id = true;
                 vector_id_value = (getParameter('vector_id'));
                 {% else %}
-                 vector_id = false;
+                vector_id = false;
                 {% endif %}
 
                 {% if no_image_reason %}
@@ -191,6 +192,5 @@
                     }
                 }
             }
-        });
     </script>
 {% endblock %}

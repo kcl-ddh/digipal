@@ -86,7 +86,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		var msg = self.selectedAnnotations.length + ' annotation selected';
 		updateStatus(msg, 'success');
 		self.showAnnotation(self.selectedFeature);
-
 		if (self.selectedAnnotations.length < 2) {
 			if (group_button.length) {
 				group_button.addClass('disabled').attr('disabled', true);
@@ -1594,12 +1593,8 @@ function show_url_allograph(dialog, annotation, button) {
 					allograph_url.push(url_temp);
 
 				}
-
 				allograph_url = window.location.hostname +
 					document.location.pathname + '?' + allograph_url.join('&');
-				console.log(allograph_url);
-
-
 			} else {
 
 				geometryObject = annotator.selectedFeature;
@@ -1681,7 +1676,7 @@ function showBox(selectedFeature) {
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 		if (can_edit) {
-			var request = $.getJSON("graph/" + selectedFeature.graph);
+			var request = $.getJSON('/digipal/page/' + annotator.image_id + "/graph/" + selectedFeature.graph);
 			request.done(function(data) {
 				var url = '/digipal/page/' + annotator.image_id + '/allograph/' + data.id + '/features/';
 				var s = '<form class="frmAnnotation" method="get" name="frmAnnotation">';
@@ -2119,13 +2114,13 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 
 	var feature;
 	var data = make_form();
-
+	var url = '/digipal/page/' + annotator.image_id + '/save';
 	if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
 		var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
 		if (confirm(msg)) {
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
 				feature = this.selectedAnnotations[i];
-				save('save', feature, data.form_serialized, ann, data.features);
+				save(url, feature, data.form_serialized, ann, data.features);
 			}
 		} else {
 			return false;
@@ -2134,7 +2129,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 
 		if (this.selectedFeature) {
 
-			save('save', this.selectedFeature, data.form_serialized, ann, data.features);
+			save(url, this.selectedFeature, data.form_serialized, ann, data.features);
 
 			//this.loadAnnotations();
 		} else {
@@ -2142,7 +2137,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 				feature = this.vectorLayer.features[idx];
 
 				if (!feature.attributes.saved) {
-					save('save', feature, data.form_serialized, ann, data.features);
+					save(url, feature, data.form_serialized, ann, data.features);
 				}
 			}
 		}

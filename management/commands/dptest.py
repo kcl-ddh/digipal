@@ -129,7 +129,11 @@ Commands:
 				'digipal/hands/278/?basic_search_type=manuscripts&result_type=hands',
 				'digipal/scribes/96/',
 				'digipal/manuscripts/715/',
+				# collection
+				'http://localhost/digipal/page/lightbox/basket/',
 				]
+		
+		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
 		
 		for page in pages:
 			url = root + page
@@ -137,13 +141,15 @@ Commands:
 			sp = {'url': url, 'msgs': [], 'body': ''}
 			stats.append(sp) 
 
+			print 
 			print 'Request %s' % url
+			
 			res = web_fetch(url)
 			if res['status'] != '200':
-				print 'ERROR: %s' % res['status']
+				print 'ERROR: %s !!!!!!!!!!!!!!!!!!!' % res['status']
 				continue
 			if res['error']:
-				print 'ERROR: %s' % res['error']
+				print 'ERROR: %s !!!!!!!!!!!!!!!!!!!' % res['error']
 				continue
 			if res['body']:
 				# prefix the line with numbers

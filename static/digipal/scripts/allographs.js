@@ -460,8 +460,8 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			var url = 'graph/' + annotation.graph + '/features/';
-			var url_features = "graph/" + annotation.graph;
+			var url = '/digipal/page/' + annotator.image_id + '/graph/' + annotation.graph + '/features/';
+			var url_features = "/digipal/page/" + annotator.image_id + "/graph/" + annotation.graph;
 			var array_features_owned = features_owned(annotation, url);
 			var request = $.getJSON(url_features);
 			var features = annotator.vectorLayer.features;
@@ -469,7 +469,7 @@ function Allographs() {
 
 			request.done(function(data) {
 				var allograph_id = data.id;
-				url2 = 'allograph/' + data.id + '/features/';
+				url2 = '/digipal/page/' + annotator.image_id + '/allograph/' + data.id + '/features/';
 				var allographs = $.getJSON(url2);
 				var s = "<div id='box_features_container'>";
 				var string_summary = '';

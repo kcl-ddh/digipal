@@ -657,9 +657,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -688,7 +688,7 @@ function updateFeatureSelect(currentFeatures, id) {
 
 	if (annotator.isAdmin === "True") {
 		var allograph = select_allograph.val();
-		var url = '/digipal/page/ ' + annotator.image_id + '/allograph/' + allograph_selected + '/features/';
+		var url = '/digipal/page/' + annotator.image_id + '/allograph/' + allograph_selected + '/features/';
 		var s = '';
 
 		if (typeof allograph_selected != 'undefined' && allograph_selected) {
@@ -1384,7 +1384,7 @@ function open_allographs(allograph, show) {
 		if (!feature && !character) {
 			return false;
 		}
-		var url = "digipal/page/" + annotator.image_id + "/graph/" + feature + "/" + character + "/allographs_by_graph/";
+		var url = "/digipal/page/" + annotator.image_id + "/graph/" + feature + "/" + character + "/allographs_by_graph/";
 		load_allographs_container(allograph_value, url, show, allograph_id);
 	}
 }
@@ -1901,12 +1901,7 @@ function delete_annotation(layer, feature, number_annotations) {
 	var temp = feature;
 	updateStatus('Deleting annotations');
 	layer.destroyFeatures([feature]);
-	var url;
-	if (annotator.url_allographs) {
-		url = '../delete/' + featureId + '/';
-	} else {
-		url = 'delete/' + featureId + '/';
-	}
+	var url = '/digipal/page/' + annotator.image_id + '/delete/' + featureId + '/';
 	$.ajax({
 		url: url,
 		data: '',

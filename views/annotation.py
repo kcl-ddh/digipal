@@ -69,6 +69,11 @@ def image(request, image_id):
     annotations_count = image.annotation_set.values('graph').count()
     annotations = image.annotation_set.all()
     hands = image.hands.count()
+    url = url = request.path
+    url = url.split('/')
+    url.pop(len(url) - 1)
+    url = url[len(url) - 1]
+    print url
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
@@ -114,7 +119,7 @@ def image(request, image_id):
                'form': form, 'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations_count,
-               'annotations_list': data_allographs,
+               'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
@@ -349,7 +354,7 @@ def image_list(request):
     context = {}
     filterImages = FilterManuscriptsImages()
 
-    '''    
+    '''
     paginator = Paginator(images, 24)
     page = request.GET.get('page')
 
@@ -368,7 +373,7 @@ def image_list(request):
     context['page_list'] = page_list
     '''
     context['images'] = images
-    
+
     context['filterImages'] = filterImages
     context['view'] = request.GET.get('view', 'images')
     print context['view']

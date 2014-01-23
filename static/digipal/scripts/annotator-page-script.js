@@ -9,10 +9,9 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
-		self.change_tab();
-		var annotating = false;
+		annotator.annotating = false;
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
-			annotating = true; // if logged in as admin, the variable annotations is set as true
+			annotator.annotating = true; // if logged in as admin, the variable annotations is set as true
 		}
 
 		var allographs_box = false,
@@ -21,7 +20,6 @@ function AnnotatorLoader() {
 		var select_elements = $('select');
 		select_elements.chosen();
 		self.switch_annotations();
-
 		self.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
 		});
@@ -142,7 +140,6 @@ function AnnotatorLoader() {
 				if (dialog.length) {
 					dialog.fadeOut();
 				}
-
 			} else {
 				if (dialog.length) {
 					dialog.fadeIn();
@@ -165,7 +162,7 @@ function AnnotatorLoader() {
 				'allow_multiple_dialogs': false,
 				'toolbar_position': 'Vertical',
 				'boxes_on_click': false,
-				'annotating': annotating,
+				'annotating': annotator.annotating,
 				'select_multiple_annotations': false
 			};
 
@@ -177,7 +174,7 @@ function AnnotatorLoader() {
 		return digipal_settings;
 	};
 
-
+	/*
 	this.change_tab = function() {
 		var pathArray = window.location.pathname.split('/');
 		for (var i = 0; i < pathArray.length; i++) {
@@ -194,7 +191,7 @@ function AnnotatorLoader() {
 			}
 		});
 	};
-
+	*/
 	/*
 		* function set_settings
 		@parameter self.digipal_settings
@@ -760,7 +757,7 @@ function AnnotatorLoader() {
 }
 
 // launching script in anonymous private function
-(function() {
-	var loader = new AnnotatorLoader();
-	loader.init();
-})();
+
+
+var loader = new AnnotatorLoader();
+loader.init();

@@ -32,19 +32,19 @@
                 {% comment %} TABS {% endcomment %}
                 <div class='span8'>
                     <ul class='nav nav-tabs'>
-                        <li class='active'>
+                        <li {% if url == image.id|slugify %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>Manuscript Image</a>
                         </li>
-                        <li {% if annotations == 0 %} class='disabled' {% endif %}>
+                        <li {% if url == 'allographs' %} class='active in' {% endif %} {% if annotations == 0 %} class='disabled' {% endif %}>
                             <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="/digipal/page/{{ image.id }}/allographs/">Annotations by Allograph ({{annotations}})</a>
                         </li>
-                        <li>
+                        <li {% if url == 'metadata' %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata'>Metadata</a>
                         </li>
-                        <li>
+                        <li {% if url == 'copyright' %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                         </li>
-                        <li>
+                        <li {% if url == 'pages' %} class='active in' {% endif %}>
                             <a {% if image.item_part.images.all.count == 1 %} class='disabled' {% endif %} data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Pages ({{ image.item_part.images.all.count|add:'-1' }})</a>
                         </li>
                     </ul>
@@ -53,7 +53,7 @@
             </div> {% comment %}DIV row{% endcomment %}
             <div class="tabbable">
                 <div class="tab-content">
-                    <div class="tab-pane active in fade" id='annotator'>
+                    <div class="tab-pane fade {% if url == image.id|slugify %} active in {% endif %}" id='annotator'>
 
                         {% include "digipal/image_annotation_control_bar.html" %}
                         <div id="map"></div>
@@ -64,19 +64,19 @@
 
                     </div>
 
-                    <div class="tab-pane fade" id='allographs'>
+                    <div class="tab-pane fade {% if url == 'allographs' %} active in {% endif %}" id='allographs'>
                         {% include "digipal/hands.html" %}
                     </div>
 
-                    <div class="tab-pane fade" id='metadata'>
+                    <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
                          {% include "pages/record_images.html" %}
                     </div>
 
-                    <div class="tab-pane fade" id='copyright'>
+                    <div class="tab-pane fade {% if url == 'copyright' %} active in {% endif %}" id='copyright'>
                         {% include "pages/copyright.html" %}
                     </div>
 
-                    <div class="tab-pane fade" id='pages'>
+                    <div class="tab-pane fade {% if url == 'pages' %} active in {% endif %}" id='pages'>
                         {% include "digipal/image_annotation_other_images.html" %}
                     </div>
 

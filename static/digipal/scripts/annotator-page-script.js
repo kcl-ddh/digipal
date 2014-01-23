@@ -9,6 +9,7 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
+		self.change_tab();
 		var annotating = false;
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
 			annotating = true; // if logged in as admin, the variable annotations is set as true
@@ -132,9 +133,16 @@ function AnnotatorLoader() {
 		tabs.on('shown', function(e) {
 			var dialog = $('.ui-dialog');
 			if (e.target.getAttribute('data-target') != '#annotator') {
+				if (window.history && window.history.pushState) {
+					history.pushState(null, null, $(this).attr('href'));
+				} else {
+					window.location.href = $(this).attr('href');
+					return true;
+				}
 				if (dialog.length) {
 					dialog.fadeOut();
 				}
+
 			} else {
 				if (dialog.length) {
 					dialog.fadeIn();
@@ -168,6 +176,24 @@ function AnnotatorLoader() {
 		return digipal_settings;
 	};
 
+
+	this.change_tab = function() {
+		var pathArray = window.location.pathname.split('/');
+		for (var i = 0; i < pathArray.length; i++) {
+			if (pathArray[i] === '') {
+				pathArray.splice(i, 1);
+				i--;
+			}
+		}
+		var part = pathArray[pathArray.length - 1];
+		var tabs = $('a[data-toggle="tab"]');
+		$.each(tabs, function() {
+			if ('#' + part == $(this).data('target')) {
+				$(this).tab('show');
+			}
+		});
+	};
+
 	/*
 		* function set_settings
 		@parameter self.digipal_settings
@@ -195,8 +221,7 @@ function AnnotatorLoader() {
 	*/
 
 	this.load_annotations = function(callback) {
-
-		var request = $.getJSON('annotations/', function(data) {
+		var request = $.getJSON(annotator.url_annotations, function(data) {
 			annotator.annotations = data;
 		});
 
@@ -211,7 +236,7 @@ function AnnotatorLoader() {
 
 			// Loading vectors
 
-			var features_request = $.getJSON('vectors/');
+			var features_request = $.getJSON('/digipal/page/' + annotator.image_id + '/vectors/');
 			features_request.done(function(data) {
 				var features = [];
 				for (var j in data) {

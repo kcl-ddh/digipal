@@ -122,7 +122,10 @@ Commands:
 				# blog and news
 				'blog/category/blog',
 				'blog/category/news',
-				
+				# records
+				'digipal/hands/278/?basic_search_type=manuscripts&result_type=hands',
+				'digipal/scribes/96/',
+				'digipal/manuscripts/715/',
 				]
 		
 		for page in pages:

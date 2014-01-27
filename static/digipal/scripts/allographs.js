@@ -57,7 +57,7 @@ function Allographs() {
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function(event) {
-			self.click.to_lightbox($(this), self.selectedAnnotations.annotations);
+			self.methods.to_lightbox($(this), self.selectedAnnotations.annotations);
 		});
 
 		/* event to show summary */
@@ -179,6 +179,7 @@ function Allographs() {
 		},
 
 		select_all: function(button) {
+			self.selectedAnnotations.annotations = [];
 			var annotations_li = $('.annotation_li');
 			annotations_li.removeClass('selected');
 			annotations_li.find('input').attr('checked', false);

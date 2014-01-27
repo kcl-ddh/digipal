@@ -16,7 +16,7 @@
                                 </a>
                             {% endif %}
                         </p>
-                        <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
+                        <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
                             <span class='drag_caption'>Drag image to collection</span>
                             {% iip_img image.iipimage width=120 lazy=1 %}
                             <span class='imageDatabase_label' title = 'Go to {{ image }}'>

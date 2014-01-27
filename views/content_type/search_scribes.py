@@ -37,6 +37,10 @@ class SearchScribes(SearchContentType):
         context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
         # No longer needed?
         #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
+        context['pages'] = []
+        for hand in context['scribe'].hands.all():
+            for image in hand.images.all():
+                context['pages'].append({'hand': hand, 'image': image})
     
     def get_model(self):
         return Scribe
@@ -145,6 +149,5 @@ def scribe_details(request):
     """
     scribe = Scribe.objects.get(id=request.GET.get('id'))
     idiographs = Idiograph.objects.filter(scribe=scribe.id)
-    graphs = Graph.objects.filter(
-        idiograph__in=idiographs)
+    graphs = Graph.objects.filter(idiograph__in=idiographs)
     return idiographs, graphs

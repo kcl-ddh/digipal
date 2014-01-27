@@ -8,7 +8,7 @@
     Scribe: {{ scribe.name }}
     {% include "digipal/admin_edit.html" with instance=scribe %}
     {% if can_edit %}
-    <a class='admin-edit' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>[Edit Ideographs]</a>
+        <a class='admin-edit' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>[Edit Ideographs]</a>
     {% endif %}
 {% endblock %}
 
@@ -19,8 +19,8 @@
     <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
     </li>
-    <li class="{% if tabid = "pages" %}active in{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
     </li>
     <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>
@@ -71,71 +71,55 @@
                     </table>
                 </div>
             </div>
-            <script>
-                var i = 0;
-            </script>
-            <div class='tab-pane fade' id='pages'>
+            <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
                 <table class='table table-condensed'>
                     <tr>
                         <th>Page</th>
                         <th>Hand</th>
                         <th>Image</th>
                     </tr>
-                    {% for hand in scribe.hands.all %}
-                        {% for image in hand.images.all %}
-                        <script>
-                            i++;
-                        </script>
-                            <tr>
-                                <td>
-                                    <a href="{{ image.get_absolute_url }}">{{ image }}</a>
-                                </td>
-                                <td>
-                                    <a href="{{ hand.get_absolute_url }}">{{ hand }}</a>
-                                </td>
-                                <td>
-                                    <a href="{{ image.get_absolute_url }}">
-                                        {% iip_img image.iipimage height=100 %}
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                    {% for page in pages %}
+                        <tr>
+                            <td>
+                                <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
+                            </td>
+                            <td>
+                                <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
+                            </td>
+                            <td>
+                                <a href="{{ page.image.get_absolute_url }}">
+                                    {% iip_img page.image height=100 %}
+                                </a>
+                            </td>
+                        </tr>
                     {% endfor %}
-                    <script>
-                            var pages_tab = document.querySelector("a[data-target='#pages']");
-                            pages_tab.innerHTML = 'Pages (' + i + ')';
-                            if(!i){
-                                pages_tab.className += ' disabled';
-                                var pages_element = document.querySelector('#pages');
-                                pages.innerHTML = '<div class="alert alert-block"><h6>No Pages available</h6></div>';
-                            }
-                    </script>
                 </table>
             </div>
 
-            <div class='tab-pane fade' id='idiographs'>
-                <div id='idiographsView'>
-
+            <div class='tab-pane fade {% if tabid = 'idiographs' %}active in{% endif %}' id='idiographs'>
                 {% if idiograph_components %}
                     {% for idiograph in idiograph_components.all %}
-                    <div class="idiograph_scribe">
-                        <h4><b>Idiograph:</b> {{idiograph}}</h4>
-                        {% if can_edit %}
-                        {% endif %}
-                        {% for component in idiograph.idiographcomponent_set.all %}
-                            <p class='component_scribe'>{{ component.component }}</p>
-                            {% for feature in component.features.all %}
-                                <p class='feature_scribe'>{{feature}}</p>
-                            {% endfor %}
-                        {% endfor %}
-                    </div>
+                        <div>
+                            <h4>{{idiograph}}</h4>
+                            <ul class="unstyled">
+                                {% for component in idiograph.idiographcomponent_set.all %}
+                                    <li class='component_scribe'>{{ component.component }}
+                                        <ul class="unstyled">                                
+                                            {% for feature in component.features.all %}
+                                                <li class='feature_scribe'>{{feature}}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <hr/>
+                        </div>
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-block">
                         <h6>No Idiographs available</h6>
                     </div>
                 {% endif %}
-                </div>
             </div>
 
         </div>

@@ -68,19 +68,14 @@
                         {{ result.description|tei }}
                     </div>
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No description available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="description" %}
                 {% endif %}
             </div>
 
             {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
-             <div id='basket_collector'>
-                <p>Add Image to Collection</p>
-                <p>
-                    <img src='/static/images/shopping-cart-icon.png' alt="Collection" />
-                </p>
-            </div>
+            
+            {% include "digipal/add_to_collection.html" %}
+            
             <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
                 <div class="scribe annotations">
                     {% include "digipal/annotations.html" %}

@@ -12,10 +12,27 @@
             exdate.setDate(exdate.getDate() + exdays);
             var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
             document.cookie=c_name + "=" + c_value;
+        },
+
+        /*
+         * Update the browser address bar with the given URL.
+         * Refresh the page if the browser does not support changing the address bar. 
+         */
+        update_address_bar: function(url) {
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, null, url);
+            } else {
+                // The browser does not support replaceState (e.g. IE 9),
+                // we just load the page.
+                window.location.href = url;
+            }
         }
     }
 })(jQuery);
 
+/**
+ * THe following code is always run as it can be useful for any page.
+ */
 $(function() {
     
     /**
@@ -29,7 +46,7 @@ $(function() {
         }
     );
     
-    // enable bootstrap tooltip on elements with data-toggle attribute
+    // enable bootstrap tooltip on elements with data-toggle="tooltip" attribute
     $('[data-toggle="tooltip"]').tooltip();
     
     // convert HTML select to chosen drop downs

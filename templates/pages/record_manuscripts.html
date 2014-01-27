@@ -105,9 +105,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No descriptions available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="description" %}
                 {% endif %}
             </div>
 
@@ -123,25 +121,19 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No hands available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="hand" %}
                 {% endif %}
             </div>
 
         </div>
     </div>
-    <div id='basket_collector'>
-        <p>Add Image to Collection</p>
-        <p>
-            <img src='/static/images/shopping-cart-icon.png' alt="Collection" />
-        </p>
-    </div>
+    
+    {% include "digipal/add_to_collection.html" %}
+    
 {% endblock %}
 
 {% block extra_js %}
-
     {{ block.super }}
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    {% endblock %}
+{% endblock %}

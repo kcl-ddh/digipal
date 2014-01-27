@@ -43,8 +43,6 @@
             {% endif %}
         {% endfor %}
     {% else %}
-        <div class="alert alert-block">
-            <h6>No Images available</h6>
-        </div>
+        {% include "digipal/empty_tab.html" with type="page" %}
     {% endif %}
 </div>

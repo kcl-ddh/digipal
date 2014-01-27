@@ -719,6 +719,20 @@ function updateFeatureSelect(currentFeatures, id) {
 		var url = annotator.absolute_image_url + 'allograph/' + allograph_selected + '/features/';
 		var s = '';
 
+		var dialog;
+		var prefix;
+
+		if ($('.tab-pane.active').attr('id') == 'annotator') {
+			dialog = $('#dialog' + id);
+			if (dialog.parent().find(".number_annotated_allographs").length) {
+				dialog.parent().find(".number_annotated_allographs .number-allographs").html(n);
+			}
+			prefix = 'annotator_';
+		} else {
+			dialog = $('.modal-body');
+			prefix = 'allographs_';
+		}
+
 		if (typeof allograph_selected != 'undefined' && allograph_selected) {
 			var get_features = $.getJSON(url);
 			get_features.done(function(data) {
@@ -726,11 +740,11 @@ function updateFeatureSelect(currentFeatures, id) {
 					component = data[idx].name;
 					component_id = data[idx].id;
 					var features = data[idx].features;
-					s += "<div class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
 
 					s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div></div>";
 
-					s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
 					$.each(features, function(idx) {
 						var value = component_id + '::' + features[idx].id;
@@ -752,17 +766,6 @@ function updateFeatureSelect(currentFeatures, id) {
 					});
 					s += "</div>";
 				});
-
-				var dialog;
-				if ($('.tab-pane.active').attr('id') == 'annotator') {
-					dialog = $('#dialog' + id);
-					if (dialog.parent().find(".number_annotated_allographs").length) {
-						dialog.parent().find(".number_annotated_allographs .number-allographs").html(n);
-					}
-
-				} else {
-					dialog = $('.modal-body');
-				}
 
 				if (!annotator.editorial.active) {
 					if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
@@ -1690,7 +1693,7 @@ function showBox(selectedFeature) {
 			array_features_owned = features_owned(selectedFeature, url);
 		}
 		create_dialog(selectedFeature, id);
-
+		var prefix = 'annotator_';
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 		if (can_edit) {
@@ -1707,11 +1710,11 @@ function showBox(selectedFeature) {
 						component = data[idx].name;
 						component_id = data[idx].id;
 						var features = data[idx].features;
-						s += "<div class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
+						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 						s += "<div class='checkboxes_div btn-group'>";
 						s += "<span class='check_all btn btn-mini'>All</span> <span class='btn btn-mini uncheck_all'>Clear</span>";
 						s += "</div></div>";
-						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
 							var id = component_id + '_' + features[idx].id;
@@ -1757,7 +1760,7 @@ function showBox(selectedFeature) {
 						event.stopPropagation();
 					});
 
-					var component_labels = $('.component_labels');
+					var component_labels = dialog.find('.component_labels');
 					component_labels.click(function() {
 						var component = $(this);
 						var div = $("#" + $(this).data('id'));

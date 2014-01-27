@@ -2536,7 +2536,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 	} else {
 		this.fullScreen.deactivate();
 		map.removeClass('fullScreenMap');
-		$('.olControlEditingToolbar').css("background-color", "rgba(0, 0, 0, 0.25)");
+		$('.olControlEditingToolbar').css("background-color", "#fff");
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
 		panel.removeClass('fullScreenPanel');
 	}

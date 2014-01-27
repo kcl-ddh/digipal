@@ -167,7 +167,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a delete feature
 	this.deleteFeature = new DeleteFeature(this.vectorLayer, {
-		displayClass: 'olControlDeleteFeature',
+		displayClass: 'olControlDeleteFeature fa fa-times ',
 		title: 'Delete'
 	});
 
@@ -185,7 +185,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		renderIntent: 'transform',
 		irregular: true,
 		rotate: false,
-		displayClass: 'olControlTransformFeature',
+		displayClass: 'olControlTransformFeature fa fa-edit ',
 		title: 'Transform'
 	});
 
@@ -251,7 +251,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// creates a rectangle feature
 	this.rectangleFeature = new OpenLayers.Control.DrawFeature(
 		this.vectorLayer, OpenLayers.Handler.RegularPolygon, {
-			displayClass: 'olControlDrawFeaturePolygon',
+			displayClass: 'olControlDrawFeaturePolygon fa fa-square ',
 			handlerOptions: {
 				sides: 4,
 				irregular: true
@@ -268,7 +268,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a select feature
 	this.selectFeature = new OpenLayers.Control.SelectFeature(this.vectorLayer, {
-		displayClass: 'olControlDragFeature',
+		displayClass: 'olControlDragFeature fa fa-hand-o-up ',
 		title: 'Select',
 		clickout: true,
 		toggle: false,
@@ -293,7 +293,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.zoomBoxFeature = new OpenLayers.Control.ZoomBox({
 		alwaysZoom: true,
 		keyMask: false,
-		displayClass: 'olControlZoomBox'
+		displayClass: 'olControlZoomBox fa fa-search-plus '
 	});
 
 
@@ -304,7 +304,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			_self.saveAnnotation();
 		},
-		displayClass: 'olControlSaveFeatures'
+		displayClass: 'olControlSaveFeatures fa fa-save '
 	});
 
 	/* FullScreen Mode */
@@ -343,7 +343,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.fullScreen = new OpenLayers.Control.Button({
-		displayClass: 'olControlFullScreenFeature',
+		displayClass: 'olControlFullScreenFeature fa fa-desktop ',
 		title: 'Full Screen',
 		active: false,
 		trigger: function() {
@@ -352,7 +352,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.refresh = new OpenLayers.Control.Button({
-		displayClass: 'olControlRefreshFeature',
+		displayClass: 'olControlRefreshFeature fa fa-refresh ',
 		title: 'Refresh',
 		trigger: function() {
 			_self.refresh_layer();
@@ -360,7 +360,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.editorial = new OpenLayers.Control.Button({
-		displayClass: 'olControlEditorialFeature',
+		displayClass: 'olControlEditorialFeature fa fa-pencil ',
 		title: 'Editorial Annotations',
 		active: false,
 		trigger: function() {

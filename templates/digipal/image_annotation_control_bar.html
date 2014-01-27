@@ -13,20 +13,20 @@
 
         <input data-toggle="tooltip" title='Switch annotations' id="toggle-state-switch" type="checkbox" class="switch-small" checked>
 
-        {% if annotations > 0 %}
-            <a data-toggle="tooltip" class='btn' id='filterAllographs' title='Filter Annotations'>
-                <i class="fa fa-filter"></i>
-            </a>
-        {% endif %}
 
-        {% if can_edit %}
+        <a data-toggle="tooltip" class='btn' id='filterAllographs' title='Filter Annotations'>
+            <i class="fa fa-filter"></i>
+        </a>
 
-            <div id='div_unsaved_annotations_counter'>
-                <label class='panel-label'>Unsaved</label>
-                <span data-toggle="tooltip" class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
-            </div>
+    {% endif %}
 
-        {% endif %}
+     {% if can_edit %}
+
+        <div id='div_unsaved_annotations_counter'>
+            <label class='panel-label'>Unsaved</label>
+            <span data-toggle="tooltip" class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
+         </div>
+
     {% endif %}
 
     <div id='annotator-action-buttons' class="btn-toolbar">

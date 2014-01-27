@@ -1,12 +1,13 @@
 
 #OpenLayers_Control_Panel_29{
-    background-color: rgba(0, 0, 0, 0.25);
     padding: 3px;
     border-radius:4px;
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
     margin:0;
-    border: 1px solid #999;
+    background-color: #fff;
+    padding: 0.5%;
+    border:1px solid #ccc;
     border-left:none;
 }
 

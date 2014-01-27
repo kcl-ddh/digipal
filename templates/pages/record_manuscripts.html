@@ -127,6 +127,7 @@
 
         </div>
     </div>
+    
     <div id='basket_collector'>
         <p>Add Image to Collection</p>
         <p>
@@ -136,8 +137,7 @@
 {% endblock %}
 
 {% block extra_js %}
-
     {{ block.super }}
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    {% endblock %}
+{% endblock %}

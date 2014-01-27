@@ -365,7 +365,7 @@ function Allographs() {
 				all_select.trigger('liszt:updated');
 
 				this.get_features(annotation, function(s, string_summary) {
-
+					var myModal = $('.myModal');
 					var select_allograph = $('.myModal .allograph_form');
 					var summary = $('#summary');
 					var features_container = $('#features_container');
@@ -388,10 +388,9 @@ function Allographs() {
 						event.stopPropagation();
 					});
 
-					$('.myModal select').chosen();
+					myModal.find('select').chosen();
 
 					var maximized = false;
-					var myModal = $('.myModal');
 					var maximize_icon = $('#maximize');
 
 					maximize_icon.click(function(event) {
@@ -430,7 +429,7 @@ function Allographs() {
 						event.stopPropagation();
 					});
 
-					$('.component_labels').click(function() {
+					myModal.find('.component_labels').click(function() {
 						var div = $("#" + $(this).data('id'));
 						if (!div.data('hidden')) {
 							$(this).next('.checkboxes_div').hide();
@@ -461,8 +460,8 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			var url = '/digipal/page/' + annotator.image_id + '/graph/' + annotation.graph + '/features/';
-			var url_features = "/digipal/page/" + annotator.image_id + "/graph/" + annotation.graph;
+			var url = annotator.absolute_image_url + 'graph/' + annotation.graph + '/features/';
+			var url_features = annotator.absolute_image_url + "graph/" + annotation.graph;
 			var array_features_owned = features_owned(annotation, url);
 			var request = $.getJSON(url_features);
 			var features = annotator.vectorLayer.features;
@@ -470,10 +469,11 @@ function Allographs() {
 
 			request.done(function(data) {
 				var allograph_id = data.id;
-				url2 = '/digipal/page/' + annotator.image_id + '/allograph/' + data.id + '/features/';
+				url2 = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
 				var allographs = $.getJSON(url2);
 				var s = "<div id='box_features_container'>";
 				var string_summary = '';
+				var prefix = 'allographs_';
 				allographs.done(function(data) {
 					$.each(data, function(idx) {
 						var component = data[idx].name;
@@ -482,11 +482,11 @@ function Allographs() {
 						var features = data[idx].features;
 						string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
 
-						s += "<div class='component_labels' data-id='component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
+						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
 						s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div></div>";
 
-						s += "<div id='component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						var n = 0;
 
 						$.each(features, function(idx) {

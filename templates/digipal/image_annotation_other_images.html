@@ -54,12 +54,9 @@
             {% endif %}
         {% endif %}
     {% endfor %}
-    <div id='basket_collector'>
-        <p>Add Image to Collection</p>
-        <p>
-            <img src='/static/images/shopping-cart-icon.png' alt="Collection" />
-        </p>
-    </div>
+    
+    {% include "digipal/add_to_collection.html" %}
+    
 {% else %}
     <div class="alert">
         <p>No other pages available</p>

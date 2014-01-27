@@ -18,7 +18,7 @@
                         </p>
                         <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
                             <span class='drag_caption'>Drag image to collection</span>
-                            {% iip_img image.iipimage width=120 lazy=1 %}
+                            {% iip_img image width=120 lazy=1 %}
                             <span class='imageDatabase_label' title = 'Go to {{ image }}'>
                             {% if full_label %}
                                 {{ image }}
@@ -27,7 +27,7 @@
                             {% endif %}
                             </span>
                         </a>
-                        <p id='annotations_count_images'>
+                        <p class='annotations_count_images'>
                             <span class="label label-important">
                                 {{ image.annotation_set.all.count }}
                                 {% if image.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}

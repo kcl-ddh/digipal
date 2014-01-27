@@ -107,12 +107,6 @@
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     <script src='https://apis.google.com/js/client.js'></script>
     <script>
-
-        var csrftoken = getCookie('csrftoken');
-        $.ajaxSetup({
-            headers: { "X-CSRFToken": csrftoken }
-        });
-
         $(document).ready(function() {
             var si = new StoredInputs('digipal_settings');
             si.registerInput('#ontograph_type');
@@ -126,37 +120,6 @@
             if(url == 'allographs'){
                 $('a[data-target="#allographs"').tab('show');
             }
-
-            var tabs = $('a[data-toggle="tab"]');
-
-            tabs.on('shown', function(e) {
-                var dialog = $('.dialog_annotations');
-                if (e.target.getAttribute('data-target') != '#annotator') {
-
-                    if (window.history && window.history.pushState) {
-                        history.pushState(null, null, $(this).attr('href'));
-                    } else {
-                        window.location.href = $(this).attr('href');
-                    }
-
-                    if (dialog.length) {
-                        dialog.parent().fadeOut();
-                    }
-
-                } else {
-                    if(typeof annotator.annotations == 'undefined'){
-                        main();
-                    }
-
-                    if (dialog.length) {
-                        dialog.parent().fadeIn();
-                    }
-
-                    history.pushState(null, null, '/digipal/page/' + annotator.image_id);
-                }
-
-                return false;
-            });
         });
 
         function main(){
@@ -176,13 +139,14 @@
             {% endif %}
 
             annotator.image_id = {{ image.id }};
-            annotator.hands = {{ hands_list|safe }}
-            annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
+            annotator.hands = {{ hands_list|safe }};
+            annotator.absolute_image_url = '{{ image.get_absolute_url }}';
+            annotator.url_annotations = '{{ image.get_absolute_url }}annotations';
             no_image_reason = false;
 
             {% if vector_id %}
             vector_id = true;
-            vector_id_value = (getParameter('vector_id'));
+            vector_id_value = getParameter('vector_id');
             {% else %}
             vector_id = false;
             {% endif %}

@@ -22,9 +22,9 @@
 </div>
 <div class="row">
     <div class="btn-group pull-right">
-        <button class='btn' title = 'Send collected images to the Lightbox' id='to_lightbox'><i class="fa fa-picture-o"></i></button>
-        <button class='btn' title = 'Save Collection' id='add_collection'><i class="fa fa-floppy-o"></i></button>
-        <button class='btn' title='Share this Collection' id='share_collection'><i class="fa fa-share"></i></button>
+        <button class='btn' id='to_lightbox'><i title = 'Send images to the Lightbox' class="fa fa-picture-o"></i></button>
+        <button class='btn' id='add_collection'><i title = 'Save Collection' class="fa fa-floppy-o"></i></button>
+        <button class='btn' id='share_collection'><i title='Share this Collection' class="fa fa-share"></i></button>
     </div>
 </div>
 <div class="tabbable">
@@ -50,4 +50,7 @@
     <script src ='/static/digipal/scripts/collections.js'></script>
     <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
     <script src='https://apis.google.com/js/client.js'></script>
+    <script>
+        $('i.fa').tooltip();
+    </script>
 {% endblock %}

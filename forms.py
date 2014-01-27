@@ -53,13 +53,13 @@ class ImageAnnotationForm(forms.Form):
     #status = forms.ModelChoiceField(queryset=Status.objects.all(),
     #        initial=default_status)
     hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
-        widget = Select(attrs={'class':'chzn-select hand_form', 'data-placeholder':"Hand"}),
+        widget = Select(attrs={'name': 'hand', 'class':'chzn-select hand_form', 'data-placeholder':"Hand"}),
         label = "",
         empty_label = None,)
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
-        widget = AllographSelect(attrs={'class':'chzn-select allograph_form', 'data-placeholder':"Allograph"}),
+        widget = AllographSelect(attrs={'name': 'allograph', 'class':'chzn-select allograph_form', 'data-placeholder':"Allograph"}),
         label = "",
         empty_label =None,
     )

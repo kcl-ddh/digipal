@@ -104,10 +104,8 @@ def image(request, image_id):
 
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form_annotator = ImageAnnotationForm(prefix='annotator')
-    form_allographs = ImageAnnotationForm(prefix='allographs')
-    form_annotator.fields['hand'].queryset = image.hands.all()
-    form_allographs.fields['hand'].queryset = image.hands.all()
+    form = ImageAnnotationForm()
+    form.fields['hand'].queryset = image.hands.all()
 
     width, height = image.dimensions()
     image_server_url = image.zoomify
@@ -116,7 +114,7 @@ def image(request, image_id):
 
     from digipal.models import OntographType
     context = {
-               'form_annotator': form_annotator.as_ul(), 'form_allographs':form_allographs.as_ul(),
+               'form': form.as_ul(),
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations_count,

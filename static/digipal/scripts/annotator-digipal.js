@@ -686,9 +686,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -717,7 +717,7 @@ function updateFeatureSelect(currentFeatures, id) {
 
 	if (annotator.isAdmin === "True") {
 		var allograph = select_allograph.val();
-		var url = '/digipal/page/' + annotator.image_id + '/allograph/' + allograph_selected + '/features/';
+		var url = annotator.absolute_image_url + 'allograph/' + allograph_selected + '/features/';
 		var s = '';
 
 		if (typeof allograph_selected != 'undefined' && allograph_selected) {
@@ -1402,7 +1402,7 @@ function open_allographs(allograph, show) {
 		if (!feature && !character) {
 			return false;
 		}
-		var url = "/digipal/page/" + annotator.image_id + "/graph/" + feature + "/" + character + "/allographs_by_graph/";
+		var url = annotator.absolute_image_url + "graph/" + feature + "/" + character + "/allographs_by_graph/";
 		load_allographs_container(allograph_value, url, show, allograph_id);
 	}
 }
@@ -1427,7 +1427,7 @@ function refresh_letters_container(allograph, allograph_id, show) {
 	if (typeof character_id == "undefined") {
 		return false;
 	}
-	var url = "/digipal/page/" + annotator.image_id + "/allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
+	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	load_allographs_container(allograph, url, show);
 }
 
@@ -1684,7 +1684,7 @@ function showBox(selectedFeature) {
 			return false;
 		}
 
-		var url = '/digipal/page/' + annotator.image_id + '/graph/' + selectedFeature.graph + '/features/';
+		var url = annotator.absolute_image_url + 'graph/' + selectedFeature.graph + '/features/';
 		if (annotator.selectedFeature.state == 'Insert' && !annotator.selectedFeature.stored) {
 			array_features_owned = annotator.selectedFeature.features;
 		} else {
@@ -1697,7 +1697,7 @@ function showBox(selectedFeature) {
 		if (can_edit) {
 			var request = $.getJSON('/digipal/page/' + annotator.image_id + "/graph/" + selectedFeature.graph);
 			request.done(function(data) {
-				var url = '/digipal/page/' + annotator.image_id + '/allograph/' + data.id + '/features/';
+				var url = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
 				var s = '<form class="frmAnnotation" method="get" name="frmAnnotation">';
 				s += "<input type='hidden' name ='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
 				var allographs = $.getJSON(url);
@@ -1915,7 +1915,7 @@ function delete_annotation(layer, feature, number_annotations) {
 	var temp = feature;
 	updateStatus('Deleting annotations');
 	layer.destroyFeatures([feature]);
-	var url = '/digipal/page/' + annotator.image_id + '/delete/' + featureId + '/';
+	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
 	$.ajax({
 		url: url,
 		data: '',
@@ -2013,9 +2013,7 @@ function highlight_unsaved_vectors(button) {
 	var color;
 	for (i = 0; i < features.length; i++) {
 		if (!features[i].feature.style) {
-			features[i].feature.style = {
-				'fillColor': '#ee9900'
-			};
+			stylize('#ee9900', features[i].feature);
 		}
 		features[i].feature.originalColor = features[i].feature.style.fillColor;
 		features[i].featureoriginalWidth = 2;
@@ -2027,7 +2025,7 @@ function highlight_unsaved_vectors(button) {
 		features[i].feature.style.strokeWidth = 6;
 	}
 	annotator.vectorLayer.redraw();
-	button.addClass('active').addClass('btn-primary').removeClass("btn-warning");
+	button.addClass('active');
 }
 
 
@@ -2038,7 +2036,7 @@ function unhighlight_unsaved_vectors(button) {
 		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
 	}
 	annotator.vectorLayer.redraw();
-	button.removeClass('active').removeClass("btn-primary").addClass("btn-warning");
+	button.removeClass('active');
 }
 
 function trigger_highlight_unsaved_vectors() {
@@ -2133,7 +2131,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 
 	var feature;
 	var data = make_form();
-	var url = '/digipal/page/' + annotator.image_id + '/save';
+	var url = annotator.absolute_image_url + 'save';
 	if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
 		var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
 		if (confirm(msg)) {

@@ -67,7 +67,7 @@ function Allographs() {
 		});
 
 		/* event to redirect from letters to annotator */
-		var a_images = $('.annotation_li .droppable_image');
+		var a_images = $('.annotation_li a');
 		a_images.click(function(event) {
 			var id = $(this).parent('.annotation_li').data('annotation');
 			self.methods.to_annotator(id);

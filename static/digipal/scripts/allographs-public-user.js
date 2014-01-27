@@ -14,10 +14,22 @@ function PublicAllograhs() {
 		}
 	};
 
+	this.to_annotator = function(annotation_id) {
+		var tab = $('a[data-target="#annotator"]');
+		tab.tab('show');
+		annotator.selectFeatureByIdAndZoom(annotation_id);
+		var select_allograph = $('#panelImageBox');
+		select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+		var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
+		select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
+		$('select').trigger('liszt:updated');
+	};
+
 
 	this.init = function() {
 		var _self = this;
-		$('.annotation_li').click(function(event) {
+		var annotation_li = $('.annotation_li');
+		annotation_li.click(function(event) {
 			var annotation_li = $(this);
 			var annotation = annotation_li.data('graph');
 
@@ -34,11 +46,24 @@ function PublicAllograhs() {
 
 		});
 
-		$('.annotation_li a').click(function(event) {
+		annotation_li.find('a').click(function(event) {
+			var id = $(this).parent('.annotation_li').data('annotation');
+			_self.to_annotator(id);
+
+			/*
+			var panel = $('#panelImageBox');
+			$('body').animate({
+				scrollLeft: panel.position().left,
+				scrollTop: panel.position().top
+			});
+			*/
+
 			event.stopPropagation();
+			event.preventDefault();
 		});
 
-		$('.deselect_all').click(function() {
+		var deselect_all = $('.deselect_all');
+		deselect_all.click(function() {
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
@@ -48,7 +73,8 @@ function PublicAllograhs() {
 			checkboxes.removeClass('selected');
 		});
 
-		$('.select_all').click(function() {
+		var select_all = $('.select_all');
+		select_all.click(function() {
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');

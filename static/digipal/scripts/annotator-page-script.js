@@ -9,6 +9,16 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
+
+		var csrftoken = getCookie('csrftoken');
+		$.ajaxSetup({
+			headers: {
+				"X-CSRFToken": csrftoken
+			}
+		});
+
+		self.change_tabs();
+
 		annotator.annotating = false;
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
 			annotator.annotating = true; // if logged in as admin, the variable annotations is set as true
@@ -385,10 +395,15 @@ function AnnotatorLoader() {
 				// annotator.map.zoomToExtent(extent);
 
 			}, 500);
+
+			reload_described_annotations();
+			trigger_highlight_unsaved_vectors();
+
+		} else {
+			return false;
 		}
 
-		reload_described_annotations();
-		trigger_highlight_unsaved_vectors();
+
 	};
 
 	/*
@@ -728,6 +743,39 @@ function AnnotatorLoader() {
 			}
 		}
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
+	};
+
+	this.change_tabs = function() {
+		var tabs = $('a[data-toggle="tab"]');
+
+		tabs.on('shown', function(e) {
+			var dialog = $('.dialog_annotations');
+			if (e.target.getAttribute('data-target') != '#annotator') {
+
+				if (window.history && window.history.pushState) {
+					history.pushState(null, null, $(this).attr('href'));
+				} else {
+					window.location.href = $(this).attr('href');
+				}
+
+				if (dialog.length) {
+					dialog.parent().fadeOut();
+				}
+
+			} else {
+				if (typeof annotator.annotations == 'undefined') {
+					main();
+				}
+
+				if (dialog.length) {
+					dialog.parent().fadeIn();
+				}
+
+				history.pushState(null, null, '/digipal/page/' + annotator.image_id);
+			}
+
+			return false;
+		});
 	};
 }
 

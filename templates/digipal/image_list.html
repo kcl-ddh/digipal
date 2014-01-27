@@ -76,7 +76,7 @@
                                 </p>
                                 <dl class="imageDatabase">
                                     <dt>
-                                        <a data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
+                                        <a data-type='image' data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
                                             <span class="drag_caption">Drag Image to basket</span>
                                             {% iip_img image width=200 lazy=1 %}
                                         </a>
@@ -117,7 +117,7 @@
                         {% for image in images_on_this_page %}
                             <tr>
                                 <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
-                                <td><a data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
+                                <td><a data-type='image' data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
                                 <td>{{image.item_part.current_item.repository.place}}</td>
                                 <td>{{image.item_part.current_item.repository.name}}</td>
                                 <td>{{ image.annotation_set.all.count }}</td>

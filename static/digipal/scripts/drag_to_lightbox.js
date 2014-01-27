@@ -18,7 +18,8 @@ $(document).ready(function() {
 
 		drop: function(event, ui) {
 			var element = $(ui.helper[0]);
-			if (add_to_lightbox(element, 'image', element.data('id'), false)) {
+			var type = element.data('type');
+			if (add_to_lightbox(element, type, element.data('id'), false)) {
 
 				var s = '<p>Image added to Lightbox!</p>';
 				s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';

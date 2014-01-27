@@ -489,7 +489,7 @@ $(document).ready(function() {
 
 	} else {
 
-		var s = '<div class="alert alert-warning">The Collection is empty</div>';
+		var s = '<div class="alert alert-warning" style="margin-top:2%">The Collection is empty</div>';
 		container_basket.html(s);
 
 		var loading_div = $(".loading-div");

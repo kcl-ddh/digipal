@@ -25,7 +25,7 @@
                 <dl class="imageDatabase">
                     <dt>
                         <a class='droppable_image' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}" data-id="{{ p.id }}" data-type='image'>
-                            {% iip_img p.iipimage width=150 %}
+                            {% iip_img p width=150 %}
                         </a>
                     </dt>
                     <dd>

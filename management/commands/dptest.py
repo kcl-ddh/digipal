@@ -134,6 +134,7 @@ Commands:
 				]
 		
 		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
+		#pages = ['digipal/page/364/',]
 		
 		for page in pages:
 			url = root + page

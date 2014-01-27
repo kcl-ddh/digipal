@@ -85,7 +85,7 @@
                                         <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
                                     </dd>
                                 </dl>
-                                <p>
+                                <p class='annotations_count_images'>
                                     <span class="label label-important">
                                         {{ image.annotation_set.all.count  }}
                                         {{ "Annotation"|plural:image.annotation_set.all.count }}

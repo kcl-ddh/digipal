@@ -2,7 +2,9 @@
 {% load html_escape %}
 
 {% block meta_title %}Digipal Collection{% endblock %}
-
+{% block extra_css %}
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+{% endblock %}
 {% block main %}
 <h1 class='header1'>Collection</h1>
 
@@ -20,9 +22,9 @@
 </div>
 <div class="row">
     <div class="btn-group pull-right">
-        <button class='btn btn-small' title = 'Send collected images to the Lightbox' id='to_lightbox'>Go to Lightbox</button>
-        <button class='btn btn-small' title = 'Save Collection' id='add_collection'>Save Collection</button>
-        <button class='btn btn-small' title='Share this Collection' id='share_collection'>Share</button>
+        <button class='btn' title = 'Send collected images to the Lightbox' id='to_lightbox'><i class="fa fa-wrench"></i></button>
+        <button class='btn' title = 'Save Collection' id='add_collection'><i class="fa fa-floppy-o"></i></button>
+        <button class='btn' title='Share this Collection' id='share_collection'><i class="fa fa-share"></i></button>
     </div>
 </div>
 <div class="tabbable">

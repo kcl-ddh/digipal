@@ -5,56 +5,46 @@
 {% endcomment %}
 <div class='panel' id='panelImageBox'>
 
-    <span class="label label-important">
-        <span>
-            <b>Annotations</b>: {{ annotations }}
-        </span>
-    </span>
-
-    <span class="label label-important">
-        <span>
-            <b>Hands</b>: {{ hands }}
-        </span>
-    </span>
-
     {% if annotations > 0 %}
         <span class="label" id='label-switcher'>
             <b>Annotations</b>
         </span>
-        <input id="toggle-state-switch" type="checkbox" class="switch-small" checked>
-
+        <input data-toggle="tooltip" title='Switch annotations' id="toggle-state-switch" type="checkbox" class="switch-small" checked>
     {% endif %}
 
     <div id='annotator-action-buttons' class="btn-toolbar">
         <div class="btn-group">
             {% if annotations > 0 %}
-                <a class='btn btn-small' id='filterAllographs' title='Filter Annotations'>Filter</a>
+                <a data-toggle="tooltip" class='btn' id='filterAllographs' title='Filter Annotations'>
+                    <i class="fa fa-filter"></i>
+                </a>
             {% endif %}
-            <a class="btn btn-small" id="settings_annotator" title='Open Settings'>Settings</a>
-            <a class="btn btn-small" id="image_to_lightbox" title='Add image to Collection'>Collect</a>
+            <a data-toggle="tooltip" class="btn" id="settings_annotator" title='Open Settings'>
+                <i class="fa fa-wrench"></i>
+            </a>
+            <a data-toggle="tooltip" class="btn" id="image_to_lightbox" title='Add image to Collection'>
+                <i class="fa fa-folder-open"></i>
+            </a>
         </div>
     </div>
 
-
     {% if can_edit %}
-
         <div id='div_unsaved_annotations_counter'>
             <span class="label">Unsaved</span>
-            <span class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
+            <span data-toggle="tooltip" class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
         </div>
 
         <form name='frmAnnotation' method="get" class='frmAnnotation pull-right'>
             <div id='form_annotation_hand'>
-                {{ form }}
-
-                <span class='btn btn-small btn-primary number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
+                <ul class='ul_inline_form'>
+                    {{ form_annotator }}
+                </ul>
+                <span data-toggle="tooltip" class='btn btn-small btn-primary number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
                     <i class='icon-eye-open'></i>
                     <span class='number-allographs'></span>
                 </span>
-
             </div>
         </form>
-
     {% else %}
 
         {% comment %}

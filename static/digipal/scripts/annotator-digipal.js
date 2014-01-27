@@ -260,7 +260,37 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				annotator.vectorLayer.redraw();
 			}).on('click', function() {
 				var id = $(this).data('id');
-				annotator.selectFeatureById(id);
+				var temp = annotator.selectedFeature.linked_to[0][id];
+				$.each(annotator.selectedFeature.linked_to[0], function() {
+					console.log(this.linked_to[0][id]);
+					delete this.linked_to[0][id];
+					this.linked_to[0][id] = temp;
+				});
+				annotator.selectFeatureByIdAndZoom(id);
+				/*
+				for (var i = 0; i < features_length; i++) {
+					if (features[i].id == id) {
+						selectedFeature = features[i];
+						break;
+					}
+				}
+
+				annotator.selectedFeature = selectedFeature;
+				var annotation = annotator.annotations[selectedFeature.graph];
+				$('#panelImageBox .allograph_form').val(getKeyFromObjField(annotation, 'hidden_allograph'));
+				$('#panelImageBox .hand_form').val(annotation.hand);
+				$('select').trigger('liszt:updated');
+
+				var n = 0;
+
+				for (var g = 0; g < features_length; g++) {
+					if (features[g].feature == feature.feature && features[g].stored) {
+						n++;
+					}
+				}
+
+				$(".number_annotated_allographs .number-allographs").html(n);
+				*/
 			});
 
 			var ungroup_elements = $('.ungroup');
@@ -870,7 +900,6 @@ function updateFeatureSelect(currentFeatures, id) {
 			});
 		}
 	}
-	return false;
 }
 
 
@@ -1037,38 +1066,18 @@ function create_dialog(selectedFeature, id) {
 		path = document.getElementById(vector_id);
 	}
 	dialog.data('feature', selectedFeature);
-
+	var absolute_position = false;
 	var position = function() {
 		var p;
 		if (annotator.allow_multiple_dialogs) {
-			try {
-				if (typeof annotator.pinned != "undefined" && annotator.pinned.pinned) {
-					p = {
-						my: "right center",
-						at: "right center",
-						of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
-					};
-				} else {
-					p = {
-						my: 'right top',
-						at: 'right bottom',
-						of: $(path)
-					};
-				}
-			} catch (e) {
-				p = {
-					my: "right center",
-					at: "right center",
-					of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
-				};
-			}
-		} else {
-
 			p = {
-				my: "right center",
-				at: "right center",
-				of: $('#OpenLayers_Map_4_OpenLayers_ViewPort')
+				my: 'right top',
+				at: 'right bottom',
+				of: $(path)
 			};
+		} else {
+			absolute_position = true;
+			p = ['60%', '30%'];
 		}
 		return p;
 	};
@@ -1096,30 +1105,28 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <button data-hidden='true' class='url_allograph btn btn-mini'>URL</button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>Collect</button>";
+						"</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i title='Share URL' class='fa fa-link' title='Share URL' data-toggle='tooltip'></i></button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 						title += " <button class='btn btn-mini link_graphs'>Group</button>";
 					} else {
 						title += " <button class='btn btn-mini link_graphs disabled' disabled>Group</button>";
 					}
-
 				} else if (!annotator.annotating) {
-
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</button> ";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button data-hidden='true' class='url_allograph btn btn-mini pull-right'><i class='fa fa-link' data-toggle='tooltip'></i></button> ";
 
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <button data-hidden='true' class='url_allograph btn btn-mini'>URL</button> ";
+							" <button data-hidden='true' class='url_allograph btn btn-mini'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button> ";
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 							title += " <button class='btn btn-mini link_graphs'>Group</button>";
 						} else {
 							title += " <button class='btn btn-mini link_graphs disabled' disabled>Group</button>";
 						}
 					} else {
-						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-mini'>URL</button> ";
+						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> ";
 						if (annotator.selectedFeature) {
-							title += "<button class='to_lightbox btn btn-mini' data-graph = '" + annotator.selectedFeature.graph + "'>Collect</button>";
+							title += "<button class='to_lightbox btn btn-mini' data-graph = '" + annotator.selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 						}
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 							title += " <button class='btn btn-mini link_graphs'>Group</button>";
@@ -1130,15 +1137,23 @@ function create_dialog(selectedFeature, id) {
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-mini'>URL</button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'>Collect</button>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button data-hidden='true'  class='url_allograph btn btn-mini pull-right'>URL</button>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button data-hidden='true' class='url_allograph btn btn-mini pull-right'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button>";
 				}
 			}
 			return title;
 		},
 		position: position()
 	}).addClass('dialog_annotations');
+
+	if (absolute_position) {
+		dialog.parent().css({
+			'position': 'fixed',
+			'top': '30%',
+			'left': '70%'
+		});
+	}
 
 	if (annotator.isAdmin == "False" || !annotator.annotating) {
 		$('.name_temporary_annotation').focus();
@@ -1183,6 +1198,10 @@ function create_dialog(selectedFeature, id) {
 		annotator.linkAnnotations();
 	});
 
+	$('*[data-toggle="tooltip"]').tooltip({
+		container: 'body',
+		placement: 'bottom'
+	});
 }
 
 function load_allographs_container(allograph_value, url, show, allograph_id) {
@@ -1241,7 +1260,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 				j = 1;
 				s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
 				data_hand = data[0].hand;
-				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[0].vector_id + "' title='Click on the image to center the map'>" + data[0].image + '</span>\n';
+				s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[0].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
 			} else {
 				for (var i = 0; i < data.length; i++) {
 					j++;
@@ -1259,7 +1278,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 						data_hand = data[i].hand;
 						s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
 					}
-					s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map'>" + data[i].image + '</span>\n';
+					s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
 				}
 			}
 

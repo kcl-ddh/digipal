@@ -7,9 +7,14 @@
             {% endif %}
                     <div class='span3 panel centered'>
                         <p class='imageDetails'>
-                            <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' {% else %} href='../{{ image.id }}/' {% endifequal %} data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
-                            |
-                            <a data-toggle="tooltip" title="View Image only" href="../{{ image.id }}/?annotations=false">View Image</a>
+                            <strong>
+                                <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>
+                            </strong>
+                            {% if image.annotation_set.all.count %}
+                                <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ image.get_absolute_url }}?annotations=false">
+                                    (without annotations)
+                                </a>
+                            {% endif %}
                         </p>
                         <a data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
                             <span class='drag_caption'>Drag image to collection</span>

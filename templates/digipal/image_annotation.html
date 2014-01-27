@@ -9,6 +9,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 {% endblock %}
 
 {% block main %}
@@ -16,6 +17,7 @@
         {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
         <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
         {% include "digipal/admin_edit.html" with instance=image %}
+        <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
     </h2>
 
     {% if no_image_reason %}
@@ -36,7 +38,10 @@
                             <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>Manuscript Image</a>
                         </li>
                         <li {% if annotations == 0 %} class='disabled' {% endif %}>
-                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="/digipal/page/{{ image.id }}/allographs/">Annotations by Allograph ({{annotations}})</a>
+                            <a data-toggle="tab" class="annotationLink" data-target='#allographs' href="/digipal/page/{{ image.id }}/allographs/">Annotations ({{annotations}})</a>
+                        </li>
+                        <li {% if url == 'hands' %} class='active in' {% endif %}>
+                            <a data-toggle="tab" data-target='#hands' href="/digipal/page/{{ image.id }}/hands/">Hands ({{image.hands.all.count}})</a>
                         </li>
                         <li {% if url == 'metadata' %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata'>Metadata</a>
@@ -60,10 +65,13 @@
                         {% include "digipal/image_annotation_settings.html" %}
                         <div id='annotations'></div>
                         <div class='row-fluid' id='allographs_filtersBox'></div>
-
                     </div>
 
                     <div class="tab-pane fade" id='allographs'>
+                        {% include "digipal/annotations.html" %}
+                    </div>
+
+                    <div class="tab-pane fade {% if url == 'hands' %} active in {% endif %}" id='hands'>
                         {% include "digipal/hands.html" %}
                     </div>
 
@@ -96,7 +104,7 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     <script src='https://apis.google.com/js/client.js'></script>
     <script>
 
@@ -110,15 +118,19 @@
             si.registerInput('#ontograph_type');
             var url = "{{ url }}";
             var image_id = "{{ image.id }}";
+
             if(url == image_id || url == 'allographs'){
                 main();
+            }
+
+            if(url == 'allographs'){
                 $('a[data-target="#allographs"').tab('show');
             }
 
             var tabs = $('a[data-toggle="tab"]');
 
             tabs.on('shown', function(e) {
-                var dialog = $('.ui-dialog');
+                var dialog = $('.dialog_annotations');
                 if (e.target.getAttribute('data-target') != '#annotator') {
 
                     if (window.history && window.history.pushState) {
@@ -128,69 +140,73 @@
                     }
 
                     if (dialog.length) {
-                        dialog.fadeOut();
+                        dialog.parent().fadeOut();
                     }
 
                 } else {
-
                     if(typeof annotator.annotations == 'undefined'){
                         main();
                     }
 
                     if (dialog.length) {
-                        dialog.fadeIn();
+                        dialog.parent().fadeIn();
                     }
 
                     history.pushState(null, null, '/digipal/page/' + annotator.image_id);
                 }
+
                 return false;
             });
         });
 
         function main(){
-                annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-                'x', {{ width }}, {{ height }},
-                '{{ image_server_url }}', "{{is_admin}}");
+            if($('#loading_allographs_image').hasClass("hidden")){
+                $('#loading_allographs_image').removeClass("hidden");
+            }
 
-                {% if not is_admin %}
-                annotator.toolbarPanel.controls.splice(4, 4);
-                annotator.toolbarPanel.redraw();
-                annotator.user_annotations = [];
-                annotator.boxes_on_click = true;
-                {% endif %}
+            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+            'x', {{ width }}, {{ height }},
+            '{{ image_server_url }}', "{{is_admin}}");
 
-                annotator.image_id = {{ image.id }};
-                annotator.hands = {{ hands_list|safe }}
-                annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
-                no_image_reason = false;
+            {% if not is_admin %}
+            annotator.toolbarPanel.controls.splice(4, 4);
+            annotator.toolbarPanel.redraw();
+            annotator.user_annotations = [];
+            annotator.boxes_on_click = true;
+            {% endif %}
 
-                {% if vector_id %}
-                vector_id = true;
-                vector_id_value = (getParameter('vector_id'));
-                {% else %}
-                vector_id = false;
-                {% endif %}
+            annotator.image_id = {{ image.id }};
+            annotator.hands = {{ hands_list|safe }}
+            annotator.url_annotations = '/digipal/page/{{ image.id }}/annotations';
+            no_image_reason = false;
 
-                {% if no_image_reason %}
-                no_image_reason = true;
-                {% endif %}
+            {% if vector_id %}
+            vector_id = true;
+            vector_id_value = (getParameter('vector_id'));
+            {% else %}
+            vector_id = false;
+            {% endif %}
 
-                {% if request.GET.annotations == "false" %}
-                get_annotations = "false"
-                {% else %}
-                get_annotations = "true"
-                {% endif %}
+            {% if no_image_reason %}
+            no_image_reason = true;
+            {% endif %}
 
-                /* Calling page script */
+            {% if request.GET.annotations == "false" %}
+            get_annotations = "false"
+            {% else %}
+            get_annotations = "true"
+            {% endif %}
 
-                if(annotator){
-                    $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
-                    if(annotator.isAdmin == 'True'){
-                        $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
-                    } else {
-                        $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
-                    }
+            /* Calling page script */
+
+            if(annotator){
+                $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
+                if(annotator.isAdmin == 'True'){
+                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
+                } else {
+                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
                 }
             }
+        }
     </script>
 {% endblock %}

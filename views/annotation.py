@@ -73,7 +73,6 @@ def image(request, image_id):
     url = url.split('/')
     url.pop(len(url) - 1)
     url = url[len(url) - 1]
-    print url
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
@@ -105,9 +104,10 @@ def image(request, image_id):
 
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form = ImageAnnotationForm()
-
-    form.fields['hand'].queryset = image.hands.all()
+    form_annotator = ImageAnnotationForm(prefix='annotator')
+    form_allographs = ImageAnnotationForm(prefix='allographs')
+    form_annotator.fields['hand'].queryset = image.hands.all()
+    form_allographs.fields['hand'].queryset = image.hands.all()
 
     width, height = image.dimensions()
     image_server_url = image.zoomify
@@ -116,7 +116,8 @@ def image(request, image_id):
 
     from digipal.models import OntographType
     context = {
-               'form': form, 'image': image, 'height': height, 'width': width,
+               'form_annotator': form_annotator.as_ul(), 'form_allographs':form_allographs.as_ul(),
+               'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations_count,
                'annotations_list': data_allographs, 'url': url,
@@ -376,7 +377,6 @@ def image_list(request):
 
     context['filterImages'] = filterImages
     context['view'] = request.GET.get('view', 'images')
-    print context['view']
 
     return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
 
@@ -409,7 +409,6 @@ def images_lightbox(request):
 
                 data['annotations'] = annotations
             if 'images' in graphs:
-                print  graphs['images']
                 images = []
                 for img in graphs['images']:
                     image = Image.objects.get(id=img)

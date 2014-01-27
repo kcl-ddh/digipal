@@ -4,6 +4,7 @@
     OTHER IMAGES
     ----------------------------------------------
 {% endcomment %}
+<h3>Other Pages</h3>
 {% if image.item_part.images.all.count > 1 %}
     {% for p in image.item_part.images.all %}
         {% if p.id != image.id %}
@@ -12,25 +13,32 @@
             {% endif %}
             <div class='span3 panel image'>
                 <p class='imageDetails'>
-                    <a {% ifequal image.annotation_set.all.count 0 %} class='disabled' {% else %} href='/digipal/page/{{ p.id }}/' {% endifequal %} data-toggle="tooltip" title="View Image Annotations" >View Annotations</a>
-                    |
-                    <a data-toggle="tooltip" title="View Image only" href="/digipal/page/{{ p.id }}/?annotations=false">View Image</a>
+                    <strong>
+                        <a data-toggle="tooltip" title="View this image with annotations" href="{{ p.get_absolute_url }}">View Image</a>
+                    </strong>
+                    {% if p.annotation_set.all.count %}
+                        <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ p.get_absolute_url }}?annotations=false">
+                        (without annotations)
+                        </a>
+                    {% endif %}
                 </p>
-                <dt>
-                    <a class='imageDatabase' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}">
-                        {% iip_img p.iipimage width=200 %}
-                    </a>
-                </dt>
-                <dd>
-                    <a href="/digipal/page/{{p.id}}">
-                        {% if p.folio_number %}
-                            {{ p.folio_number }}
-                        {% else %}
-                            {{ p }}
-                        {% endif %}
-                    </a>
-                </dd>
-                <p id='annotations_count_images'>
+                <dl class="imageDatabase">
+                    <dt>
+                        <a class='droppable_image' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}">
+                            {% iip_img p.iipimage width=150 %}
+                        </a>
+                    </dt>
+                    <dd>
+                        <a href="/digipal/page/{{p.id}}">
+                            {% if p.folio_number %}
+                                {{ p.folio_number }}
+                            {% else %}
+                                {{ p }}
+                            {% endif %}
+                        </a>
+                    </dd>
+                </dl>
+                <p class='annotations_count_images'>
                     <span class="label label-important">
                         {{ p.annotation_set.all.count }}
                         {% if p.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}
@@ -46,6 +54,14 @@
             {% endif %}
         {% endif %}
     {% endfor %}
+    <div id='basket_collector_2'>
+        <p>Add Image to Collection</p>
+        <p>
+            <img src='/static/images/shopping-cart-icon.png' alt="Collection" />
+        </p>
+    </div>
 {% else %}
-    <div class="alert"><p>No other pages available</p></div>
+    <div class="alert">
+        <p>No other pages available</p>
+    </div>
 {% endif %}

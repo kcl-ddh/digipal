@@ -20,9 +20,8 @@ function AnnotatorLoader() {
 		self.switch_annotations();
 		self.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
+			self.set_settings(self.digipal_settings); // setting settings
 		});
-
-		self.set_settings(self.digipal_settings); // setting settings
 	};
 
 	this.events = function() {
@@ -212,6 +211,7 @@ function AnnotatorLoader() {
 
 			var features_request = $.getJSON('/digipal/page/' + annotator.image_id + '/vectors/');
 			features_request.done(function(data) {
+				$('#loading_allographs_image').remove();
 				var features = [];
 				for (var j in data) {
 					var f = format.read(data[j])[0];
@@ -480,7 +480,6 @@ function AnnotatorLoader() {
 		var unCheckAll_hands = $('#unCheckAll_hands');
 		unCheckAll_hands.click(function() {
 			annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-
 		});
 
 	};

@@ -23,7 +23,7 @@
   </ul>
 
 {% endcomment %}
-<h3 class='header5'>Current Location</h3>
+<h3>Current Location</h3>
 
 <table class="table table-condecopyright/nsed">
     <tbody>
@@ -49,18 +49,4 @@
         </tr>
 
     </tbody>
-</table>
-<table class='table table-condensed'>
-    <tr>
-        <th>Hands</th>
-    </tr>
-    {% for hand in image.hands.all %}
-        <tr>
-            <td>
-                <a href="{{hand.get_absolute_url}}">
-                {{ hand.display_label }}
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
 </table>

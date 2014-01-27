@@ -1,25 +1,4 @@
-{% comment %}
-{% extends "base.html" %}
-{% block meta_title %}
-    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-    {{image|capfirst}}
-{% endblock %}
-
-{% block main %}
-<h2 class='header1'>
-    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-    <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
-    {% include "digipal/admin_edit.html" with instance=image %}
-</h2>
-
-  <ul class='nav nav-tabs'  id='top'>
-          <li><a href='../'>View Manuscript</a></li>
-          <li><a href='../allographs/'>Annotations by Allograph</a></li>
-          <li><a href='../metadata/'>View Metadata</a></li>
-          <li class='active'><a href='../copyright/'>Image Copyright</a></li>
-  </ul>
-
-{% endcomment %}
+<h3>Image Copyright</h3>
 <div class="alert alert-block">
     {% for repository in repositories %}
         <p>

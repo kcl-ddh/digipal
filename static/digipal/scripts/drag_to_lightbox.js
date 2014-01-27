@@ -15,8 +15,8 @@ $(document).ready(function() {
 	basket_collector.droppable({
 		accept: "a.droppable_image",
 		hoverClass: "ui-state-active",
-		drop: function(event, ui) {
 
+		drop: function(event, ui) {
 			var element = $(ui.helper[0]);
 			if (add_to_lightbox(element, 'image', element.data('id'), false)) {
 
@@ -45,9 +45,11 @@ $(document).ready(function() {
 			$('html, body').css('cursor', 'initial');
 
 		},
+
 		out: function() {
 			$(this).css('background', 'rgba(0, 0, 0, 0.7)');
 		},
+
 		over: function() {
 			$(this).css('background', 'rgba(100, 100, 100, 0.7)');
 		}
@@ -56,27 +58,26 @@ $(document).ready(function() {
 	var images = $('a.droppable_image');
 	images.draggable({
 		containment: false,
-		stack: '*',
 		cursor: 'move',
 		revert: true,
-		scroll: true,
-		zIndex: 6000,
-		start: function() {
+
+		start: function(event) {
 			basket_collector.animate({
 				bottom: '0'
 			}, 350);
+			//event.stopPropagation();
 		},
-		stop: function() {
 
+		stop: function(event) {
 			setTimeout(function() {
-
 				basket_collector.animate({
 					bottom: '-28%'
 				}, 350);
-
 			}, 1000);
+			//event.stopPropagation();
 		}
 	});
+
 
 	$('.imageDatabase').on('mouseenter', function(event) {
 		$(this).find('.drag_caption').slideDown();

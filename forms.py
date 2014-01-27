@@ -53,24 +53,26 @@ class ImageAnnotationForm(forms.Form):
     #status = forms.ModelChoiceField(queryset=Status.objects.all(),
     #        initial=default_status)
     hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
-        widget = Select(attrs={'class':'chzn-select hand_form', 'id':'', 'data-placeholder':"Hand"}),
+        widget = Select(attrs={'class':'chzn-select hand_form', 'data-placeholder':"Hand"}),
         label = "",
-        empty_label = "",)
+        empty_label = None,)
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
-        widget = AllographSelect(attrs={'class':'chzn-select allograph_form', 'id':'', 'data-placeholder':"Allograph"}),
+        widget = AllographSelect(attrs={'class':'chzn-select allograph_form', 'data-placeholder':"Allograph"}),
         label = "",
-        empty_label = "",
+        empty_label =None,
     )
     #before = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     #feature = forms.MultipleChoiceField(required=False,
     #        widget=forms.SelectMultiple(attrs={'size': 25}))
     display_note = forms.CharField(required=False,
-            widget=Textarea(attrs={'cols': 25, 'rows': 5}))
+                                   label = "",
+            widget=Textarea(attrs={'cols': 25, 'rows': 5, 'class':'hidden'}))
     internal_note = forms.CharField(required=False,
-            widget=Textarea(attrs={'cols': 25, 'rows': 5}))
+                                    label = "",
+            widget=Textarea(attrs={'cols': 25, 'rows': 5, 'class':'hidden'}))
 
     def clean(self):
         """The feature field is always marked as invalid because the choices

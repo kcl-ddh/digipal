@@ -19,7 +19,7 @@
     <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
     </li>
-    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages.count > 0 %}{% else %}disabled{% endif %}">
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
     </li>
     <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
@@ -49,51 +49,50 @@
             </div>
 
             <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
-                <div class='row-fluid'>
+                {% if scribe.hands.count %}
                     <table class="table table-condensed">
                         <tr>
                             <th>Item Part</th>
                             <th>Hand</th>
                         </tr>
                         {% for hand in scribe.hands.all %}
-                            {% if hand %}
-                                <tr>
-                                    <td><a href="{{ hand.item_part.get_absolute_url }}">{{hand.item_part}}</a></td>
-                                    <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td><div class="alert alert-block"><h4>No hands available</h4></div></td>
-                                </tr>
-                            {% endif %}
+                            <tr>
+                                <td><a href="{{ hand.item_part.get_absolute_url }}">{{hand.item_part}}</a></td>
+                                <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
+                            </tr>
                         {% endfor %}
-
                     </table>
-                </div>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="hand" %}
+                {% endif %}
             </div>
             <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
-                <table class='table table-condensed'>
-                    <tr>
-                        <th>Page</th>
-                        <th>Hand</th>
-                        <th>Image</th>
-                    </tr>
-                    {% for page in pages %}
+                {% if pages %}
+                    <table class='table table-condensed'>
                         <tr>
-                            <td>
-                                <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
-                            </td>
-                            <td>
-                                <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
-                            </td>
-                            <td>
-                                <a href="{{ page.image.get_absolute_url }}">
-                                    {% iip_img page.image height=100 %}
-                                </a>
-                            </td>
+                            <th>Page</th>
+                            <th>Hand</th>
+                            <th>Image</th>
                         </tr>
-                    {% endfor %}
-                </table>
+                        {% for page in pages %}
+                            <tr>
+                                <td>
+                                    <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ page.image.get_absolute_url }}">
+                                        {% iip_img page.image height=100 %}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="page" %}
+                {% endif %}
             </div>
 
             <div class='tab-pane fade {% if tabid = 'idiographs' %}active in{% endif %}' id='idiographs'>
@@ -116,9 +115,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No Idiographs available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="idiograph" %}
                 {% endif %}
             </div>
 

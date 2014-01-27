@@ -19,7 +19,7 @@
          * Refresh the page if the browser does not support changing the address bar. 
          */
         update_address_bar: function(url) {
-            if (window.history && window.history.pushState) {
+            if (window.history && window.history.replaceState) {
                 window.history.replaceState(null, null, url);
             } else {
                 // The browser does not support replaceState (e.g. IE 9),

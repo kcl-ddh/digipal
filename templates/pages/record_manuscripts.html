@@ -105,9 +105,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No descriptions available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="description" %}
                 {% endif %}
             </div>
 
@@ -123,9 +121,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-block">
-                        <h6>No hands available</h6>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="hand" %}
                 {% endif %}
             </div>
 

@@ -100,9 +100,7 @@
 
 {% else %}
 
-<div class='alert alert-warning'>
-  <h6>No annotations available.</h6>
-</div>
+    {% include "digipal/empty_tab.html" with type="annotation" %}
 
 {% endif %}
 

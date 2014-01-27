@@ -37,6 +37,7 @@ function update_collection_counter() {
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
+	console.log(annotations);
 	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	if (!current_basket) {
 		current_basket = {};
@@ -49,7 +50,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				for (j = 0; j < current_basket.annotations.length; j++) {
 					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
 					if (!annotations[i]) {
-						notify('Image not saved yet, otherwise refresh the layer', 'danger');
+						notify('Annotation not saved yet, otherwise refresh the layer', 'danger');
 						return false;
 					}
 					if (current_basket.annotations[j].graph == annotations[i].graph) {
@@ -76,7 +77,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		var graph;
 		if (type == 'annotation') {
 			graph = button.data('graph');
-			if (graph == 'undefined' || !graph) {
+			if (typeof graph == 'undefined' || !graph) {
+				console.log(graph)
 				notify('Annotation not saved yet', 'danger');
 				return false;
 			}
@@ -134,7 +136,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					});
 				}
 			} else {
-				notify('Image already in the basket!', 'danger');
+				notify('Image already collected', 'danger');
 				return false;
 			}
 
@@ -177,7 +179,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	}
 
 	update_collection_counter();
-	notify('Image added to the basket!', 'success');
+	notify('Image added to collection!', 'success');
 	return true;
 }
 

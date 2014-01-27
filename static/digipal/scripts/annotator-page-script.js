@@ -438,7 +438,7 @@ function AnnotatorLoader() {
 			height: 300,
 			resizable: false,
 			width: 320,
-			title: "Filter Annotations",
+			title: "<i class='fa fa-filter'></i> Filter Annotations",
 			close: function() {
 				$('#filterAllographs').removeClass('active');
 			}
@@ -524,7 +524,7 @@ function AnnotatorLoader() {
 				draggable: true,
 				resizable: false,
 				width: 320,
-				title: "Settings",
+				title: "<i class='fa fa-wrench'></i> Settings",
 				close: function(event, ui) {
 					modal_settings = false;
 					modal_settings_window.parent('.ui-dialog').remove();

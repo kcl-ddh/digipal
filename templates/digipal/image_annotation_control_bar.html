@@ -6,19 +6,31 @@
 <div class='panel' id='panelImageBox'>
 
     {% if annotations > 0 %}
-        <span class="label" id='label-switcher'>
+
+        <label class='panel-label' id='label-switcher'>
             <b>Annotations</b>
-        </span>
+        </label>
+
         <input data-toggle="tooltip" title='Switch annotations' id="toggle-state-switch" type="checkbox" class="switch-small" checked>
+
+        {% if annotations > 0 %}
+            <a data-toggle="tooltip" class='btn' id='filterAllographs' title='Filter Annotations'>
+                <i class="fa fa-filter"></i>
+            </a>
+        {% endif %}
+
+        {% if can_edit %}
+
+            <div id='div_unsaved_annotations_counter'>
+                <label class='panel-label'>Unsaved</label>
+                <span data-toggle="tooltip" class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
+            </div>
+
+        {% endif %}
     {% endif %}
 
     <div id='annotator-action-buttons' class="btn-toolbar">
         <div class="btn-group">
-            {% if annotations > 0 %}
-                <a data-toggle="tooltip" class='btn' id='filterAllographs' title='Filter Annotations'>
-                    <i class="fa fa-filter"></i>
-                </a>
-            {% endif %}
             <a data-toggle="tooltip" class="btn" id="settings_annotator" title='Open Settings'>
                 <i class="fa fa-wrench"></i>
             </a>
@@ -29,11 +41,6 @@
     </div>
 
     {% if can_edit %}
-        <div id='div_unsaved_annotations_counter'>
-            <span class="label">Unsaved</span>
-            <span data-toggle="tooltip" class='btn btn-small btn-primary number_unsaved_allographs active' title='Show all the unsaved allographs'>0</span>
-        </div>
-
         <form name='frmAnnotation' method="get" class='frmAnnotation pull-right'>
             <div id='form_annotation_hand'>
                 <ul class='ul_inline_form'>

@@ -21,7 +21,7 @@ $(document).ready(function() {
 			var type = element.data('type');
 			if (add_to_lightbox(element, type, element.data('id'), false)) {
 
-				var s = '<p>Image added to Lightbox!</p>';
+				var s = '<p>Image added to Collection!</p>';
 				s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
 				$(this).html(s);
 
@@ -33,7 +33,7 @@ $(document).ready(function() {
 			}
 
 			var interval = setTimeout(function() {
-				s = '<p>Add image to Basket</p>';
+				s = '<p>Add image to Collection</p>';
 				s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" alt="add to collection" /></p>';
 				basket_collector.html(s);
 

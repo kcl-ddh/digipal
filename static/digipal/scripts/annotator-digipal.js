@@ -56,7 +56,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	if (!annotator.events) {
 		registerEvents();
 	}
-
 	var group_button = $('.link_graphs');
 	if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
@@ -686,9 +685,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -2012,9 +2011,6 @@ function highlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
 	var color;
 	for (i = 0; i < features.length; i++) {
-		if (!features[i].feature.style) {
-			stylize('#ee9900', features[i].feature);
-		}
 		features[i].feature.originalColor = features[i].feature.style.fillColor;
 		features[i].featureoriginalWidth = 2;
 		color = 'red';

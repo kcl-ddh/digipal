@@ -8,7 +8,7 @@ class SearchHands(SearchContentType):
 
     def get_fields_info(self):
         ''' See SearchContentType.get_fields_info() for a description of the field structure '''
-        
+
         ret = super(SearchHands, self).get_fields_info()
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
@@ -22,7 +22,7 @@ class SearchHands(SearchContentType):
         return ret
 
     def get_sort_fields(self):
-        ''' returns a list of django field names necessary to sort the results ''' 
+        ''' returns a list of django field names necessary to sort the results '''
         return ['item_part__current_item__repository__place__name', 'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'num']
 
     def set_record_view_context(self, context, request):
@@ -30,7 +30,7 @@ class SearchHands(SearchContentType):
 
         from django.utils.datastructures import SortedDict
         current_hand = Hand.objects.get(id=context['id'])
-        
+
         #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
         annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id)
         data = SortedDict()
@@ -46,33 +46,33 @@ class SearchHands(SearchContentType):
                 data[hand][allograph_name] = []
 
             data[hand][allograph_name].append(annotation)
-            
-            context['data'] = data
-        
+
+            context['annotations_list'] = data
+
         # GN: ???
         context['can_edit'] = request and has_edit_permission(request, Annotation)
 
         images = current_hand.images.all()
         if images.count():
-            image = images[0]            
+            image = images[0]
             context['width'], context['height'] = image.dimensions()
             context['image_erver_url'] = image.zoomify
-        
+
         context['hands_page'] = True
         context['result'] = current_hand
-    
+
     @property
     def form(self):
         return FilterHands()
-    
+
     @property
     def key(self):
         return 'hands'
-    
+
     @property
     def label(self):
         return 'Hands'
-    
+
     @property
     def label_singular(self):
         return 'Hand'
@@ -87,12 +87,12 @@ class SearchHands(SearchContentType):
                     Q(item_part__current_item__shelfmark__icontains=term) | \
                     Q(item_part__current_item__repository__name__icontains=term) | \
                     Q(item_part__historical_items__catalogue_number__icontains=term))
-        
+
         scribes = request.GET.get('scribes', '')
         repository = request.GET.get('repository', '')
         place = request.GET.get('place', '')
         date = request.GET.get('date', '')
-        
+
         self.is_advanced = repository or scribes or place or date
         if scribes:
             query_hands = query_hands.filter(scribe__name=scribes)
@@ -102,16 +102,16 @@ class SearchHands(SearchContentType):
             query_hands = query_hands.filter(assigned_place__name=place)
         if date:
             query_hands = query_hands.filter(assigned_date__date=date)
-        
+
         #context['hands'] = query_hands.distinct().order_by('scribe__name','id')
         query_hands = query_hands.distinct()
         if repository or scribes or place or date:
             query_hands = query_hands.order_by('scribe__name','id')
         else:
             query_hands = query_hands.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
-    
+
         self._queryset = query_hands
-        
+
         return self._queryset
 
 class FilterHands(forms.Form):

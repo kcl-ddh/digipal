@@ -16,7 +16,7 @@
         </li>
     {% endfor %}
     </ul>
-
+    <br />
     {% for key, allographs in annotations_list.items %}
 
         <div class="row-fluid">
@@ -70,7 +70,7 @@
 
               {% if not can_edit %}
 
-              <a class='label_link_annotation' title="View graph in the manuscript">View</a>
+              <a class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
 
               {% endif %}
 
@@ -82,7 +82,7 @@
 
             </p>
 
-              <a data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript or drag to collection">
+              <a href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
                 {% annotation_img graph lazy=1 %}
               </a>
 

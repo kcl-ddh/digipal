@@ -35,11 +35,15 @@ function AnnotatorLoader() {
 	};
 
 	this.events = function() {
-		annotator.activateKeyboardShortcuts(); // calling keyboard events
+
+		reload_described_annotations();
+		trigger_highlight_unsaved_vectors();
+
 
 		// loading annotations through URL (if there are)
 		self.load_temporary_vector();
 		self.load_stored_vector();
+
 
 		// activating event on filter button
 		var filter_allographs_button = $('#filterAllographs');
@@ -133,6 +137,7 @@ function AnnotatorLoader() {
 			self.multiple_annotations($(this).is(':checked'));
 		});
 
+		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 	};
 
@@ -219,8 +224,9 @@ function AnnotatorLoader() {
 
 			// Loading vectors
 
-			var features_request = $.getJSON('/digipal/page/' + annotator.image_id + '/vectors/');
+			var features_request = $.getJSON(annotator.absolute_image_url + 'vectors/');
 			features_request.done(function(data) {
+
 				$('#loading_allographs_image').remove();
 				var features = [];
 				for (var j in data) {
@@ -353,12 +359,10 @@ function AnnotatorLoader() {
 	this.load_stored_vector = function() {
 		if (typeof vector_id != "undefined" && vector_id && !no_image_reason) {
 			// vectorLayer event moveend is triggered on first load so flag this
-			initialLoad = true;
 
 			// tries to centre the map every 1/2 second
-			interval = setTimeout(function() {
 
-				/* listen for the moveend event
+			/* listen for the moveend event
 					annotator.vectorLayer.events.register('moveend',
 						annotator.vectorLayer, function() {
 							// checks if it is a first load, if not kill the interval
@@ -370,39 +374,32 @@ function AnnotatorLoader() {
 							}
 						});
 					*/
-				//annotator.selectFeatureByIdAndCentre(vector_id_value);
-				// zoom map to extent
-				if (getParameter('map_extent').length) {
-					var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
-					var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+			//annotator.selectFeatureByIdAndCentre(vector_id_value);
+			// zoom map to extent
 
-					annotator.map.zoomToExtent(extent);
+			if (getParameter('map_extent').length) {
+				var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
+				var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
+
+				annotator.map.zoomToExtent(extent);
+			}
+
+			if (vector_id_value.length == 1) {
+				annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
+
+			} else {
+
+				for (var i = 0; i < vector_id_value.length; i++) {
+					annotator.selectFeature.multiple = true;
+					//annotator.selectFeature.toggle = true;
+
+					annotator.selectFeatureById(vector_id_value[i]);
 				}
-
-				if (vector_id_value.length == 1) {
-					annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
-				} else {
-
-					for (var i = 0; i < vector_id_value.length; i++) {
-						annotator.selectFeature.multiple = true;
-						//annotator.selectFeature.toggle = true;
-
-						annotator.selectFeatureById(vector_id_value[i]);
-					}
-				}
-
-				// zoom map to extent
-				// annotator.map.zoomToExtent(extent);
-
-			}, 500);
-
-			reload_described_annotations();
-			trigger_highlight_unsaved_vectors();
+			}
 
 		} else {
 			return false;
 		}
-
 
 	};
 

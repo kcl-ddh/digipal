@@ -21,7 +21,7 @@
             </div>
             <div class="col-lg-3 col-md-3">
                 <input type='hidden' name="view" value='{{ view }}' />
-                <input type='submit' value='Filter Images' class='btn'/>
+                <input type='submit' value='Filter Images' class='btn btn-default'/>
             </div>
         </div>
     </form>
@@ -37,12 +37,14 @@
 
     <div class='row'>
         {# {% include "digipal/image_list_pagination.html" %} #}
+
         <div class="col-lg-8 col-md-8">
             {% autopaginate images 12 as images_on_this_page %}
             {% paginate %}
         </div>
 
         <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
+
             <ul class="nav nav-pills">
                 <li class="{% if view == 'images' %}active{% endif %}">
                     <a data-target="#images" data-toggle="pill" title='Change Manuscripts View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>

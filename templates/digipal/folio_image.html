@@ -32,11 +32,11 @@
         </span>
     </a>
     <p class='annotations_count_images'>
-        <span class="label label-important">
+        <span class="label label-danger">
             {{ image.annotation_set.all.count  }}
             {{ "Annotation"|plural:image.annotation_set.all.count }}
         </span>
-        <span class="label label-important">
+        <span class="label label-danger">
             {{ image.hands.all.count }}
             {{ "Hand"|plural:image.hands.all.count }}
         </span>

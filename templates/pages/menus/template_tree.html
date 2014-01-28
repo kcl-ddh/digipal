@@ -2,7 +2,7 @@
 
 {% spaceless %}
 {% if page_branch_in_navigation %}
-<ul class="unstyled tree-menu-level-{{ branch_level }}">
+<ul class="list-unstyled tree-menu-level-{{ branch_level }}">
 	{% for page in page_branch %}
 
     {% if page.is_primary and forloop.first %}

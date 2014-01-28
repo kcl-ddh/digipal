@@ -40,7 +40,7 @@
                 <input type="hidden" value="1" name="submitted" />
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                <input type='reset' class='btn' id="reset"/>
+                <input type='reset' class='btn btn-default' id="reset"/>
             </p>
         </form>
 
@@ -77,11 +77,13 @@
                 </p>
 
                 <div class="row">
+
                     <div class="col-lg-8 col-md-8">
                         {% paginate %}
                     </div>
 
                     <div class='col-lg-2 col-md-2 pull-right' id="view-switch">
+
                         <ul class="nav nav-pills">
                             <li class="{% if view == 'images' %}active{% endif %}">
                                 <a data-target="#images" data-toggle="pill" title='Change Graph View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
@@ -107,6 +109,7 @@
                                     <div class='row'>
                                 {% endif %}
                                         <div class='col-lg-2 col-md-2 panel'>
+
                                             <dl class="imageDatabase">
                                                 <dt>
                                                     {% for graph in hand.graphs_template %}

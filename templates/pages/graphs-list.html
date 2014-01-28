@@ -17,7 +17,7 @@
     </script>
     <script>
         $('#formFilters').show();
-        $('#filterImages').text('Hide Filters Manuscripts').attr('class', 'btn');
+        $('#filterImages').text('Hide Filters Manuscripts').attr('class', 'btn btn-default');
         show_filters = 1;
     </script>
 {% endblock %}
@@ -48,7 +48,7 @@
                 <ul id="drilldownformID">{{ drilldownform.as_ul }}</ul>
                 <div class='container'>
                     <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                    <input type='reset' class='btn' id="reset"/>
+                    <input type='reset' class='btn btn-default' id="reset"/>
                     <input type="checkbox" name="fullview" id="fullview" class="checkbox"> Select to view the images in one page.</input>
                 </div>
             </form>
@@ -71,6 +71,7 @@
 
 
                 <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
+
                     <ul class="nav nav-pills">
                         {% if view == 'Images' %}
                             <li class="active">

@@ -6,6 +6,7 @@
     <h1 class='header1'>{% block record_title %}{% endblock %}</h1>
 
     <div class="row">
+
         <div class='col-lg-8 col-md-8'>
             <ul class="nav nav-tabs" id='record-tab-switch'>
                 {% filter add_query_params:request.META.QUERY_STRING %}
@@ -16,6 +17,7 @@
         </div>
 
         {% if pagination %}
+
             <div class="col-lg-4 col-md-4 pull-right move-up-1">
                 <ul class="pager">
                     <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">

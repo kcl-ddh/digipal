@@ -1,6 +1,7 @@
 {% if page_list.paginator.count > 24 %}
     {% load i18n %}
     <div class="pagination col-lg-4 col-md-4">
+
         <ul>
             {% if page_list.has_previous %}
                 <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&amp;town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&amp;repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>

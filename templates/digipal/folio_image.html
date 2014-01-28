@@ -1,0 +1,44 @@
+{% load html_escape %}
+{% comment %}
+    Displays an image as part of a list.
+    
+    Usage: {% include "digipal/folio_image.html" with image=IMAGE width=WIDTH full_label=FULL %}
+    Where:
+        IMAGE is an instance of the digipal_image model
+        WIDTH is the desired width of the image in the list
+        FULL is 1 for showing the full image label, 0 for only showing the locus 
+        
+{% endcomment %}
+<div class='span3 panel centered'>
+    <p class='imageDetails'>
+        <strong>
+            <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>
+        </strong>
+        {% if image.annotation_set.all.count %}
+            <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ image.get_absolute_url }}?annotations=false">
+                (without annotations)
+            </a>
+        {% endif %}
+    </p>
+    <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
+        <span class='drag_caption'>Drag image to collection</span>
+        {% iip_img image width=width lazy=1 %}
+        <span class='imageDatabase_label'>
+            {% if full_label %}
+                {{ image }}
+            {% else %}
+                {{ image.locus }}
+            {% endif %}
+        </span>
+    </a>
+    <p class='annotations_count_images'>
+        <span class="label label-important">
+            {{ image.annotation_set.all.count  }}
+            {{ "Annotation"|plural:image.annotation_set.all.count }}
+        </span>
+        <span class="label label-important">
+            {{ image.hands.all.count }}
+            {{ "Hand"|plural:image.hands.all.count }}
+        </span>
+    </p>
+</div>

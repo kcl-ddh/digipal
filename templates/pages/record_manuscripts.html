@@ -114,7 +114,7 @@
             <div class='tab-pane fade {% if tabid = "hands" %}active in{% endif %}' id='hands'>
                 {% if hands.count %}
                     {% for hand in hands %}
-                        <div class='row-fluid'>
+                        <div class='row'>
                             <a href="{{ hand.get_absolute_url }}">
                                 {{ hand }}
                             </a>
@@ -127,9 +127,9 @@
 
         </div>
     </div>
-    
+
     {% include "digipal/add_to_collection.html" %}
-    
+
 {% endblock %}
 
 {% block extra_js %}

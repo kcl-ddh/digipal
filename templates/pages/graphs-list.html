@@ -30,7 +30,7 @@
 
     {% regroup graphs by hand as handlist %}
 
-    <div class="row-fluid">
+    <div class="row">
 
     {% ifnotequal style "allograph_list" %}
         {% with r=results|first %}
@@ -70,7 +70,7 @@
                 </span>
 
 
-                <div class='span2 pull-right' id='view-switch'>
+                <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
                     <ul class="nav nav-pills">
                         {% if view == 'Images' %}
                             <li class="active">
@@ -103,8 +103,8 @@
                                     {% autopaginate handlist 18 %}
                                         {% for hand in handlist %}
                                             {% if forloop.counter|divisibleby:6 %}
-                                                <div class='row-fluid'>
-                                                    <div class='span2 panel image'>
+                                                <div class='row'>
+                                                    <div class='col-lg-2 col-md-2 panel image'>
                                                         <dl class="imageDatabase">
                                                             <dt>
                                                                 {% for graph in hand.list %}
@@ -120,7 +120,7 @@
                                                     </div>
                                                 </div>
                                             {% else %}
-                                                <div class='span2 panel image'>
+                                                <div class='col-lg-2 col-md-2 panel image'>
                                                     <dl class="imageDatabase">
                                                         <dt>
                                                             {% for graph in hand.list %}

@@ -26,7 +26,7 @@
 
     {% if page_list.paginator.count > 24 %}
         {% load i18n %}
-        <div class="pagination span4">
+        <div class="pagination col-lg-4 col-md-4">
             <ul>
             {% if page_list.has_previous %}
                 <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
@@ -42,9 +42,9 @@
                 <li class="next disabled"><a href='#'>{% trans "next" %} &rsaquo;&rsaquo;</a></li>
         {% endif %}
          </ul>
-     </div> 
+     </div>
     {% endif %}
-    <div class='span2 pull-right'>
+    <div class='col-lg-2 col-md-2 pull-right'>
      <ul class="nav nav-pills">
       <li class="active">
         <a href="#">Images</a>
@@ -53,12 +53,12 @@
     </ul>
 </div>
 </div>
-    
+
 
     <!--
     <div class='pull-right' style='line-height:4;'>
         <input type='button' class='btn btn-success' id='show_filters' value='Filter Manuscript Images' />
-        
+
     </div>
     <div id='filtersform' class='container'>
         {{ filterManuscriptImages.as_ul }}
@@ -99,12 +99,12 @@
     </div>
     {% endif %}
     {% if page_list %}
-    
+
     <div class='container'>
         {% for image in page_list %}
         {% if forloop.counter|divisibleby:4 %}
-            <div class='row-fluid'>
-                <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='row'>
+                <div class='col-lg-3 col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
                         {% ifequal image.annotation_set.all.count 0 %}
                         <span class='label'>View Annotations</span>
@@ -113,7 +113,7 @@
                         {% endifequal %}
                         <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                         <p style='line-height:1'>
-                            <span>Annotations: 
+                            <span>Annotations:
                             <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
                         <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
@@ -124,12 +124,12 @@
                         </dt>
                         <dd>
                             <p><b>{{ image }}</b></p>
-                        </dd>               
+                        </dd>
                     </dl>
                 </div>
             </div>
         {% else %}
-            <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='col-lg-3 col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                 <p class='imageDetails'>
                     {% ifequal image.annotation_set.all.count 0 %}
                     <span class='label'>View Annotations</span>
@@ -138,7 +138,7 @@
                     {% endifequal %}
                     <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                     <p style='line-height:1'>
-                        <span>Annotations: 
+                        <span>Annotations:
                         <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
                     <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
 
@@ -149,7 +149,7 @@
                     </dt>
                     <dd>
                         <p><b>{{ image }}</b></p>
-                    </dd>               
+                    </dd>
                 </dl>
             </div>
         {% endif %}

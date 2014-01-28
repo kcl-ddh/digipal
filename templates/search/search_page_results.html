@@ -10,16 +10,16 @@
 {% block main %}
 
     {% if not submitted %}
-        <div class="row-fluid">
+        <div class="row">
             <h1 class='header1'>Search</h1>
             <h3>Please type in keyword to search for {{ search_types_display }} and
              use filters to narrow down your search results</h3>
         </div>
     {% endif %}
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
-        <div class='row-fluid'>
+        <div class='row'>
             {# {% csrf_token %} #}
-            <div class='span9'>
+            <div class='col-lg-9 col-md-9'>
                 <div id='radio'>
                     <ul>{{ advanced_search_form.as_ul }}</ul>
                 </div>

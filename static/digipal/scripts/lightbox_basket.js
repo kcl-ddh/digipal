@@ -150,7 +150,7 @@ $(document).ready(function() {
 						}
 
 
-						s += "<td><button title = 'Remove from collection' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title = 'Remove from collection' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
 					}
 				}
 
@@ -165,7 +165,7 @@ $(document).ready(function() {
 						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button title ='Remove from collection' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-mini btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title ='Remove from collection' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
 					}
 					s += "</table>";
 				}
@@ -303,7 +303,7 @@ $(document).ready(function() {
 				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
 				var container_collections = $('#container_collections');
 				var collection_folder = $('<div class="span1 collection" id="' + id + '">');
-				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Open collection" src="/static/img/folder.png"></a><label>' + collection_name + '</label><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-mini">Remove</button>');
+				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Open collection" src="/static/img/folder.png"></a><label>' + collection_name + '</label><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-xs">Remove</button>');
 
 				container_collections.append(collection_folder);
 			} else {
@@ -321,7 +321,7 @@ $(document).ready(function() {
 			s += '<h3>Save Collection</h3>';
 			s += '<div class="input-append"><input required placeholder="Type here collection name" type="text" id= "name_collection" />';
 			s += '<input type = "button" class="btn" id="save_collection" type="button" value="Save" /></div>';
-			s += '<input type = "button" style="margin-top:5%" class="btn btn-small pull-right btn-danger" id="close_window_collections" value="Close Window" />';
+			s += '<input type = "button" style="margin-top:5%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
 			window_save_collection.html(s);
 			window_save_collection.css('height', '20%');
 			$('body').append(window_save_collection);
@@ -378,7 +378,7 @@ $(document).ready(function() {
 				div = $('<div class="loading-div" id="share_basket_div">');
 				div.html('<h3>Share Collection URL</h3>');
 				div.append('<p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
-				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
+				div.append('<p><button class="btn btn-danger btn-sm">Close</button></p>');
 				$('body').append(div);
 
 				div.find('button').click(function() {

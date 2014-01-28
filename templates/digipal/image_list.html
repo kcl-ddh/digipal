@@ -5,19 +5,21 @@
 
 
 {% block main %}
-    <h1 class='header1'>Manuscript Images</h1>
+    <div class="page-header">
+        <h1>Manuscript Images</h1>
+    </div>
 
     <form id='searchform' class="form-inline panel" action='.'>
-        <div class="row-fluid">
-            <div class="span1">
+        <div class="row">
+            <div class="col-lg-1 col-md-1">
                 Filter by
             </div>
-            <div class="span8">
+            <div class="col-lg-8 col-md-8">
                 <ul class="flat-list use-chosen">
                     {{ filterImages.as_ul }}
                 </ul>
             </div>
-            <div class="span3">
+            <div class="col-lg-3 col-md-3">
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn'/>
             </div>
@@ -33,14 +35,14 @@
         </div>
     {% endif %}
 
-    <div class='row-fluid'>
+    <div class='row'>
         {# {% include "digipal/image_list_pagination.html" %} #}
-        <div class="span8">
+        <div class="col-lg-8 col-md-8">
             {% autopaginate images 12 as images_on_this_page %}
             {% paginate %}
         </div>
 
-        <div class='span2 pull-right' id='view-switch'>
+        <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
             <ul class="nav nav-pills">
                 <li class="{% if view == 'images' %}active{% endif %}">
                     <a data-target="#images" data-toggle="pill" title='Change Manuscripts View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
@@ -61,11 +63,11 @@
 
                 {% for image in images_on_this_page %}
                     {% if forloop.counter0|divisibleby:4 %}
-                        <div class="row-fluid">
+                        <div class="row">
                     {% endif %}
-                    
+
                     {% include "digipal/folio_image.html" with image=image width=200 full_label=1 %}
-                    
+
                     {% if forloop.counter|divisibleby:4 or forloop.last %}
                         </div>
                     {% endif %}

@@ -1102,46 +1102,46 @@ function create_dialog(selectedFeature, id) {
 			if (annotator.isAdmin == "True") {
 				/*
 
-				var button = <span class='btn btn-small btn-primary number_annotated_allographs' data-feature = '" + selectedFeature.feature + "' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span>
+				var button = <span class='btn btn-sm btn-primary number_annotated_allographs' data-feature = '" + selectedFeature.feature + "' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span>
 
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i title='Share URL' class='fa fa-link' title='Share URL' data-toggle='tooltip'></i></button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+						"</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i title='Share URL' class='fa fa-link' title='Share URL' data-toggle='tooltip'></i></button> <button class='to_lightbox btn btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-						title += " <button class='btn btn-mini link_graphs'>Group</button>";
+						title += " <button class='btn btn-xs link_graphs'>Group</button>";
 					} else {
-						title += " <button class='btn btn-mini link_graphs disabled' disabled>Group</button>";
+						title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
 					}
 				} else if (!annotator.annotating) {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-mini pull-right'><i class='fa fa-link' data-toggle='tooltip'></i></button> ";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs pull-right'><i class='fa fa-link' data-toggle='tooltip'></i></button> ";
 
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <button data-hidden='true' class='url_allograph btn btn-mini'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button> ";
+							" <button data-hidden='true' class='url_allograph btn btn-xs'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button> ";
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-							title += " <button class='btn btn-mini link_graphs'>Group</button>";
+							title += " <button class='btn btn-xs link_graphs'>Group</button>";
 						} else {
-							title += " <button class='btn btn-mini link_graphs disabled' disabled>Group</button>";
+							title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
 						}
 					} else {
-						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> ";
+						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> ";
 						if (annotator.selectedFeature) {
-							title += "<button class='to_lightbox btn btn-mini' data-graph = '" + annotator.selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+							title += "<button class='to_lightbox btn btn-xs' data-graph = '" + annotator.selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 						}
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-							title += " <button class='btn btn-mini link_graphs'>Group</button>";
+							title += " <button class='btn btn-xs link_graphs'>Group</button>";
 						} else {
-							title += " <button class='btn btn-mini link_graphs disabled' disabled>Group</button>";
+							title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
 						}
 					}
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-mini'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> <button class='to_lightbox btn btn-mini' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> <button class='to_lightbox btn btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button  style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-mini pull-right'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button  style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs pull-right'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button>";
 				}
 			}
 			return title;

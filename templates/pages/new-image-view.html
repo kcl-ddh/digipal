@@ -76,12 +76,12 @@
                     {% chrono ":load_graphs" %}
                 </p>
 
-                <div class="row-fluid">
-                    <div class="span8">
+                <div class="row">
+                    <div class="col-lg-8 col-md-8">
                         {% paginate %}
                     </div>
 
-                    <div class='span2 pull-right' id="view-switch">
+                    <div class='col-lg-2 col-md-2 pull-right' id="view-switch">
                         <ul class="nav nav-pills">
                             <li class="{% if view == 'images' %}active{% endif %}">
                                 <a data-target="#images" data-toggle="pill" title='Change Graph View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
@@ -104,9 +104,9 @@
                             {% for hand in hands %}
 
                                 {% if forloop.counter0|divisibleby:6 %}
-                                    <div class='row-fluid'>
+                                    <div class='row'>
                                 {% endif %}
-                                        <div class='span2 panel'>
+                                        <div class='col-lg-2 col-md-2 panel'>
                                             <dl class="imageDatabase">
                                                 <dt>
                                                     {% for graph in hand.graphs_template %}

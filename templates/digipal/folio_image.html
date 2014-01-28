@@ -1,15 +1,15 @@
 {% load html_escape %}
 {% comment %}
     Displays an image as part of a list.
-    
+
     Usage: {% include "digipal/folio_image.html" with image=IMAGE width=WIDTH full_label=FULL %}
     Where:
         IMAGE is an instance of the digipal_image model
         WIDTH is the desired width of the image in the list
-        FULL is 1 for showing the full image label, 0 for only showing the locus 
-        
+        FULL is 1 for showing the full image label, 0 for only showing the locus
+
 {% endcomment %}
-<div class='span3 panel centered'>
+<div class='col-lg-3 col-md-3 panel centered'>
     <p class='imageDetails'>
         <strong>
             <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>

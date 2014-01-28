@@ -167,7 +167,7 @@ class SearchPageForm(forms.Form):
         'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
             'id': 'search-terms',
-            'class':'textEntry',
+            'class':'textEntry form-control',
             'placeholder': 'Enter search terms',
             #'required': 'required',
             "autocomplete":"off"})

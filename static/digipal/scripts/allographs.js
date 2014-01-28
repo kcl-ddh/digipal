@@ -374,16 +374,17 @@ function Allographs() {
 
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
+					var prefix = 'allographs_';
 					check_all.on('click', function(event) {
 						var component = $(this).data('component');
-						var checkboxes = $('#component_' + component).find("input[type=checkbox]");
+						var checkboxes = $('#' + prefix + 'component_' + component).find("input[type=checkbox]");
 						checkboxes.attr('checked', true);
 						event.stopPropagation();
 					});
 
 					uncheck_all.on('click', function(event) {
 						var component = $(this).data('component');
-						var checkboxes = $('#component_' + component).find("input[type=checkbox]");
+						var checkboxes = $('#' + prefix + 'component_' + component).find("input[type=checkbox]");
 						checkboxes.attr('checked', false);
 						event.stopPropagation();
 					});
@@ -393,9 +394,9 @@ function Allographs() {
 					var maximized = false;
 					var maximize_icon = $('#maximize');
 
-					maximize_icon.click(function(event) {
+					maximize_icon.click(function() {
 
-						summary.css("bottom", "88%").hide();
+						summary.hide();
 						if (!maximized) {
 							myModal.animate({
 								'position': 'fixed',
@@ -410,7 +411,7 @@ function Allographs() {
 							}).draggable("destroy");
 							maximized = true;
 						} else {
-							summary.css("bottom", "88%").hide();
+							summary.hide();
 							myModal.animate({
 								'position': 'fixed',
 								'left': "55%",
@@ -419,14 +420,13 @@ function Allographs() {
 								"width": '30%',
 								"height": '60%'
 							}, 400, function() {
-								summary.show().style = null;
+								summary.show();
 								myModal.find('.modal-body').css("max-height", "");
 								maximize_icon.attr('title', 'Maximize box').removeClass('icon-resize-small').addClass('icon-resize-full');
 							}).draggable();
 							maximized = false;
 						}
-						event.preventDefault();
-						event.stopPropagation();
+
 					});
 
 					myModal.find('.component_labels').click(function() {
@@ -456,6 +456,9 @@ function Allographs() {
 					var select_list = $('select');
 					select_list.chosen().trigger('liszt:updated');
 				});
+			} else {
+				console.log('The annotations may not be initialized yet');
+				return false;
 			}
 		},
 
@@ -484,7 +487,7 @@ function Allographs() {
 
 						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
-						s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-mini'>All</span> <span data-component = '" + component_id + "' class='btn btn-mini uncheck_all'>Clear</span></div></div>";
+						s += "<div class='checkboxes_div'><span data-component = '" + component_id + "' class='check_all'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all'><i class='fa fa-square-o'></i></span></div></div>";
 
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						var n = 0;

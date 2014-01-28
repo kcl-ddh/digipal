@@ -411,8 +411,8 @@ function AnnotatorLoader() {
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = '<div class="span6 span6" style="padding:2%;">';
-		checkOutput += '<span class="btn btn-small pull-left" id="checkAll">All</span>';
-		checkOutput += ' <span class="btn btn-small pull-right" id="unCheckAll">Clear</span><br clear="all" />';
+		checkOutput += '<span style="cursor:pointer;" class="pull-left" title = "Check All" id="checkAll"><i class="fa fa-check-square-o"></i></span>';
+		checkOutput += ' <span style="cursor:pointer;" class="pull-right" title = "Uncheck All" id="unCheckAll"><i class="fa fa-square-o"></i></span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
 		if (!$.isEmptyObject(annotations)) {
@@ -430,8 +430,8 @@ function AnnotatorLoader() {
 		}
 		checkOutput += "</div>";
 		checkOutput += '<div class="span6 span6" style="padding:2%;">';
-		checkOutput += ' <span class="btn btn-small pull-left" id="checkAll_hands">All</span>';
-		checkOutput += ' <span class="btn btn-small pull-right" id="unCheckAll_hands">Clear</span><br clear="all" />';
+		checkOutput += ' <span style="cursor:pointer;" title = "Check All" class="pull-left" id="checkAll_hands"><i class="fa fa-check-square-o"></i></span>';
+		checkOutput += ' <span style="cursor:pointer;" title="Uncheck All" class="pull-right" id="unCheckAll_hands"><i class="fa fa-square-o"></i></span><br clear="all" />';
 
 
 		if (!$.isEmptyObject(annotations)) {
@@ -565,18 +565,20 @@ function AnnotatorLoader() {
 	// changes toolbar position
 	this.change_toolbar_position = function(checkbox_value) {
 		if (checkbox_value == "Vertical") {
+			self.digipal_settings.toolbar_position = 'Vertical';
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "fixed", "important");
 			$('.olControlEditingToolbar').css({
 				"position": "fixed !important",
 				"left": "0px",
-				"top": "245px",
-				"width": "25px",
+				"top": "190px",
+				"width": "35px",
 				"z-index": 1000
 			});
 
 		} else {
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
 			self.digipal_settings.toolbar_position = 'Horizontal';
+
 			if (annotator.isAdmin == 'False') {
 				$('.olControlEditingToolbar').css({
 					"left": "89%",
@@ -588,11 +590,11 @@ function AnnotatorLoader() {
 				});
 			} else {
 				$('.olControlEditingToolbar').css({
-					"left": "86%",
+					"left": "89.1%",
 					"top": 0,
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
-					"width": "145px",
+					"width": "115px",
 					"z-index": 1000
 				});
 			}

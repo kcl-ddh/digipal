@@ -104,7 +104,7 @@ def image(request, image_id):
 
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form = ImageAnnotationForm()
+    form = ImageAnnotationForm(auto_id=False)
     form.fields['hand'].queryset = image.hands.all()
 
     width, height = image.dimensions()

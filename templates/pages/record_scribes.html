@@ -100,10 +100,10 @@
                     {% for idiograph in idiograph_components.all %}
                         <div>
                             <h4>{{idiograph}}</h4>
-                            <ul class="unstyled">
+                            <ul class="list-unstyled">
                                 {% for component in idiograph.idiographcomponent_set.all %}
                                     <li class='component_scribe'>{{ component.component }}
-                                        <ul class="unstyled">                                
+                                        <ul class="list-unstyled">                                
                                             {% for feature in component.features.all %}
                                                 <li class='feature_scribe'>{{feature}}</li>
                                             {% endfor %}

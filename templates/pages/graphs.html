@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block main %}
-    <div class="row-fluid">
+    <div class="row">
         <h3>Please select the requested filters from the Filter Graphs below. Leave empty to view the whole database.</h3>
 
         {% ifequal style "allograph_list" %} <!-- Display list view, of course -->
@@ -26,7 +26,7 @@
                     <ul id="drilldownformID">{{ drilldownform.as_ul }}</ul>
                     <div class='container'>
                         <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                        <input type='reset' class='btn' id="reset"/>
+                        <input type='reset' class='btn btn-default' id="reset"/>
                          <input type="checkbox" name="fullview" id="fullview" class="checkbox"> Select to view the images in one page.</input>
                     </div>
                 </form>
@@ -42,7 +42,7 @@
     <script>
         $('#formFilters').show();
         $('#filterImages').text('Hide Filters Manuscripts');
-        $('#filterImages').attr('class', 'btn');
+        $('#filterImages').attr('class', 'btn btn-default');
         show_filters = 1;
     </script>
 {% endblock %}

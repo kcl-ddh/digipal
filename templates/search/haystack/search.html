@@ -11,14 +11,14 @@
 {% endblock %}
 
 {% block main %}
-<div class='row-fluid'>
+<div class='row'>
 <h3>Please type in keyword to search for 'Hands', 'Manuscript' or 'Scribes' and use filters to narrow down your search results</h3>
 </div>
 <form id='searchform' class="form-inline panel" method="GET" action=".">
-    <div class='row-fluid'>
+    <div class='row'>
     {# {% csrf_token %} #}
 
-      <div class='span9'>
+      <div class="col-md-9">
             <div id='radio'>
                 <h3 class='header5'>Search</h3>
                 <ul>{{ searchform.as_ul }}</ul>

@@ -3,7 +3,7 @@
     {% if images %}
         {% for image in images %}
             {% if forloop.counter0|divisibleby:4 %}
-                <div class="row-fluid">
+                <div class="row">
             {% endif %}
             
             {% include "digipal/folio_image.html" with image=image width=120 full_label=full_label %}

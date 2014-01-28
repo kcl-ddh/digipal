@@ -15,8 +15,8 @@
 
 
 {% block annotations %}
-  <div class='row-fluid'>
-    <div class='span7'>
+  <div class='row'>
+    <div class="col-md-7">
       <div class='alert'></div>
       <form id="frmAnnotation" method="POST" name="frmAnnotation">
           {% csrf_token %}
@@ -29,7 +29,7 @@
                 {{ formset }}
               </div>
             </div>
-            <h2>Features <span class='label' style='font-size:13px' id='num_features'></span></h2>
+            <h2>Features <span class='label label-default' style='font-size:13px' id='num_features'></span></h2>
               <hr style='margin-top:3px'/>
               <div id="features_container"></div>
               <div style='margin:1%'>
@@ -37,8 +37,8 @@
                 <input type='button' value='Uncheck All' id='uncheck_all' />
               </div>
               <div style='float:right;'>
-                <input type='button' class='btn' value='Save Idiograph' id="subButton"/>
-                <input type='button' class='btn' value='New Idiograph' id="new_idiograph_Button"/>
+                <input type='button' class='btn btn-default' value='Save Idiograph' id="subButton"/>
+                <input type='button' class='btn btn-default' value='New Idiograph' id="new_idiograph_Button"/>
                 <!--<span id="errorSpan">You must select a Scribe to continue</span>-->
               </div>
         </form>
@@ -46,11 +46,11 @@
         <form id="linesAdder">
             <label>Add some rows</label>
             <input type="text" name="rowAdder" id="addRowNum" />
-            <input type='button' id="addrowbutton" class='btn' value='Add rows' />
+            <input type='button' id="addrowbutton" class='btn btn-default' value='Add rows' />
         </form>
       -->
     </div>
-    <div class='span5' id='current_idiographs'>
+    <div class="col-md-5" id='current_idiographs'>
       <h1 class='header1'>Ideographs <span id='number_ideographs'></span></h1>
       <div id='idiographs_container'></div>
     </div>

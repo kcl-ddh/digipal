@@ -14,7 +14,7 @@
                 <h3 class='header5'>Filter Manuscripts Images</h3>
                 <ul>{{ filterImages.as_ul }}</ul>
                 <p>
-                    <input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn' />
+                    <input type='submit' value='Filter Images' class='btn btn-primary'> <input type='reset' class='btn btn-default' />
                 </p>
             </form>
         </div>
@@ -26,7 +26,7 @@
 
     {% if page_list.paginator.count > 24 %}
         {% load i18n %}
-        <div class="pagination span4">
+        <div class="pagination col-md-4">
             <ul>
             {% if page_list.has_previous %}
                 <li><a href="?page={{ page_list.previous_page_number }}{{ getvars }}{{ hashtag }}{% if request.GET.town_or_city %}&town_or_city={{request.GET.town_or_city}}{% endif %}{% if request.GET.repository %}&repository={{request.GET.repository}}{% endif %}" class="prev">&lsaquo;&lsaquo; {% trans "previous" %}</a></li>
@@ -44,7 +44,7 @@
          </ul>
      </div> 
     {% endif %}
-    <div class='span2 pull-right'>
+    <div class='col-md-2 pull-right'>
      <ul class="nav nav-pills">
       <li class="active">
         <a href="#">Images</a>
@@ -76,7 +76,7 @@
                 $('#show_filters').click(function(){
                   if(filter == 0){
                     $('#filtersform').slideDown();
-                    $('#show_filters').attr('class', 'btn');
+                    $('#show_filters').attr('class', 'btn btn-default');
                     $('#show_filters').text('Hide Graphs Filters');
                     filter = 1;
                   } else {
@@ -103,19 +103,19 @@
     <div class='container'>
         {% for image in page_list %}
         {% if forloop.counter|divisibleby:4 %}
-            <div class='row-fluid'>
-                <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='row'>
+                <div class='col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
                         {% ifequal image.annotation_set.all.count 0 %}
-                        <span class='label'>View Annotations</span>
+                        <span class='label label-default'>View Annotations</span>
                         {% else %}
                         <a href='{{ image.id }}/' class='label label-info'>View Annotations</a>
                         {% endifequal %}
                         <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                         <p style='line-height:1'>
                             <span>Annotations: 
-                            <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
-                        <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
+                            <span class="badge">{{ image.annotation_set.all.count }}</span></span>
+                        <span>Hands: <span class="badge">{{ image.hands.all.count }}</span></span>
 
                     </p>
                     <dl class="imageDatabase">
@@ -129,7 +129,7 @@
                 </div>
             </div>
         {% else %}
-            <div class='span3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                 <p class='imageDetails'>
                     {% ifequal image.annotation_set.all.count 0 %}
                     <span class='label'>View Annotations</span>
@@ -139,8 +139,8 @@
                     <a class='label label-info' href="{{ image.id }}/?annotations=false">View Image</a></p>
                     <p style='line-height:1'>
                         <span>Annotations: 
-                        <span class="badge badge-important">{{ image.annotation_set.all.count }}</span></span>
-                    <span>Hands: <span class="badge badge-success">{{ image.hands.all.count }}</span></span>
+                        <span class="badge">{{ image.annotation_set.all.count }}</span></span>
+                    <span>Hands: <span class="badge">{{ image.hands.all.count }}</span></span>
 
                 </p>
                 <dl class="imageDatabase">
@@ -158,7 +158,7 @@
         <script>
             $('#formFilters').show();
             $('#filterImages').text('Hide Filters Manuscripts');
-            $('#filterImages').attr('class', 'btn');
+            $('#filterImages').attr('class', 'btn btn-default');
             show_filters = 1;
         </script>
             <div class='alert alert-warning'>

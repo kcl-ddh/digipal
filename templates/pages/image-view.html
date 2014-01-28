@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
 {% endblock %}
 {% block main %}
-<div class="row-fluid">
+<div class="row">
 
         {% ifnotequal style "allograph_list" %}
             {% with r=results|first %}
@@ -81,7 +81,7 @@
                 <ul>{{ drilldownform.as_ul }}</ul>
                 <div class='container'>
                     <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                    <input type='reset' class='btn' id="reset" />
+                    <input type='reset' class='btn btn-default' id="reset" />
                 </div>
                 </form>
              </div>

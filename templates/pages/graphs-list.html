@@ -17,7 +17,7 @@
     </script>
     <script>
         $('#formFilters').show();
-        $('#filterImages').text('Hide Filters Manuscripts').attr('class', 'btn');
+        $('#filterImages').text('Hide Filters Manuscripts').attr('class', 'btn btn-default');
         show_filters = 1;
     </script>
 {% endblock %}
@@ -30,7 +30,7 @@
 
     {% regroup graphs by hand as handlist %}
 
-    <div class="row-fluid">
+    <div class="row">
 
     {% ifnotequal style "allograph_list" %}
         {% with r=results|first %}
@@ -48,7 +48,7 @@
                 <ul id="drilldownformID">{{ drilldownform.as_ul }}</ul>
                 <div class='container'>
                     <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                    <input type='reset' class='btn' id="reset"/>
+                    <input type='reset' class='btn btn-default' id="reset"/>
                     <input type="checkbox" name="fullview" id="fullview" class="checkbox"> Select to view the images in one page.</input>
                 </div>
             </form>
@@ -70,7 +70,7 @@
                 </span>
 
 
-                <div class='span2 pull-right' id='view-switch'>
+                <div class='col-md-2 pull-right' id='view-switch'>
                     <ul class="nav nav-pills">
                         {% if view == 'Images' %}
                             <li class="active">
@@ -103,8 +103,8 @@
                                     {% autopaginate handlist 18 %}
                                         {% for hand in handlist %}
                                             {% if forloop.counter|divisibleby:6 %}
-                                                <div class='row-fluid'>
-                                                    <div class='span2 panel image'>
+                                                <div class='row'>
+                                                    <div class='col-md-2 panel image'>
                                                         <dl class="imageDatabase">
                                                             <dt>
                                                                 {% for graph in hand.list %}
@@ -120,7 +120,7 @@
                                                     </div>
                                                 </div>
                                             {% else %}
-                                                <div class='span2 panel image'>
+                                                <div class='col-md-2 panel image'>
                                                     <dl class="imageDatabase">
                                                         <dt>
                                                             {% for graph in hand.list %}

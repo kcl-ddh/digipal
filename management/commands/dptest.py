@@ -97,6 +97,7 @@ Commands:
 
 	def fetch_and_test(self, root=None):
 		from utils import web_fetch
+		from datetime import datetime
 		
 		if not root:
 			root = 'http://localhost/'
@@ -134,7 +135,7 @@ Commands:
 				]
 		
 		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
-		#pages = ['digipal/page/364/',]
+		#pages = ['digipal/page/362/',]
 		
 		for page in pages:
 			url = root + page
@@ -145,7 +146,12 @@ Commands:
 			print 
 			print 'Request %s' % url
 			
+			t0 = datetime.now()
+
 			res = web_fetch(url)
+			
+			t1 = datetime.now()
+
 			if res['status'] != '200':
 				print 'ERROR: %s !!!!!!!!!!!!!!!!!!!' % res['status']
 				continue
@@ -153,6 +159,8 @@ Commands:
 				print 'ERROR: %s !!!!!!!!!!!!!!!!!!!' % res['error']
 				continue
 			if res['body']:
+				print '\t %s KB in %.4f s.' % (len(res['body']) / 1024, (t1 - t0).total_seconds())
+				
 				# prefix the line with numbers
 				ln = 0
 				lines = []
@@ -170,12 +178,15 @@ Commands:
 		# custom validations
 		ln = 0
 		containers = 0
-		print '\t %s KB' % (len(body) / 1024)
+		script_open_line = None
 		for line in body.split('\n'):
 			ln += 1
 			msg = ''
 			if line.find('<script') > -1 and line.find('src') == -1:
-				msg = 'Inline script'
+				script_open_line = ln
+			if line.find('</script') > -1 and script_open_line is not None:
+				msg = 'Inline script (%d lines, starts at %s)' % (ln - script_open_line, script_open_line)
+				script_open_line = None 
 			if re.search('style\s*=\s*"', line):
 				msg = 'Inline style'
 			if re.search('class.+\Wcontainer\W', line):

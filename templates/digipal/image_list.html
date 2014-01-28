@@ -63,39 +63,9 @@
                     {% if forloop.counter0|divisibleby:4 %}
                         <div class="row-fluid">
                     {% endif %}
-                            <div class='span3 panel centered' >
-                                <p class='imageDetails'>
-                                    <strong>
-                                        <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>
-                                    </strong>
-                                    {% if image.annotation_set.all.count %}
-                                        <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ image.get_absolute_url }}?annotations=false">
-                                            (without annotations)
-                                        </a>
-                                    {% endif %}
-                                </p>
-                                <dl class="imageDatabase">
-                                    <dt>
-                                        <a data-type='image' data-id='{{ image.id }}' class='droppable_image' href="{{ image.id }}/">
-                                            <span class="drag_caption">Drag Image to basket</span>
-                                            {% iip_img image width=200 lazy=1 %}
-                                        </a>
-                                    </dt>
-                                    <dd>
-                                        <strong><a href="{{ image.id }}/">{{ image }}</a></strong>
-                                    </dd>
-                                </dl>
-                                <p class='annotations_count_images'>
-                                    <span class="label label-important">
-                                        {{ image.annotation_set.all.count  }}
-                                        {{ "Annotation"|plural:image.annotation_set.all.count }}
-                                    </span>
-                                    <span class="label label-important">
-                                        {{ image.hands.all.count }}
-                                        {{ "Hand"|plural:image.hands.all.count }}
-                                    </span>
-                                </p>
-                            </div>
+                    
+                    {% include "digipal/folio_image.html" with image=image width=200 full_label=1 %}
+                    
                     {% if forloop.counter|divisibleby:4 or forloop.last %}
                         </div>
                     {% endif %}

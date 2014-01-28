@@ -4,52 +4,17 @@
     OTHER IMAGES
     ----------------------------------------------
 {% endcomment %}
-<h3>Other Pages</h3>
+
 {% if image.item_part.images.all.count > 1 %}
     {% for p in image.item_part.images.all %}
         {% if p.id != image.id %}
             {% if forloop.counter|divisibleby:4 %}
                 <div class='row-fluid'>
             {% endif %}
-            <div class='span3 panel image'>
-                <p class='imageDetails'>
-                    <strong>
-                        <a data-toggle="tooltip" title="View this image with annotations" href="{{ p.get_absolute_url }}">View Image</a>
-                    </strong>
-                    {% if p.annotation_set.all.count %}
-                        <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ p.get_absolute_url }}?annotations=false">
-                        (without annotations)
-                        </a>
-                    {% endif %}
-                </p>
-                <dl class="imageDatabase">
-                    <dt>
-                        <a class='droppable_image' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{p.hands.all.count}}' title="{{p}}" href = "/digipal/page/{{p.id}}" data-id="{{ p.id }}" data-type='image'>
-                            {% iip_img p width=150 %}
-                        </a>
-                    </dt>
-                    <dd>
-                        <a href="/digipal/page/{{p.id}}">
-                            {% if p.folio_number %}
-                                {{ p.folio_number }}
-                            {% else %}
-                                {{ p }}
-                            {% endif %}
-                        </a>
-                    </dd>
-                </dl>
-                <p class='annotations_count_images'>
-                    <span class="label label-important">
-                        {{ p.annotation_set.all.count }}
-                        {% if p.annotation_set.all.count == 1 %} Annotation {% else %} Annotations {% endif %}
-                    </span>
-                    <span class="label label-important">
-                        {{ p.hands.all.count }}
-                        {% if p.hands.all.count == 1 %} Hand {%else %} Hands {% endif %}
-                    </span>
-                </p>
-            </div>
-            {% if forloop.counter|divisibleby:4 %}
+            
+            {% include "digipal/folio_image.html" with image=p width=150 full_label=0 %}
+            
+            {% if forloop.counter|divisibleby:4 or forloop.last %}
                 </div>
             {% endif %}
         {% endif %}

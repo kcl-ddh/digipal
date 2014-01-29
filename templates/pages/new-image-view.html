@@ -78,11 +78,11 @@
 
                 <div class="row">
 
-                    <div class="col-lg-8 col-md-8">
+                    <div class="col-md-8">
                         {% paginate %}
                     </div>
 
-                    <div class='col-lg-2 col-md-2 pull-right' id="view-switch">
+                    <div class='col-md-2 pull-right' id="view-switch">
 
                         <ul class="nav nav-pills">
                             <li class="{% if view == 'images' %}active{% endif %}">
@@ -108,7 +108,7 @@
                                 {% if forloop.counter0|divisibleby:6 %}
                                     <div class='row'>
                                 {% endif %}
-                                        <div class='col-lg-2 col-md-2 panel'>
+                                        <div class='col-md-2 panel'>
 
                                             <dl class="imageDatabase">
                                                 <dt>

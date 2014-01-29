@@ -70,7 +70,7 @@
                 </span>
 
 
-                <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
+                <div class='col-md-2 pull-right' id='view-switch'>
 
                     <ul class="nav nav-pills">
                         {% if view == 'Images' %}
@@ -105,7 +105,7 @@
                                         {% for hand in handlist %}
                                             {% if forloop.counter|divisibleby:6 %}
                                                 <div class='row'>
-                                                    <div class='col-lg-2 col-md-2 panel image'>
+                                                    <div class='col-md-2 panel image'>
                                                         <dl class="imageDatabase">
                                                             <dt>
                                                                 {% for graph in hand.list %}
@@ -121,7 +121,7 @@
                                                     </div>
                                                 </div>
                                             {% else %}
-                                                <div class='col-lg-2 col-md-2 panel image'>
+                                                <div class='col-md-2 panel image'>
                                                     <dl class="imageDatabase">
                                                         <dt>
                                                             {% for graph in hand.list %}

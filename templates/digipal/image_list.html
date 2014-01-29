@@ -11,15 +11,15 @@
 
     <form id='searchform' class="form-inline panel" action='.'>
         <div class="row">
-            <div class="col-lg-1 col-md-1">
+            <div class="col-md-1">
                 Filter by
             </div>
-            <div class="col-lg-8 col-md-8">
+            <div class="col-md-8">
                 <ul class="flat-list use-chosen">
                     {{ filterImages.as_ul }}
                 </ul>
             </div>
-            <div class="col-lg-3 col-md-3">
+            <div class="col-md-3">
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn btn-default'/>
             </div>
@@ -38,12 +38,12 @@
     <div class='row'>
         {# {% include "digipal/image_list_pagination.html" %} #}
 
-        <div class="col-lg-8 col-md-8">
+        <div class="col-md-8">
             {% autopaginate images 12 as images_on_this_page %}
             {% paginate %}
         </div>
 
-        <div class='col-lg-2 col-md-2 pull-right' id='view-switch'>
+        <div class='col-md-2 pull-right' id='view-switch'>
 
             <ul class="nav nav-pills">
                 <li class="{% if view == 'images' %}active{% endif %}">

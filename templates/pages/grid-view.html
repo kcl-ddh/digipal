@@ -27,7 +27,7 @@
     {% if page_list.paginator.count > 24 %}
         {% load i18n %}
 
-        <div class="pagination col-lg-4 col-md-4">
+        <div class="pagination col-md-4">
 
             <ul>
             {% if page_list.has_previous %}
@@ -47,7 +47,7 @@
      </div>
     {% endif %}
 
-    <div class='col-lg-2 col-md-2 pull-right'>
+    <div class='col-md-2 pull-right'>
      <ul class="nav nav-pills">
       <li class="active">
         <a href="#">Images</a>
@@ -107,7 +107,7 @@
         {% for image in page_list %}
         {% if forloop.counter|divisibleby:4 %}
             <div class='row'>
-                <div class='col-lg-3 col-md-3 panel image' style='margin-left:0;padding-left:0;'>
+                <div class='col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                     <p class='imageDetails'>
                         {% ifequal image.annotation_set.all.count 0 %}
                         <span class='label label-default'>View Annotations</span>
@@ -133,7 +133,7 @@
                 </div>
             </div>
         {% else %}
-            <div class='col-lg-3 col-md-3 panel image' style='margin-left:0;padding-left:0;'>
+            <div class='col-md-3 panel image' style='margin-left:0;padding-left:0;'>
                 <p class='imageDetails'>
                     {% ifequal image.annotation_set.all.count 0 %}
                     <span class='label'>View Annotations</span>

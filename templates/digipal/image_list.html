@@ -11,15 +11,15 @@
 
     <form id='searchform' class="form-inline panel" action='.'>
         <div class="row">
-            <div class="col-md-1">
+            <div class="col-xs-12 col-sm-1">
                 Filter by
             </div>
-            <div class="col-md-8">
+            <div class="col-xs-12 col-sm-9">
                 <ul class="flat-list use-chosen">
                     {{ filterImages.as_ul }}
                 </ul>
             </div>
-            <div class="col-md-3">
+            <div class="col-xs-12 col-sm-2">
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn btn-default'/>
             </div>
@@ -36,14 +36,7 @@
     {% endif %}
 
     <div class='row'>
-        {# {% include "digipal/image_list_pagination.html" %} #}
-
-        <div class="col-md-8">
-            {% autopaginate images 12 as images_on_this_page %}
-            {% paginate %}
-        </div>
-
-        <div class='col-md-2 pull-right' id='view-switch'>
+        <div class='col-xs-12 col-sm-3 pull-right' id='view-switch'>
 
             <ul class="nav nav-pills">
                 <li class="{% if view == 'images' %}active{% endif %}">
@@ -54,6 +47,11 @@
                     <a data-target="#list" data-toggle="pill" title='Change Manuscripts View to List' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=list{% endfilter %}">List</a>
                 </li>
             </ul>
+        </div>
+
+        <div class="col-xs-12 col-sm-8">
+            {% autopaginate images 12 as images_on_this_page %}
+            {% paginate %}
         </div>
 
     </div>

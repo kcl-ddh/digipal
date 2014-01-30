@@ -23,30 +23,33 @@
   </ul>
 
 {% endcomment %}
-<h3>Metadata</h3>
+<div class='annotator-tab-page'>
 
-<table class="table table-condecopyright/nsed">
-    <tbody>
-        <tr>
-            <th>Repository</th>
-            <td>{{ image.item_part.current_item.repository.name }}</td>
-        </tr>
-        <tr>
-            <th>Town or City</th>
-            <td>{{ image.item_part.current_item.repository.place }}</td>
-        </tr>
-        <tr>
-            <th>Shelfmark</th>
-            <td>
-                {{ image.item_part.current_item.shelfmark }}
-            </td>
-        </tr>
-        <tr>
-            <th>Locus</th>
-            <td>
-                {{ image.locus }}
-            </td>
-        </tr>
+    <h3>Metadata</h3>
 
-    </tbody>
-</table>
+    <table class="table table-condecopyright/nsed">
+        <tbody>
+            <tr>
+                <th>Repository</th>
+                <td>{{ image.item_part.current_item.repository.name }}</td>
+            </tr>
+            <tr>
+                <th>Town or City</th>
+                <td>{{ image.item_part.current_item.repository.place }}</td>
+            </tr>
+            <tr>
+                <th>Shelfmark</th>
+                <td>
+                    {{ image.item_part.current_item.shelfmark }}
+                </td>
+            </tr>
+            <tr>
+                <th>Locus</th>
+                <td>
+                    {{ image.locus }}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

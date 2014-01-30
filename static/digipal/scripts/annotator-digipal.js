@@ -742,7 +742,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					var features = data[idx].features;
 					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
 
-					s += "<div class='checkboxes_div'><span title='Check all' data-component = '" + component_id + "' class='check_all'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-component = '" + component_id + "' class='uncheck_all'><i class='fa fa-square-o'></i></span></div></div>";
+					s += "<div class='checkboxes_div btn-group'><span title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
 					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -1107,41 +1107,41 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i title='Share URL' class='fa fa-link' title='Share URL' data-toggle='tooltip'></i></button> <button class='to_lightbox btn btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+						"</span> <button data-hidden='true' class='url_allograph btn-default btn btn-xs'><i title='Share URL' class='fa fa-link' title='Share URL' data-toggle='tooltip'></i></button> <button class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-						title += " <button class='btn btn-xs link_graphs'>Group</button>";
+						title += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
 					} else {
-						title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
+						title += " <button class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button>";
 					}
 				} else if (!annotator.annotating) {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs pull-right'><i class='fa fa-link' data-toggle='tooltip'></i></button> ";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs btn-default pull-right'><i class='fa fa-link' data-toggle='tooltip'></i></button> ";
 
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation</span>" +
-							" <button data-hidden='true' class='url_allograph btn btn-xs'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button> ";
+							" <button data-hidden='true' class='url_allograph btn btn-default btn-xs'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button> ";
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-							title += " <button class='btn btn-xs link_graphs'>Group</button>";
+							title += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
 						} else {
-							title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
+							title += " <button class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button>";
 						}
 					} else {
-						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> ";
+						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> ";
 						if (annotator.selectedFeature) {
-							title += "<button class='to_lightbox btn btn-xs' data-graph = '" + annotator.selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+							title += "<button class='to_lightbox btn btn-default btn-xs' data-graph = '" + annotator.selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 						}
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-							title += " <button class='btn btn-xs link_graphs'>Group</button>";
+							title += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
 						} else {
-							title += " <button class='btn btn-xs link_graphs disabled' disabled>Group</button>";
+							title += " <button class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button>";
 						}
 					}
 				}
 			} else {
 				if (selectedFeature) {
-					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> <button class='to_lightbox btn btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
+					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs'><i data-toggle='tooltip' title='Share URL' class='fa fa-link'></i></button> <button class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i data-toggle='tooltip' title='Add graph to collection' class='fa fa-folder-open'></i></button>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button  style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs pull-right'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-default btn-xs pull-right'><i title='Share URL' class='fa fa-link' data-toggle='tooltip'></i></button>";
 				}
 			}
 			return title;
@@ -1226,15 +1226,12 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 	div.draggable({
 		handle: '#top_div_annotated_allographs',
 		cursor: "move"
-	}).resizable({
-		minHeight: "25%",
-		minWidth: 300
 	});
 
 	var top_div = $("<div id='top_div_annotated_allographs'>");
 
 	var number_allographs = $('.number-allographs');
-	top_div.append("<span>" + allograph_value + "</span><i title='Close box' class='icon pull-right icon-remove close_top_div_annotated_allographs'></i>");
+	top_div.append("<span>" + allograph_value + "</span> <i title='Close box' class='icon pull-right glyphicon glyphicon-remove close_top_div_annotated_allographs'></i>");
 
 	div.append(top_div);
 
@@ -1712,7 +1709,7 @@ function showBox(selectedFeature) {
 						var features = data[idx].features;
 						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 						s += "<div class='checkboxes_div'>";
-						s += "<span title='Check all' class='check_all'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
+						s += "<span title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						$.each(features, function(idx) {

@@ -302,7 +302,7 @@ $(document).ready(function() {
 				window_save_collection.fadeOut().remove();
 				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
 				var container_collections = $('#container_collections');
-				var collection_folder = $('<div class="span1 collection" id="' + id + '">');
+				var collection_folder = $('<div class="col-md-1 collection" id="' + id + '">');
 				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Open collection" src="/static/img/folder.png"></a><label>' + collection_name + '</label><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-xs">Remove</button>');
 
 				container_collections.append(collection_folder);
@@ -319,11 +319,10 @@ $(document).ready(function() {
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
 			s += '<h3>Save Collection</h3>';
-			s += '<div class="input-append"><input required placeholder="Type here collection name" type="text" id= "name_collection" />';
-			s += '<input type = "button" class="btn" id="save_collection" type="button" value="Save" /></div>';
-			s += '<input type = "button" style="margin-top:5%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
+			s += '<div class="input-group"><input required placeholder="Type here collection name" type="text" id= "name_collection" class="form-control" />';
+			s += '<span class="input-group-btn"><input type = "button" class="btn btn-success" id="save_collection" type="button" value="Save" /></span></div>';
+			s += '<input type = "button" style="margin-top:8%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
 			window_save_collection.html(s);
-			window_save_collection.css('height', '20%');
 			$('body').append(window_save_collection);
 
 			$('#save_collection').click(function(event) {
@@ -433,7 +432,7 @@ $(document).ready(function() {
 	var to_lightbox = $('#to_lightbox');
 	var add_collection_button = $('#add_collection');
 	var share_collection_button = $('#share_collection');
-	$('a[data-toggle="tab"]').on('shown', function(e) {
+	$('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
 		if (e.target.innerHTML != 'Manage Collections') {
 			filter.attr('disabled', true);
 			add_collection_button.attr('disabled', false);

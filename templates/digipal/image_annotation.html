@@ -31,7 +31,7 @@
             <div class='row'>
 
                 {% comment %} TABS {% endcomment %}
-                <div class='span8'>
+                <div class='col-md-9 col-xs-12'>
                     <ul class='nav nav-tabs'>
                         <li {% if url == image.id|slugify or url == 'allographs' %} class='active in' {% endif %}>
                             <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>Manuscript Image</a>
@@ -55,40 +55,41 @@
                 </div>
 
             </div> {% comment %}DIV row{% endcomment %}
+            <div id='tabbable-annotator-page'>
+                <div class="tabbable">
+                    <div class="tab-content">
+                        <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
+                            {% include "digipal/image_annotation_control_bar.html" %}
+                            <div id="map" class='panel'></div>
+                            <div id="toolbar" class="olControlEditingToolbar"></div>
+                            {% include "digipal/image_annotation_settings.html" %}
+                            <div id='annotations'></div>
+                            <div class='row' id='allographs_filtersBox'></div>
+                        </div>
 
-            <div class="tabbable">
-                <div class="tab-content">
-                    <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
-                        {% include "digipal/image_annotation_control_bar.html" %}
-                        <div id="map"></div>
-                        <div id="toolbar" class="olControlEditingToolbar"></div>
-                        {% include "digipal/image_annotation_settings.html" %}
-                        <div id='annotations'></div>
-                        <div class='row' id='allographs_filtersBox'></div>
-                    </div>
+                        <div class="tab-pane fade" id='allographs'>
+                            {% include "digipal/annotations.html" %}
+                        </div>
 
-                    <div class="tab-pane fade" id='allographs'>
-                        {% include "digipal/annotations.html" %}
-                    </div>
+                        <div class="tab-pane fade {% if url == 'hands' %} active in {% endif %}" id='hands'>
+                            {% include "digipal/hands.html" %}
+                        </div>
 
-                    <div class="tab-pane fade {% if url == 'hands' %} active in {% endif %}" id='hands'>
-                        {% include "digipal/hands.html" %}
-                    </div>
+                        <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
+                             {% include "pages/record_images.html" %}
+                        </div>
 
-                    <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
-                         {% include "pages/record_images.html" %}
-                    </div>
+                        <div class="tab-pane fade {% if url == 'copyright' %} active in {% endif %}" id='copyright'>
+                            {% include "pages/copyright.html" %}
+                        </div>
 
-                    <div class="tab-pane fade {% if url == 'copyright' %} active in {% endif %}" id='copyright'>
-                        {% include "pages/copyright.html" %}
-                    </div>
+                        <div class="tab-pane fade {% if url == 'pages' %} active in {% endif %}" id='pages'>
+                            {% include "digipal/image_annotation_other_images.html" %}
+                        </div>
 
-                    <div class="tab-pane fade {% if url == 'pages' %} active in {% endif %}" id='pages'>
-                        {% include "digipal/image_annotation_other_images.html" %}
                     </div>
 
                 </div>
-
             </div>
 
             <p id='status'></p>
@@ -97,12 +98,14 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
     <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+    <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     <script src='https://apis.google.com/js/client.js'></script>
@@ -172,5 +175,6 @@
                 }
             }
         }
+
     </script>
 {% endblock %}

@@ -25,7 +25,7 @@ function Collections() {
 				var collection = $('<div>');
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
-				collection.addClass('span1 span1');
+				collection.addClass('col-md-2');
 				collection.append('<a href="?collection=' + index + '"><img title="Send collection to basket" src="/static/img/folder.png" /></a>');
 				collection.append('<label>' + index + '<label>');
 				collection.append("<button id = '" + index + "' data-collection =  '" + value.id + "' class='remove_collection btn btn-danger btn-xs'>Remove</button>");

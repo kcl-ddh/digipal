@@ -455,6 +455,9 @@ function Allographs() {
 
 					var select_list = $('select');
 					select_list.chosen().trigger('liszt:updated');
+
+					self.edit_letter.set_image(annotation);
+
 				});
 			} else {
 				console.log('The annotations may not be initialized yet');
@@ -487,7 +490,7 @@ function Allographs() {
 
 						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
-						s += "<div class='checkboxes_div'><span data-component = '" + component_id + "' class='check_all'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all'><i class='fa fa-square-o'></i></span></div></div>";
+						s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						var n = 0;
@@ -544,6 +547,194 @@ function Allographs() {
 				});
 			});
 		}
+
+	};
+
+	this.edit_letter = {
+		self: this,
+		set_image: function(annotation) {
+			var editor_space = $('#image-editor-space');
+			var img = $('a[data-graph="' + annotation.graph + '"]').find('img');
+			this.img = img.clone();
+			this.temp = {};
+			editor_space.html(this.img);
+			this.url = this.img.attr('src');
+			this.parameters = this.get_parameters();
+			this.events();
+		},
+
+		getParameter: function(paramName, searchString) {
+			var i, val, params = searchString.split("&");
+			var parameters = [];
+			for (i = 0; i < params.length; i++) {
+				val = params[i].split("=");
+				if (val[0] == paramName) {
+					parameters.push(unescape(val[1]));
+				}
+			}
+			return parameters;
+		},
+
+		resize: function(side, value) {
+			$('#editor-space-image').fadeIn();
+			var temp = self.edit_letter.temp;
+			var url = self.edit_letter.url;
+			var old_url = self.edit_letter.parameters.RGN;
+			var newRGN = self.edit_letter.parameters.RGN.split(',');
+			if (side == 'top') {
+				//par = this.parameters.RGN[1];
+				newRGN[1] = value;
+			} else if (side == 'left') {
+				//par = this.parameters.RGN[0];
+				newRGN[0] = value;
+			} else if (side == 'width') {
+				//par = this.parameters.RGN[3];
+				newRGN[2] = value;
+			} else {
+				//par = this.parameters.RGN[2];
+				newRGN[3] = value;
+			}
+
+			url = url.replace('RGN=' + old_url, 'RGN=' + newRGN.toString());
+			self.edit_letter.url = url;
+			self.edit_letter.img.attr('src', url);
+			self.edit_letter.img.on('load', function() {
+				$('#editor-space-image').fadeOut();
+			});
+			self.edit_letter.parameters.RGN = newRGN.toString();
+		},
+
+		events: function() {
+			var resize = this.resize;
+			var resize_up = $('#resize-up');
+			var resize_down = $('#resize-down');
+			var resize_width = $('#resize-right');
+			var resize_left = $('#resize-left');
+
+			var move_up = $('#move-up');
+			var move_down = $('#move-down');
+			var move_right = $('#move-right');
+			var move_left = $('#move-left');
+
+			var value = 0.05;
+
+			/*
+				resize functions
+			*/
+			resize_up.on('click', function() {
+
+				if (!self.edit_letter.temp['height']) {
+					self.edit_letter.temp['height'] = parseFloat(self.edit_letter.parameters.height);
+				}
+
+				self.edit_letter.temp['height'] += value;
+
+				resize('height', self.edit_letter.temp['height']);
+			});
+
+			resize_down.on('click', function() {
+
+				if (!self.edit_letter.temp['height']) {
+					self.edit_letter.temp['height'] = parseFloat(self.edit_letter.parameters.height);
+				}
+
+				self.edit_letter.temp['height'] -= value;
+
+				resize('height', self.edit_letter.temp['height']);
+			});
+
+			resize_left.on('click', function() {
+				if (!self.edit_letter.temp['width']) {
+					self.edit_letter.temp['width'] = parseFloat(self.edit_letter.parameters.width);
+				}
+
+				self.edit_letter.temp['width'] -= value;
+
+				resize('width', self.edit_letter.temp['width']);
+			});
+
+			resize_width.on('click', function() {
+				if (!self.edit_letter.temp['width']) {
+					self.edit_letter.temp['width'] = parseFloat(self.edit_letter.parameters.width);
+				}
+
+				self.edit_letter.temp['width'] += value;
+
+				resize('width', self.edit_letter.temp['width']);
+			});
+
+			/*
+				end resize functions
+			*/
+
+			/*
+				move functions
+			*/
+
+
+			move_up.on('click', function() {
+				if (!self.edit_letter.temp['top']) {
+					self.edit_letter.temp['top'] = parseFloat(self.edit_letter.parameters.top);
+				}
+
+				self.edit_letter.temp['top'] -= value;
+
+				resize('top', self.edit_letter.temp['top']);
+			});
+
+			move_down.on('click', function() {
+				if (!self.edit_letter.temp['top']) {
+					self.edit_letter.temp['top'] = parseFloat(self.edit_letter.parameters.top);
+				}
+
+				self.edit_letter.temp['top'] += value;
+
+				resize('top', self.edit_letter.temp['top']);
+			});
+
+			move_left.on('click', function() {
+				if (!self.edit_letter.temp['left']) {
+					self.edit_letter.temp['left'] = parseFloat(self.edit_letter.parameters.left);
+				}
+
+				self.edit_letter.temp['left'] -= value;
+
+				resize('left', self.edit_letter.temp['left']);
+			});
+
+			move_right.on('click', function() {
+				if (!self.edit_letter.temp['left']) {
+					self.edit_letter.temp['left'] = parseFloat(self.edit_letter.parameters.left);
+				}
+
+				self.edit_letter.temp['left'] += value;
+
+				resize('left', self.edit_letter.temp['left']);
+			});
+
+			/*
+				end move functions
+			*/
+		},
+
+		get_parameters: function() {
+			var WID = this.getParameter('WID', self.edit_letter.url);
+			var RGN = this.getParameter('RGN', self.edit_letter.url).toString().split('&')[0];
+			var coords = RGN.split(',');
+			var left = coords[0];
+			var top = coords[1];
+			var height = coords[2];
+			var width = coords[3];
+			return {
+				'WID': WID,
+				'RGN': RGN,
+				'left': left,
+				'top': top,
+				'height': height,
+				'width': width
+			};
+		}
+
 	};
 
 	this.keyboard_shortcuts = {

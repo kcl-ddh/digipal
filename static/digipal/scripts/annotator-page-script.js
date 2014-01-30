@@ -17,8 +17,6 @@ function AnnotatorLoader() {
 			}
 		});
 
-		self.change_tabs();
-
 		annotator.annotating = false;
 		if (annotator.isAdmin == 'True') { // checking if user is logged in as admin
 			annotator.annotating = true; // if logged in as admin, the variable annotations is set as true
@@ -138,6 +136,7 @@ function AnnotatorLoader() {
 		});
 
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
+
 
 	};
 
@@ -410,9 +409,9 @@ function AnnotatorLoader() {
 
 	this.filter_allographs = function(button) {
 		button.addClass('active');
-		var checkOutput = '<div class="span6 span6" style="padding:2%;">';
-		checkOutput += '<span style="cursor:pointer;" class="pull-left" title = "Check All" id="checkAll"><i class="fa fa-check-square-o"></i></span>';
-		checkOutput += ' <span style="cursor:pointer;" class="pull-right" title = "Uncheck All" id="unCheckAll"><i class="fa fa-square-o"></i></span><br clear="all" />';
+		var checkOutput = '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
+		checkOutput += '<span style="cursor:pointer;" class="pull-left btn btn-xs btn-default" title = "Check All" id="checkAll"><i class="fa fa-check-square-o"></i></span>';
+		checkOutput += ' <span style="cursor:pointer;" class="pull-right btn btn-xs btn-default" title = "Uncheck All" id="unCheckAll"><i class="fa fa-square-o"></i></span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
 		if (!$.isEmptyObject(annotations)) {
@@ -429,9 +428,9 @@ function AnnotatorLoader() {
 			}
 		}
 		checkOutput += "</div>";
-		checkOutput += '<div class="span6 span6" style="padding:2%;">';
-		checkOutput += ' <span style="cursor:pointer;" title = "Check All" class="pull-left" id="checkAll_hands"><i class="fa fa-check-square-o"></i></span>';
-		checkOutput += ' <span style="cursor:pointer;" title="Uncheck All" class="pull-right" id="unCheckAll_hands"><i class="fa fa-square-o"></i></span><br clear="all" />';
+		checkOutput += '<div class="col-lg-6">';
+		checkOutput += ' <span style="cursor:pointer;" title = "Check All" class="pull-left btn btn-xs btn-default" id="checkAll_hands"><i class="fa fa-check-square-o"></i></span>';
+		checkOutput += ' <span style="cursor:pointer;" title="Uncheck All" class="pull-right btn btn-xs btn-default" id="unCheckAll_hands"><i class="fa fa-square-o"></i></span><br clear="all" />';
 
 
 		if (!$.isEmptyObject(annotations)) {
@@ -442,7 +441,7 @@ function AnnotatorLoader() {
 			}
 		}
 
-		checkOutput += "</div>";
+		checkOutput += "</div></div>";
 
 		var allographs_filter_box = $('#allographs_filtersBox');
 		allographs_filter_box.dialog({
@@ -571,7 +570,7 @@ function AnnotatorLoader() {
 				"position": "fixed !important",
 				"left": "0px",
 				"top": "190px",
-				"width": "35px",
+				"width": "50px",
 				"z-index": 1000
 			});
 
@@ -742,39 +741,6 @@ function AnnotatorLoader() {
 			}
 		}
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-	};
-
-	this.change_tabs = function() {
-		var tabs = $('a[data-toggle="tab"]');
-
-		tabs.on('shown', function(e) {
-			var dialog = $('.dialog_annotations');
-			if (e.target.getAttribute('data-target') != '#annotator') {
-
-				if (window.history && window.history.pushState) {
-					history.pushState(null, null, $(this).attr('href'));
-				} else {
-					window.location.href = $(this).attr('href');
-				}
-
-				if (dialog.length) {
-					dialog.parent().fadeOut();
-				}
-
-			} else {
-				if (typeof annotator.annotations == 'undefined') {
-					main();
-				}
-
-				if (dialog.length) {
-					dialog.parent().fadeIn();
-				}
-
-				history.pushState(null, null, '/digipal/page/' + annotator.image_id);
-			}
-
-			return false;
-		});
 	};
 }
 

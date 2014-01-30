@@ -616,7 +616,7 @@ function Allographs() {
 			var move_right = $('#move-right');
 			var move_left = $('#move-left');
 
-			var value = 0.05;
+			var value = 0.005;
 
 			/*
 				resize functions

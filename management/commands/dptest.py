@@ -176,14 +176,28 @@ Commands:
 		ret = []
 		
 		# custom validations
+		sheets = {}
+		scripts = {}
 		ln = 0
 		containers = 0
 		script_open_line = None
 		for line in body.split('\n'):
 			ln += 1
 			msg = ''
-			if line.find('<script') > -1 and line.find('src') == -1:
-				script_open_line = ln
+
+			sheets_names = re.findall(ur'''[^'"/]+\.css''', line)
+			if sheets_names and sheets_names[0] in sheets:
+				msg = 'Stylesheet included twice: %s' % sheets_names[0]
+				sheets[sheets_names[0]] = 1
+
+			if line.find('<script') > -1: 
+				if line.find('src') == -1:
+					script_open_line = ln
+				else:
+					script_names = re.findall(ur'''[^'"/]+\.js''', line)
+					if script_names[0] in scripts:
+						msg = 'Script included twice: %s' % script_names[0]
+					scripts[script_names[0]] = 1
 			if line.find('</script') > -1 and script_open_line is not None:
 				msg = 'Inline script (%d lines, starts at %s)' % (ln - script_open_line, script_open_line)
 				script_open_line = None 

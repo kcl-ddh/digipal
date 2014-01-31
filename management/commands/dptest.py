@@ -136,6 +136,7 @@ Commands:
 		
 		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
 		#pages = ['digipal/page/362/',]
+		#pages = ['',]
 		
 		for page in pages:
 			url = root + page
@@ -170,7 +171,12 @@ Commands:
 					lines.append('%6s %s' % (ln, line))
 				sp['body'] = '\n'.join(lines)
 			print '\n'.join(sp['msgs'])
-			
+
+	def get_opening_tag(self, bs_element):
+		ret = ''
+		#ret = '<%s %s [..]' % (bs_element.name, ' '.join(['%s="%s"' % (k, v) for k,v in bs_element.attrs.iteritems()]))
+		ret = re.sub(ur'(?musi)>.*', '', ('%s' % bs_element))
+		return ret
 
 	def find_errors(self, body):
 		ret = []
@@ -209,31 +215,57 @@ Commands:
 				ret.append('%6s: %s (%s)' % (ln, msg, line.strip()))
 		if containers > 0:
 			ret.append('%6s: %s containers' % ('', containers))
+			
+		# structural validation
+		import bs4
+		from bs4 import BeautifulSoup
+		soup = BeautifulSoup(body)
+		print (' title: %s' % re.sub(ur'\s+', ' ', soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
+		
+		# check that all rows are under a container
+		for row in soup.find_all('div', class_='row'):
+			has_container = False
+			for parent in row.parents:
+				classes = parent.get('class', [])
+				if ('container' in classes) or ('container-fluid' in classes):
+					has_container = True
+					break
+					
+			if not has_container:
+				print ('    ? : Bootstrap ERROR: Rows must be placed within a .container (fixed-width) or .container-fluid (full-width) for proper alignment and padding\n\t\t%s ' % self.get_opening_tag(row)).encode('ascii', 'ignore')
+			
+			# Content should be placed within columns, and only columns may be immediate children of rows.
+			for child in row.children:
+				if isinstance(child, bs4.element.Tag):
+					cl = ' '.join(child.get('class', []))
+					if ( (child.name != 'div') or (not re.search(ur'\bcol-\w\w-\d\b', cl))):					
+						print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (self.get_opening_tag(child), self.get_opening_tag(row))).encode('ascii', 'ignore')
 		
 		# HTML validation
-		import urllib2, time
-		attempts = 0
-		ok = True
-		while True:
-			attempts += 1
+		if 1:
+			import urllib2, time
+			attempts = 0
 			ok = True
-			from py_w3c.validators.html.validator import HTMLValidator
-			vld = HTMLValidator()
-			try:
-				vld.validate_fragment(body)
-			except urllib2.HTTPError:
-				time.sleep(1)
-				ok = False
-			if ok: break
-			if attempts > 2: break
-
-		if ok:
-			for info in vld.warnings:
-				ret.append('%6s: [W3C WARNING] %s' % (info['line'], info['message']))
-			for info in vld.errors:
-				ret.append('%6s: [W3C ERROR  ] %s' % (info['line'], info['message']))
-		else:
-			ret.append('\tFailed to call W3C validation.')
+			while True:
+				attempts += 1
+				ok = True
+				from py_w3c.validators.html.validator import HTMLValidator
+				vld = HTMLValidator()
+				try:
+					vld.validate_fragment(body)
+				except urllib2.HTTPError:
+					time.sleep(1)
+					ok = False
+				if ok: break
+				if attempts > 2: break
+	
+			if ok:
+				for info in vld.warnings:
+					ret.append('%6s: [W3C WARNING] %s' % (info['line'], info['message']))
+				for info in vld.errors:
+					ret.append('%6s: [W3C ERROR  ] %s' % (info['line'], info['message']))
+			else:
+				ret.append('\tFailed to call W3C validation.')
 		
 		return ret
 

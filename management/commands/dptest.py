@@ -234,13 +234,13 @@ Commands:
 			if not has_container:
 				print ('    ? : Bootstrap ERROR: Rows must be placed within a .container (fixed-width) or .container-fluid (full-width) for proper alignment and padding\n\t\t%s ' % self.get_opening_tag(row)).encode('ascii', 'ignore')
 			
-			# Content should be placed within columns, and only columns may be immediate children of rows.
-			for child in row.children:
-				if isinstance(child, bs4.element.Tag):
-					cl = ' '.join(child.get('class', []))
-					if ( (child.name != 'div') or (not re.search(ur'\bcol-\w\w-\d\b', cl))):					
-						print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (self.get_opening_tag(child), self.get_opening_tag(row))).encode('ascii', 'ignore')
-		
+		# check that all cols are under a row
+		for col in soup.find_all('div'):
+			cl = ' '.join(col.get('class', []))
+			if re.search(ur'\bcol-\w\w-\d\b', cl):
+				if col.parent.name != 'div' or ('row' not in col.parent.get('class', [])):
+					print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (self.get_opening_tag(col), self.get_opening_tag(col.parent))).encode('ascii', 'ignore')
+
 		# HTML validation
 		if 1:
 			import urllib2, time

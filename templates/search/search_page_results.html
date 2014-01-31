@@ -12,8 +12,8 @@
     {% if not submitted %}
         <div class="row">
             <h1 class='header1'>Search</h1>
-            <h3>Please type in keyword to search for {{ search_types_display }} and
-             use filters to narrow down your search results</h3>
+            <p>Please type in keyword to search for {{ search_types_display }} and
+             use filters to narrow down your search results</p>
         </div>
     {% endif %}
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
@@ -113,6 +113,6 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
     <script type="text/javascript">
-	    init_search_page({{ search_page_options_json|safe }});
+		init_search_page({{ search_page_options_json|safe }});
     </script>
 {% endblock %}

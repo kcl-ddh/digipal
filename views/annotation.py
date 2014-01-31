@@ -68,6 +68,10 @@ def image(request, image_id):
     image = Image.objects.get(id=image_id)
     annotations_count = image.annotation_set.values('graph').count()
     annotations = image.annotation_set.all()
+    dimensions = {
+        'width': image.dimensions()[0],
+        'height': image.dimensions()[1]
+        }
     hands = image.hands.count()
     url = url = request.path
     url = url.split('/')
@@ -114,7 +118,7 @@ def image(request, image_id):
 
     from digipal.models import OntographType
     context = {
-               'form': form.as_ul(),
+               'form': form.as_ul(), 'dimensions': dimensions,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations_count,

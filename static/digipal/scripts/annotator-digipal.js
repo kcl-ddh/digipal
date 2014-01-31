@@ -1462,7 +1462,7 @@ function fill_dialog(id, annotation) {
 		});
 
 	} else {
-		s = "<textarea class='textarea_temporary_annotation' placeholder='Type description here...'></textarea>";
+		s = "<textarea class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
 	}
 
 	dialog.html(s);
@@ -1674,9 +1674,9 @@ function showBox(selectedFeature) {
 			dialog = $('#dialog' + id);
 			if (annotator.editorial.active && can_edit) {
 				var s = '<label>Editorial Note</label>';
-				s += '<textarea id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
+				s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
 				s += '<label>Public Note</label>';
-				s += '<textarea id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
+				s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
 				dialog.css('margin', '3%');
 				dialog.html(s);
 			}
@@ -1730,10 +1730,10 @@ function showBox(selectedFeature) {
 					$('#id_display_note').remove();
 
 					var display_note = $('<textarea>');
-					display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers').data('hidden', true).val(selectedFeature.display_note);
+					display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control').data('hidden', true).val(selectedFeature.display_note);
 
 					var internal_note = $('<textarea>');
-					internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers').data('hidden', true).val(selectedFeature.internal_note);
+					internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true).val(selectedFeature.internal_note);
 
 					s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Display Note</b></p>";
 					s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";

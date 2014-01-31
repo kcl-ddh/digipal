@@ -597,11 +597,24 @@ function Allographs() {
 
 			url = url.replace('RGN=' + old_url, 'RGN=' + newRGN.toString());
 			self.edit_letter.url = url;
+			self.edit_letter.makeBounds(newRGN);
 			self.edit_letter.img.attr('src', url);
 			self.edit_letter.img.on('load', function() {
 				$('#editor-space-image').fadeOut();
 			});
 			self.edit_letter.parameters.RGN = newRGN.toString();
+		},
+
+		makeBounds: function(RGN) {
+			console.log('RGN', RGN);
+			var W = annotator.dimensions[0];
+			var H = annotator.dimensions[1];
+			var left = RGN[0] * W;
+			var top = H - (RGN[1] * H);
+			var width = (RGN[2] * W);
+			var height = (RGN[3] * H);
+			console.log(left, top);
+			//annotator.selectedFeature.move(p);
 		},
 
 		events: function() {

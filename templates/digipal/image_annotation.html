@@ -140,7 +140,8 @@
             annotator.user_annotations = [];
             annotator.boxes_on_click = true;
             {% endif %}
-
+            var dimensions = "{{ image.dimensions }}";
+            annotator.dimensions = dimensions.replace('(', '').replace(')', '').replace(' ', '').split(',');
             annotator.image_id = {{ image.id }};
             annotator.hands = {{ hands_list|safe }};
             annotator.absolute_image_url = '{{ image.get_absolute_url }}';

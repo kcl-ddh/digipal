@@ -19,22 +19,22 @@
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
         <div class='row'>
             {# {% csrf_token %} #}
-            <div class='col-md-9'>
+            <div class='col-md-6'>
                 <div id='radio'>
                     <ul>{{ advanced_search_form.as_ul }}</ul>
                 </div>
             </div>
-        </div>
-
-        <div class='container'>
-            <a id='advanced' class='btn btn-link'>Advanced Search</a>
-            <div id='advancedSearch'>
-                <div id='labelFilters'></div>
-                <div id='containerFilters' class='form-inline'></div>
+            <div class='col-md-6'>
+                <a id='advanced' class='btn btn-link'>Advanced Search</a>
             </div>
         </div>
 
-        <div class='container' id='buttonsBox'>
+        <div id='advancedSearch'>
+            <div id='labelFilters'></div>
+            <div id='containerFilters' class='form-inline'></div>
+        </div>
+
+        <div id='buttonsBox'>
             <input type="submit" value="Search" class='btn btn-primary' />
             <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
         </div>
@@ -42,10 +42,10 @@
 
     <div class="panel" id='filtersform'>
         <h5 class='header5'>Show Graphs filtered by:</h5>
-        <form class="container form-inline"  method="GET" action="/digipal/search/graph">
+        <form class="form-inline"  method="GET" action="/digipal/search/graph">
             <ul>{{ drilldownform.as_ul }}</ul>
 
-            <div class='container'>
+            <div>
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
                 <input type='reset' class='btn btn-default' />
             </div>
@@ -55,22 +55,21 @@
     {% if submitted %}
         {% if terms %}
             <div class='breadcrumb'>
-                <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span>
+                <span>You are searching for: </span>
+                <span><b>Term</b>: {{terms}}</span>
             </div>
         {% endif %}
 
         {% if not is_empty %}
-            <div class='container'>
-                <ul class="nav nav-tabs" id='result-types-switch'>
-                    {% for type in types %}
-                        <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
-                            <a href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' data-toggle="tab" data-target="#{{ type.key }}">
-                                {{ type.label }} ({{type.count|default:'0'}})
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+            <ul class="nav nav-tabs" id='result-types-switch'>
+                {% for type in types %}
+                    <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
+                        <a href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' data-toggle="tab" data-target="#{{ type.key }}">
+                            {{ type.label }} ({{type.count|default:'0'}})
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
 
             <div class='tabbable'>
                 <div id='result-tab-content' class='tab-content'>

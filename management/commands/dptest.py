@@ -121,7 +121,7 @@ Commands:
 				# static pages
 				'about',
 				'about/how-to-use-digipal/',
-				'feedback/',
+				'about/feedback/',
 				# blog and news
 				'blog/category/blog/',
 				'blog/category/news/',

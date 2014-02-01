@@ -195,8 +195,9 @@ $(function() {
     
     $(window).scroll(load_lazy_images);
     $(window).resize(load_lazy_images);
+    
     /* try to load when a boostrap tab becomes visible */
-    $('a[data-toggle="tab"]').on('shown.bs.tab', load_lazy_images);
+    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', load_lazy_images);
     
     load_lazy_images();
 })

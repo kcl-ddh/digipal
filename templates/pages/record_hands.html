@@ -24,42 +24,37 @@
     <div class='tabbable'>
         <div id='record-tab-content' class='tab-content'>
             <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ result.label }}</td>
-                        </tr>
-                        <tr>
-                            <th>Manuscript</th>
-                            <td><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></td>
-                        </tr>
-                        <tr>
-                            <th>Script</th>
-                            <td>
-                                {{ result.script }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Scribe</th>
-                            <td>
-                                <a href="{{ result.scribe.get_absolute_url }}">{{ result.scribe }}</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Date</th>
-                            <td>
-                                {{ result.assigned_date }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Place</th>
-                            <td>
-                                {{ result.assigned_place }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                
+                <dl class="dl-horizontal bs">
+                    <dt>Name</dt>
+                    <dd>{{ result.label }}</dd>
+                    <dt>Manuscript</dt>
+                    <dd><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></dd>
+                    <dt>Script</dt>
+                    <dd>
+                        {% if result.script %}
+                            {{ result.script }}
+                        {% else %}
+                            Unspecified
+                        {% endif %}
+                    </dd>
+                    <dt>Scribe</dt>
+                    <dd>
+                        {% if result.scribe %}
+                            <a href="{{ result.scribe.get_absolute_url }}">{{ result.scribe }}</a>
+                        {% else %}
+                            Unspecified
+                        {% endif %}
+                    </dd>
+                    <dt>Date</dt>
+                    <dd>
+                        {{ result.assigned_date }}
+                    </dd>
+                    <dt>Place</dt>
+                    <dd>
+                        {{ result.assigned_place }}
+                    </dd>
+                </dl>
             </div>
 
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>

@@ -217,10 +217,10 @@ class SearchManuscripts(SearchContentType):
 class FilterManuscripts(forms.Form):
 
     index = forms.ModelChoiceField(
-        queryset = HistoricalItem.objects.values_list('catalogue_number', flat=True).distinct(),
+        queryset = HistoricalItem.objects.filter(catalogue_number__gt='').values_list('catalogue_number', flat=True).distinct(),
         widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
         label = "",
-        empty_label = "Index",
+        empty_label = "Catalogue Number",
         required = False)
 
     repository = forms.ChoiceField(

@@ -173,17 +173,17 @@ class SearchPageForm(forms.Form):
             #'required': 'required',
             "autocomplete":"off"})
     )
-    basic_search_type = forms.ChoiceField(
+    basic_search_type = forms.CharField(
         label='',
-        #error_messages={'required': 'Please select something to search for'},
         required=False,
-        widget=forms.RadioSelect(),
-        choices = [
-                ('manuscripts', 'Manuscripts'),
-                ('hands', 'Hands'),
-                ('scribes', 'Scribes')],
-        initial='manuscripts',
-#             attrs={'required': 'required'}),
+        widget=HiddenInput(attrs={'id':'basic_search_type'}),
+        initial='',
+    )
+    from_link = forms.BooleanField(
+        initial=False,
+        required=False,
+        label='advanced',
+        widget=HiddenInput(attrs={'id':'advanced'})
     )
     ordering = forms.CharField(
         initial="default",
@@ -259,7 +259,7 @@ class SearchPageForm(forms.Form):
 
 
 
-class DrilldownForm(forms.Form):
+class GraphSearchForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
     script_select = forms.ModelChoiceField(
         queryset=Script.objects.values_list('name', flat= True).order_by('name').distinct(),
@@ -299,7 +299,7 @@ class DrilldownForm(forms.Form):
       )
 
     # def __init__(self, scribe):
-    #     super(DrilldownForm, self).__init__()
+    #     super(GraphSearchForm, self).__init__()
     #     self.fields['allograph_select'].queryset = Allograph.objects.filter(
     #         scribe=scribe)
 

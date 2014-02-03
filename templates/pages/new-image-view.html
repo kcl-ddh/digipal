@@ -14,7 +14,7 @@
     {% endifnotequal %}
 
     {% ifequal style "allograph_list" %}
-        <h1 class='header1'>Results for <i>Graphs</i></h1>
+        <h1 class='header1'>Search for Graphs</h1>
 
         {% chrono "form:" %}
 
@@ -27,20 +27,14 @@
             </p>
             <ul id="drilldownformID" class="flat-list use-chosen">
                 {{ drilldownform.as_ul }}
-                {% if request.GET.terms %}
-                    {# TODO: GN, what is this for? #}
-                    |<div style="display: none; visibility: hidden;">
-                        <select name="terms" class="hidden" style="display: none; visibility: hidden;">
-                            <option selected="selected" value="{{ request.GET.terms }}">{{ request.GET.terms }}</option>
-                        </select>
-                     </div>
-                {% endif %}
             </ul>
             <p>
                 <input type="hidden" value="1" name="submitted" />
                 <input type='hidden' name="view" value='{{ view }}' />
                 <input type="submit" value="Show Graphs" class='btn btn-primary' />
                 <input type='reset' class='btn btn-default' id="reset"/>
+                {# This hidden field preserves the last search terms #}
+                <input type="hidden" value="{{ request.GET.terms }}" name="terms" />
             </p>
         </form>
 
@@ -50,7 +44,7 @@
             {% if request.GET.terms %}| <span><b>Term: </b></span><span> {{ request.GET.terms }}</span>{% endif %}
             {% if request.GET.character_select %}| <span><b>Character: </b></span><span> {{ request.GET.character_select }}</span>{% endif %}
             {% if request.GET.component_select %}| <span><b>Component: </b></span><span>{{ request.GET.component_select }}</span>{% endif %}
-            {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</b></span>{% endif %}
+            {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</span>{% endif %}
             {% if request.GET.allograph_select %}| <span><b>Allograph: </b></span><span>{{ request.GET.allograph_select }}</span>{% endif %}
         </div>
 

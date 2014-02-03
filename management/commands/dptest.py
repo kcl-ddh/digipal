@@ -109,7 +109,7 @@ Commands:
 				'',
 				# main search
 				'digipal/search/',
-				'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type='
+				'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type=',
 				# search graph
 				'digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',
 				# browse images

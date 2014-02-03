@@ -10,36 +10,69 @@
 {% block main %}
 
     {% if not submitted %}
-        <div class="row">
-            <h1 class='header1'>Search</h1>
-            <p>Please type in keyword to search for {{ search_types_display }} and
-             use filters to narrow down your search results</p>
-        </div>
+        <h1 class='header1'>Search</h1>
+        <p>Please type in keyword to search for {{ search_types_display }} and
+         use filters to narrow down your search results</p>
     {% endif %}
     <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
         <div class='row'>
             {# {% csrf_token %} #}
             <div class='col-md-6'>
-                <div id='radio'>
-                    <ul>{{ advanced_search_form.as_ul }}</ul>
-                </div>
+                {{ advanced_search_form.terms }}
+                
+                {{ advanced_search_form.ordering }}
+                {{ advanced_search_form.years }}
+                {{ advanced_search_form.result_type }}
             </div>
             <div class='col-md-6'>
-                <a id='advanced' class='btn btn-link'>Advanced Search</a>
+                {{ advanced_search_form.from_link }}
+                {% if expanded_custom_filters %}
+                    <a href="?from_link=false&amp;basic_search_type={{ search_type }}#searchform" data-alt-message="Show Advanced Search" class="">Hide advanced search</a>
+                {% else %}
+                    <a href="?from_link=true&amp;basic_search_type={{ search_type }}#searchform" data-alt-message="Hide Advanced Search" class="">Show advanced search</a>
+                {% endif %}
             </div>
         </div>
 
-        <div id='advancedSearch'>
-            <div id='labelFilters'></div>
-            <div id='containerFilters' class='form-inline'></div>
+        <div id='advancedSearch' class="panel {% if not expanded_custom_filters %}hidden{%endif%}">
+            
+            {{ advanced_search_form.basic_search_type }}
+            
+            <ul class="nav nav-tabs">
+                {% for type in types %}
+                    <li class="{% if search_type_defaulted = type.key %}active{% endif %}">
+                        <a href="?from_link=true&amp;basic_search_type={{ type.key }}#searchform">{{ type.label }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            
+            <div class="tab-content">
+                <div class="tab-pane active">
+                    <div id='labelFilters'></div>
+                    <div id='containerFilters' class='form-inline'>
+                        <ul class="list-unstyled flat-list use-chosen">
+                            {{ filters_form.html|safe }}
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id='buttonsBox'>
+        <p>
+            {# this field is only here to know that the search has been submitted #}
+            <input type="hidden" name="s" value="1" />
             <input type="submit" value="Search" class='btn btn-primary' />
-            <a class='btn btn-success' id='show_filters'>Show Graphs Filters</a>
-        </div>
+            <!-- a class='btn btn-default' id='show_filters'>Show Graphs Filters</a -->
+        </p>
+        {% comment %}
+            <div id='buttonsBox'>
+                <input type="submit" value="Search" class='btn btn-primary' />
+                <a class='btn btn-default' id='show_filters'>Show Graphs Filters</a>
+            </div>
+        {% endcomment %}
     </form>
 
+    {% comment %}
     <div class="panel" id='filtersform'>
         <h5 class='header5'>Show Graphs filtered by:</h5>
         <form class="form-inline"  method="GET" action="/digipal/search/graph">
@@ -51,10 +84,11 @@
             </div>
         </form>
     </div>
+    {% endcomment %}
 
     {% if submitted %}
         {% if terms %}
-            <div class='breadcrumb'>
+            <div class='breadcrumb' id="search-breadcrumb">
                 <span>You are searching for: </span>
                 <span><b>Term</b>: {{terms}}</span>
             </div>
@@ -76,7 +110,7 @@
                     {% for type in types %}
                         <div class='tab-pane fade {% if result_type == type.key %}active in{% endif %}' id='{{type.key}}'>
                             {% if type.is_empty %}
-                                <div class='alert alert-warning'><h4>No results found for <b>{{type.label}}</b></h4></div>
+                                {% include "digipal/empty_tab.html" with message="No result found for this search" %}
                             {% else %}
                                 {% reset_recordids as recordids %}
                                 {% autopaginate type.queryset 10 as recordids %}

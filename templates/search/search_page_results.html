@@ -18,9 +18,8 @@
         <div class='row'>
             {# {% csrf_token %} #}
             <div class='col-md-6'>
-                <div id='radio'>
-                    <ul class="list-unstyled">{{ advanced_search_form.terms }}</ul>
-                </div>
+                {{ advanced_search_form.terms }}
+                
                 {{ advanced_search_form.ordering }}
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
@@ -28,9 +27,9 @@
             <div class='col-md-6'>
                 {{ advanced_search_form.from_link }}
                 {% if expanded_custom_filters %}
-                    <a href="?from_link=false&basic_search_type={{ search_type }}#searchform" data-alt-message="Show Advanced Search" class="">Hide advanced search</a>
+                    <a href="?from_link=false&amp;basic_search_type={{ search_type }}#searchform" data-alt-message="Show Advanced Search" class="">Hide advanced search</a>
                 {% else %}
-                    <a href="?from_link=true&basic_search_type={{ search_type }}#searchform" data-alt-message="Hide Advanced Search" class="">Show advanced search</a>
+                    <a href="?from_link=true&amp;basic_search_type={{ search_type }}#searchform" data-alt-message="Hide Advanced Search" class="">Show advanced search</a>
                 {% endif %}
             </div>
         </div>
@@ -42,7 +41,7 @@
             <ul class="nav nav-tabs">
                 {% for type in types %}
                     <li class="{% if search_type_defaulted = type.key %}active{% endif %}">
-                        <a href="?from_link=true&basic_search_type={{ type.key }}#searchform">{{ type.label }}</a>
+                        <a href="?from_link=true&amp;basic_search_type={{ type.key }}#searchform">{{ type.label }}</a>
                     </li>
                 {% endfor %}
             </ul>

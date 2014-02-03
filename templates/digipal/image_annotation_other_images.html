@@ -8,7 +8,7 @@
 {% if image.item_part.images.all.count > 1 %}
     {% for p in image.item_part.images.all %}
         {% if p.id != image.id %}
-            {% if forloop.counter|divisibleby:4 %}
+            {% if forloop.counter0|divisibleby:4 %}
                 <div class='row'>
             {% endif %}
 

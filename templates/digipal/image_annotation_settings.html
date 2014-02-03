@@ -6,11 +6,12 @@
 <div id='modal_settings'>
 
     <div>
-        <h4>Annotation boxes</h4>
         <p>
-            <label for='multiple_boxes'>Allow multiple boxes</label>
+            <h4>Annotation boxes</h4>
+            <label for='multiple_boxes'>Allow multiple boxes
+                <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
+            </label>
 
-            <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
         </p>
     </div>
 

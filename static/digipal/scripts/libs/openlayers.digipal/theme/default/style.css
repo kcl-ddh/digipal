@@ -625,8 +625,9 @@ a.olControlZoomOut {
 }
 
 .ItemInactive:hover{
-    background:#ccc;
-    }
+    background:#a1514d;
+    color:#fff;
+}
 
 #OpenLayers_Control_DrawFeature_72, #OpenLayers_Control_TransformFeature_32, #OpenLayers_Control_DeleteFeature_30, #OpenLayers_Control_Button_84, #OpenLayers_Control_Button_85, #OpenLayers_Control_Button_86, #OpenLayers_Control_SelectFeature_78, #OpenLayers_Control_Zoom_7, #OpenLayers_Control_Button_87{
     display: none !important;

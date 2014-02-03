@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils import simplejson
 from digipal.models import *
-from digipal.forms import DrilldownForm, SearchPageForm
+from digipal.forms import GraphSearchForm, SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
@@ -130,10 +130,16 @@ def search_page_view(request):
         if context['is_empty']:
             context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
-    # Initialise the search forms 
+    # Initialise the advanced search forms 
     from django.utils import simplejson
-    context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
-    context['search_page_options_json'] = simplejson.dumps(get_search_page_js_data(context['types'], 'from_link' in request.GET))
+    context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
+    
+    custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'))
+    context['expanded_custom_filters'] = custom_filters['advanced_search_expanded'] 
+    context['search_page_options_json'] = simplejson.dumps(custom_filters)
+    for custom_filter in custom_filters['filters']:
+        if custom_filter['key'] == context['search_type_defaulted']:
+            context['filters_form'] = custom_filter
     
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
@@ -156,18 +162,26 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     #context = kwargs.get('context', {})
     
     context['terms'] = ''
-    context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
+    #context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
+    context['submitted'] = False
+    # list of query parameter/form fields which can be changed without triggering a search 
+    non_search_params = ['basic_search_type', 'from_link', 'result_type']
+    for param in request.GET:     
+        if param not in non_search_params and request.GET.get(param):
+            context['submitted'] = True
+    
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True
 
     advanced_search_form = SearchPageForm(request.GET)
+    
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
     if show_advanced_search_form:
         context['advanced_search_form'] = advanced_search_form
 
-    if context['submitted'] and advanced_search_form.is_valid():
+    if advanced_search_form.is_valid():
         # Read the inputs
         # - term
         term = advanced_search_form.cleaned_data['terms']
@@ -175,19 +189,22 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
+        context['search_type_defaulted'] = context['search_type'] or context['types'][0].key
         
-        # Create the queryset for each allowed content type.
-        # If allowed_types is None, search for each supported content type.
-        for type in context['types']:
-            if allowed_type in [None, type.key]:
-                context['results'] = type.build_queryset(request, term)
+        if context['submitted']: 
+            # Create the queryset for each allowed content type.
+            # If allowed_types is None, search for each supported content type.
+            for type in context['types']:
+                if allowed_type in [None, type.key]:
+                    context['results'] = type.build_queryset(request, term)
 
 def get_search_page_js_data(content_types, expanded_search=False):
     filters = []
     for type in content_types:
         filters.append({
                          'html': type.form.as_ul(),
-                         'label': type.label
+                         'label': type.label,
+                         'key': type.key,
                          })        
     
     ret = {
@@ -303,7 +320,7 @@ def allographHandSearch(request):
         
         #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
         
-    context['drilldownform'] = DrilldownForm()
+    context['drilldownform'] = GraphSearchForm()
 
     t5 = datetime.now()
     
@@ -358,7 +375,7 @@ def allographHandSearchGraphs(request):
         context['component'] = Component.objects.get(name=component)
 
     graphs = graphs.order_by('hand__scribe__name','hand__id')
-    context['drilldownform'] = DrilldownForm()
+    context['drilldownform'] = GraphSearchForm()
     context['graphs'] = graphs
 
     page = request.GET.get('page')
@@ -391,7 +408,7 @@ def graphsSearch(request):
 
     context['style']= 'allograph_list'
     
-    context['drilldownform'] = DrilldownForm()
+    context['drilldownform'] = GraphSearchForm()
     
     return render_to_response(
         'pages/graphs.html',

@@ -16,15 +16,24 @@
 
         /*
          * Update the browser address bar with the given URL.
-         * Refresh the page if the browser does not support changing the address bar. 
+         * 
+         * Some browser don't support updating the @ bar.
+         * In this case, if address_bar_must_change is true then
+         * we force the change by doing a standard loading of page.
+         * If address_bar_must_change is false, this loading will
+         * never occur.
+         * 
+         * address_bar_must_change = false by default.
          */
-        update_address_bar: function(url) {
+        update_address_bar: function(url, address_bar_must_change) {
             if (window.history && window.history.replaceState) {
                 window.history.replaceState(null, null, url);
             } else {
                 // The browser does not support replaceState (e.g. IE 9),
                 // we just load the page.
-                window.location.href = url;
+                if (address_bar_must_change) {
+                    window.location.href = url;
+                }
             }
         }
     }
@@ -35,17 +44,40 @@
  */
 $(function() {
     
-    /**
-     * Save the last selected tab in a cookie
-     */    
-    $('#myTab a').click(
-        function (e) {
-          e.preventDefault();
-          $(this).tab('show');
-          dputils.setCookie('view', this.innerHTML, '-1');
+    /* 
+     *  Update the URL in the address bar when the link is clicked.
+     *  Default Bootstrap behaviour is preserved.
+     *  See JIRA 155, 140
+     *  Usage:
+     *      <a data-target="#T" href="URL">my link</a>
+     *      <div id="T">
+     *      
+     *  When the link is clicked, the address bar will be updated
+     *  with URL.
+     *  
+     *  Note that some browsers don't support changing the
+     *  address bar. So if it fails the bar remains unchanged.
+     *  Add attribute data-address-bar="1" to force the change
+     *  even if the browser does not support it. This will cause
+     *  a page load. 
+    */
+    $('a[data-target][href]').on('click', function(e) {
+        var href = $(this).attr('href');
+        if (href.search(/^(#|\.)/) == -1) {
+            dputils.update_address_bar(href, $(this).data('update-address-bar'));
+            e.preventDefault();
         }
-    );
-    
+    });
+
+    // Any <a data-alt-label="Hide">Show</a>
+    // will have 'Show' replaced by 'Hide' each time the element is clicked 
+    $('a[data-alt-label]').on('click', function(e){
+        var label = $(this).html();
+        $(this).html($(this).data('alt-label'));
+        $(this).data('alt-label', label);
+        e.preventDefault();
+    });
+
     // enable bootstrap tooltip on elements with data-toggle="tooltip" attribute
     $('[data-toggle="tooltip"]').tooltip();
     

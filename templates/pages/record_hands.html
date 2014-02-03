@@ -10,14 +10,14 @@
 
 {% block record_tabs %}
     <li class="{% if not tabid %}active in{% endif %}">
-        <a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a></li>
+        <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
     <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.description %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Description</a>
+        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
     </li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
+        <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
     <li class="{% if tabid = "graphs" %}active in{% endif %} {% if result.graphs.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+        <a href="{{ result.get_absolute_url }}graphs/" data-address-bar="1" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
 
 {% block details %}

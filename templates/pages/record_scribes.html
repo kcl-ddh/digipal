@@ -14,16 +14,16 @@
 
 {% block record_tabs %}
     <li class="{% if not tabid %}active in{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Information</a>
+        <a href="{{ scribe.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
     <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
+        <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
     </li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
+        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
     </li>
     <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>
+        <a href="{{ scribe.get_absolute_url }}idiographs/" data-address-bar="1" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>
     </li>
 {% endblock %}
 

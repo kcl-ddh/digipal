@@ -131,7 +131,6 @@ class FilterManuscriptsImages(forms.Form):
         empty_label = "Town or City",
         required = False)
 
-
     repository = forms.ChoiceField(
         choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
@@ -157,6 +156,8 @@ class SearchPageForm(forms.Form):
             args[0] = args[0].copy()
         if 'basic_search_type' not in args[0]:
             args[0]['basic_search_type'] = 'manuscripts'
+        if 's' not in args[0]:
+            args[0]['s'] = '1'
         super(SearchPageForm, self).__init__(*args, **kwargs)
 
     terms = forms.CharField(
@@ -202,62 +203,11 @@ class SearchPageForm(forms.Form):
         required=False,
         widget=HiddenInput()
     )
-
-
-# class SearchForm(forms.Form):
-#     """ Represents the input form on the search page """
-#
-#     terms = forms.CharField(
-#         label='',
-#         required=False,
-#         error_messages={
-#         'required': 'Please enter at least one search term',
-#         'invalid': 'Enter a valid value'},
-#         widget=TextInput(attrs={
-#             'id': 'textEntry',
-#             'class':'textEntry',
-#             'placeholder': 'Enter search terms',
-#             'required': 'required',
-#             "autocomplete":"off"}))
-#     basic_search_type = forms.ChoiceField(
-#         label='',
-#         required=True,
-#         error_messages={'required': 'Please select something to search for'},
-#         widget=forms.RadioSelect(attrs={
-#             'required': 'required'}),
-#         choices = [
-#             ('hands', 'Hands'),
-#             ('manuscripts', 'Manuscripts'),
-#             ('scribes', 'Scribes')],
-#         initial='hands'
-#         )
-#     ordering = forms.CharField(
-#         initial="default",
-#         required=False,
-#         label='ordering',
-#         widget=HiddenInput(attrs={'id':'active_ordering'}))
-#
-#     years = forms.CharField(
-#         initial='1000-1300',
-#         required=False,
-#         label='years',
-#         widget=HiddenInput(attrs={'id':'active_years'}))
-#
-# class QuickSearch(forms.Form):
-#     terms = forms.CharField(
-#         label='',
-#         required=True,
-#         error_messages={
-#         'required': 'Please enter at least one search term',
-#         'invalid': 'Enter a valid value'},
-#         widget=TextInput(attrs={
-#             'id': 'input',
-#             'class':'textEntry',
-#             'placeholder': 'Enter search terms',
-#             'required': 'required',
-#             "autocomplete":"off"}))
-
-
+    s = forms.CharField(
+        required=False,
+        label='',
+        widget=HiddenInput()
+    )
 
 class GraphSearchForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """

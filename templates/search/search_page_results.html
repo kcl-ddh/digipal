@@ -14,7 +14,7 @@
         <p>Please type in keyword to search for {{ search_types_display }} and
          use filters to narrow down your search results</p>
     {% endif %}
-    <form id='searchform' class="form-inline panel" method="GET" action="/digipal/search">
+    <form id='searchform' class="panel" method="GET" action="/digipal/search">
         <div class='row'>
             {# {% csrf_token %} #}
             <div class='col-md-6'>
@@ -68,7 +68,7 @@
 
         <p>
             {# this field is only here to know that the search has been submitted #}
-            <input type="hidden" name="s" value="1" />
+            {{ quick_search_form.s }}
             <input type="submit" value="Search" class='btn btn-primary' />
             <!-- a class='btn btn-default' id='show_filters'>Show Graphs Filters</a -->
         </p>

@@ -288,7 +288,7 @@ function Allographs() {
 				summary.css({
 					'display': 'block'
 				}).animate({
-					'right': "40.4%",
+					'right': "40.3%",
 					'opacity': 1
 				}, 350);
 
@@ -509,7 +509,7 @@ function Allographs() {
 
 										ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
 										if (ann) {
-											al += '<span class="label">' + ann + '</span> ';
+											al += '<span class="label label-default label-summary">' + ann + '</span> ';
 											title += ann + ' ';
 										}
 										d++;

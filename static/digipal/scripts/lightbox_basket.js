@@ -3,69 +3,15 @@
    -- Digipal Project --> digipal.eu
  */
 
+var csrftoken = getCookie('csrftoken');
+
+$.ajaxSetup({
+	headers: {
+		"X-CSRFToken": csrftoken
+	}
+});
+
 $(document).ready(function() {
-
-	function getCookie(name) {
-		var cookieValue = null;
-		if (document.cookie && document.cookie !== '') {
-			var cookies = document.cookie.split(';');
-			for (var i = 0; i < cookies.length; i++) {
-				var cookie = jQuery.trim(cookies[i]);
-				// Does this cookie string begin with the name we want?
-				if (cookie.substring(0, name.length + 1) == (name + '=')) {
-					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-					break;
-				}
-			}
-		}
-		return cookieValue;
-	}
-
-	function getParameter(paramName) {
-		var searchString = window.location.search.substring(1),
-			i, val, params = searchString.split("&");
-		var parameters = [];
-		for (i = 0; i < params.length; i++) {
-			val = params[i].split("=");
-			if (val[0] == paramName) {
-				parameters.push(unescape(val[1]));
-			}
-		}
-		return parameters;
-	}
-
-	function notify(msg, status) {
-		var status_element = $('#status');
-		if (!status_element.length) {
-			status_element = $('<div id="status">');
-			$('body').append(status_element.hide());
-		}
-		status_class = status ? ' alert-' + status : '';
-		status_element.attr('class', 'alert' + status_class);
-		status_element.html(msg).fadeIn();
-
-		setTimeout(function() {
-			status_element.fadeOut();
-		}, 5000);
-	}
-
-	uniqueid = function() {
-		var text = "";
-		var possible = "0123456789";
-
-		for (var i = 0; i < 3; i++)
-			text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-		return text;
-	};
-
-	var csrftoken = getCookie('csrftoken');
-
-	$.ajaxSetup({
-		headers: {
-			"X-CSRFToken": csrftoken
-		}
-	});
 
 	var element_basket = $('#lightbox_button a');
 	var container_basket = $('#container_basket');
@@ -112,7 +58,7 @@ $(document).ready(function() {
 
 				if (data['annotations']) {
 					s += "<table class='table table-condensed'>";
-					s += '<th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th>';
+					s += '<th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
@@ -150,7 +96,7 @@ $(document).ready(function() {
 						}
 
 
-						s += "<td><button title = 'Remove from collection' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title = 'Remove from basket' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
 					}
 				}
 
@@ -165,7 +111,7 @@ $(document).ready(function() {
 						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button title ='Remove from collection' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
 					}
 					s += "</table>";
 				}
@@ -217,7 +163,7 @@ $(document).ready(function() {
 						}
 
 						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
-							s = '<div class="alert alert-warning">The Collection is empty</div>';
+							s = '<div class="container alert alert-warning">The Collection is empty</div>';
 							container_basket.html(s);
 						}
 
@@ -236,7 +182,7 @@ $(document).ready(function() {
 
 			error: function() {
 
-				var s = '<div class="alert alert-warning" style="margin-top:5%">Something went wrong. Please try again refreshing the page.</div>';
+				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
 				container_basket.html(s);
 
 				var loading_div = $(".loading-div");
@@ -301,11 +247,6 @@ $(document).ready(function() {
 				localStorage.setItem("collections", JSON.stringify(collections));
 				window_save_collection.fadeOut().remove();
 				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
-				var container_collections = $('#container_collections');
-				var collection_folder = $('<div class="col-md-1 collection" id="' + id + '">');
-				collection_folder.append('<a href="?collection=' + collection_name + '"><img title="Open collection" src="/static/img/folder.png"></a><label>' + collection_name + '</label><button data-collection="' + id + '"  class="remove_collection btn btn-danger btn-xs">Remove</button>');
-
-				container_collections.append(collection_folder);
 			} else {
 				notify('Please enter a name for this collection', "danger");
 			}
@@ -319,9 +260,9 @@ $(document).ready(function() {
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
 			s += '<h3>Save Collection</h3>';
-			s += '<div class="input-group"><input required placeholder="Type here collection name" type="text" id= "name_collection" class="form-control" />';
-			s += '<span class="input-group-btn"><input type = "button" class="btn btn-success" id="save_collection" type="button" value="Save" /></span></div>';
-			s += '<input type = "button" style="margin-top:8%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
+			s += '<div class="input-group"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
+			s += '<span class="input-group-btn"><input type = "button" class="btn btn-default" id="save_collection" type="button" value="Save" /></span></div>';
+			s += '<input type = "button" style="margin-top:5%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
 			window_save_collection.html(s);
 			$('body').append(window_save_collection);
 
@@ -377,7 +318,7 @@ $(document).ready(function() {
 				div = $('<div class="loading-div" id="share_basket_div">');
 				div.html('<h3>Share Collection URL</h3>');
 				div.append('<p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
-				div.append('<p><button class="btn btn-danger btn-sm">Close</button></p>');
+				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
 				$('body').append(div);
 
 				div.find('button').click(function() {
@@ -428,25 +369,9 @@ $(document).ready(function() {
 		global_length_basket = length_basket;
 	}
 
-	var filter = $('#filter');
-	var to_lightbox = $('#to_lightbox');
-	var add_collection_button = $('#add_collection');
-	var share_collection_button = $('#share_collection');
-	$('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-		if (e.target.innerHTML != 'Manage Collections') {
-			filter.attr('disabled', true);
-			add_collection_button.attr('disabled', false);
-			share_collection_button.attr('disabled', false);
-			to_lightbox.attr('disabled', false);
-		} else {
-			filter.attr('disabled', false);
-			add_collection_button.attr('disabled', true);
-			share_collection_button.attr('disabled', true);
-			to_lightbox.attr('disabled', false);
-		}
-	});
 
 	// Initial call
+
 
 	var basket;
 	if (getParameter('collection').length) {
@@ -491,7 +416,7 @@ $(document).ready(function() {
 
 	} else {
 
-		var s = '<div class="alert alert-warning" style="margin-top:2%">The Collection is empty</div>';
+		var s = '<div class="container alert alert-warning" style="margin-top:5%">The Collection is empty</div>';
 		container_basket.html(s);
 
 		var loading_div = $(".loading-div");
@@ -500,3 +425,57 @@ $(document).ready(function() {
 		}
 	}
 });
+
+function getCookie(name) {
+	var cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; i++) {
+			var cookie = jQuery.trim(cookies[i]);
+			// Does this cookie string begin with the name we want?
+			if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+}
+
+function getParameter(paramName) {
+	var searchString = window.location.search.substring(1),
+		i, val, params = searchString.split("&");
+	var parameters = [];
+	for (i = 0; i < params.length; i++) {
+		val = params[i].split("=");
+		if (val[0] == paramName) {
+			parameters.push(unescape(val[1]));
+		}
+	}
+	return parameters;
+}
+
+function notify(msg, status) {
+	var status_element = $('#status');
+	if (!status_element.length) {
+		status_element = $('<div id="status">');
+		$('body').append(status_element.hide());
+	}
+	status_class = status ? ' alert-' + status : '';
+	status_element.attr('class', 'alert' + status_class);
+	status_element.html(msg).fadeIn();
+
+	setTimeout(function() {
+		status_element.fadeOut();
+	}, 5000);
+}
+
+function uniqueid() {
+	var text = "";
+	var possible = "0123456789";
+
+	for (var i = 0; i < 3; i++)
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
+}

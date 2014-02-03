@@ -209,7 +209,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 		}
 
 		var allograph_label = $('.allograph_label');
-		allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />').css('cursor', 'pointer').data('hidden', true);
+		allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="glyphicon glyphicon-list show_group" data-placement="bottom" data-container="body" data-toggle="tooltip" data-hidden="true" />').css('cursor', 'pointer').data('hidden', true);
 
 		allograph_label.unbind().click(function() {
 			var element = "<div class='elements_linked'>";
@@ -777,7 +777,7 @@ function updateFeatureSelect(currentFeatures, id) {
 						}
 
 						var allograph_label = $('.allograph_label');
-						allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="icon-th-list show_group" data-hidden="true" />')
+						allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" data-placement="bottom" data-container="body" data-toggle="tooltip" class="glyphicon glyphicon-list show_group" data-hidden="true" />')
 							.css('cursor', 'pointer')
 							.data('hidden', true);
 

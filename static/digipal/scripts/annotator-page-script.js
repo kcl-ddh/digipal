@@ -568,12 +568,13 @@ function AnnotatorLoader() {
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "fixed", "important");
 			$('.olControlEditingToolbar').css({
 				"position": "fixed !important",
+				'border-left': 'none',
 				"left": "0px",
 				"top": "190px",
 				"width": "50px",
 				"z-index": 1000
 			});
-
+			$('.olControlEditingToolbar div').css('width', '100%');
 		} else {
 			$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
 			self.digipal_settings.toolbar_position = 'Horizontal';
@@ -583,19 +584,23 @@ function AnnotatorLoader() {
 					"left": "89%",
 					"top": 0,
 					"width": "120px",
+					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
 					"z-index": 1000
 				});
+
 			} else {
 				$('.olControlEditingToolbar').css({
-					"left": "89.1%",
+					"left": "74%",
 					"top": 0,
+					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
-					"width": "115px",
+					"width": "296px",
 					"z-index": 1000
 				});
+				$('.olControlEditingToolbar div').css('width', '18%');
 			}
 		}
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));

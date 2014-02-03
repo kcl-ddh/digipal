@@ -19,19 +19,19 @@
 
         <div id='div_unsaved_annotations_counter'>
             <label class='panel-label'>Unsaved</label>
-            <button data-toggle="tooltip" class='btn btn-primary btn-sm number_unsaved_allographs active' title='Show all the unsaved allographs'>0</button>
+            <button data-toggle="tooltip" class='btn btn-default btn-sm number_unsaved_allographs active' title='Show all the unsaved allographs'>0</button>
          </div>
 
     {% endif %}
 
     <div id='annotator-action-buttons' class="btn-group">
-        <button data-placement='top' data-toggle="tooltip" class='btn btn-sm btn-default' id='filterAllographs' title='Filter Annotations'>
+        <button data-container='body' data-placement='top' data-toggle="tooltip" class='btn btn-sm btn-default' id='filterAllographs' title='Filter Annotations'>
             <i class="fa fa-filter"></i>
         </button>
-        <button data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="settings_annotator" title='Open Settings'>
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="settings_annotator" title='Open Settings'>
             <i class="fa fa-wrench"></i>
         </button>
-        <button data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="image_to_lightbox" title='Add image to Collection'>
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="image_to_lightbox" title='Add image to Collection'>
             <i class="fa fa-folder-open"></i>
         </button>
     </div>
@@ -42,7 +42,7 @@
                 <ul class='ul_inline_form'>
                     {{ form }}
                 </ul>
-                <span data-toggle="tooltip" class='btn btn-small btn-primary btn-sm number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
+                <span data-toggle="tooltip" class='btn btn-small btn-default btn-sm number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
                     <i class='fa fa-eye'></i>
                     <span class='number-allographs'></span>
                 </span>

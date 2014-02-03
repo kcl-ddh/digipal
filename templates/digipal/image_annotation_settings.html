@@ -4,26 +4,27 @@
     ----------------------------------------------
 {% endcomment %}
 <div id='modal_settings'>
+
     <div>
         <h4>Annotation boxes</h4>
-        <label for='multiple_boxes'>Allow multiple boxes
+        <p>
+            <label for='multiple_boxes'>Allow multiple boxes</label>
+
             <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
-        </label>
+        </p>
     </div>
+
     <div>
         <h4>Toolbar position</h4>
         <p>
             <label for='vertical'>Vertical
                 <input type='radio' name='toolbar_position' id='vertical' value='Vertical' checked />
             </label>
-        </p>
 
-        <p>
             <label for='horizontal'>Horizontal
                 <input type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  />
             </label>
         </p>
-
     </div>
 
     {% if can_edit %}
@@ -35,6 +36,7 @@
                 </label>
             </p>
         </div>
+
         <div>
             <h4>Admin</h4>
             <p>
@@ -42,12 +44,14 @@
                     <input type='checkbox'  id='development_annotation' checked />
                 </label>
             </p>
+
             <p>
                 <label for='multiple_annotations'>Select multiple annotations
                     <input type='checkbox'  id='multiple_annotations' />
                 </label>
             </p>
         </div>
+
         <div>
             <h4>Filter allographs: </h4>
             <select id="ontograph_type" name="ontograph_type">

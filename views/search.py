@@ -395,7 +395,7 @@ def search_graph_view(request):
     t5 = datetime.now()
     
     ret = render_to_response(
-        'pages/new-image-view.html',
+        'pages/search_graph.html',
         context,
         context_instance=RequestContext(request))
     

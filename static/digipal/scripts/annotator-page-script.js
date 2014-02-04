@@ -444,54 +444,59 @@ function AnnotatorLoader() {
 		checkOutput += "</div></div>";
 
 		var allographs_filter_box = $('#allographs_filtersBox');
-		allographs_filter_box.dialog({
-			draggable: true,
-			height: 300,
-			resizable: false,
-			width: 320,
-			title: "<i class='fa fa-filter'></i> Filter Annotations",
-			close: function() {
-				$('#filterAllographs').removeClass('active');
-			}
-		});
+		if (!allographs_filter_box.hasClass('ui-dialog-content')) {
+			allographs_filter_box.dialog({
+				draggable: true,
+				height: 300,
+				resizable: false,
+				width: 320,
+				title: "<i class='fa fa-filter'></i> Filter Annotations",
+				close: function() {
+					$('#filterAllographs').removeClass('active');
+				}
+
+			});
 
 
-		annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-		allographs_filter_box.html(checkOutput);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			allographs_filter_box.html(checkOutput);
 
-		annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
-		/* launching events */
-		var check_vectors = $('.checkVectors');
-		check_vectors.change(function() {
-			annotator.filterAnnotation($(this), 'feature');
-		});
+			/* launching events */
+			var check_vectors = $('.checkVectors');
+			check_vectors.change(function() {
+				annotator.filterAnnotation($(this), 'feature');
+			});
 
-		var check_vectors_hands = $('.checkVectors_hands');
-		check_vectors_hands.change(function() {
-			annotator.filterAnnotation($(this), 'hand');
-		});
+			var check_vectors_hands = $('.checkVectors_hands');
+			check_vectors_hands.change(function() {
+				annotator.filterAnnotation($(this), 'hand');
+			});
 
-		var checkAll = $('#checkAll');
-		checkAll.click(function() {
-			annotator.filterCheckboxes('.checkVectors', 'check');
-		});
+			var checkAll = $('#checkAll');
+			checkAll.click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'check');
+			});
 
-		var checkAll_hands = $('#checkAll_hands');
-		checkAll_hands.click(function() {
-			annotator.filterCheckboxes('.checkVectors_hands', 'check');
+			var checkAll_hands = $('#checkAll_hands');
+			checkAll_hands.click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'check');
 
-		});
+			});
 
-		var unCheckAll = $('#unCheckAll');
-		unCheckAll.click(function() {
-			annotator.filterCheckboxes('.checkVectors', 'uncheck');
-		});
+			var unCheckAll = $('#unCheckAll');
+			unCheckAll.click(function() {
+				annotator.filterCheckboxes('.checkVectors', 'uncheck');
+			});
 
-		var unCheckAll_hands = $('#unCheckAll_hands');
-		unCheckAll_hands.click(function() {
-			annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-		});
+			var unCheckAll_hands = $('#unCheckAll_hands');
+			unCheckAll_hands.click(function() {
+				annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
+			});
+		} else {
+			allographs_filter_box.dialog('open');
+		}
 
 	};
 

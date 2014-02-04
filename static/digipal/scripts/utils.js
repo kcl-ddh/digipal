@@ -35,7 +35,18 @@
                     window.location.href = url;
                 }
             }
+        },
+        
+        /*
+         * Returns the value of a parameter from the query string
+         */
+        get_query_string_param: function(name) {
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
         }
+        
     }
 })(jQuery);
 

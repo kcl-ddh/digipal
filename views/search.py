@@ -186,6 +186,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
+        context['query_summary'] = get_query_summary(request, term, context)
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
@@ -197,6 +198,39 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
             for type in context['types']:
                 if allowed_type in [None, type.key]:
                     context['results'] = type.build_queryset(request, term)
+
+def get_query_summary(request, term, context):
+    # return a string that summarises the query
+    ret = ''
+    
+    if context['submitted']:
+        if term.strip():
+            ret = '"%s"' % term
+        
+        # Generate a dictionary with the form fields.
+        # The key is the internal name of the field and the value is the display label 
+        fields = {}
+        for type in context['types']:
+            form = type.form
+            for field_name in form.fields:
+                field = form[field_name]
+                # generate the display label
+                # try, successively, the label, the empty_label then the initial value of the field
+                fields[field_name] = getattr(field, 'label', '') or getattr(field.field, 'empty_label', '') or (field.field.initial) or field_name.title()
+        
+        # Transform the query string into a list of field label and their values             
+        for param in request.GET:
+            if param in fields:
+                val = request.GET.get(param, '').strip()
+                if val:
+                    if ret:
+                        ret += ', '
+                    ret += '%s: "%s"' % (fields[param], val)
+            
+        if not ret.strip():
+            ret = 'All'
+            
+    return ret
 
 def get_search_page_js_data(content_types, expanded_search=False):
     filters = []

@@ -4,7 +4,7 @@
 
 {% block meta_title %}
     Search
-    {% if terms %}({{ terms }}){% endif %}
+    {% if query_summary %}({{ query_summary|truncatechars:50 }}){% endif %}
 {% endblock %}
 
 {% block main %}
@@ -95,11 +95,11 @@
     {% endcomment %}
 
     {% if submitted %}
-        {% if terms %}
-            <div class='breadcrumb' id="search-breadcrumb">
-                <span>You are searching for: </span>
-                <span><b>Term</b>: {{terms}}</span>
-            </div>
+        {% if query_summary %}
+            <p class='breadcrumb' id="search-breadcrumb">
+                You are searching for:
+                {{ query_summary|truncatechars:200 }}
+            </p>
         {% endif %}
 
         {% if not is_empty %}

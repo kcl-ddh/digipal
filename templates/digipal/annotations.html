@@ -3,23 +3,24 @@
 {% load html_escape %}
 {# {annotations_list} #}
 {% if annotations_list %}
+    <div class="container">
+      <h3>Hands List</h3>
 
-    <h3>Hands List</h3>
+      <!-- links to hands -->
+      <ul>
+      {% for key in annotations_list %}
+          <li>
+            <b>
+              <a title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
+            </b>
+          </li>
+      {% endfor %}
+      </ul>
+    </div>
 
-    <!-- links to hands -->
-    <ul>
-    {% for key in annotations_list %}
-        <li>
-          <b>
-            <a title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
-          </b>
-        </li>
-    {% endfor %}
-    </ul>
-    <br />
     {% for key, allographs in annotations_list.items %}
 
-        <div class="row">
+        <div class="container">
           <!-- hand record -->
           <h2 id='{{key|anchorify}}' class='header1'>
             <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
@@ -40,7 +41,7 @@
 
         <!-- allographs -->
 
-        <div class="allographs-list row">
+        <div class="allographs-list container">
         {% for allograph, graphs in allographs.items %}
           <div class="allograph-item panel">
 

@@ -81,7 +81,7 @@ def index_view(request, content_type=''):
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
-def search_image_view(request):
+def search_ms_image_view(request):
     images = Image.objects.all()
     
     from digipal.forms import FilterManuscriptsImages
@@ -114,9 +114,9 @@ def search_image_view(request):
     context['image_search_form'] = image_search_form
     context['query_summary'] = get_query_summary(request, '', True, [image_search_form])
 
-    return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
+    return render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
 
-def search_page_view(request):
+def search_record_view(request):
     # Backward compatibility.
     #
     # Previously all the record pages would go through this search URL and view
@@ -179,7 +179,7 @@ def search_page_view(request):
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
 
-    return render_to_response('search/search_page_results.html', context, context_instance=RequestContext(request))
+    return render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
 
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
@@ -395,7 +395,7 @@ def search_graph_view(request):
     t5 = datetime.now()
     
     ret = render_to_response(
-        'pages/search_graph.html',
+        'search/search_graph.html',
         context,
         context_instance=RequestContext(request))
     

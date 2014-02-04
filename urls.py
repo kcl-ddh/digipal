@@ -37,18 +37,14 @@ urlpatterns = patterns('digipal.views.annotation',
 
 urlpatterns += patterns('digipal.views.search',
                        # search pages
-                       (r'^page/$', 'search_image_view'),
-                       (r'^search/$', 'search_page_view'),
-                       (r'^quicksearch/$', 'search_page_view'),
+                       (r'^page/$', 'search_ms_image_view'),
+                       (r'^search/$', 'search_record_view'),
+                       (r'^quicksearch/$', 'search_record_view'),
                        (r'^search/graph/$', 'search_graph_view'),
                        (r'^search/suggestions.json/?$', 'search_suggestions'),
                        # Record views
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(/(?P<tabid>[^/]+))?(?:/|$)', 'record_view'),
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)(?:/|$)', 'index_view'),
-                       )
-
-urlpatterns += patterns('digipal.views.image',
-                       (r'^image-display/', 'image'),
                        )
 
 urlpatterns += patterns('digipal.views.admin.image',

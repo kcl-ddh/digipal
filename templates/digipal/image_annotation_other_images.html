@@ -5,7 +5,7 @@
     ----------------------------------------------
 {% endcomment %}
 
-{% if images.count > 1 %}
+{% if images.count %}
     {% for p in images.all %}
 
             {% if forloop.counter0|divisibleby:4 %}

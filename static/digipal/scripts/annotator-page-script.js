@@ -137,6 +137,10 @@ function AnnotatorLoader() {
 
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
+		$('#OpenLayers_Control_Panel_29 div').tooltip({
+			container: 'body',
+			placement: 'right'
+		});
 
 	};
 
@@ -345,6 +349,10 @@ function AnnotatorLoader() {
 				'left': geo_json.dialogPosition.left
 			});
 
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 150);
+
 		} else {
 			return false;
 		}
@@ -395,6 +403,10 @@ function AnnotatorLoader() {
 					annotator.selectFeatureById(vector_id_value[i]);
 				}
 			}
+
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 150);
 
 		} else {
 			return false;

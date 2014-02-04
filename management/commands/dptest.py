@@ -131,7 +131,7 @@ Commands:
 				'digipal/scribes/96/',
 				'digipal/manuscripts/715/',
 				# collection
-				'http://localhost/digipal/page/lightbox/basket/',
+				'digipal/page/lightbox/basket/',
 				]
 		
 		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
@@ -221,6 +221,12 @@ Commands:
 		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(body)
 		print (' title: %s' % re.sub(ur'\s+', ' ', soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
+		
+		# find all the headers
+		print 'heading:'
+		for i in range(1, 7):
+			for header in soup.find_all('h%s' % i):
+				print '\t\t%s' % re.sub('\s+|\n', ' ', '%s' % header)
 		
 		# check that all rows are under a container
 		for row in soup.find_all('div', class_='row'):

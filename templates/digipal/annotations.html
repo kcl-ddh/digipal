@@ -3,6 +3,7 @@
 {% load html_escape %}
 {# {annotations_list} #}
 {% if annotations_list %}
+
     <div class="container">
       <h3>Hands List</h3>
 
@@ -11,7 +12,7 @@
       {% for key in annotations_list %}
           <li>
             <b>
-              <a title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
+              <a data-toggle='tooltip' title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
             </b>
           </li>
       {% endfor %}
@@ -33,10 +34,11 @@
            <!-- links to allographs -->
             {% for allograph, graphs in allographs.items %}
               <span>
-                <a title='Go to {{allograph}}' class="label label-digipal" href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
+                <a data-toggle='tooltip' title='Go to {{allograph}}' class="label label-digipal" href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
               </span>
              {% endfor %}
           </div>
+
         </div>
 
         <!-- allographs -->
@@ -50,9 +52,17 @@
             </h5>
 
             <div class='btn-group pull-right buttons_annotations_list'>
-                <button class='btn btn-default btn-small to_lightbox'><i class='fa fa-shopping-cart'></i></button>
-                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small select_all'><i class='fa fa-check-square-o'></i></button>
-                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small deselect_all'><i class='fa fa-square-o'></i></button>
+                <button class='btn btn-default btn-small to_lightbox'>
+                  <i class='fa fa-shopping-cart'></i>
+                </button>
+
+                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small select_all'>
+                  <i class='fa fa-check-square-o'></i>
+                </button>
+
+                <button data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small deselect_all'>
+                  <i class='fa fa-square-o'></i>
+                </button>
             </div>
 
             <!-- ul hand -->
@@ -71,7 +81,7 @@
 
               {% if not can_edit %}
 
-              <a class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
+              <a data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
 
               {% endif %}
 
@@ -83,7 +93,7 @@
 
             </p>
 
-              <a href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
+              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
                 {% annotation_img graph lazy=1 %}
               </a>
 
@@ -116,27 +126,45 @@
   <!-- header -->
     <div class="modal_header">
         <i class='icon glyphicon glyphicon-remove close'></i>
+
         <p class="myModalLabel">
           <span class='label-modal-value'></span>
-          <button type='button' title='Save Annotation' class='btn btn-xs btn-success btn-small' id='save'><i class='glyphicon glyphicon-ok'></i></button>
-          <button type='button' title='Delete Annotation' class='btn btn-xs btn-danger btn-small'  id='delete'><i class='glyphicon glyphicon-remove'></i></button>
-          <button type='button' title='Show Summary' class='btn btn-xs btn-default active' id='show_summary'><i class='glyphicon glyphicon-list'></i></button>
+
+          <button type='button' title='Save Annotation' class='btn btn-xs btn-success btn-small' id='save'>
+            <i class='glyphicon glyphicon-ok'></i>
+          </button>
+
+          <button type='button' title='Delete Annotation' class='btn btn-xs btn-danger btn-small'  id='delete'>
+            <i class='glyphicon glyphicon-remove'></i>
+          </button>
+
+          <button type='button' title='Show Summary' class='btn btn-xs btn-default active' id='show_summary'>
+            <i class='glyphicon glyphicon-list'></i>
+          </button>
+
           <span title='Maximize box' id='maximize' class='pull-right glyphicon glyphicon-resize-full'></span>
         </p>
+
     </div>
 
     <!-- body -->
     <div class="modal-body">
+
       <ul class="nav nav-tabs tabs-allograph">
+
         <li class="active">
           <a data-toggle="tab" data-target="#describe" href='#'>Describe</a>
         </li>
-        <li class="">
+
+        <li>
           <a data-toggle="tab" data-target="#edit" href='#'>Edit Graph</a>
         </li>
       </ul>
+
       <div class="tabbable">
+
         <div class="tab-content">
+
           <div class="tab tab-pane fade active in" id="describe">
               <form class="frmAnnotation" method="get" name="frmAnnotation">
                 <ul class="ul_inline_form">
@@ -145,14 +173,16 @@
                 <div id='features_container'></div>
               </form>
           </div>
+
           <div id="edit" class="tab tab-pane fade">
             <div id="image-editor-space" class='col-md-6'></div>
             <img id='editor-space-image' src="{{STATIC_URL}}digipal/images/ajax-loader3.gif" alt="">
+
             <div class="letter_editor col-md-6">
                 <label>Resize</label>
                 <div>
 
-                  <label for=""><small>Height</small></label>
+                  <label><small>Height</small></label>
                   <p>
                     <button id="resize-up" class="btn btn-default btn-sm">
                     +
@@ -162,7 +192,7 @@
                     </button>
                   </p>
 
-                  <label for=""><small>Width</small></label>
+                  <label><small>Width</small></label>
                   <p>
                     <button id="resize-right" class="btn btn-default btn-sm">
                       +
@@ -172,12 +202,12 @@
                     </button>
                   </p>
                 </div>
-
                 <hr />
                 <label>Move</label>
+
                 <div>
                   <button id="move-left" class="btn btn-default btn-sm">
-                  <i class="glyphicon glyphicon-arrow-left"></i>
+                    <i class="glyphicon glyphicon-arrow-left"></i>
                   </button>
                   <button id="move-down" class="btn btn-default btn-sm">
                     <i class="glyphicon glyphicon-arrow-down"></i>
@@ -189,15 +219,13 @@
                     <i class="glyphicon glyphicon-arrow-up"></i>
                   </button>
                 </div>
-
-
             </div>
           </div>
         </div>
       </div>
-      </div>
-      <!-- features summary -->
-        <div id='summary'></div>
+    </div>
+    <!-- features summary -->
+    <div id='summary'></div>
 </div>
 
 

@@ -66,6 +66,7 @@ def allograph_features(request, image_id, allograph_id):
 def image(request, image_id):
     """Returns a image annotation form."""
     image = Image.objects.get(id=image_id)
+    images = image.item_part.images.exclude(id=image.id)
     annotations_count = image.annotation_set.values('graph').count()
     annotations = image.annotation_set.all()
     dimensions = {
@@ -118,7 +119,7 @@ def image(request, image_id):
 
     from digipal.models import OntographType
     context = {
-               'form': form.as_ul(), 'dimensions': dimensions,
+               'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations_count,

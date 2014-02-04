@@ -81,6 +81,41 @@ def index_view(request, content_type=''):
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
+def search_image_view(request):
+    images = Image.objects.all()
+    
+    from digipal.forms import FilterManuscriptsImages
+
+    # Get Buttons
+    context = {}
+
+    context['view'] = request.GET.get('view', 'images')
+
+    town_or_city = request.GET.get('town_or_city', '')
+    repository = request.GET.get('repository', '')
+    date = request.GET.get('date', '')
+
+    # Applying filters
+    if town_or_city:
+        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
+    if repository:
+        repository_place = repository.split(',')[0]
+        repository_name = repository.split(', ')[1]
+        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
+    if date:
+        images = images.filter(hands__assigned_date__date = date)
+
+    images = images.filter(item_part_id__gt = 0)
+    images = Image.sort_query_set_by_locus(images)
+
+    context['images'] = images
+
+    image_search_form = FilterManuscriptsImages()
+    context['image_search_form'] = image_search_form
+    context['query_summary'] = get_query_summary(request, '', True, [image_search_form])
+
+    return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
+
 def search_page_view(request):
     # Backward compatibility.
     #
@@ -186,7 +221,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
-        context['query_summary'] = get_query_summary(request, term, context)
+        context['query_summary'] = get_query_summary(request, term, context['submitted'], [type.form for type in context['types']])
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
@@ -199,19 +234,18 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
                 if allowed_type in [None, type.key]:
                     context['results'] = type.build_queryset(request, term)
 
-def get_query_summary(request, term, context):
+def get_query_summary(request, term, submitted, forms):
     # return a string that summarises the query
     ret = ''
     
-    if context['submitted']:
+    if submitted:
         if term.strip():
             ret = '"%s"' % term
         
         # Generate a dictionary with the form fields.
         # The key is the internal name of the field and the value is the display label 
         fields = {}
-        for type in context['types']:
-            form = type.form
+        for form in forms:
             for field_name in form.fields:
                 field = form[field_name]
                 # generate the display label
@@ -254,7 +288,7 @@ def get_cms_url_from_slug(slug):
         return page.get_absolute_url()
     return u'/%s' % slug
 
-def allographHandSearch(request):
+def search_graph_view(request):
     """ View for Hand record drill-down """
     context = {}
 
@@ -269,6 +303,8 @@ def allographHandSearch(request):
     context['term'] = term
     context['view'] = request.GET.get('view', 'images')
     
+    context['drilldownform'] = GraphSearchForm()
+    
     from datetime import datetime
     
     t0 = datetime.now()
@@ -282,6 +318,8 @@ def allographHandSearch(request):
         #        this would bring potentially invalid results and it is also much slower
         #    it is faster than excluding all the hands without a graph (yet another expensive join)
         #
+        context['query_summary'] = get_query_summary(request, term, context['submitted'], [context['drilldownform']])
+        
         if term:
             graphs = Graph.objects.filter(
                     Q(hand__descriptions__description__icontains=term) | \
@@ -354,8 +392,6 @@ def allographHandSearch(request):
         
         #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
         
-    context['drilldownform'] = GraphSearchForm()
-
     t5 = datetime.now()
     
     ret = render_to_response(
@@ -364,90 +400,8 @@ def allographHandSearch(request):
         context_instance=RequestContext(request))
     
     t6 = datetime.now()
-    
-    #print 'hands values_list(id) %s' % (t5 - t4)
-    #print 'template %s' % (t6 - t5)
-    #print 'total %s' % (t6 - t0)
 
     return ret
-
-
-def allographHandSearchGraphs(request):
-    """ View for Hand record drill-down """
-    allograph = request.GET.get('allograph_select', '')
-    character = request.GET.get('character_select', '')
-    # Adding 2 new filter values...
-    feature = request.GET.get('feature_select', '')
-    component = request.GET.get('component_select', '')
-
-    context = {}
-    context['style']= 'allograph_list'
-    
-    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id')
-    
-    handlist = []
-    for h in hand_ids:
-        handlist.insert(0, h.id)
-
-    graphs = Graph.objects.filter(hand__in=handlist).order_by('hand')
-
-    if allograph:
-        graphs = graphs.filter(
-            idiograph__allograph__name=allograph).order_by('hand')
-        context['allograph'] = Allograph.objects.filter(name=allograph)
-    if feature:
-        graphs = graphs.filter(
-            graph_components__features__name=feature).order_by('hand')
-        context['feature'] = Feature.objects.get(name=feature)
-    if character:
-        graphs = graphs.filter(
-            idiograph__allograph__character__name=character).order_by('hand')
-        context['character'] = Character.objects.get(name=character)
-    if component:
-        graphs = graphs.filter(
-            graph_components__component__name=component).order_by('hand')
-        context['component'] = Component.objects.get(name=component)
-
-    graphs = graphs.order_by('hand__scribe__name','hand__id')
-    context['drilldownform'] = GraphSearchForm()
-    context['graphs'] = graphs
-
-    page = request.GET.get('page')
-  
-    paginator = Paginator(graphs, 24)
-
-    try:
-        page_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        page_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        page_list = paginator.page(paginator.num_pages)
-
-    context['page_list'] = page_list
-
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
-    
-    return render_to_response(
-        'pages/graphs-list.html',
-        context,
-        context_instance=RequestContext(request))
-
-def graphsSearch(request):
-    context = {}
-
-    context['style']= 'allograph_list'
-    
-    context['drilldownform'] = GraphSearchForm()
-    
-    return render_to_response(
-        'pages/graphs.html',
-        context,
-        context_instance=RequestContext(request))
 
 def search_suggestions(request):
     from digipal.utils import get_json_response

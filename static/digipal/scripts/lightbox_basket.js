@@ -372,6 +372,20 @@ $(document).ready(function() {
 
 	// Initial call
 
+	var tabs = $('a[data-toggle="tab"]');
+	tabs.on('shown.bs.tab', function(e) {
+		if (e.target.getAttribute('data-target') == '#container_collections') {
+			$('#to_lightbox').attr('disabled', true);
+			$('#add_collection').attr('disabled', true);
+			$('#share_collection').attr('disabled', true);
+			$('#filter').attr('disabled', false);
+		} else {
+			$('#to_lightbox').attr('disabled', false);
+			$('#add_collection').attr('disabled', false);
+			$('#share_collection').attr('disabled', false);
+			$('#filter').attr('disabled', true);
+		}
+	});
 
 	var basket;
 	if (getParameter('collection').length) {

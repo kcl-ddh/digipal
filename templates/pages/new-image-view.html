@@ -99,12 +99,12 @@
 
                             {% for hand in hands %}
 
-                                {% if forloop.counter0|divisibleby:6 %}
+                                {% if forloop.counter0|divisibleby:4 %}
                                     <div class='row'>
                                 {% endif %}
-                                        <div class='col-md-2 panel'>
+                                        <div class='col-md-3 cenetered col-xs-12'>
 
-                                            <dl class="imageDatabase">
+                                            <dl class="imageDatabase panel">
                                                 <dt>
                                                     {% for graph in hand.graphs_template %}
                                                         {% if forloop.counter < 10 %}
@@ -121,7 +121,7 @@
                                                 </dd>
                                             </dl>
                                         </div>
-                                {% if forloop.counter|divisibleby:6 or forloop.last %}
+                                {% if forloop.counter|divisibleby:4 or forloop.last %}
                                     </div>
                                 {% endif %}
 

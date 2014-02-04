@@ -131,7 +131,7 @@ Commands:
 				'digipal/scribes/96/',
 				'digipal/manuscripts/715/',
 				# collection
-				'http://localhost/digipal/page/lightbox/basket/',
+				'digipal/page/lightbox/basket/',
 				]
 		
 		#pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]

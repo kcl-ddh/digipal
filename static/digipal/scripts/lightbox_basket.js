@@ -401,7 +401,7 @@ $(document).ready(function() {
 			if (getParameter('collection').length) {
 				var collection = JSON.parse(localStorage.getItem('collections'));
 				basket = collection[getParameter('collection')[0]]['basket'];
-				clearInterval(interval);
+				clearInterval(intervalSee the last lines in the log produced by 'python );
 			} else {
 				basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 			}

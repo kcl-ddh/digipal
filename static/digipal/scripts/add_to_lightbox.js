@@ -15,7 +15,13 @@ function length_basket_elements(elements) {
 
 function update_collection_counter() {
 
-	var basket = localStorage.getItem('lightbox_basket');
+	var basket;
+	if (localStorage.getItem('lightbox_basket')) {
+		basket = localStorage.getItem('lightbox_basket');
+	} else {
+		return false;
+	}
+
 	var basket_elements = JSON.parse(basket);
 	var menu_links = $('.navLink');
 	var basket_element;

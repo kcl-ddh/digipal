@@ -79,13 +79,16 @@ $(document).ready(function() {
 		}
 	});
 
-
+	$('.imageDatabase').data('hovered', false);
 	$('.imageDatabase').on('mouseenter', function(event) {
-		$(this).find('.drag_caption').slideDown();
+		if (!$(this).data('hovered')) {
+			$(this).find('.drag_caption').slideDown();
+		}
 		event.stopPropagation();
+		$(this).data('hovered', true);
 		return false;
 	}).on('mouseleave', function(event) {
-		$(this).find('.drag_caption').slideUp();
+		$(this).find('.drag_caption').fadeOut();
 		event.stopPropagation();
 		return false;
 	});

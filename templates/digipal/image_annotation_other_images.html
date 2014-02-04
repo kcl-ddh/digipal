@@ -5,9 +5,9 @@
     ----------------------------------------------
 {% endcomment %}
 
-{% if image.item_part.images.all.count > 1 %}
-    {% for p in image.item_part.images.all %}
-        {% if p.id != image.id %}
+{% if images.count > 1 %}
+    {% for p in images.all %}
+
             {% if forloop.counter0|divisibleby:4 %}
                 <div class='row'>
             {% endif %}
@@ -17,7 +17,7 @@
             {% if forloop.counter|divisibleby:4 or forloop.last %}
                 </div>
             {% endif %}
-        {% endif %}
+
     {% endfor %}
 
     {% include "digipal/add_to_collection.html" %}

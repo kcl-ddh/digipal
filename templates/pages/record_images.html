@@ -1,55 +1,25 @@
-{% comment %}
-{% extends "base.html" %}
-{% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+<table class="table table-condecopyright/nsed">
+    <tbody>
+        <tr>
+            <th>Repository</th>
+            <td>{{ image.item_part.current_item.repository.name }}</td>
+        </tr>
+        <tr>
+            <th>Town or City</th>
+            <td>{{ image.item_part.current_item.repository.place }}</td>
+        </tr>
+        <tr>
+            <th>Shelfmark</th>
+            <td>
+                {{ image.item_part.current_item.shelfmark }}
+            </td>
+        </tr>
+        <tr>
+            <th>Locus</th>
+            <td>
+                {{ image.locus }}
+            </td>
+        </tr>
 
-{% block meta_title %}
-    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-    {{image|capfirst}}
-{% endblock %}
-
-{% block main %}
-<h2 class='header1'>
-    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-    <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
-    {% include "digipal/admin_edit.html" with instance=image %}
-</h2>
-
-  <ul class='nav nav-tabs'>
-          <li><a href='../'>View Manuscript</a></li>
-          <li><a class="annotationLink" href="../allographs/">Annotations by Allograph</a></li>
-          <li class='active'><a href=''>View Metadata</a></li>
-          <li><a href='../copyright/'>Image Copyright</a></li>
-  </ul>
-
-{% endcomment %}
-<div class='annotator-tab-page'>
-
-    <h3>Metadata</h3>
-
-    <table class="table table-condecopyright/nsed">
-        <tbody>
-            <tr>
-                <th>Repository</th>
-                <td>{{ image.item_part.current_item.repository.name }}</td>
-            </tr>
-            <tr>
-                <th>Town or City</th>
-                <td>{{ image.item_part.current_item.repository.place }}</td>
-            </tr>
-            <tr>
-                <th>Shelfmark</th>
-                <td>
-                    {{ image.item_part.current_item.shelfmark }}
-                </td>
-            </tr>
-            <tr>
-                <th>Locus</th>
-                <td>
-                    {{ image.locus }}
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-</div>
+    </tbody>
+</table>

@@ -1,13 +1,16 @@
 
-<h3>Hands</h3>
 <table class='table table-condensed'>
-    {% for hand in image.hands.all %}
-        <tr>
-            <td>
-                <a href="{{hand.get_absolute_url}}">
-                    {{ hand }}
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
+    {% if image.hands.all %}
+        {% for hand in image.hands.all %}
+            <tr>
+                <td>
+                    <a href="{{hand.get_absolute_url}}">
+                        {{ hand }}
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        {% include 'digipal/empty_tab.html' with type='hands' %}
+    {% endif %}
 </table>

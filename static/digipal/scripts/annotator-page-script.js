@@ -600,7 +600,10 @@ function AnnotatorLoader() {
 					"width": "296px",
 					"z-index": 1000
 				});
-				$('.olControlEditingToolbar div').css('width', '18%');
+				$('.olControlEditingToolbar div').css({
+					'width': '12%',
+					'font-size': '15px'
+				});
 			}
 		}
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));

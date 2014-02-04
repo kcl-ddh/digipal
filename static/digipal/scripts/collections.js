@@ -32,7 +32,7 @@ function Collections() {
 				container.append(collection);
 			});
 		} else {
-			var s = '<div class="alert alert-warning">No collections saved</div>';
+			var s = '<div class="container alert alert-warning">No collections saved</div>';
 			container.append(s);
 		}
 		$('.remove_collection').click(function(event) {
@@ -49,7 +49,7 @@ function Collections() {
 		$('#' + collection_name).fadeOut().remove();
 		if ($.isEmptyObject(this.collections)) {
 			var container = $('#container_collections');
-			var s = '<div class="alert alert-warning">No collections saved</div>';
+			var s = '<div class="container alert alert-warning">No collections saved</div>';
 			container.html(s);
 			localStorage.removeItem('collections');
 		}

@@ -20,8 +20,8 @@
             
             {# See JIRA 300, we remove the id from the query string #}
             {% filter update_query_params:"id=" %}
-                <div class="col-md-4 col-sm-6 col-xs-12 move-up-1">
-                    <ul class="pager">
+                <div class="col-md-4 move-up-1">
+                    <ul class="pager compact">
                         <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
                             <a href="{{ pagination.previous_url }}">Previous</a>
                         </li>

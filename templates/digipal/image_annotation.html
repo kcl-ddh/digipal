@@ -98,7 +98,7 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+    <script src="http{% if request.is_secure %}s{% endif %}://code.jquery.com/jquery-migrate-1.2.1.js"></script>
     <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
@@ -108,7 +108,7 @@
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    <script src='https://apis.google.com/js/client.js'></script>
+    <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
     <script>
         $(document).ready(function() {
             var si = new StoredInputs('digipal_settings');

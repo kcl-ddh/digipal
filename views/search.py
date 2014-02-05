@@ -44,11 +44,15 @@ def record_view(request, content_type='', objectid='', tabid=''):
     for type in context['types']:
         if type.key == content_type:
             context['id'] = objectid
-            type.set_record_view_context(context, request)
-            type.set_record_view_pagination_context(context, request)
+            from django.core.exceptions import ObjectDoesNotExist
+            try:
+                type.set_record_view_context(context, request)
+                type.set_record_view_pagination_context(context, request)
+                template = 'pages/record_' + content_type +'.html'
+            except ObjectDoesNotExist:
+                context['title'] = 'This %s record does not exist' % type.label_singular
+                template = 'errors/404.html'
             break
-    
-    template = 'pages/record_' + content_type +'.html'
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 

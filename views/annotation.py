@@ -65,7 +65,12 @@ def allograph_features(request, image_id, allograph_id):
 
 def image(request, image_id):
     """Returns a image annotation form."""
-    image = Image.objects.get(id=image_id)
+    try:
+        image = Image.objects.get(id=image_id)
+    except Image.DoesNotExist:
+        return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
+                              context_instance=RequestContext(request))
+
     images = image.item_part.images.exclude(id=image.id)
     annotations_count = image.annotation_set.values('graph').count()
     annotations = image.annotation_set.all()

@@ -2539,6 +2539,14 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		.attr('height', $(window).height())
 		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
 
+		annotator.map.events.register("moveend", map, function(){
+			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+		});
+
+		annotator.map.events.register("zoomend", map, function(){
+			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+		});
+
 		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 
 	} else {
@@ -2556,6 +2564,15 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		annotations_layer.attr('width', map.width())
 		.attr('height', map.height())
 		.attr('viewport', "0 0 " + map.width() + " " + map.height());
+
+
+		annotator.map.events.register("moveend", map, function(){
+			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
+		});
+
+		annotator.map.events.register("zoomend", map, function(){
+			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
+		});
 
 		annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
 	}

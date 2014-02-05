@@ -84,7 +84,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		if (type == 'annotation') {
 			graph = button.data('graph');
 			if (typeof graph == 'undefined' || !graph) {
-				console.log(graph)
 				notify('Annotation not saved yet', 'danger');
 				return false;
 			}

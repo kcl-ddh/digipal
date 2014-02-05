@@ -161,6 +161,8 @@ function Allographs() {
 		deselect_all: function(button) {
 			var key = button.data('key');
 			var ul = $('ul[data-key="' + key + '"]');
+			var panel = ul.parent();
+			panel.find('.to_lightbox').attr('disabled', true);
 			var inputs = $('input[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
 			self.selectedAnnotations.annotations = [];
@@ -185,6 +187,8 @@ function Allographs() {
 			annotations_li.find('input').attr('checked', false);
 			var key = button.data('key');
 			var ul = $('ul[data-key="' + key + '"]');
+			var panel = ul.parent();
+			panel.find('.to_lightbox').attr('disabled', false);
 			var checkboxes = ul.find('li');
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
@@ -232,7 +236,7 @@ function Allographs() {
 
 	this.main = function(annotation) {
 		var self = this;
-
+		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
 		if (self.dialog.open) {
 			if (self.selectedAnnotations.annotations.length > 1) {
 				self.dialog.set_label(annotation.feature + " <span class='badge badge-important'>" + self.selectedAnnotations.annotations.length + "</span>");
@@ -244,9 +248,11 @@ function Allographs() {
 		if (!self.selectedAnnotations.annotations.length) {
 			self.dialog.hide();
 			$('.select_annotation_checkbox').attr('checked', false);
+			panel.find('.to_lightbox').attr('disabled', true);
 			return false;
 		} else {
 			self.dialog.show();
+			panel.find('.to_lightbox').attr('disabled', false);
 		}
 
 		self.load_annotations_allographs.init(annotation);
@@ -449,6 +455,7 @@ function Allographs() {
 						modal = false;
 						self.selectedAnnotations.allograph = null;
 						self.selectedAnnotations.annotations = [];
+						$('.to_lightbox').attr('disabled', true);
 						$('.annotation_li').removeClass('selected');
 						$('.select_annotation_checkbox').attr('checked', false);
 					});

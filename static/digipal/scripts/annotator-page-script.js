@@ -46,14 +46,37 @@ function AnnotatorLoader() {
 		// activating event on filter button
 		var filter_allographs_button = $('#filterAllographs');
 		filter_allographs_button.click(function() {
-			self.filter_allographs($(this));
+
+			if($(this).data('toggle-button') == 'open'){
+				self.filter_allographs($(this));
+				$(this).data('toggle-button', 'close');
+			} else {
+				$('#allographs_filtersBox').dialog('close');
+				$(this).data('toggle-button', 'open');
+				$(this).removeClass('active');
+			}
 		});
 
 		// activating event on settings button
 
 		var settings_button = $('#settings_annotator');
 		settings_button.click(function() {
-			self.show_settings_window($(this));
+
+			if(!$(this).data('toggled')){
+				self.show_settings_window($(this));
+				$(this).data('toggled', true);
+				$(this).addClass('active');
+			}
+
+			if($(this).data('toggle-button') == 'open'){
+				$("#modal_settings").dialog('open');
+				$(this).data('toggle-button', 'close');
+				$(this).addClass('active');
+			} else {
+				$("#modal_settings").dialog('close');
+				$(this).data('toggle-button', 'open');
+				$(this).removeClass('active');
+			}
 		});
 
 		var ontograph_type = $("#ontograph_type");
@@ -422,8 +445,7 @@ function AnnotatorLoader() {
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
-		checkOutput += '<span style="cursor:pointer;" class="pull-left btn btn-xs btn-default" title = "Check All" id="checkAll"><i class="fa fa-check-square-o"></i></span>';
-		checkOutput += ' <span style="cursor:pointer;" class="pull-right btn btn-xs btn-default" title = "Uncheck All" id="unCheckAll"><i class="fa fa-square-o"></i></span><br clear="all" />';
+		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
 		if (!$.isEmptyObject(annotations)) {
@@ -441,8 +463,8 @@ function AnnotatorLoader() {
 		}
 		checkOutput += "</div>";
 		checkOutput += '<div class="col-lg-6">';
-		checkOutput += ' <span style="cursor:pointer;" title = "Check All" class="pull-left btn btn-xs btn-default" id="checkAll_hands"><i class="fa fa-check-square-o"></i></span>';
-		checkOutput += ' <span style="cursor:pointer;" title="Uncheck All" class="pull-right btn btn-xs btn-default" id="unCheckAll_hands"><i class="fa fa-square-o"></i></span><br clear="all" />';
+		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll_hands" data-toggle="uncheck">Toggle All</span><br clear="all" />';
+
 
 
 		if (!$.isEmptyObject(annotations)) {
@@ -465,6 +487,7 @@ function AnnotatorLoader() {
 				title: "<i class='fa fa-filter'></i> Filter Annotations",
 				close: function() {
 					$('#filterAllographs').removeClass('active');
+					button.data('toggle-button', 'open');
 				}
 
 			});
@@ -486,26 +509,28 @@ function AnnotatorLoader() {
 				annotator.filterAnnotation($(this), 'hand');
 			});
 
-			var checkAll = $('#checkAll');
-			checkAll.click(function() {
-				annotator.filterCheckboxes('.checkVectors', 'check');
+			var CheckAll = $('#checkAll');
+			CheckAll.click(function() {
+				if($(this).data('toggle') == 'uncheck'){
+					annotator.filterCheckboxes('.checkVectors', 'uncheck');
+					$(this).data('toggle', 'check');
+				} else {
+					annotator.filterCheckboxes('.checkVectors', 'check');
+					$(this).data('toggle', 'uncheck');
+				}
 			});
 
 			var checkAll_hands = $('#checkAll_hands');
 			checkAll_hands.click(function() {
-				annotator.filterCheckboxes('.checkVectors_hands', 'check');
-
+				if($(this).data('toggle') == 'uncheck'){
+					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
+					$(this).data('toggle', 'check');
+				} else {
+					annotator.filterCheckboxes('.checkVectors_hands', 'check');
+					$(this).data('toggle', 'uncheck');
+				}
 			});
 
-			var unCheckAll = $('#unCheckAll');
-			unCheckAll.click(function() {
-				annotator.filterCheckboxes('.checkVectors', 'uncheck');
-			});
-
-			var unCheckAll_hands = $('#unCheckAll_hands');
-			unCheckAll_hands.click(function() {
-				annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
-			});
 		} else {
 			allographs_filter_box.dialog('open');
 		}
@@ -555,7 +580,7 @@ function AnnotatorLoader() {
 				title: "<i class='fa fa-wrench'></i> Settings",
 				close: function(event, ui) {
 					modal_settings = false;
-					modal_settings_window.parent('.ui-dialog').remove();
+					button.data('toggle-button', 'open');
 					button.removeClass('active');
 				}
 			});
@@ -598,13 +623,17 @@ function AnnotatorLoader() {
 
 			if (annotator.isAdmin == 'False') {
 				$('.olControlEditingToolbar').css({
-					"left": "89%",
+					"left": "79.7%",
 					"top": 0,
-					"width": "120px",
+					"width": "230px",
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
 					"z-index": 1000
+				});
+				$('.olControlEditingToolbar div').css({
+					'width': '17%',
+					'font-size': '15px'
 				});
 
 			} else {

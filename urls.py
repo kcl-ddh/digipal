@@ -8,7 +8,6 @@ urlpatterns = patterns('digipal.views.annotation',
                            #model=Page, paginate_by=24,
                            #context_object_name='page_list',
                        #)),
-                       (r'^page/$', 'image_list'),
                        (r'^page/(?P<image_id>\d+)/$', 'image'),
                        (r'^page/(?P<image_id>\d+)/(allographs|metadata|copyright|pages|hands)/$', 'image'),
                        (r'^page/(?P<image_id>\d+)/vectors/$', 'image_vectors'),
@@ -37,19 +36,15 @@ urlpatterns = patterns('digipal.views.annotation',
                        )
 
 urlpatterns += patterns('digipal.views.search',
-                       (r'^search/graph/$', 'allographHandSearch'),
-                       (r'^graphs/graph/$', 'allographHandSearchGraphs'),
-                       (r'^search/$', 'search_page_view'),
-                       (r'^graphs/$', 'graphsSearch'),
-                       (r'^quicksearch/$', 'search_page_view'),
+                       # search pages
+                       (r'^page/$', 'search_ms_image_view'),
+                       (r'^search/$', 'search_record_view'),
+                       (r'^quicksearch/$', 'search_record_view'),
+                       (r'^search/graph/$', 'search_graph_view'),
                        (r'^search/suggestions.json/?$', 'search_suggestions'),
                        # Record views
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(/(?P<tabid>[^/]+))?(?:/|$)', 'record_view'),
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)(?:/|$)', 'index_view'),
-                       )
-
-urlpatterns += patterns('digipal.views.image',
-                       (r'^image-display/', 'image'),
                        )
 
 urlpatterns += patterns('digipal.views.admin.image',

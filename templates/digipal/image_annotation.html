@@ -107,7 +107,7 @@
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    <script src='https://apis.google.com/js/client.js'></script>
+    <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
     <script>
         $(document).ready(function() {
             var si = new StoredInputs('digipal_settings');

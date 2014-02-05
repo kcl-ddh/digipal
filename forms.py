@@ -216,37 +216,43 @@ class GraphSearchForm(forms.Form):
         widget=Select(attrs={'id':'script-select', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
         label="",
         empty_label = "Script",
-        required=False)
+        required=False
+    )
     character_select = forms.ModelChoiceField(
         queryset=Character.objects.values_list('name', flat= True).distinct(),
         widget=Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label='',
         empty_label = "Character",
-        required=False)
+        required=False
+    )
     allograph_select = forms.ChoiceField(
         choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='',
-        required=False)
+        initial='Allograph',
+        required=False
+    )
     component_select = forms.ModelChoiceField(
         queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
         empty_label = "Component",
         label='',
-        required=False)
+        required=False
+    )
     feature_select = forms.ModelChoiceField(
         queryset=Feature.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
         empty_label = "Feature",
         label='',
-        required=False)
+        required=False
+    )    
     # hidden field which we populate with the existing search term in the view
     terms = forms.CharField(
-      required=False,
-      label='terms',
-      widget=HiddenInput(),
-      )
+        required=False,
+        label='terms',
+        widget=HiddenInput(),
+    )
 
     # def __init__(self, scribe):
     #     super(GraphSearchForm, self).__init__()

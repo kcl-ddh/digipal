@@ -13,7 +13,7 @@ import sys
 from django.utils.safestring import mark_safe
 
 
-from digipal.forms import ImageAnnotationForm, FilterManuscriptsImages
+from digipal.forms import ImageAnnotationForm
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
         has_edit_permission
@@ -332,57 +332,6 @@ def image_copyright(request, image_id):
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-def image_list(request):
-    images = Image.objects.all()
-
-    # Get Buttons
-
-    town_or_city = request.GET.get('town_or_city', '')
-    repository = request.GET.get('repository', '')
-
-    date = request.GET.get('date', '')
-
-    # Applying filters
-    if town_or_city:
-        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
-    if repository:
-        repository_place = repository.split(',')[0]
-        repository_name = repository.split(', ')[1]
-        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
-    if date:
-        images = images.filter(hands__assigned_date__date = date)
-
-    images = images.filter(item_part_id__gt = 0)
-    images = Image.sort_query_set_by_locus(images)
-
-    context = {}
-    filterImages = FilterManuscriptsImages()
-
-    '''
-    paginator = Paginator(images, 24)
-    page = request.GET.get('page')
-
-    try:
-        page_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        page_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        page_list = paginator.page(paginator.num_pages)
-
-    for page in page_list:
-        page.view_thumbnail = page.thumbnail(None, 210)
-
-    context['page_list'] = page_list
-    '''
-    context['images'] = images
-
-    context['filterImages'] = filterImages
-    context['view'] = request.GET.get('view', 'images')
-
-    return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
-
 def images_lightbox(request):
     if request.is_ajax():
         if 'data' in request.POST and request.POST.get('data', ''):
@@ -418,8 +367,6 @@ def images_lightbox(request):
                     images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 data['images'] = images
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
-
-
 
 @login_required
 @transaction.commit_manually

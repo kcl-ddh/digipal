@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load mezzanine_tags pagination_tags html_escape %}
 
-{% block meta_title %}Manuscript Images{% endblock %}
-
+{% block meta_title %}
+    Manuscript Images
+    {% if query_summary %}({{ query_summary|truncatechars:50 }}){% endif %}
+{% endblock %}
 
 {% block main %}
     <div class="page-header">
@@ -16,7 +18,7 @@
             </div>
             <div class="col-xs-12 col-sm-7">
                 <ul class="flat-list use-chosen">
-                    {{ filterImages.as_ul }}
+                    {{ image_search_form.as_ul }}
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-2">
@@ -28,13 +30,12 @@
         </div>
     </form>
 
-    {% if request.GET.town_or_city or request.GET.repository or request.GET.date %}
-        <div class='breadcrumb'>
-          {% comment %} <span>You are searching for: </span><span><b>Term</b>: {{terms}}</span> |{% endcomment %}
-          {% if request.GET.town_or_city %} <span><b>Town or City: </b></span><span> {{ request.GET.town_or_city }}</span>{% endif %}
-          {% if request.GET.repository %}| <span><b>Repository: </b></span><span>{{ request.GET.repository }}</span>{% endif %}
-          {% if request.GET.date %}| <span><b>Date: </b></span><span>{{ request.GET.date }}</span>{% endif %}
-        </div>
+    {% if query_summary %}
+        <p class='breadcrumb' id="search-breadcrumb">
+            <span id="auto-scroll"></span>
+            You are searching for:
+            {{ query_summary|truncatechars:200 }}
+        </p>
     {% endif %}
 
     <div class='row'>

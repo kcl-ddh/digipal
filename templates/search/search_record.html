@@ -28,13 +28,13 @@
                 {{ advanced_search_form.from_link }}
                     <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse" 
                         {% if expanded_custom_filters %}
-                                data-alt-label="Show Advanced Search" 
-                                href="?from_link=false&amp;basic_search_type={{ search_type }}">
-                                Hide advanced search
+                            data-alt-label="Show Advanced Search" 
+                            href="?from_link=false&amp;basic_search_type={{ search_type }}">
+                            Hide advanced search
                         {% else %}
-                                data-alt-label="Hide Advanced Search" 
-                                href="?from_link=true&amp;basic_search_type={{ search_type }}">
-                                Show advanced search
+                            data-alt-label="Hide Advanced Search" 
+                            href="?from_link=true&amp;basic_search_type={{ search_type }}">
+                            Show advanced search
                         {% endif %}
                     </a>
             </div>
@@ -97,6 +97,7 @@
     {% if submitted %}
         {% if query_summary %}
             <p class='breadcrumb' id="search-breadcrumb">
+                <span id="auto-scroll"></span>
                 You are searching for:
                 {{ query_summary|truncatechars:200 }}
             </p>

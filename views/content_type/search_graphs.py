@@ -4,10 +4,6 @@ from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
 
-'''
-    TODO: to be implemented. See the allographHandSearch(Graphs)() view. 
-'''
-
 class SearchGraphs(SearchContentType):
 
     def set_record_view_context(self, context, request):

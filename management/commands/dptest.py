@@ -222,6 +222,12 @@ Commands:
 		soup = BeautifulSoup(body)
 		print (' title: %s' % re.sub(ur'\s+', ' ', soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
 		
+		# find all the headers
+		print 'heading:'
+		for i in range(1, 7):
+			for header in soup.find_all('h%s' % i):
+				print '\t\t%s' % re.sub('\s+|\n', ' ', '%s' % header)
+		
 		# check that all rows are under a container
 		for row in soup.find_all('div', class_='row'):
 			has_container = False

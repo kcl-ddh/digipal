@@ -612,7 +612,7 @@ function AnnotatorLoader() {
 				"position": "fixed !important",
 				'border-left': 'none',
 				"left": "0px",
-				"top": "190px",
+				"top": "15em",
 				"width": "50px",
 				"z-index": 1000
 			});
@@ -625,7 +625,7 @@ function AnnotatorLoader() {
 				$('.olControlEditingToolbar').css({
 					"left": "79.7%",
 					"top": 0,
-					"width": "230px",
+					"width": "20em",
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',

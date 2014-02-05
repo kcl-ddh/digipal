@@ -2,7 +2,6 @@
 {% load i18n %}
 
 {% block extrastyle %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.responsive.css"/>
 <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/ScriptPage.css" />
 <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"/>
@@ -10,13 +9,13 @@
 {% endblock %}
 
 {% block content %}
-<div id="generalContent">
+<div id="generalContent" class='container'>
 	<h1 class='header1'>Scribe Entries <a style='float:right' href="/admin/digipal">Back to Page list</a></h1>
 
 
 {% block annotations %}
   <div class='row'>
-    <div class='col-md-7'>
+    <div class='column7'>
       <div class='alert'></div>
       <form id="frmAnnotation" method="POST" name="frmAnnotation">
           {% csrf_token %}
@@ -51,7 +50,7 @@
       -->
     </div>
 
-    <div class='col-md-5' id='current_idiographs'>
+    <div class='column5' id='current_idiographs'>
       <h1 class='header1'>Ideographs <span id='number_ideographs'></span></h1>
       <div id='idiographs_container'></div>
     </div>

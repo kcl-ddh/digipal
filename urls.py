@@ -24,15 +24,11 @@ urlpatterns = patterns('digipal.views.annotation',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
-                       url(r'^page/lightbox/basket/$', direct_to_template, {
+                       url(r'^collection/$', direct_to_template, {
                           'template': 'digipal/lightbox_basket.html'
                         }),
-                       (r'^page/lightbox/basket/images/$',
+                       (r'^collection/images/$',
                         'images_lightbox'),
-                       (r'^page/lightbox/basket/collections/$',
-                        direct_to_template, {
-                          'template': 'digipal/lightbox_collections.html'
-                        })
                        )
 
 urlpatterns += patterns('digipal.views.search',

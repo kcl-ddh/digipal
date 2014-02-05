@@ -56,6 +56,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	if (!annotator.events) {
 		registerEvents();
 	}
+
 	var group_button = $('.link_graphs');
 	if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
@@ -99,6 +100,10 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		self.showAnnotation(event.feature);
 	}
 
+	if(annotator.fullScreen.active){
+		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+	}
 };
 
 /**
@@ -742,7 +747,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					var features = data[idx].features;
 					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
 
-					s += "<div class='checkboxes_div btn-group'><span title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
+					s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
 					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -1709,7 +1714,7 @@ function showBox(selectedFeature) {
 						var features = data[idx].features;
 						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 						s += "<div class='checkboxes_div'>";
-						s += "<span title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
+						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 						$.each(features, function(idx) {

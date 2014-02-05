@@ -246,7 +246,7 @@ $(document).ready(function() {
 				}
 				localStorage.setItem("collections", JSON.stringify(collections));
 				window_save_collection.fadeOut().remove();
-				notify('<a style="color: #468847;" href="collections/">Collection saved succesfully</a>', "success");
+				notify('<span style="color: #468847;">Collection saved succesfully</span>', "success");
 			} else {
 				notify('Please enter a name for this collection', "danger");
 			}

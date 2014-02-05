@@ -7,26 +7,7 @@ from django.db.models import Q
 class SearchGraphs(SearchContentType):
 
     def set_record_view_context(self, context, request):
-        super(SearchGraphs, self).set_record_view_context(context, request)
-        from django.utils.datastructures import SortedDict
-        p = Hand.objects.get(id=context['id'])
-        #c = p.graph_set.model.objects.get(id=p.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
-        data = SortedDict()
-        for annotation in annotation_list:
-            hand = annotation.graph.hand
-            allograph_name = annotation.graph.idiograph.allograph
-
-            if hand in data:
-                if allograph_name not in data[hand]:
-                    data[hand][allograph_name] = []
-            else:
-                data[hand] = SortedDict()
-                data[hand][allograph_name] = []
-
-            data[hand][allograph_name].append(annotation)
-            context['data'] = data
-        context['result'] = p
+        # no graph view
     
     @property
     def form(self):

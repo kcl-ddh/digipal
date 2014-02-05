@@ -22,16 +22,16 @@
         </div>
 
         <div class="btn-group pull-right col-md-2">
-            <button class='btn btn-default' id='to_lightbox'>
-                <i title = 'Send images to the Lightbox' class="fa fa-picture-o"></i>
+            <button data-toggle='tooltip' data-container='body' title = 'Send images to the Lightbox'  class='btn btn-default' id='to_lightbox'>
+                <i class="fa fa-picture-o"></i>
             </button>
 
-            <button class='btn btn-default' id='add_collection'>
-                <i title = 'Save Collection' class="fa fa-floppy-o"></i>
+            <button data-toggle='tooltip' data-container='body' title = 'Save Collection' class='btn btn-default' id='add_collection'>
+                <i class="fa fa-floppy-o"></i>
             </button>
 
-            <button class='btn btn-default' id='share_collection'>
-                <i title='Share this Collection' class="fa fa-share"></i>
+            <button data-toggle='tooltip' data-container='body' title='Share this Collection' class='btn btn-default' id='share_collection'>
+                <i class="fa fa-share"></i>
             </button>
         </div>
     </div>
@@ -65,7 +65,4 @@
     <script src ='/static/digipal/scripts/collections.js'></script>
     <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
     <script src='https://apis.google.com/js/client.js'></script>
-    <script>
-        $('i.fa').tooltip();
-    </script>
 {% endblock %}

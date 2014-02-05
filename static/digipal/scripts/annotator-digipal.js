@@ -685,9 +685,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -2513,13 +2513,17 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 DigipalAnnotator.prototype.full_Screen = function() {
 	var map = $('#map');
 	var panel = $('#panelImageBox');
-
+	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+	var map_size;
 	if (!(this.fullScreen.active)) {
+
 		$('html, body').animate({
 			scrollTop: map.position().top
 		}, 0);
+
 		this.fullScreen.activate();
 		map.addClass("fullScreenMap");
+
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				map.removeClass('fullScreenMap');
@@ -2531,14 +2535,29 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 		panel.addClass('fullScreenPanel');
 
+		annotations_layer.attr('width', $(window).width())
+		.attr('height', $(window).height())
+		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
+
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+
 	} else {
 		this.fullScreen.deactivate();
 		map.removeClass('fullScreenMap');
+
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
 		panel.removeClass('fullScreenPanel');
+
 		$('html, body').animate({
 			scrollTop: map.position().top
 		}, 0);
+
+
+		annotations_layer.attr('width', map.width())
+		.attr('height', map.height())
+		.attr('viewport', "0 0 " + map.width() + " " + map.height());
+
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
 	}
 };
 

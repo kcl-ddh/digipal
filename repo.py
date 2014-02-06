@@ -34,6 +34,9 @@ def show_help():
      hgsub
          Update .hgsubstate
          
+     cs
+         Collectstatic
+         
 Options:
 
      -a --automatic
@@ -129,6 +132,11 @@ def process_commands_main_dir():
             finally:
                 os.chdir(dir)
             
+        if command == 'cs':
+            known_command = True
+            print '> Collect Static'
+            system('python manage.py collectstatic --noinput')
+
         if command == 'pull':
             known_command = True
             try:

@@ -90,7 +90,9 @@ $(function() {
     });
 
     // enable bootstrap tooltip on elements with data-toggle="tooltip" attribute
-    $('[data-toggle="tooltip"]').tooltip();
+    if ($.fn.tooltip) {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
     
     // convert HTML select to chosen drop downs
     if ($.fn.chosen) {
@@ -98,9 +100,11 @@ $(function() {
     }
     
     // carousel rotation
-    $('.carousel').carousel({
-        interval: 5000
-    })
+    if ($.fn.carousel) {
+        $('.carousel').carousel({
+            interval: 5000
+        })
+    }
 });
 
 /**
@@ -134,7 +138,7 @@ $(function() {
         var total_padding = 62;
         if (!expanded_div.size()) {
             // we create a permanent div 
-            $('body').append('<div id="img-expand-div" style="background-color:white;line-height:0px;display:none;position:fixed;top:0px;padding:20px;margin:10px;border:1px solid grey; box-shadow: 5px 5px 5px #888888;"><img style="border:1px solid grey;" src="img-expand-div"/><p>Loading the image, please wait...</p></div>');
+            $('body').append('<div id="img-expand-div" style="background-color:white;line-height:0px;display:none;position:fixed;top:0px;padding:20px;margin:10px;border:1px solid grey; box-shadow: 5px 5px 5px #888888;"><img style="border:1px solid grey;" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="/><p>Loading the image, please wait...</p></div>');
             expanded_div = $('#img-expand-div');
             var expanded_img = expanded_div.children('img');
             expanded_img.load(function () { expanded_img.show(); expanded_div.children('p').hide(); });

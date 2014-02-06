@@ -1,6 +1,31 @@
-// dputils namespace
-// This is for general functions used on multiple pages
+/**
+ * Set of general utilities functions used in both the front and back end.
+ * Also a set of initialisation done on page load to provide additional 
+ * services based on particular HTML constructs.
+ * 
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * 
+ * Note that some libraries are not loaded in the admin (e.g. BS) so we 
+ * have to check if the functions exists before calling them.
+ * 
+ * e.g.
+ * 
+ * if ($.fn.tooltip) {
+ *      $('[data-toggle="tooltip"]').tooltip();
+ * }
+ * 
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ */
 
+
+/** 
+ * dputils namespace
+ *  
+ * General purpose utilities functions.
+ * 
+ * Call them with the dputil. namespace prefix.
+ * 
+ */
 (function($) {
     window.dputils = {
         
@@ -51,7 +76,7 @@
 })(jQuery);
 
 /**
- * THe following code is always run as it can be useful for any page.
+ * The following initialisation after any page load.
  */
 $(function() {
     

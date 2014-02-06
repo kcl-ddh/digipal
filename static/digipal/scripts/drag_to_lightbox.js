@@ -25,11 +25,6 @@ $(document).ready(function() {
 				s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
 				$(this).html(s);
 
-				element.animate({
-					width: 0,
-					height: 0
-				}, 650).remove();
-
 			}
 
 			var interval = setTimeout(function() {

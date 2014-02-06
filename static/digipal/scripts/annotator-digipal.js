@@ -408,6 +408,10 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 					features[i].style.fillOpacity = 0.4;
 					features[i].style.strokeOpacity = 1;
 				}
+				var switcher = $('#toggle-state-switch');
+				if(!switcher.bootstrapSwitch('state')){
+					switcher.bootstrapSwitch('toggleState');
+				}
 			}
 		}
 
@@ -755,19 +759,22 @@ function updateFeatureSelect(currentFeatures, id) {
 						var value = component_id + '::' + features[idx].id;
 						var id = component_id + '_' + features[idx].id;
 
+						s += '<div class="row row-no-margin">';
+
 						if (annotator.selectedFeature !== undefined && annotator.selectedFeature !== null && annotator.selectedFeature.state != 'Insert') {
-							s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
-							s += "<label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
+							s += "<p class='col-md-2'> <input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
+							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
+
 						} else {
 							var array_features_owned = annotator.selectedFeature.features;
 							if (array_features_owned.indexOf(value) >= 0) {
-								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
+								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
 							} else {
-								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
+								s += "<p class='col-md-2><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
 							}
-							s += "<label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label>";
+							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 						}
-
+						s += '</div>';
 					});
 					s += "</div>";
 				});
@@ -1717,17 +1724,20 @@ function showBox(selectedFeature) {
 						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
 							var id = component_id + '_' + features[idx].id;
-
+							s += '<div class="row row-no-margin">';
 							var names = component + ':' + features[idx].name;
 							if (array_features_owned.indexOf(names) >= 0) {
-								s += "<p><input name='checkboxes[]' id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
+								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /></p> <p class='col-md-10'><label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label></p>";
 							} else {
-								s += "<p><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/> <label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label>";
+								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/></p> <p class='col-md-10'><label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label></p>";
 							}
+							s += "</div>";
 						});
+
 						s += "</div>";
 					});
 
@@ -2539,7 +2549,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 		panel.addClass('fullScreenPanel');
-
+		$('#toolbar').addClass('fullScreenToolbar');
 		annotations_layer.attr('width', $(window).width())
 		.attr('height', $(window).height())
 		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
@@ -2565,7 +2575,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			scrollTop: map.position().top
 		}, 0);
 
-
+		$('#toolbar').removeClass('fullScreenToolbar');
 		annotations_layer.attr('width', map.width())
 		.attr('height', map.height())
 		.attr('viewport', "0 0 " + map.width() + " " + map.height());

@@ -414,7 +414,7 @@ function Allographs() {
 								summary.show();
 								myModal.find('.modal-body').css("max-height", "100%");
 								maximize_icon.attr('title', 'Minimize box').removeClass('icon-resize-full').addClass('icon-resize-small');
-							}).draggable("destroy");
+							});
 							maximized = true;
 						} else {
 							summary.hide();
@@ -530,20 +530,20 @@ function Allographs() {
 							if (self.temporary_vectors) {
 								array_features_owned = array_features_owned.concat(self.temporary_vectors);
 							}
-
+							s += "<div class='row row-no-margin'>";
 							if (array_features_owned.indexOf(names) >= 0) {
 
 								string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
-
-								s += "<p><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' />";
-								s += "<label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
+								s += "<p class='col-md-2'><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /></p>";
+								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 								n++;
 							} else {
-								s += "<p><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
-								s += "<label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
+								s += "<p class='col-md-2'><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/></p>";
+								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 							}
-
+							s += "</div>";
 						});
+
 						s += "</div>";
 						if (!n) {
 							string_summary += "<span class='feature_summary'>undefined</span>";

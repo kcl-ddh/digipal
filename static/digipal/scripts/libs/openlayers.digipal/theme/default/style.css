@@ -401,8 +401,9 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     margin: 5px 5px 0 0;
 }
 .olControlNavToolbar div,
-.olControlEditingToolbar div {
-    margin: 0 0 5px 5px;
+#toolbar div {
+    margin-top: 2.5px;
+    margin-bottom: 2.5px;
     width: 24px;
     height: 22px;
     cursor: pointer;
@@ -625,8 +626,8 @@ a.olControlZoomOut {
 }
 
 .ItemInactive:hover{
-    background:#a1514d;
-    color:#fff;
+    background:#a1514d !important;
+    color:#fff !important;
 }
 
 #OpenLayers_Control_DrawFeature_72, #OpenLayers_Control_TransformFeature_32, #OpenLayers_Control_DeleteFeature_30, #OpenLayers_Control_Button_84, #OpenLayers_Control_Button_85, #OpenLayers_Control_Button_86, #OpenLayers_Control_SelectFeature_78, #OpenLayers_Control_Button_87{

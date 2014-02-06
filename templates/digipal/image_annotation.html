@@ -61,7 +61,7 @@
                         <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
                             {% include "digipal/image_annotation_control_bar.html" %}
                             <div id="map" class='panel'></div>
-                            <div id="toolbar" class="olControlEditingToolbar"></div>
+                            <div id="toolbar"></div>
                             {% include "digipal/image_annotation_settings.html" %}
                             <div id='annotations'></div>
                             <div class='row' id='allographs_filtersBox'></div>

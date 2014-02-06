@@ -71,7 +71,7 @@ function AnnotatorLoader() {
 			if($(this).data('toggle-button') == 'open'){
 				$("#modal_settings").dialog('open');
 				$(this).data('toggle-button', 'close');
-				$(this).addzClass('active');
+				$(this).addClass('active');
 			} else {
 				$("#modal_settings").dialog('close');
 				$(this).data('toggle-button', 'open');
@@ -549,16 +549,35 @@ function AnnotatorLoader() {
 
 
 		switcher.on('switch-change', function(e, data) {
+			var checkboxes = $(".checkVectors");
 			if ($(this).bootstrapSwitch('state')) {
 				annotator.vectorLayer.setVisibility(true);
+
+				/* selecting all checkboxes */
+				checkboxes.prop('checked', true).change();
 			} else {
 				annotator.vectorLayer.setVisibility(false);
+
+				/* deselecting all checkboxes */
+				checkboxes.prop('checked', false).change();
 			}
+
+
+			/* fixing annotations placement */
+			var container;
+			if(annotator.fullScreen.active){
+				container = $(window);
+			} else {
+				container = $('#map');
+			}
+			var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
+			annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
 		});
 
 		if (typeof get_annotations != "undefined" && get_annotations == "false") {
 			switcher.bootstrapSwitch('toggleState');
 		}
+
 	};
 
 	// shows settings window
@@ -605,48 +624,58 @@ function AnnotatorLoader() {
 
 	// changes toolbar position
 	this.change_toolbar_position = function(checkbox_value) {
+		var map = $('#map');
+		var toolbar = $('#toolbar');
+		var toolbar_elements = toolbar.find('div');
 		if (checkbox_value == "Vertical") {
 			self.digipal_settings.toolbar_position = 'Vertical';
-			$('.olControlEditingToolbar')[0].style.setProperty("position", "fixed", "important");
-			$('.olControlEditingToolbar').css({
-				"position": "fixed !important",
-				'border-left': 'none',
-				"left": "0px",
-				"top": "15em",
-				"width": "50px",
+
+			toolbar_elements.css('width', '100%');
+
+			toolbar.css({
+				'position': 'fixed',
+				"left": map.offset().left - 60,
+				"top": map.offset().top - 100,
+				"width": "60px",
+				'margin-bottom': '10em',
+				'border-left': '1px solid #ccc',
+				'border-top-left-radius': '4px',
+				'border-bottom-left-radius': '4px',
 				"z-index": 1000
 			});
-			$('.olControlEditingToolbar div').css('width', '100%');
+
 		} else {
-			$('.olControlEditingToolbar')[0].style.setProperty("position", "absolute", "important");
 			self.digipal_settings.toolbar_position = 'Horizontal';
 
 			if (annotator.isAdmin == 'False') {
-				$('.olControlEditingToolbar').css({
-					"left": "79.7%",
-					"top": 0,
-					"width": "20em",
+				toolbar.css({
+					'position': 'absolute',
+					"left": (map.position().left + map.width()) - 296,
+					"top": map.position().top,
+					"width": "296px",
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
 					"z-index": 1000
 				});
-				$('.olControlEditingToolbar div').css({
+				toolbar_elements.css({
 					'width': '17%',
 					'font-size': '15px'
 				});
 
 			} else {
-				$('.olControlEditingToolbar').css({
-					"left": "74%",
-					"top": 0,
+				toolbar.css({
+					'position': 'absolute',
+					"left": (map.position().left + map.width()) - 296,
+					"top": map.position().top,
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
 					"width": "296px",
 					"z-index": 1000
 				});
-				$('.olControlEditingToolbar div').css({
+
+				toolbar_elements.css({
 					'width': '12%',
 					'font-size': '15px'
 				});
@@ -674,6 +703,7 @@ function AnnotatorLoader() {
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 			disable_annotation_tools();
 		}
+
 	};
 
 	// updated allographs counter of selected allograph according to the allographs select

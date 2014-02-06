@@ -9,9 +9,7 @@
         <h4>Annotation boxes</h4>
         <p>
 
-            <label for='multiple_boxes'>Allow multiple boxes
-                <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />
-            </label>
+           <input type='checkbox' id='multiple_boxes' {% if can_edit %} disabled="disabled" {% endif %} />  <label for='multiple_boxes'>Allow multiple boxes</label>
 
         </p>
     </div>
@@ -19,13 +17,9 @@
     <div>
         <h4>Toolbar position</h4>
         <p>
-            <label for='vertical'>Vertical
-                <input type='radio' name='toolbar_position' id='vertical' value='Vertical' checked />
-            </label>
+            <input type='radio' name='toolbar_position' id='vertical' value='Vertical' checked /> <label for='vertical'>Vertical</label>
 
-            <label for='horizontal'>Horizontal
-                <input type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  />
-            </label>
+            <input type='radio' name='toolbar_position' id='horizontal' value='Horizontal'  /> <label for='horizontal'>Horizontal</label>
         </p>
     </div>
 
@@ -33,24 +27,18 @@
          <div>
             <h4>Boxes</h4>
             <p>
-                <label for='boxes_on_click'>Open Boxes on click
-                    <input type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked="checked" {% endif %} />
-                </label>
+                <input type='checkbox'  id='boxes_on_click' {% if not can_edit %} checked="checked" {% endif %} /><label for='boxes_on_click'>Open Boxes on click</label>
             </p>
         </div>
 
         <div>
             <h4>Admin</h4>
             <p>
-                <label for='development_annotation'>Annotating
-                    <input type='checkbox'  id='development_annotation' checked />
-                </label>
+                <input type='checkbox'  id='development_annotation' checked /> <label for='development_annotation'>Annotating</label>
             </p>
 
             <p>
-                <label for='multiple_annotations'>Select multiple annotations
-                    <input type='checkbox'  id='multiple_annotations' />
-                </label>
+                <input type='checkbox'  id='multiple_annotations' /> <label for='multiple_annotations'>Select multiple annotations</label>
             </p>
         </div>
 

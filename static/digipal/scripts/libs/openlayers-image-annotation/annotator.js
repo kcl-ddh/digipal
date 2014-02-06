@@ -121,8 +121,10 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.format = new OpenLayers.Format.GeoJSON();
 
 	// creates a new panel for all the tools
+	var container = document.getElementById("toolbar");
 	this.toolbarPanel = new OpenLayers.Control.Panel({
 		allowDepress: true,
+		div: container,
 		type: OpenLayers.Control.TYPE_TOGGLE,
 		displayClass: 'olControlEditingToolbar'
 	});

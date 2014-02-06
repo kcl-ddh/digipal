@@ -71,7 +71,7 @@ function AnnotatorLoader() {
 			if($(this).data('toggle-button') == 'open'){
 				$("#modal_settings").dialog('open');
 				$(this).data('toggle-button', 'close');
-				$(this).addzClass('active');
+				$(this).addClass('active');
 			} else {
 				$("#modal_settings").dialog('close');
 				$(this).data('toggle-button', 'open');

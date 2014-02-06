@@ -61,7 +61,7 @@ def plural(value, count=2):
     else:
         ret = value
         if ret in ['of']: return ret
-        if count > 1:
+        if count != 1:
             if ret in ['a', 'an']: return ''
             if ret[-1:] == 'y': 
                 ret = ret[:-1] + 'ie'

@@ -26,7 +26,11 @@
             </div>
             <div class='col-md-6'>
                 {{ advanced_search_form.from_link }}
-                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse" 
+                    {% comment %}
+                        disabled boostrap collapse as it behave weirdly. During the animation to
+                        expand the panel, it goes far too low.
+                    {% endcomment %}
+                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse-disabled" 
                         {% if expanded_custom_filters %}
                             data-alt-label="Show Advanced Search" 
                             href="?from_link=false&amp;basic_search_type={{ search_type }}">
@@ -70,14 +74,8 @@
             {# this field is only here to know that the search has been submitted #}
             {{ quick_search_form.s }}
             <input type="submit" value="Search" class='btn btn-primary' />
-            <!-- a class='btn btn-default' id='show_filters'>Show Graphs Filters</a -->
         </p>
-        {% comment %}
-            <div id='buttonsBox'>
-                <input type="submit" value="Search" class='btn btn-primary' />
-                <a class='btn btn-default' id='show_filters'>Show Graphs Filters</a>
-            </div>
-        {% endcomment %}
+
     </form>
 
     {% comment %}

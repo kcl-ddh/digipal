@@ -7,7 +7,7 @@
 
     <div class="row">
 
-        <div class='col-md-8 col-sm-12 col-xs-12'>
+        <div class='{% if pagination %}col-md-8{% endif %}'>
             <ul class="nav nav-tabs" id='record-tab-switch'>
                 {% filter add_query_params:request.META.QUERY_STRING %}
                     {% block record_tabs %}
@@ -17,24 +17,27 @@
         </div>
 
         {% if pagination %}
-
-            <div class="col-md-4 col-sm-6 col-xs-6 pull-right move-up-1">
-                <ul class="pager">
-                    <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
-                        <a href="{{ pagination.previous_url }}">Previous</a>
-                    </li>
-
-                    <li>
-                        <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Return to the result page">
-                            {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}
-                        </a>
-                    </li>
-
-                    <li class="next {% if not pagination.next_url %}disabled{% endif %}">
-                        <a href="{{ pagination.next_url }}">Next</a>
-                    </li>
-                </ul>
-            </div>
+            
+            {# See JIRA 300, we remove the id from the query string #}
+            {% filter update_query_params:"id=" %}
+                <div class="col-md-4 move-up-1">
+                    <ul class="pager compact">
+                        <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
+                            <a href="{{ pagination.previous_url }}">Previous</a>
+                        </li>
+    
+                        <li>
+                            <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Return to the result page">
+                                {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}
+                            </a>
+                        </li>
+    
+                        <li class="next {% if not pagination.next_url %}disabled{% endif %}">
+                            <a href="{{ pagination.next_url }}">Next</a>
+                        </li>
+                    </ul>
+                </div>
+            {% endfilter %}
             
         {% endif %}
         

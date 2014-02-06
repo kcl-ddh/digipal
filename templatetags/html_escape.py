@@ -206,6 +206,7 @@ def img(src, *args, **kwargs):
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
+        # a serialised white dot GIF image 
         src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
         # default dimensions

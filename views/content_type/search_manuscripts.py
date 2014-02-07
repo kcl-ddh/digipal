@@ -107,7 +107,7 @@ class SearchManuscripts(SearchContentType):
     def get_model(self):
         return ItemPart
 
-    def build_queryset_django(self, request, term):
+    def _build_queryset_django(self, request, term):
         type = self.key
         query_manuscripts = ItemPart.objects.filter(
                 Q(locus__contains=term) | \

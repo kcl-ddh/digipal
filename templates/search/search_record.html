@@ -105,9 +105,16 @@
         {% if not is_empty %}
             <ul class="nav nav-tabs" id='result-types-switch'>
                 {% for type in types %}
-                    <li class="{% if result_type == type.key %}active{% else %}{% if not type.count %}disabled{% endif %}{% endif %}">
-                        <a href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' data-toggle="tab" data-target="#{{ type.key }}">
-                            {{ type.label }} ({{type.count|default:'0'}})
+                    <li class="{% if result_type == type.key %}active{% else %}{% if type.count == 0 %}disabled{% endif %}{% endif %}">
+                        <a 
+                            href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' 
+                            data-toggle="tab" 
+                            {% if type.count > -1 %}data-target="#{{ type.key }}"{% endif %}
+                        >
+                            {{ type.label }}
+                            {% if type.count > -1 %} 
+                                ({{type.count|default:'0'}})
+                            {% endif %}
                         </a>
                     </li>
                 {% endfor %}

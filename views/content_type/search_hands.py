@@ -77,7 +77,7 @@ class SearchHands(SearchContentType):
     def label_singular(self):
         return 'Hand'
 
-    def build_queryset_django(self, request, term):
+    def _build_queryset_django(self, request, term):
         type = self.key
         query_hands = Hand.objects.filter(
                     Q(descriptions__description__icontains=term) | \

@@ -4,9 +4,15 @@ class SearchContentType(object):
     
     def __init__(self):
         self.is_advanced = False
-        self._queryset = []
+        # None if no search has run
+        self._queryset = None
         self._init_field_types()
         self.desired_view = ''
+        
+    def is_slow(self):
+        # return True if this search is noticeably slower than the other
+        # in this case this search will be triggered only when necesary
+        return False
         
     def _init_field_types(self):
         '''
@@ -119,21 +125,31 @@ class SearchContentType(object):
     
     @property
     def queryset(self):
-        return self._queryset
+        '''Returns a list of recordids'''
+        return self._queryset or []
     
     @property
     def is_empty(self):
+        '''None is returned if no search has been run yet.'''
+        if self._queryset is None: return None
         return self.count == 0
 
     @property
     def count(self):
-        ret = 0
-        if self.queryset:
-            if isinstance(self.queryset, list):
-                ret = len(self.queryset)
-            else: 
-                # assume query set
-                ret = self.queryset.count()
+        '''
+            Returns the number of records found.
+            -1 if the no search was executed.
+        '''
+        if self._queryset is None:
+            ret = -1
+        else:
+            ret = 0
+            if self.queryset:
+                if isinstance(self.queryset, list):
+                    ret = len(self.queryset)
+                else: 
+                    # assume query set
+                    ret = self.queryset.count()
         return ret
 
     def set_record_view_pagination_context(self, context, request):
@@ -456,7 +472,9 @@ class SearchContentType(object):
         # now set the active view
         found = False
         for view in ret:
-            view['active'] = (view['key'] == self.desired_view)
+            if view['key'] == self.desired_view:
+                view['active'] = True
+                break
         if not found and ret:
             ret[0]['active'] = True
         return ret
@@ -471,6 +489,14 @@ class SearchContentType(object):
         self.desired_view = view_key
     
     def build_queryset(self, request, term):
+        ret = []
+        # only run slow searches if that tab is selected; always run other searches
+        if not(self.is_slow() and (request.GET.get('result_type', '') != self.key)):
+            ret = self._build_queryset(request, term)
+        return ret
+        
+
+    def _build_queryset(self, request, term):
         '''
             Returns an ordered list or record ids that match the query in the http request.
             The ids are retrieved using Whoosh or Django QuerySet or both.            

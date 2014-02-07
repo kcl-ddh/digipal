@@ -6,9 +6,12 @@ from django.db.models import Q
 
 class SearchGraphs(SearchContentType):
 
+    def __init__(self):
+        super(SearchGraphs, self).__init__()
+        self.graphs_count = 0
+
     def get_fields_info(self):
         ''' See SearchContentType.get_fields_info() for a description of the field structure '''
-
         ret = super(SearchGraphs, self).get_fields_info()
         # TODO: new search field
         return ret
@@ -25,9 +28,25 @@ class SearchGraphs(SearchContentType):
     def label(self):
         return 'Graphs'
 
-    def build_queryset(self, request, term):
+    def is_slow(self):
+        return True
+    
+    @property
+    def count(self):
+        '''
+            Returns the number of records found.
+            -1 if the no search was executed.
+        '''
+        ret = super(SearchGraphs, self).count
+        if ret > 0:
+            ret = self.graphs_count
+        return ret
+
+
+    def _build_queryset(self, request, term):
         """ View for Hand record drill-down """
         context = {}
+        self.graphs_count = 0
         
         script = request.GET.get('script', '')
         character = request.GET.get('character', '')
@@ -108,7 +127,7 @@ class SearchGraphs(SearchContentType):
 
         t3 = datetime.now()
 
-        context['graphs_count'] = len(graph_ids)
+        self.graphs_count = len(graph_ids)
         
         t4 = datetime.now()
         

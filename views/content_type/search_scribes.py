@@ -61,7 +61,7 @@ class SearchScribes(SearchContentType):
     def label_singular(self):
         return 'Scribe'    
     
-    def build_queryset_django(self, request, term):
+    def _build_queryset_django(self, request, term):
         type = self.key
         query_scribes = Scribe.objects.filter(
                     Q(name__icontains=term) | \

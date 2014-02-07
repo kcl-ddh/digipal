@@ -7,6 +7,7 @@ from digipal.forms import GraphSearchForm, SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
+from digipal.templatetags import hand_filters
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -17,8 +18,8 @@ def get_search_types():
     from content_type.search_scribes import SearchScribes
     ret = [SearchManuscripts(), SearchHands(), SearchScribes()]
 
-#     from content_type.search_graphs import SearchGraphs
-#     ret = [SearchGraphs()]
+    from content_type.search_graphs import SearchGraphs
+    ret.append(SearchGraphs())
     
     return ret
 
@@ -130,6 +131,9 @@ def search_record_view(request):
     #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
     # Now we redirect those requests to the record page
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
+    
+    hand_filters.chrono('SEARCH:')
+    
     qs_id = request.GET.get('id', '')
     qs_result_type = request.GET.get('result_type', '')
     if qs_id and qs_result_type:
@@ -184,6 +188,8 @@ def search_record_view(request):
     
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
+
+    hand_filters.chrono(':SEARCH')
 
     return render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
 

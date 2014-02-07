@@ -76,7 +76,7 @@
 })(jQuery);
 
 /**
- * The following initialisation after any page load.
+ * Initialisation after any page load.
  */
 $(function() {
     
@@ -102,6 +102,15 @@ $(function() {
         if (href.search(/^(#|\.)/) == -1) {
             dputils.update_address_bar(href, $(this).data('update-address-bar'));
             e.preventDefault();
+        }
+    });
+
+    // Follow the link in tab if it has no data-target.
+    // Used to load the slow searches tabs on the search page.
+    $('a[data-toggle=tab][href]:not([data-target])').on('click', function(e) {
+        var href = $(this).attr('href');
+        if (href.search(/^#/) == -1) {
+            window.location.href = $(this).attr('href');
         }
     });
 

@@ -135,6 +135,7 @@
                                             {% autopaginate type.queryset type.get_page_size as recordids %}
                                             {% get_records_from_ids type recordids as records %}
                                         {% else %}
+                                            {% reset_recordids as records %}
                                             {% autopaginate type.queryset type.get_page_size as records %}                                    
                                         {% endif %}
         

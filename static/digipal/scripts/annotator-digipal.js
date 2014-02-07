@@ -408,10 +408,7 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 					features[i].style.fillOpacity = 0.4;
 					features[i].style.strokeOpacity = 1;
 				}
-				var switcher = $('#toggle-state-switch');
-				if(!switcher.bootstrapSwitch('state')){
-					switcher.bootstrapSwitch('toggleState');
-				}
+
 			}
 		}
 
@@ -1543,7 +1540,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var desc = $('.textarea_temporary_annotation').val();
 
 		// get annotations visibility status
-		var getAnnotationsVisibility = $('#toggle-state-switch').bootstrapSwitch('state');
+		var getAnnotationsVisibility = $('.toggle-state-switch').bootstrapSwitch('state');
 		var layerExtent = annotator.map.getExtent();
 		var dialogPosition = $('.dialog_annotations').offset();
 		var checkboxesOff = [];

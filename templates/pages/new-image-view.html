@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags hand_filters html_escape %}
+
+{% block meta_title %}Graphs{% endblock %}
+
+{% block main %}
+    {% chrono "start template:" %}
+
+    {% ifnotequal style "allograph_list" %}
+         {% with r=results|first %}
+            <h1 class='header1'>{{ r.hand.assigned_place }}, {{ r.hand.item_part.current_item.repository.name }}, {{ r.hand.item_part.current_item.shelfmark }}</h1>
+         {% endwith %}
+    {% endifnotequal %}
+
+    {% ifequal style "allograph_list" %}
+        <h1 class='header1'>Search for Graphs</h1>
+
+        {% chrono "form:" %}
+
+        {% comment %}TODO: this empty form should be removed, find out why it is needed. {% endcomment %}
+        <form></form>
+
+        <form  id='searchform' class='form-inline panel'  method="GET" action=".">
+            <p>
+                Filter by
+            </p>
+            <ul id="drilldownformID" class="flat-list use-chosen">
+                {{ drilldownform.as_ul }}
+            </ul>
+            <p>
+                <input type="hidden" value="1" name="submitted" />
+                <input type='hidden' name="view" value='{{ view }}' />
+                <input type="submit" value="Show Graphs" class='btn btn-primary' />
+                <input type='reset' class='btn btn-default' id="reset"/>
+                {# This hidden field preserves the last search terms #}
+                <input type="hidden" value="{{ request.GET.terms }}" name="terms" />
+            </p>
+        </form>
+
+        {% chrono ":form" %}
+
+        <div class="breadcrumb">
+            {% if request.GET.terms %}| <span><b>Term: </b></span><span> {{ request.GET.terms }}</span>{% endif %}
+            {% if request.GET.character_select %}| <span><b>Character: </b></span><span> {{ request.GET.character_select }}</span>{% endif %}
+            {% if request.GET.component_select %}| <span><b>Component: </b></span><span>{{ request.GET.component_select }}</span>{% endif %}
+            {% if request.GET.feature_select %}| <span><b>Feature: </b></span><span>{{ request.GET.feature_select }}</span>{% endif %}
+            {% if request.GET.allograph_select %}| <span><b>Allograph: </b></span><span>{{ request.GET.allograph_select }}</span>{% endif %}
+        </div>
+
+        {% chrono ":breadcrumb" %}
+
+        {% if submitted %}
+
+            {% chrono "submitted:" %}
+
+            {% if not hand_ids %}
+                <div class='alert alert-warning'>
+                    <h6>No result found</h6>
+                </div>
+            {% else %}
+
+                {% chrono "pagination and loading:" %}
+
+                <p>
+                    {{ graphs_count }} Graphs grouped into {{ hand_ids|length }} Hands.
+                    {% autopaginate hand_ids 18 %}
+                    {% chrono "load graphs:" %}
+                    {% load_hands 'hand_ids' as hands %}
+                    {% chrono ":load_graphs" %}
+                </p>
+
+                <div class="row">
+
+                    <div class="col-md-8">
+                        {% paginate %}
+                    </div>
+
+                    <div class='col-md-2 pull-right' id="view-switch">
+
+                        <ul class="nav nav-pills">
+                            <li class="{% if view == 'images' %}active{% endif %}">
+                                <a data-target="#images" data-toggle="pill" title='Change Graph View to Images' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
+                            </li>
+
+                            <li class="{% if view == 'list' %}active{% endif %}">
+                                <a data-target="#list" data-toggle="pill" title='Change Graph View to List' href="{% filter add_query_params:request.META.QUERY_STRING %}?view=list{% endfilter %}">List</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class='tabbable'>
+                    <div class="tab-content">
+
+                        {% chrono "grid tab:" %}
+
+                        <div class="tab-pane fade {% if view == 'images' %}active in{% endif %}" id="images">
+
+                            {% for hand in hands %}
+
+                                {% if forloop.counter0|divisibleby:4 %}
+                                    <div class='row'>
+                                {% endif %}
+                                        <div class='col-md-3 cenetered col-xs-12'>
+
+                                            <dl class="imageDatabase panel">
+                                                <dt>
+                                                    {% for graph in hand.graphs_template %}
+                                                        {% if forloop.counter < 10 %}
+                                                            <a data-type='annotation' data-graph="{{ graph.id }}" class='droppable_image' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                                {% annotation_img graph.annotation lazy=1 %}
+                                                            </a>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </dt>
+                                                <dd>
+                                                    <a href="{{ hand.get_absolute_url }}">
+                                                        <strong>{{ hand }}</strong>
+                                                    </a>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                {% if forloop.counter|divisibleby:4 or forloop.last %}
+                                    </div>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+                        {% chrono "table tab:" %}
+
+                        <div class="tab-pane fade {% if view == 'list' %}active in{% endif %}" id="list">
+
+                            <table class="table table-condensed">
+                                <tr>
+                                    <th>Graphs</th>
+                                    <th>Hand</th>
+                                    <th>Scribe</th>
+                                    <th>Place</th>
+                                    <th>Date</th>
+                                    <th>Repository</th>
+                                    <th>Shelfmark</th>
+                                    <th>Catalogue Number</th>
+                                </tr>
+                                {% for hand in hands %}
+                                    <tr class="{% cycle 'bgColour' '' %}">
+                                        <td>
+                                            {% for graph in hand.graphs_template %}
+                                                <a data-type='annotation' data-graph="{{ graph.id }}" class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                    {% annotation_img graph.annotation lazy=1 %}
+                                                </a>
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ hand }}</td>
+                                        <td>{{ hand.scribe }}</td>
+                                        <td>{{ hand.assigned_place }}</td>
+                                        <td>{{ hand.assigned_date }}</td>
+                                        <td>{{ hand.item_part.current_item.repository.name }}</td>
+                                        <td>{{ hand.item_part.current_item.shelfmark }}</td>
+                                        <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                    {% chrono ":table tab" %}
+
+                    {% paginate %}
+
+                </div>
+            {% endif %}
+
+        {% endif %}
+
+    {% endifequal %}
+
+    {% include "digipal/add_to_collection.html" %}
+
+    {% chrono ":end template" %}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
+    <script>
+        $(document).ready(function(){
+            var basket_collector = $('#basket_collector');
+            basket_collector.droppable({
+                accept: "a.droppable_image",
+                hoverClass: "ui-state-active",
+                drop: function(event, ui){
+
+                    var element = $(ui.helper[0]);
+
+                    if(add_to_lightbox(element, 'annotation', element.data('graph'), false)){
+                        var s = '<p>Image added to Lightbox!</p>';
+                        s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
+                        $(this).html(s);
+                    }
+
+                    element.fadeOut().remove();
+
+                    setTimeout(function(){
+
+                        s = '<p>Add image to Basket</p>';
+                        s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" alt="add to collection"/></p>';
+                        basket_collector.html(s);
+
+                        basket_collector.animate({
+                            bottom: '-28%'
+                        }, 350);
+
+                    }, 3000);
+
+                    $('html, body').css('cursor', 'initial');
+
+
+                },
+                out: function(){
+                    $(this).css('background', 'rgba(0, 0, 0, 0.5)');
+                },
+                over:function(){
+                    $(this).css('background', 'rgba(100, 100, 100, 0.5)');
+                }
+            });
+
+            var images = $('a.droppable_image');
+            images.draggable({
+                containment: false,
+                revert: 'invalid',
+                stack: '*',
+                appendTo: 'html',
+                scroll: true,
+                opacity:0.8,
+                helper:'clone',
+                cursor: 'move',
+                start: function(){
+                    basket_collector.animate({
+                        bottom: '0'
+                    }, 350);
+                },
+                stop: function(){
+
+                    setTimeout(function(){
+
+                        basket_collector.animate({
+                            bottom: '-28%'
+                        }, 350);
+
+                    }, 1000);
+
+                },
+
+            });
+        });
+    </script>
+{% endblock %}

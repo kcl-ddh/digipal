@@ -476,7 +476,7 @@ function AnnotatorLoader() {
 		}
 
 		checkOutput += "</div></div>";
-
+		var switcherClone = $('.toggle-state-switch').clone();
 		var allographs_filter_box = $('#allographs_filtersBox');
 		if (!allographs_filter_box.hasClass('ui-dialog-content')) {
 			allographs_filter_box.dialog({
@@ -484,14 +484,13 @@ function AnnotatorLoader() {
 				height: 300,
 				resizable: false,
 				width: 320,
-				title: "<i class='fa fa-filter'></i> Filter Annotations",
+				title: "<i class='fa fa-filter'></i> Filter Annotations" + switcherClone[0].outerHTML,
 				close: function() {
 					$('#filterAllographs').removeClass('active');
 					button.data('toggle-button', 'open');
 				}
 
 			});
-
 
 			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput);
@@ -531,6 +530,45 @@ function AnnotatorLoader() {
 				}
 			});
 
+
+			var switcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
+			var switcherCloned = $('#panelImageBox').find('.toggle-state-switch');
+			switcher.bootstrapSwitch();
+			switcher.bootstrapSwitch('setSizeClass', 'switch-small');
+			switcher.bootstrapSwitch('setState', switcherCloned.bootstrapSwitch('state'));
+			switcher.on('click', function() {
+				$('.toggle-state-switch').bootstrapSwitch('toggleState');
+			});
+
+
+			switcher.on('switch-change', function(e, data) {
+				var checkboxes = $(".checkVectors");
+				var checkboxes_hands = $(".checkVectors_hands");
+				if ($(this).bootstrapSwitch('state')) {
+					annotator.vectorLayer.setVisibility(true);
+
+					/* selecting all checkboxes */
+					checkboxes.add(checkboxes_hands).prop('disabled', false);
+				} else {
+					annotator.vectorLayer.setVisibility(false);
+
+					/* deselecting all checkboxes */
+					checkboxes.add(checkboxes_hands).prop('disabled', true);
+				}
+
+				switcherCloned.bootstrapSwitch('setState', switcher.bootstrapSwitch('state'));
+
+				/* fixing annotations placement */
+				var container;
+				if(annotator.fullScreen.active){
+					container = $(window);
+				} else {
+					container = $('#map');
+				}
+				var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
+				annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
+			});
+
 		} else {
 			allographs_filter_box.dialog('open');
 		}
@@ -540,28 +578,33 @@ function AnnotatorLoader() {
 	// activating bootstrap plugin for switching on and off annotations
 
 	this.switch_annotations = function() {
-		var switcher = $('#toggle-state-switch');
+		var switcher = $('.toggle-state-switch');
 		switcher.bootstrapSwitch();
 		switcher.bootstrapSwitch('setSizeClass', 'switch-small');
 		switcher.on('click', function() {
-			switcher.bootstrapSwitch('toggleState');
+			$('.toggle-state-switch').bootstrapSwitch('toggleState');
 		});
 
 
 		switcher.on('switch-change', function(e, data) {
 			var checkboxes = $(".checkVectors");
+			var checkboxes_hands = $(".checkVectors_hands");
 			if ($(this).bootstrapSwitch('state')) {
 				annotator.vectorLayer.setVisibility(true);
 
 				/* selecting all checkboxes */
-				checkboxes.prop('checked', true).change();
+				checkboxes.add(checkboxes_hands).prop('disabled', false);
 			} else {
 				annotator.vectorLayer.setVisibility(false);
 
 				/* deselecting all checkboxes */
-				checkboxes.prop('checked', false).change();
+				checkboxes.add(checkboxes_hands).prop('disabled', true);
 			}
 
+			var clonedSwitcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
+			if(clonedSwitcher.length){
+				clonedSwitcher.bootstrapSwitch('setState', switcher.bootstrapSwitch('state'));
+			}
 
 			/* fixing annotations placement */
 			var container;

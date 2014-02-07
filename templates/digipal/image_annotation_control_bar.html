@@ -5,15 +5,11 @@
 {% endcomment %}
 <div class='panel' id='panelImageBox'>
 
-    {% if annotations > 0 %}
+    <label class='panel-label' id='label-switcher'>
+        <b>Annotations</b>
+    </label>
 
-        <label class='panel-label' id='label-switcher'>
-            <b>Annotations</b>
-        </label>
-
-        <input data-toggle="tooltip" title='Switch annotations' id="toggle-state-switch" type="checkbox" class="switch-small" checked>
-
-    {% endif %}
+    <input data-toggle="tooltip" title='Switch annotations' class="toggle-state-switch" type="checkbox" class="switch-small" checked {% if annotations == 0 %} disabled {% endif %}>
 
      {% if can_edit %}
 
@@ -25,7 +21,7 @@
     {% endif %}
 
     <div id='annotator-action-buttons' class="btn-group">
-        <button data-container='body' data-placement='top' data-toggle="tooltip" class='btn btn-sm btn-default' id='filterAllographs' data-toggle-button='open' data-toggled='false' title='Filter Annotations'>
+        <button data-container='body' data-placement='top' data-toggle="tooltip" class='btn btn-sm btn-default' id='filterAllographs' data-toggle-button='open' data-toggled='false' title='Filter Annotations' {% if annotations == 0 %} disabled {% endif %}>
             <i class="fa fa-filter"></i>
         </button>
         <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="settings_annotator" data-toggle-button='open' data-toggled='false' title='Open Settings'>

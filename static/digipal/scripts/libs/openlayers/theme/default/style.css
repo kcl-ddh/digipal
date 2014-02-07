@@ -3,7 +3,6 @@
     width: 70px;
     border: 1px solid #efefef;
     border-right-color: transparent;
-
     background: #fff;
     padding: 10px;
     z-index: 1000;
@@ -11,11 +10,7 @@
     border-bottom-left-radius: 3px;
 }
 
-.fullScreenToolbar{
-    position:fixed !important;
-    left:0 !important;
-    top:35% !important;
-}
+
 
 div.olMap {
     z-index: 0;

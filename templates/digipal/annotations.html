@@ -4,20 +4,26 @@
 {# {annotations_list} #}
 {% if annotations_list %}
 
+     <!-- if there are at least 2 annotated hands, show the list -->
+    {% if hands > 1 %}
     <div class="container">
-      <h3>Hands List</h3>
 
+      <h3>Hands List</h3>
       <!-- links to hands -->
       <ul>
       {% for key in annotations_list %}
+
           <li>
             <b>
               <a data-toggle='tooltip' title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
             </b>
           </li>
+
       {% endfor %}
       </ul>
     </div>
+    {% endif %}
+
 
     {% for key, allographs in annotations_list.items %}
 

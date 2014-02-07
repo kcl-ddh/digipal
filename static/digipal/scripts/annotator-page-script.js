@@ -160,6 +160,8 @@ function AnnotatorLoader() {
 
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
+		self.toolbar_position();
+
 		$('#OpenLayers_Control_Panel_29 div').tooltip({
 			container: 'body',
 			placement: 'right'
@@ -544,15 +546,18 @@ function AnnotatorLoader() {
 			switcher.on('switch-change', function(e, data) {
 				var checkboxes = $(".checkVectors");
 				var checkboxes_hands = $(".checkVectors_hands");
+				var toggleButtons = $('#checkAll').add('#checkAll_hands');
 				if ($(this).bootstrapSwitch('state')) {
 					annotator.vectorLayer.setVisibility(true);
 
 					/* selecting all checkboxes */
+					toggleButtons.attr('disabled', false);
 					checkboxes.add(checkboxes_hands).prop('disabled', false);
 				} else {
 					annotator.vectorLayer.setVisibility(false);
 
 					/* deselecting all checkboxes */
+					toggleButtons.attr('disabled', true);
 					checkboxes.add(checkboxes_hands).prop('disabled', true);
 				}
 
@@ -589,15 +594,18 @@ function AnnotatorLoader() {
 		switcher.on('switch-change', function(e, data) {
 			var checkboxes = $(".checkVectors");
 			var checkboxes_hands = $(".checkVectors_hands");
+			var toggleButtons = $('#checkAll').add('#checkAll_hands');
 			if ($(this).bootstrapSwitch('state')) {
 				annotator.vectorLayer.setVisibility(true);
 
 				/* selecting all checkboxes */
+				toggleButtons.attr('disabled', false);
 				checkboxes.add(checkboxes_hands).prop('disabled', false);
 			} else {
 				annotator.vectorLayer.setVisibility(false);
 
 				/* deselecting all checkboxes */
+				toggleButtons.attr('disabled', true);
 				checkboxes.add(checkboxes_hands).prop('disabled', true);
 			}
 
@@ -670,22 +678,42 @@ function AnnotatorLoader() {
 		var map = $('#map');
 		var toolbar = $('#toolbar');
 		var toolbar_elements = toolbar.find('div');
+
 		if (checkbox_value == "Vertical") {
 			self.digipal_settings.toolbar_position = 'Vertical';
 
-			toolbar_elements.css('width', '100%');
+			toolbar_elements.css({
+				'width': '100%',
+				'font-size': '20px'
+			});
 
 			toolbar.css({
 				'position': 'fixed',
-				"left": map.offset().left - 60,
-				"top": map.offset().top - 100,
+				"left": map.position().left - 60,
+				"top": map.position().top - 150,
 				"width": "60px",
-				'margin-bottom': '10em',
 				'border-left': '1px solid #ccc',
 				'border-top-left-radius': '4px',
 				'border-bottom-left-radius': '4px',
 				"z-index": 1000
 			});
+
+			if(annotator.fullScreen.active){
+				toolbar.removeClass('mapHorizontalFullscreen');
+				toolbar.addClass('fullScreenToolbarVertical');
+			}
+
+			if($(window).width() < 860){
+				toolbar.css({
+					top: map.position().top - 150,
+					left: 0
+				});
+			} else {
+				toolbar.css({
+					top: map.position().top - 150,
+					left: map.position().left - 60
+				});
+			}
 
 		} else {
 			self.digipal_settings.toolbar_position = 'Horizontal';
@@ -693,7 +721,7 @@ function AnnotatorLoader() {
 			if (annotator.isAdmin == 'False') {
 				toolbar.css({
 					'position': 'absolute',
-					"left": (map.position().left + map.width()) - 296,
+					"left":  map.width() + map.position().left - toolbar.width(),
 					"top": map.position().top,
 					"width": "296px",
 					'border-left': '1px solid #ccc',
@@ -701,6 +729,7 @@ function AnnotatorLoader() {
 					'border-bottom-left-radius': '4px',
 					"z-index": 1000
 				});
+
 				toolbar_elements.css({
 					'width': '17%',
 					'font-size': '15px'
@@ -714,16 +743,23 @@ function AnnotatorLoader() {
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
 					'border-bottom-left-radius': '4px',
-					"width": "296px",
+					"width": "385px",
 					"z-index": 1000
 				});
 
 				toolbar_elements.css({
-					'width': '12%',
-					'font-size': '15px'
+					'width': '35px',
+					'font-size': '12px',
+					'margin': '2px'
 				});
 			}
+
+			if(annotator.fullScreen.active){
+				toolbar.removeClass('fullScreenToolbarVertical');
+				toolbar.addClass('mapHorizontalFullscreen');
+			}
 		}
+
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
@@ -868,6 +904,37 @@ function AnnotatorLoader() {
 			}
 		}
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
+	};
+
+	this.toolbar_position = function(){
+		var map = $('#map');
+		var toolbar = $('#toolbar');
+		$(window).resize(function() {
+			var input_toolbar_position = $("input[name='toolbar_position']:checked");
+			if(input_toolbar_position.val() == 'Vertical'){
+
+
+				if($(window).width() < 860){
+					toolbar.css({
+						top: map.position().top - 150,
+						left: 0
+					});
+				} else {
+					toolbar.css({
+						top: map.position().top - 150,
+						left: map.position().left - 60
+					});
+				}
+			} else {
+				toolbar.css({
+					top: map.position().top,
+					left: map.width() + map.position().left - toolbar.width()
+				});
+			}
+
+
+		});
+
 	};
 }
 

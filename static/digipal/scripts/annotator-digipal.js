@@ -187,6 +187,11 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 
 	$(".number_annotated_allographs .number-allographs").html(0);
 
+	if(annotator.fullScreen.active){
+		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+	}
+
 };
 
 DigipalAnnotator.prototype.linkAnnotations = function() {
@@ -2526,6 +2531,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 	var map = $('#map');
 	var panel = $('#panelImageBox');
 	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+	var toolbar = $('#toolbar');
 	var map_size;
 	if (!(this.fullScreen.active)) {
 
@@ -2540,13 +2546,26 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			if (e.keyCode == 27) {
 				map.removeClass('fullScreenMap');
 				panel.removeClass('fullScreenPanel');
+				toolbar.removeClass('mapHorizontalFullscreen');
+				toolbar.removeClass('fullScreenToolbarVertical');
 				annotator.fullScreen.deactivate();
 			}
 		});
 
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 		panel.addClass('fullScreenPanel');
-		$('#toolbar').addClass('fullScreenToolbar');
+
+
+		var input_toolbar_position = $("input[name='toolbar_position']:checked");
+		if(input_toolbar_position.val() != 'Vertical'){
+			toolbar.addClass('mapHorizontalFullscreen');
+			toolbar.removeClass('fullScreenToolbarVertical');
+		} else {
+			toolbar.removeClass('mapHorizontalFullscreen');
+			toolbar.addClass('fullScreenToolbarVertical');
+		}
+
+
 		annotations_layer.attr('width', $(window).width())
 		.attr('height', $(window).height())
 		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
@@ -2567,12 +2586,13 @@ DigipalAnnotator.prototype.full_Screen = function() {
 
 		$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
 		panel.removeClass('fullScreenPanel');
+		toolbar.removeClass('mapHorizontalFullscreen');
+		toolbar.removeClass('fullScreenToolbarVertical');
 
 		$('html, body').animate({
 			scrollTop: map.position().top
 		}, 0);
 
-		$('#toolbar').removeClass('fullScreenToolbar');
 		annotations_layer.attr('width', map.width())
 		.attr('height', map.height())
 		.attr('viewport', "0 0 " + map.width() + " " + map.height());

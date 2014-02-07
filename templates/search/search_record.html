@@ -23,6 +23,7 @@
                 {{ advanced_search_form.ordering }}
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
+                <input type='hidden' name="view" value='{{ view }}' />
             </div>
             <div class='col-md-6'>
                 {{ advanced_search_form.from_link }}
@@ -119,13 +120,40 @@
                             {% if type.is_empty %}
                                 {% include "digipal/empty_tab.html" with message="No result found for this search" %}
                             {% else %}
-                                {% reset_recordids as recordids %}
-                                {% autopaginate type.queryset 10 as recordids %}
-                                {% get_records_from_ids type recordids as records %}
+                                <div class="row">
 
-                                {% filter update_query_params:type.result_type_qs %}
-                                    {% paginate %}
-                                {% endfilter %}
+                                    <div class="col-md-10">
+                                        {% reset_recordids as recordids %}
+                                        {% if type.results_are_recordids %}
+                                            {% autopaginate type.queryset type.get_page_size as recordids %}
+                                            {% get_records_from_ids type recordids as records %}
+                                        {% else %}
+                                            {% autopaginate type.queryset type.get_page_size as records %}                                    
+                                        {% endif %}
+        
+                                        {% filter update_query_params:type.result_type_qs %}
+                                            {% paginate %}
+                                        {% endfilter %}
+                                    </div>
+
+                                    {% if type.views %}
+                                        <div class='col-md-2' id="view-switch">
+                                            <ul class="nav nav-pills">
+                                                {% for tview in type.views %}
+                                                    <li class="{% if tview.active %}active{% endif %}" 
+                                                        {% if tview.title %}title="{{ tview.title }}" data-toggle="tooltip"{% endif %}
+                                                        >
+                                                        <a data-target="#{{ type.key }}-{{ tview.key }}" data-toggle="pill"  
+                                                            href="{% filter add_query_params:request.META.QUERY_STRING %}?view={{ tview.key }}{% endfilter %}">
+                                                            {{ tview.label }}
+                                                        </a>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+                                </div>
 
                                 {% include type.template_path with template_type=type.key %}
 
@@ -152,6 +180,7 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     <script type="text/javascript">
 		init_search_page({{ search_page_options_json|safe }});
     </script>

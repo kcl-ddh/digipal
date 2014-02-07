@@ -15,9 +15,11 @@ def get_search_types():
     from content_type.search_hands import SearchHands
     from content_type.search_manuscripts import SearchManuscripts
     from content_type.search_scribes import SearchScribes
-    #from content_type.search_graphs import SearchGraphs
     ret = [SearchManuscripts(), SearchHands(), SearchScribes()]
-    #ret = [SearchScribes()]
+
+#     from content_type.search_graphs import SearchGraphs
+#     ret = [SearchGraphs()]
+    
     return ret
 
 def get_search_types_display(content_types):
@@ -201,9 +203,9 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     #context = kwargs.get('context', {})
     
     context['terms'] = ''
-    #context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
-    context['submitted'] = False
+    
     # list of query parameter/form fields which can be changed without triggering a search 
+    context['submitted'] = False
     non_search_params = ['basic_search_type', 'from_link', 'result_type']
     for param in request.GET:     
         if param not in non_search_params and request.GET.get(param):
@@ -211,12 +213,18 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
+    
+    context['view'] = request.GET.get('view', '')
+    for type in context['types']:
+        type.set_desired_view(context['view'])
+    
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True
 
     advanced_search_form = SearchPageForm(request.GET)
     
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
+    
     if show_advanced_search_form:
         context['advanced_search_form'] = advanced_search_form
 

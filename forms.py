@@ -154,8 +154,8 @@ class SearchPageForm(forms.Form):
         else:
             args = list(args)[:]
             args[0] = args[0].copy()
-        if 'basic_search_type' not in args[0]:
-            args[0]['basic_search_type'] = 'manuscripts'
+#         if 'basic_search_type' not in args[0]:
+#             args[0]['basic_search_type'] = 'manuscripts'
         if 's' not in args[0]:
             args[0]['s'] = '1'
         super(SearchPageForm, self).__init__(*args, **kwargs)

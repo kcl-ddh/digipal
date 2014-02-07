@@ -6,6 +6,7 @@ class SearchContentType(object):
         self.is_advanced = False
         self._queryset = []
         self._init_field_types()
+        self.desired_view = ''
         
     def _init_field_types(self):
         '''
@@ -435,6 +436,40 @@ class SearchContentType(object):
             searcher.close()
             self.searcher = None
     
+    def _get_available_views(self):
+        ''' Returns a list of available tabs to display on the search result.
+            Can be overridden. 
+            
+            Example:
+                ret = [
+                       {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
+                       {'key': 'list', 'label': 'List', 'title': 'Change to list view'},
+                       ]
+        '''
+        return []
+    
+    def get_views(self):
+        ''' Like get_available_views() 
+            but also sets a field 'active' = True|False to each view in the list.
+        '''
+        ret = self._get_available_views()
+        # now set the active view
+        found = False
+        for view in ret:
+            view['active'] = (view['key'] == self.desired_view)
+        if not found and ret:
+            ret[0]['active'] = True
+        return ret
+    views = property(get_views) 
+    
+    def set_desired_view(self, view_key):
+        '''Select a search result view we want to show on the front-end.
+            view_key is the key of the desired view.
+            Note that this content type may not support the desired view.
+            In this case it will resort to a default view.
+        '''
+        self.desired_view = view_key
+    
     def build_queryset(self, request, term):
         '''
             Returns an ordered list or record ids that match the query in the http request.
@@ -545,6 +580,12 @@ class SearchContentType(object):
         
         return self._queryset
     
+    def results_are_recordids(self):
+        return True
+    
+    def get_page_size(self):
+        return 10
+
     def get_records_from_ids(self, recordids):
         # TODO: preload related objects?
         # Fetch all the records from the DB

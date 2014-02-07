@@ -1,47 +1,99 @@
-{% load mezzanine_tags pagination_tags html_escape %}
+{% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
 {% comment %}
     TODO: migrate old graph template into this one
 {% endcomment %}
 
-<table class="table table-condensed">
-    <tr>
-        <!--<th>Scribe</th>-->
-        <th>Repository</th>
-        <th>Shelfmark</th>
-        <th>Hand</th>
-        <th>Place</th>
-        <th>Date</th>
-        <th>Catalogue Number</th>
-        <th>Actions</th>
-    </tr>
+{% chrono "start template:" %}
 
-    {% for hand in records %}
-        <tr class="{% cycle 'bgColour' '' %}">
-            <td>{{ hand.item_part.current_item.repository.name }}</td>
-            <td>{{ hand.item_part.current_item.shelfmark }}</td>
-            <td>{{ hand.label }}
-                {% if hand.images.all %}
-                    <a class="imageIcon" href="{% filter add_query_params:request.META.QUERY_STRING %}?id={{ hand.id }}&amp;result_type={{template_type}}#pages{% endfilter %}" title='{{page}}'>
-                        <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.images.count}} images' />
-                    </a>
-                    ({{hand.images.count}})
+{% chrono "pagination and loading:" %}
+
+<p>
+    {% chrono "load graphs:" %}
+    {% load_hands 'records' as ghands %}
+    {% chrono ":load_graphs" %}
+</p>
+
+<div class='tabbable'>
+    <div class="tab-content">
+
+        {% chrono "grid tab:" %}
+
+        <div class="tab-pane fade {% if type.views.0.active %}active in{% endif %}" id="{{ type.key }}-images">
+
+            {% for hand in ghands %}
+
+                {% if forloop.counter0|divisibleby:4 %}
+                    <div class='row'>
                 {% endif %}
-            </td>
-            <td>{{ hand.assigned_place.name }}</td>
-            <td>{{ hand.assigned_date.date }}</td>
-            <td>
-                {% for item in hand.item_part.historical_items.all %}
-                    {% if not loop.first %}, {% endif %}
-                    {{ item.catalogue_number }}
+                        <div class='col-md-3 centered col-xs-12'>
+
+                            <dl class="imageDatabase panel">
+                                <dt>
+                                    {% for graph in hand.graphs_template %}
+                                        {% if forloop.counter < 10 %}
+                                            <a data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                {% annotation_img graph.annotation lazy=1 %}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </dt>
+                                <dd>
+                                    <a href="{{ hand.get_absolute_url }}">
+                                        <strong>{{ hand }}</strong>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                {% if forloop.counter|divisibleby:4 or forloop.last %}
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+        {% chrono "table tab:" %}
+
+        <div class="tab-pane fade {% if type.views.1.active %}active in{% endif %}" id="{{ type.key }}-list">
+
+            <table class="table table-condensed">
+                <tr>
+                    <th>Graphs</th>
+                    <th>Hand</th>
+                    <th>Scribe</th>
+                    <th>Place</th>
+                    <th>Date</th>
+                    <th>Repository</th>
+                    <th>Shelfmark</th>
+                    <th>Catalogue Number</th>
+                </tr>
+                {% for hand in ghands %}
+                    <tr class="{% cycle 'bgColour' '' %}">
+                        <td>
+                            {% for graph in hand.graphs_template %}
+                                <a data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                    {% annotation_img graph.annotation lazy=1 %}
+                                </a>
+                            {% endfor %}
+                        </td>
+                        <td>{{ hand }}</td>
+                        <td>{{ hand.scribe }}</td>
+                        <td>{{ hand.assigned_place }}</td>
+                        <td>{{ hand.assigned_date }}</td>
+                        <td>{{ hand.item_part.current_item.repository.name }}</td>
+                        <td>{{ hand.item_part.current_item.shelfmark }}</td>
+                        <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+                    </tr>
                 {% endfor %}
-            </td>
-            <td>
-                {% if can_edit %}
-                    <a class="view_button" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
-                {% endif %}
-                <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}?id={{ hand.id }}&amp;result_type={{template_type}}{% endfilter %}">View</a>
-            </td>
-        </tr>
-    {% endfor %}
-</table>
+            </table>
+
+        </div>
+
+    </div>
+
+    {% chrono ":table tab" %}
+
+</div>
+
+

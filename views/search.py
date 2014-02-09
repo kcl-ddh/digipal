@@ -307,6 +307,15 @@ def get_cms_url_from_slug(slug):
     return u'/%s' % slug
 
 def search_graph_view(request):
+    # this has been integrated into the main search page
+    # see search_record_view()
+    
+    # we redirect old addresses to the new main search
+    from django.shortcuts import redirect
+    # TODO: get digipal from current project name or current URL
+    redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (request.META['QUERY_STRING'].replace('_select=', '='),)
+    return redirect(redirect_url)
+    
     """ View for Hand record drill-down """
     context = {}
 

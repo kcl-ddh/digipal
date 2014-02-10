@@ -945,8 +945,5 @@ function AnnotatorLoader() {
 	};
 }
 
-// launching script in anonymous private function
-
-
 var loader = new AnnotatorLoader();
 loader.init();

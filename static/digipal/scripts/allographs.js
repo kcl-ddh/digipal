@@ -758,7 +758,15 @@ function Allographs() {
 	};
 
 	this.refresh = function() {
-		console.log('ha');
+		var allographs_container = $('#allographs');
+		var request = $.ajax({
+			url: annotator.absolute_image_url + 'image_allographs/',
+			type: 'GET',
+			success: function(data) {
+				a = data;
+				annotator.has_changed = false;
+			}
+		});
 	};
 
 	this.keyboard_shortcuts = {

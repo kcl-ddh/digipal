@@ -268,44 +268,41 @@ def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
     annotation_list = Annotation.objects.filter(image=image_id)
-    image = Image.objects.get(id=image_id)
-    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form = ImageAnnotationForm()
-    hands = []
-    form.fields['hand'].queryset = image.hands.all()
-
-    width, height = image.dimensions()
-    image_server_url = image.zoomify
-
-    #is_admin = request.user.is_superuser
-    is_admin = has_edit_permission(request, Image)
 
     data = SortedDict()
 
     for annotation in annotation_list:
-        hand = annotation.graph.hand
-        hands.append(hand.id)
-        allograph_name = annotation.graph.idiograph.allograph
 
-        if hand in data:
-            if allograph_name not in data[hand]:
-                data[hand][allograph_name] = []
+        hand = {
+            "name": annotation.graph.hand.label,
+            "id": annotation.graph.hand.id
+        }
+
+        allograph = {
+            "name": annotation.graph.idiograph.allograph.human_readable(),
+            "id": annotation.graph.idiograph.allograph.id
+        }
+
+        if hand['name'] in data:
+            if allograph['name']  not in data[hand['name']]:
+                data[hand['name']][allograph['name']] = []
         else:
-            data[hand] = SortedDict()
-            data[hand][allograph_name] = []
+            data[hand['name']] = SortedDict()
+            data[hand['name']][allograph['name']] = []
 
-        data[hand][allograph_name].append(annotation)
+        ann = {
+            "graph": annotation.graph.id,
+            "url": annotation.get_absolute_url(),
+            "vector_id": annotation.vector_id,
+            "image_id": annotation.image.id
+        }
 
-    return render_to_response('digipal/image_allograph.html',
-            {'image': image,
-             'height': height,
-             'image_server_url': image_server_url,
-             'width': width,
-             'hands': list(set(hands)),
-             'data': data,
-             'form': form,
-             'can_edit': has_edit_permission(request, Annotation)},
-            context_instance=RequestContext(request))
+        data[hand['name']][allograph['name']].append(ann)
+
+    return HttpResponse(simplejson.dumps({
+        'data': data,
+        'can_edit': has_edit_permission(request, Annotation)
+    }), mimetype='application/json')
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))

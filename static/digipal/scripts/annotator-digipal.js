@@ -100,7 +100,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		self.showAnnotation(event.feature);
 	}
 
-	if(annotator.fullScreen.active){
+	if (annotator.fullScreen.active) {
 		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 	}
@@ -187,7 +187,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 
 	$(".number_annotated_allographs .number-allographs").html(0);
 
-	if(annotator.fullScreen.active){
+	if (annotator.fullScreen.active) {
 		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 	}
@@ -226,7 +226,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			$.each(elements_linked, function() {
 				this.feature = this.feature || 'Undefined annotation';
-				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right icon-remove ungroup' data-id='" + this.id + "' /></p>";
+				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
 			});
 
 			element += '</div>';
@@ -696,9 +696,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -751,7 +751,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component = data[idx].name;
 					component_id = data[idx].id;
 					var features = data[idx].features;
-					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-down'></span></b>";
+					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-arrow-down'></span></b>";
 
 					s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
@@ -772,7 +772,7 @@ function updateFeatureSelect(currentFeatures, id) {
 							if (array_features_owned.indexOf(value) >= 0) {
 								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
 							} else {
-								s += "<p class='col-md-2><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
+								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
 							}
 							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 						}
@@ -800,7 +800,7 @@ function updateFeatureSelect(currentFeatures, id) {
 							var element = "<div class='elements_linked'>";
 
 							$.each(elements_linked, function() {
-								element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right icon-remove ungroup' data-id='" + this.id + "' /></p>";
+								element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
 							});
 
 							element += '</div>';
@@ -883,11 +883,11 @@ function updateFeatureSelect(currentFeatures, id) {
 					if (div.data('hidden') === false) {
 						div.slideUp().data('hidden', true);
 						$(this).next('.checkboxes_div').hide();
-						$(this).find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
+						$(this).find('.arrow_component').removeClass('fa-arrow-up').addClass('fa-arrow-down');
 					} else {
 						div.slideDown().data('hidden', false);
 						$(this).next('.checkboxes_div').show();
-						$(this).find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
+						$(this).find('.arrow_component').removeClass('fa-arrow-down').addClass('fa-arrow-up');
 					}
 				});
 
@@ -1064,6 +1064,7 @@ function create_dialog(selectedFeature, id) {
 	}
 
 	var dialog = $("<div>");
+
 	dialog.attr('id', 'dialog' + id);
 	$('#annotations').append(dialog);
 	var path = $("#OpenLayers_Layer_Vector_27_svgRoot");
@@ -1165,9 +1166,9 @@ function create_dialog(selectedFeature, id) {
 
 	if (absolute_position) {
 		dialog.parent().css({
-			'position': 'fixed',
-			'top': '30%',
-			'left': '70%'
+			'position': 'sbsolute',
+			'top': '56%',
+			'left': '68%'
 		});
 	}
 
@@ -1516,9 +1517,7 @@ function fill_dialog(id, annotation) {
 		var allograph_id = get_allograph(annotation.feature);
 		refresh_letters_container(annotation.feature, allograph_id, true);
 	}
-	if (name_temporary_annotation.length) {
-		$('.ui-dialog-title').css('margin-left', '-2.5%');
-	}
+
 }
 
 function get_allograph(allograph) {
@@ -1721,7 +1720,7 @@ function showBox(selectedFeature) {
 						component = data[idx].name;
 						component_id = data[idx].id;
 						var features = data[idx].features;
-						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
+						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-arrow-up'></span></b>";
 						s += "<div class='checkboxes_div'>";
 						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
@@ -1781,11 +1780,11 @@ function showBox(selectedFeature) {
 						if (!div.data('hidden')) {
 							div.slideUp().data('hidden', true);
 							component.next('.checkboxes_div').hide();
-							component.find('.arrow_component').removeClass('icon-arrow-up').addClass('icon-arrow-down');
+							component.find('.arrow_component').removeClass('fa-arrow-up').addClass('fa-arrow-down');
 						} else {
 							div.slideDown().data('hidden', false);
 							component.next('.checkboxes_div').show();
-							component.find('.arrow_component').removeClass('icon-arrow-down').addClass('icon-arrow-up');
+							component.find('.arrow_component').removeClass('fa-arrow-down').addClass('fa-arrow-up');
 						}
 					});
 
@@ -2557,7 +2556,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 
 
 		var input_toolbar_position = $("input[name='toolbar_position']:checked");
-		if(input_toolbar_position.val() != 'Vertical'){
+		if (input_toolbar_position.val() != 'Vertical') {
 			toolbar.addClass('mapHorizontalFullscreen');
 			toolbar.removeClass('fullScreenToolbarVertical');
 		} else {
@@ -2567,14 +2566,14 @@ DigipalAnnotator.prototype.full_Screen = function() {
 
 
 		annotations_layer.attr('width', $(window).width())
-		.attr('height', $(window).height())
-		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
+			.attr('height', $(window).height())
+			.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
 
-		annotator.map.events.register("moveend", map, function(){
+		annotator.map.events.register("moveend", map, function() {
 			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 		});
 
-		annotator.map.events.register("zoomend", map, function(){
+		annotator.map.events.register("zoomend", map, function() {
 			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 		});
 
@@ -2594,15 +2593,15 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		}, 0);
 
 		annotations_layer.attr('width', map.width())
-		.attr('height', map.height())
-		.attr('viewport', "0 0 " + map.width() + " " + map.height());
+			.attr('height', map.height())
+			.attr('viewport', "0 0 " + map.width() + " " + map.height());
 
 
-		annotator.map.events.register("moveend", map, function(){
+		annotator.map.events.register("moveend", map, function() {
 			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
 		});
 
-		annotator.map.events.register("zoomend", map, function(){
+		annotator.map.events.register("zoomend", map, function() {
 			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
 		});
 

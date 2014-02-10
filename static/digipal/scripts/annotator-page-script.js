@@ -47,7 +47,7 @@ function AnnotatorLoader() {
 		var filter_allographs_button = $('#filterAllographs');
 		filter_allographs_button.click(function() {
 
-			if($(this).data('toggle-button') == 'open'){
+			if ($(this).data('toggle-button') == 'open') {
 				self.filter_allographs($(this));
 				$(this).data('toggle-button', 'close');
 			} else {
@@ -62,13 +62,13 @@ function AnnotatorLoader() {
 		var settings_button = $('#settings_annotator');
 		settings_button.click(function() {
 
-			if(!$(this).data('toggled')){
+			if (!$(this).data('toggled')) {
 				self.show_settings_window($(this));
 				$(this).data('toggled', true);
 				$(this).addClass('active');
 			}
 
-			if($(this).data('toggle-button') == 'open'){
+			if ($(this).data('toggle-button') == 'open') {
 				$("#modal_settings").dialog('open');
 				$(this).data('toggle-button', 'close');
 				$(this).addClass('active');
@@ -512,7 +512,7 @@ function AnnotatorLoader() {
 
 			var CheckAll = $('#checkAll');
 			CheckAll.click(function() {
-				if($(this).data('toggle') == 'uncheck'){
+				if ($(this).data('toggle') == 'uncheck') {
 					annotator.filterCheckboxes('.checkVectors', 'uncheck');
 					$(this).data('toggle', 'check');
 				} else {
@@ -523,7 +523,7 @@ function AnnotatorLoader() {
 
 			var checkAll_hands = $('#checkAll_hands');
 			checkAll_hands.click(function() {
-				if($(this).data('toggle') == 'uncheck'){
+				if ($(this).data('toggle') == 'uncheck') {
 					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
 					$(this).data('toggle', 'check');
 				} else {
@@ -565,7 +565,7 @@ function AnnotatorLoader() {
 
 				/* fixing annotations placement */
 				var container;
-				if(annotator.fullScreen.active){
+				if (annotator.fullScreen.active) {
 					container = $(window);
 				} else {
 					container = $('#map');
@@ -610,13 +610,13 @@ function AnnotatorLoader() {
 			}
 
 			var clonedSwitcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
-			if(clonedSwitcher.length){
+			if (clonedSwitcher.length) {
 				clonedSwitcher.bootstrapSwitch('setState', switcher.bootstrapSwitch('state'));
 			}
 
 			/* fixing annotations placement */
 			var container;
-			if(annotator.fullScreen.active){
+			if (annotator.fullScreen.active) {
 				container = $(window);
 			} else {
 				container = $('#map');
@@ -698,12 +698,12 @@ function AnnotatorLoader() {
 				"z-index": 1000
 			});
 
-			if(annotator.fullScreen.active){
+			if (annotator.fullScreen.active) {
 				toolbar.removeClass('mapHorizontalFullscreen');
 				toolbar.addClass('fullScreenToolbarVertical');
 			}
 
-			if($(window).width() < 860){
+			if ($(window).width() < 860) {
 				toolbar.css({
 					top: map.position().top - 150,
 					left: 0
@@ -717,15 +717,16 @@ function AnnotatorLoader() {
 
 		} else {
 			self.digipal_settings.toolbar_position = 'Horizontal';
-
+			var map_offset = (map.width() + map.position().left);
 			if (annotator.isAdmin == 'False') {
 				toolbar.css({
 					'position': 'absolute',
-					"left":  map.width() + map.position().left - toolbar.width(),
+					"left": map_offset - 296,
 					"top": map.position().top,
 					"width": "296px",
 					'border-left': '1px solid #ccc',
-					'border-top-left-radius': '4px',
+					'border-top-left-radius': '0px',
+					'border-top-right-radius': '0px',
 					'border-bottom-left-radius': '4px',
 					"z-index": 1000
 				});
@@ -738,7 +739,7 @@ function AnnotatorLoader() {
 			} else {
 				toolbar.css({
 					'position': 'absolute',
-					"left": (map.position().left + map.width()) - 296,
+					"left": (map.width() + map.position().left) - 385,
 					"top": map.position().top,
 					'border-left': '1px solid #ccc',
 					'border-top-left-radius': '4px',
@@ -754,7 +755,7 @@ function AnnotatorLoader() {
 				});
 			}
 
-			if(annotator.fullScreen.active){
+			if (annotator.fullScreen.active) {
 				toolbar.removeClass('fullScreenToolbarVertical');
 				toolbar.addClass('mapHorizontalFullscreen');
 			}
@@ -906,15 +907,15 @@ function AnnotatorLoader() {
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
-	this.toolbar_position = function(){
+	this.toolbar_position = function() {
 		var map = $('#map');
 		var toolbar = $('#toolbar');
 		$(window).resize(function() {
 			var input_toolbar_position = $("input[name='toolbar_position']:checked");
-			if(input_toolbar_position.val() == 'Vertical'){
+			if (input_toolbar_position.val() == 'Vertical') {
 
 
-				if($(window).width() < 860){
+				if ($(window).width() < 860) {
 					toolbar.css({
 						top: map.position().top - 150,
 						left: 0

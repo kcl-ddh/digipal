@@ -474,6 +474,7 @@ class SearchContentType(object):
         for view in ret:
             if view['key'] == self.desired_view:
                 view['active'] = True
+                found = True
                 break
         if not found and ret:
             ret[0]['active'] = True

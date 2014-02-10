@@ -29,8 +29,10 @@ function PublicAllograhs() {
 	this.init = function() {
 		var _self = this;
 		var annotation_li = $('.annotation_li');
+
 		annotation_li.click(function(event) {
 			var annotation_li = $(this);
+			var panel = annotation_li.parent().parent();
 			var annotation = annotation_li.data('graph');
 
 			if (annotation_li.data('selected')) {
@@ -42,6 +44,12 @@ function PublicAllograhs() {
 				annotation_li.data('selected', true);
 				annotation_li.addClass('selected');
 				_self.selectedAnnotations.push(annotation);
+			}
+
+			if (_self.selectedAnnotations.length) {
+				panel.find('.to_lightbox').attr('disabled', false);
+			} else {
+				panel.find('.to_lightbox').attr('disabled', true);
 			}
 
 		});

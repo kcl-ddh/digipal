@@ -49,6 +49,7 @@ class SearchGraphs(SearchContentType):
         self.graphs_count = 0
         
         scribe = request.GET.get('scribes', '')
+        # alternative names are for backward compatibility with old-style graph search page  
         script = request.GET.get('script', '')
         character = request.GET.get('character', '')
         allograph = request.GET.get('allograph', '')
@@ -81,8 +82,6 @@ class SearchGraphs(SearchContentType):
             
         t1 = datetime.now()
         
-        combine_component_and_feature = True
-    
         wheres = []
         if scribe:
             graphs = graphs.filter(hand__scribe__name__icontains=scribe)

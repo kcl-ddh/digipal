@@ -491,7 +491,7 @@ class SearchContentType(object):
     def build_queryset(self, request, term):
         ret = []
         # only run slow searches if that tab is selected; always run other searches
-        if not(self.is_slow() and (request.GET.get('result_type', '') != self.key)):
+        if not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)
         return ret
         

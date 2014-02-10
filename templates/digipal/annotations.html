@@ -30,8 +30,13 @@
         <div class="container">
           <!-- hand record -->
           <h2 id='{{key|anchorify}}' class='header1'>
-            <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-              {{image|capfirst}} - {{ key }}
+              {% comment %}
+                  {# No need to repeat MS shelfmark and locus, already in the main heading #}
+                  <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+                  {{image|capfirst}} 
+                  - 
+              {% endcomment %}
+              {{ key }}
           </h2>
 
           <h3>Allographs List</h3>

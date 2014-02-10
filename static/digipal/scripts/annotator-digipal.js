@@ -56,6 +56,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	if (!annotator.events) {
 		registerEvents();
 	}
+	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 
 	var group_button = $('.link_graphs');
 	if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
@@ -101,7 +102,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	}
 
 	if (annotator.fullScreen.active) {
-		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 	}
 };
@@ -246,6 +246,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				el_link.slideUp(500);
 				$(this).data('hidden', true);
 			}
+			var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 
 			el_link.find('p').on('mouseover', function(event) {
 				var id = $(this).data('id');
@@ -257,6 +258,11 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 					}
 				}
 				annotator.vectorLayer.redraw();
+
+				if (annotator.fullScreen.active) {
+					annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+				}
+
 			}).on('mouseout', function(event) {
 				var id = $(this).data('id');
 				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
@@ -267,6 +273,11 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 					}
 				}
 				annotator.vectorLayer.redraw();
+
+				if (annotator.fullScreen.active) {
+					annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+				}
+
 			}).on('click', function() {
 				var id = $(this).data('id');
 				var temp = annotator.selectedFeature.linked_to[0][id];
@@ -820,6 +831,8 @@ function updateFeatureSelect(currentFeatures, id) {
 								$(this).data('hidden', true);
 							}
 
+							var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+
 							el_link.find('p').on('mouseover', function(event) {
 								var id = $(this).data('id');
 								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
@@ -830,6 +843,9 @@ function updateFeatureSelect(currentFeatures, id) {
 									}
 								}
 								annotator.vectorLayer.redraw();
+								if (annotator.fullScreen.active) {
+									annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+								}
 							}).on('mouseout', function(event) {
 								var id = $(this).data('id');
 								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
@@ -840,6 +856,9 @@ function updateFeatureSelect(currentFeatures, id) {
 									}
 								}
 								annotator.vectorLayer.redraw();
+								if (annotator.fullScreen.active) {
+									annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+								}
 							}).on('click', function() {
 								var id = $(this).data('id');
 								annotator.selectFeatureById(id);
@@ -1165,9 +1184,11 @@ function create_dialog(selectedFeature, id) {
 	}).addClass('dialog_annotations');
 
 	if (absolute_position) {
+		var top_page_position = $(window).scrollTop();
+		var window_height = ($(window).height() / 100) * 25;
 		dialog.parent().css({
-			'position': 'sbsolute',
-			'top': '56%',
+			'position': 'absolute',
+			'top': top_page_position + window_height,
 			'left': '68%'
 		});
 	}
@@ -1306,6 +1327,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 					var container = $('.letters-allograph-container');
 					var container_number = $('.number_annotated_allographs');
 					var images_link = $('.vector_image_link');
+					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 					var features = annotator.vectorLayer.features;
 
 					images_link.fadeIn();
@@ -1321,6 +1343,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 						annotator.centreById(vector.data('vector-id'));
 					});
 
+
 					// waiting for all images to be loaded
 					images_link.on("mouseover", function() {
 						var vector = $(this);
@@ -1333,6 +1356,9 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 							}
 						}
 						annotator.vectorLayer.redraw();
+						if (annotator.fullScreen.active) {
+							annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+						}
 					});
 
 
@@ -1346,6 +1372,9 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 							}
 						}
 						annotator.vectorLayer.redraw();
+						if (annotator.fullScreen.active) {
+							annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+						}
 					});
 
 					images_link.dblclick(function() {

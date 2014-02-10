@@ -209,7 +209,7 @@ function notify(msg, status) {
 	status_element.attr('class', 'alert' + status_class);
 
 	if (status == 'success') {
-		status_element.html("<a style='color:#468847;' href='/digipal/page/lightbox/basket'>" + msg + "</a>").fadeIn();
+		status_element.html("<a style='color:#468847;' href='/digipal/collection'>" + msg + "</a>").fadeIn();
 	} else {
 		status_element.html(msg).fadeIn();
 	}

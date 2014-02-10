@@ -26,6 +26,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	}
 	this.annotations = null;
 	this.annotating = true;
+	this.has_changed = false;
 	this.events = false;
 	this.url_allographs = false;
 	this.unsaved_annotations = [];
@@ -1999,7 +2000,9 @@ function delete_annotation(layer, feature, number_annotations) {
 				}
 
 				// deleting from annotations by allograph
-				$('li[data-graph="' + feature.graph + ']"').remove();
+				// $('li[data-graph="' + feature.graph + ']"').remove();
+
+				annotator.has_changed = true;
 			}
 		}
 	});
@@ -2312,7 +2315,8 @@ function save(url, feature, data, ann, features) {
 			if (annotator.url_allographs && ann) {
 				load_annotations_allographs(ann);
 			}
-			annotator.vectorLayer.redraw();
+			annotator.has_changed = true;
+			//annotator.vectorLayer.redraw();
 		}
 	});
 }

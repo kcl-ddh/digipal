@@ -757,6 +757,10 @@ function Allographs() {
 
 	};
 
+	this.refresh = function() {
+		console.log('ha');
+	};
+
 	this.keyboard_shortcuts = {
 		init: function() {
 			$(document).on('keydown', function(event) {
@@ -790,8 +794,7 @@ function Allographs() {
 	};
 }
 
-(function() {
-	DigipalAnnotator.prototype.Allographs = Allographs;
-	var allographs = new annotator.Allographs();
-	allographs.init();
-})();
+
+DigipalAnnotator.prototype.Allographs = Allographs;
+var allographsPage = new annotator.Allographs();
+allographsPage.init();

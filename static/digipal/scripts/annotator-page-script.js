@@ -446,7 +446,8 @@ function AnnotatorLoader() {
 
 	this.filter_allographs = function(button) {
 		button.addClass('active');
-		var checkOutput = '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
+		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
+		checkOutput += '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
@@ -547,16 +548,21 @@ function AnnotatorLoader() {
 				var checkboxes = $(".checkVectors");
 				var checkboxes_hands = $(".checkVectors_hands");
 				var toggleButtons = $('#checkAll').add('#checkAll_hands');
+				var switcher_alert = $('#annotations-switcher-alert');
 				if ($(this).bootstrapSwitch('state')) {
 					annotator.vectorLayer.setVisibility(true);
+					toggleButtons.attr('disabled', false);
 
 					/* selecting all checkboxes */
-					toggleButtons.attr('disabled', false);
+
+					switcher_alert.addClass('hidden');
 					checkboxes.add(checkboxes_hands).prop('disabled', false);
 				} else {
 					annotator.vectorLayer.setVisibility(false);
+					switcher_alert.removeClass('hidden');
 
 					/* deselecting all checkboxes */
+
 					toggleButtons.attr('disabled', true);
 					checkboxes.add(checkboxes_hands).prop('disabled', true);
 				}

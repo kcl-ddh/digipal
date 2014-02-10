@@ -1333,7 +1333,8 @@ class Image(models.Model):
 
     def full(self):
         """Returns the URL for the full size image.
-           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
+           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&amp;RST=*&amp;QLT=100&amp;CVT=JPG
+           The query string in the returned URL is already encoded with ampersand.
         """
         path = ''
         if self.iipimage:

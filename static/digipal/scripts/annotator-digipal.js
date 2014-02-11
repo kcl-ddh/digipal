@@ -2067,14 +2067,27 @@ function highlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
 	var color;
 	for (i = 0; i < features.length; i++) {
-		features[i].feature.originalColor = features[i].feature.style.fillColor;
-		features[i].featureoriginalWidth = 2;
-		color = 'red';
-		if (features[i].feature.features.length) {
-			color = 'blue';
+		if (features[i].feature.style) {
+			features[i].feature.originalColor = features[i].feature.style.fillColor;
+			features[i].featureoriginalWidth = 2;
+			color = 'red';
+			if (features[i].feature.features.length) {
+				color = 'blue';
+			}
+			features[i].feature.style.strokeColor = color;
+			features[i].feature.style.strokeWidth = 6;
+		} else {
+			features[i].feature.style = {};
+			features[i].feature.originalColor = '#ee9900';
+			features[i].feature.fillopacity = 0.3;
+			features[i].featureoriginalWidth = 2;
+			color = 'red';
+			if (features[i].feature.features.length) {
+				color = 'blue';
+			}
+			features[i].feature.style.strokeColor = color;
+			features[i].feature.style.strokeWidth = 6;
 		}
-		features[i].feature.style.strokeColor = color;
-		features[i].feature.style.strokeWidth = 6;
 	}
 	annotator.vectorLayer.redraw();
 	button.addClass('active');
@@ -2309,8 +2322,11 @@ function save(url, feature, data, ann, features) {
 				annotator.selectedAnnotations = [];
 
 				feature.feature = allograph;
-				annotator.annotations[feature.graph].feature = allograph;
-				annotator.annotations[feature.graph].hidden_allograph = allograph_id + '::' + allograph;
+
+				if (annotator.annotations[feature.graph]) {
+					annotator.annotations[feature.graph].feature = allograph;
+					annotator.annotations[feature.graph].hidden_allograph = allograph_id + '::' + allograph;
+				}
 			}
 
 			var f = annotator.vectorLayer.features;

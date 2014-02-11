@@ -766,6 +766,7 @@ function Allographs() {
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
 		var anchorify = self.utils.anchorify;
 		var modal_features = $('#modal_features');
+		self.dialog.hide();
 		var request = $.ajax({
 			url: annotator.absolute_image_url + 'image_allographs/',
 			type: 'GET',
@@ -785,51 +786,46 @@ function Allographs() {
 
 
 				for (var index_hands in data) {
-					hands_list += "<li><b><a data-toggle='tooltip' title='Go to " + index_hands + "' href='" + anchorify(index_hands) + "'>" + index_hands + "</a></b></li>";
+					hands_list += "<li><b><a data-toggle='tooltip' title='Go to " + index_hands + "' href='#" + anchorify(index_hands) + "'>" + index_hands + "</a></b></li>";
 					index_hands_list++;
 				}
 
 				if (index_hands_list > 1) {
 					var container_hands_list = $("<div class='container'>");
 					container_hands_list.append(hands_list);
-					allographs_container.append(container);
+					allographs_container.append(container_hands_list);
 				}
 
 				var inner_allographs_list_container = $("<div class='container'>");
 				var allographs_list = '';
 				var allograph;
 				var allograph_object;
+
+				var annotations_container = $('<div class="container">');
+
+				var allograph_item = '';
 				for (var hand in data) {
 
-					allographs_list += "<h2 id='" + anchorify(data[hand].name) + "' class='header1'>" + data[hand].name + "</h2>";
-					allographs_list += '<h3>Allographs List</h3><div class="panel">';
+					allograph_item += "<h2 id='" + anchorify(data[hand].name) + "' class='header1'>" + data[hand].name + "</h2>";
+					allograph_item += '<h3>Allographs List</h3>';
+					allograph_item += '<div class="panel">';
+
 					for (allograph_object in data[hand]['allographs']) {
 						allograph = data[hand]['allographs'][allograph_object];
 						var allograph_name = allograph.name;
-						allographs_list += "<span><a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' class='label label-digipal' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'>" + allograph_name + "</a></span> ";
+						allograph_item += "<span><a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' class='label label-digipal' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'>" + allograph_name + "</a></span> ";
 					}
-					allographs_list += '</div>';
-				}
 
-				inner_allographs_list_container.append(allographs_list);
-				allographs_container.append(inner_allographs_list_container);
-
-
-
-				var annotations_container = $('<div class="allographs-list container">');
-				if (output['can_edit']) {
-					annotations_container.addClass('allograph-list-admin');
-				}
-
-				var allograph_item = '';
-				for (hand in data) {
+					allograph_item += '</div>';
+					allograph_item += '<div class="allographs-list container">';
 					for (allograph_object in data[hand]['allographs']) {
 						allograph = data[hand]['allographs'][allograph_object];
 						allograph_item += '<div class="allograph-item panel">';
 
 						allograph_item += "<h5 class='header5 pull-left' id='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "'>" + allograph.name + "</h5>";
 
-						allograph_item += "<div class='btn-group pull-right buttons_annotations_list'><button data-container='body' data-toggle='tooltip' title='Add annotations to collection' class='btn btn-default btn-small to_lightbox' disabled><i class='fa fa-folder-open'></i></button>";
+						allograph_item += "<div class='btn-group pull-right buttons_annotations_list'>";
+						allograph_item += "<button data-container='body' data-toggle='tooltip' title='Add annotations to collection' class='btn btn-default btn-small to_lightbox' disabled><i class='fa fa-folder-open'></i></button>";
 
 						allograph_item += "<button data-container='body' data-toggle='tooltip' title='Select all the annotations' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "' class='btn btn-default btn-small select_all'><i class='fa fa-check-square-o'></i></button>";
 
@@ -848,13 +844,17 @@ function Allographs() {
 							allograph_item += "<a data-placement='right' data-toggle='tooltip' href='" + annotator.absolute_image_url + '?vector_id=' + annotation.vector_id + "' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
 
 						}
-
 						allograph_item += '</div></ul>';
 					}
+					allograph_item += '</div>';
 				}
+
 
 				annotations_container.append(allograph_item);
 				allographs_container.append(annotations_container);
+				if (output['can_edit']) {
+					$('.allographs-list').addClass('allograph-list-admin');
+				}
 				allographs_container.append(modal_features);
 			},
 			complete: function() {

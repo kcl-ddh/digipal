@@ -1507,7 +1507,7 @@ function fill_dialog(id, annotation) {
 		});
 
 	} else {
-		s = "<textarea class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
+		s = "<textarea style='height:95%;' class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
 	}
 
 	dialog.html(s);
@@ -1529,11 +1529,19 @@ function fill_dialog(id, annotation) {
 		name_temporary_annotation.val(annotator.selectedFeature.contentTitle);
 	}
 
-	name_temporary_annotation.on('keydown', function() {
+	name_temporary_annotation.on('keyup', function() {
 		annotator.selectedFeature.contentTitle = $(this).val();
 	});
 
-	content_temporary_annotation.on('keydown', function() {
+	name_temporary_annotation.on('change', function() {
+		annotator.selectedFeature.contentTitle = $(this).val();
+	});
+
+	content_temporary_annotation.on('keyup', function() {
+		annotator.selectedFeature.contentAnnotation = $(this).val();
+	});
+
+	content_temporary_annotation.on('change', function() {
 		annotator.selectedFeature.contentAnnotation = $(this).val();
 	});
 

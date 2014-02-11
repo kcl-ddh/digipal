@@ -246,6 +246,17 @@ $(document).ready(function() {
 				}
 				localStorage.setItem("collections", JSON.stringify(collections));
 				window_save_collection.fadeOut().remove();
+
+				var container = $('#container_collections');
+				var collection = $('<div>');
+				collection.attr('class', 'collection');
+				collection.attr('id', id);
+				collection.addClass('col-md-2');
+				collection.append('<a href="?collection=' + collection_name + '"><img title="Send collection to basket" src="/static/img/folder.png" /></a>');
+				collection.append('<label>' + collection_name + '<label>');
+				collection.append("<button id = '" + collection_name + "' data-collection =  '" + id + "' class='remove_collection btn btn-danger btn-xs'>Remove</button>");
+				container.append(collection);
+
 				notify('<span style="color: #468847;">Collection saved succesfully</span>', "success");
 			} else {
 				notify('Please enter a name for this collection', "danger");

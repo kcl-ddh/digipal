@@ -447,7 +447,7 @@ function AnnotatorLoader() {
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
-		checkOutput += '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
+		checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
@@ -496,7 +496,7 @@ function AnnotatorLoader() {
 			});
 
 			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-			allographs_filter_box.html(checkOutput);
+			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
 
 			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 

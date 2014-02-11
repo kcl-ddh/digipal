@@ -300,6 +300,8 @@ class SearchContentType(object):
                         document[fields[k]['whoosh']['name']] = val
                     
             if document:
+                if record['id'] == 779:
+                    print document
                 if verbose:
                     print document
                 writer.add_document(**document)

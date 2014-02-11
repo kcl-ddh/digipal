@@ -1034,6 +1034,17 @@ class ItemPart(models.Model):
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 
+    def get_current_items(self):
+        # this function will return all related current items.
+        # by looking at the main CI and also the subdivisions.
+        ret = {}
+        if self.current_item:
+            ret[self.current_item.id] = self.current_item
+        for subdivision in self.subdivisions.all().order_by('id'):
+            if subdivision.current_item:
+                ret[subdivision.current_item.id] = subdivision.current_item
+        return ret.values()
+    
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'

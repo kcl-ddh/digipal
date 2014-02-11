@@ -19,27 +19,46 @@
     <div class='tabbable'>
         <div id='myTabContent' class='tab-content'>
             <div class='tab-pane fade active in' id='data'>
-                <h3>Location</h3>
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>Repository</th>
-                            <td>{{ item_part.current_item.repository.name }}</td>
-                        </tr>
-                        <tr>
-                            <th>Town or City</th>
-                            <td>{{ item_part.current_item.repository.place }}</td>
-                        </tr>
-                        <tr>
-                            <th>Shelfmark</th>
-                            <td>
-                                {{ item_part.current_item.shelfmark }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                {% for ci in item_part.get_current_items %}
+                    <h3>Location</h3>
+                    <table class="table table-condensed">
+                        <tbody>
+                            <tr>
+                                <th>Repository</th>
+                                <td>{{ ci.repository.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Town or City</th>
+                                <td>{{ ci.repository.place }}</td>
+                            </tr>
+                            <tr>
+                                <th>Shelfmark</th>
+                                <td>
+                                    {{ ci.shelfmark }}
+                                </td>
+                            </tr>
+                            {% for part in item_part.subdivisions.all %}
+                                {% if part.current_item == ci %}
+                                    <tr>
+                                        <th>Fragment</th>
+                                        <td>
+                                            <a href="{{ part.get_absolute_url }}">f. {{ part.locus }}</a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endfor %}
                 
-                <h3>Data</h3>
+                {% if item_part.group %}
+                    <h3>Reconstructed Folio</h3>
+                    <p>
+                        <a href="{{ item_part.group.get_absolute_url }}">{{ item_part.group.display_label }}</a>
+                    </p>                    
+                {% endif %}
+                
+                <h3>Date & origin</h3>
                 <table class="table table-condensed">
                     <tbody>
                         <tr>

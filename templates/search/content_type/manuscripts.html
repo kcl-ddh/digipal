@@ -27,9 +27,27 @@
                     {% endif %}
                 </td>
                 
-                <td>{{ manuscript.current_item.repository.place.name }}, {{ manuscript.current_item.repository.name }}</td>
-                <td>{{ manuscript.current_item.shelfmark }}</td>
-                <td>{{ manuscript.locus }}</td>
+                <td>
+                    {% for ci in manuscript.get_current_items %}
+                        {% if not forloop.first %}<br/> {% endif %}
+                        {{ ci.repository.place.name }}, {{ ci.repository.name }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for ci in manuscript.get_current_items %}
+                        {% if not forloop.first %}<br/> {% endif %}
+                        {{ ci.shelfmark }}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if manuscript.locus %}
+                        {{ manuscript.locus }}
+                    {% endif %}
+                    {% for ms in manuscript.subdivisions.all %}
+                        {% if not forloop.first %}<br/> {% endif %}
+                        {{ ms.locus }}
+                    {% endfor %}
+                </td>
                 <td>
                     {{ manuscript.description_snippet }}
                 </td>

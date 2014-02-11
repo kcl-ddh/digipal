@@ -2257,6 +2257,7 @@ function save(url, feature, data, ann, features) {
 				}
 				var allograph = select_allograph.find('.allograph_form option:selected').text();
 				var allograph_id = select_allograph.find('.allograph_form').val();
+
 				refresh_letters_container(allograph, allograph_id, true);
 				//}
 				var color;
@@ -2304,8 +2305,14 @@ function save(url, feature, data, ann, features) {
 						stylize(feature, color, color, 0.4);
 					}
 				}
+
 				annotator.selectedAnnotations = [];
+
+				feature.feature = allograph;
+				annotator.annotations[feature.graph].feature = allograph;
+				annotator.annotations[feature.graph].hidden_allograph = allograph_id + '::' + allograph;
 			}
+
 			var f = annotator.vectorLayer.features;
 			var f_length = annotator.vectorLayer.features.length;
 			var n = 0;
@@ -2314,6 +2321,9 @@ function save(url, feature, data, ann, features) {
 					n++;
 				}
 			}
+
+
+
 			$(".number_annotated_allographs .number-allographs").html(n);
 
 			// refresh allographs

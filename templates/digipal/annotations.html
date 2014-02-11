@@ -45,7 +45,7 @@
            <!-- links to allographs -->
             {% for allograph, graphs in allographs.items %}
               <span>
-                <a data-toggle='tooltip' title='Go to {{allograph}}' class="label label-digipal" href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
+                <a data-toggle='tooltip' data-container='body' title='Go to {{allograph}}' class="label label-digipal" href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>{{ allograph }}</a>
               </span>
              {% endfor %}
           </div>

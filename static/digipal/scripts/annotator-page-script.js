@@ -916,7 +916,8 @@ function AnnotatorLoader() {
 	this.toolbar_position = function() {
 		var map = $('#map');
 		var toolbar = $('#toolbar');
-		$(window).resize(function() {
+
+		function set_map() {
 			var input_toolbar_position = $("input[name='toolbar_position']:checked");
 			if (input_toolbar_position.val() == 'Vertical') {
 
@@ -938,9 +939,13 @@ function AnnotatorLoader() {
 					left: map.width() + map.position().left - toolbar.width()
 				});
 			}
+		}
 
-
+		$(window).resize(function() {
+			set_map();
 		});
+
+		set_map();
 
 	};
 }

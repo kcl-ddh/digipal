@@ -275,29 +275,32 @@ def image_allographs(request, image_id):
 
         hand = {
             "name": annotation.graph.hand.label,
-            "id": annotation.graph.hand.id
+            "id": annotation.graph.hand.id,
+            "allographs": SortedDict()
         }
 
         allograph = {
             "name": annotation.graph.idiograph.allograph.human_readable(),
-            "id": annotation.graph.idiograph.allograph.id
+            "id": annotation.graph.idiograph.allograph.id,
+            'annotations': []
         }
 
         if hand['name'] in data:
-            if allograph['name']  not in data[hand['name']]:
-                data[hand['name']][allograph['name']] = []
+            if allograph['name'] not in data[hand['name']]['allographs']:
+                data[hand['name']]['allographs'][allograph['name']] = SortedDict()
         else:
             data[hand['name']] = SortedDict()
-            data[hand['name']][allograph['name']] = []
+            data[hand['name']] = hand
 
         ann = {
             "graph": annotation.graph.id,
-            "url": annotation.get_absolute_url(),
+            "thumbnail": annotation.thumbnail(),
             "vector_id": annotation.vector_id,
             "image_id": annotation.image.id
         }
 
-        data[hand['name']][allograph['name']].append(ann)
+        data[hand['name']]['allographs'][allograph['name']] = allograph
+        data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
 
     return HttpResponse(simplejson.dumps({
         'data': data,

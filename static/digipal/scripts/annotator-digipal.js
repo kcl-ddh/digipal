@@ -763,7 +763,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					component = data[idx].name;
 					component_id = data[idx].id;
 					var features = data[idx].features;
-					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-arrow-down'></span></b>";
+					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-angle-double-down'></span></b>";
 
 					s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
@@ -903,11 +903,11 @@ function updateFeatureSelect(currentFeatures, id) {
 					if (div.data('hidden') === false) {
 						div.slideUp().data('hidden', true);
 						$(this).next('.checkboxes_div').hide();
-						$(this).find('.arrow_component').removeClass('fa-arrow-up').addClass('fa-arrow-down');
+						$(this).find('.arrow_component').removeClass('fa-angle-double-up').addClass('fa-angle-double-down');
 					} else {
 						div.slideDown().data('hidden', false);
 						$(this).next('.checkboxes_div').show();
-						$(this).find('.arrow_component').removeClass('fa-arrow-down').addClass('fa-arrow-up');
+						$(this).find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
 					}
 				});
 
@@ -1750,7 +1750,7 @@ function showBox(selectedFeature) {
 						component = data[idx].name;
 						component_id = data[idx].id;
 						var features = data[idx].features;
-						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-arrow-up'></span></b>";
+						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-angle-double-up'></span></b>";
 						s += "<div class='checkboxes_div'>";
 						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
@@ -1810,11 +1810,11 @@ function showBox(selectedFeature) {
 						if (!div.data('hidden')) {
 							div.slideUp().data('hidden', true);
 							component.next('.checkboxes_div').hide();
-							component.find('.arrow_component').removeClass('fa-arrow-up').addClass('fa-arrow-down');
+							component.find('.arrow_component').removeClass('fa-angle-double-up').addClass('fa-angle-double-down');
 						} else {
 							div.slideDown().data('hidden', false);
 							component.next('.checkboxes_div').show();
-							component.find('.arrow_component').removeClass('fa-arrow-down').addClass('fa-arrow-up');
+							component.find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
 						}
 					});
 

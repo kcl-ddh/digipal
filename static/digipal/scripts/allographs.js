@@ -766,6 +766,7 @@ function Allographs() {
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
 		var anchorify = self.utils.anchorify;
 		var modal_features = $('#modal_features');
+		var back_to_top = $('#ontop');
 		self.dialog.hide();
 		var request = $.ajax({
 			url: annotator.absolute_image_url + 'image_allographs/',
@@ -856,6 +857,7 @@ function Allographs() {
 					$('.allographs-list').addClass('allograph-list-admin');
 				}
 				allographs_container.append(modal_features);
+				allographs_container.append(back_to_top);
 			},
 			complete: function() {
 

@@ -246,6 +246,7 @@ function AnnotatorLoader() {
 			var map = annotator.map;
 			// zooms to the max extent of the map area
 			map.zoomToMaxExtent();
+
 			var layer = annotator.vectorLayer;
 			var format = annotator.format;
 			var annotations = data;
@@ -300,6 +301,17 @@ function AnnotatorLoader() {
 				});
 
 				map.addControl(navigation);
+
+				if (!annotator.events) {
+					map.events.register("moveend", map, function() {
+						registerEvents();
+					});
+
+					map.events.register("zoomend", map, function() {
+						registerEvents();
+					});
+				}
+
 				callback(); // calling all events on elements after all annotations get loaded
 			});
 		});
@@ -402,7 +414,7 @@ function AnnotatorLoader() {
 								initialLoad = false;
 							} else {
 								clearInterval(interval);
-								annotator.vectorLayer.events.remove('moveend');
+			annotator.vectorLayer.events.remove('moveend');
 							}
 						});
 					*/

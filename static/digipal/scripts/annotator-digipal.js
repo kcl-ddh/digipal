@@ -54,9 +54,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	var self = this;
 	this.selectedFeature = event.feature;
 
-	if (!annotator.events) {
-		registerEvents();
-	}
 	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 
 	var group_button = $('.link_graphs');
@@ -222,7 +219,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 		var allograph_label = $('.allograph_label');
 		allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" class="glyphicon glyphicon-list show_group" data-placement="bottom" data-container="body" data-toggle="tooltip" data-hidden="true" />').css('cursor', 'pointer').data('hidden', true);
 
-		allograph_label.unbind().click(function() {
+		allograph_label.unbind().on('click', function() {
 			var element = "<div class='elements_linked'>";
 
 			$.each(elements_linked, function() {
@@ -232,11 +229,10 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			element += '</div>';
 
-
 			if ($('.elements_linked').length) {
 				$('.elements_linked').replaceWith(element);
 			} else {
-				$('.ui-dialog .frmAnnotation').prepend(element);
+				$('#box_features_container').prepend(element);
 			}
 
 			var el_link = $('.elements_linked');
@@ -281,13 +277,14 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			}).on('click', function() {
 				var id = $(this).data('id');
-				var temp = annotator.selectedFeature.linked_to[0][id];
-				$.each(annotator.selectedFeature.linked_to[0], function() {
-					console.log(this.linked_to[0][id]);
-					delete this.linked_to[0][id];
-					this.linked_to[0][id] = temp;
-				});
 				annotator.selectFeatureByIdAndZoom(id);
+				var feature;
+				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+					if (annotator.vectorLayer.features[i].id == id) {
+						feature = annotator.vectorLayer.features[i];
+					}
+				}
+				annotator.map.zoomToExtent(feature.geometry.getBounds());
 				/*
 				for (var i = 0; i < features_length; i++) {
 					if (features[i].id == id) {
@@ -703,6 +700,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 				annotator.unsaved_annotations = [];
 				$('.number_unsaved_allographs').html(0);
 			}
+			registerEvents();
 		});
 	});
 };
@@ -2463,8 +2461,16 @@ function registerEvents() {
 	if (annotator.isAdmin == 'True') {
 		annotator.events = true;
 		var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-		paths.unbind();
-		paths.mouseenter(function() {
+		console.log(paths.length)
+		/*
+
+			Uncomment to activate mouseover and mouseout events
+			for displaying popups when a graphs has a display note field
+
+		*/
+
+		/*
+		paths.unbind().mouseenter(function() {
 			var features = annotator.vectorLayer.features;
 			for (var i = 0; i < features.length; i++) {
 				if ($(this).attr('id') == features[i].geometry.id) {
@@ -2473,9 +2479,7 @@ function registerEvents() {
 					}
 				}
 			}
-		});
-
-		paths.mouseleave(function() {
+		}).mouseleave(function() {
 			var features = annotator.vectorLayer.features;
 			for (var i = 0; i < features.length; i++) {
 				if (features[i].popup) {
@@ -2483,9 +2487,9 @@ function registerEvents() {
 				}
 			}
 		});
+		*/
 
-
-		paths.dblclick(function(event) {
+		paths.unbind().dblclick(function(event) {
 			var id = $(this).attr('id');
 			var feature, boxes_on_click = false;
 			var features = annotator.vectorLayer.features;
@@ -2504,7 +2508,6 @@ function registerEvents() {
 				var boxes_on_click_element = $("#boxes_on_click");
 				boxes_on_click_element.attr('checked', false);
 			}
-			event.stopPropagation();
 			return false;
 		});
 	}

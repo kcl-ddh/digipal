@@ -1219,7 +1219,7 @@ function create_dialog(selectedFeature, id) {
 	});
 
 	if (annotator.selectedFeature && !selectedFeature) {
-		selectedFeature = annotator.selectedFeature.graph;
+		selectedFeature = annotator.selectedFeature;
 	}
 
 	$('.to_lightbox').click(function() {

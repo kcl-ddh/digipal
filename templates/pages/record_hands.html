@@ -24,7 +24,7 @@
     <div class='tabbable'>
         <div id='record-tab-content' class='tab-content'>
             <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
-                
+
                 <dl class="dl-horizontal bs">
                     <dt>Name</dt>
                     <dd>{{ result.label }}</dd>
@@ -68,9 +68,9 @@
             </div>
 
             {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
-            
+
             {% include "digipal/add_to_collection.html" %}
-            
+
             <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
                 <div class="scribe annotations">
                     {% include "digipal/annotations.html" %}
@@ -84,4 +84,6 @@
 
 {% block extra_js %}
 <script src='{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js'></script>
+<script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+
 {% endblock %}

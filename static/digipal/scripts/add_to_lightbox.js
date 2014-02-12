@@ -59,12 +59,12 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						notify('Annotation not saved yet, otherwise refresh the layer', 'danger');
 						return false;
 					}
-					if (current_basket.annotations[j].graph == annotations[i].graph) {
+					if (current_basket.annotations[j].graph == annotations[i]) {
 						flag = false;
 					}
 				}
 				if (flag) {
-					current_basket.annotations.push(annotations[i]);
+					current_basket.annotations.push(parseInt(annotations[i], 10));
 				} else {
 					//notify('Image already in the basket', 'danger');
 					continue;
@@ -75,7 +75,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			current_basket = {};
 			current_basket.annotations = [];
 			for (i = 0; i < annotations.length; i++) {
-				current_basket.annotations.push(annotations[i]);
+				current_basket.annotations.push(parseInt(annotations[i], 10));
 			}
 		}
 		localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));

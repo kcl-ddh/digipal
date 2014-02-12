@@ -706,9 +706,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -1226,14 +1226,14 @@ function create_dialog(selectedFeature, id) {
 		if (!annotator.selectedFeature) {
 			annotator.selectedFeature = annotator.selectedAnnotations[annotator.selectedAnnotations.length];
 		}
-		if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
+		if (annotator.selectedAnnotations.length > 1) {
 			var links = [];
-			for (var l in annotator.selectedFeature.linked_to[0]) {
-				links.push(annotator.annotations[annotator.selectedFeature.linked_to[0][l].graph]);
+			for (var l in annotator.selectedAnnotations) {
+				links.push(annotator.selectedAnnotations[l].graph);
 			}
 			add_to_lightbox($(this), 'annotation', links, true);
 		} else {
-			add_to_lightbox($(this), 'annotation', selectedFeature, false);
+			add_to_lightbox($(this), 'annotation', selectedFeature.graph, false);
 		}
 
 	});

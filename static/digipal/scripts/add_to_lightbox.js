@@ -38,7 +38,7 @@ function update_collection_counter() {
 	}
 
 	var length_basket = length_basket_elements(basket_elements);
-	basket_element.html("Collection (" + length_basket + ")");
+	basket_element.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
 
 }
 

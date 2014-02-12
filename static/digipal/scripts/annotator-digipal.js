@@ -221,7 +221,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 		allograph_label.unbind().on('click', function() {
 			var element = "<div class='elements_linked'>";
-
+			console.log('ha');
 			$.each(elements_linked, function() {
 				this.feature = this.feature || 'Undefined annotation';
 				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
@@ -277,7 +277,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 			}).on('click', function() {
 				var id = $(this).data('id');
-				annotator.selectFeatureByIdAndZoom(id);
+				//annotator.selectFeatureByIdAndZoom(id);
 				var feature;
 				for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
 					if (annotator.vectorLayer.features[i].id == id) {
@@ -706,9 +706,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -818,7 +818,7 @@ function updateFeatureSelect(currentFeatures, id) {
 							if ($('.elements_linked').length) {
 								$('.elements_linked').replaceWith(element);
 							} else {
-								$('.dialog_annotations').prepend(element);
+								$('#box_features_container').prepend(element);
 							}
 
 							var el_link = $('.elements_linked');
@@ -860,7 +860,14 @@ function updateFeatureSelect(currentFeatures, id) {
 								}
 							}).on('click', function() {
 								var id = $(this).data('id');
-								annotator.selectFeatureById(id);
+								//annotator.selectFeatureByIdAndZoom(id);
+								var feature;
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									if (annotator.vectorLayer.features[i].id == id) {
+										feature = annotator.vectorLayer.features[i];
+									}
+								}
+								annotator.map.zoomToExtent(feature.geometry.getBounds());
 							});
 
 							var ungroup_elements = $('.ungroup');
@@ -2461,7 +2468,6 @@ function registerEvents() {
 	if (annotator.isAdmin == 'True') {
 		annotator.events = true;
 		var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-		console.log(paths.length)
 		/*
 
 			Uncomment to activate mouseover and mouseout events

@@ -5,7 +5,8 @@
 {% if annotations_list %}
 
      <!-- if there are at least 2 annotated hands, show the list -->
-    {% if hands > 1 %}
+    {% if annotations_list.keys|length > 1 %}
+
     <div class="container">
 
       <h3>Hands List</h3>

@@ -13,7 +13,7 @@ $.ajaxSetup({
 
 $(document).ready(function() {
 
-	var element_basket = $('#lightbox_button a');
+	var element_basket = $('#collection_link');
 	var container_basket = $('#container_basket');
 
 	function main(basket) {
@@ -157,9 +157,9 @@ $(document).ready(function() {
 						var length_basket = length_basket_elements(basket);
 
 						if (length_basket == 1) {
-							element_basket.html("Lightbox (" + length_basket + " image)");
+							element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
 						} else {
-							element_basket.html("Lightbox (" + length_basket + " images)");
+							element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
 						}
 
 						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
@@ -252,7 +252,7 @@ $(document).ready(function() {
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
 				collection.addClass('col-md-2');
-				collection.append('<a href="?collection=' + collection_name + '"><img title="Send collection to basket" src="/static/img/folder.png" /></a>');
+				collection.append('<a href="?collection=' + collection_name + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></a>');
 				collection.append('<label>' + collection_name + '<label>');
 				collection.append("<button id = '" + collection_name + "' data-collection =  '" + id + "' class='remove_collection btn btn-danger btn-xs'>Remove</button>");
 				container.append(collection);
@@ -372,9 +372,9 @@ $(document).ready(function() {
 		var length_basket = length_basket_elements(basket);
 
 		if (length_basket == 1) {
-			element_basket.html("Collection (" + length_basket + " image)");
+			element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
 		} else {
-			element_basket.html("Collection (" + length_basket + " images)");
+			element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
 		}
 
 		global_length_basket = length_basket;

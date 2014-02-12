@@ -58,7 +58,7 @@ function Collections() {
 	this.filter = function(pattern) {
 		var re = new RegExp(pattern, "gi");
 		$.each(this.collections, function(index, value) {
-			var element = $('.collection[id="' + value.id + '"');
+			var element = $('.collection[id="' + value.id + '"]');
 			if (!index.match(re)) {
 				element.fadeOut();
 			} else {

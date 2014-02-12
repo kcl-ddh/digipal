@@ -246,6 +246,7 @@ function AnnotatorLoader() {
 			var map = annotator.map;
 			// zooms to the max extent of the map area
 			map.zoomToMaxExtent();
+
 			var layer = annotator.vectorLayer;
 			var format = annotator.format;
 			var annotations = data;
@@ -300,6 +301,17 @@ function AnnotatorLoader() {
 				});
 
 				map.addControl(navigation);
+
+				if (!annotator.events) {
+					map.events.register("moveend", map, function() {
+						registerEvents();
+					});
+
+					map.events.register("zoomend", map, function() {
+						registerEvents();
+					});
+				}
+
 				callback(); // calling all events on elements after all annotations get loaded
 			});
 		});
@@ -402,7 +414,7 @@ function AnnotatorLoader() {
 								initialLoad = false;
 							} else {
 								clearInterval(interval);
-								annotator.vectorLayer.events.remove('moveend');
+			annotator.vectorLayer.events.remove('moveend');
 							}
 						});
 					*/
@@ -447,7 +459,7 @@ function AnnotatorLoader() {
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
-		checkOutput += '<div class="row" style="padding-left: 6%;padding-right: 6%;padding-top: 2%;"><div class="col-lg-6">';
+		checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 		var annotations = annotator.annotations;
 		var h;
@@ -496,7 +508,7 @@ function AnnotatorLoader() {
 			});
 
 			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
-			allographs_filter_box.html(checkOutput);
+			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
 
 			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
@@ -916,7 +928,8 @@ function AnnotatorLoader() {
 	this.toolbar_position = function() {
 		var map = $('#map');
 		var toolbar = $('#toolbar');
-		$(window).resize(function() {
+
+		function set_map() {
 			var input_toolbar_position = $("input[name='toolbar_position']:checked");
 			if (input_toolbar_position.val() == 'Vertical') {
 
@@ -938,9 +951,13 @@ function AnnotatorLoader() {
 					left: map.width() + map.position().left - toolbar.width()
 				});
 			}
+		}
 
-
+		$(window).resize(function() {
+			set_map();
 		});
+
+		set_map();
 
 	};
 }

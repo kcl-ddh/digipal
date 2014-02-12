@@ -75,10 +75,12 @@ function PublicAllograhs() {
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
+			var panel = $(this).parent().parent();
 			_self.selectedAnnotations = [];
 			temporary_vectors = [];
 			checkboxes.data('selected', false);
 			checkboxes.removeClass('selected');
+			panel.find('.to_lightbox').attr('disabled', true);
 		});
 
 		var select_all = $('.select_all');
@@ -86,12 +88,14 @@ function PublicAllograhs() {
 			var key = $(this).data('key');
 			var ul = $('ul[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
+			var panel = $(this).parent().parent();
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
 				_self.selectedAnnotations.push(annotation);
 			}
 			checkboxes.data('selected', true);
 			checkboxes.addClass('selected');
+			panel.find('.to_lightbox').attr('disabled', false);
 		});
 
 		var to_lightbox = $('.to_lightbox');

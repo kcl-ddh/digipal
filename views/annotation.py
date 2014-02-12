@@ -283,26 +283,38 @@ def image_allographs(request, image_id):
             "id": annotation.graph.idiograph.allograph.id
         }
 
-        if hand['name'] in data:
-            if allograph['name']  not in data[hand['name']]:
-                data[hand['name']][allograph['name']] = []
-        else:
-            data[hand['name']] = SortedDict()
-            data[hand['name']][allograph['name']] = []
-
         ann = {
             "graph": annotation.graph.id,
-            "url": annotation.get_absolute_url(),
+            "thumbnail": annotation.thumbnail(),
             "vector_id": annotation.vector_id,
             "image_id": annotation.image.id
         }
 
-        data[hand['name']][allograph['name']].append(ann)
+        if hand['name'] in data:
+            if not 'allographs' in data[hand['name']]:
+                data[hand['name']]['allographs'] = SortedDict()
+            if not allograph['name'] in data[hand['name']]['allographs']:
+                data[hand['name']]['allographs'][allograph['name']] = SortedDict()
+                data[hand['name']]['allographs'][allograph['name']] = allograph
 
-    return HttpResponse(simplejson.dumps({
+            if not 'annotations' in data[hand['name']]['allographs'][allograph['name']]:
+                data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
+
+            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
+
+        else:
+            data[hand['name']] = SortedDict()
+            data[hand['name']] = hand
+
+
+    response = {
         'data': data,
         'can_edit': has_edit_permission(request, Annotation)
-    }), mimetype='application/json')
+    }
+
+    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
+
+
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))

@@ -1181,7 +1181,12 @@ function create_dialog(selectedFeature, id) {
 				if (selectedFeature) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature + "</span> <button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button> <button data-toggle='tooltip' title='Add graph to collection' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button>";
 				} else {
-					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-default btn-xs pull-right' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span class='pull-right' style='margin-right: 0.5em;''><button data-hidden='true' class='url_allograph btn btn-default btn-xs ' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+				}
+				if (annotator.selectedAnnotations.length > 1) {
+					title += " <button data-toggle='tooltip' data-container='body' title='Group Annotations' class='btn btn-default btn-xs link_graphs'>Group</button></span>";
+				} else {
+					title += " <button data-toggle='tooltip' data-container='body' title='Group Annotations' class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button></span>";
 				}
 			}
 			return title;

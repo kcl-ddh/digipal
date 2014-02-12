@@ -280,11 +280,6 @@ class SearchContentType(object):
                 return natural_sort_key(sort_key, True)
             records = sorted(records, key=lambda record: sort_order(record))
             
-#             for record in records:
-#                 sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
-#                 print repr(sort_key)
-#                 print '\t%s' % repr(natural_sort_key(sort_key, True))
-        
         return records
     
     def write_index(self, writer, verbose=False):
@@ -309,7 +304,11 @@ class SearchContentType(object):
                 if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
                     val = u'%s' % k
                     for field_name in re.findall(ur'\w+', k):
-                        v = record[field_name]
+                        if isinstance(record, dict): 
+                            v = record[field_name]
+                        else:
+                            v = eval('record.' + field_name.replace('__', '.'))
+                                     
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
@@ -329,7 +328,7 @@ class SearchContentType(object):
             and natural sort. 
         '''
         import re 
-
+        
         fields = self.get_fields_info()
         
         # extract all the fields names from the content type schema
@@ -341,7 +340,27 @@ class SearchContentType(object):
                 django_fields.extend(re.findall(ur'\w+', k))
         
         # Retrieve all the records from the database
+        # Values turns individual results into dictionary of requested fields names and values
         records = self.get_qs_all().values(*django_fields).distinct()
+        
+        # GN: 11/02/2014
+        #
+        # Now force all joins to be LEFT JOINS
+        #
+        # Explanation:
+        #
+        # Django will usually generate LEFT joins except for non-nullable foreign keys.
+        # This causes issue when we search for scribes an retrieve fields from the repository.
+        # Scribes without hands will not be returned even though there is a left join to hand,
+        # that's because there will be a inner join from CI to repository. Scribes without hands
+        # have no CI and therefore no repository.
+        #
+        # So this might be considered as a Django bug because once part of a query path is 
+        # on left join longer paths based on it should de facto be also left joined.
+        #
+        for alias in records.query.alias_map:
+            records.query.promote_alias(alias, True)
+        
         ret = self.get_sorted_records(records)
         return ret
     
@@ -575,9 +594,12 @@ class SearchContentType(object):
         
         ret = []
         if django_filters or not use_whoosh:
+            from django.db.models import Q
             # We need to search using Django
-            ret = (self.get_model()).objects.filter(**django_filters).values_list('id', flat=True).distinct()
-            # TODO: sort the django results! (if pure django search)
+            #ret = (self.get_model()).objects.filter(**django_filters).values_list('id', flat=True).distinct()
+            # We use Q(q1) & Q(q2) & Q(q3) here as it is more correct (share the joins so it is a real AND rather then kind-of-AND) 
+            # and faster (less joins) than just filter(q1, q2, q3) 
+            ret = (self.get_model()).objects.filter(Q(**django_filters)).values_list('id', flat=True).distinct()
             
             if use_whoosh:
                 # Intersection between Whoosh results and Django results.
@@ -597,7 +619,6 @@ class SearchContentType(object):
             ret = self.whoosh_dict.keys()
          
         # Cache the result        
-        #self._queryset = records
         self._queryset = ret
             
         t1 = datetime.now()

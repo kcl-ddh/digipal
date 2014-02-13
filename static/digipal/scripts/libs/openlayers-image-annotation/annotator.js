@@ -187,7 +187,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		renderIntent: 'transform',
 		irregular: true,
 		rotate: false,
-		displayClass: 'olControlTransformFeature fa fa-edit ',
+		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
 	});
 
@@ -206,7 +206,6 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			var feature = e.object.feature;
 
 			if (feature.geometry.bounds.right - feature.geometry.bounds.left < 8) {
-				console.log('mhm, too narrow');
 				feature.destroy();
 				$('circle').remove();
 				$('polyline').remove();
@@ -253,7 +252,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// creates a rectangle feature
 	this.rectangleFeature = new OpenLayers.Control.DrawFeature(
 		this.vectorLayer, OpenLayers.Handler.RegularPolygon, {
-			displayClass: 'olControlDrawFeaturePolygon fa fa-square ',
+			displayClass: 'olControlDrawFeaturePolygon fa fa-pencil-square-o ',
 			handlerOptions: {
 				sides: 4,
 				irregular: true

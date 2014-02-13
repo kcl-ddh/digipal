@@ -334,7 +334,7 @@ function AnnotatorLoader() {
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
 
-				var temp = temporary_vectors[t];
+				var temp = decodeURI(temporary_vectors[t]);
 				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];

@@ -56,7 +56,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				for (j = 0; j < current_basket.annotations.length; j++) {
 					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
 					if (!annotations[i]) {
-						notify('Annotation not saved yet, otherwise refresh the layer', 'danger');
+						notify('Annotation has not been saved yet. Otherwise, refresh the layer', 'danger');
 						return false;
 					}
 					if (current_basket.annotations[j].graph == annotations[i]) {
@@ -84,7 +84,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		if (type == 'annotation') {
 			graph = button.data('graph');
 			if (typeof graph == 'undefined' || !graph) {
-				notify('Annotation not saved yet', 'danger');
+				notify('Annotation has not been saved yet', 'danger');
 				return false;
 			}
 			if (current_basket.annotations === undefined) {
@@ -126,7 +126,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			if (flag) {
 				if (type == 'annotation') {
 					if (annotations == 'undefined' || !annotations) {
-						notify('Annotation not saved yet', 'danger');
+						notify('Annotation has not been saved yet', 'danger');
 						return false;
 					}
 					elements.push(annotations);
@@ -141,7 +141,11 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					});
 				}
 			} else {
-				notify('Image already collected', 'danger');
+				if (type == 'annotation') {
+					notify('Annotation has already been added to Collection', 'danger');
+				} else {
+					notify('Page has already been added to Collection', 'danger');
+				}
 				return false;
 			}
 
@@ -184,7 +188,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	}
 
 	update_collection_counter();
-	notify('Image added to collection!', 'success');
+	notify('Image succesfully added to collection', 'success');
 	return true;
 }
 

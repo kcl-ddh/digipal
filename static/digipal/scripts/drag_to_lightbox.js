@@ -56,7 +56,7 @@ $(document).ready(function() {
 		containment: false,
 		cursor: 'move',
 		revert: true,
-
+		scroll: false,
 		start: function(event) {
 			basket_collector.animate({
 				bottom: '0'
@@ -69,21 +69,18 @@ $(document).ready(function() {
 				basket_collector.animate({
 					bottom: '-28%'
 				}, 350);
-			}, 1000);
+			}, 0);
 			//event.stopPropagation();
 		}
 	});
 
-	$('.imageDatabase').data('hovered', false);
+
 	$('.imageDatabase').on('mouseenter', function(event) {
-		if (!$(this).data('hovered')) {
-			$(this).find('.drag_caption').slideDown();
-		}
+		$(this).find('.drag_caption').fadeIn(250);
 		event.stopPropagation();
-		$(this).data('hovered', true);
 		return false;
 	}).on('mouseleave', function(event) {
-		$(this).find('.drag_caption').fadeOut();
+		$(this).find('.drag_caption').fadeOut(250);
 		event.stopPropagation();
 		return false;
 	});

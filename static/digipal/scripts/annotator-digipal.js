@@ -37,6 +37,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight,
 	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
 	this.transformFeature.panel_div.title = 'Modify (shift + m)';
 	this.rectangleFeature.panel_div.title = 'Draw Annotation (shift + d)';
+	if (isAdmin !== 'True') {
+		this.rectangleFeature.panel_div.title = 'Create Annotation (shift + d)';
+	}
 	this.selectFeature.panel_div.title = 'Select (shift + g)';
 	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
 	this.saveButton.panel_div.title = 'Save (shift + s)';
@@ -62,7 +65,14 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 			if (value) {
 				self.showAnnotation(value);
 				self.selectedAnnotations.push(value);
-				var msg = self.selectedAnnotations.length + ' annotation selected';
+				var msg;
+
+				if (self.selectedAnnotations.length > 1 || !self.selectedAnnotations.length) {
+					msg = self.selectedAnnotations.length + ' annotations selected';
+				} else {
+					msg = self.selectedAnnotations.length + ' annotation selected';
+				}
+
 				updateStatus(msg, 'success');
 
 				if (group_button.length && self.selectedAnnotations.length > 1) {
@@ -82,7 +92,14 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	} else if (typeof self.selectedFeature.linked_to != 'undefined' && $.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 
 		self.selectedAnnotations.push(self.selectedFeature);
-		var msg = self.selectedAnnotations.length + ' annotation selected';
+		var msg;
+
+		if (self.selectedAnnotations.length > 1 || !self.selectedAnnotations.length) {
+			msg = self.selectedAnnotations.length + ' annotations selected';
+		} else {
+			msg = self.selectedAnnotations.length + ' annotation selected';
+		}
+
 		updateStatus(msg, 'success');
 		self.showAnnotation(self.selectedFeature);
 		if (self.selectedAnnotations.length < 2) {
@@ -146,7 +163,14 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 			group_button.addClass('disabled');
 		}
 
-		var msg = this.selectedAnnotations.length + ' annotations selected';
+		var msg;
+
+		if (this.selectedAnnotations.length > 1 || !this.selectedAnnotations.length) {
+			msg = this.selectedAnnotations.length + ' annotations selected';
+		} else {
+			msg = this.selectedAnnotations.length + ' annotation selected';
+		}
+
 		updateStatus(msg, 'success');
 	} else {
 		if (!annotator.allow_multiple_dialogs) {
@@ -1696,14 +1720,16 @@ function show_url_allograph(dialog, annotation, button) {
 		}
 
 		gapi.client.load('urlshortener', 'v1', function() {
+
 			var request = gapi.client.urlshortener.url.insert({
 				'resource': {
 					'longUrl': allograph_url
 				}
 			});
+
 			var resp = request.execute(function(resp) {
 				if (resp.error) {
-					return false;
+					throw new Error('Got error in requesting short url');
 				} else {
 					$('#url_allograph_gif').fadeOut().remove();
 					a.attr('href', resp.id);
@@ -1713,6 +1739,7 @@ function show_url_allograph(dialog, annotation, button) {
 					dialog.prepend(url);
 				}
 			});
+
 		});
 
 	} else {

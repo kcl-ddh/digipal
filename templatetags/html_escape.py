@@ -243,3 +243,18 @@ escapenewline.is_safe = True
 escapenewline = stringfilter(escapenewline)
 register.filter('escapenewline', escapenewline)
 
+@register.inclusion_tag('pagination/pagination.html', takes_context=True)
+def dp_pagination_for(context, current_page):
+    ''' Replacement for mezzanine template tag: pagination_for.
+        It takes the same inputs but adapts them to use the django-pagination 
+        template we use everywhere else.
+        
+        current_page = instance of 'django.core.paginator.Page'
+    '''    
+    context['paginator'] = current_page.paginator
+    context['page_obj'] = current_page
+    
+    from pagination.templatetags.pagination_tags import paginate
+    ret = paginate(context)
+      
+    return ret

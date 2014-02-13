@@ -422,7 +422,7 @@ function AnnotatorLoader() {
 			// zoom map to extent
 
 			if (getParameter('map_extent').length) {
-				var extent_parsed = JSON.parse(getParameter('map_extent')[0]);
+				var extent_parsed = JSON.parse(decodeURI(getParameter('map_extent')[0]));
 				var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
 
 				annotator.map.zoomToExtent(extent);

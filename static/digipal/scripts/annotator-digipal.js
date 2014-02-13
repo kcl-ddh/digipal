@@ -1609,7 +1609,7 @@ function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
 	if (button.data('hidden')) {
 		button.data('hidden', false);
-		$('.link_graphs').after(' <img src="/static/images/ajax-loader3.gif" id="url_allograph_gif" />');
+		$('.link_graphs').after(' <img src="/static/digipal/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div'>");
 		var allograph_url, stored = false;
 		var a = $('<a>');

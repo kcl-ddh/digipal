@@ -136,7 +136,7 @@ $(function() {
     // carousel rotation
     if ($.fn.carousel) {
         $('.carousel').carousel({
-            interval: 5000
+            interval: 8000
         })
     }
 });

@@ -19,22 +19,18 @@ $(document).ready(function() {
 		drop: function(event, ui) {
 			var element = $(ui.helper[0]);
 			var type = element.data('type');
+			var s;
 			if (add_to_lightbox(element, type, element.data('id'), false)) {
 
-				var s = '<p>Image added to Collection!</p>';
+				s = '<p>Image added to Collection!</p>';
 				s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
 				$(this).html(s);
 
 			}
 
-			var interval = setTimeout(function() {
-				s = '<p>Add image to Collection</p>';
-				s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" alt="add to collection" /></p>';
+			setTimeout(function() {
+				s = '<p>Drop Image here</p>';
 				basket_collector.html(s);
-
-				basket_collector.animate({
-					bottom: '-28%'
-				}, 350);
 
 			}, 3000);
 
@@ -43,11 +39,11 @@ $(document).ready(function() {
 		},
 
 		out: function() {
-			$(this).css('background', 'rgba(0, 0, 0, 0.7)');
+			$(this).css('background', '#fff');
 		},
 
 		over: function() {
-			$(this).css('background', 'rgba(100, 100, 100, 0.7)');
+			$(this).css('background', 'rgba(255, 255, 255, 0.8)');
 		}
 	});
 
@@ -57,6 +53,7 @@ $(document).ready(function() {
 		cursor: 'move',
 		revert: true,
 		scroll: false,
+		zIndex: 1001,
 		start: function(event) {
 			basket_collector.animate({
 				bottom: '0'
@@ -69,7 +66,7 @@ $(document).ready(function() {
 				basket_collector.animate({
 					bottom: '-28%'
 				}, 350);
-			}, 0);
+			}, 500);
 			//event.stopPropagation();
 		}
 	});

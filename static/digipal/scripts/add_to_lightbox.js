@@ -43,10 +43,13 @@ function update_collection_counter() {
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
-	console.log(annotations);
 	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 	if (!current_basket) {
 		current_basket = {};
+	}
+	if (annotations === null) {
+		notify('Error. Try again');
+		return false;
 	}
 	var flag, i, j, elements, image_id;
 	if (multiple) {
@@ -59,14 +62,13 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						notify('Annotation has not been saved yet. Otherwise, refresh the layer', 'danger');
 						return false;
 					}
-					if (current_basket.annotations[j].graph == annotations[i]) {
+					if (current_basket.annotations[j] == annotations[i]) {
 						flag = false;
 					}
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
 				} else {
-					//notify('Image already in the basket', 'danger');
 					continue;
 				}
 			}
@@ -82,7 +84,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	} else {
 		var graph;
 		if (type == 'annotation') {
-			graph = button.data('graph');
+			graph = annotations;
 			if (typeof graph == 'undefined' || !graph) {
 				notify('Annotation has not been saved yet', 'danger');
 				return false;
@@ -106,13 +108,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				if (type == 'annotation') {
 					var el;
 
-					if (elements[j].hasOwnProperty('graph')) {
-						el = elements[j].graph;
-					} else {
-						el = elements[j];
-					}
-
-					if (el == graph) {
+					if (elements[j] == graph) {
 						flag = false;
 					}
 

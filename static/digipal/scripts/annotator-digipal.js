@@ -1431,6 +1431,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 				});
 			});
 
+			/*
 			var ul = $('ul[data-allograph="' + allograph_value + '"]');
 			if (!ul.length) {
 				ul = $('<ul data-allograph="' + allograph_value + '" class="list-allographs" data-key="' + allograph_id + '_' + allograph_value.replace('', '-') + '">');
@@ -1442,6 +1443,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 				el += '<p><span class="label label-info">' + (h + 1) + '</span></p>' + data[h].image + '</li>';
 			}
 			ul.html(el);
+			*/
 		} else {
 			s = "<p><label>No Annotations</label></p>";
 			container_div.html(s);
@@ -1861,6 +1863,31 @@ function showBox(selectedFeature) {
 							component.next('.checkboxes_div').show();
 							component.find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
 						}
+					});
+
+					var annotation;
+					for (var i = 0; i < features.length; i++) {
+						for (var j in annotator.annotations) {
+							if (annotator.annotations[j].graph == features[i].graph) {
+								annotation = annotator.annotations[j];
+							}
+						}
+					}
+					var feature_checkboxes = $(".features_box");
+					feature_checkboxes.on('change', function() {
+
+						var value = $(this).val();
+						if (annotation.features.indexOf(value) < 0) {
+							annotation.features.push(value);
+						} else {
+							for (var d = 0; d < annotation.features.length; d++) {
+								if (annotation.features[d] == value) {
+									annotator.features.splice(d, 1);
+									d--;
+								}
+							}
+						}
+
 					});
 
 				});
@@ -2375,17 +2402,17 @@ function save(url, feature, data, ann, features) {
 				}
 			}
 
-
-
 			$(".number_annotated_allographs .number-allographs").html(n);
 
 			// refresh allographs
 
 		},
 		complete: function() {
+			/*
 			if (annotator.url_allographs && ann) {
 				load_annotations_allographs(ann);
 			}
+			*/
 			annotator.has_changed = true;
 			//annotator.vectorLayer.redraw();
 		}

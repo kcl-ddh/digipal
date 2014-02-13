@@ -57,7 +57,16 @@ function Allographs() {
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function(event) {
-			self.methods.to_lightbox($(this), self.selectedAnnotations.annotations);
+			if (self.selectedAnnotations.annotations.length > 1) {
+				var annotations = [];
+				for (var i = 0; i < self.selectedAnnotations.annotations.length; i++) {
+					annotations.push(self.selectedAnnotations.annotations[i].graph);
+				}
+				self.methods.to_lightbox($(this), annotations, true);
+			} else {
+				self.methods.to_lightbox($(this), self.selectedAnnotations.annotations[0].graph, false);
+			}
+
 		});
 
 		/* event to show summary */
@@ -85,6 +94,26 @@ function Allographs() {
 		});
 
 		self.keyboard_shortcuts.init();
+
+
+		var target = document.querySelector('.annotation_li');
+
+		// create an observer instance
+		var observer = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+				console.log(mutation);
+			});
+		});
+
+		// configuration of the observer:
+		var config = {
+			attributes: true,
+			childList: true,
+			characterData: true
+		};
+
+		// pass in the target node, as well as the observer options
+		observer.observe(target, config);
 	};
 
 	this.methods = {
@@ -125,12 +154,16 @@ function Allographs() {
 			}
 			for (i = 0; i < selected_features.length; i++) {
 				annotator.selectedFeature = selected_features[i];
-				annotator.saveAnnotation(annotation, true);
+				annotator.saveAnnotation(annotation, false);
 			}
+			//annotator.vectorLayer.redraw();
+
+			/*
 			var annotations_li = $('.annotation_li');
 			annotations_li.unbind().click(function(event) {
 				self.select_annotation($(this));
 			});
+			*/
 		},
 
 		delete: function() {
@@ -156,6 +189,8 @@ function Allographs() {
 					element.fadeOut().remove();
 				}
 			}
+
+			//annotator.vectorLayer.redraw();
 		},
 
 		deselect_all: function(button) {
@@ -217,8 +252,8 @@ function Allographs() {
 			});
 		},
 
-		to_lightbox: function(button, annotations) {
-			add_to_lightbox(button, 'annotation', annotations, true);
+		to_lightbox: function(button, annotations, multiple) {
+			add_to_lightbox(button, 'annotation', annotations, multiple);
 		},
 
 		to_annotator: function(annotation_id) {
@@ -226,8 +261,16 @@ function Allographs() {
 			tab.tab('show');
 			annotator.selectFeatureByIdAndZoom(annotation_id);
 			var select_allograph = $('#panelImageBox');
+			var features = annotator.vectorLayer.features;
 			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-			var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
+			var annotation_graph;
+			for (var i = 0; i < features.length; i++) {
+				for (var j in annotator.annotations) {
+					if (annotator.annotations[j].graph == features[i].graph) {
+						annotation_graph = annotator.annotations[j];
+					}
+				}
+			}
 			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 			$('select').trigger('liszt:updated');
 		}
@@ -839,10 +882,10 @@ function Allographs() {
 
 						for (var i = 0; i < allograph['annotations'].length; i++) {
 							var annotation = allograph['annotations'][i];
-							allograph_item += "<li class='annotation_li' data-graph = '" + annotation.graph + "' data-annotation = '" + annotation.vector_id + "' data-image='" + annotation.image_id + "' title='Click here to select this allograph' data-toggle='tooltip'>";
+							allograph_item += "<li class='annotation_li' data-graph = '" + annotation.graph + "' data-annotation = '" + annotation.vector_id + "' data-image='" + annotation.image_id + "' title='Click here to select this graph' data-toggle='tooltip'>";
 							allograph_item += "<p><span class='label label-default'>" + (i + 1) + "</span></p>";
 
-							allograph_item += "<a data-placement='right' data-toggle='tooltip' href='" + annotator.absolute_image_url + '?vector_id=' + annotation.vector_id + "' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
+							allograph_item += "<a data-placement='right' data-toggle='tooltip' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
 
 						}
 						allograph_item += '</div></ul>';

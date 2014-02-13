@@ -27,12 +27,7 @@ $(document).ready(function() {
 		if (basket.annotations && basket.annotations.length) {
 			s += "<h3 id='header_annotations'>Annotations (" + basket.annotations.length + ")</h3>";
 			for (var i = 0; i < basket.annotations.length; i++) {
-				if (basket.annotations[i].hasOwnProperty('graph')) {
-					graphs.push(basket.annotations[i].graph);
-				} else {
-					graphs.push(basket.annotations[i]);
-				}
-
+				graphs.push(basket.annotations[i]);
 			}
 			data.annotations = graphs;
 		}

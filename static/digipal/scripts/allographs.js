@@ -271,6 +271,7 @@ function Allographs() {
 					}
 				}
 			}
+			console.log(getKeyFromObjField(annotation_graph, 'hidden_allograph'))
 			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 			$('select').trigger('liszt:updated');
 		}

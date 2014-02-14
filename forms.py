@@ -122,23 +122,28 @@ class InlineForm(forms.ModelForm):
         # instance is always available, it just does or doesn't have pk.
         self.fields['edit_link'].widget = InlineLinkWidget(self.instance)
 
+
+from digipal.models import Image
+
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
-        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True),
+        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True).order_by('name'),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "",
         empty_label = "Town or City",
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__images__id__gt=0).order_by('place__name', 'name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
         required = False)
 
     date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
+        #queryset = Date.objects.filter().values_list('date', flat=True).order_by('date').distinct(),
+        # TODO: order the dates
+        queryset = Image.objects.values_list('hands__assigned_date__date', flat=True).order_by('hands__assigned_date__date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
         label = "",
         empty_label = "Date",

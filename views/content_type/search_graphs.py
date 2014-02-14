@@ -158,21 +158,21 @@ class SearchGraphs(SearchContentType):
 class FilterGraphs(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
     script = forms.ModelChoiceField(
-        queryset=Script.objects.values_list('name', flat= True).order_by('name').distinct(),
+        queryset=Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(),
         widget=Select(attrs={'id':'script', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
         label="",
         empty_label = "Script",
         required=False
     )
     character = forms.ModelChoiceField(
-        queryset=Character.objects.values_list('name', flat= True).distinct(),
+        queryset=Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(),
         widget=Select(attrs={'id':'character', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label='',
         empty_label = "Character",
         required=False
     )
     allograph = forms.ChoiceField(
-        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().distinct()],
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='',
@@ -180,14 +180,14 @@ class FilterGraphs(forms.Form):
         required=False
     )
     component = forms.ModelChoiceField(
-        queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),
+        queryset=Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(),
         widget=Select(attrs={'id':'component', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
         empty_label = "Component",
         label='',
         required=False
     )
     feature = forms.ModelChoiceField(
-        queryset=Feature.objects.values_list('name', flat= True).order_by('name').distinct(),
+        queryset=Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(),
         widget=Select(attrs={'id':'feature', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
         empty_label = "Feature",
         label='',

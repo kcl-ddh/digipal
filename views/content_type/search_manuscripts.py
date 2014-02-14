@@ -214,27 +214,32 @@ class SearchManuscripts(SearchContentType):
             end += 1
         return text[start:end]
 
+from digipal.utils import sorted_natural
 class FilterManuscripts(forms.Form):
 
-    index = forms.ModelChoiceField(
-        queryset = HistoricalItem.objects.filter(catalogue_number__gt='').values_list('catalogue_number', flat=True).distinct(),
+    index = forms.ChoiceField(
+        choices = [("", "Catalogue Number")] + 
+                    [(cn, cn) for cn in sorted_natural(
+                            '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
+                        )
+                    ],
         widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
         label = "",
-        empty_label = "Catalogue Number",
+        initial = "Catalogue Number",
         required = False)
 
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()],
+        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
-        required = False,
-        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         initial = "Repository",
-    )
+        required = False)
 
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
+    date = forms.ChoiceField(
+        # TODO: order the dates
+        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct()))],
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
         label = "",
-        empty_label = "Date",
+        initial = "Date",
         required = False)
 

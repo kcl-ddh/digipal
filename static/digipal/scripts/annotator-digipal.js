@@ -542,11 +542,13 @@ DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {
  */
 DigipalAnnotator.prototype.showAnnotation = function(feature) {
 	var select_allograph;
+
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
 		select_allograph = $('#panelImageBox .allograph_form');
 	} else {
 		select_allograph = $('.modal-body .allograph_form');
 	}
+
 	if (feature.state == 'Insert') {
 		var allograph;
 		var allograph_list = select_allograph.find('option');
@@ -584,7 +586,6 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		this.vectorLayer.redraw();
 	}
 
-
 	if (this.annotations) {
 		var annotation = null;
 		for (var idx in this.annotations) {
@@ -611,9 +612,7 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 				}
 			}
 		}
-
 	}
-
 };
 /*
     Function to get a feature by the vector id
@@ -1784,7 +1783,7 @@ function showBox(selectedFeature) {
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
 		if (can_edit) {
-			var request = $.getJSON('/digipal/page/' + annotator.image_id + "/graph/" + selectedFeature.graph);
+			var request = $.getJSON(annotator.absolute_image_url + "graph/" + selectedFeature.graph);
 			request.done(function(data) {
 				var url = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
 				var s = '<form class="frmAnnotation" method="get" name="frmAnnotation">';
@@ -1802,7 +1801,6 @@ function showBox(selectedFeature) {
 						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
 						s += "</div></div>";
 						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-
 						$.each(features, function(idx) {
 							var value = component_id + '::' + features[idx].id;
 							var id = component_id + '_' + features[idx].id;
@@ -2363,7 +2361,7 @@ function save(url, feature, data, ann, features) {
 						feature.described = false;
 						feature.num_features = 0;
 					}
-					stylize(feature, color, 'blue', 0.4);
+					stylize(feature, color, color, 0.4);
 					feature.style.originalColor = color;
 					feature.style.strokeWidth = 2;
 					feature.stored = true;
@@ -2555,28 +2553,33 @@ function registerEvents() {
 		*/
 
 		paths.unbind().dblclick(function(event) {
+
+			if (annotator.boxes_on_click) {
+				boxes_on_click = true;
+			}
+
+			annotator.boxes_on_click = true;
 			var id = $(this).attr('id');
+			var boxes_on_click_element = $("#boxes_on_click");
+			boxes_on_click_element.prop('checked', true);
 			var feature, boxes_on_click = false;
 			var features = annotator.vectorLayer.features;
+
 			for (var i = 0; i < features.length; i++) {
 				if (features[i].geometry.id == id) {
 					feature = features[i].id;
 				}
 			}
-			if (annotator.boxes_on_click) {
-				boxes_on_click = true;
-			}
-			annotator.boxes_on_click = true;
-			annotator.showAnnotation(feature);
+
+			showBox(annotator.selectedFeature);
 			if (!boxes_on_click) {
 				annotator.boxes_on_click = false;
-				var boxes_on_click_element = $("#boxes_on_click");
-				boxes_on_click_element.attr('checked', false);
+				boxes_on_click_element.prop('checked', false);
 			}
-			return false;
+
 		});
 	}
-	return false;
+
 }
 
 function disable_annotation_tools() {

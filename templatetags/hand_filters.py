@@ -155,10 +155,20 @@ def chrono(label):
         In debug mode it will print this on the std output:
             before listing: CURRENT DATE TIME
     '''
-    if getattr(settings, 'DEV_SERVER', False): 
+    if getattr(settings, 'DEV_SERVER', False):
         t = datetime.now()
         d = t - chrono.last_time
         chrono.last_time = t
-        print '%40s %5.4f s.  (%s)' % (label, d.total_seconds(), t)
+        
+        if label.endswith(':'):
+            chrono.last_times[label[:-1]] = t
+        slice_duration = t - t
+        if label.startswith(':'):
+            k = label[1:]
+            if k in chrono.last_times:
+                slice_duration = t - chrono.last_times[k]
+        
+        print '%40s %5.4f s. %5.4f s. (%s)' % (label, d.total_seconds(), slice_duration.total_seconds(), t)
     return''
 chrono.last_time = datetime.now()
+chrono.last_times = {}

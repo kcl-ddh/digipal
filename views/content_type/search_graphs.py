@@ -3,6 +3,7 @@ from search_content_type import SearchContentType
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
+from digipal.templatetags.hand_filters import chrono
 
 class SearchGraphs(SearchContentType):
 
@@ -112,13 +113,25 @@ class SearchGraphs(SearchContentType):
         # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
         # That will be done after pagination in the template
         # Distinct is needed here.
+        #graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
+        chrono('graph filter:')
         graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id')
+        chrono(':graph filter')
+
         #print graphs.query
+        chrono('graph values_list:')
         graph_ids = graphs.values_list('id', 'hand_id')
+        chrono(':graph values_list')
+        
+#         chrono('len:')
+#         l = len(graph_ids)
+#         print graph_ids.query
+#         chrono(':len')
         
         # Build a structure that groups all the graph ids by hand id
         # context['hand_ids'] = [[1, 101, 102], [2, 103, 104]]
         # In the above we have two hands: 1 and 2. For hand 1 we have Graph 101 and 102.
+        chrono('hand_ids:')
         context['hand_ids'] = [[0]]
         last = 0
         for g in graph_ids:
@@ -126,6 +139,7 @@ class SearchGraphs(SearchContentType):
                 context['hand_ids'].append([g[1]])
             context['hand_ids'][-1].append(g[0])
         del(context['hand_ids'][0])
+        chrono(':hand_ids')
 
         t3 = datetime.now()
 

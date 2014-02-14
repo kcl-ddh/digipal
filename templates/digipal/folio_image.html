@@ -11,15 +11,24 @@
 {% endcomment %}
 <div class='col-md-3 col-xs-12 centered'>
     <div class="panel">
-        <p class='imageDetails'>
-            <strong>
-                <a data-toggle="tooltip" title="View this image with annotations" href="{{ image.get_absolute_url }}">View Image</a>
-            </strong>
-            {% if image.annotation_set.all.count %}
-                <a class="smaller" data-toggle="tooltip" title="View this image without annotations"  href="{{ image.get_absolute_url }}?annotations=false">
-                    (without annotations)
-                </a>
+        <p class='annotations_count_images'>
+            {% if image.annotation_set.all.count  %}
+            <a class="label label-digipal" href='{{image.get_absolute_url }}'>
+            {% else %}
+            <a class="label label-default">
             {% endif %}
+                {{ image.annotation_set.all.count  }}
+                {{ "Annotation"|plural:image.annotation_set.all.count }}
+            </a>
+
+            {% if image.hands.all.count %}
+            <a class="label label-digipal" href='{{image.get_absolute_url }}hands'>
+            {% else %}
+            <a class="label label-default">
+            {% endif %}
+                {{ image.hands.all.count }}
+                {{ "Hand"|plural:image.hands.all.count }}
+            </a>
         </p>
         <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
             <span class='drag_caption'>Drag image to collection</span>
@@ -27,21 +36,16 @@
             <span class='imageDatabase_label'>
                 {% if full_label %}
                     {{ image }}
+
                 {% else %}
                     {{ image.locus }}
                 {% endif %}
             </span>
+
         </a>
-        <p class='annotations_count_images'>
-            <span class="label label-default">
-                {{ image.annotation_set.all.count  }}
-                {{ "Annotation"|plural:image.annotation_set.all.count }}
-            </span>
-    
-            <span class="label label-default">
-                {{ image.hands.all.count }}
-                {{ "Hand"|plural:image.hands.all.count }}
-            </span>
-        </p>
+        <a href="{{ image.get_absolute_url }}?">
+            <span data-toggle='tooltip' data-placement='bottom' title='View image without annotations' class='glyphicon glyphicon-eye-close'></span>
+        </a>
+
     </div>
 </div>

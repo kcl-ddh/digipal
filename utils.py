@@ -4,6 +4,10 @@ import re
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
 
+def sorted_natural(l, roman_numbers=False):
+    '''Sorts l and returns it. Natural sorting is applied.'''
+    return sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+
 def natural_sort_key(s, roman_numbers=False):
     '''
         Returns a list of tokens from a string.

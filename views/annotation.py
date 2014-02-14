@@ -268,7 +268,6 @@ def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
     annotation_list = Annotation.objects.filter(image=image_id)
-
     data = SortedDict()
 
     for annotation in annotation_list:
@@ -291,8 +290,13 @@ def image_allographs(request, image_id):
         }
 
         if hand['name'] in data:
-            if not 'allographs' in data[hand['name']]:
-                data[hand['name']]['allographs'] = SortedDict()
+            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
+
+        else:
+            data[hand['name']] = SortedDict()
+            data[hand['name']] = hand
+            data[hand['name']]['allographs'] = SortedDict()
+
             if not allograph['name'] in data[hand['name']]['allographs']:
                 data[hand['name']]['allographs'][allograph['name']] = SortedDict()
                 data[hand['name']]['allographs'][allograph['name']] = allograph
@@ -301,10 +305,6 @@ def image_allographs(request, image_id):
                 data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
 
             data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
-
-        else:
-            data[hand['name']] = SortedDict()
-            data[hand['name']] = hand
 
 
     response = {

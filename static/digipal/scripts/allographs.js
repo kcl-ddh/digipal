@@ -95,25 +95,6 @@ function Allographs() {
 
 		self.keyboard_shortcuts.init();
 
-
-		var target = document.querySelector('.annotation_li');
-
-		// create an observer instance
-		var observer = new MutationObserver(function(mutations) {
-			mutations.forEach(function(mutation) {
-				console.log(mutation);
-			});
-		});
-
-		// configuration of the observer:
-		var config = {
-			attributes: true,
-			childList: true,
-			characterData: true
-		};
-
-		// pass in the target node, as well as the observer options
-		observer.observe(target, config);
 	};
 
 	this.methods = {
@@ -850,56 +831,66 @@ function Allographs() {
 				var allographs_list = '';
 				var allograph;
 				var allograph_object;
-
 				var annotations_container = $('<div class="container">');
-
+				var number_annotations = 0;
 				var allograph_item = '';
-				for (var hand in data) {
+				if (!$.isEmptyObject(data)) {
+					for (var hand in data) {
 
-					allograph_item += "<h2 id='" + anchorify(data[hand].name) + "' class='header1'>" + data[hand].name + "</h2>";
-					allograph_item += '<h3>Allographs List</h3>';
-					allograph_item += '<div class="panel">';
+						allograph_item += "<h2 id='" + anchorify(data[hand].name) + "' class='header1'>" + data[hand].name + "</h2>";
+						allograph_item += '<h3>Allographs List</h3>';
+						allograph_item += '<div class="panel">';
 
-					for (allograph_object in data[hand]['allographs']) {
-						allograph = data[hand]['allographs'][allograph_object];
-						var allograph_name = allograph.name;
-						allograph_item += "<span><a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' class='label label-digipal' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'>" + allograph_name + "</a></span> ";
-					}
-
-					allograph_item += '</div>';
-					allograph_item += '<div class="allographs-list container">';
-					for (allograph_object in data[hand]['allographs']) {
-						allograph = data[hand]['allographs'][allograph_object];
-						allograph_item += '<div class="allograph-item panel">';
-
-						allograph_item += "<h5 class='header5 pull-left' id='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "'>" + allograph.name + "</h5>";
-
-						allograph_item += "<div class='btn-group pull-right buttons_annotations_list'>";
-						allograph_item += "<button data-container='body' data-toggle='tooltip' title='Add annotations to collection' class='btn btn-default btn-small to_lightbox' disabled><i class='fa fa-folder-open'></i></button>";
-
-						allograph_item += "<button data-container='body' data-toggle='tooltip' title='Select all the annotations' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "' class='btn btn-default btn-small select_all'><i class='fa fa-check-square-o'></i></button>";
-
-						allograph_item += "<button data-container='body' data-toggle='tooltip' title='Unselect all the annotations' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "' class='btn btn-default btn-small deselect_all'><i class='fa fa-square-o'></i></button>";
+						for (allograph_object in data[hand]['allographs']) {
+							allograph = data[hand]['allographs'][allograph_object];
+							var allograph_name = allograph.name;
+							allograph_item += "<span><a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' class='label label-digipal' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'>" + allograph_name + "</a></span> ";
+						}
 
 						allograph_item += '</div>';
+						allograph_item += '<div class="allographs-list container">';
+						for (allograph_object in data[hand]['allographs']) {
+							allograph = data[hand]['allographs'][allograph_object];
+							allograph_item += '<div class="allograph-item panel">';
+
+							allograph_item += "<h5 class='header5 pull-left' id='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "'>" + allograph.name + "</h5>";
+
+							allograph_item += "<div class='btn-group pull-right buttons_annotations_list'>";
+							allograph_item += "<button data-container='body' data-toggle='tooltip' title='Add annotations to collection' class='btn btn-default btn-small to_lightbox' disabled><i class='fa fa-folder-open'></i></button>";
+
+							allograph_item += "<button data-container='body' data-toggle='tooltip' title='Select all the annotations' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "' class='btn btn-default btn-small select_all'><i class='fa fa-check-square-o'></i></button>";
+
+							allograph_item += "<button data-container='body' data-toggle='tooltip' title='Unselect all the annotations' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "' class='btn btn-default btn-small deselect_all'><i class='fa fa-square-o'></i></button>";
+
+							allograph_item += '</div>';
 
 
-						allograph_item += "<ul data-allograph='" + allograph.name + "' class='list-allographs' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "'>";
+							allograph_item += "<ul data-allograph='" + allograph.name + "' class='list-allographs' data-key='" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph.name) + "'>";
 
-						for (var i = 0; i < allograph['annotations'].length; i++) {
-							var annotation = allograph['annotations'][i];
-							allograph_item += "<li class='annotation_li' data-graph = '" + annotation.graph + "' data-annotation = '" + annotation.vector_id + "' data-image='" + annotation.image_id + "' title='Click here to select this graph' data-toggle='tooltip'>";
-							allograph_item += "<p><span class='label label-default'>" + (i + 1) + "</span></p>";
+							for (var i = 0; i < allograph['annotations'].length; i++) {
+								var annotation = allograph['annotations'][i];
+								number_annotations++;
+								allograph_item += "<li class='annotation_li' data-graph = '" + annotation.graph + "' data-annotation = '" + annotation.vector_id + "' data-image='" + annotation.image_id + "' title='Click here to select this graph' data-toggle='tooltip'>";
+								allograph_item += "<p><span class='label label-default'>" + (i + 1) + "</span></p>";
 
-							allograph_item += "<a data-placement='right' data-toggle='tooltip' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
+								allograph_item += "<a data-placement='right' data-toggle='tooltip' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
 
+							}
+							allograph_item += '</div></ul>';
 						}
-						allograph_item += '</div></ul>';
+						allograph_item += '</div>';
 					}
-					allograph_item += '</div>';
+				} else {
+					allograph_item = '<div class="alert alert-warning"><h6>No Annotation associated to this record</h6></div>';
 				}
 
-
+				var tab_link = $('a[data-target="#allographs"]');
+				tab_link.html('Annotations (' + number_annotations + ')');
+				if (number_annotations) {
+					tab_link.parent().removeClass('disabled');
+				} else {
+					tab_link.parent().addClass('disabled');
+				}
 				annotations_container.append(allograph_item);
 				allographs_container.append(annotations_container);
 				if (output['can_edit']) {

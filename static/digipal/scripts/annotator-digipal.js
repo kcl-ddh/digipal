@@ -181,21 +181,16 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 	if (feature.described) {
 		feature.style.fillColor = 'green';
 		feature.style.strokeColor = 'green';
-
-
 	} else {
-		feature.style.fillColor = '#ee9900';
 		var color;
 		if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
-			if (feature.features.length) {
-				color = 'blue';
-			} else {
-				color = 'red';
-			}
-			feature.style.strokeColor = color;
+			color = "#fe2deb";
 		} else {
-			feature.style.strokeColor = '#ee9900';
+			color = '#ee9900';
 		}
+
+		feature.style.strokeColor = color;
+		feature.style.fillColor = color;
 
 	}
 
@@ -800,7 +795,7 @@ function updateFeatureSelect(currentFeatures, id) {
 							s += "<p class='col-md-2'> <input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
 							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
 
-						} else {
+						} else if (annotator.selectedFeature !== undefined && annotator.selectedFeature !== null && annotator.selectedFeature.state == 'Insert') {
 							var array_features_owned = annotator.selectedFeature.features;
 							if (array_features_owned.indexOf(value) >= 0) {
 								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
@@ -814,7 +809,7 @@ function updateFeatureSelect(currentFeatures, id) {
 					s += "</div>";
 				});
 
-				if (!annotator.editorial.active) {
+				if (!annotator.editorial.active && annotator.selectedFeature) {
 					if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
 						var num_linked = 0;
 						elements_linked = [];
@@ -2127,28 +2122,19 @@ function highlight_vectors() {
 
 function highlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
-	var color;
+	var color = "#fe2deb";
 	for (i = 0; i < features.length; i++) {
+		features[i].feature.originalColor = '#ee9900';
 		if (features[i].feature.style) {
-			features[i].feature.originalColor = features[i].feature.style.fillColor;
 			features[i].featureoriginalWidth = 2;
-			color = 'red';
-			if (features[i].feature.features.length) {
-				color = 'blue';
-			}
 			features[i].feature.style.strokeColor = color;
-			features[i].feature.style.strokeWidth = 6;
+			features[i].feature.style.fillColor = color;
 		} else {
 			features[i].feature.style = {};
-			features[i].feature.originalColor = '#ee9900';
 			features[i].feature.fillopacity = 0.3;
 			features[i].featureoriginalWidth = 2;
-			color = 'red';
-			if (features[i].feature.features.length) {
-				color = 'blue';
-			}
 			features[i].feature.style.strokeColor = color;
-			features[i].feature.style.strokeWidth = 6;
+			features[i].feature.style.fillColor = color;
 		}
 	}
 	annotator.vectorLayer.redraw();
@@ -2160,6 +2146,7 @@ function unhighlight_unsaved_vectors(button) {
 	var features = annotator.unsaved_annotations;
 	for (i = 0; i < features.length; i++) {
 		features[i].feature.style.strokeColor = features[i].feature.originalColor;
+		features[i].feature.style.fillColor = features[i].feature.originalColor;
 		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
 	}
 	annotator.vectorLayer.redraw();
@@ -2559,17 +2546,9 @@ function registerEvents() {
 			}
 
 			annotator.boxes_on_click = true;
-			var id = $(this).attr('id');
 			var boxes_on_click_element = $("#boxes_on_click");
 			boxes_on_click_element.prop('checked', true);
-			var feature, boxes_on_click = false;
-			var features = annotator.vectorLayer.features;
-
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].geometry.id == id) {
-					feature = features[i].id;
-				}
-			}
+			var boxes_on_click = false;
 
 			showBox(annotator.selectedFeature);
 			if (!boxes_on_click) {

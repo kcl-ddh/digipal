@@ -181,16 +181,18 @@ function Allographs() {
 			}
 
 			j = 0;
-			var msg = 'You are about to delete ' + self.selectedAnnotations.annotations.length + '. It cannot be restored at a later time! Continue?';
+			var msg = 'You are about to delete ' + self.selectedAnnotations.annotations.length + ' annotations. It cannot be restored at a later time! Continue?';
 			if (confirm(msg)) {
+
 				for (i = 0; i < selected_features.length; i++) {
 					delete_annotation(annotator.vectorLayer, selected_features[i], selected_features.length);
 					var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
 					element.fadeOut().remove();
 				}
-			}
 
-			//annotator.vectorLayer.redraw();
+				self.selectedAnnotations.annotations = [];
+				self.dialog.hide();
+			}
 		},
 
 		deselect_all: function(button) {
@@ -293,7 +295,6 @@ function Allographs() {
 			self.dialog.hide();
 			$('.select_annotation_checkbox').attr('checked', false);
 			panel.find('.to_lightbox').attr('disabled', true);
-			return false;
 		} else {
 			self.dialog.show();
 			panel.find('.to_lightbox').attr('disabled', false);
@@ -425,10 +426,10 @@ function Allographs() {
 					var features_container = $('#features_container');
 					summary.html(string_summary);
 					features_container.html(s);
-
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
 					var prefix = 'allographs_';
+
 					check_all.on('click', function(event) {
 						var component = $(this).data('component');
 						var checkboxes = $('#' + prefix + 'component_' + component).find("input[type=checkbox]");
@@ -561,7 +562,6 @@ function Allographs() {
 							for (var k = 0; k < f.length; k++) {
 								for (var j = 0; j < f[k].features.length; j++) {
 									if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
-
 										ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
 										if (ann) {
 											al += '<span class="label label-default label-summary">' + ann + '</span> ';
@@ -570,25 +570,30 @@ function Allographs() {
 										d++;
 										self.temporary_vectors.push(names);
 									}
-
 								}
 							}
+
 							var id = component_id + '_' + features[idx].id;
 
-							if (self.temporary_vectors) {
-								array_features_owned = array_features_owned.concat(self.temporary_vectors);
-							}
+							var array_features_owned_temporary = array_features_owned.concat(self.temporary_vectors);
+
 							s += "<div class='row row-no-margin'>";
+
 							if (array_features_owned.indexOf(names) >= 0) {
 
-								string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
 								s += "<p class='col-md-2'><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /></p>";
 								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
-								n++;
+
 							} else {
 								s += "<p class='col-md-2'><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/></p>";
 								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 							}
+
+							if (array_features_owned_temporary.indexOf(names) >= 0) {
+								string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+								n++;
+							}
+
 							s += "</div>";
 						});
 

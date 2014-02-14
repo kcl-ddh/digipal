@@ -68,7 +68,7 @@ function AnnotatorLoader() {
 				$(this).addClass('active');
 			}
 
-			if ($(this).data('toggle-button') == 'open') {
+			if ($(this).data('toggle-button') == 'open' && $("#modal_settings").hasClass('ui-dialog-content')) {
 				$("#modal_settings").dialog('open');
 				$(this).data('toggle-button', 'close');
 				$(this).addClass('active');

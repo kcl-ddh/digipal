@@ -850,10 +850,6 @@ function AnnotatorLoader() {
 
 		unsaved_allographs_button.html(annotator.unsaved_annotations.length);
 
-		if (unsaved_allographs_button.hasClass('active')) {
-			setTimeout(highlight_unsaved_vectors(unsaved_allographs_button), 100);
-		}
-
 		if (last_feature_selected) {
 			//$('#panelImageBox .allograph_form').val(last_feature_selected.id).trigger('liszt:updated');
 			var features = annotator.vectorLayer.features;

@@ -2251,6 +2251,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		if (confirm(msg)) {
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
 				feature = this.selectedAnnotations[i];
+				console.log(data.features);
 				save(url, feature, data.form_serialized, ann, data.features);
 			}
 		} else {
@@ -2323,19 +2324,18 @@ function save(url, feature, data, ann, features) {
 				refresh_letters_container(allograph, allograph_id, true);
 				//}
 				var color;
+				console.log(features);
 				if (temp.state == 'Insert') {
-					var num_features;
-					if (temp.stored) {
-						num_features = features.features.length;
-					} else {
-						num_features = feature.features.length || 0;
-					}
+
+					var num_features = features.features.length;
+					feature.features = features.features;
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
 					var annotations = annotator.unsaved_annotations;
 					for (var i = 0; i < annotations.length; i++) {
 						if (annotations[i].feature.id == feature.id) {
 							annotations.splice(i, 1);
+							i--;
 							break;
 						}
 					}

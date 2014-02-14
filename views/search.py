@@ -132,7 +132,8 @@ def search_record_view(request):
     # Now we redirect those requests to the record page
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
     
-    hand_filters.chrono('SEARCH:')
+    hand_filters.chrono('SEARCH VIEW:')
+    hand_filters.chrono('SEARCH LOGIC:')
     
     qs_id = request.GET.get('id', '')
     qs_result_type = request.GET.get('result_type', '')
@@ -189,9 +190,16 @@ def search_record_view(request):
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
 
-    hand_filters.chrono(':SEARCH')
+    hand_filters.chrono(':SEARCH LOGIC')
+    hand_filters.chrono('SEARCH TEMPLATE:')
 
-    return render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
+    ret = render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
+
+    hand_filters.chrono(':SEARCH TEMPLATE')
+    
+    hand_filters.chrono(':SEARCH VIEW')
+
+    return ret
 
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
@@ -250,7 +258,9 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
             # If allowed_types is None, search for each supported content type.
             for type in context['types']:
                 if allowed_type in [None, type.key]:
+                    hand_filters.chrono('Search %s:' % type.key)
                     context['results'] = type.build_queryset(request, term)
+                    hand_filters.chrono(':Search %s' % type.key)
 
 def get_query_summary(request, term, submitted, forms):
     # return a string that summarises the query

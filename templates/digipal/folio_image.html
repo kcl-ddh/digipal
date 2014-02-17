@@ -12,40 +12,45 @@
 <div class='col-md-3 col-xs-12 centered'>
     <div class="panel">
         <p class='annotations_count_images'>
-            {% if image.annotation_set.all.count  %}
-            <a class="label label-digipal" href='{{image.get_absolute_url }}'>
-            {% else %}
-            <a class="label label-default">
+            {% if image.annotation_set.all.count %}
+                <a href='{{image.get_absolute_url }}'>
             {% endif %}
-                {{ image.annotation_set.all.count  }}
-                {{ "Annotation"|plural:image.annotation_set.all.count }}
-            </a>
-
+                    <span class="label label-default">{{ image.annotation_set.all.count  }} {{ "Annotation"|plural:image.annotation_set.all.count }}</span>
+            {% if image.annotation_set.all.count %}
+                </a>
+            {% endif %}
+    
             {% if image.hands.all.count %}
-            <a class="label label-digipal" href='{{image.get_absolute_url }}hands'>
-            {% else %}
-            <a class="label label-default">
+                <a href='{{image.get_absolute_url }}hands'>
             {% endif %}
-                {{ image.hands.all.count }}
-                {{ "Hand"|plural:image.hands.all.count }}
-            </a>
+                    <span class="label label-default" >{{ image.hands.all.count }} {{ "Hand"|plural:image.hands.all.count }}</span>
+            {% if image.hands.all.count %}
+                </a>
+            {% endif %}
         </p>
-        <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
-            <span class='drag_caption'>Drag image to collection</span>
-            {% iip_img image width=width lazy=1 %}
+        
+        {% spaceless %}
+            <span class="folio-image-wrapper">
+                <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
+                        <span class='drag_caption'>Drag image to collection</span>
+                        {% iip_img image width=width lazy=1 %}
+                </a>
+                <span class="button-bar">
+                    <a class="btn btn-default btn-sm" href="{{ image.get_absolute_url }}?annotations=false" data-toggle='tooltip' data-placement='right' title='View image without annotations' >
+                        <span class='glyphicon glyphicon-eye-close'></span>
+                    </a>
+                </span>
+            </span>
+        {% endspaceless %}
+                
+        <a href="{{ image.get_absolute_url }}">
             <span class='imageDatabase_label'>
                 {% if full_label %}
                     {{ image }}
-
                 {% else %}
                     {{ image.locus }}
                 {% endif %}
             </span>
-
         </a>
-        <a href="{{ image.get_absolute_url }}?annotations=false">
-            <span data-toggle='tooltip' data-placement='bottom' title='View image without annotations' class='glyphicon glyphicon-eye-close'></span>
-        </a>
-
     </div>
 </div>

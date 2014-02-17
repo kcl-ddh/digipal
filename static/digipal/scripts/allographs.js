@@ -846,7 +846,7 @@ function Allographs() {
 						for (allograph_object in data[hand]['allographs']) {
 							allograph = data[hand]['allographs'][allograph_object];
 							var allograph_name = allograph.name;
-							allograph_item += "<span><a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' class='label label-digipal' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'>" + allograph_name + "</a></span> ";
+							allograph_item += "<a data-toggle='tooltip' data-container='body' title='Go to " + allograph.name + "' href='#" + data[hand].id + "_" + allograph.id + "_" + anchorify(allograph_name) + "'><span class='label label-default'>" + allograph_name + "</span></a> ";
 						}
 
 						allograph_item += '</div>';

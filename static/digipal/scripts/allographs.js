@@ -834,6 +834,8 @@ function Allographs() {
 				var annotations_container = $('<div class="container">');
 				var number_annotations = 0;
 				var allograph_item = '';
+				a = data;
+				console.log(data)
 				if (!$.isEmptyObject(data)) {
 					for (var hand in data) {
 
@@ -874,8 +876,8 @@ function Allographs() {
 								allograph_item += "<p><span class='label label-default'>" + (i + 1) + "</span></p>";
 
 								allograph_item += "<a data-placement='right' data-toggle='tooltip' data-graph = '" + annotation.graph + "' title='View graph in the manuscript viewer'>" + annotation.thumbnail + "</a>";
-
 							}
+
 							allograph_item += '</div></ul>';
 						}
 						allograph_item += '</div>';

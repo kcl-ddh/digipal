@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load html_escape %}
+
+{% block meta_title %}Digipal Collection{% endblock %}
+{% block extra_css %}
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+{% endblock %}
+{% block main %}
+<div class="page-header">
+    <h1>Collection</h1>
+</div>
+<div class="container">
+    <div class="row">
+
+        <ul class="nav nav-tabs col-md-3 col-sm-6 col-xs-6">
+            <li class='active'><a data-target="#container_basket" data-toggle="tab" href="#">Collection</a></li>
+            <li><a data-target="#container_collections" data-toggle="tab" href='#'>Manage Collections</a></li>
+        </ul>
+
+        <div class="pull-right col-md-3">
+            <input id='filter' type="text" class="form-control" placeholder='Filter Collections' disabled />
+        </div>
+
+        <div class="btn-group pull-right col-md-2">
+            <button data-toggle='tooltip' data-container='body' title = 'Send images to the Lightbox'  class='btn btn-default' id='to_lightbox'>
+                <i class="fa fa-picture-o"></i>
+            </button>
+
+            <button data-toggle='tooltip' data-container='body' title = 'Save Collection' class='btn btn-default' id='add_collection'>
+                <i class="fa fa-floppy-o"></i>
+            </button>
+
+            <button data-toggle='tooltip' data-container='body' title='Share this Collection' class='btn btn-default' id='share_collection'>
+                <i class="fa fa-share"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="tabbable">
+            <div class='tab-content'>
+                <div class="tab-pane fade active in" id='container_basket'>
+
+                </div>
+                <div class="tab-pane fade" id='container_collections'>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <p>
+      <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
+    </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src ='/static/digipal/scripts/collections.js'></script>
+    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+    <script src='https://apis.google.com/js/client.js'></script>
+{% endblock %}

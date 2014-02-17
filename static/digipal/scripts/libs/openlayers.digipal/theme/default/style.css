@@ -401,11 +401,20 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     margin: 5px 5px 0 0;
 }
 .olControlNavToolbar div,
-.olControlEditingToolbar div {
-    margin: 0 0 5px 5px;
+#toolbar div {
+    margin-top: 2.5px;
+    margin-bottom: 2.5px;
     width: 24px;
     height: 22px;
-    cursor: pointer
+    cursor: pointer;
+    background-image: none !important;
+    font-size: 18px;
+    background: #fff;
+    border-radius: 3px;
+    padding: 3%;
+    line-height: 1.3;
+    text-align: center;
+    border:1px solid #ccc;
 }
 /* positions */
 .olControlEditingToolbar {
@@ -477,12 +486,12 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
     background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemInactive{
-    background-image: url(img/delete_off.png);
+    background-image:none;
     background-repeat: no-repeat;
     background-position: 0 1px !important;
 }
 .olControlEditingToolbar .olControlDeleteFeatureItemActive {
-    background-image: url(img/delete_on.png);
+    background-image: none;
     background-repeat: no-repeat;
     background-position: 0 1px !important;
 }
@@ -523,6 +532,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 }
 .olControlEditingToolbar .olControlTransformFeatureItemActive {
     background-image: url(img/modify_on.png);
+    background-color: yellow;
     background-repeat: no-repeat;
     background-position: 0 1px;
 }
@@ -541,7 +551,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 	background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
-    background-color: #f2c021;
+    background-color: yellow;
     border: 1px solid #ccc;
     width: 22px !important;
     border-radius: 5px;
@@ -609,4 +619,17 @@ a.olControlZoomOut {
     -moz-transition: opacity 0.2s linear;
     -o-transition: opacity 0.2s linear;
     transition: opacity 0.2s linear;
+}
+
+.ItemActive{
+    background-color: yellow !important;
+}
+
+.ItemInactive:hover{
+    background:#a1514d !important;
+    color:#fff !important;
+}
+
+#OpenLayers_Control_DrawFeature_72, #OpenLayers_Control_TransformFeature_32, #OpenLayers_Control_DeleteFeature_30, #OpenLayers_Control_Button_84, #OpenLayers_Control_Button_85, #OpenLayers_Control_Button_86, #OpenLayers_Control_SelectFeature_78, #OpenLayers_Control_Button_87{
+    display: none !important;
 }

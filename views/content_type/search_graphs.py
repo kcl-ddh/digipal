@@ -3,34 +3,19 @@ from search_content_type import SearchContentType
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
-
-'''
-    TODO: to be implemented. See the allographHandSearch(Graphs)() view. 
-'''
+from digipal.templatetags.hand_filters import chrono
 
 class SearchGraphs(SearchContentType):
 
-    def set_record_view_context(self, context, request):
-        super(SearchGraphs, self).set_record_view_context(context, request)
-        from django.utils.datastructures import SortedDict
-        p = Hand.objects.get(id=context['id'])
-        #c = p.graph_set.model.objects.get(id=p.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=p.id)
-        data = SortedDict()
-        for annotation in annotation_list:
-            hand = annotation.graph.hand
-            allograph_name = annotation.graph.idiograph.allograph
+    def __init__(self):
+        super(SearchGraphs, self).__init__()
+        self.graphs_count = 0
 
-            if hand in data:
-                if allograph_name not in data[hand]:
-                    data[hand][allograph_name] = []
-            else:
-                data[hand] = SortedDict()
-                data[hand][allograph_name] = []
-
-            data[hand][allograph_name].append(annotation)
-            context['data'] = data
-        context['result'] = p
+    def get_fields_info(self):
+        ''' See SearchContentType.get_fields_info() for a description of the field structure '''
+        ret = super(SearchGraphs, self).get_fields_info()
+        # TODO: new search field
+        return ret
     
     @property
     def form(self):
@@ -44,74 +29,181 @@ class SearchGraphs(SearchContentType):
     def label(self):
         return 'Graphs'
 
-    def build_queryset(self, request, term):
-        type = self.key
-        query_hands = Hand.objects.filter(
-                    Q(descriptions__description__icontains=term) | \
-                    Q(scribe__name__icontains=term) | \
-                    Q(assigned_place__name__icontains=term) | \
-                    Q(assigned_date__date__icontains=term) | \
-                    Q(item_part__current_item__shelfmark__icontains=term) | \
-                    Q(item_part__current_item__repository__name__icontains=term) | \
-                    Q(item_part__historical_items__catalogue_number__icontains=term))
-        
-        scribes = request.GET.get('scribes', '')
-        repository = request.GET.get('repository', '')
-        place = request.GET.get('place', '')
-        date = request.GET.get('date', '')
-        
-        self.is_advanced = repository or scribes or place or date
-
-        if scribes:
-            query_hands = query_hands.filter(scribe__name=scribes)
-        if repository:
-            repository_place = repository.split(', ')[0]
-            repository_name = repository.split(', ')[1]
-            query_hands = query_hands.filter(item_part__current_item__repository__name=repository_name, item_part__current_item__repository__place__name=repository_place)
-        if place:
-            query_hands = query_hands.filter(assigned_place__name=place)
-        if date:
-            query_hands = query_hands.filter(assigned_date__date=date)
-        
-        #context['hands'] = query_hands.distinct().order_by('scribe__name','id')
-        query_hands = query_hands.distinct()
-        if repository or scribes or place or date:
-            query_hands = query_hands.order_by('scribe__name','id')
-        else:
-            query_hands = query_hands.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+    def is_slow(self):
+        return True
     
-        self._queryset = query_hands
+    @property
+    def count(self):
+        '''
+            Returns the number of records found.
+            -1 if the no search was executed.
+        '''
+        ret = super(SearchGraphs, self).count
+        if ret > 0:
+            ret = self.graphs_count
+        return ret
+
+
+    def _build_queryset(self, request, term):
+        """ View for Hand record drill-down """
+        context = {}
+        self.graphs_count = 0
+        
+        scribe = request.GET.get('scribes', '')
+        # alternative names are for backward compatibility with old-style graph search page  
+        script = request.GET.get('script', '')
+        character = request.GET.get('character', '')
+        allograph = request.GET.get('allograph', '')
+        component = request.GET.get('component', '')
+        feature = request.GET.get('feature', '')
+        
+        from datetime import datetime
+        
+        t0 = datetime.now()
+        t4 = datetime.now()
+        
+        # .order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+        # Although we are listing hands on the front-end, we search for graphs and not for hand.
+        # Two reasons: 
+        #    searching for character and allograh at the same time through a Hand model would generate two separate joins to graph
+        #        this would bring potentially invalid results and it is also much slower
+        #    it is faster than excluding all the hands without a graph (yet another expensive join)
+        #
+        if term:
+            graphs = Graph.objects.filter(
+                    Q(hand__descriptions__description__icontains=term) | \
+                    Q(hand__scribe__name__icontains=term) | \
+                    Q(hand__assigned_place__name__icontains=term) | \
+                    Q(hand__assigned_date__date__icontains=term) | \
+                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                    Q(hand__item_part__historical_items__catalogue_number__icontains=term))
+        else:
+            graphs = Graph.objects.all()
+            
+        t1 = datetime.now()
+        
+        wheres = []
+        if scribe:
+            graphs = graphs.filter(hand__scribe__name__icontains=scribe)
+        if script:
+            graphs = graphs.filter(hand__script__name=script)
+        if character:
+            graphs = graphs.filter(
+                idiograph__allograph__character__name=character)
+        if allograph:
+            graphs = graphs.filter(
+                idiograph__allograph__name=allograph)
+        if component:
+            wheres.append(Q(graph_components__component__name=component) | Q(idiograph__allograph__allograph_components__component__name=component))
+        if feature:
+            wheres.append(Q(graph_components__features__name=feature))
+
+        # ANDs all the Q() where clauses together
+        if wheres:
+            where_and = wheres.pop(0)
+            for where in wheres:
+                where_and = where_and & where    
+            
+            graphs = graphs.filter(where_and)
+        
+        t2 = datetime.now()
+    
+        # Get the graphs then id of all the related Hands
+        # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
+        # That will be done after pagination in the template
+        # Distinct is needed here.
+        #graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
+        chrono('graph filter:')
+        graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id')
+        chrono(':graph filter')
+
+        #print graphs.query
+        chrono('graph values_list:')
+        graph_ids = graphs.values_list('id', 'hand_id')
+        chrono(':graph values_list')
+        
+#         chrono('len:')
+#         l = len(graph_ids)
+#         print graph_ids.query
+#         chrono(':len')
+        
+        # Build a structure that groups all the graph ids by hand id
+        # context['hand_ids'] = [[1, 101, 102], [2, 103, 104]]
+        # In the above we have two hands: 1 and 2. For hand 1 we have Graph 101 and 102.
+        chrono('hand_ids:')
+        context['hand_ids'] = [[0]]
+        last = 0
+        for g in graph_ids:
+            if g[1] != context['hand_ids'][-1][0]:
+                context['hand_ids'].append([g[1]])
+            context['hand_ids'][-1].append(g[0])
+        del(context['hand_ids'][0])
+        chrono(':hand_ids')
+
+        t3 = datetime.now()
+
+        self.graphs_count = len(graph_ids)
+        
+        t4 = datetime.now()
+        
+        #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
+            
+        t5 = datetime.now()
+        self._queryset = context['hand_ids']
         
         return self._queryset
 
+    def results_are_recordids(self):
+        # build_query_set does not return a list of record ids
+        # so the standard processing will be bypassed
+        return False
+
+    def get_page_size(self):
+        return 12
+    
+    def _get_available_views(self):
+        ret = [
+               {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
+               {'key': 'list', 'label': 'List', 'title': 'Change to list view'},
+               ]
+        return ret
+
 class FilterGraphs(forms.Form):
-    scribes = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
-        label = "",
-        empty_label = "Scribe",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
-        label = "",
-        required = False,
-        widget = Select(attrs={'id':'placeholder-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        initial = "Repository",
+    """ Represents the Hand drill-down form on the search results page """
+    script = forms.ModelChoiceField(
+        queryset=Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(),
+        widget=Select(attrs={'id':'script', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
+        label="",
+        empty_label = "Script",
+        required=False
     )
-
-
-    place = forms.ModelChoiceField(
-        queryset = Place.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Place"}),
-        label = "",
-        empty_label = "Place",
-        required = False)
-
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        empty_label = "Date",
-        required = False)
-
+    character = forms.ModelChoiceField(
+        queryset=Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(),
+        widget=Select(attrs={'id':'character', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
+        label='',
+        empty_label = "Character",
+        required=False
+    )
+    allograph = forms.ChoiceField(
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
+        #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
+        widget=Select(attrs={'id':'allograph', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
+        label='',
+        initial='Allograph',
+        required=False
+    )
+    component = forms.ModelChoiceField(
+        queryset=Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(),
+        widget=Select(attrs={'id':'component', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
+        empty_label = "Component",
+        label='',
+        required=False
+    )
+    feature = forms.ModelChoiceField(
+        queryset=Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(),
+        widget=Select(attrs={'id':'feature', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
+        empty_label = "Feature",
+        label='',
+        required=False
+    )    

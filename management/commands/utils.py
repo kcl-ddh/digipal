@@ -167,3 +167,27 @@ def is_int(str):
 
 def get_obj_label(obj):
     return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 
+
+def web_fetch(url):
+    ret = {'error': None, 'response': None, 'status': 0, 'reason': None, 'body': None}
+    
+    import urlparse
+    parts = urlparse.urlsplit(url)
+    
+    import httplib
+    try:
+        conn = httplib.HTTPConnection(parts.hostname, parts.port)
+        conn.request('GET', parts.path+'?'+parts.query)
+        ret['response'] = conn.getresponse()
+        headers = dict(ret['response'].getheaders()) 
+        ret['status'] = '%s' % ret['response'].status
+        ret['reason'] = '%s' % ret['response'].reason
+        ret['body'] = ret['response'].read()
+        if headers.has_key('location') and headers['location'] != url:
+            # follow redirect
+            ret = web_fetch(headers['location'])
+        conn.close()
+    except StandardError, e:
+        ret['error'] = e
+    
+    return ret

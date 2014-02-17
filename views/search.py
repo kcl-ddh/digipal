@@ -3,10 +3,11 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils import simplejson
 from digipal.models import *
-from digipal.forms import DrilldownForm, SearchPageForm
+from digipal.forms import GraphSearchForm, SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
+from digipal.templatetags import hand_filters
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -15,9 +16,11 @@ def get_search_types():
     from content_type.search_hands import SearchHands
     from content_type.search_manuscripts import SearchManuscripts
     from content_type.search_scribes import SearchScribes
-    #from content_type.search_graphs import SearchGraphs
     ret = [SearchManuscripts(), SearchHands(), SearchScribes()]
-    #ret = [SearchScribes()]
+
+    from content_type.search_graphs import SearchGraphs
+    ret.append(SearchGraphs())
+    
     return ret
 
 def get_search_types_display(content_types):
@@ -34,8 +37,8 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
-def record_view(request, content_type='', objectid=''):
-    context = {}
+def record_view(request, content_type='', objectid='', tabid=''):
+    context = {'tabid': tabid}
     
     # We need to do a search to show the next and previous record
     # Only when we come from the the search image.
@@ -44,11 +47,15 @@ def record_view(request, content_type='', objectid=''):
     for type in context['types']:
         if type.key == content_type:
             context['id'] = objectid
-            type.set_record_view_context(context, request)
-            type.set_record_view_pagination_context(context, request)
+            from django.core.exceptions import ObjectDoesNotExist
+            try:
+                type.set_record_view_context(context, request)
+                type.set_record_view_pagination_context(context, request)
+                template = 'pages/record_' + content_type +'.html'
+            except ObjectDoesNotExist:
+                context['title'] = 'This %s record does not exist' % type.label_singular
+                template = 'errors/404.html'
             break
-    
-    template = 'pages/record_' + content_type +'.html'
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
@@ -81,7 +88,42 @@ def index_view(request, content_type=''):
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
-def search_page_view(request):
+def search_ms_image_view(request):
+    images = Image.objects.all()
+    
+    from digipal.forms import FilterManuscriptsImages
+
+    # Get Buttons
+    context = {}
+
+    context['view'] = request.GET.get('view', 'images')
+
+    town_or_city = request.GET.get('town_or_city', '')
+    repository = request.GET.get('repository', '')
+    date = request.GET.get('date', '')
+
+    # Applying filters
+    if town_or_city:
+        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
+    if repository:
+        repository_place = repository.split(',')[0]
+        repository_name = repository.split(', ')[1]
+        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
+    if date:
+        images = images.filter(hands__assigned_date__date = date)
+
+    images = images.filter(item_part_id__gt = 0)
+    images = Image.sort_query_set_by_locus(images)
+
+    context['images'] = images
+
+    image_search_form = FilterManuscriptsImages()
+    context['image_search_form'] = image_search_form
+    context['query_summary'] = get_query_summary(request, '', True, [image_search_form])
+
+    return render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
+
+def search_record_view(request):
     # Backward compatibility.
     #
     # Previously all the record pages would go through this search URL and view
@@ -89,6 +131,10 @@ def search_page_view(request):
     #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
     # Now we redirect those requests to the record page
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
+    
+    hand_filters.chrono('SEARCH VIEW:')
+    hand_filters.chrono('SEARCH LOGIC:')
+    
     qs_id = request.GET.get('id', '')
     qs_result_type = request.GET.get('result_type', '')
     if qs_id and qs_result_type:
@@ -130,15 +176,30 @@ def search_page_view(request):
         if context['is_empty']:
             context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
-    # Initialise the search forms 
+    # Initialise the advanced search forms 
     from django.utils import simplejson
-    context['drilldownform'] = DrilldownForm({'terms': context['terms'] or ''})
-    context['search_page_options_json'] = simplejson.dumps(get_search_page_js_data(context['types'], 'from_link' in request.GET))
+    context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
+    
+    custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'))
+    context['expanded_custom_filters'] = custom_filters['advanced_search_expanded'] 
+    context['search_page_options_json'] = simplejson.dumps(custom_filters)
+    for custom_filter in custom_filters['filters']:
+        if custom_filter['key'] == context['search_type_defaulted']:
+            context['filters_form'] = custom_filter
     
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
 
-    return render_to_response('search/search_page_results.html', context, context_instance=RequestContext(request))
+    hand_filters.chrono(':SEARCH LOGIC')
+    hand_filters.chrono('SEARCH TEMPLATE:')
+
+    ret = render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
+
+    hand_filters.chrono(':SEARCH TEMPLATE')
+    
+    hand_filters.chrono(':SEARCH VIEW')
+
+    return ret
 
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
@@ -156,38 +217,90 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     #context = kwargs.get('context', {})
     
     context['terms'] = ''
-    context['submitted'] = ('basic_search_type' in request.GET) or ('terms' in request.GET)
+    
+    # list of query parameter/form fields which can be changed without triggering a search 
+    context['submitted'] = False
+    non_search_params = ['basic_search_type', 'from_link', 'result_type']
+    for param in request.GET:     
+        if param not in non_search_params and request.GET.get(param):
+            context['submitted'] = True
+    
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
+    
+    context['view'] = request.GET.get('view', '')
+    for type in context['types']:
+        type.set_desired_view(context['view'])
+    
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True
 
     advanced_search_form = SearchPageForm(request.GET)
+    
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
+    
     if show_advanced_search_form:
         context['advanced_search_form'] = advanced_search_form
 
-    if context['submitted'] and advanced_search_form.is_valid():
+    if advanced_search_form.is_valid():
         # Read the inputs
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
+        context['query_summary'] = get_query_summary(request, term, context['submitted'], [type.form for type in context['types']])
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
+        context['search_type_defaulted'] = context['search_type'] or context['types'][0].key
         
-        # Create the queryset for each allowed content type.
-        # If allowed_types is None, search for each supported content type.
-        for type in context['types']:
-            if allowed_type in [None, type.key]:
-                context['results'] = type.build_queryset(request, term)
+        if context['submitted']: 
+            # Create the queryset for each allowed content type.
+            # If allowed_types is None, search for each supported content type.
+            for type in context['types']:
+                if allowed_type in [None, type.key]:
+                    hand_filters.chrono('Search %s:' % type.key)
+                    context['results'] = type.build_queryset(request, term)
+                    hand_filters.chrono(':Search %s' % type.key)
+
+def get_query_summary(request, term, submitted, forms):
+    # return a string that summarises the query
+    ret = ''
+    
+    if submitted:
+        if term.strip():
+            ret = '"%s"' % term
+        
+        # Generate a dictionary with the form fields.
+        # The key is the internal name of the field and the value is the display label 
+        fields = {}
+        for form in forms:
+            for field_name in form.fields:
+                field = form[field_name]
+                # generate the display label
+                # try, successively, the label, the empty_label then the initial value of the field
+                fields[field_name] = getattr(field, 'label', '') or getattr(field.field, 'empty_label', '') or (field.field.initial) or field_name.title()
+        
+        # Transform the query string into a list of field label and their values             
+        for param in request.GET:
+            if param in fields:
+                val = request.GET.get(param, '').strip()
+                if val:
+                    if ret:
+                        ret += ', '
+                    ret += '%s: "%s"' % (fields[param], val)
+            
+        if not ret.strip():
+            ret = 'All'
+            
+    return ret
 
 def get_search_page_js_data(content_types, expanded_search=False):
     filters = []
     for type in content_types:
         filters.append({
                          'html': type.form.as_ul(),
-                         'label': type.label
+                         'label': type.label,
+                         'key': type.key,
                          })        
     
     ret = {
@@ -203,7 +316,16 @@ def get_cms_url_from_slug(slug):
         return page.get_absolute_url()
     return u'/%s' % slug
 
-def allographHandSearch(request):
+def search_graph_view(request):
+    # this has been integrated into the main search page
+    # see search_record_view()
+    
+    # we redirect old addresses to the new main search
+    from django.shortcuts import redirect
+    # TODO: get digipal from current project name or current URL
+    redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (request.META['QUERY_STRING'].replace('_select=', '='),)
+    return redirect(redirect_url)
+    
     """ View for Hand record drill-down """
     context = {}
 
@@ -216,6 +338,9 @@ def allographHandSearch(request):
     context['submitted'] = request.GET.get('submitted', '') or term or script or character or allograph or component or feature
     context['style']= 'allograph_list'
     context['term'] = term
+    context['view'] = request.GET.get('view', 'images')
+    
+    context['drilldownform'] = GraphSearchForm()
     
     from datetime import datetime
     
@@ -230,6 +355,8 @@ def allographHandSearch(request):
         #        this would bring potentially invalid results and it is also much slower
         #    it is faster than excluding all the hands without a graph (yet another expensive join)
         #
+        context['query_summary'] = get_query_summary(request, term, context['submitted'], [context['drilldownform']])
+        
         if term:
             graphs = Graph.objects.filter(
                     Q(hand__descriptions__description__icontains=term) | \
@@ -302,105 +429,16 @@ def allographHandSearch(request):
         
         #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
         
-    context['drilldownform'] = DrilldownForm()
-
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
-
     t5 = datetime.now()
     
     ret = render_to_response(
-        'pages/new-image-view.html',
+        'search/search_graph.html',
         context,
         context_instance=RequestContext(request))
     
     t6 = datetime.now()
-    
-    #print 'hands values_list(id) %s' % (t5 - t4)
-    #print 'template %s' % (t6 - t5)
-    #print 'total %s' % (t6 - t0)
 
     return ret
-
-
-def allographHandSearchGraphs(request):
-    """ View for Hand record drill-down """
-    allograph = request.GET.get('allograph_select', '')
-    character = request.GET.get('character_select', '')
-    # Adding 2 new filter values...
-    feature = request.GET.get('feature_select', '')
-    component = request.GET.get('component_select', '')
-
-    context = {}
-    context['style']= 'allograph_list'
-    
-    hand_ids = Hand.objects.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'description','id')
-    
-    handlist = []
-    for h in hand_ids:
-        handlist.insert(0, h.id)
-
-    graphs = Graph.objects.filter(hand__in=handlist).order_by('hand')
-
-    if allograph:
-        graphs = graphs.filter(
-            idiograph__allograph__name=allograph).order_by('hand')
-        context['allograph'] = Allograph.objects.filter(name=allograph)
-    if feature:
-        graphs = graphs.filter(
-            graph_components__features__name=feature).order_by('hand')
-        context['feature'] = Feature.objects.get(name=feature)
-    if character:
-        graphs = graphs.filter(
-            idiograph__allograph__character__name=character).order_by('hand')
-        context['character'] = Character.objects.get(name=character)
-    if component:
-        graphs = graphs.filter(
-            graph_components__component__name=component).order_by('hand')
-        context['component'] = Component.objects.get(name=component)
-
-    graphs = graphs.order_by('hand__scribe__name','hand__id')
-    context['drilldownform'] = DrilldownForm()
-    context['graphs'] = graphs
-
-    page = request.GET.get('page')
-  
-    paginator = Paginator(graphs, 24)
-
-    try:
-        page_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        page_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        page_list = paginator.page(paginator.num_pages)
-
-    context['page_list'] = page_list
-
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
-    
-    return render_to_response(
-        'pages/graphs-list.html',
-        context,
-        context_instance=RequestContext(request))
-
-def graphsSearch(request):
-    context = {}
-
-    context['style']= 'allograph_list'
-    
-    context['drilldownform'] = DrilldownForm()
-    
-    return render_to_response(
-        'pages/graphs.html',
-        context,
-        context_instance=RequestContext(request))
 
 def search_suggestions(request):
     from digipal.utils import get_json_response

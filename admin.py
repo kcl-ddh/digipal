@@ -17,7 +17,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
         Language, LatinStyle, Layout, \
         Measurement, \
-        Ontograph, OntographType, Owner, \
+        Ontograph, OntographType, Owner, ImageAnnotationStatus, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
@@ -985,23 +985,30 @@ class HandsInline(admin.StackedInline):
     form = HandsInlineForm
     formset = HandsInlineFormSet
 
+class ImageAnnotationStatusAdmin(reversion.VersionAdmin):
+    model = ImageAnnotationStatus
+
+    list_display = ['name', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name']
+
 class ImageAdmin(reversion.VersionAdmin):
     form = ImageForm
     change_list_template = 'admin/digipal/change_list.html'
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 
-            'get_status_label', 'media_permission', 'created', 'modified',
+            'get_status_label', 'annotation_status', 'media_permission', 'created', 'modified',
             'iipimage']
     list_display_links = ['id', 'display_label', 
-            'media_permission', 'created', 'modified',
+            'annotation_status', 'media_permission', 'created', 'modified',
             'iipimage']
     search_fields = ['id', 'display_label', 'locus', 
-            'item_part__display_label', 'iipimage']
+            'item_part__display_label', 'iipimage', 'annotation_status']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
     
-    list_filter = ["media_permission__label", ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart]
+    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart]
     
     readonly_fields = ('display_label', 'folio_number', 'folio_side')
     
@@ -1009,7 +1016,7 @@ class ImageAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission')}),
-                ('Internal and editorial information', {'fields': ('internal_notes', 'transcription')})
+                ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
     
@@ -1029,7 +1036,7 @@ class ImageAdmin(reversion.VersionAdmin):
     
     def get_thumbnail(self, image):
         from digipal.templatetags.html_escape import iip_img_a
-        return iip_img_a(image.iipimage, width=70, cls='img-expand')
+        return iip_img_a(image.iipimage, width=70, cls='img-expand', lazy=True)
     get_thumbnail.short_description = 'Thumbnail'
     get_thumbnail.allow_tags = True 
 
@@ -1374,6 +1381,7 @@ admin.site.register(Measurement, MeasurementAdmin)
 admin.site.register(Owner, OwnerAdmin)
 admin.site.register(Ontograph, OntographAdmin)
 admin.site.register(OntographType, OntographTypeAdmin)
+admin.site.register(ImageAnnotationStatus, ImageAnnotationStatusAdmin)
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(PlaceType, PlaceTypeAdmin)

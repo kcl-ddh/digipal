@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.contrib.auth.decorators import login_required
 from django.core import urlresolvers
 from django.db import transaction
@@ -8,8 +10,10 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys
+from django.utils.safestring import mark_safe
 
-from digipal.forms import ImageAnnotationForm, FilterManuscriptsImages
+
+from digipal.forms import ImageAnnotationForm
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
         has_edit_permission
@@ -61,27 +65,56 @@ def allograph_features(request, image_id, allograph_id):
 
 def image(request, image_id):
     """Returns a image annotation form."""
-    image = Image.objects.get(id=image_id)
-    annotations = image.annotation_set.values('graph').count()
+    try:
+        image = Image.objects.get(id=image_id)
+    except Image.DoesNotExist:
+        return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
+                              context_instance=RequestContext(request))
+
+    images = image.item_part.images.exclude(id=image.id)
+    annotations_count = image.annotation_set.values('graph').count()
+    annotations = image.annotation_set.all()
+    dimensions = {
+        'width': image.dimensions()[0],
+        'height': image.dimensions()[1]
+        }
     hands = image.hands.count()
+    url = url = request.path
+    url = url.split('/')
+    url.pop(len(url) - 1)
+    url = url[len(url) - 1]
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
     vector_id = request.GET.get('vector_id', '')
     hands_list = []
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
-    
+    data_allographs = SortedDict()
+
     for h in hands_object.values():
         if h['label'] == None:
             label = "None"
         else:
-            label = h['label'].encode("utf-8")
-        hand = {'id': h['id'], 'name': label}
+            label = mark_safe(h['label'])
+        hand = {'id': h['id'], 'name': label.encode('cp1252')}
         hands_list.append(hand)
 
-    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form = ImageAnnotationForm()
+    #annotations by allograph
+    for a in annotations:
+        hand_label = a.graph.hand
+        allograph_name = a.graph.idiograph.allograph
+        if hand_label in data_allographs:
+            if allograph_name not in data_allographs[hand_label]:
+                data_allographs[hand_label][allograph_name] = []
+        else:
+            data_allographs[hand_label] = SortedDict()
+            data_allographs[hand_label][allograph_name] = []
 
+        data_allographs[hand_label][allograph_name].append(a)
+
+
+    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
+    form = ImageAnnotationForm(auto_id=False)
     form.fields['hand'].queryset = image.hands.all()
 
     width, height = image.dimensions()
@@ -90,15 +123,17 @@ def image(request, image_id):
     is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
-
     context = {
-               'form': form, 'image': image, 'height': height, 'width': width,
+               'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
+               'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               'image_link': image_link, 'annotations': annotations,
+               'image_link': image_link, 'annotations': annotations_count,
+               'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
+               'repositories': Repository.objects.filter(currentitem__itempart__images=image_id)
                }
 
     if vector_id:
@@ -135,12 +170,14 @@ def image_vectors(request, image_id):
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
+
     if annotations_page:
         annotation_list = Annotation.objects.filter(image=image_id)
     else:
         annotation_list = Annotation.objects.filter(graph__hand=hand)
 
     data = {}
+    hands = []
     for a in annotation_list:
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
@@ -154,6 +191,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['num_features'] = len(features_list)
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
+
+        hand = a.graph.hand.label
+        hands.append(a.graph.hand.id)
+        allograph_name = a.graph.idiograph.allograph.name
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
@@ -179,6 +220,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
                 for f in gc.features.all():
                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
                         f.id))
+
     if annotations_page:
         return HttpResponse(simplejson.dumps(data), mimetype='application/json')
     else:
@@ -213,6 +255,8 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
                 'hand': hand[0].id,
                 'hand_name': hand[0].label,
                 'image': i.thumbnail(),
+                'image_id': i.image.id,
+                'graph' : i.graph.id,
                 'vector_id': i.vector_id
             }
             annotations_list.append(annotation)
@@ -224,48 +268,52 @@ def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
     annotation_list = Annotation.objects.filter(image=image_id)
-    image = Image.objects.get(id=image_id)
-    image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))
-    form = ImageAnnotationForm()
-    hands = []
-    form.fields['hand'].queryset = image.hands.all()
-
-    width, height = image.dimensions()
-    image_server_url = image.zoomify
-
-    #is_admin = request.user.is_superuser
-    is_admin = has_edit_permission(request, Image)
 
     data = SortedDict()
-
     for annotation in annotation_list:
-        hand = annotation.graph.hand
-        hands.append(hand.id)
-        allograph_name = annotation.graph.idiograph.allograph
 
-        if hand in data:
-            if allograph_name not in data[hand]:
-                data[hand][allograph_name] = []
+        hand = SortedDict()
+        hand["name"] = annotation.graph.hand.label
+        hand["id"] = annotation.graph.hand.id
+
+        allograph = SortedDict()
+        allograph["name"] = annotation.graph.idiograph.allograph.human_readable()
+        allograph["id"] = annotation.graph.idiograph.allograph.id
+
+        ann = {
+            "graph": annotation.graph.id,
+            "thumbnail": annotation.thumbnail(),
+            "vector_id": annotation.vector_id,
+            "image_id": annotation.image.id
+        }
+
+        if hand['name'] in data:
+            print allograph['name']
+            if not allograph['name'] in data[hand['name']]['allographs']:
+                data[hand['name']]['allographs'][allograph['name']] = allograph
+
+            if not 'annotations' in data[hand['name']]['allographs'][allograph['name']]:
+                data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
+
+            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
+
         else:
-            data[hand] = SortedDict()
-            data[hand][allograph_name] = []
+            data[hand['name']] = hand
+            data[hand['name']]['allographs'] = SortedDict()
+            data[hand['name']]['allographs'][allograph['name']] = allograph
+            data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
+            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
 
-        data[hand][allograph_name].append(annotation)
 
-    return render_to_response('digipal/image_allograph.html',
-            {'image': image,
-             'height': height,
-             'image_server_url': image_server_url,
-             'width': width,
-             'hands': list(set(hands)),
-             'data': data,
-             'form': form,
-             'can_edit': has_edit_permission(request, Annotation)},
-            context_instance=RequestContext(request))
+    response = {
+        'data': data,
+        'can_edit': has_edit_permission(request, Annotation)
+    }
+
+    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))
-    print hands_list
     hands = []
     for i in hands_list:
         h = Hand.objects.get(id=i)
@@ -289,62 +337,46 @@ def image_copyright(request, image_id):
     #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
     #context['copyright'] = repository.values_list('copyright_notice', flat = True)
     # TODO: check this path
-    context['repositories'] = Repository.objects.filter(currentitem__itempart__images=image_id)
-    context['image'] = image
+
     return render_to_response('pages/copyright.html', context,
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-def image_list(request):
-    images = Image.objects.all()
+def images_lightbox(request):
+    if request.is_ajax():
+        if 'data' in request.POST and request.POST.get('data', ''):
+            graphs = simplejson.loads(request.POST.get('data', ''))
+            data = {}
 
-    # Get Buttons
+            if 'annotations' in graphs:
+                annotations = []
+                for graph in graphs['annotations']:
+                    try:
+                        annotation = Annotation.objects.get(graph=graph)
+                        #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
+                        try:
+                            scribe = annotation.graph.hand.scribe.name
+                            scribe_id = annotation.graph.hand.scribe.id
+                            place_name = annotation.graph.hand.assigned_place.name
+                            date = annotation.graph.hand.assigned_date.date
+                        except:
+                            scribe = 'Unknown'
+                            scribe_id = 'Unknown'
+                            place_name = 'Unknown'
+                            date = 'Unknown'
+                        annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
 
-    town_or_city = request.GET.get('town_or_city', '')
-    repository = request.GET.get('repository', '')
+                    except:
+                        continue
 
-    date = request.GET.get('date', '')
-
-    # Applying filters
-    if town_or_city:
-        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
-    if repository:
-        repository_place = repository.split(',')[0]
-        repository_name = repository.split(', ')[1]
-        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
-    if date:
-        images = images.filter(hands__assigned_date__date = date)
-
-    images = images.filter(item_part_id__gt = 0)
-    images = Image.sort_query_set_by_locus(images)
-
-    paginator = Paginator(images, 24)
-    page = request.GET.get('page')
-    filterImages = FilterManuscriptsImages()
-
-    try:
-        page_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        page_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        page_list = paginator.page(paginator.num_pages)
-
-    for page in page_list:
-        page.view_thumbnail = page.thumbnail(None, 210)
-
-    context = {}
-    context['page_list'] = page_list
-    context['filterImages'] = filterImages
-    try:
-        context['view'] = request.COOKIES['view']
-    except:
-        context['view'] = 'Images'
-
-    return render_to_response('digipal/image_list.html', context, context_instance=RequestContext(request))
-
-
+                data['annotations'] = annotations
+            if 'images' in graphs:
+                images = []
+                for img in graphs['images']:
+                    image = Image.objects.get(id=img)
+                    images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                data['images'] = images
+            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 @login_required
 @transaction.commit_manually

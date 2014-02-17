@@ -1,7 +1,12 @@
+from django.utils.html import conditional_escape, escape
 import re
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
+
+def sorted_natural(l, roman_numbers=False):
+    '''Sorts l and returns it. Natural sorting is applied.'''
+    return sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
 
 def natural_sort_key(s, roman_numbers=False):
     '''
@@ -60,7 +65,7 @@ def plural(value, count=2):
     else:
         ret = value
         if ret in ['of']: return ret
-        if count > 1:
+        if count != 1:
             if ret in ['a', 'an']: return ''
             if ret[-1:] == 'y': 
                 ret = ret[:-1] + 'ie'
@@ -120,6 +125,8 @@ def update_query_string(url, updates, url_wins=False):
     
     # Place the query string back into the URL
     ret = urlunparse(parts)
+    
+    ret = escape(ret)
     
     return ret
 

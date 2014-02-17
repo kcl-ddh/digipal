@@ -316,7 +316,7 @@ class Command(BaseCommand):
 							# todo: which rules should we apply here?
 							image.display_label = os.path.basename(file_relative)
 
-						# cpnvert the image to jp2
+						# convert the image to jp2
 						if command == 'upload':
 							error_message = self.convert_image(image)
 							if error_message:
@@ -353,7 +353,7 @@ class Command(BaseCommand):
 				
 			print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
 			
-		if command in ['copy', 'originals']:
+		if command in ['copy', 'originals', 'copy_convert']:
 			known_command = True
 			self.processOriginals(args, options)
 
@@ -361,8 +361,23 @@ class Command(BaseCommand):
 			raise CommandError('Unknown command: "%s".' % command)
 	
 	def fetch(self, *args, **options):
+		out_path = options['out_path']
+
+		if len(args) > 1:
+			base_url = args[1]
+			i = 5177135
+			# 5177311
+			for i in range(5177218, 5177311 + 1):
+				href = 'http://zzz/j2k/jpegNavMain.jsp?filename=Page%203&pid=' + str(i) + '&VIEWER_URL=/j2k/jpegNav.jsp?&img_size=best_fit&frameId=1&identifier=770&metsId=5176802&application=DIGITOOL-3&locale=en_US&mimetype=image/jpeg&DELIVERY_RULE_ID=770&hideLogo=true&compression=90'
+				i += 1  
+				print i
+				found = self.download_images_from_webpage(href, out_path, str(i) + '.jpg')
+				if not found: break
+				
+
+	def fetch_old(self, *args, **options):
 		'''
-			fetch http://bdigital.sib.uc.pt/bg2/UCBG-Cofre-1/UCBG-Cofre-1_item1/P3.html --links-file "bible1" --op=img1
+			fetch http://zzz//P3.html --links-file "bible1" --op=img1
 			
 			Will save all the jpg images found at that address into a directory called img1.
 			We first download the index from that address then follow each link with a name listed in bible1 file.
@@ -384,7 +399,6 @@ class Command(BaseCommand):
 				links = [link.strip() for link in links]
 				
 			if links:
-				
 				html = utils.wget(url)
 				if not html:
 					print 'ERROR: request to %s failed.' % url
@@ -397,28 +411,41 @@ class Command(BaseCommand):
 							href = re.sub(ur'/[^/]*$', '/' + href, url)
 							print href
 							
-							sub_html = utils.wget(href)
-							
-							if not sub_html:
-								print 'WARNING: request to %s failed.' % sub_html
-							else:
-								# get the jpg image in the page
-								image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
-								for image_url in image_urls:
-									image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
-									print image_url
-									
-									# get the image
-									image = utils.wget(image_url)
-									
-									if not image:
-										print 'WARNING: request to %s failed.' % image_url
-									else:
-										# save it
-										import os
-										image_path = os.path.join(out_path, re.sub(ur'^.*/', '', image_url)) + ''
-										print image_path
-										utils.write_file(image_path, image)
+							self.download_images_from_webpage(href, out_path)
+	
+	def download_images_from_webpage(self, href, out_path=None, img_name=None):
+		ret = False
+		print href
+		sub_html = utils.wget(href)
+		
+		if not sub_html:
+			print 'WARNING: request to %s failed.' % sub_html
+		else:
+			ret = True
+			# get the jpg image in the page
+			#image_urls = re.findall(ur'<img [^>]*src="([^"]*?\.jpg)"[^>]*>', sub_html)
+			#print sub_html
+			image_urls = re.findall(ur'<img [^>]*src\s*=\s*"([^"]*?)"[^>]*?>', sub_html)
+			print image_urls
+			for image_url in image_urls:
+				if not image_url.startswith('/'):
+					image_url = re.sub(ur'/[^/]*$', '/' + image_url, href)
+				else:
+					image_url = re.sub(ur'^(.*?//.*?/).*$', r'\1' + image_url, href)
+				print image_url
+				
+				# get the image
+				image = utils.wget(image_url)
+				
+				if not image:
+					print 'WARNING: request to %s failed.' % image_url
+				else:
+					# save it
+					image_path = os.path.join(out_path, img_name or re.sub(ur'^.*/', '', image_url)) + ''
+					print image_path
+					utils.write_file(image_path, image)
+		
+		return ret
 	
 	def processOriginals(self, args, options):
 		''' List or copy the original images. '''
@@ -474,15 +501,26 @@ class Command(BaseCommand):
 			if copied: status = 'COPIED'				
 			print '[%6s] %s' % (status, file_relative)
 
-			if command  == 'copy':
+			if command in ['copy', 'copy_convert']:
 				# create the folders
 				path = os.path.dirname(target)
-				print '\tCopy to %s' % target
 				if not os.path.exists(path):
 					os.makedirs(path)
+					
 				# copy the file
-				shutil.copyfile(join(original_path, file_relative), target)
-		
+				if command == 'copy':
+					print '\tCopy to %s' % target
+					shutil.copyfile(join(original_path, file_relative), target)
+					
+				if command == 'copy_convert':
+					# convert the file jp2
+					status = 'COPIED+CONVERTED'
+					
+					from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
+					shell_command = CONVERT_TO_JP2 % (join(original_path, file_relative), re.sub(ur'\.[^.]+$', ur'.jp2', target))
+ 					ret_shell = self.run_shell_command(shell_command)
+ 					if ret_shell:
+ 						status = 'CONVERSION ERROR: %s (command: %s)' % (ret_shell[0], ret_shell[1])
 	
 	def getNormalisedPath(self, path):
 		''' Turn the path and file names into something the image server won't complain about

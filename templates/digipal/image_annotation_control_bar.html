@@ -3,58 +3,48 @@
     CONTROL BAR
     ----------------------------------------------
 {% endcomment %}
-<div class='panel' id='panelImageBox' style='margin-bottom: 5px;'>
+<div class='panel' id='panelImageBox'>
 
-    <span class="label label-important" style='margin-right:0;font-size:12.8px;'>
-        <span>
-            <b>Annotations</b>: {{ annotations }}
-        </span>
-    </span>
+    <label class='panel-label' id='label-switcher'>
+        <b>Annotations</b>
+    </label>
 
-    <span class="label label-success style='margin-right:0;font-size:12.8px;'">
-        <span>
-            <b>Hands</b>: {{ hands }}
-        </span>
-    </span>
+    <input data-toggle="tooltip" title='Switch annotations' class="toggle-state-switch" type="checkbox" checked {% if annotations == 0 %} disabled {% endif %}>
 
-    {% if annotations > 0 %}
-        <span class="label" style='margin-right:0;font-size:12.8px;'>
-            <b>Annotations</b>:
-        </span>
-        <span id="toggle-state-switch" class="switch switch-small" style='vertical-align: bottom;margin-bottom:1%;height:17.5px;'>
-            <input type="checkbox" />
-        </span>
+    <button data-container='body' data-placement='top' data-toggle="tooltip" class='btn btn-sm btn-default' id='filterAllographs' data-toggle-button='open' data-toggled='false' title='Filter Annotations' {% if annotations == 0 %} disabled {% endif %}>
+        <i class="fa fa-filter"></i>
+    </button>
+
+     {% if can_edit %}
+
+        <div id='div_unsaved_annotations_counter'>
+            <label class='panel-label'>Unsaved</label>
+            <button data-toggle="tooltip" class='btn btn-default btn-sm number_unsaved_allographs active' title='Show all the unsaved allographs'>0</button>
+         </div>
+
     {% endif %}
 
-    <div class="btn-toolbar" style='display:inline'>
-        <div class="btn-group" style='margin-bottom:1%'>
-            {% if annotations > 0 %}
-                <a class='btn btn-small' id='filterAllographs'>Filter</a>
-            {% endif %}
-            <a class="btn btn-small" id="settings_annotator">Settings</a>
-        </div>
+    <div id='annotator-action-buttons' class="btn-group">
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="settings_annotator" data-toggle-button='open' data-toggled='false' title='Open Settings'>
+            <i class="fa fa-wrench"></i>
+        </button>
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="image_to_lightbox" title='Add image to Collection'>
+            <i class="fa fa-folder-open"></i>
+        </button>
     </div>
 
     {% if can_edit %}
-
-        <div class="btn-toolbar" style='display:inline'>
-            <div class="btn-group" style='margin-bottom:1%;margin-left:1%;'>
-                <span class='btn btn-small btn-warning number_unsaved_allographs' title='Show all the unsaved allographs'>0</span>
-            </div>
-        </div>
-
-        <form name='frmAnnotation' method="get" id='frmAnnotation' style='display:inline;float:right;margin-top:0.5%;'>
-            <div id='form_annotation_hand' style='display:inline;width:35%;'>
-                {{ form }}
-                <div style='display:inline;'>
-                    <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'>
-                        <i class= 'icon-eye-open'></i>
-                        <span style='margin-right:0' class='number-allographs'></span>
-                    </span>
-                </div>
+        <form name='frmAnnotation' method="get" class='frmAnnotation pull-right'>
+            <div id='form_annotation_hand'>
+                <ul class='ul_inline_form'>
+                    {{ form }}
+                </ul>
+                <span data-toggle="tooltip" class='btn btn-small btn-default btn-sm number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
+                    <i class='fa fa-eye'></i>
+                    <span class='number-allographs'></span>
+                </span>
             </div>
         </form>
-
     {% else %}
 
         {% comment %}

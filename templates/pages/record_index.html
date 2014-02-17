@@ -21,16 +21,16 @@
             {% endfor %}
         </ul>
     </div>
-    
+
     {% if message %}
         <p>
             {{ message }}
         </p>
     {% endif %}
-    
-    <div class='row-fluid'>
+
+    <div class='row'>
         {% if records %}
-        
+
             <table class="table table-striped">
                 <tbody>
                     {% for record in records %}
@@ -50,11 +50,11 @@
                     {% endfor %}
                 </tbody>
             </table>
-            
+
             <p>
                 {{ records|length }} {{ content_type.label_singular|plural:records }}
             </p>
-            
+
         {% else %}
             <p>
                 We have no {{ content_type.label_singular }} starting with '{{ selected_page.label }}'

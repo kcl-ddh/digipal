@@ -4,8 +4,15 @@ class SearchContentType(object):
     
     def __init__(self):
         self.is_advanced = False
-        self._queryset = []
+        # None if no search has run
+        self._queryset = None
         self._init_field_types()
+        self.desired_view = ''
+        
+    def is_slow(self):
+        # return True if this search is noticeably slower than the other
+        # in this case this search will be triggered only when necesary
+        return False
         
     def _init_field_types(self):
         '''
@@ -118,21 +125,31 @@ class SearchContentType(object):
     
     @property
     def queryset(self):
-        return self._queryset
+        '''Returns a list of recordids'''
+        return self._queryset or []
     
     @property
     def is_empty(self):
+        '''None is returned if no search has been run yet.'''
+        if self._queryset is None: return None
         return self.count == 0
 
     @property
     def count(self):
-        ret = 0
-        if self.queryset:
-            if isinstance(self.queryset, list):
-                ret = len(self.queryset)
-            else: 
-                # assume query set
-                ret = self.queryset.count()
+        '''
+            Returns the number of records found.
+            -1 if the no search was executed.
+        '''
+        if self._queryset is None:
+            ret = -1
+        else:
+            ret = 0
+            if self.queryset:
+                if isinstance(self.queryset, list):
+                    ret = len(self.queryset)
+                else: 
+                    # assume query set
+                    ret = self.queryset.count()
         return ret
 
     def set_record_view_pagination_context(self, context, request):
@@ -140,7 +157,6 @@ class SearchContentType(object):
             set context['navigation'] = {'total': , 'index1': , 'previous_url': , 'next_url':, 'no_record_url': }
             This entries are used by the record.html template to show the navigation above the record details
         '''
-        from digipal.utils import update_query_string
         import re
 
         # TODO: optimise this, we should not have to retrieve the whole result 
@@ -264,11 +280,6 @@ class SearchContentType(object):
                 return natural_sort_key(sort_key, True)
             records = sorted(records, key=lambda record: sort_order(record))
             
-#             for record in records:
-#                 sort_key = ' '.join([ur'%s' % record[field] for field in sort_fields])
-#                 print repr(sort_key)
-#                 print '\t%s' % repr(natural_sort_key(sort_key, True))
-        
         return records
     
     def write_index(self, writer, verbose=False):
@@ -293,7 +304,11 @@ class SearchContentType(object):
                 if not fields[k]['whoosh'].get('ignore', False) and not fields[k]['whoosh'].get('virtual', False):
                     val = u'%s' % k
                     for field_name in re.findall(ur'\w+', k):
-                        v = record[field_name]
+                        if isinstance(record, dict): 
+                            v = record[field_name]
+                        else:
+                            v = eval('record.' + field_name.replace('__', '.'))
+                                     
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
@@ -313,7 +328,7 @@ class SearchContentType(object):
             and natural sort. 
         '''
         import re 
-
+        
         fields = self.get_fields_info()
         
         # extract all the fields names from the content type schema
@@ -325,7 +340,27 @@ class SearchContentType(object):
                 django_fields.extend(re.findall(ur'\w+', k))
         
         # Retrieve all the records from the database
+        # Values turns individual results into dictionary of requested fields names and values
         records = self.get_qs_all().values(*django_fields).distinct()
+        
+        # GN: 11/02/2014
+        #
+        # Now force all joins to be LEFT JOINS
+        #
+        # Explanation:
+        #
+        # Django will usually generate LEFT joins except for non-nullable foreign keys.
+        # This causes issue when we search for scribes an retrieve fields from the repository.
+        # Scribes without hands will not be returned even though there is a left join to hand,
+        # that's because there will be a inner join from CI to repository. Scribes without hands
+        # have no CI and therefore no repository.
+        #
+        # So this might be considered as a Django bug because once part of a query path is 
+        # on left join longer paths based on it should de facto be also left joined.
+        #
+        for alias in records.query.alias_map:
+            records.query.promote_alias(alias, True)
+        
         ret = self.get_sorted_records(records)
         return ret
     
@@ -436,15 +471,62 @@ class SearchContentType(object):
             searcher.close()
             self.searcher = None
     
+    def _get_available_views(self):
+        ''' Returns a list of available tabs to display on the search result.
+            Can be overridden. 
+            
+            Example:
+                ret = [
+                       {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
+                       {'key': 'list', 'label': 'List', 'title': 'Change to list view'},
+                       ]
+        '''
+        return []
+    
+    def get_views(self):
+        ''' Like get_available_views() 
+            but also sets a field 'active' = True|False to each view in the list.
+        '''
+        ret = self._get_available_views()
+        # now set the active view
+        found = False
+        for view in ret:
+            if view['key'] == self.desired_view:
+                view['active'] = True
+                found = True
+                break
+        if not found and ret:
+            ret[0]['active'] = True
+        return ret
+    views = property(get_views) 
+    
+    def set_desired_view(self, view_key):
+        '''Select a search result view we want to show on the front-end.
+            view_key is the key of the desired view.
+            Note that this content type may not support the desired view.
+            In this case it will resort to a default view.
+        '''
+        self.desired_view = view_key
+    
     def build_queryset(self, request, term):
+        ret = []
+        # only run slow searches if that tab is selected; always run other searches
+        if not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
+            ret = self._build_queryset(request, term)
+        return ret
+        
+
+    def _build_queryset(self, request, term):
         '''
             Returns an ordered list or record ids that match the query in the http request.
-            The ids are retrieved using Whoosh or Django QuerySet or both.
+            The ids are retrieved using Whoosh or Django QuerySet or both.            
         '''
         
         # TODO: single search for all types.
         # TODO: optimisation: do the pagination here so we load only the records we show.
         # TODO: if no search phrase then apply default sorting order
+        
+        ##print '------- %s' % self.__class__
         
         term = term.strip()
         self.query_phrase = term
@@ -512,9 +594,12 @@ class SearchContentType(object):
         
         ret = []
         if django_filters or not use_whoosh:
+            from django.db.models import Q
             # We need to search using Django
-            ret = (self.get_model()).objects.filter(**django_filters).values_list('id', flat=True).distinct()
-            # TODO: sort the django results! (if pure django search)
+            #ret = (self.get_model()).objects.filter(**django_filters).values_list('id', flat=True).distinct()
+            # We use Q(q1) & Q(q2) & Q(q3) here as it is more correct (share the joins so it is a real AND rather then kind-of-AND) 
+            # and faster (less joins) than just filter(q1, q2, q3) 
+            ret = (self.get_model()).objects.filter(Q(**django_filters)).values_list('id', flat=True).distinct()
             
             if use_whoosh:
                 # Intersection between Whoosh results and Django results.
@@ -534,7 +619,6 @@ class SearchContentType(object):
             ret = self.whoosh_dict.keys()
          
         # Cache the result        
-        #self._queryset = records
         self._queryset = ret
             
         t1 = datetime.now()
@@ -544,6 +628,12 @@ class SearchContentType(object):
         
         return self._queryset
     
+    def results_are_recordids(self):
+        return True
+    
+    def get_page_size(self):
+        return 10
+
     def get_records_from_ids(self, recordids):
         # TODO: preload related objects?
         # Fetch all the records from the DB

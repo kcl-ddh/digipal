@@ -5,46 +5,25 @@
     ----------------------------------------------
 {% endcomment %}
 
-<div class='pull-right' style='width: 260px;'>
-    {% if image.item_part %}
-        <span id='showImages' data-toggle="tooltip" title="Show images" class="alert alert-success" style='line-height:3;cursor:pointer;'>
-            This manuscript has {{ image.item_part.images.count }}
-            <span style='font-weight:bold'>{{ 'image'|plural:image.item_part.images.count }}</span>
-        </span>
-    {% endif %}
+{% if images.count %}
+    {% for p in images.all %}
 
-    <div id='popupImages' class="row-fluid">
-        <div class='arrow'></div>
-        <div id='titlePopup'>
-            <p>Manuscript Images<span title='Close Window' id='closeBox' class='pull-right'><i class='icon icon-remove'></i></span></p>
-        </div>
-        <div class='span12' id='imagesBoxcontent'>
-            {% for p in image.item_part.images.all %}
-                {% if image.item_part.images.count == 1 %}
-                    <p>
-                        <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' style='margin-left: 13%;' title="{{p}}" class="span8 imagesBoximage" href = "#">
-                            {% iip_img p.iipimage width=50 %}
-                        </a>
-                    </p>
-                {% elif image.item_part.images.count < 3 %}
-                    <a data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span5 imagesBoximage" href = "../{{ p.id|safe}}/">
-                        {% iip_img p.iipimage width=50 %}
-                    </a>
-                {% else %}
-                    {% if forloop.counter|divisibleby:3 %}
-                        <div class='row'>
-                            <a style='margin-left:1.1%;' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' title="{{p}}" class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">
-                                {% iip_img p.iipimage width=50 %}
-                            </a>
-                        </div>
-                    {% else %}
-                        <a title='{{p}}' data-annotations='{{ p.annotation_set.all.count }}' data-hands='{{image.hands.all.count}}' class="span3 imagesBoximage" href = "../{{ p.id|safe}}/">
-                            {% iip_img p.iipimage width=50 %}
-                        </a>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div> {% comment %}DIV popupImages{% endcomment %}
+            {% if forloop.counter0|divisibleby:4 %}
+                <div class='row'>
+            {% endif %}
 
-</div> {% comment %}DIV pull-right{% endcomment %}
+            {% include "digipal/folio_image.html" with image=p width=150 full_label=0 %}
+
+            {% if forloop.counter|divisibleby:4 or forloop.last %}
+                </div>
+            {% endif %}
+
+    {% endfor %}
+
+    {% include "digipal/add_to_collection.html" %}
+
+{% else %}
+    <div class="alert alert-warning">
+        <p>No other pages available</p>
+    </div>
+{% endif %}

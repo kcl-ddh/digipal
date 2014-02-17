@@ -22,8 +22,10 @@ class SearchScribes(SearchContentType):
         # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
         # filtering is done using the DB
         ret['idiographs__allograph__character__name'] = {'whoosh': {'type': self.FT_ID, 'name': 'character', 'ignore': True}, 'advanced': True}
-        ret['idiographs__allograph__allograph_components__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
-        ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
+        #ret['idiographs__allograph__allograph_components__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
+        #ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
+        ret['idiographs__idiographcomponent__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
+        ret['idiographs__idiographcomponent__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         return ret
 
     def get_sort_fields(self):
@@ -37,6 +39,10 @@ class SearchScribes(SearchContentType):
         context['idiograph_components'] = Idiograph.objects.filter(scribe_id=context['scribe'].id)
         # No longer needed?
         #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
+        context['pages'] = []
+        for hand in context['scribe'].hands.all():
+            for image in hand.images.all():
+                context['pages'].append({'hand': hand, 'image': image})
     
     def get_model(self):
         return Scribe
@@ -57,7 +63,7 @@ class SearchScribes(SearchContentType):
     def label_singular(self):
         return 'Scribe'    
     
-    def build_queryset_django(self, request, term):
+    def _build_queryset_django(self, request, term):
         type = self.key
         query_scribes = Scribe.objects.filter(
                     Q(name__icontains=term) | \
@@ -94,6 +100,7 @@ class SearchScribes(SearchContentType):
         
         return self._queryset
 
+from digipal.utils import sorted_natural
 class FilterScribes(forms.Form):
     name = forms.ModelChoiceField(
         queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
@@ -104,35 +111,36 @@ class FilterScribes(forms.Form):
 
     # Was previously called 'scriptorium'
     place = forms.ModelChoiceField(
-        queryset = Institution.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(),
         widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
         empty_label = "Scriptorium",
         label = "",
         required = False)
 
-    date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
+    date = forms.ChoiceField(
+        # TODO: order the dates
+        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct()))],
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
         label = "",
-        empty_label = "Date",
+        initial = "Date",
         required = False)
 
     character = forms.ModelChoiceField(
-        queryset = Character.objects.values_list('name', flat=True).distinct(),
+        queryset = Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(),
         widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label = "",
         empty_label = "Character",
         required = False)
 
     component = forms.ModelChoiceField(
-        queryset = Component.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(),
         widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
         label = "",
         empty_label = "Component",
         required = False)
 
     feature = forms.ModelChoiceField(
-        queryset = Feature.objects.values_list('name', flat=True).order_by('name').distinct(),
+        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(),
         widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
         label = "",
         empty_label = "Feature",
@@ -145,6 +153,5 @@ def scribe_details(request):
     """
     scribe = Scribe.objects.get(id=request.GET.get('id'))
     idiographs = Idiograph.objects.filter(scribe=scribe.id)
-    graphs = Graph.objects.filter(
-        idiograph__in=idiographs)
+    graphs = Graph.objects.filter(idiograph__in=idiographs)
     return idiographs, graphs

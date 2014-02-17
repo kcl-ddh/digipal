@@ -2,75 +2,49 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags html_escape %}
 
-{% block extra_js %}
-    <script type="text/javascript">
-        $(function() {
-            // We select the tab according to the webpath
-            // e.g. /digipal/manuscripts/533/pages will open the 'pages' tab
-            // get the last part in the web path
-            // 'http://localhost/digipal/manuscripts/1067/pages/' => 'pages'
-            var tab_key = window.location.href.replace(/[^#?]*\/([^/?#]+).*/, '$1');
-            if (tab_key) {
-                $('a[data-target=#'+tab_key+']').click();
-            }
-            
-            // Update the webpath in the address bar when the tab is changed
-            // See JIRA 155, 140
-            $('#myTab a').click(function (e) {
-                if (window.history && window.history.pushState) {
-                    e.preventDefault();
-                    $(this).tab('show');
-                    window.history.replaceState({foo: 'bat'}, '', $(this).attr('href'));
-                } else {
-                    {% comment %} 
-                        The browser does not support replaceState (e.g. IE 9), 
-                        we just load the page. 
-                    {% endcomment %} 
-                    window.location.href = $(this).attr('href');
-                    return true;
-                }
-            });
-        });
-    </script>
-{% endblock %}
-
 {% block head %}
     <h1 class='header1'>{% block record_title %}{% endblock %}</h1>
-    
-    <div class='container'>
-        <div class='span12'>
-    
-            <div class='span5'>
-                <ul class="nav nav-tabs" id='myTab'>
-                    {% filter add_query_params:request.META.QUERY_STRING %}
-                        {% block record_tabs %}
-                        {% endblock %}
-                    {% endfilter %}
-                </ul>
-            </div>
+
+    <div class="row record-view">
+
+        <div class='{% if pagination %}col-md-8{% endif %}'>
+            <ul class="nav nav-tabs" id='record-tab-switch'>
+                {% filter add_query_params:request.META.QUERY_STRING %}
+                    {% block record_tabs %}
+                    {% endblock %}
+                {% endfilter %}
+            </ul>
+        </div>
+
+        {% if pagination %}
             
-            {% if pagination %}
-                <div class='span5 pull-right offset2'>
-                    <ul class="nav nav-pills">
-                        <li class="active"><a href='#'>{{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}</a></li>
-                        {% if pagination.previous_url %}
-                            <li class="prev"><a class="ctrl resultsBrowse prev" href="{{ pagination.previous_url }}">Previous</a></li>
-                        {% endif %}
-                        {% if pagination.next_url %}
-                            <li><a class="ctrl resultsBrowse next" href="{{ pagination.next_url }}">Next</a></li>
-                        {% endif %}
-                        <li><a class="ctrl resultsBrowse last" href="{{ pagination.no_record_url }}">Return to list</a></li>
+            {# See JIRA 300, we remove the id from the query string #}
+            {% filter update_query_params:"id=" %}
+                <div class="col-md-4 move-up-1">
+                    <ul class="pager compact">
+                        <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
+                            <a href="{{ pagination.previous_url }}">Previous</a>
+                        </li>
+    
+                        <li>
+                            <a href="{{ pagination.no_record_url }}" data-toggle="tooltip" title="Back to results">
+                                {{ type.label_singular }} {{ pagination.index1 }} of {{ pagination.total }}
+                            </a>
+                        </li>
+    
+                        <li class="next {% if not pagination.next_url %}disabled{% endif %}">
+                            <a href="{{ pagination.next_url }}">Next</a>
+                        </li>
                     </ul>
                 </div>
-            {% endif %}
+            {% endfilter %}
             
-        </div>
+        {% endif %}
+        
     </div>
 
 {% endblock %}
 
 {% block main %}
-    <div class='row-fluid'>
-        {% block details %}{% endblock %}
-    </div>
+    {% block details %}{% endblock %}
 {% endblock %}

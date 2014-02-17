@@ -9,68 +9,81 @@
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ result.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="{{ result.get_absolute_url }}descriptions/" data-target="#descriptions" data-toggle="tab">Descriptions</a></li>
-    <li><a href="{{ result.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
-    <li><a href="{{ result.get_absolute_url }}graphs/" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.description %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
+    </li>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ result.images.count }})</a></li>
+    <li class="{% if tabid = "graphs" %}active in{% endif %} {% if result.graphs.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ result.get_absolute_url }}graphs/" data-address-bar="1" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
 {% endblock %}
 
 {% block details %}
     <div class='tabbable'>
-        <div id='myTabContent' class='tab-content'>
-            <div class='tab-pane fade active in' id='data'>
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ result.label }}</td>
-                        </tr>
-                        <tr>
-                            <th>Manuscript</th>
-                            <td>{{ result.item_part }}</td>
-                        </tr>
-                        <tr>
-                            <th>Script</th>
-                            <td>
-                                {{ result.script }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Scribe</th>
-                            <td>
-                                {{ result.scribe }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Date</th>
-                            <td>
-                                {{ result.assigned_date }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Place</th>
-                            <td>
-                                {{ result.assigned_place }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div id='record-tab-content' class='tab-content'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
+
+                <dl class="dl-horizontal bs">
+                    <dt>Name</dt>
+                    <dd>{{ result.label }}</dd>
+                    <dt>Manuscript</dt>
+                    <dd><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></dd>
+                    <dt>Script</dt>
+                    <dd>
+                        {% if result.script %}
+                            {{ result.script }}
+                        {% else %}
+                            Unspecified
+                        {% endif %}
+                    </dd>
+                    <dt>Scribe</dt>
+                    <dd>
+                        {% if result.scribe %}
+                            <a href="{{ result.scribe.get_absolute_url }}">{{ result.scribe }}</a>
+                        {% else %}
+                            Unspecified
+                        {% endif %}
+                    </dd>
+                    <dt>Date</dt>
+                    <dd>
+                        {{ result.assigned_date }}
+                    </dd>
+                    <dt>Place</dt>
+                    <dd>
+                        {{ result.assigned_place }}
+                    </dd>
+                </dl>
             </div>
-            
-            <div class='tab-pane fade' id='descriptions'>
-                <div>
-                    {{ result.description|tei }}
-                </div>       
+
+            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
+                {% if result.description %}
+                    <div>
+                        {{ result.description|tei }}
+                    </div>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="description" %}
+                {% endif %}
             </div>
-    
-            {% include "pages/tab_images.html" with images=result.images.all %}
-    
-            <div class='tab-pane fade' id='graphs'>
+
+            {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
+
+            {% include "digipal/add_to_collection.html" %}
+
+            <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
                 <div class="scribe annotations">
-                    {% include "digipal/hands.html" %}
+                    {% include "digipal/annotations.html" %}
                 </div>
             </div>
-            
+
         </div>
     </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src='{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js'></script>
+<script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+
 {% endblock %}

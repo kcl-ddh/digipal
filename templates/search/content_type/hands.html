@@ -3,6 +3,7 @@
 <table class="table table-condensed">
     <tr>
         <!--<th>Scribe</th>-->
+        <th>&nbsp;</th>
         <th>Hand</th>
         <th>Repository</th>
         <th>Shelfmark</th>
@@ -10,15 +11,21 @@
         <th>Place</th>
         <th>Date</th>
         <th>Catalogue Number</th>
-        <th>Actions</th>
     </tr>
 
     {% filter tag_phrase_terms:terms %}
         {% for hand in records %}
             <tr class="{% cycle 'bgColour' '' %}">
 
+                <td>
+                    {% if can_edit %}
+                        <a class="view_button" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
+                    {% endif %}
+                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                </td>
+
                 <td>Digipal Hand {{ hand.num }}</td>
-                
+
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
 
                 <td>{{ hand.item_part.current_item.shelfmark }}</td>
@@ -26,7 +33,7 @@
                     {% if hand.images.all %}
                         <a class="imageIcon" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
                             <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.images.count}} images' />
-                        </a> 
+                        </a>
                         ({{hand.images.count}})
                     {% endif %}
                 </td>
@@ -37,12 +44,6 @@
                         {% if not forloop.first %}, {% endif %}
                         {{ item.catalogue_number }}
                     {% endfor %}
-                </td>
-                <td>
-                    {% if can_edit %}
-                        <a class="btn" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
-                    {% endif %}
-                    <a class="btn btn-primary" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
             </tr>
         {% endfor %}

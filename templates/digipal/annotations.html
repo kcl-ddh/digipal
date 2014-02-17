@@ -1,0 +1,248 @@
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags hand_filters %}
+{% load html_escape %}
+{# {annotations_list} #}
+{% if annotations_list %}
+
+     <!-- if there are at least 2 annotated hands, show the list -->
+    {% if annotations_list.keys|length > 1 %}
+
+    <div class="container">
+
+      <h3>Hands List</h3>
+      <!-- links to hands -->
+      <ul>
+      {% for key in annotations_list %}
+
+          <li>
+            <b>
+              <a data-toggle='tooltip' data-placement='right' title='Go to {{key}}' href='#{{key|anchorify}}'>{{key}}</a>
+            </b>
+          </li>
+
+      {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+
+    {% for key, allographs in annotations_list.items %}
+
+        <div class="container">
+          <!-- hand record -->
+          <h2 id='{{key|anchorify}}' class='header1'>
+              {% comment %}
+                  {# No need to repeat MS shelfmark and locus, already in the main heading #}
+                  <b>Hand</b>: {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+                  {{image|capfirst}}
+                  -
+              {% endcomment %}
+              {{ key }}
+          </h2>
+
+          <h3>Allographs List</h3>
+
+          <div class='panel'>
+           <!-- links to allographs -->
+            {% for allograph, graphs in allographs.items %}
+                <a data-toggle='tooltip' data-container='body' title='Go to {{allograph}}' href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+                    <span class="label label-default">{{ allograph }}</span>
+                </a>
+            {% endfor %}
+          </div>
+
+        </div>
+
+        <!-- allographs -->
+
+        <div class="allographs-list container {% if can_edit %} allograph-list-admin {% endif %}">
+        {% for allograph, graphs in allographs.items %}
+          <div class="allograph-item panel">
+
+            <h5 class='header5 pull-left' id='{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+              {{  allograph }}
+            </h5>
+
+            <div class='btn-group pull-right buttons_annotations_list'>
+                <button data-container='body' data-toggle='tooltip' title='Add annotations to collection' class='btn btn-default btn-small to_lightbox' disabled>
+                  <i class='fa fa-folder-open'></i>
+                </button>
+
+                <button data-container='body' data-toggle='tooltip' title='Select all the annotations' data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small select_all'>
+                  <i class='fa fa-check-square-o'></i>
+                </button>
+
+                <button data-container='body' data-toggle='tooltip' title='Unselect all the annotations' data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small deselect_all'>
+                  <i class='fa fa-square-o'></i>
+                </button>
+            </div>
+
+            <!-- ul hand -->
+            <ul data-allograph='{{allograph}}' class="list-allographs" data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+
+            {% for graph in graphs %}
+
+              {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
+
+              {% endif %}
+
+                <!-- graph -->
+                <li data-container='body' class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}" title='Click here to select this graph' data-toggle='tooltip'>
+
+            <p>
+
+              {% if not can_edit %}
+
+              <a data-container='body' data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
+
+              {% endif %}
+
+              {% if can_edit %}
+               <!-- graph number -->
+              <span class='label label-default'>{{forloop.counter}}</span>
+
+              {% endif %}
+
+            </p>
+
+              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
+                {% annotation_img graph lazy=1 %}
+              </a>
+
+            </li>
+          {% endfor %}
+        </ul>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <div>
+      <a id='ontop' href='#top' data-toggle='tooltip' title='Back to Top'>
+        <i class='fa fa-arrow-up'></i>
+      </a>
+    </div>
+
+{% else %}
+
+    {% include "digipal/empty_tab.html" with type="annotation" %}
+
+{% endif %}
+
+ <!-- if is admin -->
+{% if can_edit and image_server_url %}
+
+ <!-- features container -->
+<div class="myModal" id='modal_features'>
+
+  <!-- header -->
+    <div class="modal_header">
+        <i class='icon glyphicon glyphicon-remove close'></i>
+
+        <p class="myModalLabel">
+          <span class='label-modal-value'></span>
+
+          <button type='button' title='Save Annotation' class='btn btn-xs btn-success btn-small' id='save'>
+            <i class='glyphicon glyphicon-ok'></i>
+          </button>
+
+          <button type='button' title='Delete Annotation' class='btn btn-xs btn-danger btn-small'  id='delete'>
+            <i class='glyphicon glyphicon-remove'></i>
+          </button>
+
+          <button type='button' title='Show Summary' class='btn btn-xs btn-default active' id='show_summary'>
+            <i class='glyphicon glyphicon-list'></i>
+          </button>
+
+          <span title='Maximize box' id='maximize' class='pull-right glyphicon glyphicon-resize-full'></span>
+        </p>
+
+    </div>
+
+    <!-- body -->
+    <div class="modal-body">
+
+      <ul class="nav nav-tabs tabs-allograph">
+
+        <li class="active">
+          <a data-toggle="tab" data-target="#describe" href='#'>Describe</a>
+        </li>
+
+        <li>
+          <a data-toggle="tab" data-target="#edit" href='#'>Edit Graph</a>
+        </li>
+      </ul>
+
+      <div class="tabbable">
+
+        <div class="tab-content">
+
+          <div class="tab tab-pane fade active in" id="describe">
+              <form class="frmAnnotation" method="get" name="frmAnnotation">
+                <ul class="ul_inline_form">
+                  {{ form }}
+                </ul>
+                <div id='features_container'></div>
+              </form>
+          </div>
+
+          <div id="edit" class="tab tab-pane fade">
+            <div id="image-editor-space" class='col-md-6'></div>
+            <img id='editor-space-image' src="{{STATIC_URL}}digipal/images/ajax-loader3.gif" alt="">
+
+            <div class="letter_editor col-md-6">
+                <label>Resize</label>
+                <div>
+
+                  <label><small>Height</small></label>
+                  <p>
+                    <button id="resize-up" class="btn btn-default btn-sm">
+                    +
+                    </button>
+                    <button id="resize-down" class="btn btn-default btn-sm">
+                    -
+                    </button>
+                  </p>
+
+                  <label><small>Width</small></label>
+                  <p>
+                    <button id="resize-right" class="btn btn-default btn-sm">
+                      +
+                    </button>
+                    <button id="resize-left" class="btn btn-default btn-sm">
+                      -
+                    </button>
+                  </p>
+                </div>
+                <hr />
+                <label>Move</label>
+
+                <div>
+                  <button id="move-left" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-arrow-left"></i>
+                  </button>
+                  <button id="move-down" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-arrow-down"></i>
+                  </button>
+                  <button id="move-right" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-arrow-right"></i>
+                  </button>
+                  <button id="move-up" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-arrow-up"></i>
+                  </button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- features summary -->
+    <div id='summary'></div>
+</div>
+
+
+{% endif %}
+
+{% comment %}
+    {% include "digipal/add_to_collection.html" %}
+{% endcomment %}

@@ -1,28 +1,18 @@
 {% load html_escape %}
-<div class='tab-pane fade' id='pages'>
-    {% for image in images %}
-     
-        {% if forloop.counter0|divisibleby:4 %}
-            <div class="row">
-        {% endif %}
-                <div class='span4' style='width:21%;padding-left:0;margin-left:0;'>
-                    <dl class="imageDatabase">
-                        <dt>
-                            <a class="imageDatabase" href="{{ image.get_absolute_url }}">
-                                {% iip_img image.iipimage width=120 %}
-                            </a>
-                        </dt>
-                        <dd>
-                            <p>{{ image }}</p>
-                        </dd>
-                    </dl>
+<div class='tab-pane fade {% if tabid = "pages" %}active in{% endif %}' id='pages'>
+    {% if images %}
+        {% for image in images %}
+            {% if forloop.counter0|divisibleby:4 %}
+                <div class="row">
+            {% endif %}
+
+            {% include "digipal/folio_image.html" with image=image width=120 full_label=full_label %}
+
+            {% if forloop.counter|divisibleby:4 or forloop.last %}
                 </div>
-        {% if forloop.counter|divisibleby:4 or forloop.last %}
-            </div>
-        {% endif %}
-    {% empty %}
-        <div class="alert alert-block">
-            <h4>No Images available</h4>
-        </div>
-    {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% include "digipal/empty_tab.html" with type="page" %}
+    {% endif %}
 </div>

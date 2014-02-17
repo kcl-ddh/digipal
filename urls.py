@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns, url
 from django.conf import settings
+from mezzanine.core.views import direct_to_template
 from views.facet import facet_search
 
 urlpatterns = patterns('digipal.views.annotation',
@@ -7,17 +8,15 @@ urlpatterns = patterns('digipal.views.annotation',
                            #model=Page, paginate_by=24,
                            #context_object_name='page_list',
                        #)),
-                       (r'^page/$', 'image_list'),
                        (r'^page/(?P<image_id>\d+)/$', 'image'),
+                       (r'^page/(?P<image_id>\d+)/(allographs|metadata|copyright|pages|hands)/$', 'image'),
                        (r'^page/(?P<image_id>\d+)/vectors/$', 'image_vectors'),
                        (r'^page/(?P<image_id>\d+)/annotations/$', 'image_annotations'),
-                       (r'^page/(?P<image_id>\d+)/allographs/$', 'image_allographs'),
+                       (r'^page/(?P<image_id>\d+)/image_allographs/$', 'image_allographs'),
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/(?P<character_id>\d+)/allographs_by_graph/$', 'get_allographs_by_graph'),
                        (r'^page/(?P<image_id>\d+)/allographs/(?P<allograph_id>\d+)/(?P<character_id>\d+)/allographs_by_allograph/$', 'get_allographs_by_allograph'),
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
                        (r'^page/(?P<image_id>\d+)/hands_list/$', 'hands_list'),
-                       (r'^page/(?P<image_id>\d+)/metadata/$', 'image_metadata'),
-                       (r'^page/(?P<image_id>\d+)/copyright/$', 'image_copyright'),
                        (r'^page/(?P<image_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
                         'allograph_features'),
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/features/$', 'get_features'),
@@ -26,22 +25,23 @@ urlpatterns = patterns('digipal.views.annotation',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
+                       url(r'^collection/$', direct_to_template, {
+                          'template': 'digipal/lightbox_basket.html'
+                        }),
+                       (r'^collection/images/$',
+                        'images_lightbox'),
                        )
 
 urlpatterns += patterns('digipal.views.search',
-                       (r'^search/graph/$', 'allographHandSearch'),
-                       (r'^graphs/graph/$', 'allographHandSearchGraphs'),
-                       (r'^search/$', 'search_page_view'),
-                       (r'^graphs/$', 'graphsSearch'),
-                       (r'^quicksearch/$', 'search_page_view'),
+                       # search pages
+                       (r'^page/$', 'search_ms_image_view'),
+                       (r'^search/$', 'search_record_view'),
+                       (r'^quicksearch/$', 'search_record_view'),
+                       (r'^search/graph/$', 'search_graph_view'),
                        (r'^search/suggestions.json/?$', 'search_suggestions'),
                        # Record views
-                       (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(?:/|$)', 'record_view'),
+                       (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(/(?P<tabid>[^/]+))?(?:/|$)', 'record_view'),
                        (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)(?:/|$)', 'index_view'),
-                       )
-
-urlpatterns += patterns('digipal.views.image',
-                       (r'^image-display/', 'image'),
                        )
 
 urlpatterns += patterns('digipal.views.admin.image',

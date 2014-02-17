@@ -92,7 +92,21 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.onFeatureSelect(e);
 		},
 		'featureunselected': function(e) {
-			_self.onFeatureUnSelect(e);
+			// function to check if an object is empty, boolean returned
+			var isEmpty = function(obj) {
+				for (var prop in obj) {
+					if (obj.hasOwnProperty(prop)) return false;
+				}
+				return true;
+			};
+
+			if (typeof e.feature.linked_to !== "undefined" && !isEmpty(e.feature.linked_to[0])) {
+				$.each(e.feature.linked_to[0], function(index, value) {
+					_self.onFeatureUnSelect(value, false);
+				});
+			} else {
+				_self.onFeatureUnSelect(e, true);
+			}
 		},
 		'featuremodified': function(e) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
@@ -107,8 +121,10 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.format = new OpenLayers.Format.GeoJSON();
 
 	// creates a new panel for all the tools
+	var container = document.getElementById("toolbar");
 	this.toolbarPanel = new OpenLayers.Control.Panel({
 		allowDepress: true,
+		div: container,
 		type: OpenLayers.Control.TYPE_TOGGLE,
 		displayClass: 'olControlEditingToolbar'
 	});
@@ -123,7 +139,26 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			});
 		},
 		clickFeature: function(feature) {
-			_self.deleteAnnotation(this.layer, feature);
+			var msg, doDelete;
+			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
+
+				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + ' annotations. They cannot be restored at a later time! Continue?';
+				doDelete = confirm(msg);
+				if (doDelete) {
+					for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+						var f = annotator.selectedAnnotations[i];
+						delete_annotation(this.layer, f, annotator.selectedAnnotations.length);
+					}
+
+					annotator.selectedAnnotations = [];
+				}
+			} else {
+				msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
+				doDelete = confirm(msg);
+				if (doDelete) {
+					delete_annotation(this.layer, feature);
+				}
+			}
 		},
 		setMap: function(map) {
 			this.handler.setMap(map);
@@ -134,7 +169,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a delete feature
 	this.deleteFeature = new DeleteFeature(this.vectorLayer, {
-		displayClass: 'olControlDeleteFeature',
+		displayClass: 'olControlDeleteFeature fa fa-times ',
 		title: 'Delete'
 	});
 
@@ -152,7 +187,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		renderIntent: 'transform',
 		irregular: true,
 		rotate: false,
-		displayClass: 'olControlTransformFeature',
+		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
 	});
 
@@ -161,6 +196,27 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
 			_self.selectFeatureById(e.feature.id);
 
+			/*
+				prevent the vector to be too narrow
+				it also prevents a openlayers bug
+			*/
+
+		},
+		'transform': function(e) {
+			var feature = e.object.feature;
+
+			if (feature.geometry.bounds.right - feature.geometry.bounds.left < 8) {
+				feature.destroy();
+				$('circle').remove();
+				$('polyline').remove();
+
+				return false;
+			}
+
+
+		},
+		'beforeset': function(e) {
+
 		},
 		'setfeature': function(e) {
 			var hand = $('#id_hand').val();
@@ -168,10 +224,11 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			e.feature.hand = hand;
 			e.feature.allograph = allograph;
 			e.feature.feature = $('#id_allograph option:selected').text();
-			e.feature.stored = false;
+
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
-					_self.transformFeature.unsetFeature();
+					annotator.transformFeature.unsetFeature();
+					return false;
 				}
 			}
 		}
@@ -195,7 +252,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// creates a rectangle feature
 	this.rectangleFeature = new OpenLayers.Control.DrawFeature(
 		this.vectorLayer, OpenLayers.Handler.RegularPolygon, {
-			displayClass: 'olControlDrawFeaturePolygon',
+			displayClass: 'olControlDrawFeaturePolygon fa fa-pencil-square-o ',
 			handlerOptions: {
 				sides: 4,
 				irregular: true
@@ -212,17 +269,16 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a select feature
 	this.selectFeature = new OpenLayers.Control.SelectFeature(this.vectorLayer, {
-		displayClass: 'olControlDragFeature',
+		displayClass: 'olControlDragFeature fa fa-hand-o-up ',
 		title: 'Select',
 		clickout: true,
-		toggle: true,
+		toggle: false,
 		multiple: false,
 		hover: false,
 		toggleKey: 'shiftKey',
 		box: false
 	});
 
-	this.selectFeature.events.toggleKey = 'altKey';
 
 	// creates a drag feature
 	this.dragFeature = new OpenLayers.Control.DragFeature(this.vectorLayer, {
@@ -238,7 +294,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.zoomBoxFeature = new OpenLayers.Control.ZoomBox({
 		alwaysZoom: true,
 		keyMask: false,
-		displayClass: 'olControlZoomBox'
+		displayClass: 'olControlZoomBox fa fa-search-plus '
 	});
 
 
@@ -249,7 +305,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			_self.saveAnnotation();
 		},
-		displayClass: 'olControlSaveFeatures'
+		displayClass: 'olControlSaveFeatures fa fa-save '
 	});
 
 	/* FullScreen Mode */
@@ -288,7 +344,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.fullScreen = new OpenLayers.Control.Button({
-		displayClass: 'olControlFullScreenFeature',
+		displayClass: 'olControlFullScreenFeature fa fa-desktop ',
 		title: 'Full Screen',
 		active: false,
 		trigger: function() {
@@ -297,7 +353,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.refresh = new OpenLayers.Control.Button({
-		displayClass: 'olControlRefreshFeature',
+		displayClass: 'olControlRefreshFeature fa fa-refresh ',
 		title: 'Refresh',
 		trigger: function() {
 			_self.refresh_layer();
@@ -305,11 +361,11 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	});
 
 	this.editorial = new OpenLayers.Control.Button({
-		displayClass: 'olControlEditorialFeature',
+		displayClass: 'olControlEditorialFeature fa fa-pencil ',
 		title: 'Editorial Annotations',
 		active: false,
 		trigger: function() {
-
+			var activeControls = this.map.getControlsBy('active', true);
 			if (this.active) {
 				_self.boxes_on_click = false;
 				$('#boxes_on_click').attr('checked', false);
@@ -317,17 +373,20 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			} else {
 				_self.boxes_on_click = true;
 				$('#boxes_on_click').attr('checked', true);
+				_self.toggleAll(activeControls, false);
 				this.activate();
 				_self.rectangleFeature.activate();
 			}
 		}
 	});
 
+
+
 	// adds all the control features to the toolbar panel
 	this.toolbarPanel.addControls([this.fullScreen, this.selectFeature,
-	        this.zoomBoxFeature, this.refresh, this.editorial, this.saveButton,
-	        this.deleteFeature, this.transformFeature, this.rectangleFeature
-		]);
+		this.zoomBoxFeature, this.refresh, this.editorial, this.saveButton,
+		this.deleteFeature, this.transformFeature, this.rectangleFeature
+	]);
 
 	// sets the default control to be the drag feature
 	this.toolbarPanel.defaultControl = this.selectFeature;
@@ -346,7 +405,9 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		if (_self.getSavedAttribute(feature) != Annotator.SAVED) {
 			_self.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		}
-	}
+	};
+
+
 	/*
 	this.vectorLayer.onFeatureInsert = function(feature) {
 		_self.selectFeatureById(feature.id);
@@ -370,7 +431,7 @@ Annotator.UNSAVED = 0;
 Annotator.prototype.onFeatureSelect = function(event) {
 	this.selectedFeature = event.feature;
 	this.showAnnotation(event.feature);
-}
+};
 
 /**
  * Function that is called after a feature is unselected.
@@ -380,7 +441,7 @@ Annotator.prototype.onFeatureSelect = function(event) {
  */
 Annotator.prototype.onFeatureUnSelect = function(event) {
 	this.selectedFeature = null;
-}
+};
 
 /**
  * Shows the annotation details for the given feature.
@@ -388,7 +449,7 @@ Annotator.prototype.onFeatureUnSelect = function(event) {
  * @param feature
  *						The feature to display the annotation.
  */
-Annotator.prototype.showAnnotation = function(feature) {}
+Annotator.prototype.showAnnotation = function(feature) {};
 
 /**
  * Deletes the annotation for the selected feature.
@@ -399,33 +460,33 @@ Annotator.prototype.showAnnotation = function(feature) {}
  * @param feature
  *						The feature to delete the annotation for.
  */
-Annotator.prototype.deleteAnnotation = function(layer, feature) {}
+Annotator.prototype.deleteAnnotation = function(layer, feature) {};
 
 /**
  * Saves the selected feature annotation.
  *
  * @abstract
  */
-Annotator.prototype.saveAnnotation = function() {}
+Annotator.prototype.saveAnnotation = function() {};
 
 /**
  * Loads existing vectors into a layer.
  *
  * @abstract
  */
-Annotator.prototype.loadVectors = function() {}
+Annotator.prototype.loadVectors = function() {};
 
 /**
  * Loads existing annotations.
  *
  * @abstract
  */
-Annotator.prototype.loadAnnotations = function() {}
+Annotator.prototype.loadAnnotations = function() {};
 
 /**
  * Turns on keyboard shortcuts for the controls.
  */
-Annotator.prototype.activateKeyboardShortcuts = function(event) {}
+Annotator.prototype.activateKeyboardShortcuts = function(event) {};
 
 /**
  * Selects a feature by ID.
@@ -436,7 +497,7 @@ Annotator.prototype.activateKeyboardShortcuts = function(event) {}
 Annotator.prototype.selectFeatureById = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
 	this.selectFeature.clickFeature(feature);
-}
+};
 
 /**
  * Selects a feature by ID and centres on the feature.
@@ -448,7 +509,7 @@ Annotator.prototype.selectFeatureByIdAndCentre = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
 	this.selectFeature.clickFeature(feature);
 	this.map.setCenter(feature.geometry.getBounds().getCenterLonLat());
-}
+};
 
 /**
  * Selects a feature by ID and zooms to the feature extent.
@@ -460,12 +521,12 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
 	this.selectFeature.clickFeature(feature);
 	this.map.zoomToExtent(feature.geometry.getBounds());
-}
+};
 
 Annotator.prototype.centreById = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
 	this.map.zoomToExtent(feature.geometry.getBounds());
-}
+};
 /**
  * Returns the saved attribute for the given feature.
  *
@@ -476,7 +537,7 @@ Annotator.prototype.getSavedAttribute = function(feature) {
 	var attribute = Annotator.SAVED_ATTRIBUTE;
 
 	return feature.attributes['saved'];
-}
+};
 
 /**
  * Sets the saved attribute of the feature to the given value. If redraw is true
@@ -498,4 +559,19 @@ Annotator.prototype.setSavedAttribute = function(feature, saved, redraw) {
 	if (redraw) {
 		this.vectorLayer.drawFeature(feature, 'default');
 	}
-}
+};
+
+Annotator.prototype.toggleAll = function(activeControls, active) {
+	for (i = 0; i < activeControls.length; i++) {
+		if (activeControls[i].title) {
+			if (activeControls[i].displayClass != 'olControlFullScreenFeature') {
+				if (active) {
+					activeControls[i].activate();
+				} else {
+					activeControls[i].deactivate();
+					annotator.editorial.deactivate();
+				}
+			}
+		}
+	}
+};

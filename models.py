@@ -13,6 +13,7 @@ import unicodedata
 import cgi
 import iipimage.fields
 import iipimage.storage
+from django.utils.html import conditional_escape, escape
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -1030,7 +1031,7 @@ class ItemPart(models.Model):
         return u'%s' % (self.display_label)
     
     def clean(self):
-        if self.group_id and self.group_id == self.id:
+        if self.group_id == self.id:
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 
@@ -1158,6 +1159,20 @@ class LatinStyle(models.Model):
     def __unicode__(self):
         return u'%s' % (self.style)
 
+class ImageAnnotationStatus(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Image annotation statuses'
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+
+# This is an image of a part of an item-part
 class Image(models.Model):
     item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
 
@@ -1188,6 +1203,8 @@ class Image(models.Model):
     
     transcription = models.TextField(blank=True, null=True)
     internal_notes = models.TextField(blank=True, null=True)
+    
+    annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True)
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']
@@ -1332,7 +1349,8 @@ class Image(models.Model):
 
     def full(self):
         """Returns the URL for the full size image.
-           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&RST=*&QLT=100&CVT=JPG
+           Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&amp;RST=*&amp;QLT=100&amp;CVT=JPG
+           The query string in the returned URL is already encoded with ampersand.
         """
         path = ''
         if self.iipimage:
@@ -1820,9 +1838,10 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url(self):
+    def get_cutout_url(self, esc=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
+            If esc is True, special chars are turned into entities (e.g. & -> &amp;) 
         '''
         # graft the query string of self.cutout to self.image.thumbnail_url
         # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
@@ -1833,14 +1852,15 @@ class Annotation(models.Model):
         # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)
         # Just concatenate things together instead
         image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
-        return u'%s?%s' % (image_url, cutout_qs)
+        ret = u'%s?%s' % (image_url, cutout_qs)
+        if esc: ret = escape(ret)
+        return ret
 
     def thumbnail(self):
-        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url()))
+        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (cgi.escape(self.get_cutout_url()),
-            self.thumbnail()))
+        return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True

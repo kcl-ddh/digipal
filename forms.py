@@ -53,24 +53,27 @@ class ImageAnnotationForm(forms.Form):
     #status = forms.ModelChoiceField(queryset=Status.objects.all(),
     #        initial=default_status)
     hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
-        widget = Select(attrs={'class':'chzn-select', 'data-placeholder':"Hand"}),
+        widget = Select(attrs={'name': 'hand', 'class':'chzn-select hand_form', 'data-placeholder':"Hand"}),
         label = "",
-        empty_label = "",)
+        empty_label = None
+        )
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
-        widget = AllographSelect(attrs={'class':'chzn-select', 'data-placeholder':"Allograph"}),
+        widget = AllographSelect(attrs={'name': 'allograph', 'class':'chzn-select allograph_form', 'data-placeholder':"Allograph"}),
         label = "",
-        empty_label = "",
+        empty_label =None,
     )
     #before = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
     #feature = forms.MultipleChoiceField(required=False,
     #        widget=forms.SelectMultiple(attrs={'size': 25}))
     display_note = forms.CharField(required=False,
-            widget=Textarea(attrs={'cols': 25, 'rows': 5}))
+                                   label = "",
+            widget=Textarea(attrs={'cols': 25, 'rows': 5, 'class':'hidden'}))
     internal_note = forms.CharField(required=False,
-            widget=Textarea(attrs={'cols': 25, 'rows': 5}))
+                                    label = "",
+            widget=Textarea(attrs={'cols': 25, 'rows': 5, 'class':'hidden'}))
 
     def clean(self):
         """The feature field is always marked as invalid because the choices
@@ -119,24 +122,28 @@ class InlineForm(forms.ModelForm):
         # instance is always available, it just does or doesn't have pk.
         self.fields['edit_link'].widget = InlineLinkWidget(self.instance)
 
+
+from digipal.models import Image
+
 class FilterManuscriptsImages(forms.Form):
 
     town_or_city = forms.ModelChoiceField(
-        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True),
+        queryset = Place.objects.filter(repository__currentitem__itempart__images__isnull=False).distinct().values_list('name', flat=True).order_by('name'),
         widget = Select(attrs={'id':'town-select', 'class':'chzn-select', 'data-placeholder':"Choose a Town or City"}),
         label = "",
         empty_label = "Town or City",
         required = False)
 
-
     repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.all().order_by('name').distinct()],
+        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__images__id__gt=0).order_by('place__name', 'name').distinct()],
         widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
         label = "",
         required = False)
 
     date = forms.ModelChoiceField(
-        queryset = Date.objects.values_list('date', flat=True).order_by('date').distinct(),
+        #queryset = Date.objects.filter().values_list('date', flat=True).order_by('date').distinct(),
+        # TODO: order the dates
+        queryset = Image.objects.values_list('hands__assigned_date__date', flat=True).order_by('hands__assigned_date__date').distinct(),
         widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
         label = "",
         empty_label = "Date",
@@ -152,8 +159,10 @@ class SearchPageForm(forms.Form):
         else:
             args = list(args)[:]
             args[0] = args[0].copy()
-        if 'basic_search_type' not in args[0]:
-            args[0]['basic_search_type'] = 'manuscripts'
+#         if 'basic_search_type' not in args[0]:
+#             args[0]['basic_search_type'] = 'manuscripts'
+        if 's' not in args[0]:
+            args[0]['s'] = '1'
         super(SearchPageForm, self).__init__(*args, **kwargs)
 
     terms = forms.CharField(
@@ -164,23 +173,23 @@ class SearchPageForm(forms.Form):
         'invalid': 'Enter a valid value'},
         widget=TextInput(attrs={
             'id': 'search-terms',
-            'class':'textEntry',
+            #'class':'textEntry form-control',
+            'class':'form-control',
             'placeholder': 'Enter search terms',
-            'required': 'required',
+            #'required': 'required',
             "autocomplete":"off"})
     )
-    basic_search_type = forms.ChoiceField(
+    basic_search_type = forms.CharField(
         label='',
-        #required=True,
-        #error_messages={'required': 'Please select something to search for'},
         required=False,
-        widget=forms.RadioSelect(),
-        choices = [
-                ('manuscripts', 'Manuscripts'),
-                ('hands', 'Hands'),
-                ('scribes', 'Scribes')],
-        initial='manuscripts',
-#             attrs={'required': 'required'}),
+        widget=HiddenInput(attrs={'id':'basic_search_type'}),
+        initial='',
+    )
+    from_link = forms.BooleanField(
+        initial=False,
+        required=False,
+        label='advanced',
+        widget=HiddenInput(attrs={'id':'advanced'})
     )
     ordering = forms.CharField(
         initial="default",
@@ -199,104 +208,59 @@ class SearchPageForm(forms.Form):
         required=False,
         widget=HiddenInput()
     )
+    s = forms.CharField(
+        required=False,
+        label='',
+        widget=HiddenInput()
+    )
 
-
-# class SearchForm(forms.Form):
-#     """ Represents the input form on the search page """
-#
-#     terms = forms.CharField(
-#         label='',
-#         required=False,
-#         error_messages={
-#         'required': 'Please enter at least one search term',
-#         'invalid': 'Enter a valid value'},
-#         widget=TextInput(attrs={
-#             'id': 'textEntry',
-#             'class':'textEntry',
-#             'placeholder': 'Enter search terms',
-#             'required': 'required',
-#             "autocomplete":"off"}))
-#     basic_search_type = forms.ChoiceField(
-#         label='',
-#         required=True,
-#         error_messages={'required': 'Please select something to search for'},
-#         widget=forms.RadioSelect(attrs={
-#             'required': 'required'}),
-#         choices = [
-#             ('hands', 'Hands'),
-#             ('manuscripts', 'Manuscripts'),
-#             ('scribes', 'Scribes')],
-#         initial='hands'
-#         )
-#     ordering = forms.CharField(
-#         initial="default",
-#         required=False,
-#         label='ordering',
-#         widget=HiddenInput(attrs={'id':'active_ordering'}))
-#
-#     years = forms.CharField(
-#         initial='1000-1300',
-#         required=False,
-#         label='years',
-#         widget=HiddenInput(attrs={'id':'active_years'}))
-#
-# class QuickSearch(forms.Form):
-#     terms = forms.CharField(
-#         label='',
-#         required=True,
-#         error_messages={
-#         'required': 'Please enter at least one search term',
-#         'invalid': 'Enter a valid value'},
-#         widget=TextInput(attrs={
-#             'id': 'input',
-#             'class':'textEntry',
-#             'placeholder': 'Enter search terms',
-#             'required': 'required',
-#             "autocomplete":"off"}))
-
-
-
-class DrilldownForm(forms.Form):
+class GraphSearchForm(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
     script_select = forms.ModelChoiceField(
         queryset=Script.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'script-select', 'class':'chzn-select', 'data-placeholder':"Choose a Script"}),
         label="",
         empty_label = "Script",
-        required=False)
+        required=False
+    )
     character_select = forms.ModelChoiceField(
         queryset=Character.objects.values_list('name', flat= True).distinct(),
         widget=Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
         label='',
         empty_label = "Character",
-        required=False)
+        required=False
+    )
     allograph_select = forms.ChoiceField(
         choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.all().distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph-select', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='',
-        required=False)
+        initial='Allograph',
+        required=False
+    )
     component_select = forms.ModelChoiceField(
         queryset=Component.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
         empty_label = "Component",
         label='',
-        required=False)
+        required=False
+    )
     feature_select = forms.ModelChoiceField(
         queryset=Feature.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
         empty_label = "Feature",
         label='',
-        required=False)
+        required=False
+    )    
     # hidden field which we populate with the existing search term in the view
     terms = forms.CharField(
-      required=False,
-      label='terms',
-      widget=HiddenInput(),
-      )
+        required=False,
+        label='terms',
+        widget=HiddenInput(),
+    )
 
     # def __init__(self, scribe):
-    #     super(DrilldownForm, self).__init__()
+    #     super(GraphSearchForm, self).__init__()
     #     self.fields['allograph_select'].queryset = Allograph.objects.filter(
     #         scribe=scribe)
 

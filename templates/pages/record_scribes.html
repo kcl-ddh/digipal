@@ -1,123 +1,118 @@
 {% extends "pages/record.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags %}
+{% load html_escape %}
 
 {% block meta_title %}Scribe: {{ scribe.name }}{% endblock %}
 {% block record_title %}
-    Scribe: {{ scribe.name }}        
+    Scribe: {{ scribe.name }}
     {% include "digipal/admin_edit.html" with instance=scribe %}
+    {% if can_edit %}
+        <a class='admin-edit' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>[Edit Ideographs]</a>
+    {% endif %}
 {% endblock %}
 
 {% block record_tabs %}
-    <li class="active"><a href="{{ scribe.get_absolute_url }}" data-target="#data" data-toggle="tab">Record Data</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}hands/" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}pages/" data-target="#pages" data-toggle="tab">Pages</a></li>
-    <li><a href="{{ scribe.get_absolute_url }}idiographs/" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a></li>
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
+    </li>
+    <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
+    </li>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
+    </li>
+    <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ scribe.get_absolute_url }}idiographs/" data-address-bar="1" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>
+    </li>
 {% endblock %}
 
 {% block details %}
     <div class='tabbable'>
-    
-        <div id='myTabContent' class='tab-content'>
-            <div class='tab-pane fade active in' id='data'>
-                <h3>Location</h3>
-    
-                <table class="table table-condensed">
-                    <tbody>
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ scribe.name }}</td>
-                        </tr>
-                        <tr>
-                            <th>Date</th>
-                            <td>{{ scribe.date }}</td>
-                        </tr>
-                        <tr>
-                            <th>Scriptorium</th>
-                            <td>{{ scribe.scriptorium }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+        <div id='record-tab-content' class='tab-content'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
+                <h3>Date and Place</h3>
+
+                <dl class="bs dl-horizontal">
+                    <dt>Date</dt>
+                    <dd>{{ scribe.date }}</dd>
+                    <dt>Scriptorium</dt>
+                    <dd>{{ scribe.scriptorium }}</dd>
+                </dl>
             </div>
-    
-            <div class='tab-pane fade' id='hands'>
-                <div class='row-fluid'>
+
+            <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
+                {% if scribe.hands.count %}
                     <table class="table table-condensed">
                         <tr>
                             <th>Item Part</th>
                             <th>Hand</th>
                         </tr>
                         {% for hand in scribe.hands.all %}
-                            {% if hand %}
-                                <tr>
-                                    <td>{{hand.item_part}}</td> 
-                                    <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td><div class="alert alert-block"><h4>No hands available</h4></div></td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-    
-                    </table>
-                </div>
-            </div>
-            
-            <div class='tab-pane fade' id='pages'>
-                <table class='table table-condensed'>
-                    <tr>
-                        <th>Page</th>
-                        <th>Hand</td>
-                        <th>Image</th>
-                    </tr>
-                    {% for hand in scribe.hands.all %}
-                        {% for image in hand.images.all %}
                             <tr>
-                                <td>
-                                    <p><a href="{{ image.get_absolute_url }}">{{ image }}</a></p>
-        
-                                </td>
-                                <td>
-                                    <p>{{ hand }}</p>
-                                </td>
-                                <td style='padding:1%'>
-                                    <a class="{{ image.get_absolute_url }}">
-                                        {{ image.thumbnail  }}
-                                    </a>
-                                </td>
-                               
+                                <td><a href="{{ hand.item_part.get_absolute_url }}">{{hand.item_part}}</a></td>
+                                <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
                             </tr>
                         {% endfor %}
-                    {% endfor %}
-                </table>
+                    </table>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="hand" %}
+                {% endif %}
             </div>
-            
-            <div class='tab-pane fade' id='idiographs'>
-                <div id='idiographsView'>
-                <a class='btn btn-primary' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>Edit Ideographs</a>
+            <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
+                {% if pages %}
+                    <table class='table table-condensed'>
+                        <tr>
+                            <th>Page</th>
+                            <th>Hand</th>
+                            <th>Image</th>
+                        </tr>
+                        {% for page in pages %}
+                            <tr>
+                                <td>
+                                    <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ page.image.get_absolute_url }}">
+                                        {% iip_img page.image height=100 %}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="page" %}
+                {% endif %}
+            </div>
+
+            <div class='tab-pane fade {% if tabid = 'idiographs' %}active in{% endif %}' id='idiographs'>
                 {% if idiograph_components %}
                     {% for idiograph in idiograph_components.all %}
-                    <div class="idiograph_scribe">
-                        <h4><b>Idiograph:</b> {{idiograph}}</h4>
-                        {% if can_edit %}
-                        {% endif %}
-                        {% for component in idiograph.idiographcomponent_set.all %}
-                            <p class='component_scribe'>{{ component.component }}</p>
-                            {% for feature in component.features.all %}
-                                <p class='feature_scribe'>{{feature}}</p>
-                            {% endfor %}
-                        {% endfor %}
-                    </div>
+                        <div>
+                            <h4>{{idiograph.allograph}}</h4>
+                            <ul class="list-unstyled">
+                                {% for component in idiograph.idiographcomponent_set.all %}
+                                    <li class='component_scribe'>{{ component.component }}
+                                        <ul class="list-unstyled">                                
+                                            {% for feature in component.features.all %}
+                                                <li class='feature_scribe'>{{feature}}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <hr/>
+                        </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-block">
-                        <h4>No Idiographs available</h4>
-                    </div>
+                    {% include "digipal/empty_tab.html" with type="idiograph" %}
                 {% endif %}
-                </div>
             </div>
-            
+
         </div>
     </div>
 {% endblock %}

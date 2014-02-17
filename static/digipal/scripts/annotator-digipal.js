@@ -1541,11 +1541,6 @@ function fill_dialog(id, annotation) {
 	}
 
 	dialog.html(s);
-	var url_allograph_button = dialog.parent().find('.url_allograph');
-
-	url_allograph_button.click(function() {
-		show_url_allograph(dialog, annotation, $(this));
-	});
 
 	var url_allograph_button = dialog.parent().find('.url_allograph');
 

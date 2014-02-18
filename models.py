@@ -1159,6 +1159,20 @@ class LatinStyle(models.Model):
     def __unicode__(self):
         return u'%s' % (self.style)
 
+class ImageAnnotationStatus(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Image annotation statuses'
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+
+# This is an image of a part of an item-part
 class Image(models.Model):
     item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
 
@@ -1189,6 +1203,8 @@ class Image(models.Model):
     
     transcription = models.TextField(blank=True, null=True)
     internal_notes = models.TextField(blank=True, null=True)
+    
+    annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True)
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']

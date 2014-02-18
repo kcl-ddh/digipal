@@ -28,7 +28,7 @@
 
     {% for key, allographs in annotations_list.items %}
 
-        <div class="container">
+        <div>
           <!-- hand record -->
           <h2 id='{{key|anchorify}}' class='header1'>
               {% comment %}
@@ -55,7 +55,7 @@
 
         <!-- allographs -->
 
-        <div class="allographs-list container {% if can_edit %} allograph-list-admin {% endif %}">
+        <div class="allographs-list {% if can_edit %} allograph-list-admin {% endif %}">
         {% for allograph, graphs in allographs.items %}
           <div class="allograph-item panel">
 

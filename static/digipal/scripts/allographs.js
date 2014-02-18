@@ -807,8 +807,6 @@ function Allographs() {
 			},
 
 			success: function(output) {
-
-				a = output;
 				var data = output['data'];
 
 				var index_hands_list = 0;

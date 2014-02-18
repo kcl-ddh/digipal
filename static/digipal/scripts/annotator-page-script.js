@@ -162,7 +162,7 @@ function AnnotatorLoader() {
 
 		self.toolbar_position();
 
-		$('#toolbar div').tooltip({
+		$('#OpenLayers_Control_Panel_29 div').tooltip({
 			container: 'body',
 			placement: 'right'
 		});

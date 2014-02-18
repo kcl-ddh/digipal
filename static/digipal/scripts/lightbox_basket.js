@@ -266,9 +266,9 @@ $(document).ready(function() {
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
 			s += '<h3>Save Collection</h3>';
-			s += '<div class="input-group"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
-			s += '<span class="input-group-btn"><input type = "button" class="btn btn-default" id="save_collection" type="button" value="Save" /></span></div>';
-			s += '<input type = "button" style="margin-top:5%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
+			s += '<div style="margin-top:0.5em"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
+			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="save_collection" type="button" value="Save" /> ';
+			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Close Window" /></div></div>';
 			window_save_collection.html(s);
 			$('body').append(window_save_collection);
 

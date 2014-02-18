@@ -4,7 +4,12 @@
 
 {% block meta_title %}Manuscript: {{ item_part.display_label }}{% endblock %}
 {% block record_title %}
-    Manuscript: {{ item_part.display_label }}
+    {% if item_part.type.name == 'Fragment' %}
+        Fragment:
+        {{ item_part.display_label }}
+    {% else %}
+        {{ item_part.historical_label }}
+    {% endif %}
     {% include "digipal/admin_edit.html" with instance=item_part %}
 {% endblock %}
 
@@ -55,7 +60,20 @@
                     <h3>Reconstructed Folio</h3>
                     <p>
                         <a href="{{ item_part.group.get_absolute_url }}">{{ item_part.group.display_label }}</a>
-                    </p>                    
+                    </p>
+                {% endif %}
+
+                {% if item_part.historical_items.count == 1 %}
+                    <h3>Fragments in {{ item_part.historical_items.all.0 }}</h3>
+                    <ul>
+                        {% for rf in item_part.historical_items.all.0.item_parts.all %}
+                            {% for fragment in rf.subdivisions.all %}
+                                <li>
+                                    <a href="{{ fragment.get_absolute_url }}">{{ fragment }}</a>
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>                    
                 {% endif %}
                 
                 <h3>Date & origin</h3>

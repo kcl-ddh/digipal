@@ -2,18 +2,20 @@
 
 <table class="table table-condensed">
     <tr>
-        <th>Index</th>
+        <!-- th>Index</th -->
+        <th>Item Type</th>
+        <th>Historical item</th>
         <th>Repository</th>
         <th>Shelfmark</th>
         <th>Folio(s)</th>
-        <th>Description</th>
+        <!-- th>Description</th -->
         <th>Actions</th>
     </tr>
 
     {% filter tag_phrase_terms:terms %}
         {% for manuscript in records %}
             <tr>
-                <td>
+                <!-- td>
                     {% for item in manuscript.historical_items.all %}
                         {% if not forloop.first %}, {% endif %}
                         {{ item.catalogue_number }}
@@ -25,8 +27,20 @@
                         </a> 
                         ({{manuscript.images.count}})
                     {% endif %}
-                </td>
+                </td -->
                 
+                <td>
+                    {{ manuscript.type }}
+                    {% if manuscript.images.all %}
+                        <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
+                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' />
+                        </a> 
+                        ({{manuscript.images.count}})
+                    {% endif %}
+                </td>
+                <td>
+                    {{ manuscript.historical_label }}
+                </td>
                 <td>
                     {% for ci in manuscript.get_current_items %}
                         {% if not forloop.first %}<br/> {% endif %}
@@ -48,9 +62,9 @@
                         {{ ms.locus }}
                     {% endfor %}
                 </td>
-                <td>
+                <!-- td>
                     {{ manuscript.description_snippet }}
-                </td>
+                </td -->
                 <td>
                     {% if can_edit %}
                         <a class="btn" href="/admin/digipal/itempart/{{ manuscript.id }}">Edit</a>

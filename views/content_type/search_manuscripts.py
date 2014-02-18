@@ -18,6 +18,9 @@ class SearchManuscripts(SearchContentType):
         # Boosting set to 0.3 so a 'Vespasian' will rank record with Vespasian shelfmark higher than those that have it in the description.
         ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.2}, 'long_text': True}
         ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+
+        ret['group__historical_items__name, historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+        
         return ret
 
     def get_sort_fields(self):

@@ -462,6 +462,7 @@ class SearchContentType(object):
         django_filters = {}
         infos = self.get_fields_info()
         for field_path in self.get_fields_info():
+            print field_path
             info = infos[field_path]
             if info.get('advanced', False):
                 name = info['whoosh']['name']

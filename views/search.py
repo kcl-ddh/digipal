@@ -17,7 +17,7 @@ def get_search_types():
     from content_type.search_scribes import SearchScribes
     #from content_type.search_graphs import SearchGraphs
     ret = [SearchManuscripts(), SearchHands(), SearchScribes()]
-    #ret = [SearchScribes()]
+    #ret = [SearchManuscripts()]
     return ret
 
 def get_search_types_display(content_types):

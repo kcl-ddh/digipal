@@ -177,7 +177,7 @@ $(document).ready(function() {
 
 			error: function() {
 
-				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
+				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something has gone wrong. Please refresh the page and try again.</div>';
 				container_basket.html(s);
 
 				var loading_div = $(".loading-div");

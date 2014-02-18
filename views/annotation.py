@@ -268,19 +268,17 @@ def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
     annotation_list = Annotation.objects.filter(image=image_id)
-    data = SortedDict()
 
+    data = SortedDict()
     for annotation in annotation_list:
 
-        hand = {
-            "name": annotation.graph.hand.label,
-            "id": annotation.graph.hand.id
-        }
+        hand = SortedDict()
+        hand["name"] = annotation.graph.hand.label
+        hand["id"] = annotation.graph.hand.id
 
-        allograph = {
-            "name": annotation.graph.idiograph.allograph.human_readable(),
-            "id": annotation.graph.idiograph.allograph.id
-        }
+        allograph = SortedDict()
+        allograph["name"] = annotation.graph.idiograph.allograph.human_readable()
+        allograph["id"] = annotation.graph.idiograph.allograph.id
 
         ann = {
             "graph": annotation.graph.id,
@@ -290,20 +288,20 @@ def image_allographs(request, image_id):
         }
 
         if hand['name'] in data:
-            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
-
-        else:
-            data[hand['name']] = SortedDict()
-            data[hand['name']] = hand
-            data[hand['name']]['allographs'] = SortedDict()
-
+            print allograph['name']
             if not allograph['name'] in data[hand['name']]['allographs']:
-                data[hand['name']]['allographs'][allograph['name']] = SortedDict()
                 data[hand['name']]['allographs'][allograph['name']] = allograph
 
             if not 'annotations' in data[hand['name']]['allographs'][allograph['name']]:
                 data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
 
+            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
+
+        else:
+            data[hand['name']] = hand
+            data[hand['name']]['allographs'] = SortedDict()
+            data[hand['name']]['allographs'][allograph['name']] = allograph
+            data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
             data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
 
 
@@ -313,8 +311,6 @@ def image_allographs(request, image_id):
     }
 
     return HttpResponse(simplejson.dumps(response), mimetype='application/json')
-
-
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))

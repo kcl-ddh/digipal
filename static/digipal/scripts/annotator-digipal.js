@@ -2005,7 +2005,14 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 			delete_annotation(layer, feature, number_annotations);
 		}
 	}
+	var tab_link = $('a[data-target="#allographs"]');
+	var f = annotator.vectorLayer.features;
+	var y = 0;
+	while (y < f.length && f[y].attributes.saved === 1) {
+		y++;
+	}
 
+	tab_link.html('Annotations (' + y + ')');
 };
 
 /**
@@ -2066,17 +2073,6 @@ function delete_annotation(layer, feature, number_annotations) {
 
 				// deleting from annotations by allograph
 				// $('li[data-graph="' + feature.graph + ']"').remove();
-
-
-				var tab_link = $('a[data-target="#allographs"]');
-				var f = annotator.vectorLayer.features;
-				var y = 0;
-				while (y < f.length && f[y].attributes.saved === 1) {
-					y++;
-				}
-
-				tab_link.html('Annotations (' + y + ')');
-
 
 				annotator.has_changed = true;
 			}
@@ -2286,6 +2282,15 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		}
 	}
 
+	var tab_link = $('a[data-target="#allographs"]');
+	var f = annotator.vectorLayer.features;
+	var y = 0;
+	while (y < f.length && f[y].attributes.saved === 1) {
+		y++;
+	}
+
+	tab_link.html('Annotations (' + y + ')');
+
 };
 
 /**
@@ -2399,14 +2404,6 @@ function save(url, feature, data, ann, features) {
 
 			$(".number_annotated_allographs .number-allographs").html(n);
 
-			var tab_link = $('a[data-target="#allographs"]');
-
-			var y = 0;
-			while (y < f.length && f[y].attributes.saved === 1) {
-				y++;
-			}
-
-			tab_link.html('Annotations (' + y + ')');
 
 
 			// refresh allographs

@@ -71,7 +71,7 @@ def image(request, image_id):
         return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
                               context_instance=RequestContext(request))
 
-    images = image.item_part.images.exclude(id=image.id)
+    images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id), True)
     annotations_count = image.annotation_set.values('graph').count()
     annotations = image.annotation_set.all()
     dimensions = {

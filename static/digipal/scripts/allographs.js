@@ -219,7 +219,6 @@ function Allographs() {
 					self.temporary_vectors = [];
 				}
 				self.selectedAnnotations.annotations.push(annotation);
-				console.log(self.selectedAnnotations.annotations);
 				var a = self.selectedAnnotations.allograph;
 				self.main(annotation);
 			}

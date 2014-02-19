@@ -240,7 +240,6 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 
 		allograph_label.unbind().on('click', function() {
 			var element = "<div class='elements_linked'>";
-			console.log('ha');
 			$.each(elements_linked, function() {
 				this.feature = this.feature || 'Undefined annotation';
 				element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
@@ -1604,7 +1603,7 @@ function show_url_allograph(dialog, annotation, button) {
 	if (button.data('hidden')) {
 		button.data('hidden', false);
 		$('.link_graphs').after(' <img src="/static/digipal/images/ajax-loader3.gif" id="url_allograph_gif" />');
-		var url = $("<div class='allograph_url_div'>");
+		var url = $("<div class='allograph_url_div' data-url-type='short'>");
 		var allograph_url, stored = false;
 		var a = $('<a>');
 		a.attr('target', '_tab');
@@ -1732,7 +1731,18 @@ function show_url_allograph(dialog, annotation, button) {
 					a.text(resp.id);
 					button.data('url', resp.id);
 					url.append(a);
+					url.append("<button style='font-size: 12px;' class='btn btn-default btn-xs pull-right' id='long_url'>Long URL?</button>");
 					dialog.prepend(url);
+
+					var long_url_button = $('#long_url');
+					long_url_button.on('click', function() {
+						if (url.data('url-type') == 'short') {
+							a.text(allograph_url);
+							button.data('url', allograph_url);
+							url.html("<a href='" + allograph_url + "'>" + allograph_url + "</a>");
+							url.data('url-type', 'long');
+						}
+					});
 				}
 			});
 
@@ -2258,7 +2268,6 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		if (confirm(msg)) {
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
 				feature = this.selectedAnnotations[i];
-				console.log(data.features);
 				save(url, feature, data.form_serialized, ann, data.features);
 			}
 		} else {

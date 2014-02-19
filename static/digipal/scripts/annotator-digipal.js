@@ -771,7 +771,7 @@ function updateFeatureSelect(currentFeatures, id) {
 			prefix = 'allographs_';
 		}
 
-		if (typeof allograph_selected != 'undefined' && allograph_selected) {
+		if (typeof allograph_selected !== 'undefined' && allograph_selected) {
 			var get_features = $.getJSON(url);
 			get_features.done(function(data) {
 				$.each(data, function(idx) {
@@ -1759,6 +1759,14 @@ function showBox(selectedFeature) {
 
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
+
+	var select_allograph;
+	if ($('.tab-pane.active').attr('id') == 'annotator') {
+		select_allograph = $('#panelImageBox');
+	} else {
+		select_allograph = $('.modal-body');
+	}
+
 	if (annotator.boxes_on_click) {
 		var dialog;
 		var can_edit = $('#development_annotation').is(':checked');
@@ -1774,6 +1782,11 @@ function showBox(selectedFeature) {
 				dialog.css('margin', '3%');
 				dialog.html(s);
 			}
+
+			if (annotator.selectedFeature) {
+				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+				$('select').trigger('liszt:updated');
+			}
 			return false;
 		}
 
@@ -1787,7 +1800,7 @@ function showBox(selectedFeature) {
 		var prefix = 'annotator_';
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
-		if (can_edit) {
+		if (can_edit && annotator.selectedFeature.state !== 'Insert') {
 			var request = $.getJSON(annotator.absolute_image_url + "graph/" + selectedFeature.graph);
 			request.done(function(data) {
 				var url = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
@@ -1930,12 +1943,6 @@ function showBox(selectedFeature) {
 	if (selectedFeature) {
 		var n = 0;
 		var annotations = annotator.annotations;
-		var select_allograph;
-		if ($('.tab-pane.active').attr('id') == 'annotator') {
-			select_allograph = $('#panelImageBox');
-		} else {
-			select_allograph = $('.modal-body');
-		}
 		(function() {
 			for (var i = 0; i < features.length; i++) {
 				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {

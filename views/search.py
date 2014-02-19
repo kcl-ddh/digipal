@@ -31,7 +31,7 @@ def get_search_types_display(content_types):
     for type in content_types:
         if ret:
             if type == content_types[-1]:
-                ret += ' or '
+                ret += ' and '
             else:
                 ret += ', '        
         ret += '\'%s\'' % type.label
@@ -173,8 +173,8 @@ def search_record_view(request):
         for type in context['types']:
             if not type.is_empty:
                 context['is_empty'] = False
-        if context['is_empty']:
-            context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+
+    context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the advanced search forms 
     from django.utils import simplejson

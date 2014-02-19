@@ -129,6 +129,13 @@ function AnnotatorLoader() {
 			self.update_allographs_counter($(this).val());
 		});
 
+		var hand_form = $('#panelImageBox .hand_form');
+		hand_form.on('change', function(event) {
+			if (annotator.selectedFeature && annotator.selectedFeature.state === "Insert") {
+				annotator.selectedFeature.hand = $(this).val();
+			}
+		});
+
 		$('.number_annotated_allographs').click(function() {
 			open_allographs();
 		});
@@ -832,6 +839,7 @@ function AnnotatorLoader() {
 		feature.feature.features = [];
 		feature.feature.linked_to = [];
 		feature.feature.stored = false;
+		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
 		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 10 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 15) {
 			feature.feature.destroy();
@@ -887,6 +895,8 @@ function AnnotatorLoader() {
 			event.stopPropagation();
 			return false;
 		});
+
+
 	};
 
 	// sets options to open or not boxes when a vector gets clicked on

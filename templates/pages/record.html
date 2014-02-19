@@ -23,7 +23,7 @@
                 <div class="col-md-4 move-up-1">
                     <ul class="pager compact">
                         <li class="previous {% if not pagination.previous_url %}disabled{% endif %}">
-                            <a href="{{ pagination.previous_url }}">Previous</a>
+                            <a {% if pagination.previous_url %}href="{{ pagination.previous_url }}"{% endif %}>Previous</a>
                         </li>
     
                         <li>
@@ -33,7 +33,7 @@
                         </li>
     
                         <li class="next {% if not pagination.next_url %}disabled{% endif %}">
-                            <a href="{{ pagination.next_url }}">Next</a>
+                            <a {% if pagination.next_url %}href="{{ pagination.next_url }}{% endif %}">Next</a>
                         </li>
                     </ul>
                 </div>

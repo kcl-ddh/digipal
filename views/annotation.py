@@ -264,53 +264,31 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
     else:
         return HttpResponse(False)
 
+
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
-    annotation_list = Annotation.objects.filter(image=image_id)
+    annotations = Annotation.objects.filter(image=image_id)
 
-    data = SortedDict()
-    for annotation in annotation_list:
-
-        hand = SortedDict()
-        hand["name"] = annotation.graph.hand.label
-        hand["id"] = annotation.graph.hand.id
-
-        allograph = SortedDict()
-        allograph["name"] = annotation.graph.idiograph.allograph.human_readable()
-        allograph["id"] = annotation.graph.idiograph.allograph.id
-
-        ann = {
-            "graph": annotation.graph.id,
-            "thumbnail": annotation.thumbnail(),
-            "vector_id": annotation.vector_id,
-            "image_id": annotation.image.id
-        }
-
-        if hand['name'] in data:
-            print allograph['name']
-            if not allograph['name'] in data[hand['name']]['allographs']:
-                data[hand['name']]['allographs'][allograph['name']] = allograph
-
-            if not 'annotations' in data[hand['name']]['allographs'][allograph['name']]:
-                data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
-
-            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
-
+    data_allographs = SortedDict()
+    for a in annotations:
+        hand_label = a.graph.hand
+        allograph_name = a.graph.idiograph.allograph
+        if hand_label in data_allographs:
+            if allograph_name not in data_allographs[hand_label]:
+                data_allographs[hand_label][allograph_name] = []
         else:
-            data[hand['name']] = hand
-            data[hand['name']]['allographs'] = SortedDict()
-            data[hand['name']]['allographs'][allograph['name']] = allograph
-            data[hand['name']]['allographs'][allograph['name']]['annotations'] = []
-            data[hand['name']]['allographs'][allograph['name']]['annotations'].append(ann)
+            data_allographs[hand_label] = SortedDict()
+            data_allographs[hand_label][allograph_name] = []
 
+        data_allographs[hand_label][allograph_name].append(a)
 
-    response = {
-        'data': data,
+    context = {
+        'annotations_list': data_allographs,
         'can_edit': has_edit_permission(request, Annotation)
     }
 
-    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
+    return render_to_response('digipal/annotations.html', context, context_instance=RequestContext(request))
 
 def hands_list(request, image_id):
     hands_list = simplejson.loads(request.GET.get('hands', ''))

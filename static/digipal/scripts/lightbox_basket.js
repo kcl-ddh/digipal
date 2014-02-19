@@ -3,13 +3,68 @@
    -- Digipal Project --> digipal.eu
  */
 
-var csrftoken = getCookie('csrftoken');
 
+function getCookie(name) {
+	var cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; i++) {
+			var cookie = jQuery.trim(cookies[i]);
+			// Does this cookie string begin with the name we want?
+			if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+}
+
+function getParameter(paramName) {
+	var searchString = window.location.search.substring(1),
+		i, val, params = searchString.split("&");
+	var parameters = [];
+	for (i = 0; i < params.length; i++) {
+		val = params[i].split("=");
+		if (val[0] == paramName) {
+			parameters.push(unescape(val[1]));
+		}
+	}
+	return parameters;
+}
+
+function notify(msg, status) {
+	var status_element = $('#status');
+	if (!status_element.length) {
+		status_element = $('<div id="status">');
+		$('body').append(status_element.hide());
+	}
+	status_class = status ? ' alert-' + status : '';
+	status_element.attr('class', 'alert' + status_class);
+	status_element.html(msg).fadeIn();
+
+	setTimeout(function() {
+		status_element.fadeOut();
+	}, 5000);
+}
+
+function uniqueid() {
+	var text = "";
+	var possible = "0123456789";
+
+	for (var i = 0; i < 3; i++)
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
+}
+
+var csrftoken = getCookie('csrftoken');
 $.ajaxSetup({
 	headers: {
 		"X-CSRFToken": csrftoken
 	}
 });
+
 
 $(document).ready(function() {
 
@@ -47,7 +102,13 @@ $(document).ready(function() {
 			type: 'POST',
 			url: 'images/',
 			data: {
-				'data': JSON.stringify(data)
+				'data': JSON.stringify(data),
+				"X-CSRFToken": csrftoken
+			},
+
+			beforeSend: function() {
+
+
 			},
 			success: function(data) {
 
@@ -177,7 +238,7 @@ $(document).ready(function() {
 
 			error: function() {
 
-				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something went wrong.  Please try again refreshing the page.</div>';
+				var s = '<div class="container alert alert-warning" style="margin-top:5%">Something has gone wrong. Please refresh the page and try again.</div>';
 				container_basket.html(s);
 
 				var loading_div = $(".loading-div");
@@ -266,9 +327,9 @@ $(document).ready(function() {
 			var s = '';
 			window_save_collection.attr('class', 'loading-div');
 			s += '<h3>Save Collection</h3>';
-			s += '<div class="input-group"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
-			s += '<span class="input-group-btn"><input type = "button" class="btn btn-default" id="save_collection" type="button" value="Save" /></span></div>';
-			s += '<input type = "button" style="margin-top:5%" class="btn btn-sm pull-right btn-danger" id="close_window_collections" value="Close Window" />';
+			s += '<div style="margin-top:0.5em"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
+			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="save_collection" type="button" value="Save" /> ';
+			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Close Window" /></div></div>';
 			window_save_collection.html(s);
 			$('body').append(window_save_collection);
 
@@ -412,6 +473,7 @@ $(document).ready(function() {
 	}
 
 	var length_basket = length_basket_elements(basket);
+
 	if (length_basket) {
 
 		main(basket); // launch main()
@@ -445,57 +507,3 @@ $(document).ready(function() {
 		}
 	}
 });
-
-function getCookie(name) {
-	var cookieValue = null;
-	if (document.cookie && document.cookie !== '') {
-		var cookies = document.cookie.split(';');
-		for (var i = 0; i < cookies.length; i++) {
-			var cookie = jQuery.trim(cookies[i]);
-			// Does this cookie string begin with the name we want?
-			if (cookie.substring(0, name.length + 1) == (name + '=')) {
-				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-				break;
-			}
-		}
-	}
-	return cookieValue;
-}
-
-function getParameter(paramName) {
-	var searchString = window.location.search.substring(1),
-		i, val, params = searchString.split("&");
-	var parameters = [];
-	for (i = 0; i < params.length; i++) {
-		val = params[i].split("=");
-		if (val[0] == paramName) {
-			parameters.push(unescape(val[1]));
-		}
-	}
-	return parameters;
-}
-
-function notify(msg, status) {
-	var status_element = $('#status');
-	if (!status_element.length) {
-		status_element = $('<div id="status">');
-		$('body').append(status_element.hide());
-	}
-	status_class = status ? ' alert-' + status : '';
-	status_element.attr('class', 'alert' + status_class);
-	status_element.html(msg).fadeIn();
-
-	setTimeout(function() {
-		status_element.fadeOut();
-	}, 5000);
-}
-
-function uniqueid() {
-	var text = "";
-	var possible = "0123456789";
-
-	for (var i = 0; i < 3; i++)
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-	return text;
-}

@@ -33,7 +33,7 @@ function PublicAllograhs() {
 		annotation_li.click(function(event) {
 			var annotation_li = $(this);
 			var panel = annotation_li.parent().parent();
-			var annotation = annotation_li.data('graph');
+			var annotation = getFeatureById($(annotation_li).data('annotation'));
 
 			if (annotation_li.data('selected')) {
 				_self.clean_annotations(annotation);
@@ -91,6 +91,7 @@ function PublicAllograhs() {
 			var panel = $(this).parent().parent();
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
+				annotation = getFeatureById($(checkboxes[i]).data('annotation'));
 				_self.selectedAnnotations.push(annotation);
 			}
 			checkboxes.data('selected', true);
@@ -99,8 +100,15 @@ function PublicAllograhs() {
 		});
 
 		var to_lightbox = $('.to_lightbox');
+
 		to_lightbox.click(function() {
-			add_to_lightbox($(this), 'annotation', _self.selectedAnnotations, true);
+			var graphs = [];
+			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
+				graphs.push(_self.selectedAnnotations[i].graph);
+			}
+
+			add_to_lightbox($(this), 'annotation', graphs, true);
+
 		});
 
 	};

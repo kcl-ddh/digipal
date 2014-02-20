@@ -382,6 +382,8 @@ Commands:
 		
 		table_displays = {}
 		
+		from datetime import datetime
+		
 		c = 0
 		for table in tables:
 			if re.search(r'%s' % table_filter, table):
@@ -398,7 +400,7 @@ Commands:
 					field_name = field[0]
 					if field_name in date_fields:
 						max_date = utils.sqlSelectMaxDate(con, table, field_name)
-						if max_date:
+						if max_date and isinstance(max_date, datetime):
 							table_key = max_date.strftime("%Y%m%d%H%M%S")
 							max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
 						else:

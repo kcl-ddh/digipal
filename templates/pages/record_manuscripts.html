@@ -57,8 +57,8 @@
                         <dt>Origin</dt>
                         {% for data in item_part.historical_item.itemorigin_set.all.distinct %}
                             <dd>
-                                <b>Evidence</b>: {{ data.evidence }}
-                                {% if data.dubitable %}, <b>Dubitable</b>{% endif %}
+                                Evidence: {{ data.evidence }} {{ data.id }}
+                                {% if data.dubitable %}(dubitable){% endif %}
                             </dd>
                         {% endfor %}
                     {% endif %}

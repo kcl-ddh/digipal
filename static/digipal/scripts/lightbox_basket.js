@@ -405,7 +405,6 @@ $(document).ready(function() {
 
 				var resp = request.execute(function(resp) {
 					if (resp.error) {
-						console.log(resp);
 						return false;
 					} else {
 

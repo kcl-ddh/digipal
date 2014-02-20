@@ -164,15 +164,22 @@ function Allographs() {
 			j = 0;
 			var msg = 'You are about to delete ' + self.selectedAnnotations.annotations.length + ' annotations. It cannot be restored at a later time! Continue?';
 			if (confirm(msg)) {
-
+				var nextAll, element, value;
 				for (i = 0; i < selected_features.length; i++) {
 					delete_annotation(annotator.vectorLayer, selected_features[i], selected_features.length);
-					var element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
+					element = $('.annotation_li[data-graph="' + selected_features[i].graph + '"]');
+					nextAll = element.nextAll();
+					$.each(nextAll, function() {
+						value = parseInt($(this).find('.label').text(), 10);
+						$(this).find('.label').text(value - 1);
+					});
 					element.fadeOut().remove();
 				}
 
 				self.selectedAnnotations.annotations = [];
 				self.dialog.hide();
+
+
 			}
 		},
 
@@ -219,7 +226,6 @@ function Allographs() {
 					self.temporary_vectors = [];
 				}
 				self.selectedAnnotations.annotations.push(annotation);
-				console.log(self.selectedAnnotations.annotations);
 				var a = self.selectedAnnotations.allograph;
 				self.main(annotation);
 			}
@@ -496,7 +502,6 @@ function Allographs() {
 
 				});
 			} else {
-				console.log('The annotations may not be initialized yet');
 				return false;
 			}
 		},
@@ -646,14 +651,12 @@ function Allographs() {
 		},
 
 		makeBounds: function(RGN) {
-			console.log('RGN', RGN);
 			var W = annotator.dimensions[0];
 			var H = annotator.dimensions[1];
 			var left = RGN[0] * W;
 			var top = H - (RGN[1] * H);
 			var width = (RGN[2] * W);
 			var height = (RGN[3] * H);
-			console.log(left, top);
 			//annotator.selectedFeature.move(p);
 		},
 

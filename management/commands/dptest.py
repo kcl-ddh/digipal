@@ -95,6 +95,52 @@ Commands:
 			known_command = True
 			self.fetch_and_test(*args[1:])
 
+		if command == 'catnum':
+			known_command = True
+			self.catnum(*args[1:])
+
+	def catnum(self, root=None):
+		from digipal.models import *
+		print '\nh1 NOCAT'
+		hi1 = HistoricalItem(historical_item_type_id=1)
+		hi1.save() 
+		print hi1.catalogue_number
+		print hi1.catalogue_numbers.all()
+
+		print '\nh1 NOCAT'
+		hi1.save()
+		hi1_id = hi1.id 
+		print hi1.catalogue_number
+		print hi1.catalogue_numbers.all()
+
+		print '\nh2'
+		hi2 = HistoricalItem(historical_item_type_id=1)
+		hi2.save()
+		print hi2.catalogue_number
+		print hi2.catalogue_numbers.all()
+		
+		print '\nh2'
+		hi2.catalogue_numbers.add(CatalogueNumber.objects.all()[0])
+		hi2.catalogue_numbers.add(CatalogueNumber.objects.all()[1])
+		print hi2.catalogue_numbers.all()
+		hi2.save()
+		print hi2.catalogue_number
+		print hi2.catalogue_numbers.all()
+
+		print '\nh2 NOCAT'
+		hi2.catalogue_numbers.clear()
+		hi2.save()
+		print hi2.catalogue_number
+		print hi2.catalogue_numbers.all()
+		
+		print '\nh3'
+		hi3 = HistoricalItem.objects.get(id=hi1_id)
+		hi3.catalogue_numbers.add(CatalogueNumber.objects.all()[0])
+		hi3.save()
+		 
+		print hi3.catalogue_number
+		print hi3.catalogue_numbers.all()
+
 	def fetch_and_test(self, root=None):
 		from utils import web_fetch
 		from datetime import datetime

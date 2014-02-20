@@ -484,11 +484,12 @@ class HistoricalItem(models.Model):
         return ret
 
     def set_catalogue_number(self):
-        if self.catalogue_numbers:
-            self.catalogue_number = u''.join([u'%s %s ' % (cn.source,
-                cn.number) for cn in self.catalogue_numbers.all()]).strip()
-        else:
-            self.catalogue_number = u'NOCATNO'
+        cn = u'NOCATNO'
+        if self.pk:
+            cns = self.catalogue_numbers.all()
+            if cns:
+                cn = u''.join([u'%s %s ' % (cn.source, cn.number) for cn in cns]).strip()
+        self.catalogue_number = cn
 
     def get_part_count(self):
         return self.item_parts.all().count()

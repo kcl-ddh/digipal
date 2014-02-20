@@ -1204,7 +1204,7 @@ class Image(models.Model):
     transcription = models.TextField(blank=True, null=True)
     internal_notes = models.TextField(blank=True, null=True)
     
-    annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True)
+    annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True, blank=True, default=None)
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']

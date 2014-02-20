@@ -1755,7 +1755,7 @@ function show_url_allograph(dialog, annotation, button) {
 	}
 }
 
-function showBox(selectedFeature) {
+function showBox(selectedFeature, callback) {
 
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
@@ -1765,6 +1765,28 @@ function showBox(selectedFeature) {
 		select_allograph = $('#panelImageBox');
 	} else {
 		select_allograph = $('.modal-body');
+	}
+
+	var n = 0;
+	var annotations = annotator.annotations;
+	(function() {
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
+				n++;
+			}
+		}
+		if ($(".number_annotated_allographs").length) {
+			$(".number_annotated_allographs .number-allographs").html(n);
+		}
+	})();
+
+	//$('#hidden_hand').val(selectedFeature.hidden_hand);
+	//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	$('select').trigger('liszt:updated');
+	if (annotator.isAdmin == "True") {
+		highlight_vectors();
 	}
 
 	if (annotator.boxes_on_click) {
@@ -1905,8 +1927,12 @@ function showBox(selectedFeature) {
 						}
 
 					});
-
 				});
+
+				if (callback) {
+					callback();
+				}
+
 			});
 
 		} else {
@@ -1937,30 +1963,6 @@ function showBox(selectedFeature) {
 					dialog.html(s);
 				}
 			});
-		}
-	}
-
-	if (selectedFeature) {
-		var n = 0;
-		var annotations = annotator.annotations;
-		(function() {
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
-					n++;
-				}
-			}
-			if ($(".number_annotated_allographs").length) {
-				$(".number_annotated_allographs .number-allographs").html(n);
-			}
-		})();
-
-		//$('#hidden_hand').val(selectedFeature.hidden_hand);
-		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
-		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		$('select').trigger('liszt:updated');
-		if (annotator.isAdmin == "True") {
-			highlight_vectors();
 		}
 	}
 }
@@ -2582,12 +2584,19 @@ function registerEvents() {
 			var boxes_on_click_element = $("#boxes_on_click");
 			boxes_on_click_element.prop('checked', true);
 			var boxes_on_click = false;
+			var annotation;
 
-			showBox(annotator.selectedFeature);
-			if (!boxes_on_click) {
-				annotator.boxes_on_click = false;
-				boxes_on_click_element.prop('checked', false);
+			for (var a in annotator.annotations) {
+				if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
+					annotation = annotator.annotations[a];
+				}
 			}
+			showBox(annotation, function() {
+				if (!boxes_on_click) {
+					annotator.boxes_on_click = false;
+					boxes_on_click_element.prop('checked', false);
+				}
+			});
 
 		});
 	}

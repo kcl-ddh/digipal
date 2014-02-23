@@ -1659,7 +1659,23 @@ class Graph(models.Model):
         #self.display_label = u'%s. %s' % (self.idiograph, self.hand)
         self.display_label = get_list_as_string(self.idiograph, '. ', self.hand)
         super(Graph, self).save(*args, **kwargs)
+        
+    def get_description_as_array_str(self):
+        ret = []
+        for c in self.graph_components.all().order_by('component__name'):
+            for f in c.features.all().order_by('name'):
+                ret.append(u'%s: %s' % (c.component.name, f.name))
+        return ret
 
+    def get_description_as_str(self):
+        return u', '.join(self.get_description_as_array_str())
+
+    def get_serialised_description(self):
+        ret = []
+        for c in self.graph_components.all():
+            for f in c.features.all():
+                ret.append(u'%s_%s' % (c.component.id, f.id))
+        return u' '.join(ret)
 
 class GraphComponent(models.Model):
     graph = models.ForeignKey(Graph, related_name='graph_components')

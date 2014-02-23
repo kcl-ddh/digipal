@@ -89,6 +89,10 @@ Options:
         if command == 'test':
             known_command = True
             self.test(options)
+        
+        if command == 'index_graph':
+            known_command = True
+            self.index_graph_description()
 
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
@@ -251,6 +255,49 @@ Options:
         schema = Schema(**fields)
         
         # Create the index schema
+        index = self.recreate_index(index_name, schema)
+        
+        # Add documents to the index
+        print '\tWrite indexes:'
+        writer = index.writer()
+        for type in types:
+            count = type.write_index(writer, self.is_verbose())
+            print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
+        
+        writer.commit()
+
+    def index_graph_description(self, index_name='graphs'):
+        from whoosh.fields import TEXT, ID, NGRAM, NUMERIC, KEYWORD
+        from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
+        from whoosh.analysis.filters import LowercaseFilter
+        print 'Building %s index...' % index_name
+        
+        # build a single schema from the fields exposed by the different search types
+        print '\tSchema:'
+        fields = {'gid': ID(stored=True), 'description': KEYWORD(lowercase=True, scorable=True)}
+        #fields = {'gid': ID(stored=True), 'description': TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))}
+        
+        from whoosh.fields import Schema
+        schema = Schema(**fields)
+        
+        # Create the index schema
+        index = self.recreate_index(index_name, schema)
+        
+        # Add documents to the index
+        print '\tWrite indexes:'
+        writer = index.writer()
+        c = 0
+        from digipal.models import Graph
+        for graph in Graph.objects.filter(graph_components__isnull=False).prefetch_related('graph_components', 'graph_components__component', 'graph_components__features').distinct():
+            c += 1
+            doc = {'gid': unicode(graph.id), 'description': graph.get_serialised_description()}
+            writer.add_document(**doc)
+        
+        print '\t\tIndex %d graphs' % c
+        
+        writer.commit()
+
+    def recreate_index(self, index_name, schema):
         import os.path
         from whoosh.index import create_in
         path = settings.SEARCH_INDEX_PATH
@@ -265,15 +312,8 @@ Options:
         # TODO: check if this REcreate the existing index
         index = create_in(path, schema)
         
-        # Add documents to the index
-        print '\tWrite indexes:'
-        writer = index.writer()
-        for type in types:
-            count = type.write_index(writer, self.is_verbose())
-            print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
+        return index
         
-        writer.commit()
-
     def is_dry_run(self):
         return self.options.get('dry-run', False)
 

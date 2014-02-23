@@ -16,4 +16,66 @@ def iipimage(request):
 
     return render_to_response('test/iipimage.html', context,
             context_instance=RequestContext(request))
+
+def similar_graph_view(request):
+    context = {}
     
+    # get the query graph
+    gid = id = request.GET.get('gid', 0)
+    if gid:
+        context['graphq'] = Graph.objects.get(id=gid)
+    else:
+        context['graphq'] = Graph.objects.filter(idiograph__allograph__character__name='b', graph_components__isnull=False)[2]
+        
+    # search for similar graphs
+    from whoosh.index import open_dir
+    from whoosh import sorting, scoring
+    import os
+    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'graphs'))
+    #searcher = index.searcher(weighting=scoring.Frequency())
+    searcher = index.searcher()
+    
+    from whoosh.qparser import QueryParser
+    from whoosh.qparser import syntax
+    parser = QueryParser('description', schema=index.schema, group=syntax.OrGroup)
+    query = parser.parse(context['graphq'].get_serialised_description())
+    #query = parser.parse('(description:4_21 OR description:"4_69" OR description:"8_87")')
+    print repr(query)
+    #sortedby = [sorting.ScoreFacet()]
+    print query
+    #results = searcher.search(query, limit=20, sortedby=sortedby)
+    results = searcher.search(query, limit=50)
+    
+    # fetch the results
+    #print results[0]
+    #gids = [r['gid'] for r in results]
+    #print gids
+    
+    gids = [r['gid'] for r in results]
+    print gids
+    
+    context['graphs'] = []
+    graphs = {}
+    for g in Graph.objects.filter(id__in=gids).prefetch_related('hand', 'annotation', 'annotation__image', 'annotation__image__item_part'):
+        graphs[g.id] = g
+    for r in results:
+        g = graphs[int(r['gid'])]
+        g.hit = r
+        context['graphs'].append(g)
+    
+    # get the graphs from teh database
+#     context['graphs'] = []
+#     i = 0
+#     for id, g in Graph.objects.in_bulk(gids).iteritems():
+#         i += 1
+#         print id, g
+#         #g.hit = results[i]
+#         context['graphs'].append(g)
+
+    ret = render_to_response('test/similar_graph.html', context,
+            context_instance=RequestContext(request))
+
+    searcher.close()
+    
+    return ret
+

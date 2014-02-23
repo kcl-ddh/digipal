@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags html_escape %}
+
+{% block head %}
+    <h1>Search similar graphs</h1>
+
+    <div class="panel">
+        <h4>Query</h4>
+        <div class="row">
+            <div class="col-sm-1">
+                {% annotation_img graphq.annotation lazy=1 %}
+            </div>
+            <div class="col-sm-11">
+                {{ graphq.display_label }}, {{ graphq.hand.item_part.display_label }}
+                <br/>
+                {{ graphq.get_description_as_str }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h4>Similar graphs</h4>
+        <ul class="list-group">
+            {% for graph in graphs %}
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-sm-1">
+                            {#  sc: {{ graph.hit.score }}, rk: {{ graph.hit.rank }}, #{{ graph.id }} #}
+                            <a data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" 
+                                data-id='{{ graph.id }}' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}, {{ graph.hand.item_part.display_label }}" 
+                                    href="?gid={{ graph.id }}">
+                                {% annotation_img graph.annotation lazy=1 %}
+                            </a>
+                        </div>
+                        <div class="col-sm-11">
+                            {{ graph.display_label }}, {{ graph.hand.item_part.display_label }}
+                            <br/>
+                            {{ graph.get_description_as_str }}
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+{% endblock %}

@@ -1767,23 +1767,7 @@ function showBox(selectedFeature, callback) {
 		select_allograph = $('.modal-body');
 	}
 
-	var n = 0;
-	var annotations = annotator.annotations;
-	(function() {
-		for (var i = 0; i < features.length; i++) {
-			if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
-				n++;
-			}
-		}
-		if ($(".number_annotated_allographs").length) {
-			$(".number_annotated_allographs .number-allographs").html(n);
-		}
-	})();
 
-	//$('#hidden_hand').val(selectedFeature.hidden_hand);
-	//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-	select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
-	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 	$('select').trigger('liszt:updated');
 	if (annotator.isAdmin == "True") {
 		highlight_vectors();
@@ -1822,6 +1806,24 @@ function showBox(selectedFeature, callback) {
 		var prefix = 'annotator_';
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
+
+		var n = 0;
+		var annotations = annotator.annotations;
+		(function() {
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
+					n++;
+				}
+			}
+			if ($(".number_annotated_allographs").length) {
+				$(".number_annotated_allographs .number-allographs").html(n);
+			}
+		})();
+
+		//$('#hidden_hand').val(selectedFeature.hidden_hand);
+		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		if (can_edit && annotator.selectedFeature.state !== 'Insert') {
 			var request = $.getJSON(annotator.absolute_image_url + "graph/" + selectedFeature.graph);
 			request.done(function(data) {

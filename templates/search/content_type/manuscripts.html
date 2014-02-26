@@ -2,12 +2,7 @@
 
 <table class="table table-condensed">
     <tr>
-        <th>&nbsp;</th>
-        <th>Index</th>
-        <th>Repository</th>
-        <th>Shelfmark</th>
-        <th>Folio(s)</th>
-        <th>Description</th>
+        {% include "search/search_headings.html" %}
     </tr>
 
     {% filter tag_phrase_terms:terms %}

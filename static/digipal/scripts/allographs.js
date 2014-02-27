@@ -266,9 +266,11 @@ function Allographs() {
 
 
 	var main = function(annotation) {
-		if (!annotation) {
+
+		if (typeof annotation === 'undefined') {
 			return false;
 		}
+
 		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
 		if (self.dialog.open) {
 			if (self.selectedAnnotations.annotations.length > 1) {

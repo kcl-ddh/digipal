@@ -1,6 +1,6 @@
 var dialog = {
     open: false,
-    summary: false,
+    summary: true,
     self: this,
     temp: {},
 
@@ -20,11 +20,24 @@ var dialog = {
     create_dialog: function(image_id, callback) {
         var modal_features;
         var ABSOLUTE_URL = '/digipal/page/dialog/';
+        var show_summary_button = $('#show_summary');
+        var summary = $('#summary');
+
         if (!$('#modal_features').length) {
             modal_features = $("<div class='myModal' id='modal_features'>");
             $(this.defaultOptions.container).append(modal_features);
         } else {
             modal_features = $('#modal_features');
+        }
+
+        if (self.dialog.defaultOptions.summary) {
+            summary.show();
+            self.dialog.summary = true;
+            show_summary_button.addClass('active');
+        } else {
+            summary.hide();
+            self.dialog.summary = false;
+            show_summary_button.removeClass('active');
         }
 
         self.dialog.selector = modal_features;
@@ -57,22 +70,13 @@ var dialog = {
             }
         }
 
-
     },
 
     events: function() {
         var show_summary_button = $('#show_summary');
         var summary = $('#summary');
-        if (this.defaultOptions.summary) {
-            self.dialog.summary = true;
-            summary.show();
-        } else {
-            self.dialog.summary = false;
-            summary.hide();
-            show_summary_button.removeClass('active');
-        }
 
-        show_summary_button.click(function() {
+        show_summary_button.unbind().click(function() {
             self.dialog.show_summary(show_summary_button, summary);
         });
 
@@ -176,9 +180,9 @@ var dialog = {
     },
 
     show_summary: function(button, summary) {
-        var self = this;
 
-        if (self.summary) {
+        if (self.dialog.summary) {
+
             summary.animate({
                 'right': 0,
                 'opacity': 0,
@@ -188,7 +192,7 @@ var dialog = {
                 });
             });
 
-            self.summary = false;
+            self.dialog.summary = false;
             button.removeClass('active');
 
         } else {
@@ -200,7 +204,7 @@ var dialog = {
                 'opacity': 1
             }, 350);
 
-            self.summary = true;
+            self.dialog.summary = true;
             button.addClass('active');
 
         }

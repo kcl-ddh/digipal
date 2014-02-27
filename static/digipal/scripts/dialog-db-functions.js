@@ -120,10 +120,8 @@ function make_form() {
  */
 
 function save(url, feature, data, callback) {
-	var id = self.dialog.temp.vector_id;
-
 	$.ajax({
-		url: url + '/' + id,
+		url: url,
 		data: data,
 		beforeSend: function() {
 			updateStatus('Saving annotation', 'success');

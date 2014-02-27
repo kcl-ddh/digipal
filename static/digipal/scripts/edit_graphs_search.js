@@ -147,6 +147,7 @@ function EditGraphsSearch() {
 	*/
 	var refresh = function(data, image_id) {
 		var allographs = data;
+		console.log(data);
 		self.dialog.temp.vector_id = data['vector_id'];
 		self.dialog.init(image_id, {
 			'summary': false
@@ -236,7 +237,7 @@ function EditGraphsSearch() {
 			var graph = self.dialog.temp.graph;
 			var feature = self.annotations[graph];
 			var data = make_form();
-			var url = self.constants.ABSOLUTE_URL + image_id + '/save';
+			var url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + self.dialog.temp.vector_id;
 
 			var hand, allograph;
 			if (self.selectedAnnotations.length == 1) {
@@ -302,7 +303,6 @@ function EditGraphsSearch() {
 					self.selectedAnnotations = [];
 					$('.label-modal-value').after(' <span class="badge badge default">0</span>');
 					self.dialog.hide();
-
 				}
 			}
 		}

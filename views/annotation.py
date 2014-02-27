@@ -43,7 +43,7 @@ def get_features(graph_id, only_features=False):
     vector_id = graph.annotation.vector_id
     hand_id = graph.hand.id
     allograph_id = graph.idiograph.allograph.id
-
+    image_id = graph.annotation.image.id
     hands_list = []
     hands = graph.annotation.image.hands.all()
 
@@ -68,6 +68,7 @@ def get_features(graph_id, only_features=False):
     if not only_features:
          data['allographs'] = allograph
     data['vector_id'] = vector_id
+    data['image_id'] = image_id
     data['hand_id'] = hand_id
     data['allograph_id'] = allograph_id
     data['hands'] = hands_list

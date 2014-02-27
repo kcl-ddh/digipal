@@ -233,14 +233,18 @@ function EditGraphsSearch() {
 	var methods = {
 
 		save: function() {
-			var image_id = self.dialog.temp.image_id;
+
 			var graph = self.dialog.temp.graph;
 			var feature = self.annotations[graph];
 			var data = make_form();
-			var url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + self.dialog.temp.vector_id;
+			var url, image_id;
 
 			var hand, allograph;
 			if (self.selectedAnnotations.length == 1) {
+
+				url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + self.dialog.temp.vector_id;
+				image_id = self.dialog.temp.image_id;
+
 				save(url, feature, data.form_serialized, function() {
 
 					/* updating local graph cached */
@@ -251,9 +255,15 @@ function EditGraphsSearch() {
 					cache.graphs[graph].hand_id = hand;
 					cache.graphs[graph].allograph_id = allograph;
 				});
+
 			} else {
+
 				for (var i = 0; i < self.selectedAnnotations.length; i++) {
 					graph = self.selectedAnnotations[i];
+					vector_id = cache.graphs[graph].vector_id;
+					image_id = cache.graphs[graph].image_id;
+					url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + vector_id;
+
 					save(url, feature, data.form_serialized);
 
 					/* updating local graph cached */

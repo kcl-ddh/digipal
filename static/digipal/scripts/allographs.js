@@ -34,12 +34,6 @@ function Allographs() {
 				methods.save();
 			});
 
-			/* event to show summary */
-			var show_summary = $('#show_summary');
-			show_summary.click(function() {
-				self.dialog.show_summary($(this));
-			});
-
 		});
 
 		/* applying select event to annotations */

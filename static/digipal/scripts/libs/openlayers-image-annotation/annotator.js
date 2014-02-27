@@ -205,14 +205,14 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'transform': function(e) {
 			var feature = e.object.feature;
 
-			if (feature.geometry.bounds.right - feature.geometry.bounds.left < 8) {
+			/*
+			if (feature.geometry.bounds.top - feature.geometry.bounds.bottom < 5 || feature.geometry.bounds.right - feature.geometry.bounds.left < 10) {
 				feature.destroy();
 				$('circle').remove();
 				$('polyline').remove();
-
 				return false;
 			}
-
+			*/
 
 		},
 		'beforeset': function(e) {

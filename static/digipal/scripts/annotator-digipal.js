@@ -1705,7 +1705,7 @@ function showBox(selectedFeature, callback) {
 
 	if (annotator.boxes_on_click) {
 		var dialog;
-		var can_edit = $('#development_annotation').is(':checked') || annotator.isAdmin == 'True';
+		var can_edit = $('#development_annotation').is(':checked');
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
 			fill_dialog(id, null);

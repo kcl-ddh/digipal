@@ -9,7 +9,7 @@ var dialog = {
         this.defaultOptions = {
             'container': 'body',
             'draggable': true,
-            'summary': false,
+            'summary': true,
         };
 
         $.extend(this.defaultOptions, options);
@@ -63,7 +63,6 @@ var dialog = {
     events: function() {
         var show_summary_button = $('#show_summary');
         var summary = $('#summary');
-
         if (this.defaultOptions.summary) {
             self.dialog.summary = true;
             summary.show();
@@ -74,7 +73,7 @@ var dialog = {
         }
 
         show_summary_button.click(function() {
-            self.dialog.show_summary($(this), summary);
+            self.dialog.show_summary(show_summary_button, summary);
         });
 
         /* updates dialog when changing allograph */
@@ -116,8 +115,10 @@ var dialog = {
 
                     myModal.find('.modal-body').css("max-height", "100%");
                     maximize_icon.attr('title', 'Minimize box').removeClass('icon-resize-full').addClass('icon-resize-small');
+
                 });
                 maximized = true;
+                $('.row-min-admin').css('width', '60%');
             } else {
                 if (self.dialog.summary) {
                     summary.show();
@@ -137,6 +138,7 @@ var dialog = {
                     maximize_icon.attr('title', 'Maximize box').removeClass('icon-resize-small').addClass('icon-resize-full');
                 }).draggable();
                 maximized = false;
+                $('.row-min-admin').css('width', '70%');
             }
 
         });
@@ -212,6 +214,7 @@ var dialog = {
     show: function() {
         self.dialog.selector.fadeIn();
         self.open = true;
+        self.dialog.events();
     },
 
     set_label: function(label_value) {

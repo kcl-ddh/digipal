@@ -839,12 +839,13 @@ function AnnotatorLoader() {
 		feature.feature.stored = false;
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 10 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 15) {
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
 			feature.feature.destroy();
 			$('circle').remove();
 			$('polyline').remove();
 			return false;
 		}
+
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}

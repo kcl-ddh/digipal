@@ -28,7 +28,7 @@ function EditGraphsSearch() {
 
 	// constants to be used troughout the script
 	self.constants = {
-		'ABSOLUTE_URL': '/digipal/',
+		'ABSOLUTE_URL': '/digipal/api/',
 		'PREFIX': 'search_'
 	};
 
@@ -242,8 +242,8 @@ function EditGraphsSearch() {
 			var hand, allograph;
 			if (self.selectedAnnotations.length == 1) {
 
-				url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + self.dialog.temp.vector_id;
 				image_id = self.dialog.temp.image_id;
+				url = '/digipal/page/' + image_id + '/save/' + self.dialog.temp.vector_id;
 
 				save(url, feature, data.form_serialized, function() {
 
@@ -262,7 +262,8 @@ function EditGraphsSearch() {
 					graph = self.selectedAnnotations[i];
 					vector_id = cache.graphs[graph].vector_id;
 					image_id = cache.graphs[graph].image_id;
-					url = self.constants.ABSOLUTE_URL + 'page/' + image_id + '/save/' + vector_id;
+					console.log(image_id)
+					url = '/digipal/page/' + image_id + '/save/' + vector_id;
 
 					save(url, feature, data.form_serialized);
 

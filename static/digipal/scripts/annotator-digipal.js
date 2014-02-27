@@ -722,9 +722,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -747,7 +747,7 @@ function updateFeatureSelect(currentFeatures, id) {
 	if (annotator.isAdmin === "True" && can_edit) {
 		var allograph = select_allograph.val();
 		var content_type = 'allograph';
-		var url = '/digipal/' + content_type + '/' + allograph_selected;
+		var url = '/digipal/api/' + content_type + '/' + allograph_selected;
 
 		var dialog;
 		var prefix;
@@ -1750,7 +1750,7 @@ function showBox(selectedFeature, callback) {
 		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 		$('select').trigger('liszt:updated');
 		if (can_edit) {
-			url = '/digipal/' + content_type + '/' + selectedFeature.graph;
+			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph;
 			var request = $.getJSON(url);
 			request.done(function(data) {
 				update_dialog('annotator_', data, function(s) {
@@ -1836,7 +1836,7 @@ function showBox(selectedFeature, callback) {
 
 		} else {
 
-			url = '/digipal/' + content_type + '/' + selectedFeature.graph + '/features';
+			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/features';
 
 
 			$.ajax({

@@ -409,7 +409,7 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			var url = '/digipal/' + 'graph/' + annotation.graph;
+			var url = '/digipal/api/' + 'graph/' + annotation.graph;
 			self.dialog.temp.graph = annotation.graph;
 
 			var request = $.getJSON(url);

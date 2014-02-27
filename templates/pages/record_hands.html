@@ -82,5 +82,16 @@
 
 {% block extra_js %}
 <script src='{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js'></script>
-<script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+{% if can_edit %}
+    <script src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
+    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+    <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+    <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
+{% else %}
+    <script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+{% endif %}
 {% endblock %}

@@ -17,14 +17,17 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<image_id>\d+)/allographs/(?P<allograph_id>\d+)/(?P<character_id>\d+)/allographs_by_allograph/$', 'get_allographs_by_allograph'),
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
                        (r'^page/(?P<image_id>\d+)/hands_list/$', 'hands_list'),
-                       (r'^page/(?P<image_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
-                        'allograph_features'),
-                       (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/features/$', 'get_features'),
+
+                       (r'^(?P<content_type>[a-zA-Z]+)/(?P<id>\d+)/(?P<only_features>(features)*)$', 'get_content_type_data'),
 
                        (r'^page/(?P<image_id>\d+)/save/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
+                       (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$',
+                        'form_dialog'),
+                       (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$',
+                        'get_vector'),
                        url(r'^collection/$', direct_to_template, {
                           'template': 'digipal/lightbox_basket.html'
                         }),
@@ -53,8 +56,6 @@ urlpatterns += patterns('digipal.views.admin.image',
                        (r'admin/newscriptentry/save_idiograph', 'save_idiograph'),
                        (r'admin/newscriptentry/update_idiograph', 'update_idiograph'),
                        (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
-
-
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',

@@ -23,10 +23,37 @@ from django import template
 register = template.Library()
 
 
+def get_content_type_data(request, content_type, id, only_features=False):
 
-def get_features(request, image_id, graph_id, return_request=True):
+    if content_type == 'graph':
+        data = get_features(id, only_features)
+    elif content_type == 'allograph':
+        data = allograph_features(request, id)
+    return HttpResponse(data, mimetype='application/json')
+
+def get_features(graph_id, only_features=False):
     dict_features = []
-    graph_components = GraphComponent.objects.filter(graph_id = graph_id)
+    data = {}
+    graph = Graph.objects.get(id=graph_id)
+    graph_components = graph.graph_components
+
+    if not only_features:
+        allograph = allograph_features(False, graph.idiograph.allograph.id)
+
+    vector_id = graph.annotation.vector_id
+    hand_id = graph.hand.id
+    allograph_id = graph.idiograph.allograph.id
+
+    hands_list = []
+    hands = graph.annotation.image.hands.all()
+
+    for hand in hands:
+        h = {
+            'id': hand.id,
+            'label': hand.label
+        }
+        hands_list.append(h)
+
     for component in graph_components.values_list('id', flat=True):
         name_component = Component.objects.filter(graphcomponent=component)
         dict_features.append({'id': component, 'name': name_component.values('name')[0]['name'], 'feature': []})
@@ -35,19 +62,26 @@ def get_features(request, image_id, graph_id, return_request=True):
         feature['feature'].append(features)
         for f in feature['feature']:
             feature['feature'] = list(f)
-    if return_request:
-        return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
-    else:
-        return dict_features
 
-def allograph_features(request, image_id, allograph_id):
+
+    data['features'] = dict_features
+    if not only_features:
+         data['allographs'] = allograph
+    data['vector_id'] = vector_id
+    data['hand_id'] = hand_id
+    data['allograph_id'] = allograph_id
+    data['hands'] = hands_list
+    return simplejson.dumps(data)
+
+
+def allograph_features(request, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
     by component."""
     allograph = Allograph.objects.get(id=allograph_id)
     allograph_components = \
             AllographComponent.objects.filter(allograph=allograph)
 
-    data = []
+    allographs = []
 
     if allograph_components:
         for ac in allograph_components:
@@ -59,9 +93,15 @@ def allograph_features(request, image_id, allograph_id):
             for f in ac.component.features.all():
                 ac_dict['features'].append({'id': f.id, 'name': f.name})
 
-            data.append(ac_dict)
+            allographs.append(ac_dict)
 
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    if request:
+        data = {}
+        data['features'] = []
+        data['allographs'] = allographs
+        return simplejson.dumps(data)
+    else:
+        return allographs
 
 def image(request, image_id):
     """Returns a image annotation form."""
@@ -142,7 +182,7 @@ def image(request, image_id):
     return render_to_response('digipal/image_annotation.html', context,
                               context_instance=RequestContext(request))
 
-def get_allograph(request, graph_id, image_id):
+def get_allograph(request, graph_id):
     """Returns the allograph id of a given graph"""
     g = Graph.objects.get(id=graph_id)
     allograph_id = g.idiograph.allograph_id
@@ -168,6 +208,13 @@ def image_vectors(request, image_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
+def get_vector(request, image_id, graph):
+    annotation = Annotation.objects.get(graph=graph)
+    data = {}
+    data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
+    data['id'] = annotation.vector_id
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
 
@@ -187,8 +234,9 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
-        features_list = get_features(request, a.image.id, a.graph_id, False)
-        data[a.id]['num_features'] = len(features_list)
+        features_list = simplejson.loads(get_features(a.graph.id, True))
+        print features_list['features']
+        data[a.id]['num_features'] = len(features_list['features'])
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
 
@@ -356,6 +404,12 @@ def images_lightbox(request):
                 data['images'] = images
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
+def form_dialog(request, image_id):
+    image = Image.objects.get(id=image_id)
+    form = ImageAnnotationForm(auto_id=False)
+    form.fields['hand'].queryset = image.hands.all()
+    return render_to_response('digipal/dialog.html', {'form': form}, context_instance=RequestContext(request))
+
 @login_required
 @transaction.commit_manually
 def save(request, image_id, vector_id):
@@ -366,8 +420,11 @@ def save(request, image_id, vector_id):
         image = Image.objects.get(id=image_id)
 
         get_data = request.GET.copy()
-        geo_json = get_data['geo_json']
 
+        if 'geo_json' in get_data:
+            geo_json = get_data['geo_json']
+        else:
+            geo_json = False
         annotation_list = Annotation.objects.filter(image=image,
                 vector_id=vector_id)
 
@@ -383,7 +440,8 @@ def save(request, image_id, vector_id):
         if form.is_valid():
             clean = form.cleaned_data
 
-            annotation.geo_json = geo_json
+            if geo_json:
+                annotation.geo_json = geo_json
             annotation.display_note = clean['display_note']
             annotation.internal_note = clean['internal_note']
             annotation.author = request.user

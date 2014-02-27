@@ -15,14 +15,16 @@ function PublicAllograhs() {
 	};
 
 	this.to_annotator = function(annotation_id) {
-		var tab = $('a[data-target="#annotator"]');
-		tab.tab('show');
-		annotator.selectFeatureByIdAndZoom(annotation_id);
-		var select_allograph = $('#panelImageBox');
-		select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-		var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
-		select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
-		$('select').trigger('liszt:updated');
+		if (typeof annotator !== 'undefined') {
+			var tab = $('a[data-target="#annotator"]');
+			tab.tab('show');
+			annotator.selectFeatureByIdAndZoom(annotation_id);
+			var select_allograph = $('#panelImageBox');
+			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+			var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
+			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
+			$('select').trigger('liszt:updated');
+		}
 	};
 
 
@@ -33,7 +35,7 @@ function PublicAllograhs() {
 		annotation_li.click(function(event) {
 			var annotation_li = $(this);
 			var panel = annotation_li.parent().parent();
-			var annotation = getFeatureById($(annotation_li).data('annotation'));
+			var annotation = $(annotation_li).data('graph');
 
 			if (annotation_li.data('selected')) {
 				_self.clean_annotations(annotation);
@@ -55,7 +57,7 @@ function PublicAllograhs() {
 		});
 
 		annotation_li.find('a').click(function(event) {
-			var id = $(this).parent('.annotation_li').data('annotation');
+			var id = $(this).parent('.annotation_li').data('graph');
 			_self.to_annotator(id);
 
 			/*
@@ -91,7 +93,7 @@ function PublicAllograhs() {
 			var panel = $(this).parent().parent();
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
-				annotation = getFeatureById($(checkboxes[i]).data('annotation'));
+				annotation = $(checkboxes[i]).data('annotation');
 				_self.selectedAnnotations.push(annotation);
 			}
 			checkboxes.data('selected', true);
@@ -104,7 +106,7 @@ function PublicAllograhs() {
 		to_lightbox.click(function() {
 			var graphs = [];
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
-				graphs.push(_self.selectedAnnotations[i].graph);
+				graphs.push(_self.selectedAnnotations[i]);
 			}
 
 			add_to_lightbox($(this), 'annotation', graphs, true);

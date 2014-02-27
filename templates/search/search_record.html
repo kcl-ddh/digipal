@@ -19,7 +19,7 @@
             {# {% csrf_token %} #}
             <div class='col-md-6'>
                 {{ advanced_search_form.terms }}
-                
+
                 {{ advanced_search_form.ordering }}
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
@@ -31,13 +31,13 @@
                         disabled boostrap collapse as it behave weirdly. During the animation to
                         expand the panel, it goes far too low.
                     {% endcomment %}
-                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse-disabled" 
+                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse-disabled"
                         {% if expanded_custom_filters %}
-                            data-alt-label="Show filters" 
+                            data-alt-label="Show filters"
                             href="?from_link=false&amp;basic_search_type={{ search_type }}">
                             Hide filters
                         {% else %}
-                            data-alt-label="Hide filters" 
+                            data-alt-label="Hide filters"
                             href="?from_link=true&amp;basic_search_type={{ search_type }}">
                             Show filters
                         {% endif %}
@@ -46,9 +46,9 @@
         </div>
 
         <div id='advancedSearch' class="panel collapse {% if expanded_custom_filters %}in{%endif%}">
-            
+
             {{ advanced_search_form.basic_search_type }}
-            
+
             <ul class="nav nav-tabs">
                 {% for type in types %}
                     <li class="{% if search_type_defaulted = type.key %}active{% endif %}">
@@ -59,7 +59,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            
+
             <div class="tab-content">
                 <div id="filter-tab" class="tab-pane active">
                     <div id='containerFilters' class='form-inline'>
@@ -101,25 +101,31 @@
                 {{ query_summary|truncatechars:200 }}
             </p>
         {% endif %}
-
         {% if not is_empty %}
+
+            {% if can_edit %}
+            <div id="switcher" class='pull-right'>
+                <label for="">Annotating mode</label>
+                <input data-toggle="tooltip" title='Annotating Mode' id="toggle-state-switch" type="checkbox" checked />
+            </div>
+            {% endif %}
+
             <ul class="nav nav-tabs" id='result-types-switch'>
                 {% for type in types %}
                     <li class="{% if result_type == type.key %}active{% else %}{% if type.count == 0 %}disabled{% endif %}{% endif %}">
-                        <a 
-                            href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' 
-                            data-toggle="tab" 
+                        <a
+                            href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}'
+                            data-toggle="tab"
                             {% if type.count > -1 %}data-target="#{{ type.key }}"{% endif %}
                         >
                             {{ type.label }}
-                            {% if type.count > -1 %} 
+                            {% if type.count > -1 %}
                                 ({{type.count|default:'0'}})
                             {% endif %}
                         </a>
                     </li>
                 {% endfor %}
             </ul>
-
             <div class='tabbable'>
                 <div id='result-tab-content' class='tab-content'>
                     {% for type in types %}
@@ -136,9 +142,9 @@
                                             {% get_records_from_ids type recordids as records %}
                                         {% else %}
                                             {% reset_recordids as records %}
-                                            {% autopaginate type.queryset type.get_page_size as records %}                                    
+                                            {% autopaginate type.queryset type.get_page_size as records %}
                                         {% endif %}
-        
+
                                         {% filter update_query_params:type.result_type_qs %}
                                             {% paginate %}
                                         {% endfilter %}
@@ -148,10 +154,10 @@
                                         <div class='col-md-2' id="view-switch">
                                             <ul class="nav nav-pills">
                                                 {% for tview in type.views %}
-                                                    <li class="{% if tview.active %}active{% endif %}" 
+                                                    <li class="{% if tview.active %}active{% endif %}"
                                                         {% if tview.title %}title="{{ tview.title }}" data-toggle="tooltip"{% endif %}
                                                         >
-                                                        <a data-target="#{{ type.key }}-{{ tview.key }}" data-toggle="pill"  
+                                                        <a data-target="#{{ type.key }}-{{ tview.key }}" data-toggle="pill"
                                                             href="{% filter add_query_params:request.META.QUERY_STRING %}?view={{ tview.key }}{% endfilter %}">
                                                             {{ tview.label }}
                                                         </a>
@@ -182,7 +188,6 @@
         {% endif %}
 
     {% endif %}
-
 {% endblock main %}
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -192,4 +197,14 @@
     <script type="text/javascript">
 		init_search_page({{ search_page_options_json|safe }});
     </script>
+
+    {% if can_edit %}
+        <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
+        <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+        <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+        <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
+    {% endif %}
 {% endblock %}

@@ -4,6 +4,12 @@
 {# {annotations_list} #}
 {% if annotations_list %}
 
+      {% if can_edit and not image_server_url %}
+      <div id="switcher" class='pull-right'>
+          <label for="">Annotating mode</label>
+          <input data-toggle="tooltip" title='Annotating Mode' id="toggle-state-switch" type="checkbox" checked />
+      </div>
+      {% endif %}
      <!-- if there are at least 2 annotated hands, show the list -->
     {% if annotations_list.keys|length > 1 %}
 
@@ -87,7 +93,7 @@
               {% endif %}
 
                 <!-- graph -->
-                <li data-container='body' class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image="{{ graph.image_id }}" title='Click here to select this graph' data-toggle='tooltip'>
+                <li data-container='body' class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image-id="{{ graph.image_id }}" data-allograph="{{ graph.graph.idiograph.allograph.id }}" title='Click here to select this graph' data-toggle='tooltip'>
 
             <p>
 
@@ -126,120 +132,6 @@
 {% else %}
 
     {% include "digipal/empty_tab.html" with type="annotation" %}
-
-{% endif %}
-
- <!-- if is admin -->
-{% if can_edit %}
-
- <!-- features container -->
-<div class="myModal" id='modal_features'>
-
-  <!-- header -->
-    <div class="modal_header">
-        <i class='icon glyphicon glyphicon-remove close'></i>
-
-        <p class="myModalLabel">
-          <span class='label-modal-value'></span>
-
-          <button type='button' title='Save Annotation' class='btn btn-xs btn-success btn-small' id='save'>
-            <i class='glyphicon glyphicon-ok'></i>
-          </button>
-
-          <button type='button' title='Delete Annotation' class='btn btn-xs btn-danger btn-small'  id='delete'>
-            <i class='glyphicon glyphicon-remove'></i>
-          </button>
-
-          <button type='button' title='Show Summary' class='btn btn-xs btn-default active' id='show_summary'>
-            <i class='glyphicon glyphicon-list'></i>
-          </button>
-
-          <span title='Maximize box' id='maximize' class='pull-right glyphicon glyphicon-resize-full'></span>
-        </p>
-
-    </div>
-
-    <!-- body -->
-    <div class="modal-body">
-
-      <ul class="nav nav-tabs tabs-allograph">
-
-        <li class="active">
-          <a data-toggle="tab" data-target="#describe" href='#'>Describe</a>
-        </li>
-
-        <li>
-          <a data-toggle="tab" data-target="#edit" href='#'>Edit Graph</a>
-        </li>
-      </ul>
-
-      <div class="tabbable">
-
-        <div class="tab-content">
-
-          <div class="tab tab-pane fade active in" id="describe">
-              <form class="frmAnnotation" method="get" name="frmAnnotation">
-                <ul class="ul_inline_form">
-                  {{ form }}
-                </ul>
-                <div id='features_container'></div>
-              </form>
-          </div>
-
-          <div id="edit" class="tab tab-pane fade">
-            <div id="image-editor-space" class='col-md-6'></div>
-            <img id='editor-space-image' src="{{STATIC_URL}}digipal/images/ajax-loader3.gif" alt="">
-
-            <div class="letter_editor col-md-6">
-                <label>Resize</label>
-                <div>
-
-                  <label><small>Height</small></label>
-                  <p>
-                    <button id="resize-up" class="btn btn-default btn-sm">
-                    +
-                    </button>
-                    <button id="resize-down" class="btn btn-default btn-sm">
-                    -
-                    </button>
-                  </p>
-
-                  <label><small>Width</small></label>
-                  <p>
-                    <button id="resize-right" class="btn btn-default btn-sm">
-                      +
-                    </button>
-                    <button id="resize-left" class="btn btn-default btn-sm">
-                      -
-                    </button>
-                  </p>
-                </div>
-                <hr />
-                <label>Move</label>
-
-                <div>
-                  <button id="move-left" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-arrow-left"></i>
-                  </button>
-                  <button id="move-down" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-arrow-down"></i>
-                  </button>
-                  <button id="move-right" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-arrow-right"></i>
-                  </button>
-                  <button id="move-up" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-arrow-up"></i>
-                  </button>
-                </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- features summary -->
-    <div id='summary'></div>
-</div>
-
 
 {% endif %}
 

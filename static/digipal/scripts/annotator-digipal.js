@@ -57,8 +57,6 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	var self = this;
 	this.selectedFeature = event.feature;
 
-	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
-
 	var group_button = $('.link_graphs');
 	if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
 		$.each(self.selectedFeature.linked_to[0], function(index, value) {
@@ -117,7 +115,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 	}
 
 	if (annotator.fullScreen.active) {
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+		restoreFullscreenPositions();
 	}
 };
 
@@ -205,8 +203,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 	$(".number_annotated_allographs .number-allographs").html(0);
 
 	if (annotator.fullScreen.active) {
-		var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+		restoreFullscreenPositions();
 	}
 
 };
@@ -345,6 +342,7 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 		});
 	}
 };
+
 
 function ungroup(element_id) {
 	var a;
@@ -555,15 +553,6 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			select_allograph.val(allograph);
 		}
 		$('select').trigger('liszt:updated');
-		var features = annotator.vectorLayer.features;
-		var features_length = features.length;
-		var n = 0;
-		for (var i = 0; i < features_length; i++) {
-			if (features[i].feature == feature.feature && features[i].stored) {
-				n++;
-			}
-		}
-		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
 	if (feature) {
@@ -579,6 +568,16 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		}
 		this.vectorLayer.redraw();
 	}
+
+	var features = annotator.vectorLayer.features;
+	var features_length = features.length;
+	var n = 0;
+	for (var i = 0; i < features_length; i++) {
+		if (features[i].feature == feature.feature && features[i].stored) {
+			n++;
+		}
+	}
+	$(".number_annotated_allographs .number-allographs").html(n);
 
 	if (this.annotations) {
 		var annotation = null;
@@ -730,6 +729,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
 	var allograph_selected, select_allograph;
+	var can_edit = $('#development_annotation').is(':checked');
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
 		select_allograph = $('#panelImageBox .allograph_form');
 	} else {
@@ -739,23 +739,15 @@ function updateFeatureSelect(currentFeatures, id) {
 	if ($.isNumeric(currentFeatures)) {
 		allograph_selected = currentFeatures;
 	} else {
-		if (typeof currentFeatures == "undefined" || typeof currentFeatures == "null" || !currentFeatures) {
-			if (select_allograph.val()) {
-				allograph_selected = select_allograph.val();
-			}
-		} else {
-			$.each(annotations, function() {
-				if (currentFeatures.feature == this.feature) {
-					allograph_selected = this.hidden_allograph.split('::')[0];
-				}
-			});
+		if (select_allograph.val()) {
+			allograph_selected = select_allograph.val();
 		}
 	}
 
-	if (annotator.isAdmin === "True") {
+	if (annotator.isAdmin === "True" && can_edit) {
 		var allograph = select_allograph.val();
-		var url = annotator.absolute_image_url + 'allograph/' + allograph_selected + '/features/';
-		var s = '';
+		var content_type = 'allograph';
+		var url = '/digipal/' + content_type + '/' + allograph_selected;
 
 		var dialog;
 		var prefix;
@@ -772,189 +764,157 @@ function updateFeatureSelect(currentFeatures, id) {
 		}
 
 		if (typeof allograph_selected !== 'undefined' && allograph_selected) {
-			var get_features = $.getJSON(url);
-			get_features.done(function(data) {
-				$.each(data, function(idx) {
-					component = data[idx].name;
-					component_id = data[idx].id;
-					var features = data[idx].features;
-					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-angle-double-down'></span></b>";
+			var request = $.getJSON(url);
+			request.done(function(data) {
+				var allographs = data;
+				update_dialog(prefix, allographs, function(s) {
 
-					s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
-
-					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-
-					$.each(features, function(idx) {
-						var value = component_id + '::' + features[idx].id;
-						var id = component_id + '_' + features[idx].id;
-
-						s += '<div class="row row-no-margin">';
-
-						if (annotator.selectedFeature !== undefined && annotator.selectedFeature !== null && annotator.selectedFeature.state != 'Insert') {
-							s += "<p class='col-md-2'> <input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/>";
-							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
-
-						} else if (annotator.selectedFeature !== undefined && annotator.selectedFeature !== null && annotator.selectedFeature.state == 'Insert') {
-							var array_features_owned = annotator.selectedFeature.features;
-							if (array_features_owned.indexOf(value) >= 0) {
-								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";
-							} else {
-								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' /> ";
-							}
-							s += "<p class='col-md-10'><label style='font-size:12px;display:inline;vertical-align:bottom;' for='" + id + "'>" + features[idx].name + "</label></p>";
-						}
-						s += '</div>';
-					});
-					s += "</div>";
-				});
-
-				if (!annotator.editorial.active && annotator.selectedFeature) {
-					if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
-						var num_linked = 0;
-						elements_linked = [];
-						for (var g in annotator.selectedFeature.linked_to[0]) {
-							num_linked++;
-							elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
-						}
-
-						var allograph_label = $('.allograph_label');
-						allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" data-placement="bottom" data-container="body" data-toggle="tooltip" class="glyphicon glyphicon-list show_group" data-hidden="true" />')
-							.css('cursor', 'pointer')
-							.data('hidden', true);
-
-						allograph_label.unbind().click(function() {
-
-							var element = "<div class='elements_linked'>";
-
-							$.each(elements_linked, function() {
-								element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
-							});
-
-							element += '</div>';
-
-							if ($('.elements_linked').length) {
-								$('.elements_linked').replaceWith(element);
-							} else {
-								$('#box_features_container').prepend(element);
+					if (!annotator.editorial.active && annotator.selectedFeature) {
+						if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
+							var num_linked = 0;
+							elements_linked = [];
+							for (var g in annotator.selectedFeature.linked_to[0]) {
+								num_linked++;
+								elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
 							}
 
-							var el_link = $('.elements_linked');
-							if ($(this).data('hidden')) {
-								el_link.slideDown();
-								$(this).data('hidden', false);
-							} else {
-								el_link.slideUp(500);
-								$(this).data('hidden', true);
-							}
+							var allograph_label = $('.allograph_label');
+							allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" data-placement="bottom" data-container="body" data-toggle="tooltip" class="glyphicon glyphicon-list show_group" data-hidden="true" />')
+								.css('cursor', 'pointer')
+								.data('hidden', true);
 
-							var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+							allograph_label.unbind().click(function() {
 
-							el_link.find('p').on('mouseover', function(event) {
-								var id = $(this).data('id');
-								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
-									var f = annotator.vectorLayer.features[i];
-									if (f.id == id) {
-										f.style.strokeColor = 'red';
-										f.style.strokeWidth = 6;
-									}
-								}
-								annotator.vectorLayer.redraw();
-								if (annotator.fullScreen.active) {
-									annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-								}
-							}).on('mouseout', function(event) {
-								var id = $(this).data('id');
-								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
-									var f = annotator.vectorLayer.features[i];
-									if (f.id == id) {
-										f.style.strokeColor = 'blue';
-										f.style.strokeWidth = 2;
-									}
-								}
-								annotator.vectorLayer.redraw();
-								if (annotator.fullScreen.active) {
-									annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-								}
-							}).on('click', function() {
-								var id = $(this).data('id');
-								//annotator.selectFeatureByIdAndZoom(id);
-								var feature;
-								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
-									if (annotator.vectorLayer.features[i].id == id) {
-										feature = annotator.vectorLayer.features[i];
-									}
-								}
-								annotator.map.zoomToExtent(feature.geometry.getBounds());
-							});
+								var element = "<div class='elements_linked'>";
 
-							var ungroup_elements = $('.ungroup');
-
-							ungroup_elements.click(function() {
-								var id = $(this).data('id');
-								$(this).parent('p').fadeOut().remove();
-								ungroup(id);
-								$.each(elements_linked, function(index, value) {
-									if (value.id == id) {
-										elements_linked.splice(index, 1);
-										index--;
-									}
+								$.each(elements_linked, function() {
+									element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
 								});
+
+								element += '</div>';
+
+								if ($('.elements_linked').length) {
+									$('.elements_linked').replaceWith(element);
+								} else {
+									$('#box_features_container').prepend(element);
+								}
+
+								var el_link = $('.elements_linked');
+								if ($(this).data('hidden')) {
+									el_link.slideDown();
+									$(this).data('hidden', false);
+								} else {
+									el_link.slideUp(500);
+									$(this).data('hidden', true);
+								}
+
+								var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+
+								el_link.find('p').on('mouseover', function(event) {
+									var id = $(this).data('id');
+									for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+										var f = annotator.vectorLayer.features[i];
+										if (f.id == id) {
+											f.style.strokeColor = 'red';
+											f.style.strokeWidth = 6;
+										}
+									}
+									annotator.vectorLayer.redraw();
+									if (annotator.fullScreen.active) {
+										annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+									}
+								}).on('mouseout', function(event) {
+									var id = $(this).data('id');
+									for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+										var f = annotator.vectorLayer.features[i];
+										if (f.id == id) {
+											f.style.strokeColor = 'blue';
+											f.style.strokeWidth = 2;
+										}
+									}
+									annotator.vectorLayer.redraw();
+									if (annotator.fullScreen.active) {
+										annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+									}
+								}).on('click', function() {
+									var id = $(this).data('id');
+									//annotator.selectFeatureByIdAndZoom(id);
+									var feature;
+									for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+										if (annotator.vectorLayer.features[i].id == id) {
+											feature = annotator.vectorLayer.features[i];
+										}
+									}
+									annotator.map.zoomToExtent(feature.geometry.getBounds());
+								});
+
+								var ungroup_elements = $('.ungroup');
+
+								ungroup_elements.click(function() {
+									var id = $(this).data('id');
+									$(this).parent('p').fadeOut().remove();
+									ungroup(id);
+									$.each(elements_linked, function(index, value) {
+										if (value.id == id) {
+											elements_linked.splice(index, 1);
+											index--;
+										}
+									});
+								});
+
 							});
+						} else {
+							dialog.parent().find('.allograph_label').html($('#panelImageBox .allograph_form option:selected').text());
+						}
+					}
+					dialog.find('#box_features_container').html(s);
+					dialog.find('.check_all').click(function(event) {
+						var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
+						checkboxes.attr('checked', true);
+						event.stopPropagation();
+					});
+
+					dialog.find('.uncheck_all').click(function(event) {
+						var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
+						checkboxes.attr('checked', false);
+						event.stopPropagation();
+					});
+
+					dialog.find('.component_labels').click(function() {
+						var div = $("#" + $(this).data('id'));
+						if (div.data('hidden') === false) {
+							div.slideUp().data('hidden', true);
+							$(this).next('.checkboxes_div').hide();
+							$(this).find('.arrow_component').removeClass('fa-angle-double-up').addClass('fa-angle-double-down');
+						} else {
+							div.slideDown().data('hidden', false);
+							$(this).next('.checkboxes_div').show();
+							$(this).find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
+						}
+					});
+
+					if (annotator.selectedFeature && annotator.selectedFeature.state == 'Insert') {
+						$('.features_box').on('change', function() {
+							var checkbox = $(this);
+							var val = checkbox.val();
+							if (checkbox.is(':checked')) {
+								if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+									annotator.selectedFeature.features.push(val);
+								}
+							} else {
+								if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+									annotator.selectedFeature.features.splice(annotator.selectedFeature.features.indexOf(val), 1);
+								}
+							}
 
 						});
-					} else {
-						dialog.parent().find('.allograph_label').html($('#panelImageBox .allograph_form option:selected').text());
 					}
-				}
 
-				dialog.find('#box_features_container').html(s);
-				dialog.find('.check_all').click(function(event) {
-					var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
-					checkboxes.attr('checked', true);
-					event.stopPropagation();
-				});
-
-				dialog.find('.uncheck_all').click(function(event) {
-					var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
-					checkboxes.attr('checked', false);
-					event.stopPropagation();
-				});
-
-				dialog.find('.component_labels').click(function() {
-					var div = $("#" + $(this).data('id'));
-					if (div.data('hidden') === false) {
-						div.slideUp().data('hidden', true);
-						$(this).next('.checkboxes_div').hide();
-						$(this).find('.arrow_component').removeClass('fa-angle-double-up').addClass('fa-angle-double-down');
-					} else {
-						div.slideDown().data('hidden', false);
-						$(this).next('.checkboxes_div').show();
-						$(this).find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
-					}
-				});
-
-				if (annotator.selectedFeature && annotator.selectedFeature.state == 'Insert') {
-					$('.features_box').on('change', function() {
-						var checkbox = $(this);
-						var val = checkbox.val();
-						if (checkbox.is(':checked')) {
-							if (annotator.selectedFeature.features.indexOf(val) !== 0) {
-								annotator.selectedFeature.features.push(val);
-							}
-						} else {
-							if (annotator.selectedFeature.features.indexOf(val) !== 0) {
-								annotator.selectedFeature.features.splice(annotator.selectedFeature.features.indexOf(val), 1);
-							}
-						}
-
+					// Showing all the allographs of a given allograph
+					dialog.parent().find('.number_annotated_allographs').click(function() {
+						open_allographs($(this), true);
 					});
-				}
-
-				// Showing all the allographs of a given allograph
-				dialog.parent().find('.number_annotated_allographs').click(function() {
-					open_allographs($(this), true);
 				});
-
 			});
 		}
 	}
@@ -986,37 +946,7 @@ function deletePopup(feature) {
 	feature.popup.destroy();
 	feature.popup = null;
 }
-/*
 
-Function to get the features of a described allograph
-@params feature selected, url
-*/
-
-function features_owned(selectedFeature, url) {
-	var features = $.ajax({
-		url: url,
-		dataType: 'json',
-		cache: false,
-		type: 'GET',
-		async: false,
-		error: function(xhr, status, error) {
-			console.warn('Error: ' + error);
-		}
-	});
-
-	var array_features_owned = [];
-	features.done(function(f) {
-		for (var i = 0; i < f.length; i++) {
-			for (var j = 0; j < f[i].feature.length; j++) {
-				s = f[i].name;
-				s += ':' + f[i].feature[j];
-				array_features_owned.push(s);
-			}
-			s = '';
-		}
-	});
-	return array_features_owned;
-}
 
 /*
 
@@ -1513,30 +1443,32 @@ Function to fill the content of a dialog
 function fill_dialog(id, annotation) {
 	var can_edit = $('#development_annotation').is(':checked');
 	var dialog = $('#dialog' + id);
-	var s;
+	var s = '';
 	var panel = $('#panelImageBox');
-	if (can_edit) {
-		s = "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
-		s += "<div id='box_features_container'></div>";
+	if (typeof annotation != 'null') {
+		if (can_edit) {
+			s += "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
+			s += "<div id='box_features_container'></div>";
 
-		panel.find('.allograph_form').on('change', function() {
-			var n = 0;
-			var features = annotator.vectorLayer.features;
-			var allograph = $('#panelImageBox .allograph_form option:selected').text();
-			var allograph_id = $(this).val();
+			panel.find('.allograph_form').on('change', function() {
+				var n = 0;
+				var features = annotator.vectorLayer.features;
+				var allograph = $('#panelImageBox .allograph_form option:selected').text();
+				var allograph_id = $(this).val();
 
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == allograph && features[i].stored) {
-					n++;
+				for (var i = 0; i < features.length; i++) {
+					if (features[i].feature == allograph && features[i].stored) {
+						n++;
+					}
 				}
-			}
 
-			$(".number_annotated_allographs .number-allographs").html(n);
-			updateFeatureSelect(annotation, id);
-		});
+				$(".number_annotated_allographs .number-allographs").html(n);
+				updateFeatureSelect(annotation, id);
+			});
 
-	} else {
-		s = "<textarea style='height:95%;' class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
+		} else {
+			s += "<textarea style='height:95%;' class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
+		}
 	}
 
 	dialog.html(s);
@@ -1707,10 +1639,8 @@ function show_url_allograph(dialog, annotation, button) {
 				if (checkboxesOff.length) {
 					geoJSONText.checkboxes = checkboxesOff;
 				}
-
 				allograph_url = window.location.hostname +
 					document.location.pathname + '?temporary_vector=' + JSON.stringify(geoJSONText);
-
 			}
 		}
 
@@ -1728,6 +1658,7 @@ function show_url_allograph(dialog, annotation, button) {
 				} else {
 					$('#url_allograph_gif').fadeOut().remove();
 					a.attr('href', resp.id);
+					a.attr('title', 'Copy link to annotation and share it');
 					a.text(resp.id);
 					button.data('url', resp.id);
 					url.append(a);
@@ -1739,7 +1670,7 @@ function show_url_allograph(dialog, annotation, button) {
 						if (url.data('url-type') == 'short') {
 							a.text(allograph_url);
 							button.data('url', allograph_url);
-							url.html("<a href='" + allograph_url + "'>" + allograph_url + "</a>");
+							url.html("<a title='Copy link to annotation and share it' href='http://" + allograph_url + "'>" + allograph_url.substring(0, 60) + "...</a>");
 							url.data('url-type', 'long');
 						}
 					});
@@ -1755,7 +1686,7 @@ function show_url_allograph(dialog, annotation, button) {
 	}
 }
 
-function showBox(selectedFeature) {
+function showBox(selectedFeature, callback) {
 
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
@@ -1767,9 +1698,14 @@ function showBox(selectedFeature) {
 		select_allograph = $('.modal-body');
 	}
 
+
+	if (annotator.isAdmin == "True") {
+		highlight_vectors();
+	}
+
 	if (annotator.boxes_on_click) {
 		var dialog;
-		var can_edit = $('#development_annotation').is(':checked');
+		var can_edit = $('#development_annotation').is(':checked') || annotator.isAdmin == 'True';
 		if (selectedFeature === null || typeof selectedFeature == "undefined") {
 			create_dialog(null, id);
 			fill_dialog(id, null);
@@ -1789,51 +1725,35 @@ function showBox(selectedFeature) {
 			}
 			return false;
 		}
-
-		var url = annotator.absolute_image_url + 'graph/' + selectedFeature.graph + '/features/';
-		if (annotator.selectedFeature.state == 'Insert' && !annotator.selectedFeature.stored) {
-			array_features_owned = annotator.selectedFeature.features;
-		} else {
-			array_features_owned = features_owned(selectedFeature, url);
-		}
+		var content_type = 'graph';
 		create_dialog(selectedFeature, id);
 		var prefix = 'annotator_';
 		fill_dialog(id, selectedFeature);
 		dialog = $('#dialog' + id);
-		if (can_edit && annotator.selectedFeature.state !== 'Insert') {
-			var request = $.getJSON(annotator.absolute_image_url + "graph/" + selectedFeature.graph);
+
+		var n = 0;
+		var annotations = annotator.annotations;
+		(function() {
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
+					n++;
+				}
+			}
+			if ($(".number_annotated_allographs").length) {
+				$(".number_annotated_allographs .number-allographs").html(n);
+			}
+		})();
+
+		//$('#hidden_hand').val(selectedFeature.hidden_hand);
+		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+		$('select').trigger('liszt:updated');
+		if (can_edit) {
+			url = '/digipal/' + content_type + '/' + selectedFeature.graph;
+			var request = $.getJSON(url);
 			request.done(function(data) {
-				var url = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
-				var s = '<form class="frmAnnotation" method="get" name="frmAnnotation">';
-				s += "<input type='hidden' name ='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
-				var allographs = $.getJSON(url);
-				s += "<div id='box_features_container'>";
-
-				allographs.done(function(data) {
-					$.each(data, function(idx) {
-						component = data[idx].name;
-						component_id = data[idx].id;
-						var features = data[idx].features;
-						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-angle-double-up'></span></b>";
-						s += "<div class='checkboxes_div'>";
-						s += "<span data-toggle='tooltip' data-container='body' title='Check all' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span class='uncheck_all btn btn-xs btn-default' data-toggle='tooltip' data-container='body' title='Uncheck all'><i class='fa fa-square-o'></i></span>";
-						s += "</div></div>";
-						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-						$.each(features, function(idx) {
-							var value = component_id + '::' + features[idx].id;
-							var id = component_id + '_' + features[idx].id;
-							s += '<div class="row row-no-margin">';
-							var names = component + ':' + features[idx].name;
-							if (array_features_owned.indexOf(names) >= 0) {
-								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' checked = 'checked' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "' /></p> <p class='col-md-10'><label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label></p>";
-							} else {
-								s += "<p class='col-md-2'><input name='checkboxes[]' id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + names + "'/></p> <p class='col-md-10'><label style='font-size:12px;display:inline;' for='" + id + "'>" + features[idx].name + "</label></p>";
-							}
-							s += "</div>";
-						});
-
-						s += "</div>";
-					});
+				update_dialog('annotator_', data, function(s) {
 
 					$('#id_internal_note').remove();
 					$('#id_display_note').remove();
@@ -1898,7 +1818,7 @@ function showBox(selectedFeature) {
 						} else {
 							for (var d = 0; d < annotation.features.length; d++) {
 								if (annotation.features[d] == value) {
-									annotator.features.splice(d, 1);
+									annotation.features.splice(d, 1);
 									d--;
 								}
 							}
@@ -1909,7 +1829,16 @@ function showBox(selectedFeature) {
 				});
 			});
 
+
+			if (callback) {
+				callback();
+			}
+
 		} else {
+
+			url = '/digipal/' + content_type + '/' + selectedFeature.graph + '/features';
+
+
 			$.ajax({
 				url: url,
 				dataType: 'json',
@@ -1922,12 +1851,13 @@ function showBox(selectedFeature) {
 				},
 				success: function(data) {
 					var s = '<ul>';
-					if (!$.isEmptyObject(data)) {
-						for (i = 0; i < data.length; i++) {
-							var component = data[i]['name'];
+					var features = data['features'];
+					if (!$.isEmptyObject(features)) {
+						for (i = 0; i < features.length; i++) {
+							var component = features[i]['name'];
 							s += "<li class='component'><b>" + component + "</b></li>";
-							for (j = 0; j < data[i]['feature'].length; j++) {
-								s += "<li class='feature'>" + (data[i]['feature'][j]) + "</li>";
+							for (j = 0; j < features[i]['feature'].length; j++) {
+								s += "<li class='feature'>" + (features[i]['feature'][j]) + "</li>";
 							}
 						}
 					} else {
@@ -1937,30 +1867,6 @@ function showBox(selectedFeature) {
 					dialog.html(s);
 				}
 			});
-		}
-	}
-
-	if (selectedFeature) {
-		var n = 0;
-		var annotations = annotator.annotations;
-		(function() {
-			for (var i = 0; i < features.length; i++) {
-				if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
-					n++;
-				}
-			}
-			if ($(".number_annotated_allographs").length) {
-				$(".number_annotated_allographs .number-allographs").html(n);
-			}
-		})();
-
-		//$('#hidden_hand').val(selectedFeature.hidden_hand);
-		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
-		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		$('select').trigger('liszt:updated');
-		if (annotator.isAdmin == "True") {
-			highlight_vectors();
 		}
 	}
 }
@@ -1994,124 +1900,7 @@ function getValueFromObjField(obj, field) {
 	return value;
 }
 
-/**
- * Deletes the annotation for the selected feature.
- *
- * @param layer
- *              The feature's layer.
- * @param feature
- *              The feature to delete the annotation for.
- */
-DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_annotations) {
-	var _self = this;
-	var msg;
-	if (typeof number_annotations == 'undefined' || !number_annotations) {
-		msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
-	} else {
-		var plural = number_annotations > 1;
-		if (!plural) {
-			msg = 'You are about to delete ' + number_annotations + ' annotation. It cannot be restored at a later time! Continue?';
-		} else {
-			msg = 'You are about to delete ' + number_annotations + ' annotations. They cannot be restored at a later time! Continue?';
-		}
-	}
 
-	var doDelete = confirm(msg);
-	if (doDelete) {
-		if (feature !== null && feature !== undefined) {
-			delete_annotation(layer, feature, number_annotations);
-		}
-	}
-	var tab_link = $('a[data-target="#allographs"]');
-	var f = annotator.vectorLayer.features;
-	var y = 0;
-	while (y < f.length && f[y].attributes.saved === 1) {
-		y++;
-	}
-
-	tab_link.html('Annotations (' + y + ')');
-};
-
-/**
- * Deletes the annotation for the feature with the given id.
- *
- * @param id
- *              The feature id.
- */
-
-function deleteAnnotationByFeatureId(id) {
-	annotator.selectFeatureByIdAndCentre(id);
-	annotator.deleteAnnotation(annotator.vectorLayer, annotator.vectorLayer.getFeatureById(id));
-}
-
-function delete_annotation(layer, feature, number_annotations) {
-	var featureId = feature.id;
-	var temp = feature;
-	updateStatus('Deleting annotations');
-	layer.destroyFeatures([feature]);
-	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
-	$.ajax({
-		url: url,
-		data: '',
-		error: function(xhr, textStatus, errorThrown) {
-			alert('Error: ' + textStatus);
-			console.warn('Error: ' + textStatus);
-			throw new Error(textStatus);
-		},
-		success: function(data) {
-			if (!handleErrors(data)) {
-				if (number_annotations > 1) {
-					updateStatus('Annotations deleted.', 'success');
-				} else {
-					updateStatus('Annotation deleted.', 'success');
-				}
-
-				var allograph = $('#panelImageBox .allograph_form option:selected').text();
-				var allograph_id = $('#panelImageBox .allograph_form').val();
-				refresh_letters_container(allograph, allograph_id, true);
-				if (temp['state'] == 'Insert') {
-					var element = $('.number_unsaved_allographs');
-					var number_unsaved = element.html();
-					var annotations = annotator.unsaved_annotations;
-					for (var i = 0; i < annotations.length; i++) {
-						if (annotations[i].feature.id == feature.id) {
-							annotations.splice(i, 1);
-							break;
-						}
-					}
-					element.html(annotations.length);
-					temp = null;
-				}
-
-				var boxes = $(".dialog_annotations");
-				if (boxes.length) {
-					boxes.remove();
-				}
-
-				// deleting from annotations by allograph
-				// $('li[data-graph="' + feature.graph + ']"').remove();
-
-				annotator.has_changed = true;
-			}
-		}
-	});
-}
-
-function serializeObject(obj) {
-	var o = {};
-	var a = obj.serializeArray();
-	$.each(a, function() {
-		if (o[obj.name]) {
-			if (!o[obj.name].push) {
-				o[obj.name] = [o[obj.name]];
-			}
-			o[obj.name].push(obj.value || '');
-		} else {
-			o[obj.name] = obj.value || '';
-		}
-	});
-	return o;
-}
 
 function highlight_vectors() {
 
@@ -2199,54 +1988,70 @@ function trigger_highlight_unsaved_vectors() {
 }
 
 
-function make_form() {
-	if ($('.tab-pane.active').attr('id') == 'annotator') {
-		select_allograph = $('#panelImageBox');
-	} else {
-		select_allograph = $('.myModal');
-	}
-	var form = select_allograph.find('.frmAnnotation');
-	var obj = {};
-	var array_values = [];
-	var features = {};
-	var has_features = false;
 
-	if ($('.features_box').length) {
-		has_features = true;
-		$('.features_box').each(function() {
-			if ($(this).is(':checked')) {
-				array_values.push($(this).val());
+/**
+ * Displays an alert for each error in the Ajax response (json).
+ * Returns true only if data is invalid (contains error or empty).
+ *
+ * @param data
+ *              JSON response from the server
+ *              E.g. {'errors': ['allograph: This field is required.',
+ *              'hand: This field is required.'], 'success': False}
+ */
+
+function handleErrors(data) {
+	if (data && 'success' in data && data.success) return false;
+	// something is not right
+	var message = 'Internal error: the AJAX response is empty';
+	if (data) {
+		message = 'Internal error: no "success" in AJAX response';
+		if ('success' in data) {
+			message = '';
+			if (!data.success) {
+				message = 'Unknown error.';
+				if ('errors' in data) {
+					message = '';
+					for (var i in data.errors) {
+						message += '<p>' + data.errors[i] + '</p>';
+					}
+				}
 			}
-		});
+		}
 	}
 
-	features.has_features = has_features;
-	features.features = array_values;
-	obj['feature'] = array_values;
-
-	var form_serialized = form.serialize();
-	var s = '';
-
-	for (i = 0; i < array_values.length; i++) {
-		s += '&feature=' + array_values[i];
+	if (message) {
+		updateStatus(message, 'error');
 	}
 
-	form_serialized += s;
-
-	if ($('#id_display_note').val()) {
-		form_serialized += "&display_note=" + $('#id_display_note').val();
-	}
-
-	if ($('#id_internal_note').val()) {
-		form_serialized += "&internal_note=" + $('#id_internal_note').val();
-	}
-
-	return {
-		'has_features': has_features,
-		'features': features,
-		'form_serialized': form_serialized
-	};
+	return (message.length > 0);
 }
+
+/**
+ * Updates the status message and style of the last operation.
+ *
+ * @param msg
+ *              Status message to display.
+ * @param status
+ *              Either 'error', 'success' or ''
+ */
+
+DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
+	var seen = {};
+	var txt;
+	$(element).each(function() {
+		if (text) {
+			txt = $(this).text();
+			attribute = null;
+		} else {
+			txt = $(this).attr(attribute);
+		}
+		if (seen[txt])
+			$(this).remove();
+		else
+			seen[txt] = true;
+	});
+};
+
 
 /**
  * Saves an annotation for the currently selected feature.
@@ -2308,6 +2113,178 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 	tab_link.html('Annotations (' + y + ')');
 
 };
+
+
+/**
+ * Deletes the annotation for the selected feature.
+ *
+ * @param layer
+ *              The feature's layer.
+ * @param feature
+ *              The feature to delete the annotation for.
+ */
+DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_annotations) {
+	var _self = this;
+	var msg;
+	if (typeof number_annotations == 'undefined' || !number_annotations) {
+		msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
+	} else {
+		var plural = number_annotations > 1;
+		if (!plural) {
+			msg = 'You are about to delete ' + number_annotations + ' annotation. It cannot be restored at a later time! Continue?';
+		} else {
+			msg = 'You are about to delete ' + number_annotations + ' annotations. They cannot be restored at a later time! Continue?';
+		}
+	}
+
+	var doDelete = confirm(msg);
+	if (doDelete) {
+		if (feature !== null && feature !== undefined) {
+			delete_annotation(layer, feature, number_annotations);
+		}
+	}
+	var tab_link = $('a[data-target="#allographs"]');
+	var f = annotator.vectorLayer.features;
+	var y = 0;
+	while (y < f.length && f[y].attributes.saved === 1) {
+		y++;
+	}
+
+	tab_link.html('Annotations (' + y + ')');
+};
+
+
+/**
+ * Deletes the annotation for the feature with the given id.
+ *
+ * @param id
+ *              The feature id.
+ */
+
+function deleteAnnotationByFeatureId(id) {
+	annotator.selectFeatureByIdAndCentre(id);
+	annotator.deleteAnnotation(annotator.vectorLayer, annotator.vectorLayer.getFeatureById(id));
+}
+
+function delete_annotation(layer, feature, number_annotations) {
+	var featureId = feature.id;
+	var temp = feature;
+	updateStatus('Deleting annotations');
+	layer.destroyFeatures([feature]);
+	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
+	$.ajax({
+		url: url,
+		data: '',
+		error: function(xhr, textStatus, errorThrown) {
+			alert('Error: ' + textStatus);
+			throw new Error(textStatus);
+		},
+		success: function(data) {
+			if (!handleErrors(data)) {
+				if (number_annotations > 1) {
+					updateStatus('Annotations deleted.', 'success');
+				} else {
+					updateStatus('Annotation deleted.', 'success');
+				}
+
+				var allograph = $('#panelImageBox .allograph_form option:selected').text();
+				var allograph_id = $('#panelImageBox .allograph_form').val();
+				refresh_letters_container(allograph, allograph_id, true);
+				if (temp['state'] == 'Insert') {
+					var element = $('.number_unsaved_allographs');
+					var number_unsaved = element.html();
+					var annotations = annotator.unsaved_annotations;
+					for (var i = 0; i < annotations.length; i++) {
+						if (annotations[i].feature.id == feature.id) {
+							annotations.splice(i, 1);
+							break;
+						}
+					}
+					element.html(annotations.length);
+					temp = null;
+				}
+
+				var boxes = $(".dialog_annotations");
+				if (boxes.length) {
+					boxes.remove();
+				}
+
+				// deleting from annotations by allograph
+				// $('li[data-graph="' + feature.graph + ']"').remove();
+
+				annotator.has_changed = true;
+			}
+		}
+	});
+}
+
+function serializeObject(obj) {
+	var o = {};
+	var a = obj.serializeArray();
+	$.each(a, function() {
+		if (o[obj.name]) {
+			if (!o[obj.name].push) {
+				o[obj.name] = [o[obj.name]];
+			}
+			o[obj.name].push(obj.value || '');
+		} else {
+			o[obj.name] = obj.value || '';
+		}
+	});
+	return o;
+}
+
+
+
+function make_form() {
+	if ($('.tab-pane.active').attr('id') == 'annotator') {
+		select_allograph = $('#panelImageBox');
+	} else {
+		select_allograph = $('.myModal');
+	}
+	var form = select_allograph.find('.frmAnnotation');
+	var obj = {};
+	var array_values = [];
+	var features = {};
+	var has_features = false;
+
+	if ($('.features_box').length) {
+		has_features = true;
+		$('.features_box').each(function() {
+			if ($(this).is(':checked')) {
+				array_values.push($(this).val());
+			}
+		});
+	}
+
+	features.has_features = has_features;
+	features.features = array_values;
+	obj['feature'] = array_values;
+
+	var form_serialized = form.serialize();
+	var s = '';
+
+	for (i = 0; i < array_values.length; i++) {
+		s += '&feature=' + array_values[i];
+	}
+
+	form_serialized += s;
+
+	if ($('#id_display_note').val()) {
+		form_serialized += "&display_note=" + $('#id_display_note').val();
+	}
+
+	if ($('#id_internal_note').val()) {
+		form_serialized += "&internal_note=" + $('#id_internal_note').val();
+	}
+
+	return {
+		'has_features': has_features,
+		'features': features,
+		'form_serialized': form_serialized
+	};
+}
+
 
 /**
  * Executes an Ajax call to save a feature/annotation.
@@ -2437,110 +2414,6 @@ function save(url, feature, data, ann, features) {
 	});
 }
 
-
-/**
- * Displays an alert for each error in the Ajax response (json).
- * Returns true only if data is invalid (contains error or empty).
- *
- * @param data
- *              JSON response from the server
- *              E.g. {'errors': ['allograph: This field is required.',
- *              'hand: This field is required.'], 'success': False}
- */
-
-function handleErrors(data) {
-	if (data && 'success' in data && data.success) return false;
-	// something is not right
-	var message = 'Internal error: the AJAX response is empty';
-	if (data) {
-		message = 'Internal error: no "success" in AJAX response';
-		if ('success' in data) {
-			message = '';
-			if (!data.success) {
-				message = 'Unknown error.';
-				if ('errors' in data) {
-					message = '';
-					for (var i in data.errors) {
-						message += '<p>' + data.errors[i] + '</p>';
-					}
-				}
-			}
-		}
-	}
-
-	if (message) {
-		updateStatus(message, 'error');
-	}
-
-	return (message.length > 0);
-}
-
-/**
- * Updates the status message and style of the last operation.
- *
- * @param msg
- *              Status message to display.
- * @param status
- *              Either 'error', 'success' or ''
- */
-
-DigipalAnnotator.prototype.removeDuplicate = function(element, attribute, text) {
-	var seen = {};
-	var txt;
-	$(element).each(function() {
-		if (text) {
-			txt = $(this).text();
-			attribute = null;
-		} else {
-			txt = $(this).attr(attribute);
-		}
-		if (seen[txt])
-			$(this).remove();
-		else
-			seen[txt] = true;
-	});
-};
-
-function updateStatus(msg, status) {
-	var running = running || true;
-
-	if (running) {
-		clearInterval(timeout);
-		$('#status').remove();
-	}
-
-	var status_element = $('#status');
-
-	if (!status_element.length) {
-		status_element = $('<div id="status">');
-		$('body').append(status_element.hide());
-	}
-
-	status_element.css('z-index', 5000);
-	status_class = status ? ' alert-' + status : '';
-	status_element.attr('class', 'alert' + status_class);
-
-	status_element.html(msg).fadeIn();
-
-
-	var timeout =
-		setTimeout(function() {
-			status_element.fadeOut();
-			running = false;
-		}, 5000);
-	//
-	// GN: bugfix, JIRA 77
-	// The message will push the openlayer div down and cause
-	// the drawing symbol to appear below the mosue cursor.
-	// To avoid this we force a render on the OL map to tell it
-	// to refresh it internal location variable.
-	//
-	if (typeof annotator !== 'undefined') {
-		annotator.map.render(annotator.map.div);
-	}
-}
-
-
 function registerEvents() {
 	if (annotator.isAdmin == 'True') {
 		annotator.events = true;
@@ -2582,12 +2455,19 @@ function registerEvents() {
 			var boxes_on_click_element = $("#boxes_on_click");
 			boxes_on_click_element.prop('checked', true);
 			var boxes_on_click = false;
+			var annotation;
 
-			showBox(annotator.selectedFeature);
-			if (!boxes_on_click) {
-				annotator.boxes_on_click = false;
-				boxes_on_click_element.prop('checked', false);
+			for (var a in annotator.annotations) {
+				if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
+					annotation = annotator.annotations[a];
+				}
 			}
+			showBox(annotation, function() {
+				if (!boxes_on_click) {
+					annotator.boxes_on_click = false;
+					boxes_on_click_element.prop('checked', false);
+				}
+			});
 
 		});
 	}
@@ -2679,7 +2559,6 @@ DigipalAnnotator.prototype.loadAnnotations = function() {
 DigipalAnnotator.prototype.full_Screen = function() {
 	var map = $('#map');
 	var panel = $('#panelImageBox');
-	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 	var toolbar = $('#toolbar');
 	var map_size;
 	if (!(this.fullScreen.active)) {
@@ -2715,19 +2594,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		}
 
 
-		annotations_layer.attr('width', $(window).width())
-			.attr('height', $(window).height())
-			.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
-
-		annotator.map.events.register("moveend", map, function() {
-			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-		});
-
-		annotator.map.events.register("zoomend", map, function() {
-			annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-		});
-
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+		restoreFullscreenPositions();
 
 	} else {
 		this.fullScreen.deactivate();
@@ -2742,20 +2609,7 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			scrollTop: map.position().top
 		}, 0);
 
-		annotations_layer.attr('width', map.width())
-			.attr('height', map.height())
-			.attr('viewport', "0 0 " + map.width() + " " + map.height());
-
-
-		annotator.map.events.register("moveend", map, function() {
-			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
-		});
-
-		annotator.map.events.register("zoomend", map, function() {
-			annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
-		});
-
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + map.width() + " " + map.height());
+		restoreFullscreenPositions();
 	}
 };
 
@@ -2863,18 +2717,22 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 					case 38:
 						annotator.map.moveByPx(0, -60);
 						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
 						break;
 					case 40:
 						annotator.map.moveByPx(0, 60);
 						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
 						break;
 					case 37:
 						annotator.map.moveByPx(-60);
 						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
 						break;
 					case 39:
 						annotator.map.moveByPx(60);
 						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
 						break;
 					case 187:
 						annotator.vectorLayer.map.zoomIn();
@@ -2887,3 +2745,20 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 		}
 	});
 };
+
+function restoreFullscreenPositions() {
+	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+	annotations_layer.attr('width', $(window).width())
+		.attr('height', $(window).height())
+		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
+
+	annotator.map.events.register("moveend", map, function() {
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+	});
+
+	annotator.map.events.register("zoomend", map, function() {
+		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+	});
+
+	annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+}

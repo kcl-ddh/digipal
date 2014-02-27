@@ -9,6 +9,7 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
+		self.set_settings(self.digipal_settings); // setting settings
 
 		var csrftoken = getCookie('csrftoken');
 		$.ajaxSetup({
@@ -28,7 +29,6 @@ function AnnotatorLoader() {
 		self.switch_annotations();
 		self.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
-			self.set_settings(self.digipal_settings); // setting settings
 		});
 	};
 
@@ -595,8 +595,7 @@ function AnnotatorLoader() {
 				} else {
 					container = $('#map');
 				}
-				var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
-				annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
+				restoreFullscreenPositions();
 			});
 
 		} else {
@@ -646,8 +645,7 @@ function AnnotatorLoader() {
 			} else {
 				container = $('#map');
 			}
-			var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
-			annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
+			restoreFullscreenPositions();
 		});
 
 		if (typeof get_annotations != "undefined" && get_annotations == "false") {
@@ -937,6 +935,16 @@ function AnnotatorLoader() {
 
 		function set_map() {
 			var input_toolbar_position = $("input[name='toolbar_position']:checked");
+
+			toolbar.css({
+				'position': 'fixed',
+				"width": "60px",
+				'border-left': '1px solid #ccc',
+				'border-top-left-radius': '4px',
+				'border-bottom-left-radius': '4px',
+				"z-index": 1000
+			});
+
 			if (input_toolbar_position.val() == 'Vertical') {
 
 
@@ -951,11 +959,14 @@ function AnnotatorLoader() {
 						left: map.position().left - 60
 					});
 				}
+
 			} else {
+
 				toolbar.css({
 					top: map.position().top,
 					left: map.width() + map.position().left - toolbar.width()
 				});
+
 			}
 		}
 

@@ -2,56 +2,62 @@ function Allographs() {
 
 	var self = this;
 
-	this.temporary_vectors = [];
-	this.selectedAnnotations = {
+	self.dialog = dialog;
+	self.selectedAnnotations = {
 		'allograph': null,
 		'annotations': []
 	};
 
-	this.init = function() {
-		self.events();
+	var temporary_vectors = [];
+
+
+	var init = function() {
+		events();
 	};
 
-	this.events = function() {
+	var events = function() {
 
-		/* updates dialog when changing allograph */
-		var allograph_form = $('.myModal .allograph_form');
-		allograph_form.change(function() {
-			updateFeatureSelect($(this).val());
+		/* creating dialog */
+		self.dialog.init(annotator.image_id, {
+			'container': '#allographs'
+		}, function() {
+
+			/* applying delete event to selected feature */
+			var delete_button = self.dialog.selector.find('#delete');
+			delete_button.click(function(event) {
+				methods.delete();
+			});
+
+			/* applying delete event to selected feature */
+			var save_button = self.dialog.selector.find('#save');
+			save_button.click(function(event) {
+				methods.save();
+			});
+
+			/* event to show summary */
+			var show_summary = $('#show_summary');
+			show_summary.click(function() {
+				self.dialog.show_summary($(this));
+			});
+
 		});
-
-		/* making box draggable */
-		var modal = $("#modal_features");
-		modal.draggable();
 
 		/* applying select event to annotations */
 		var annotations_li = $('.annotation_li');
 		annotations_li.unbind().click(function(event) {
-			self.methods.select_annotation($(this));
-		});
-
-		/* applying delete event to selected feature */
-		var delete_button = $('#delete');
-		delete_button.click(function(event) {
-			self.methods.delete();
-		});
-
-		/* applying delete event to selected feature */
-		var save_button = $('#save');
-		save_button.click(function(event) {
-			self.methods.save();
+			methods.select_annotation($(this));
 		});
 
 		/* applying select all event */
 		var select_all = $('.select_all');
 		select_all.click(function(event) {
-			self.methods.select_all($(this));
+			methods.select_all($(this));
 		});
 
 		/* applying deselect all event */
 		var deselect_all = $('.deselect_all');
 		deselect_all.click(function(event) {
-			self.methods.deselect_all($(this));
+			methods.deselect_all($(this));
 		});
 
 		/* applying to_lightbox function */
@@ -62,24 +68,20 @@ function Allographs() {
 				for (var i = 0; i < self.selectedAnnotations.annotations.length; i++) {
 					annotations.push(self.selectedAnnotations.annotations[i].graph);
 				}
-				self.methods.to_lightbox($(this), annotations, true);
+
+				methods.to_lightbox($(this), annotations, true);
 			} else {
-				self.methods.to_lightbox($(this), self.selectedAnnotations.annotations[0].graph, false);
+
+				methods.to_lightbox($(this), self.selectedAnnotations.annotations[0].graph, false);
 			}
 
-		});
-
-		/* event to show summary */
-		var show_summary = $('#show_summary');
-		show_summary.click(function() {
-			self.dialog.show_summary($(this));
 		});
 
 		/* event to redirect from letters to annotator */
 		var a_images = $('.annotation_li a');
 		a_images.click(function(event) {
 			var id = $(this).parent('.annotation_li').data('annotation');
-			self.methods.to_annotator(id);
+			methods.to_annotator(id);
 
 			/*
 			var panel = $('#panelImageBox');
@@ -93,11 +95,11 @@ function Allographs() {
 			event.preventDefault();
 		});
 
-		self.keyboard_shortcuts.init();
+		keyboard_shortcuts.init();
 
 	};
 
-	this.methods = {
+	var methods = {
 
 		select_annotation: function(this_annotation) {
 			var annotation = getFeatureById(this_annotation.data('annotation'));
@@ -108,10 +110,10 @@ function Allographs() {
 				self.selectedAnnotations.allograph = null;
 				self.selectedAnnotations.annotations = [];
 				$('.annotation_li').removeClass('selected').data('selected', false);
-				self.temporary_vectors = [];
+				temporary_vectors = [];
 			}
 			if (annotation_li.data('selected')) {
-				self.utils.clean_annotations(annotation, self.selectedAnnotations.annotations);
+				utils.clean_annotations(annotation, self.selectedAnnotations.annotations);
 				annotation_li.data('selected', false).removeClass('selected');
 			} else {
 				self.selectedAnnotations.allograph = annotation.feature;
@@ -119,7 +121,9 @@ function Allographs() {
 				annotation_li.data('selected', true).addClass('selected');
 				modal = true;
 			}
-			self.main(annotation);
+
+			main(annotation);
+
 		},
 
 		save: function() {
@@ -191,7 +195,7 @@ function Allographs() {
 			var inputs = $('input[data-key="' + key + '"]');
 			var checkboxes = ul.find('li');
 			self.selectedAnnotations.annotations = [];
-			self.temporary_vectors = [];
+			temporary_vectors = [];
 			self.selectedAnnotations.allograph = null;
 
 			checkboxes.data('selected', false).removeClass('selected');
@@ -223,11 +227,12 @@ function Allographs() {
 					self.selectedAnnotations.annotations = [];
 					ul.find('.annotation_li').removeClass('selected');
 					ul.find('.annotation_li').data('selected', false);
-					self.temporary_vectors = [];
+					temporary_vectors = [];
 				}
 				self.selectedAnnotations.annotations.push(annotation);
 				var a = self.selectedAnnotations.allograph;
-				self.main(annotation);
+
+				main(annotation);
 			}
 			self.selectedAnnotations.allograph = annotation.feature;
 			checkboxes.data('selected', true);
@@ -266,8 +271,10 @@ function Allographs() {
 	};
 
 
-	this.main = function(annotation) {
-		var self = this;
+	var main = function(annotation) {
+		if (!annotation) {
+			return false;
+		}
 		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
 		if (self.dialog.open) {
 			if (self.selectedAnnotations.annotations.length > 1) {
@@ -286,72 +293,11 @@ function Allographs() {
 			panel.find('.to_lightbox').attr('disabled', false);
 		}
 
-		self.load_annotations_allographs.init(annotation);
+		load_annotations_allographs.init(annotation);
 
 	};
 
-	this.dialog = {
-		open: false,
-		summary: true,
-		selector: $("#modal_features"),
-		self: this,
-
-		init: function() {
-			this.events();
-		},
-
-		events: function() {
-			var show_summary = $('#show_summary');
-			show_summary.click(function() {
-				self.show_summary($(this));
-			});
-		},
-
-		show_summary: function(button) {
-			var self = this;
-			var summary = $("#summary");
-			if (self.summary) {
-				summary.animate({
-					'right': 0,
-					'opacity': 0,
-				}, 350, function() {
-					$(this).css({
-						'display': 'none'
-					});
-				});
-				self.summary = false;
-				button.removeClass('active');
-			} else {
-				summary.css({
-					'display': 'block'
-				}).animate({
-					'right': "40.3%",
-					'opacity': 1
-				}, 350);
-
-				self.summary = true;
-				button.addClass('active');
-			}
-		},
-
-		hide: function() {
-			self.dialog.selector.fadeOut();
-			self.open = false;
-		},
-
-		show: function() {
-			self.dialog.selector.fadeIn();
-			self.open = true;
-		},
-
-		set_label: function(label_value) {
-			var label = $('.myModalLabel .label-modal-value');
-			label.html(label_value);
-		}
-
-	};
-
-	this.utils = {
+	var utils = {
 
 		clean_annotations: function(annotation, annotations) {
 			var length_annotations = annotations.length;
@@ -382,7 +328,7 @@ function Allographs() {
 
 	};
 
-	this.load_annotations_allographs = {
+	var load_annotations_allographs = {
 
 		init: function(annotation) {
 
@@ -432,44 +378,6 @@ function Allographs() {
 
 					myModal.find('select').chosen();
 
-					var maximized = false;
-					var maximize_icon = $('#maximize');
-
-					maximize_icon.click(function() {
-
-						summary.hide();
-						if (!maximized) {
-							myModal.animate({
-								'position': 'fixed',
-								'top': "0px",
-								'left': '59.5%',
-								"width": '40%',
-								"height": '100%'
-							}, 400, function() {
-								summary.show();
-								myModal.find('.modal-body').css("max-height", "100%");
-								maximize_icon.attr('title', 'Minimize box').removeClass('icon-resize-full').addClass('icon-resize-small');
-							});
-							maximized = true;
-						} else {
-							summary.hide();
-							myModal.animate({
-								'position': 'fixed',
-								'left': "55%",
-								'top': "15%",
-								'right': '',
-								"width": '30%',
-								"height": '60%'
-							}, 400, function() {
-								summary.show();
-								myModal.find('.modal-body').css("max-height", "");
-								maximize_icon.attr('title', 'Maximize box').removeClass('icon-resize-small').addClass('icon-resize-full');
-							}).draggable();
-							maximized = false;
-						}
-
-					});
-
 					myModal.find('.component_labels').click(function() {
 						var div = $("#" + $(this).data('id'));
 						if (!div.data('hidden')) {
@@ -498,7 +406,7 @@ function Allographs() {
 					var select_list = $('select');
 					select_list.chosen().trigger('liszt:updated');
 
-					self.edit_letter.set_image(annotation);
+					self.dialog.edit_letter.init(annotation.graph);
 
 				});
 			} else {
@@ -507,293 +415,95 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			var url = annotator.absolute_image_url + 'graph/' + annotation.graph + '/features/';
-			var url_features = annotator.absolute_image_url + "graph/" + annotation.graph;
-			var array_features_owned = features_owned(annotation, url);
-			var request = $.getJSON(url_features);
+			var url = '/digipal/' + 'graph/' + annotation.graph;
+			self.dialog.temp.graph = annotation.graph;
+
+			var request = $.getJSON(url);
 			var features = annotator.vectorLayer.features;
 			var url2;
 
 			request.done(function(data) {
 				var allograph_id = data.id;
-				url2 = annotator.absolute_image_url + 'allograph/' + data.id + '/features/';
-				var allographs = $.getJSON(url2);
+				self.dialog.temp.allograph_id = allograph_id;
 				var s = "<div id='box_features_container'>";
 				var string_summary = '';
 				var prefix = 'allographs_';
-				allographs.done(function(data) {
-					$.each(data, function(idx) {
-						var component = data[idx].name;
-						var component_id = data[idx].id;
-						var is_empty;
-						var features = data[idx].features;
-						string_summary += "<span class='component_summary'>" + data[idx].name + "</span>";
+				var array_features_owned = features_saved(annotation, data['features']);
+				var allographs = data['allographs'];
+				$.each(allographs, function(idx) {
+					var component = allographs[idx].name;
+					var component_id = allographs[idx].id;
+					var is_empty;
+					var features = allographs[idx].features;
+					string_summary += "<span class='component_summary'>" + allographs[idx].name + "</span>";
 
-						s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
+					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
-						s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
+					s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
 
-						s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-						var n = 0;
+					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
+					var n = 0;
 
-						$.each(features, function(idx) {
-							var value = component_id + '::' + features[idx].id;
-							var names = component + ':' + features[idx].name;
-							var f = self.selectedAnnotations.annotations;
-							var al = '';
-							var d = 0;
-							var title = '';
-							var ann;
-							for (var k = 0; k < f.length; k++) {
-								for (var j = 0; j < f[k].features.length; j++) {
-									if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
-										ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
-										if (ann) {
-											al += '<span class="label label-default label-summary">' + ann + '</span> ';
-											title += ann + ' ';
-										}
-										d++;
-										self.temporary_vectors.push(names);
+					$.each(features, function(idx) {
+						var value = component_id + '::' + features[idx].id;
+						var names = component + ':' + features[idx].name;
+						var f = self.selectedAnnotations.annotations;
+						var al = '';
+						var d = 0;
+						var title = '';
+						var ann;
+						for (var k = 0; k < f.length; k++) {
+							for (var j = 0; j < f[k].features.length; j++) {
+								if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
+									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
+									if (ann) {
+										al += '<span class="label label-default label-summary">' + ann + '</span> ';
+										title += ann + ' ';
 									}
+									d++;
+									temporary_vectors.push(names);
 								}
 							}
+						}
 
-							var id = component_id + '_' + features[idx].id;
+						var id = component_id + '_' + features[idx].id;
 
-							var array_features_owned_temporary = array_features_owned.concat(self.temporary_vectors);
+						var array_features_owned_temporary = array_features_owned.concat(temporary_vectors);
 
-							s += "<div class='row row-no-margin'>";
+						s += "<div class='row row-no-margin'>";
 
-							if (array_features_owned.indexOf(names) >= 0) {
+						if (array_features_owned.indexOf(names) >= 0) {
 
-								s += "<p class='col-md-2'><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /></p>";
-								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
+							s += "<p class='col-md-2'><input checked = 'checked' type='checkbox' value='" + value + "' class='features_box' id='" + id + "' data-feature = '" + features[idx].id + "' /></p>";
+							s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
 
-							} else {
-								s += "<p class='col-md-2'><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/></p>";
-								s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
-							}
+						} else {
+							s += "<p class='col-md-2'><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "'/></p>";
+							s += "<p class='col-md-10'><label class='string_summary_label' for='" + id + "'>" + features[idx].name + "</label></p>";
+						}
 
-							if (array_features_owned_temporary.indexOf(names) >= 0) {
-								string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
-								n++;
-							}
-
-							s += "</div>";
-						});
+						if (array_features_owned_temporary.indexOf(names) >= 0) {
+							string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+							n++;
+						}
 
 						s += "</div>";
-						if (!n) {
-							string_summary += "<span class='feature_summary'>undefined</span>";
-						}
 					});
 
-					callback(s, string_summary);
+					s += "</div>";
+					if (!n) {
+						string_summary += "<span class='feature_summary'>undefined</span>";
+					}
 				});
+
+				callback(s, string_summary);
 			});
+
 		}
 
 	};
 
-	this.edit_letter = {
-		self: this,
-		set_image: function(annotation) {
-			var editor_space = $('#image-editor-space');
-			var img = $('a[data-graph="' + annotation.graph + '"]').find('img');
-			this.img = img.clone();
-			this.temp = {};
-			editor_space.html(this.img);
-			this.url = this.img.attr('src');
-			this.parameters = this.get_parameters();
-			this.events();
-		},
-
-		getParameter: function(paramName, searchString) {
-			var i, val, params = searchString.split("&");
-			var parameters = [];
-			for (i = 0; i < params.length; i++) {
-				val = params[i].split("=");
-				if (val[0] == paramName) {
-					parameters.push(unescape(val[1]));
-				}
-			}
-			return parameters;
-		},
-
-		resize: function(side, value) {
-			$('#editor-space-image').fadeIn();
-			var temp = self.edit_letter.temp;
-			var url = self.edit_letter.url;
-			var old_url = self.edit_letter.parameters.RGN;
-			var newRGN = self.edit_letter.parameters.RGN.split(',');
-			if (side == 'top') {
-				//par = this.parameters.RGN[1];
-				newRGN[1] = value;
-			} else if (side == 'left') {
-				//par = this.parameters.RGN[0];
-				newRGN[0] = value;
-			} else if (side == 'width') {
-				//par = this.parameters.RGN[3];
-				newRGN[2] = value;
-			} else {
-				//par = this.parameters.RGN[2];
-				newRGN[3] = value;
-			}
-
-			url = url.replace('RGN=' + old_url, 'RGN=' + newRGN.toString());
-			self.edit_letter.url = url;
-			self.edit_letter.makeBounds(newRGN);
-			self.edit_letter.img.attr('src', url);
-			self.edit_letter.img.on('load', function() {
-				$('#editor-space-image').fadeOut();
-			});
-			self.edit_letter.parameters.RGN = newRGN.toString();
-		},
-
-		makeBounds: function(RGN) {
-			var W = annotator.dimensions[0];
-			var H = annotator.dimensions[1];
-			var left = RGN[0] * W;
-			var top = H - (RGN[1] * H);
-			var width = (RGN[2] * W);
-			var height = (RGN[3] * H);
-			//annotator.selectedFeature.move(p);
-		},
-
-		events: function() {
-			var resize = this.resize;
-			var resize_up = $('#resize-up');
-			var resize_down = $('#resize-down');
-			var resize_width = $('#resize-right');
-			var resize_left = $('#resize-left');
-
-			var move_up = $('#move-up');
-			var move_down = $('#move-down');
-			var move_right = $('#move-right');
-			var move_left = $('#move-left');
-
-			var value = 0.005;
-
-			/*
-				resize functions
-			*/
-			resize_up.on('click', function() {
-
-				if (!self.edit_letter.temp['height']) {
-					self.edit_letter.temp['height'] = parseFloat(self.edit_letter.parameters.height);
-				}
-
-				self.edit_letter.temp['height'] += value;
-
-				resize('height', self.edit_letter.temp['height']);
-			});
-
-			resize_down.on('click', function() {
-
-				if (!self.edit_letter.temp['height']) {
-					self.edit_letter.temp['height'] = parseFloat(self.edit_letter.parameters.height);
-				}
-
-				self.edit_letter.temp['height'] -= value;
-
-				resize('height', self.edit_letter.temp['height']);
-			});
-
-			resize_left.on('click', function() {
-				if (!self.edit_letter.temp['width']) {
-					self.edit_letter.temp['width'] = parseFloat(self.edit_letter.parameters.width);
-				}
-
-				self.edit_letter.temp['width'] -= value;
-
-				resize('width', self.edit_letter.temp['width']);
-			});
-
-			resize_width.on('click', function() {
-				if (!self.edit_letter.temp['width']) {
-					self.edit_letter.temp['width'] = parseFloat(self.edit_letter.parameters.width);
-				}
-
-				self.edit_letter.temp['width'] += value;
-
-				resize('width', self.edit_letter.temp['width']);
-			});
-
-			/*
-				end resize functions
-			*/
-
-			/*
-				move functions
-			*/
-
-
-			move_up.on('click', function() {
-				if (!self.edit_letter.temp['top']) {
-					self.edit_letter.temp['top'] = parseFloat(self.edit_letter.parameters.top);
-				}
-
-				self.edit_letter.temp['top'] -= value;
-
-				resize('top', self.edit_letter.temp['top']);
-			});
-
-			move_down.on('click', function() {
-				if (!self.edit_letter.temp['top']) {
-					self.edit_letter.temp['top'] = parseFloat(self.edit_letter.parameters.top);
-				}
-
-				self.edit_letter.temp['top'] += value;
-
-				resize('top', self.edit_letter.temp['top']);
-			});
-
-			move_left.on('click', function() {
-				if (!self.edit_letter.temp['left']) {
-					self.edit_letter.temp['left'] = parseFloat(self.edit_letter.parameters.left);
-				}
-
-				self.edit_letter.temp['left'] -= value;
-
-				resize('left', self.edit_letter.temp['left']);
-			});
-
-			move_right.on('click', function() {
-				if (!self.edit_letter.temp['left']) {
-					self.edit_letter.temp['left'] = parseFloat(self.edit_letter.parameters.left);
-				}
-
-				self.edit_letter.temp['left'] += value;
-
-				resize('left', self.edit_letter.temp['left']);
-			});
-
-			/*
-				end move functions
-			*/
-		},
-
-		get_parameters: function() {
-			var WID = this.getParameter('WID', self.edit_letter.url);
-			var RGN = this.getParameter('RGN', self.edit_letter.url).toString().split('&')[0];
-			var coords = RGN.split(',');
-			var left = coords[0];
-			var top = coords[1];
-			var height = coords[2];
-			var width = coords[3];
-			return {
-				'WID': WID,
-				'RGN': RGN,
-				'left': left,
-				'top': top,
-				'height': height,
-				'width': width
-			};
-		}
-
-	};
-
-	this.refresh = function() {
+	var refresh = function() {
 		var allographs_container = $('#allographs');
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
 		self.dialog.hide();
@@ -819,13 +529,13 @@ function Allographs() {
 
 				self.dialog.selector = $("#modal_features");
 
-				self.init();
+				init();
 
 			}
 		});
 	};
 
-	this.keyboard_shortcuts = {
+	var keyboard_shortcuts = {
 		init: function() {
 			$(document).on('keydown', function(event) {
 				var code = (event.keyCode ? event.keyCode : event.which);
@@ -856,6 +566,12 @@ function Allographs() {
 			});
 		}
 	};
+
+	return {
+		'init': init,
+		'refresh': refresh
+	};
+
 }
 
 

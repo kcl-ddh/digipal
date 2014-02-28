@@ -132,6 +132,12 @@ def search_record_view(request):
     # Now we redirect those requests to the record page
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
     
+    scope =  request.GET.get('scp', '')
+    if scope == 'blog':
+        from django.shortcuts import redirect
+        redirect_url = '/blog/search/?q=%s' % request.GET.get('terms')
+        return redirect(redirect_url)
+    
     hand_filters.chrono('SEARCH VIEW:')
     hand_filters.chrono('SEARCH LOGIC:')
     

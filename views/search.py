@@ -133,7 +133,7 @@ def search_record_view(request):
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
     
     scope =  request.GET.get('scp', '')
-    if scope == 'blog':
+    if scope == 'st':
         from django.shortcuts import redirect
         redirect_url = '/blog/search/?q=%s' % request.GET.get('terms')
         return redirect(redirect_url)

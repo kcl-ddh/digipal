@@ -56,9 +56,9 @@ def get_features(graph_id, only_features=False):
 
     for component in graph_components.values_list('id', flat=True):
         name_component = Component.objects.filter(graphcomponent=component)
-        dict_features.append({'id': component, 'name': name_component.values('name')[0]['name'], 'feature': []})
+        dict_features.append({"graph_component_id": component, 'component_id': name_component.values('id')[0]['id'], 'name': name_component.values('name')[0]['name'], 'feature': []})
     for feature in dict_features:
-        features = Feature.objects.filter(graphcomponent = feature['id']).values_list('name',  flat=True)
+        features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
         feature['feature'].append(features)
         for f in feature['feature']:
             feature['feature'] = list(f)
@@ -236,7 +236,6 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
         features_list = simplejson.loads(get_features(a.graph.id, True))
-        print features_list['features']
         data[a.id]['num_features'] = len(features_list['features'])
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
@@ -468,12 +467,13 @@ def save(request, image_id, vector_id):
 
             graph.save() # error is here
 
-            feature_list = get_data.getlist('feature')
-            graph.graph_components.all().delete()
+            feature_list_checked = get_data.getlist('feature')
+            feature_list_unchecked = get_data.getlist('-feature')
+            #graph.graph_components.all().delete()
 
-            if feature_list:
+            if feature_list_checked:
 
-                for value in feature_list:
+                for value in feature_list_checked:
                     cid, fid = value.split('::')
 
                     component = Component.objects.get(id=cid)
@@ -488,6 +488,25 @@ def save(request, image_id, vector_id):
 
                     gc.save()
                     gc.features.add(feature)
+                    gc.save()
+
+            if feature_list_unchecked:
+
+                for value in feature_list_unchecked:
+                    cid, fid = value.split('::')
+
+                    component = Component.objects.get(id=cid)
+                    feature = Feature.objects.get(id=fid)
+                    gc_list = GraphComponent.objects.filter(graph=graph,
+                            component=component)
+
+                    if gc_list:
+                        gc = gc_list[0]
+                    else:
+                        gc = GraphComponent(graph=graph, component=component)
+
+                    gc.save()
+                    gc.features.remove(feature)
                     gc.save()
 
             annotation.graph = graph

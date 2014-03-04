@@ -23,6 +23,9 @@ function EditGraphsSearch() {
 	self.selectedAnnotations = [];
 	self.selectedAllograph = null;
 
+	self.cache = new AnnotationsCache();
+
+	var cache = self.cache.cache;
 	// object dialog inherited from the object of the script dialog.js
 	self.dialog = dialog;
 
@@ -77,21 +80,31 @@ function EditGraphsSearch() {
 		var graph = element.data('graph');
 		var allograph = element.data('allograph');
 		var elements = $("[data-graph='" + graph + "']");
+		var image_id = element.data('image-id');
+		var data;
 		if (!element.find('img').hasClass('graph_active')) {
 
 			/*
+				[WAS]
 				if the allograph selected is different from the allograph of the group, I deselect them all
+
+				[EDITED] 4/03/2014
+
+				Now we should show common components rather tahn selecting only common allographs
 			*/
+
+			/*
 			if (allograph !== self.selectedAllograph) {
 				var graphs = $('[data-graph]');
 				graphs.find('img').removeClass("graph_active");
 				self.selectedAnnotations = [];
 			}
+			*/
 
 			self.selectedAnnotations.push(graph);
 			elements.find('img').addClass('graph_active');
 
-			var image_id = element.data('image-id');
+
 			self.dialog.temp.image_id = image_id;
 			self.dialog.temp.graph = graph;
 
@@ -99,30 +112,30 @@ function EditGraphsSearch() {
 			content_type = 'graph';
 
 			// if there's no allograph cached, I make a full AJAX call
-			if (!cache.search("allograph", allograph)) {
+			if (!self.cache.search("allograph", allograph)) {
 
 				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph;
 				request = $.getJSON(url);
 				request.done(function(data) {
-					cache.update('allograph', data['allograph_id'], data);
-					cache.update('graph', graph, data);
+					self.cache.update('allograph', data['allograph_id'], data);
+					self.cache.update('graph', graph, data);
 					refresh(data, image_id);
 				});
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
-			} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
+			} else if (self.cache.search("allograph", allograph) && (!self.cache.search('graph', graph))) {
 
 				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph + '/features';
 				request = $.getJSON(url);
 				request.done(function(data) {
 					data['allographs'] = cache.allographs[allograph];
-					cache.update('graph', graph, data);
+					self.cache.update('graph', graph, data);
 					refresh(data, image_id);
 				});
 
 				// otherwise I have both cached, I can get them from the cache object
 			} else {
-				var data = {};
+				data = {};
 				data['allographs'] = cache.allographs[allograph];
 				data['features'] = cache.graphs[graph]['features'];
 				data['allograph_id'] = cache.graphs[graph]['allograph_id'];
@@ -130,15 +143,29 @@ function EditGraphsSearch() {
 				data['hands'] = cache.graphs[graph]['hands'];
 				refresh(data, image_id);
 			}
+			self.selectedAllograph = allograph;
 		} else {
 			removeSelected(elements, graph);
 			$('.myModalLabel .badge').html(self.selectedAnnotations.length);
+
 			if (!self.selectedAnnotations.length) {
 				self.dialog.hide();
+			} else {
+				var checkboxes = $('.features_box');
+				data = {};
+				graph = self.selectedAnnotations[self.selectedAnnotations.length - 1];
+				allograph = cache.graphs[graph]['allograph_id'];
+				data['allographs'] = cache.allographs[allograph];
+				data['features'] = cache.graphs[graph]['features'];
+				data['allograph_id'] = allograph;
+				data['hand_id'] = cache.graphs[graph]['hand_id'];
+				data['hands'] = cache.graphs[graph]['hands'];
+				refresh(data, image_id);
+				detect_common_features(self.selectedAnnotations, checkboxes, cache);
 			}
 		}
 
-		self.selectedAllograph = allograph;
+
 	};
 
 	/* this function updates the dialog content
@@ -147,7 +174,9 @@ function EditGraphsSearch() {
 	*/
 	var refresh = function(data, image_id) {
 		var allographs = data;
-		console.log(data);
+		if (self.selectedAnnotations.length > 1) {
+			allographs['allographs'] = common_components(self.selectedAnnotations, cache, allographs['allographs']);
+		}
 		self.dialog.temp.vector_id = data['vector_id'];
 		self.dialog.init(image_id, {
 			'summary': false
@@ -175,7 +204,6 @@ function EditGraphsSearch() {
 			*/
 
 			/* rewriting hands select */
-
 			var string_hand_select = '';
 			for (var h = 0; h < cache.graphs[graph]['hands'].length; h++) {
 				string_hand_select += '<option value="' + cache.graphs[graph]['hands'][h].id + '">' +
@@ -184,10 +212,13 @@ function EditGraphsSearch() {
 
 			select_hand.html(string_hand_select);
 
-			self.dialog.update(self.constants.PREFIX, allographs, function(s) {
+			self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
 
 				/* fill container content */
 				self.dialog.selector.find('#features_container').html(s);
+
+				var checkboxes = $('.features_box');
+				detect_common_features(self.selectedAnnotations, checkboxes, cache);
 
 				/* launching DOM events */
 				self.dialog.events_postLoading();
@@ -262,7 +293,6 @@ function EditGraphsSearch() {
 					graph = self.selectedAnnotations[i];
 					vector_id = cache.graphs[graph].vector_id;
 					image_id = cache.graphs[graph].image_id;
-					console.log(image_id)
 					url = '/digipal/page/' + image_id + '/save/' + vector_id;
 
 					save(url, feature, data.form_serialized);

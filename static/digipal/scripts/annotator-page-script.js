@@ -9,7 +9,6 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
-		self.set_settings(self.digipal_settings); // setting settings
 
 		var csrftoken = getCookie('csrftoken');
 		$.ajaxSetup({
@@ -29,6 +28,7 @@ function AnnotatorLoader() {
 		self.switch_annotations();
 		self.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
+			self.set_settings(self.digipal_settings); // setting settings
 		});
 	};
 

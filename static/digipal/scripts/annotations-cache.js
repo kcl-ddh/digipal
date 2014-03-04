@@ -1,41 +1,53 @@
-var cache = cache || {};
+function AnnotationsCache() {
 
-cache.allographs = {};
-cache.graphs = {};
+	this.cache = {};
+	this.cache.allographs = {};
+	this.cache.graphs = {};
 
-cache.search = function(type, id) {
-	var obj;
+	this.init = function() {
+		return this.cache;
+	};
 
-	if (type == 'allograph') {
-		obj = cache.allographs;
-	} else {
-		obj = cache.graphs;
-	}
+	this.search = function(type, id) {
+		var obj;
 
-	if (obj[id]) {
-		return true;
-	}
+		if (type == 'allograph') {
+			obj = this.cache.allographs;
+		} else {
+			obj = this.cache.graphs;
+		}
 
-	return false;
-};
+		if (obj[id]) {
+			return true;
+		}
 
-cache.update = function(type, id, object) {
-	var obj;
+		return false;
+	};
 
-	if (type == 'allograph') {
-		obj = cache.allographs;
-		obj[id] = object['allographs'];
+	this.update = function(type, id, object) {
+		var obj;
 
-	} else {
-		obj = cache.graphs;
-		obj[id] = {};
-		obj[id]['features'] = object['features'];
-		obj[id]['allograph_id'] = object['allograph_id'];
-		obj[id]['hand_id'] = object['hand_id'];
-		obj[id]['vector_id'] = object['vector_id'];
-		obj[id]['image_id'] = object['image_id'];
-		obj[id]['hands'] = object['hands'];
-	}
-	return obj;
+		if (type == 'allograph') {
+			obj = this.cache.allographs;
+			obj[id] = object['allographs'];
 
-};
+		} else {
+			obj = this.cache.graphs;
+			obj[id] = {};
+			obj[id]['features'] = object['features'];
+			obj[id]['allograph_id'] = object['allograph_id'];
+			obj[id]['hand_id'] = object['hand_id'];
+			obj[id]['vector_id'] = object['vector_id'];
+			obj[id]['image_id'] = object['image_id'];
+			obj[id]['hands'] = object['hands'];
+		}
+
+		return obj;
+
+	};
+
+	this.clear = function() {
+		this.cache.allographs = {};
+		this.cache.graphs = {};
+	};
+}

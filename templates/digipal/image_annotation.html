@@ -107,8 +107,8 @@
     <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
     <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
-    {% if can_edit %}
     <script src="{{ STATIC_URL }}digipal/scripts/annotations-cache.js"></script>
+    {% if can_edit %}
     <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
     {% endif %}
     <script>

@@ -405,7 +405,7 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 	for (var i in features) {
 		if (formal_attribute == 'hand') {
 			attribute = features[i].hand;
-			attribute2 = features[i].feature.replace(/., |;. | /, '');
+			attribute2 = features[i].feature.replace(/\., |;\. | /, '');
 			hand = $('#hand_input_' + attribute);
 			allograph = $('#allograph_' + attribute2);
 			var allographs = $('.checkVectors');
@@ -418,7 +418,7 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 				var max = allographs.length;
 				for (var h = 0; h < max; h++) {
 					var a = $(allographs[h]);
-					if (a.is(':checked') && a.val().replace(/., |;. | /, '') == attribute2) {
+					if (a.is(':checked') && a.val().replace(/\., |;\. | /, '') == attribute2) {
 						if ($(checkboxes).val() == attribute) {
 							features[i].style.fillOpacity = 0.4;
 							features[i].style.strokeOpacity = 1;
@@ -427,17 +427,17 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 				}
 			}
 		} else {
-			attribute = features[i].feature.replace(/., |;. | /, '');
+			attribute = features[i].feature.replace(/\., |;\. | /, '_');
 			attribute2 = features[i].hand;
 			hand = $('#hand_input_' + attribute2);
 			allograph = $('#hand_input_' + attribute2);
 			if (!($(checkboxes).is(':checked'))) {
-				if ($(checkboxes).val().replace(/., |;. | /, '') == attribute && features[i].hand == hand.val()) {
+				if ($(checkboxes).val().replace(/\., |;\. | /, '_') == attribute && features[i].hand == hand.val()) {
 					features[i].style.fillOpacity = 0;
 					features[i].style.strokeOpacity = 0;
 				}
 			} else {
-				if ($(checkboxes).val().replace(/., |;. | /, '') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+				if ($(checkboxes).val().replace(/\., |;\. | /, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
 					features[i].style.fillOpacity = 0.4;
 					features[i].style.strokeOpacity = 1;
 				}
@@ -750,9 +750,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
- 
+
  * Updates the feature select according to the currently selected allograph.
- 
+
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;

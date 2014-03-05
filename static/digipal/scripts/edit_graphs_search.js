@@ -81,7 +81,7 @@ function EditGraphsSearch() {
 		var allograph = element.data('allograph');
 		var elements = $("[data-graph='" + graph + "']");
 		var image_id = element.data('image-id');
-		var data;
+		var data, url, request, content_type = 'graph';
 		if (!element.find('img').hasClass('graph_active')) {
 
 			/*
@@ -108,8 +108,6 @@ function EditGraphsSearch() {
 			self.dialog.temp.image_id = image_id;
 			self.dialog.temp.graph = graph;
 
-			var url, request, content_type;
-			content_type = 'graph';
 
 			// if there's no allograph cached, I make a full AJAX call
 			if (!self.cache.search("allograph", allograph)) {
@@ -117,9 +115,9 @@ function EditGraphsSearch() {
 				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph;
 				request = $.getJSON(url);
 				request.done(function(data) {
-					self.cache.update('allograph', data['allograph_id'], data);
-					self.cache.update('graph', graph, data);
-					refresh(data, image_id);
+					self.cache.update('allograph', data[0]['allograph_id'], data[0]);
+					self.cache.update('graph', graph, data[0]);
+					refresh(data[0], image_id);
 				});
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
@@ -128,9 +126,9 @@ function EditGraphsSearch() {
 				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph + '/features';
 				request = $.getJSON(url);
 				request.done(function(data) {
-					data['allographs'] = cache.allographs[allograph];
-					self.cache.update('graph', graph, data);
-					refresh(data, image_id);
+					data[0]['allographs'] = cache.allographs[allograph];
+					self.cache.update('graph', graph, data[0]);
+					refresh(data[0], image_id);
 				});
 
 				// otherwise I have both cached, I can get them from the cache object
@@ -148,23 +146,38 @@ function EditGraphsSearch() {
 			removeSelected(elements, graph);
 			$('.myModalLabel .badge').html(self.selectedAnnotations.length);
 
+
 			if (!self.selectedAnnotations.length) {
 				self.dialog.hide();
 			} else {
 				var checkboxes = $('.features_box');
 				data = {};
 				graph = self.selectedAnnotations[self.selectedAnnotations.length - 1];
-				allograph = cache.graphs[graph]['allograph_id'];
-				data['allographs'] = cache.allographs[allograph];
-				data['features'] = cache.graphs[graph]['features'];
-				data['allograph_id'] = allograph;
-				data['hand_id'] = cache.graphs[graph]['hand_id'];
-				data['hands'] = cache.graphs[graph]['hands'];
-				refresh(data, image_id);
-				detect_common_features(self.selectedAnnotations, checkboxes, cache);
-			}
-		}
+				if (cache.graphs.hasOwnProperty(graph)) {
+					allograph = cache.graphs[graph]['allograph_id'];
+					data['allographs'] = cache.allographs[allograph];
+					data['features'] = cache.graphs[graph]['features'];
+					data['allograph_id'] = allograph;
+					data['hand_id'] = cache.graphs[graph]['hand_id'];
+					data['hands'] = cache.graphs[graph]['hands'];
+					refresh(data, image_id);
+					detect_common_features(self.selectedAnnotations, checkboxes, cache);
+				} else {
+					reload_cache(self.selectedAnnotations, function() {
+						allograph = cache.graphs[graph]['allograph_id'];
+						data['allographs'] = cache.allographs[allograph];
+						data['features'] = cache.graphs[graph]['features'];
+						data['allograph_id'] = allograph;
+						data['hand_id'] = cache.graphs[graph]['hand_id'];
+						data['hands'] = cache.graphs[graph]['hands'];
+						refresh(data, image_id);
+						detect_common_features(self.selectedAnnotations, checkboxes, cache);
+					});
 
+				}
+			}
+
+		}
 
 	};
 
@@ -184,6 +197,7 @@ function EditGraphsSearch() {
 
 			var graph = self.dialog.temp.graph;
 			var select_hand = $('.hand_form');
+
 
 			/*
 			if (typeof allographs.hasOwnProperty('hands')) {
@@ -297,14 +311,16 @@ function EditGraphsSearch() {
 
 					save(url, feature, data.form_serialized);
 
-					/* updating local graph cached */
+					/* updating local graph cached
 					hand = parseInt(data.form_serialized.match('hand=[0-9]*')[0].split('=')[1], 10);
 					allograph = parseInt(data.form_serialized.match('allograph=[0-9]*')[0].split('=')[1], 10);
 
 					cache.graphs[graph].features = data.features_labels;
 					cache.graphs[graph].hand_id = hand;
 					cache.graphs[graph].allograph_id = allograph;
+					*/
 
+					delete cache.graphs[graph];
 				}
 			}
 		},
@@ -347,6 +363,53 @@ function EditGraphsSearch() {
 				}
 			}
 		}
+	};
+
+
+	var load_group = function(group_element, callback) {
+		var graphs, graph, url, graphs_list = [];
+		var content_type = 'graph';
+		group_element.each(function() {
+			graphs = $(this).find('[data-graph]');
+			$.each(graphs, function() {
+				graph = $(this).data('graph');
+				if (!cache.graphs.hasOwnProperty(graph)) {
+					graphs_list.push(graph);
+				}
+			});
+		});
+
+		url = self.constants.ABSOLUTE_URL + content_type + '/' + graph_list.toString() + '/features';
+		request = $.getJSON(url);
+		request.done(function(data) {
+			for (var i = 0; i < data.length; i++) {
+				var graph = graphs_list[i];
+				self.cache.update('allograph', data['allograph_id'], data[i]);
+				self.cache.update('graph', graph, data[i]);
+			}
+			if (callback) {
+				callback();
+			}
+		});
+
+	};
+
+	var reload_cache = function(graphs, callback) {
+		var request, url, content_type = 'graph';
+		url = self.constants.ABSOLUTE_URL + content_type + '/' + graphs.toString() + '/features';
+		request = $.getJSON(url);
+		request.done(function(data) {
+			for (var i = 0; i < data.length; i++) {
+				var graph = graphs[i];
+				if (!cache.graphs.hasOwnProperty(graph)) {
+					self.cache.update('graph', graph, data[i]);
+					self.dialog.temp.graph = graph;
+				}
+			}
+			if (callback) {
+				callback();
+			}
+		});
 	};
 
 	var removeSelected = function(elements, graph) {

@@ -12,7 +12,7 @@
  */
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
-
+	console.log(data);
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(null, data['features']);
 	var allographs = data['allographs'];
@@ -121,19 +121,38 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 			cacheAnn.splice(0, 1);
 		}
 
+		var found = 0;
+		var temp2 = [];
+
+		if ($.isEmptyObject(cacheAnn[i])) {
+			copy_data = [];
+			return copy_data;
+		}
+
 		for (a in cacheAnn[i]) {
 
 			all = cacheAnn[i][a].name;
 
 			if (temp.indexOf(all) < 0) {
-				temp.splice(d, 1);
-				if (temp.length === 0) {
-					break;
-				}
+				temp2.push(all);
+			} else {
+				found = 1;
 			}
 
 			d++;
 
+			if (!found) {
+				copy_data = [];
+				return copy_data;
+			}
+
+		}
+
+		for (var t = 0; t < temp.length; t++) {
+			if (temp[t] == temp2[t]) {
+				temp.splice(t, 1);
+				t--;
+			}
 		}
 
 		if (temp.length === 0) {
@@ -142,8 +161,6 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 
 		n++;
 	}
-
-	console.log(temp);
 
 	for (var k = 0; k < copy_data.length; k++) {
 		if (temp.indexOf(copy_data[k].name) < 0) {

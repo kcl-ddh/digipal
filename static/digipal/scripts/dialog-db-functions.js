@@ -37,28 +37,33 @@ function serializeObject(obj) {
 
 
 function make_form() {
-
-	var select_allograph = $('.myModal');
+	if ($('.tab-pane.active').attr('id') == 'annotator') {
+		select_allograph = $('#panelImageBox');
+	} else {
+		select_allograph = $('.myModal');
+	}
 
 	var form = select_allograph.find('.frmAnnotation');
 	var obj = {};
-	var array_values = [];
+	var array_values_checked = [],
+		array_values_unchecked = [];
 	var features = {};
 	var has_features = false;
-	var features_labels = [];
-
-	var form_serialized = form.serialize();
-	var allograph = form_serialized.match('allograph=[0-9]*')[0].split('=')[1];
 
 	if ($('.features_box').length) {
-		has_features = true;
 		$('.features_box').each(function() {
-			if ($(this).is(':checked')) {
-				array_values.push($(this).val());
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+				array_values_checked.push($(this).val());
+				has_features = true;
+			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
+				array_values_unchecked.push($(this).val());
+			} else {
+
 			}
 		});
 	}
 
+	var features_labels = [];
 	var components = $('.feature_containers');
 	$.each(components, function() {
 		if ($(this).find('.features_box:checked').length) {
@@ -67,26 +72,37 @@ function make_form() {
 			var component = $.trim(component_name.children('b').text());
 			var features_labels_array = [];
 			var features_input = $(this).find('.features_box:checked');
+
+			var f_id, f_value, label_element;
 			$.each(features_input, function() {
-				var f_id = $(this).attr('id');
-				var label_element = $('label[for="' + f_id + '"');
+				f_id = $(this).attr('id');
+				f_value = $(this).val();
+				label_element = $('label[for="' + f_id + '"');
 				features_labels_array.push(label_element.text());
 			});
+
 			features_labels.push({
 				'feature': features_labels_array,
-				'name': component
+				'name': component,
+				'component_id': parseInt(f_value.split(':')[0], 10)
 			});
 		}
 	});
 
-	features.has_features = has_features;
-	features.features = array_values;
-	obj['feature'] = array_values;
 
+	features.has_features = has_features;
+	features.features = array_values_checked;
+	obj['feature'] = array_values_checked;
+
+	var form_serialized = form.serialize();
 	var s = '';
 
-	for (i = 0; i < array_values.length; i++) {
-		s += '&feature=' + array_values[i];
+	for (i = 0; i < array_values_checked.length; i++) {
+		s += '&feature=' + array_values_checked[i];
+	}
+
+	for (i = 0; i < array_values_unchecked.length; i++) {
+		s += '&-feature=' + array_values_unchecked[i];
 	}
 
 	form_serialized += s;

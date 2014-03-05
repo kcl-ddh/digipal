@@ -34,8 +34,6 @@ $(document).ready(function() {
 
 			}, 3000);
 
-			$('html, body').css('cursor', 'initial');
-
 		},
 
 		out: function() {
@@ -47,6 +45,7 @@ $(document).ready(function() {
 		}
 	});
 
+	var switcher = $('#toggle-state-switch');
 	var images = $('a.droppable_image');
 	images.draggable({
 		containment: false,
@@ -55,6 +54,10 @@ $(document).ready(function() {
 		scroll: false,
 		zIndex: 1001,
 		start: function(event) {
+			if (switcher.length && switcher.bootstrapSwitch('state')) {
+				$('html, body').css('cursor', 'initial');
+				return false;
+			}
 			basket_collector.animate({
 				bottom: '0'
 			}, 350);

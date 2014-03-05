@@ -20,24 +20,13 @@ var dialog = {
     create_dialog: function(image_id, callback) {
         var modal_features;
         var ABSOLUTE_URL = '/digipal/page/dialog/';
-        var show_summary_button = $('#show_summary');
-        var summary = $('#summary');
+
 
         if (!$('#modal_features').length) {
             modal_features = $("<div class='myModal' id='modal_features'>");
             $(this.defaultOptions.container).append(modal_features);
         } else {
             modal_features = $('#modal_features');
-        }
-
-        if (self.dialog.defaultOptions.summary) {
-            summary.show();
-            self.dialog.summary = true;
-            show_summary_button.addClass('active');
-        } else {
-            summary.hide();
-            self.dialog.summary = false;
-            show_summary_button.removeClass('active');
         }
 
         self.dialog.selector = modal_features;
@@ -75,10 +64,18 @@ var dialog = {
     events: function() {
         var show_summary_button = $('#show_summary');
         var summary = $('#summary');
-
-        show_summary_button.unbind().click(function() {
-            self.dialog.show_summary(show_summary_button, summary);
-        });
+        if (self.dialog.defaultOptions.summary) {
+            summary.show();
+            self.dialog.summary = true;
+            show_summary_button.addClass('active');
+            show_summary_button.unbind().click(function() {
+                self.dialog.show_summary(show_summary_button, summary);
+            });
+        } else {
+            summary.remove();
+            self.dialog.summary = false;
+            show_summary_button.remove();
+        }
 
         /* updates dialog when changing allograph */
         var allograph_form = self.dialog.selector.find('.allograph_form');

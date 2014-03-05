@@ -25,84 +25,95 @@ register = template.Library()
 
 def get_content_type_data(request, content_type, id, only_features=False):
 
+    ids = str(id)
     if content_type == 'graph':
-        data = get_features(id, only_features)
+        data = get_features(ids, only_features)
     elif content_type == 'allograph':
-        data = allograph_features(request, id)
+        data = allograph_features(request, ids)
     return HttpResponse(data, mimetype='application/json')
 
 def get_features(graph_id, only_features=False):
     dict_features = []
-    data = {}
-    graph = Graph.objects.get(id=graph_id)
-    graph_components = graph.graph_components
+    data = []
+    obj = {}
+    graphs = graph_id.split(',')
+    for graph in graphs:
+        g = Graph.objects.get(id=graph)
+        graph_components = g.graph_components
 
-    if not only_features:
-        allograph = allograph_features(False, graph.idiograph.allograph.id)
+        if not only_features:
+            allograph = allograph_features(False, g.idiograph.allograph.id)
 
-    vector_id = graph.annotation.vector_id
-    hand_id = graph.hand.id
-    allograph_id = graph.idiograph.allograph.id
-    image_id = graph.annotation.image.id
-    hands_list = []
-    hands = graph.annotation.image.hands.all()
+        vector_id = g.annotation.vector_id
+        hand_id = g.hand.id
+        allograph_id = g.idiograph.allograph.id
+        image_id = g.annotation.image.id
+        hands_list = []
+        hands = g.annotation.image.hands.all()
 
-    for hand in hands:
-        h = {
-            'id': hand.id,
-            'label': hand.label
-        }
-        hands_list.append(h)
+        for hand in hands:
+            h = {
+                'id': hand.id,
+                'label': hand.label
+            }
+            hands_list.append(h)
 
-    for component in graph_components.values_list('id', flat=True):
-        name_component = Component.objects.filter(graphcomponent=component)
-        dict_features.append({"graph_component_id": component, 'component_id': name_component.values('id')[0]['id'], 'name': name_component.values('name')[0]['name'], 'feature': []})
-    for feature in dict_features:
-        features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
-        feature['feature'].append(features)
-        for f in feature['feature']:
-            feature['feature'] = list(f)
+        for component in graph_components.values_list('id', flat=True):
+            name_component = Component.objects.filter(graphcomponent=component)
+            dict_features.append({"graph_component_id": component, 'component_id': name_component.values('id')[0]['id'], 'name': name_component.values('name')[0]['name'], 'feature': []})
 
+        for feature in dict_features:
+            features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
+            feature['feature'].append(features)
+            for f in feature['feature']:
+                feature['feature'] = list(f)
 
-    data['features'] = dict_features
-    if not only_features:
-         data['allographs'] = allograph
-    data['vector_id'] = vector_id
-    data['image_id'] = image_id
-    data['hand_id'] = hand_id
-    data['allograph_id'] = allograph_id
-    data['hands'] = hands_list
+        obj['features'] = dict_features
+        if not only_features:
+             obj['allographs'] = allograph
+        obj['vector_id'] = vector_id
+        obj['image_id'] = image_id
+        obj['hand_id'] = hand_id
+        obj['allograph_id'] = allograph_id
+        obj['hands'] = hands_list
+        data.append(obj)
+
     return simplejson.dumps(data)
 
 
 def allograph_features(request, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
     by component."""
-    allograph = Allograph.objects.get(id=allograph_id)
-    allograph_components = \
-            AllographComponent.objects.filter(allograph=allograph)
+    allographs = str(allograph_id).split(',')
+    obj = {}
+    data = []
 
-    allographs = []
+    for allograph in allographs:
+        allog = Allograph.objects.get(id=allograph)
+        allograph_components = \
+            AllographComponent.objects.filter(allograph=allog)
 
-    if allograph_components:
-        for ac in allograph_components:
-            ac_dict = {}
-            ac_dict['id'] = ac.component.id
-            ac_dict['name'] = ac.component.name
-            ac_dict['features'] = []
+        allographs_list = []
 
-            for f in ac.component.features.all():
-                ac_dict['features'].append({'id': f.id, 'name': f.name})
+        if allograph_components:
+            for ac in allograph_components:
+                ac_dict = {}
+                ac_dict['id'] = ac.component.id
+                ac_dict['name'] = ac.component.name
+                ac_dict['features'] = []
 
-            allographs.append(ac_dict)
+                for f in ac.component.features.all():
+                    ac_dict['features'].append({'id': f.id, 'name': f.name})
+
+                allographs_list.append(ac_dict)
+        obj['features'] = []
+        obj['allographs'] = allographs_list
+        data.append(obj)
 
     if request:
-        data = {}
-        data['features'] = []
-        data['allographs'] = allographs
         return simplejson.dumps(data)
     else:
-        return allographs
+        return allographs_list
 
 def image(request, image_id):
     """Returns a image annotation form."""

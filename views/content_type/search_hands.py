@@ -21,6 +21,20 @@ class SearchHands(SearchContentType):
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
         return ret
 
+    def get_headings(self):
+        return [
+                    {'label': 'Hand', 'key': 'hand', 'is_sortable': False},
+                    {'label': 'Repository', 'key': 'repository', 'is_sortable': True, 'title': 'Repository and Shelfmark'},
+                    {'label': 'Shelfmark', 'key': 'shelfmark', 'is_sortable': False},
+                    {'label': 'Description', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Place', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Date', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Catalogue Number', 'key': 'description', 'is_sortable': False},
+                ]
+    
+    def get_default_ordering(self):
+        return 'repository'
+
     def get_sort_fields(self):
         ''' returns a list of django field names necessary to sort the results '''
         return ['item_part__current_item__repository__place__name', 'item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'num']

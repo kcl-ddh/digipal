@@ -8,6 +8,7 @@ class SearchContentType(object):
         self._queryset = None
         self._init_field_types()
         self.desired_view = ''
+        self.ordering = None
         
     def is_slow(self):
         # return True if this search is noticeably slower than the other
@@ -39,6 +40,25 @@ class SearchContentType(object):
         self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))
         # An ID (e.g. 708-AB)
         self.FT_ID = ID()
+    
+    def get_headings(self):
+        return []
+
+    def get_default_ordering(self):
+        return 'relevance'
+    
+    def set_ordering(self, requested_ordering=None):
+        self.ordering = self.get_default_ordering()
+        if requested_ordering == 'relevance':
+            self.ordering = requested_ordering
+        else:
+            for heading in self.get_headings():
+                if heading['key'] == requested_ordering and heading['is_sortable']:
+                    self.ordering = requested_ordering
+                    break
+
+    def get_ordering(self):
+        return self.ordering
     
     def get_model(self):
         import digipal.models
@@ -459,8 +479,9 @@ class SearchContentType(object):
         
         # See http://pythonhosted.org/Whoosh/facets.html
         from whoosh import sorting
-        sortedby = [sorting.ScoreFacet(), sorting.FieldFacet("sort_order")]
-        #print query
+        sortedby = [sorting.FieldFacet("sort_order")]
+        if self.get_ordering() == 'relevance':
+            sortedby.insert(0, sorting.ScoreFacet())
         ret = self.searcher.search(query, limit=None, terms=matched_terms, sortedby=sortedby)
         
         return ret
@@ -510,6 +531,7 @@ class SearchContentType(object):
     
     def build_queryset(self, request, term):
         ret = []
+        self.set_ordering(request.GET.get('ordering'))
         # only run slow searches if that tab is selected; always run other searches
         if not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)

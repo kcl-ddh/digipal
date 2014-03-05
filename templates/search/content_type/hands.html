@@ -2,15 +2,7 @@
 
 <table class="table table-condensed">
     <tr>
-        <!--<th>Scribe</th>-->
-        <th>&nbsp;</th>
-        <th>Hand</th>
-        <th>Repository</th>
-        <th>Shelfmark</th>
-        <th>Description</th>
-        <th>Place</th>
-        <th>Date</th>
-        <th>Catalogue Number</th>
+        {% include "search/search_headings.html" %}
     </tr>
 
     {% filter tag_phrase_terms:terms %}

@@ -1,0 +1,24 @@
+{% load mezzanine_tags pagination_tags html_escape %}
+
+{% filter add_query_params:request.META.QUERY_STRING %}
+    <th>&nbsp;</th>
+    {% for heading in type.get_headings %}
+        <th>
+            {% if heading.is_sortable %}
+                <a href="?ordering={% if heading.key == type.get_ordering %}relevance{% else %}{{ heading.key }}{% endif %}"
+                    title="{% if heading.key == type.get_ordering %}Click to sort by relevance{% else%}Click to sort by 
+                                {% if heading.title %}{{ heading.title }}{% else %}{{ heading.label }}{% endif %}
+                            {% endif %}"
+                    data-toggle="tooltip"
+                >
+            {% endif %}
+                    {% if heading.key == type.get_ordering %}
+                        <span class="glyphicon glyphicon-sort-by-attributes-alt small"></span>
+                    {% endif %}
+                    {{ heading.label }}
+            {% if heading.is_sortable %}
+                </a>
+            {% endif %}
+        </th>
+    {% endfor %}
+{% endfilter %}

@@ -114,7 +114,7 @@ class Feature(models.Model):
 
 class Component(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    features = models.ManyToManyField(Feature, related_name='components')
+    features = models.ManyToManyField(Feature, related_name='components', through='ComponentFeature')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -125,6 +125,26 @@ class Component(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class ComponentFeature(models.Model):
+    component = models.ForeignKey('Component', blank=False, null=False)
+    feature = models.ForeignKey('Feature', blank=False, null=False)
+    set_by_default = models.BooleanField(null=False, default=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['component', 'feature']
+        db_table = 'digipal_component_features'
+        ordering = ['component__name', 'feature__name']
+
+    def __unicode__(self):
+        ret = u''
+        if self.component:
+            ret += self.component.name
+        ret += u' - '
+        if self.feature:
+            ret += self.feature.name
+        return ret
 
 class Aspect(models.Model):
     name = models.CharField(max_length=128, unique=True)

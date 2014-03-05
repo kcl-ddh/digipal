@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
         CatalogueNumber, Category, Character, Collation, Component, County, \
-        CurrentItem, \
+        ComponentFeature, CurrentItem, \
         Date, DateEvidence, Decoration, Description, \
         Feature, Format, \
         Graph, GraphComponent, \
@@ -527,6 +527,13 @@ class ComponentAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
+class ComponentFeatureAdmin(reversion.VersionAdmin):
+    model = ComponentFeature
+    
+    list_display = ['id', 'component', 'feature', 'set_by_default', 'created', 'modified']
+    list_display_links = ['id', 'component', 'feature', 'created', 'modified']
+    list_editable = ['set_by_default']
+    search_fields = ['component__name', 'feature__name']
 
 class CountyAdmin(reversion.VersionAdmin):
     model = County
@@ -1353,6 +1360,7 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Character, CharacterAdmin)
 admin.site.register(Collation, CollationAdmin)
 admin.site.register(Component, ComponentAdmin)
+admin.site.register(ComponentFeature, ComponentFeatureAdmin)
 admin.site.register(County, CountyAdmin)
 admin.site.register(CurrentItem, CurrentItemAdmin)
 admin.site.register(Date, DateAdmin)

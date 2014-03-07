@@ -112,8 +112,7 @@ function EditGraphsSearch() {
 			// if there's no allograph cached, I make a full AJAX call
 			if (!self.cache.search("allograph", allograph)) {
 
-				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph;
-				load_group(element.closest('[data-group="true"]'), false, function(data) {
+				load_group(element.closest('[data-group="true"]'), self.cache, false, function(data) {
 					var output = get_graph(data, cache);
 					refresh(output, image_id);
 				});
@@ -133,7 +132,7 @@ function EditGraphsSearch() {
 
 				*/
 
-				load_group(element.parent().parent('[data-group="true"]'), true, function(data) {
+				load_group(element.parent().parent('[data-group="true"]'), self.cache, true, function(data) {
 					var output = get_graph(data, cache);
 					refresh(output, image_id);
 				});
@@ -174,7 +173,7 @@ function EditGraphsSearch() {
 					refresh(data, image_id);
 					detect_common_features(self.selectedAnnotations, checkboxes, cache);
 				} else {
-					reload_cache(self.selectedAnnotations, false, function() {
+					reload_cache(self.selectedAnnotations, self.cache, false, function() {
 						allograph = cache.graphs[graph]['allograph_id'];
 						data['allographs'] = cache.allographs[allograph];
 						data['features'] = cache.graphs[graph]['features'];
@@ -371,73 +370,6 @@ function EditGraphsSearch() {
 				}
 			}
 		}
-	};
-
-
-	var load_group = function(group_element, only_features, callback) {
-		var graphs, graph, url, graphs_list = [];
-		var content_type = 'graph';
-		graphs = group_element.find('a[data-graph]');
-		$.each(graphs, function() {
-			graph = $(this).data('graph');
-			if (!cache.graphs.hasOwnProperty(graph)) {
-				graphs_list.push(graph);
-			}
-		});
-
-		reload_cache(graphs_list, only_features, callback);
-
-	};
-
-	var reload_cache = function(graphs, only_features, callback) {
-		var request, url, content_type = 'graph';
-		url = self.constants.ABSOLUTE_URL + content_type + '/' + graphs.toString() + '/';
-		if (only_features) {
-			url += 'features';
-		}
-		request = $.getJSON(url);
-		request.done(function(data) {
-			for (var i = 0; i < data.length; i++) {
-				var graph = graphs[i];
-				var allograph = data[i]['allograph_id'];
-				if (!cache.allographs.hasOwnProperty(allograph)) {
-					self.cache.update('allograph', allograph, data[i]);
-				}
-
-				if (!cache.graphs.hasOwnProperty(graph)) {
-					self.cache.update('graph', graph, data[i]);
-					self.dialog.temp.graph = graph;
-				}
-
-			}
-			if (callback) {
-				callback(data);
-			}
-		});
-	};
-
-	var get_graph = function(data, cache) {
-
-		var graph, result = {};
-		var graphs = cache.graphs;
-
-		for (var i = 0; i < data.length; i++) {
-			for (var c in graphs) {
-				if (data[i].vector_id == graphs[c].vector_id) {
-					graph = graphs[c];
-					break;
-				}
-			}
-		}
-
-		result['allographs'] = cache.allographs[graph.allograph_id];
-		console.log(result['allographs'], cache.allographs, graph);
-		result['features'] = graph['features'];
-		result['allograph_id'] = graph.allograph_id;
-		result['hand_id'] = graph['hand_id'];
-		result['hands'] = graph['hands'];
-		return result;
-
 	};
 
 	var removeSelected = function(elements, graph) {

@@ -90,6 +90,78 @@ function features_saved(selectedFeature, features) {
 	return array_features_owned;
 }
 
+
+var load_group = function(group_element, cache, only_features, callback) {
+
+	$('#show_summary').after(" <img id='allographs_loader_gif' src='/static/digipal/images/ajax-loader3.gif' />");
+
+	var graphs, graph, url, graphs_list = [];
+	var content_type = 'graph';
+	graphs = group_element.find('a[data-graph]');
+	$.each(graphs, function() {
+		graph = $(this).data('graph');
+		if (!cache.cache.graphs.hasOwnProperty(graph)) {
+			graphs_list.push(graph);
+		}
+	});
+
+	reload_cache(graphs_list, cache, only_features, callback);
+
+};
+
+var reload_cache = function(graphs, cache, only_features, callback) {
+	var request, url, content_type = 'graph';
+	url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
+	if (only_features) {
+		url += 'features';
+	}
+	request = $.getJSON(url);
+	request.done(function(data) {
+		$("#allographs_loader_gif").remove();
+		for (var i = 0; i < data.length; i++) {
+			console.log(data[i]);
+			var graph = graphs[i];
+			var allograph = data[i]['allograph_id'];
+			if (!cache.search("allograph", allograph)) {
+				cache.update('allograph', allograph, data[i]);
+			}
+
+			if (!cache.search("graph", graph)) {
+				cache.update('graph', graph, data[i]);
+				self.dialog.temp.graph = graph;
+			}
+		}
+
+		if (callback) {
+			callback(data);
+		}
+	});
+};
+
+var get_graph = function(data, cache) {
+
+	var graph, result = {};
+	var graphs = cache.graphs;
+
+	for (var i = 0; i < data.length; i++) {
+		for (var c in graphs) {
+			if (data[i].vector_id == graphs[c].vector_id) {
+				graph = graphs[c];
+				break;
+			}
+		}
+	}
+
+	result['allographs'] = cache.allographs[graph.allograph_id];
+	result['features'] = graph['features'];
+	result['allograph_id'] = graph.allograph_id;
+	result['hand_id'] = graph['hand_id'];
+	result['hands'] = graph['hands'];
+	return result;
+
+};
+
+
 function intersect(a, b) {
 	var intersection = [].concat(a);
 	var temp = [];

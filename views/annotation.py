@@ -33,12 +33,11 @@ def get_content_type_data(request, content_type, id, only_features=False):
     return HttpResponse(data, mimetype='application/json')
 
 def get_features(graph_id, only_features=False):
-    dict_features = []
     data = []
-
     graphs = str(graph_id).split(',')
     for graph in graphs:
         obj = {}
+        dict_features = []
         g = Graph.objects.get(id=graph)
         graph_components = g.graph_components
 

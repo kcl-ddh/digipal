@@ -290,7 +290,9 @@ function Allographs() {
 		if (select) {
 			load_annotations_allographs.init(annotation, function() {
 				checkboxes = $('.features_box');
+				debugger;
 				detect_common_features(graphs, checkboxes, allographs_cache);
+
 			});
 
 			return false;
@@ -309,9 +311,6 @@ function Allographs() {
 				$('.label-summary:contains(' + element_value + ')').remove();
 			}
 		}
-
-
-
 	};
 
 	var utils = {
@@ -437,34 +436,31 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			var url = '/digipal/api/' + 'graph/' + annotation.graph;
 			self.dialog.temp.graph = annotation.graph;
-
 			var features = annotator.vectorLayer.features;
-
 			var allograph = parseInt(annotation.hidden_allograph.split(':')[0], 10);
 			var graph = annotation.graph;
 			var image_id = annotator.image_id;
-
+			var element = $('li[data-graph="' + graph + '"]');
 			// if there's no allograph cached, I make a full AJAX call
 			if (!self.allographs_cache.search("allograph", allograph)) {
 
-				request = $.getJSON(url);
-				request.done(function(data) {
+				load_group(element.closest('[data-group="true"]'), self.allographs_cache, false, function(data) {
+					var output = get_graph(data, cache);
+					load_annotations_allographs.refresh(output, image_id, callback);
+				});
+
+				/*
 					self.allographs_cache.update('allograph', data[0]['allograph_id'], data[0]);
 					self.allographs_cache.update('graph', graph, data[0]);
-					load_annotations_allographs.refresh(data[0], image_id, callback);
-				});
+				*/
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
 			} else if (self.allographs_cache.search("allograph", allograph) && (!self.allographs_cache.search('graph', graph))) {
 
-				url += '/features';
-				request = $.getJSON(url);
-				request.done(function(data) {
-					data[0]['allographs'] = allographs_cache.allographs[allograph];
-					self.allographs_cache.update('graph', graph, data[0]);
-					load_annotations_allographs.refresh(data[0], image_id, callback);
+				load_group(element.closest('[data-group="true"]'), self.allographs_cache, true, function(data) {
+					var output = get_graph(data, cache);
+					load_annotations_allographs.refresh(output, image_id, callback);
 				});
 
 				// otherwise I have both cached, I can get them from the cache object

@@ -154,9 +154,12 @@ function EditGraphsSearch() {
 			removeSelected(elements, graph);
 			$('.myModalLabel .badge').html(self.selectedAnnotations.length);
 
+			/*	Hide dialog is there are no annotations selected	*/
 
 			if (!self.selectedAnnotations.length) {
 				self.dialog.hide();
+
+				/*	Otherwise load the previous loaded annotation */
 			} else {
 				var checkboxes = $('.features_box');
 				data = {};
@@ -181,12 +184,9 @@ function EditGraphsSearch() {
 						refresh(data, image_id);
 						detect_common_features(self.selectedAnnotations, checkboxes, cache);
 					});
-
 				}
 			}
-
 		}
-
 	};
 
 	/* this function updates the dialog content

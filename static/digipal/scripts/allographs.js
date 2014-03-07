@@ -263,6 +263,7 @@ function Allographs() {
 		}
 
 		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
+		var temp = annotation;
 
 		if (self.selectedAnnotations.annotations.length > 1) {
 			self.dialog.set_label(annotation.feature + " <span class='badge badge-important'>" + self.selectedAnnotations.annotations.length + "</span>");
@@ -301,13 +302,16 @@ function Allographs() {
 					detect_common_features(graphs, checkboxes, allographs_cache);
 				});
 			}
+
+			if (typeof temp !== 'undefined') {
+				var graphs_annotation = temp.graph;
+				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
+				$('.label-summary:contains(' + element_value + ')').remove();
+			}
 		}
 
-		if (typeof annotation !== 'undefined') {
-			var graphs_annotation = annotation.graph;
-			var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
-			$('.label-summary:contains(' + element_value + ')').remove();
-		}
+
+
 	};
 
 	var utils = {

@@ -36,8 +36,9 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 				s += '<div class="row row-no-margin">';
 
 				if (typeof annotator !== 'undefined') {
-					if (annotator.selectedFeature !== undefined && annotator.selectedFeature !== null && annotator.selectedFeature.state == 'Insert') {
+					if (typeof annotator.selectedFeature !== "undefined" && annotator.selectedFeature !== null && annotator.selectedFeature.state == 'Insert') {
 						array_features_owned = annotator.selectedFeature.features;
+						names = value;
 					}
 					if (array_features_owned.indexOf(names) >= 0) {
 						s += "<p class='col-md-2'><input id='" + id + "' type='checkbox' value='" + value + "' class='features_box' data-feature = '" + features[idx].id + "' checked /> ";

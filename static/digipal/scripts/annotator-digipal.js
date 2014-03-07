@@ -1752,6 +1752,7 @@ function showBox(selectedFeature, callback) {
 				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 				$('select').trigger('liszt:updated');
 			}
+			updateFeatureSelect(false, id);
 			return false;
 		}
 
@@ -1915,15 +1916,11 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			feature_checkboxes.on('change', function() {
 				var value = $(this).val();
 				if (annotation.state == 'Insert') {
-					if (annotation.features.indexOf(value) < 0) {
+					var index = annotation.features.indexOf(value);
+					if (index < 0) {
 						annotation.features.push(value);
 					} else {
-						for (var d = 0; d < annotation.features.length; d++) {
-							if (annotation.features[d] == value) {
-								annotation.features.splice(d, 1);
-								d--;
-							}
-						}
+						annotation.features.splice(index, 1);
 					}
 				}
 			});

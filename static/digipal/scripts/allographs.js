@@ -447,9 +447,9 @@ function Allographs() {
 
 				request = $.getJSON(url);
 				request.done(function(data) {
-					self.allographs_cache.update('allograph', data['allograph_id'], data);
-					self.allographs_cache.update('graph', graph, data);
-					load_annotations_allographs.refresh(data, image_id, callback);
+					self.allographs_cache.update('allograph', data[0]['allograph_id'], data[0]);
+					self.allographs_cache.update('graph', graph, data[0]);
+					load_annotations_allographs.refresh(data[0], image_id, callback);
 				});
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
@@ -458,9 +458,9 @@ function Allographs() {
 				url += '/features';
 				request = $.getJSON(url);
 				request.done(function(data) {
-					data['allographs'] = allographs_cache.allographs[allograph];
-					self.allographs_cache.update('graph', graph, data);
-					load_annotations_allographs.refresh(data, image_id, callback);
+					data[0]['allographs'] = allographs_cache.allographs[allograph];
+					self.allographs_cache.update('graph', graph, data[0]);
+					load_annotations_allographs.refresh(data[0], image_id, callback);
 				});
 
 				// otherwise I have both cached, I can get them from the cache object

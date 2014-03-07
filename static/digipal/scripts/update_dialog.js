@@ -89,6 +89,33 @@ function features_saved(selectedFeature, features) {
 	return array_features_owned;
 }
 
+function intersect(a, b) {
+	var intersection = [].concat(a);
+	var temp = [];
+
+	for (var i = 0; i < b.length; i++) {
+		if (intersection.indexOf(b[i]) < 0) {
+			temp.push(b[i]);
+		}
+	}
+
+	for (i = 0; i < intersection.length; i++) {
+		if (b.indexOf(intersection[i]) < 0) {
+			temp.push(intersection[i]);
+		}
+	}
+
+	for (i = 0; i < intersection.length; i++) {
+		for (var g = 0; g < temp.length; g++) {
+			if (temp[g] == intersection[i]) {
+				intersection.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	return intersection;
+}
 
 function common_components(selectedAnnotations, cacheAnnotations, data) {
 	var allograph_id, allograph, allographs, allograph_names = [],
@@ -106,64 +133,35 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 
 	var copy_data = data.slice(0);
 	var n = 0;
-	var temp = [];
+	var arrays = [];
 
 	for (var i in cacheAnn) {
-
-		var d = 0,
-			a, all;
-
-		if (n === 0) {
-			for (a in cacheAnn[i]) {
-				all = cacheAnn[i][a].name;
-				temp.push(all);
-			}
-			cacheAnn.splice(0, 1);
-		}
-
-		var found = 0;
-		var temp2 = [];
-
+		var array = [];
 		if ($.isEmptyObject(cacheAnn[i])) {
 			copy_data = [];
 			return copy_data;
 		}
 
-		for (a in cacheAnn[i]) {
-
+		for (var a in cacheAnn[i]) {
 			all = cacheAnn[i][a].name;
-
-			if (temp.indexOf(all) < 0) {
-				temp2.push(all);
-			} else {
-				found = 1;
-			}
-
-			d++;
-
-			if (!found) {
-				copy_data = [];
-				return copy_data;
-			}
-
+			array.push(all);
 		}
 
-		for (var t = 0; t < temp.length; t++) {
-			if (temp[t] == temp2[t]) {
-				temp.splice(t, 1);
-				t--;
-			}
-		}
-
-		if (temp.length === 0) {
-			break;
-		}
-
+		arrays.push(array);
 		n++;
 	}
 
+	var ints = arrays[0],
+		intersection;
+	for (var h = 0; h < arrays.length - 1; h++) {
+		intersection = intersect(ints, arrays[h + 1]);
+		ints = intersection;
+	}
+
+	console.log(intersection);
+
 	for (var k = 0; k < copy_data.length; k++) {
-		if (temp.indexOf(copy_data[k].name) < 0) {
+		if (intersection.indexOf(copy_data[k].name) < 0) {
 			copy_data.splice(k, 1);
 			k--;
 		}

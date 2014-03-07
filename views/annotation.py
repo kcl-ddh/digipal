@@ -35,9 +35,10 @@ def get_content_type_data(request, content_type, id, only_features=False):
 def get_features(graph_id, only_features=False):
     dict_features = []
     data = []
-    obj = {}
-    graphs = graph_id.split(',')
+
+    graphs = str(graph_id).split(',')
     for graph in graphs:
+        obj = {}
         g = Graph.objects.get(id=graph)
         graph_components = g.graph_components
 
@@ -247,7 +248,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
         features_list = simplejson.loads(get_features(a.graph.id, True))
-        data[a.id]['num_features'] = len(features_list['features'])
+        data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
 

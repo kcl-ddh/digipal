@@ -750,9 +750,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 };
 
 /**
-
+ 
  * Updates the feature select according to the currently selected allograph.
-
+ 
  */
 function updateFeatureSelect(currentFeatures, id) {
 	var features = annotator.vectorLayer.features;
@@ -794,7 +794,7 @@ function updateFeatureSelect(currentFeatures, id) {
 		if (typeof allograph_selected !== 'undefined' && allograph_selected) {
 			var request = $.getJSON(url);
 			request.done(function(data) {
-				var allographs = data;
+				var allographs = data[0];
 				update_dialog(prefix, allographs, annotator.selectedAnnotations, function(s) {
 
 					if (!annotator.editorial.active && annotator.selectedFeature) {
@@ -1794,9 +1794,9 @@ function showBox(selectedFeature, callback) {
 			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/';
 			request = $.getJSON(url);
 			request.done(function(data) {
-				cache.update('allograph', data['allograph_id'], data);
-				cache.update('graph', graph, data);
-				refresh_dialog(dialog, data, selectedFeature, callback);
+				cache.update('allograph', data[0]['allograph_id'], data[0]);
+				cache.update('graph', graph, data[0]);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 
 			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
@@ -1805,9 +1805,9 @@ function showBox(selectedFeature, callback) {
 			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/features';
 			request = $.getJSON(url);
 			request.done(function(data) {
-				data['allographs'] = cache.cache.allographs[allograph];
-				cache.update('graph', graph, data);
-				refresh_dialog(dialog, data, selectedFeature, callback);
+				data[0]['allographs'] = cache.cache.allographs[allograph];
+				cache.update('graph', graph, data[0]);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 
 			// otherwise I have both cached, I can get them from the cache object

@@ -71,6 +71,22 @@ function EditGraphsSearch() {
 
 		});
 
+		/* applying select all event */
+		var select_all = $('.select_all');
+		if (select_all.length) {
+			select_all.click(function(event) {
+				methods.select_all($(this));
+			});
+		}
+
+		/* applying deselect all event */
+		var deselect_all = $('.deselect_all');
+		if (deselect_all.length) {
+			deselect_all.click(function(event) {
+				methods.deselect_all($(this));
+			});
+		}
+
 	};
 
 	/* given an $(HTML) element, this function loads data about the graph, and initializes the dialog
@@ -275,7 +291,11 @@ function EditGraphsSearch() {
 
 				/* updating selected annotations count */
 				if (self.selectedAnnotations.length > 1) {
-					$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
+					if ($('.myModal .badge').length) {
+						$('.myModal .badge').html(self.selectedAnnotations.length);
+					} else {
+						$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
+					}
 				}
 
 			});
@@ -319,7 +339,6 @@ function EditGraphsSearch() {
 
 					save(url, feature, data.form_serialized, function(data) {
 						var new_graphs = data['graphs'];
-
 						for (var ind = 0; ind < new_graphs.length; ind++) {
 							var new_graph = new_graphs[ind].graph,
 								new_allograph = new_graphs[ind].allograph_id;
@@ -369,7 +388,35 @@ function EditGraphsSearch() {
 					self.dialog.hide();
 				}
 			}
-		}
+		},
+
+		deselect_all: function(button) {
+			var key = button.data('key');
+			var ul = $('ul[data-key="' + key + '"]');
+			var panel = ul.parent();
+			panel.find('.to_lightbox').attr('disabled', true);
+			var inputs = $('input[data-key="' + key + '"]');
+			var annotations = ul.find('[data-graph] img.graph_active').parent().parent();
+
+			$.each(annotations, function() {
+				load_graph($(this));
+			});
+
+			if (self.dialog.open) {
+				self.dialog.hide();
+			}
+		},
+
+		select_all: function(button) {
+			var key = button.data('key');
+			var ul = $('ul[data-key="' + key + '"]');
+			var panel = ul.parent();
+			panel.find('.to_lightbox').attr('disabled', false);
+			var annotations = ul.find('li[data-graph]');
+			for (var i = 0; i < annotations.length; i++) {
+				load_graph($(annotations[i]));
+			}
+		},
 	};
 
 	var removeSelected = function(elements, graph) {

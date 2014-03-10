@@ -148,9 +148,11 @@ function save(url, feature, data, callback) {
 		},
 		success: function(data) {
 			if (callback) {
-				callback();
+				callback(data);
 			}
-			updateStatus('Annotation successfully saved', 'success');
+			if (data['success'] == 'True') {
+				updateStatus('Annotation successfully saved', 'success');
+			}
 		}
 	});
 }

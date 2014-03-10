@@ -610,7 +610,7 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 			}
 
 			if (annotator.selectedAnnotations.length > 1) {
-				var checkboxes = $('.features_box');
+				var checkboxes = $('.dialog_annotations').find('.features_box');
 				var graphs = [];
 
 				for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
@@ -2305,10 +2305,15 @@ function serializeObject(obj) {
 
 
 function make_form() {
+
+	var modal;
+
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
 		select_allograph = $('#panelImageBox');
+		modal = $('.dialog_annotations');
 	} else {
 		select_allograph = $('.myModal');
+		modal = select_allograph;
 	}
 
 	var form = select_allograph.find('.frmAnnotation');
@@ -2318,21 +2323,19 @@ function make_form() {
 	var features = {};
 	var has_features = false;
 
-	if ($('.features_box').length) {
-		$('.features_box').each(function() {
+	if (modal.find('.features_box').length) {
+		modal.find('.features_box').each(function() {
 			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
 				array_values_checked.push($(this).val());
 				has_features = true;
 			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
 				array_values_unchecked.push($(this).val());
-			} else {
-
 			}
 		});
 	}
 
 	var features_labels = [];
-	var components = $('.feature_containers');
+	var components = modal.find('.feature_containers');
 	$.each(components, function() {
 		if ($(this).find('.features_box:checked').length) {
 			var component_id = $(this).attr('id');
@@ -2421,6 +2424,7 @@ function save(url, feature, data, ann, features) {
 			annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
+			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 				/*
@@ -2494,7 +2498,7 @@ function save(url, feature, data, ann, features) {
 				}
 			}
 
-			/* updating local graph cached */
+			/* updating local graph cached
 			var hand_id = parseInt(form_serialized.form_serialized.match('hand=[0-9]*')[0].split('=')[1], 10);
 			var all_id = parseInt(form_serialized.form_serialized.match('allograph=[0-9]*')[0].split('=')[1], 10);
 			var cache = annotator.cacheAnnotations.cache;
@@ -2503,6 +2507,17 @@ function save(url, feature, data, ann, features) {
 				cache.graphs[graph].features = form_serialized.features_labels;
 				cache.graphs[graph].hand_id = hand_id;
 				cache.graphs[graph].allograph_id = all_id;
+			}
+			*/
+
+			var new_graphs = data['graphs'];
+			for (var ind = 0; ind < new_graphs.length; ind++) {
+				var new_graph = new_graphs[ind].graph,
+					new_allograph = new_graphs[ind].allograph_id;
+				annotator.cacheAnnotations.update('graph', new_graph, new_graphs[ind]);
+				annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
+				allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
+				allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
 			}
 			var f = annotator.vectorLayer.features;
 			var f_length = annotator.vectorLayer.features.length;

@@ -289,10 +289,8 @@ function Allographs() {
 
 		if (select) {
 			load_annotations_allographs.init(annotation, function() {
-				checkboxes = $('.features_box');
-				debugger;
+				checkboxes = $('.myModal .features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
-
 			});
 
 			return false;
@@ -300,7 +298,7 @@ function Allographs() {
 			annotation = self.selectedAnnotations.annotations[self.selectedAnnotations.annotations.length - 1];
 			if (typeof annotation !== 'undefined') {
 				load_annotations_allographs.init(annotation, function() {
-					checkboxes = $('.features_box');
+					checkboxes = $('.myModal .features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
 				});
 			}
@@ -446,20 +444,15 @@ function Allographs() {
 			if (!self.allographs_cache.search("allograph", allograph)) {
 
 				load_group(element.closest('[data-group="true"]'), self.allographs_cache, false, function(data) {
-					var output = get_graph(data, cache);
+					var output = get_graph(graph, data, cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
 				});
-
-				/*
-					self.allographs_cache.update('allograph', data[0]['allograph_id'], data[0]);
-					self.allographs_cache.update('graph', graph, data[0]);
-				*/
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
 			} else if (self.allographs_cache.search("allograph", allograph) && (!self.allographs_cache.search('graph', graph))) {
 
 				load_group(element.closest('[data-group="true"]'), self.allographs_cache, true, function(data) {
-					var output = get_graph(data, cache);
+					var output = get_graph(graph, data, cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
 				});
 
@@ -638,7 +631,8 @@ function Allographs() {
 
 	return {
 		'init': init,
-		'refresh': refresh
+		'refresh': refresh,
+		'cache': self.allographs_cache
 	};
 
 }

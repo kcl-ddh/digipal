@@ -76,6 +76,7 @@ def get_features(graph_id, only_features=False):
         obj['hand_id'] = hand_id
         obj['allograph_id'] = allograph_id
         obj['hands'] = hands_list
+        obj['graph'] = g.id
         data.append(obj)
 
     return simplejson.dumps(data)
@@ -426,7 +427,11 @@ def form_dialog(request, image_id):
 def save(request, image_id, vector_id):
     """Saves an annotation and creates a cutout of the annotation."""
     try:
-        data = {'success': False}
+
+        data = {
+            'success': False,
+            'graphs': []
+        }
 
         image = Image.objects.get(id=image_id)
 
@@ -526,9 +531,13 @@ def save(request, image_id, vector_id):
             annotation.set_graph_group()
 
             annotation.save()
+            new_graph = simplejson.loads(get_features(annotation.graph.id))
+            data['graphs'] = new_graph
 
             transaction.commit()
+
             data['success'] = True
+            print data
         else:
             transaction.rollback()
             data['errors'] = get_json_error_from_form_errors(form)

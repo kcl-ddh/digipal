@@ -113,7 +113,7 @@ function EditGraphsSearch() {
 			if (!self.cache.search("allograph", allograph)) {
 
 				load_group(element.closest('[data-group="true"]'), self.cache, false, function(data) {
-					var output = get_graph(data, cache);
+					var output = get_graph(graph, data, cache);
 					refresh(output, image_id);
 				});
 
@@ -133,7 +133,7 @@ function EditGraphsSearch() {
 				*/
 
 				load_group(element.parent().parent('[data-group="true"]'), self.cache, true, function(data) {
-					var output = get_graph(data, cache);
+					var output = get_graph(graph, data, cache);
 					refresh(output, image_id);
 				});
 
@@ -286,26 +286,27 @@ function EditGraphsSearch() {
 
 		save: function() {
 
-			var graph = self.dialog.temp.graph;
-			var feature = self.annotations[graph];
+			var graph, feature;
 			var data = make_form();
 			var url, image_id;
 
 			var hand, allograph;
 			if (self.selectedAnnotations.length == 1) {
+				graph = self.selectedAnnotations[0];
+				feature = self.annotations[graph];
+				vector_id = cache.graphs[graph].vector_id;
+				image_id = cache.graphs[graph].image_id;
 
-				image_id = self.dialog.temp.image_id;
-				url = '/digipal/page/' + image_id + '/save/' + self.dialog.temp.vector_id;
+				url = '/digipal/page/' + image_id + '/save/' + vector_id + '/';
 
-				save(url, feature, data.form_serialized, function() {
-
-					/* updating local graph cached */
-					hand = parseInt(data.form_serialized.match('hand=[0-9]*')[0].split('=')[1], 10);
-					allograph = parseInt(data.form_serialized.match('allograph=[0-9]*')[0].split('=')[1], 10);
-
-					cache.graphs[graph].features = data.features_labels;
-					cache.graphs[graph].hand_id = hand;
-					cache.graphs[graph].allograph_id = allograph;
+				save(url, feature, data.form_serialized, function(data) {
+					var new_graphs = data['graphs'];
+					for (var ind = 0; ind < new_graphs.length; ind++) {
+						var new_graph = new_graphs[ind].graph,
+							new_allograph = new_graphs[ind].allograph_id;
+						self.cache.update('graph', new_graph, new_graphs[ind]);
+						self.cache.update('allograph', new_allograph, new_graphs[ind]);
+					}
 				});
 
 			} else {
@@ -314,20 +315,19 @@ function EditGraphsSearch() {
 					graph = self.selectedAnnotations[i];
 					vector_id = cache.graphs[graph].vector_id;
 					image_id = cache.graphs[graph].image_id;
-					url = '/digipal/page/' + image_id + '/save/' + vector_id;
+					url = '/digipal/page/' + image_id + '/save/' + vector_id + '/';
 
-					save(url, feature, data.form_serialized);
+					save(url, feature, data.form_serialized, function(data) {
+						var new_graphs = data['graphs'];
 
-					/* updating local graph cached
-					hand = parseInt(data.form_serialized.match('hand=[0-9]*')[0].split('=')[1], 10);
-					allograph = parseInt(data.form_serialized.match('allograph=[0-9]*')[0].split('=')[1], 10);
+						for (var ind = 0; ind < new_graphs.length; ind++) {
+							var new_graph = new_graphs[ind].graph,
+								new_allograph = new_graphs[ind].allograph_id;
+							self.cache.update('graph', new_graph, new_graphs[ind]);
+							self.cache.update('allograph', new_allograph, new_graphs[ind]);
+						}
 
-					cache.graphs[graph].features = data.features_labels;
-					cache.graphs[graph].hand_id = hand;
-					cache.graphs[graph].allograph_id = allograph;
-					*/
-
-					delete cache.graphs[graph];
+					});
 				}
 			}
 		},

@@ -12,7 +12,6 @@
  */
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
-	console.log(data);
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(null, data['features']);
 	var allographs = data['allographs'];
@@ -119,10 +118,9 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 	request.done(function(data) {
 		$("#allographs_loader_gif").remove();
 		for (var i = 0; i < data.length; i++) {
-			console.log(data[i]);
 			var graph = graphs[i];
 			var allograph = data[i]['allograph_id'];
-			if (!cache.search("allograph", allograph)) {
+			if (!cache.search("allograph", allograph) && !only_features) {
 				cache.update('allograph', allograph, data[i]);
 			}
 
@@ -138,20 +136,12 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 	});
 };
 
-var get_graph = function(data, cache) {
+var get_graph = function(graph_id, data, cache) {
 
-	var graph, result = {};
+	var result = {};
 	var graphs = cache.graphs;
 
-	for (var i = 0; i < data.length; i++) {
-		for (var c in graphs) {
-			if (data[i].vector_id == graphs[c].vector_id) {
-				graph = graphs[c];
-				break;
-			}
-		}
-	}
-
+	var graph = cache.graphs[graph_id];
 	result['allographs'] = cache.allographs[graph.allograph_id];
 	result['features'] = graph['features'];
 	result['allograph_id'] = graph.allograph_id;
@@ -276,11 +266,11 @@ function compute_features(graphs, checkboxes) {
 		unticked = [],
 		indeterminate = [];
 
-	var graph, graph_next;
-
+	var graph, graph_next, parent;
+	parent = checkboxes.closest('#box_features_container').parent();
 	$.each(checkboxes, function() {
 		var checkbox = $(this);
-		var label = $('label[for="' + checkbox.attr('id') + '"]');
+		var label = parent.find('label[for="' + checkbox.attr('id') + '"]');
 		var val = label.text();
 		var component = checkbox.val().split(':')[0];
 
@@ -336,15 +326,17 @@ function compute_features(graphs, checkboxes) {
 		}
 
 	});
+
 	for (ind = 0; ind < indeterminate.length; ind++) {
-		$('#' + indeterminate[ind]).prop('indeterminate', true);
+		parent.find('#' + indeterminate[ind]).prop('indeterminate', true);
 	}
+
 }
 
 function detect_common_features(selectedAnnotations, checkboxes, cache) {
 	var features_preprocessed = preprocess_features(selectedAnnotations, cache);
 	compute_features(features_preprocessed, checkboxes);
-	checkboxes.on('change', function() {
+	checkboxes.unbind().on('change', function() {
 		var state = $(this).data('state');
 		if (!state) {
 			state = 1;

@@ -148,7 +148,7 @@ function EditGraphsSearch() {
 
 				*/
 
-				load_group(element.parent().parent('[data-group="true"]'), self.cache, true, function(data) {
+				load_group(element.closest('[data-group="true"]'), self.cache, true, function(data) {
 					var output = get_graph(graph, data, cache);
 					refresh(output, image_id);
 				});
@@ -357,8 +357,9 @@ function EditGraphsSearch() {
 
 			if (self.selectedAnnotations.length == 1) {
 				msg = 'You are about to delete 1 annotation. Continue?';
-				graph = self.dialog.temp.graph;
-				annotation_id = self.dialog.temp.vector_id;
+				graph = self.selectedAnnotations[0];
+				annotation_id = cache.graphs[graph].vector_id;
+
 				if (confirm(msg)) {
 					delete_annotation(image_id, annotation_id, function() {
 						var graph_element = $('[data-graph="' + graph + '"]');

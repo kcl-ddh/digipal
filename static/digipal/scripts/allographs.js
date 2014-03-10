@@ -238,20 +238,24 @@ function Allographs() {
 		to_annotator: function(annotation_id) {
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
-			annotator.selectFeatureByIdAndZoom(annotation_id);
-			var select_allograph = $('#panelImageBox');
-			var features = annotator.vectorLayer.features;
-			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-			var annotation_graph;
-			for (var i = 0; i < features.length; i++) {
-				for (var j in annotator.annotations) {
-					if (annotator.annotations[j].graph == features[i].graph) {
-						annotation_graph = annotator.annotations[j];
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 150, function() {
+				annotator.selectFeatureByIdAndZoom(annotation_id);
+				var select_allograph = $('#panelImageBox');
+				var features = annotator.vectorLayer.features;
+				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+				var annotation_graph;
+				for (var i = 0; i < features.length; i++) {
+					for (var j in annotator.annotations) {
+						if (annotator.annotations[j].graph == features[i].graph) {
+							annotation_graph = annotator.annotations[j];
+						}
 					}
 				}
-			}
-			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
-			$('select').trigger('liszt:updated');
+				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
+				$('select').trigger('liszt:updated');
+			});
 		}
 	};
 

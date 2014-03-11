@@ -11,6 +11,7 @@
         <div class="span4" id="map-search">
             <form method="get" action=".">
                 <input type="text" name="q" value="{{ q }}" title="Search for place, shelfmark or MS" data-toggle="tooltip"/>
+                <button type="submit" name="s" value="1">Search</button>
             </form>
             <ul>
                 {% for record in records %}

@@ -37,7 +37,7 @@ def get_features(graph_id, only_features=False):
     graphs = str(graph_id).split(',')
     for graph in graphs:
         obj = {}
-        dict_features = []
+        dict_features = list([])
         g = Graph.objects.get(id=graph)
         graph_components = g.graph_components
 
@@ -64,9 +64,11 @@ def get_features(graph_id, only_features=False):
 
         for feature in dict_features:
             features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
-            feature['feature'].append(features)
-            for f in feature['feature']:
-                feature['feature'] = list(f)
+            if len(features) > 0:
+                feature['feature'].append(features)
+                for f in feature['feature']:
+                    feature['feature'] = list(f)
+
 
         obj['features'] = dict_features
         if not only_features:
@@ -489,6 +491,20 @@ def save(request, image_id, vector_id):
             feature_list_unchecked = get_data.getlist('-feature')
             #graph.graph_components.all().delete()
 
+            if feature_list_unchecked:
+
+                for value in feature_list_unchecked:
+                    cid, fid = value.split('::')
+
+                    component = Component.objects.get(id=cid)
+                    feature = Feature.objects.get(id=fid)
+                    gc_list = GraphComponent.objects.filter(graph=graph,
+                            component=component)
+
+                    if gc_list:
+                        gc = gc_list[0]
+                        gc.delete()
+
             if feature_list_checked:
 
                 for value in feature_list_checked:
@@ -508,24 +524,6 @@ def save(request, image_id, vector_id):
                     gc.features.add(feature)
                     gc.save()
 
-            if feature_list_unchecked:
-
-                for value in feature_list_unchecked:
-                    cid, fid = value.split('::')
-
-                    component = Component.objects.get(id=cid)
-                    feature = Feature.objects.get(id=fid)
-                    gc_list = GraphComponent.objects.filter(graph=graph,
-                            component=component)
-
-                    if gc_list:
-                        gc = gc_list[0]
-                    else:
-                        gc = GraphComponent(graph=graph, component=component)
-
-                    gc.save()
-                    gc.features.remove(feature)
-                    gc.save()
 
             annotation.graph = graph
 
@@ -539,7 +537,6 @@ def save(request, image_id, vector_id):
             transaction.commit()
 
             data['success'] = True
-            print data
         else:
             transaction.rollback()
             data['errors'] = get_json_error_from_form_errors(form)

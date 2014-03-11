@@ -2426,23 +2426,18 @@ function save(url, feature, data, ann, features) {
 			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
-				/*
-				$('.number_annotated_allographs span').html(function() {
-					return parseInt($(this).text()) + 1;
-				});
-*/
-				//annotator.refresh_layer();
-				//if ($('.letters-allograph-container').length) {
+
 				if ($('.tab-pane.active').attr('id') == 'annotator') {
 					select_allograph = $('#panelImageBox');
 				} else {
 					select_allograph = $('.modal-body');
 				}
+
 				var allograph = select_allograph.find('.allograph_form option:selected').text();
 				var allograph_id = select_allograph.find('.allograph_form').val();
 
 				refresh_letters_container(allograph, allograph_id, true);
-				//}
+
 				var color;
 				if (temp.state == 'Insert') {
 
@@ -2458,6 +2453,7 @@ function save(url, feature, data, ann, features) {
 							break;
 						}
 					}
+
 					if (num_features > 0) {
 						color = 'green';
 						feature.described = true;
@@ -2467,6 +2463,7 @@ function save(url, feature, data, ann, features) {
 						feature.described = false;
 						feature.num_features = 0;
 					}
+
 					stylize(feature, color, color, 0.4);
 					feature.style.originalColor = color;
 					feature.style.strokeWidth = 2;
@@ -2479,12 +2476,12 @@ function save(url, feature, data, ann, features) {
 						if (features.features.length) {
 							color = 'green';
 							feature.described = true;
-						} else {
-							color = '#ee9900';
-							feature.described = false;
 						}
-						stylize(feature, color, color, 0.4);
+					} else {
+						color = '#ee9900';
+						feature.described = false;
 					}
+					stylize(feature, color, color, 0.4);
 				}
 
 				annotator.selectedAnnotations = [];
@@ -2497,18 +2494,6 @@ function save(url, feature, data, ann, features) {
 				}
 			}
 
-			/* updating local graph cached
-			var hand_id = parseInt(form_serialized.form_serialized.match('hand=[0-9]*')[0].split('=')[1], 10);
-			var all_id = parseInt(form_serialized.form_serialized.match('allograph=[0-9]*')[0].split('=')[1], 10);
-			var cache = annotator.cacheAnnotations.cache;
-			var graph = temp.graph;
-			if (typeof cache.graphs[graph] !== 'undefined') {
-				cache.graphs[graph].features = form_serialized.features_labels;
-				cache.graphs[graph].hand_id = hand_id;
-				cache.graphs[graph].allograph_id = all_id;
-			}
-			*/
-
 			var new_graphs = data['graphs'];
 			for (var ind = 0; ind < new_graphs.length; ind++) {
 				var new_graph = new_graphs[ind].graph,
@@ -2518,6 +2503,7 @@ function save(url, feature, data, ann, features) {
 				allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
 				allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
 			}
+
 			var f = annotator.vectorLayer.features;
 			var f_length = annotator.vectorLayer.features.length;
 			var n = 0;
@@ -2529,19 +2515,10 @@ function save(url, feature, data, ann, features) {
 
 			$(".number_annotated_allographs .number-allographs").html(n);
 
-
-
-			// refresh allographs
-
 		},
 		complete: function() {
-			/*
-			if (annotator.url_allographs && ann) {
-				load_annotations_allographs(ann);
-			}
-			*/
+
 			annotator.has_changed = true;
-			//annotator.vectorLayer.redraw();
 		}
 	});
 }

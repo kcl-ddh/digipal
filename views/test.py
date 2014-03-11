@@ -17,6 +17,40 @@ def iipimage(request):
     return render_to_response('test/iipimage.html', context,
             context_instance=RequestContext(request))
 
+def map_view(request):
+    from digipal.models import ItemPart
+    context = {}
+    
+    # get all the item parts with coordinates
+    ips = ItemPart.objects.filter(
+                                  #display_label__contains='242', 
+                                  owners__institution__place__id__gt=0
+                                ).values(
+                                  'display_label', 
+                                  'owners__institution__place__name',
+                                  'owners__institution__place__id', 
+                                  'owners__institution__place__northings', 
+                                  'owners__institution__place__eastings', 
+                                  'owners__date'
+                                ).order_by('display_label').distinct()
+    
+    context['records'] = ips
+
+    # group by location
+    context['marks'] = {}
+    for ip in ips:
+        key = ip['owners__institution__place__id']
+        if key not in context['marks']:
+            context['marks'][key] = [ip['owners__institution__place__northings'], ip['owners__institution__place__eastings'], ip['owners__institution__place__name']]
+        #context['marks'][key].append(ip)
+    #context['marks'] = 
+
+    import json
+    context['marks'] = json.dumps(context['marks'])
+    
+    return render_to_response('test/map.html', context,
+            context_instance=RequestContext(request))
+
 def similar_graph_view(request):
     context = {}
     

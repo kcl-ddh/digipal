@@ -19,11 +19,13 @@ def iipimage(request):
 
 def map_view(request):
     from digipal.models import ItemPart
+    from django.db.models import Q
     context = {}
     
     # get all the item parts with coordinates
+    context['q'] = request.GET.get('q', '')
     ips = ItemPart.objects.filter(
-                                  #display_label__contains='242', 
+                                  Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']), 
                                   owners__institution__place__id__gt=0
                                 ).values(
                                   'display_label', 
@@ -31,7 +33,8 @@ def map_view(request):
                                   'owners__institution__place__id', 
                                   'owners__institution__place__northings', 
                                   'owners__institution__place__eastings', 
-                                  'owners__date'
+                                  'owners__date',
+                                  'id'
                                 ).order_by('display_label').distinct()
     
     context['records'] = ips
@@ -41,8 +44,8 @@ def map_view(request):
     for ip in ips:
         key = ip['owners__institution__place__id']
         if key not in context['marks']:
-            context['marks'][key] = [ip['owners__institution__place__northings'], ip['owners__institution__place__eastings'], ip['owners__institution__place__name']]
-        #context['marks'][key].append(ip)
+            context['marks'][key] = [ip['owners__institution__place__northings'], ip['owners__institution__place__eastings'], ip['owners__institution__place__name'], []]
+        context['marks'][key][3].append([ip['display_label'], ip['owners__date']])
     #context['marks'] = 
 
     import json

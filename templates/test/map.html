@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags html_escape %}
+
+{% block head %}
+    <h1>Map</h1>
+
+    <div id="map">
+    </div>
+
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super  }}
+
+    {# TODO: move this to its own CSS file #}
+    <style>
+    #map {
+        height: 500px;
+    }
+    #map img {
+        max-width: none;
+    }
+    </style>
+    
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super  }}
+    
+    <script type="text/javascript" src="http{% if request.is_secure %}s{% endif %}://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAP_API_KEY }}&sensor=false"></script>
+
+    {# TODO: move this to its own CSS file #}
+    <script type="text/javascript">
+        var gmap = null;
+        
+        var marks = {{ marks|safe }};
+
+        function initialize() {
+            var mapOptions = {
+                center: new google.maps.LatLng(63.8258470,20.2630350),
+                zoom: 4
+            };
+            gmap = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+            for (id in marks) {
+                new google.maps.Marker({
+                    position: new google.maps.LatLng(marks[id][0], marks[id][1]),
+                    title:marks[id][2]
+                }).setMap(gmap);
+                console.log(marks[id]);
+            }        
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
+        
+    </script>
+    
+{% endblock %}

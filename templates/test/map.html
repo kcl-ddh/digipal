@@ -2,10 +2,30 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags html_escape %}
 
-{% block head %}
-    <h1>Map</h1>
+{% block meta_title %}Map Search{% endblock %}
 
-    <div id="map">
+{% block head %}
+    <h1>Map Search</h1>
+
+    <div class="row" id="map-panel">
+        <div class="span4" id="map-search">
+            <form method="get" action=".">
+                <input type="text" name="q" value="{{ q }}" title="Search for place, shelfmark or MS" data-toggle="tooltip"/>
+            </form>
+            <ul>
+                {% for record in records %}
+                    <li class="record place-{{ record.owners__institution__place__id }}">
+                        <a href="/digipal/manuscripts/{{ record.id }}/">{{ record.display_label }}</a> 
+                        in
+                        <strong>{{ record.owners__institution__place__name }}</strong> 
+                        ({{ record.owners__date }})
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="span8">
+            <div id="map"/>
+        </div>
     </div>
 
 {% endblock %}
@@ -15,12 +35,32 @@
 
     {# TODO: move this to its own CSS file #}
     <style>
+    #map-panel {
+        height: 500px;
+        padding: 1em;
+        border: 1px solid lightgrey;
+    }
     #map {
         height: 500px;
+    }
+    #map-search {
+        height: 100%;
+    }
+    #map-search ul {
+        overflow-y: scroll;
+        max-height: 85%;
+    }
+    #map-search ul li {
+        border-bottom: 1px solid lightgrey;
+        size: smaller;
+    }
+    #map-search ul li:hover {
+        background-color: #f0f0f0;
     }
     #map img {
         max-width: none;
     }
+    
     </style>
     
 {% endblock %}
@@ -35,23 +75,53 @@
         var gmap = null;
         
         var marks = {{ marks|safe }};
+        var markers = {};
 
         function initialize() {
             var mapOptions = {
+                // center the map in the middle of Scandinavia
                 center: new google.maps.LatLng(63.8258470,20.2630350),
                 zoom: 4
             };
             gmap = new google.maps.Map(document.getElementById("map"), mapOptions);
 
+            function set_marker_events(marker, id) {
+                google.maps.event.addListener(marker, 'mouseover', function() { $('.record').hide(); $('.place-'+id).show(); console.log('h1'); });
+                google.maps.event.addListener(marker, 'mouseout', function() { $('.record').show(); console.log('h2');});
+            }
+
+            // set the markers
             for (id in marks) {
-                new google.maps.Marker({
+                markers[id] = new google.maps.Marker({
                     position: new google.maps.LatLng(marks[id][0], marks[id][1]),
-                    title:marks[id][2]
-                }).setMap(gmap);
-                console.log(marks[id]);
-            }        
+                    title:marks[id][2],
+                    icon:'http://maps.google.com/mapfiles/ms/icons/red.png'
+                });
+                markers[id].setMap(gmap);
+                
+                set_marker_events(markers[id], id);
+            }
+            
+            function set_marker_color(record, color) {
+                var id = $(record).attr('class').replace(/.*place-(\d+).*/, '$1');
+                markers[id].color = color;
+                markers[id].setIcon('http://maps.google.com/mapfiles/ms/icons/'+color+'.png')
+                if (color == 'blue') {
+                    markers[id].setAnimation(google.maps.Animation.BOUNCE);
+                    window.setTimeout(function() {
+                      markers[id].setAnimation(null);
+                    }, 1000);
+                } else {
+                    markers[id].setAnimation(null);
+                }
+            }
+
+            // events
+            $('.record').on('mouseenter', function() { set_marker_color(this, 'blue'); });
+            $('.record').on('mouseleave', function() { set_marker_color(this, 'red'); });
         }
         google.maps.event.addDomListener(window, 'load', initialize);
+        
         
     </script>
     

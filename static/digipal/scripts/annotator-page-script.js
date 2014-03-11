@@ -310,13 +310,17 @@ function AnnotatorLoader() {
 				map.addControl(navigation);
 
 				if (!annotator.events) {
+					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 					map.events.register("moveend", map, function() {
 						registerEvents();
+						restoreFullscreenPositions();
 					});
 
 					map.events.register("zoomend", map, function() {
 						registerEvents();
+						restoreFullscreenPositions();
 					});
+
 				}
 
 				callback(); // calling all events on elements after all annotations get loaded
@@ -597,6 +601,13 @@ function AnnotatorLoader() {
 				}
 				restoreFullscreenPositions();
 			});
+
+			if (!$('.toggle-state-switch').bootstrapSwitch('state')) {
+				allographs_filter_box.find('input').attr('disabled', true);
+				$('#checkAll').add('#checkAll_hands').attr('disabled', true);
+				var switcher_alert = $('#annotations-switcher-alert');
+				switcher_alert.removeClass('hidden');
+			}
 
 		} else {
 			allographs_filter_box.dialog('open');

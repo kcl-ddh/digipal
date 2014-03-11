@@ -115,10 +115,7 @@ DigipalAnnotator.prototype.onFeatureSelect = function(event) {
 		self.showAnnotation(event.feature);
 	}
 
-	if (annotator.fullScreen.active) {
-		restoreFullscreenPositions();
-	}
-
+	restoreFullscreenPositions();
 	highlight_vectors();
 };
 
@@ -205,9 +202,7 @@ DigipalAnnotator.prototype.onFeatureUnSelect = function(event, is_event) {
 
 	$(".number_annotated_allographs .number-allographs").html(0);
 
-	if (annotator.fullScreen.active) {
-		restoreFullscreenPositions();
-	}
+	restoreFullscreenPositions();
 
 };
 
@@ -328,6 +323,8 @@ DigipalAnnotator.prototype.linkAnnotations = function() {
 				$(".number_annotated_allographs .number-allographs").html(n);
 				*/
 			});
+
+			restoreFullscreenPositions();
 
 			var ungroup_elements = $('.ungroup');
 
@@ -1344,9 +1341,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 							}
 						}
 						annotator.vectorLayer.redraw();
-						if (annotator.fullScreen.active) {
-							annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-						}
+						restoreFullscreenPositions();
 					});
 
 
@@ -1360,9 +1355,7 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 							}
 						}
 						annotator.vectorLayer.redraw();
-						if (annotator.fullScreen.active) {
-							annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-						}
+						restoreFullscreenPositions();
 					});
 
 					images_link.dblclick(function() {
@@ -1727,98 +1720,99 @@ function showBox(selectedFeature, callback) {
 		select_allograph = $('.modal-body');
 	}
 
-
 	if (annotator.isAdmin == "True") {
 		highlight_vectors();
 	}
 
-	if (annotator.boxes_on_click) {
-		var dialog;
 
-		if (selectedFeature === null || typeof selectedFeature == "undefined") {
-			create_dialog(null, id);
-			fill_dialog(id, null);
-			dialog = $('#dialog' + id);
-			if (annotator.editorial.active && can_edit) {
-				var s = '<label>Editorial Note</label>';
-				s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
-				s += '<label>Public Note</label>';
-				s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
-				dialog.css('margin', '3%');
-				dialog.html(s);
-			}
-
-			if (annotator.selectedFeature) {
-				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-				$('select').trigger('liszt:updated');
-			}
-			updateFeatureSelect(false, id);
-			return false;
-		}
-
-		var content_type = 'graph';
-		var prefix = 'annotator_';
-
-		create_dialog(selectedFeature, id);
-		fill_dialog(id, selectedFeature);
-
+	if (selectedFeature === null || typeof selectedFeature == "undefined") {
+		create_dialog(null, id);
+		fill_dialog(id, null);
 		dialog = $('#dialog' + id);
-		var n = 0;
-		var annotations = annotator.annotations;
+		if (annotator.editorial.active && can_edit) {
+			var s = '<label>Editorial Note</label>';
+			s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
+			s += '<label>Public Note</label>';
+			s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
+			dialog.css('margin', '3%');
+			dialog.html(s);
+		}
+
+		if (annotator.selectedFeature) {
+			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+			$('select').trigger('liszt:updated');
+		}
+		updateFeatureSelect(false, id);
+		return false;
+	}
+
+	create_dialog(selectedFeature, id);
+	fill_dialog(id, selectedFeature);
+
+	dialog = $('#dialog' + id);
+	var n = 0;
+	var annotations = annotator.annotations;
 
 
-		for (var i = 0; i < features.length; i++) {
-			if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
-				n++;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
+			n++;
+		}
+	}
+
+	if ($(".number_annotated_allographs").length) {
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
+
+	select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	$('select').trigger('liszt:updated');
+
+	var url, request;
+	var cache = annotator.cacheAnnotations;
+
+	var allograph = selectedFeature.hidden_allograph.split(':')[0];
+	var graph = selectedFeature.graph;
+
+	var content_type = 'graph';
+	var prefix = 'annotator_';
+
+	// if there's no allograph cached, I make a full AJAX call
+	if (!cache.search("allograph", allograph)) {
+
+		url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/';
+		request = $.getJSON(url);
+		request.done(function(data) {
+			cache.update('allograph', data[0]['allograph_id'], data[0]);
+			cache.update('graph', graph, data[0]);
+			if (annotator.boxes_on_click) {
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			}
-		}
+		});
 
-		if ($(".number_annotated_allographs").length) {
-			$(".number_annotated_allographs .number-allographs").html(n);
-		}
+		// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
+	} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
 
-
-		//$('#hidden_hand').val(selectedFeature.hidden_hand);
-		//$('#hidden_allograph').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
-		select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
-		$('select').trigger('liszt:updated');
-
-		var url, request;
-		var cache = annotator.cacheAnnotations;
-
-		var allograph = selectedFeature.hidden_allograph.split(':')[0];
-		var graph = selectedFeature.graph;
-		// if there's no allograph cached, I make a full AJAX call
-		if (!cache.search("allograph", allograph)) {
-
-			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/';
-			request = $.getJSON(url);
-			request.done(function(data) {
-				cache.update('allograph', data[0]['allograph_id'], data[0]);
-				cache.update('graph', graph, data[0]);
+		url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/features';
+		request = $.getJSON(url);
+		request.done(function(data) {
+			data[0]['allographs'] = cache.cache.allographs[allograph];
+			cache.update('graph', graph, data[0]);
+			if (annotator.boxes_on_click) {
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
-			});
+			}
+		});
 
-			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
-		} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
-
-			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/features';
-			request = $.getJSON(url);
-			request.done(function(data) {
-				data[0]['allographs'] = cache.cache.allographs[allograph];
-				cache.update('graph', graph, data[0]);
-				refresh_dialog(dialog, data[0], selectedFeature, callback);
-			});
-
-			// otherwise I have both cached, I can get them from the cache object
-		} else {
-			var data = {};
-			data['allographs'] = cache.cache.allographs[allograph];
-			data['features'] = cache.cache.graphs[graph]['features'];
-			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
-			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
-			data['hands'] = cache.cache.graphs[graph]['hands'];
+		// otherwise I have both cached, I can get them from the cache object
+	} else {
+		var data = {};
+		data['allographs'] = cache.cache.allographs[allograph];
+		data['features'] = cache.cache.graphs[graph]['features'];
+		data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
+		data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
+		data['hands'] = cache.cache.graphs[graph]['hands'];
+		if (annotator.boxes_on_click) {
 			refresh_dialog(dialog, data, selectedFeature, callback);
 		}
 	}
@@ -1843,18 +1837,21 @@ function refresh_features_dialog(features, dialog) {
 }
 
 function refresh_dialog(dialog, data, selectedFeature, callback) {
-	b = data;
+
 	var can_edit = $('#development_annotation').is(':checked');
 
-	if (annotator.selectedAnnotations.length > 1) {
-		var selected = [];
-
-		for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
-			selected.push(annotator.selectedAnnotations[g].graph);
-		}
-		data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
-	}
 	if (can_edit) {
+
+		if (annotator.selectedAnnotations.length > 1) {
+			var selected = [];
+
+			for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
+				selected.push(annotator.selectedAnnotations[g].graph);
+			}
+
+			data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
+		}
+
 		update_dialog('annotator_', data, annotator.selectedAnnotations, function(s) {
 
 			$('#id_internal_note').remove();
@@ -1984,6 +1981,7 @@ function highlight_vectors() {
 			}
 		}
 		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
 	});
 
 	$('#' + allograph_form_id + '_chzn').find('.active-result').on('mouseout', function() {
@@ -1996,6 +1994,7 @@ function highlight_vectors() {
 			}
 		}
 		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
 	});
 
 }
@@ -2727,8 +2726,6 @@ DigipalAnnotator.prototype.full_Screen = function() {
 		}
 
 
-		restoreFullscreenPositions();
-
 	} else {
 		this.fullScreen.deactivate();
 		map.removeClass('fullScreenMap');
@@ -2742,8 +2739,9 @@ DigipalAnnotator.prototype.full_Screen = function() {
 			scrollTop: map.position().top
 		}, 0);
 
-		restoreFullscreenPositions();
 	}
+
+	restoreFullscreenPositions();
 };
 
 
@@ -2884,14 +2882,6 @@ function restoreFullscreenPositions() {
 	annotations_layer.attr('width', $(window).width())
 		.attr('height', $(window).height())
 		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
-
-	annotator.map.events.register("moveend", map, function() {
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-	});
-
-	annotator.map.events.register("zoomend", map, function() {
-		annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
-	});
 
 	annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
 }

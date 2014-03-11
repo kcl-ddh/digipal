@@ -14,7 +14,7 @@
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(null, data['features']);
-	var allographs = data['allographs'];
+	var allographs = data.allographs;
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
 	} else {
@@ -96,10 +96,10 @@ var load_group = function(group_element, cache, only_features, callback) {
 
 	var graphs, graph, url, graphs_list = [];
 	var content_type = 'graph';
-	graphs = group_element.find('a[data-graph]');
+	graphs = group_element.find('[data-graph]');
 	$.each(graphs, function() {
 		graph = $(this).data('graph');
-		if (!cache.cache.graphs.hasOwnProperty(graph)) {
+		if (!cache.search('graph', graph)) {
 			graphs_list.push(graph);
 		}
 	});
@@ -178,6 +178,34 @@ function intersect(a, b) {
 	}
 
 	return intersection;
+}
+
+function common_allographs(select_hand, select_allograph, selectedAnnotations, cache, graph) {
+	if (selectedAnnotations.length > 1) {
+		var allographs = [];
+		for (var j = 0; j < selectedAnnotations.length; j++) {
+			var allograph_id = cache.graphs[selectedAnnotations[j]].allograph_id;
+			allographs.push(allograph_id);
+		}
+
+		var flag = 1;
+		for (var h = 1; h < allographs.length; h++) {
+			if (allographs[0] != allographs[h]) {
+				flag = 0;
+				break;
+			}
+		}
+
+		if (!flag) {
+			select_hand.val('------');
+			select_allograph.val('------');
+			$('select').trigger('liszt:updated');
+		} else {
+			select_hand.val(graph.hand_id);
+			select_allograph.val(graph.allograph_id);
+			$('select').trigger('liszt:updated');
+		}
+	}
 }
 
 function common_components(selectedAnnotations, cacheAnnotations, data) {

@@ -266,6 +266,9 @@ function Allographs() {
 			return false;
 		}
 
+		var select_hand = $('.myModal .hand_form');
+		var select_allograph = $('.myModal .allograph_form');
+		var graph = allographs_cache.graphs[annotation.graph];
 		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
 		var temp = annotation;
 
@@ -295,6 +298,7 @@ function Allographs() {
 			load_annotations_allographs.init(annotation, function() {
 				checkboxes = $('.myModal .features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
+				common_allographs(select_hand, select_allograph, graphs, allographs_cache);
 			});
 
 			return false;
@@ -304,6 +308,7 @@ function Allographs() {
 				load_annotations_allographs.init(annotation, function() {
 					checkboxes = $('.myModal .features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
+					common_allographs(select_hand, select_allograph, graphs, allographs_cache);
 				});
 			}
 
@@ -311,6 +316,7 @@ function Allographs() {
 				var graphs_annotation = temp.graph;
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
+				common_allographs(select_hand, select_allograph, graphs, allographs_cache);
 			}
 		}
 	};

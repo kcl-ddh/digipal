@@ -466,22 +466,24 @@ def save(request, image_id, vector_id):
 
             allograph = clean['allograph']
             hand = clean['hand']
-            scribe = hand.scribe
 
-            idiograph_list = Idiograph.objects.filter(allograph=allograph,
-                    scribe=scribe)
+            if hand and allograph:
+                scribe = hand.scribe
 
-            if idiograph_list:
-                idiograph = idiograph_list[0]
-                idiograph.id
-            else:
-                idiograph = Idiograph(allograph=allograph, scribe=scribe)
-                idiograph.save()
+                idiograph_list = Idiograph.objects.filter(allograph=allograph,
+                        scribe=scribe)
 
-            graph.idiograph = idiograph
-            graph.hand = hand
+                if idiograph_list:
+                    idiograph = idiograph_list[0]
+                    idiograph.id
+                else:
+                    idiograph = Idiograph(allograph=allograph, scribe=scribe)
+                    idiograph.save()
 
-            graph.save() # error is here
+                graph.idiograph = idiograph
+                graph.hand = hand
+
+                graph.save() # error is here
 
             feature_list_checked = get_data.getlist('feature')
             feature_list_unchecked = get_data.getlist('-feature')

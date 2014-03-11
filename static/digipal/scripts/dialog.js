@@ -227,25 +227,19 @@ var dialog = {
         var ABSOLUTE_URL = '/digipal/';
         var PREFIX = 'search_';
         var content_type = 'allograph';
-        if (!cache.search("allograph", allograph)) {
-            var url = ABSOLUTE_URL + content_type + '/' + allograph;
-            var request = $.getJSON(url);
 
-            request.done(function(allographs) {
-                self.dialog.update(PREFIX, allographs, function(s) {
-                    self.dialog.selector.find('#features_container').html(s);
-                    self.dialog.events_postLoading();
-                });
-                cache.allographs[allograph] = allographs;
-            });
+        var url = ABSOLUTE_URL + content_type + '/' + allograph;
+        var request = $.getJSON(url);
 
-        } else {
-            var allographs = cache.allographs[allograph];
+        request.done(function(allographs) {
             self.dialog.update(PREFIX, allographs, function(s) {
                 self.dialog.selector.find('#features_container').html(s);
                 self.dialog.events_postLoading();
             });
-        }
+            cache.allographs[allograph] = allographs;
+        });
+
+
     },
 
     edit_letter: {

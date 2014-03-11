@@ -123,7 +123,7 @@ function EditGraphsSearch() {
 
 			self.dialog.temp.image_id = image_id;
 			self.dialog.temp.graph = graph;
-
+			self.selectedAllograph = null;
 
 			// if there's no allograph cached, I make a full AJAX call
 			if (!self.cache.search("allograph", allograph)) {
@@ -164,6 +164,7 @@ function EditGraphsSearch() {
 				data['hands'] = cache.graphs[graph]['hands'];
 				refresh(data, image_id);
 			}
+
 			self.selectedAllograph = allograph;
 		} else {
 			removeSelected(elements, graph);
@@ -201,6 +202,8 @@ function EditGraphsSearch() {
 					});
 				}
 			}
+
+			self.selectedAllograph = allograph;
 		}
 	};
 
@@ -218,33 +221,15 @@ function EditGraphsSearch() {
 			'summary': false
 		}, function() {
 
-			var graph = self.dialog.temp.graph;
-			var select_hand = $('.hand_form');
-
-
-			/*
-			if (typeof allographs.hasOwnProperty('hands')) {
-				cache.graphs[graph]['hands'] = allographs['hands'];
-			} else {
-				var hand = {};
-				hands = [];
-				$.each(select_hand, function() {
-					hand = {
-						'id': $(this).val(),
-						'label': $(this).text()
-					};
-					hands.push(hand);
-				});
-				cache.graphs[graph]['hands'] = hands;
-			}
-
-			*/
+			var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
+			var graph = cache.graphs[selectedAnnotation];
+			var select_hand = $('.myModal .hand_form');
 
 			/* rewriting hands select */
-			var string_hand_select = '';
-			for (var h = 0; h < cache.graphs[graph]['hands'].length; h++) {
-				string_hand_select += '<option value="' + cache.graphs[graph]['hands'][h].id + '">' +
-					cache.graphs[graph]['hands'][h].label + '</option>';
+			var string_hand_select = '<option value>------</option>';
+			for (var h = 0; h < graph.hands.length; h++) {
+				string_hand_select += '<option value="' + graph.hands[h].id + '">' +
+					graph.hands[h].label + '</option>';
 			}
 
 			select_hand.html(string_hand_select);
@@ -254,7 +239,7 @@ function EditGraphsSearch() {
 				/* fill container content */
 				self.dialog.selector.find('#features_container').html(s);
 
-				var checkboxes = $('.features_box');
+				var checkboxes = $('.myModal .features_box');
 				detect_common_features(self.selectedAnnotations, checkboxes, cache);
 
 				/* launching DOM events */
@@ -264,14 +249,14 @@ function EditGraphsSearch() {
 				self.dialog.show();
 
 				/* updating selects form */
-				var select_allograph = $('.allograph_form');
+				var select_allograph = $('.myModal .allograph_form');
 
 				select_allograph.val(data['allograph_id']);
 				select_hand.val(data['hand_id']);
 				$('select').chosen().trigger('liszt:updated');
 
 				/* setting dialog label */
-				var allograph_label = $('.allograph_form option:selected').text();
+				var allograph_label = $('.myModal .allograph_form option:selected').text();
 				self.dialog.set_label(allograph_label);
 
 				/* applying delete event to selected feature */
@@ -297,6 +282,8 @@ function EditGraphsSearch() {
 						$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
 					}
 				}
+
+				common_allographs(select_hand, select_allograph, self.selectedAnnotations, cache, graph);
 
 			});
 		});

@@ -336,6 +336,12 @@ function AnnotatorLoader() {
 	this.load_temporary_vector = function() {
 		var temporary_vectors = getParameter('temporary_vector');
 		if (temporary_vectors.length && !no_image_reason) {
+
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 0);
+
+
 			var geoJSON = new OpenLayers.Format.GeoJSON();
 			var geo_json, extent, extent_parsed;
 
@@ -397,9 +403,6 @@ function AnnotatorLoader() {
 				'left': geo_json.dialogPosition.left
 			});
 
-			$('html').animate({
-				scrollTop: $('#map').position().top + 'px'
-			}, 150);
 
 		} else {
 			return false;
@@ -413,6 +416,9 @@ function AnnotatorLoader() {
 
 	this.load_stored_vector = function() {
 		if (typeof vector_id != "undefined" && vector_id && !no_image_reason) {
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 0);
 			// vectorLayer event moveend is triggered on first load so flag this
 
 			// tries to centre the map every 1/2 second
@@ -451,10 +457,6 @@ function AnnotatorLoader() {
 					annotator.selectFeatureById(vector_id_value[i]);
 				}
 			}
-
-			$('html').animate({
-				scrollTop: $('#map').position().top + 'px'
-			}, 150);
 
 		} else {
 			return false;

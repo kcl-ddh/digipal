@@ -265,7 +265,7 @@ function Allographs() {
 		if (typeof annotation === 'undefined') {
 			return false;
 		}
-
+		console.log(annotation)
 		var select_hand = $('.myModal .hand_form');
 		var select_allograph = $('.myModal .allograph_form');
 		var graph = allographs_cache.graphs[annotation.graph];

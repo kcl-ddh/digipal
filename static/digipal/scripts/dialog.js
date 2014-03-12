@@ -1,103 +1,125 @@
-var dialog = {
-    open: false,
-    summary: true,
-    self: this,
-    temp: {},
+function Dialog() {
 
-    init: function(image_id, options, callback) {
+    var open = false;
+    var summary = true;
+    var element_cache = false;
+    var temp = {};
+    var defaultOptions = {
+        'container': 'body',
+        'draggable': true,
+        'summary': true,
+    };
 
-        this.defaultOptions = {
-            'container': 'body',
-            'draggable': true,
-            'summary': true,
-        };
+    var init = function(image_id, options, callback) {
 
-        $.extend(this.defaultOptions, options);
+        $.extend(defaultOptions, options);
 
-        this.create_dialog(image_id, callback);
-    },
+        create_dialog(image_id, function(selector) {
 
-    create_dialog: function(image_id, callback) {
+            var d = {
+                'hide': hide,
+                'update': update,
+                'show': show,
+                'selector': selector,
+                'events': events,
+                'edit_letter': edit_letter,
+                'open': open,
+                'set_label': set_label,
+                'events_postLoading': events_postLoading
+            };
+
+            if (callback) {
+                callback(d);
+            }
+
+        });
+
+    };
+
+    var create_dialog = function(image_id, callback) {
         var modal_features;
         var ABSOLUTE_URL = '/digipal/page/dialog/';
 
-
-        if (!$('#modal_features').length) {
-            modal_features = $("<div class='myModal' id='modal_features'>");
-            $(this.defaultOptions.container).append(modal_features);
-        } else {
-            modal_features = $('#modal_features');
+        if (!$('.myModal#modal_features').length) {
+            var modal_element = $("<div class='myModal' id='modal_features'>");
+            $(defaultOptions.container).append(modal_element);
         }
 
-        self.dialog.selector = modal_features;
-        self.dialog.temp.image_id = image_id;
+        modal_features = $('.myModal');
+
+        temp.image_id = image_id;
 
         var url;
 
-        if (!self.dialog.cache) {
+        if (!element_cache) {
             url = ABSOLUTE_URL + image_id + '/';
             $.ajax({
                 type: 'GET',
                 url: url,
                 success: function(data) {
-                    if (!self.dialog.cache) {
+                    if (!element_cache) {
                         modal_features.html(data);
-                        self.dialog.cache = data;
+                        element_cache = data;
                     }
+                    selector = modal_features;
                     if (callback) {
-                        callback();
+                        callback(selector);
+                        events();
                     }
-                },
-                complete: function() {
-                    self.dialog.events();
                 }
+
             });
+
         } else {
-            modal_features.html(self.dialog.cache);
+
+            modal_features.html(element_cache);
+            selector = modal_features;
             if (callback) {
-                callback();
+                callback(selector);
             }
         }
 
-    },
+    };
 
-    events: function() {
+    var events = function() {
         var show_summary_button = $('#show_summary');
-        var summary = $('#summary');
-        if (self.dialog.defaultOptions.summary) {
-            summary.show();
-            self.dialog.summary = true;
+        var summary_element = $('#summary');
+        if (defaultOptions.summary) {
+            summary_element.show();
+            summary = true;
             show_summary_button.addClass('active');
             show_summary_button.unbind().click(function() {
-                self.dialog.show_summary(show_summary_button, summary);
+                show_summary(show_summary_button, summary_element);
             });
         } else {
-            summary.remove();
-            self.dialog.summary = false;
+            summary_element.remove();
+            summary = false;
             show_summary_button.remove();
         }
 
         /* updates dialog when changing allograph */
-        var allograph_form = self.dialog.selector.find('.allograph_form');
+
+        var allograph_form = selector.find('.allograph_form');
         allograph_form.on('change', function() {
-            self.dialog.update_onChange($(this).val());
+            update_onChange($(this).val());
         });
 
-        self.dialog.selector.find('.close').click(function() {
-            self.dialog.hide();
+        selector.find('.close').click(function() {
+            hide();
         });
 
         /* making box draggable */
-        if (this.defaultOptions.draggable) {
-            self.dialog.selector.draggable();
+        if (defaultOptions.draggable) {
+            selector.draggable();
         }
 
         var maximized = false;
         var maximize_icon = $('#maximize');
-        var myModal = self.dialog.selector;
+        var myModal = selector;
+
         maximize_icon.click(function() {
 
-            if (self.dialog.summary) {
+            if (summary) {
                 summary.hide();
             }
 
@@ -110,7 +132,7 @@ var dialog = {
                     "height": '100%'
                 }, 400, function() {
 
-                    if (self.dialog.summary) {
+                    if (summary) {
                         summary.show();
                     }
 
@@ -118,12 +140,16 @@ var dialog = {
                     maximize_icon.attr('title', 'Minimize box').removeClass('icon-resize-full').addClass('icon-resize-small');
 
                 });
+
                 maximized = true;
                 $('.row-min-admin').css('width', '60%');
+
             } else {
-                if (self.dialog.summary) {
+
+                if (summary) {
                     summary.show();
                 }
+
                 myModal.animate({
                     'position': 'fixed',
                     'left': "55%",
@@ -132,37 +158,41 @@ var dialog = {
                     "width": '30%',
                     "height": '60%'
                 }, 400, function() {
-                    if (self.dialog.summary) {
+
+                    if (summary) {
                         summary.show();
                     }
+
                     myModal.find('.modal-body').css("max-height", "");
                     maximize_icon.attr('title', 'Maximize box').removeClass('icon-resize-small').addClass('icon-resize-full');
+
                 }).draggable();
+
                 maximized = false;
                 $('.row-min-admin').css('width', '70%');
             }
 
         });
 
-        self.dialog.selector.find("[data-toggle='tooltip']").tooltip();
+        selector.find("[data-toggle='tooltip']").tooltip();
 
         $('select').chosen().trigger('liszt:updated');
-    },
+    };
 
-    events_postLoading: function() {
-        self.dialog.selector.find('.check_all').click(function(event) {
+    var events_postLoading = function() {
+        selector.find('.check_all').click(function(event) {
             var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
             checkboxes.attr('checked', true);
             event.stopPropagation();
         });
 
-        self.dialog.selector.find('.uncheck_all').click(function(event) {
+        selector.find('.uncheck_all').click(function(event) {
             var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
             checkboxes.attr('checked', false);
             event.stopPropagation();
         });
 
-        self.dialog.selector.find('.component_labels').click(function() {
+        selector.find('.component_labels').click(function() {
             var div = $("#" + $(this).data('id'));
             if (div.data('hidden') === false) {
                 div.slideUp().data('hidden', true);
@@ -174,13 +204,13 @@ var dialog = {
                 $(this).find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
             }
         });
-    },
+    };
 
-    show_summary: function(button, summary) {
+    var show_summary = function(button, summary_element) {
 
-        if (self.dialog.summary) {
+        if (summary) {
 
-            summary.animate({
+            summary_element.animate({
                 'right': 0,
                 'opacity': 0,
             }, 350, function() {
@@ -189,61 +219,58 @@ var dialog = {
                 });
             });
 
-            self.dialog.summary = false;
+            summary = false;
             button.removeClass('active');
 
         } else {
 
-            summary.css({
+            summary_element.css({
                 'display': 'block'
             }).animate({
                 'right': "40.3%",
                 'opacity': 1
             }, 350);
 
-            self.dialog.summary = true;
+            summary = true;
             button.addClass('active');
 
         }
-    },
+    };
 
-    hide: function() {
-        self.dialog.selector.fadeOut();
-        self.open = false;
-    },
+    var hide = function() {
+        selector.fadeOut();
+        open = false;
+    };
 
-    show: function() {
-        self.dialog.selector.fadeIn();
-        self.open = true;
-        self.dialog.events();
-    },
+    var show = function() {
+        selector.fadeIn();
+        open = true;
+        events();
+    };
 
-    set_label: function(label_value) {
+    var set_label = function(label_value) {
         var label = $('.myModalLabel .label-modal-value');
         label.html(label_value);
-    },
+    };
 
-    update_onChange: function(allograph) {
+    var update_onChange = function(allograph) {
         var ABSOLUTE_URL = '/digipal/';
         var PREFIX = 'search_';
         var content_type = 'allograph';
-
         var url = ABSOLUTE_URL + content_type + '/' + allograph;
         var request = $.getJSON(url);
-
+        var selector = selector;
         request.done(function(allographs) {
-            self.dialog.update(PREFIX, allographs, function(s) {
-                self.dialog.selector.find('#features_container').html(s);
-                self.dialog.events_postLoading();
+            update(PREFIX, allographs, function(s) {
+                selector.find('#features_container').html(s);
+                events_postLoading();
             });
             cache.allographs[allograph] = allographs;
         });
 
+    };
 
-    },
-
-    edit_letter: {
-        self: this,
+    var edit_letter = {
         init: function(graph) {
             var editor_space = $('#image-editor-space');
             var img = $('a[data-graph="' + graph + '"]').find('img');
@@ -269,10 +296,10 @@ var dialog = {
 
         resize: function(side, value) {
             $('#editor-space-image').fadeIn();
-            var temp = self.dialog.edit_letter.temp;
-            var url = self.dialog.edit_letter.url;
-            var old_url = self.dialog.edit_letter.parameters.RGN;
-            var newRGN = self.dialog.edit_letter.parameters.RGN.split(',');
+            var temp = this.temp;
+            var url = this.url;
+            var old_url = this.parameters.RGN;
+            var newRGN = this.parameters.RGN.split(',');
             if (side == 'top') {
                 //par = this.parameters.RGN[1];
                 newRGN[1] = value;
@@ -288,13 +315,12 @@ var dialog = {
             }
 
             url = url.replace('RGN=' + old_url, 'RGN=' + newRGN.toString());
-            self.dialog.edit_letter.url = url;
-            //self.dialog.edit_letter.makeBounds(newRGN);
-            self.dialog.edit_letter.img.attr('src', url);
-            self.dialog.edit_letter.img.on('load', function() {
+            this.url = url;
+            this.img.attr('src', url);
+            this.img.on('load', function() {
                 $('#editor-space-image').fadeOut();
             });
-            self.dialog.edit_letter.parameters.RGN = newRGN.toString();
+            this.parameters.RGN = newRGN.toString();
         },
 
         makeBounds: function(RGN) {
@@ -319,7 +345,7 @@ var dialog = {
             var move_right = $('#move-right');
             var move_left = $('#move-left');
 
-            var edit_letter = self.dialog.edit_letter;
+            var edit_letter = this.edit_letter;
             var value = 0.005;
 
             /*
@@ -422,8 +448,8 @@ var dialog = {
         },
 
         get_parameters: function() {
-            var WID = this.getParameter('WID', self.dialog.edit_letter.url);
-            var RGN = this.getParameter('RGN', self.dialog.edit_letter.url).toString().split('&')[0];
+            var WID = this.getParameter('WID', this.url);
+            var RGN = this.getParameter('RGN', this.url).toString().split('&')[0];
             var coords = RGN.split(',');
             var left = coords[0];
             var top = coords[1];
@@ -441,8 +467,9 @@ var dialog = {
 
         }
 
-    },
+    };
 
-    update: update_dialog
+    var update = update_dialog;
 
-};
+    return init;
+}

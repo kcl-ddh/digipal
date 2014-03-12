@@ -494,6 +494,7 @@ def save(request, image_id, vector_id):
             if feature_list_unchecked:
 
                 for value in feature_list_unchecked:
+                    print 'unchecked, ', value
                     cid, fid = value.split('::')
 
                     component = Component.objects.get(id=cid)
@@ -503,11 +504,13 @@ def save(request, image_id, vector_id):
 
                     if gc_list:
                         gc = gc_list[0]
-                        gc.delete()
+                        gc.features.remove(feature)
+                        gc.save()
 
             if feature_list_checked:
 
                 for value in feature_list_checked:
+                    print 'checked, ', value
                     cid, fid = value.split('::')
 
                     component = Component.objects.get(id=cid)

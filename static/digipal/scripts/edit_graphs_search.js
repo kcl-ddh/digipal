@@ -27,7 +27,7 @@ function EditGraphsSearch() {
 
 	var cache = self.cache.cache;
 	// object dialog inherited from the object of the script dialog.js
-	self.dialog = dialog;
+	var dialog = new Dialog();
 
 	// constants to be used troughout the script
 	self.constants = {
@@ -100,29 +100,8 @@ function EditGraphsSearch() {
 		var data, url, request, content_type = 'graph';
 		if (!element.find('img').hasClass('graph_active')) {
 
-			/*
-				[WAS]
-				if the allograph selected is different from the allograph of the group, I deselect them all
-
-				[EDITED] 4/03/2014
-
-				Now we should show common components rather tahn selecting only common allographs
-			*/
-
-			/*
-			if (allograph !== self.selectedAllograph) {
-				var graphs = $('[data-graph]');
-				graphs.find('img').removeClass("graph_active");
-				self.selectedAnnotations = [];
-			}
-			*/
-
 			self.selectedAnnotations.push(graph);
 			elements.find('img').addClass('graph_active');
-
-
-			self.dialog.temp.image_id = image_id;
-			self.dialog.temp.graph = graph;
 			self.selectedAllograph = null;
 
 			// if there's no allograph cached, I make a full AJAX call
@@ -135,18 +114,6 @@ function EditGraphsSearch() {
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
 			} else if (self.cache.search("allograph", allograph) && (!self.cache.search('graph', graph))) {
-
-				/*
-
-				url = self.constants.ABSOLUTE_URL + content_type + '/' + graph + '/features';
-				request = $.getJSON(url);
-				request.done(function(data) {
-					data[0]['allographs'] = cache.allographs[allograph];
-					self.cache.update('graph', graph, data[0]);
-					refresh(data[0], image_id);
-				});
-
-				*/
 
 				load_group(element.closest('[data-group="true"]'), self.cache, true, function(data) {
 					var output = get_graph(graph, data, cache);
@@ -213,26 +180,20 @@ function EditGraphsSearch() {
 	*/
 	var refresh = function(data, image_id) {
 		var allographs = data;
+		console.log(data);
+
 		if (self.selectedAnnotations.length > 1) {
 			allographs['allographs'] = common_components(self.selectedAnnotations, cache, allographs['allographs']);
 		}
-		self.dialog.temp.vector_id = data['vector_id'];
-		self.dialog.init(image_id, {
-			'summary': false
-		}, function() {
 
-			var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
-			var graph = cache.graphs[selectedAnnotation];
-			var select_hand = $('.myModal .hand_form');
-
-			/* rewriting hands select */
-			var string_hand_select = '<option value>------</option>';
-			for (var h = 0; h < graph.hands.length; h++) {
-				string_hand_select += '<option value="' + graph.hands[h].id + '">' +
-					graph.hands[h].label + '</option>';
-			}
-
-			select_hand.html(string_hand_select);
+		var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
+		var graph = cache.graphs[selectedAnnotation];
+		console.log(graph)
+		/* creating dialog */
+		dialog(image_id, {
+			summary: false
+		}, function(dialog_instance) {
+			self.dialog = dialog_instance;
 
 			self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
 
@@ -240,20 +201,26 @@ function EditGraphsSearch() {
 				self.dialog.selector.find('#features_container').html(s);
 
 				var checkboxes = $('.myModal .features_box');
+
+				var select_hand = $('.myModal .hand_form');
+
+				/* rewriting hands select */
+				var string_hand_select = '<option value>------</option>';
+				for (var h = 0; h < graph.hands.length; h++) {
+					string_hand_select += '<option value="' + graph.hands[h].id + '">' +
+						graph.hands[h].label + '</option>';
+				}
+
+				select_hand.html(string_hand_select);
+
 				detect_common_features(self.selectedAnnotations, checkboxes, cache);
+				common_allographs(self.selectedAnnotations, cache, graph);
 
 				/* launching DOM events */
 				self.dialog.events_postLoading();
 
 				/* showing dialog */
 				self.dialog.show();
-
-				/* updating selects form */
-				var select_allograph = $('.myModal .allograph_form');
-
-				select_allograph.val(data['allograph_id']);
-				select_hand.val(data['hand_id']);
-				$('select').chosen().trigger('liszt:updated');
 
 				/* setting dialog label */
 				var allograph_label = $('.myModal .allograph_form option:selected').text();
@@ -272,7 +239,7 @@ function EditGraphsSearch() {
 				});
 
 				/*  */
-				self.dialog.edit_letter.init(self.dialog.temp.graph);
+				self.dialog.edit_letter.init(self.selectedAnnotations[self.selectedAnnotations.length - 1]);
 
 				/* updating selected annotations count */
 				if (self.selectedAnnotations.length > 1) {
@@ -282,8 +249,6 @@ function EditGraphsSearch() {
 						$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
 					}
 				}
-
-				common_allographs(select_hand, select_allograph, self.selectedAnnotations, cache, graph);
 
 			});
 		});

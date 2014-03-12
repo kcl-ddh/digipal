@@ -126,7 +126,6 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 
 			if (!cache.search("graph", graph)) {
 				cache.update('graph', graph, data[i]);
-				self.dialog.temp.graph = graph;
 			}
 		}
 
@@ -180,32 +179,49 @@ function intersect(a, b) {
 	return intersection;
 }
 
-function common_allographs(select_hand, select_allograph, selectedAnnotations, cache, graph) {
-	if (selectedAnnotations.length > 1) {
-		var allographs = [];
-		for (var j = 0; j < selectedAnnotations.length; j++) {
-			var allograph_id = cache.graphs[selectedAnnotations[j]].allograph_id;
-			allographs.push(allograph_id);
-		}
+function common_allographs(selectedAnnotations, cache, graph) {
+	var allographs = [];
+	var hands = [];
+	var select_hand = $('.myModal .hand_form');
+	var select_allograph = $('.myModal .allograph_form');
 
-		var flag = 1;
-		for (var h = 1; h < allographs.length; h++) {
-			if (allographs[0] != allographs[h]) {
-				flag = 0;
-				break;
-			}
-		}
+	for (var j = 0; j < selectedAnnotations.length; j++) {
+		var allograph_id = cache.graphs[selectedAnnotations[j]].allograph_id;
+		var hand_id = cache.graphs[selectedAnnotations[j]].hand_id;
+		allographs.push(allograph_id);
+		hands.push(hand_id);
+	}
 
-		if (!flag) {
-			select_hand.val('------');
-			select_allograph.val('------');
-			$('select').trigger('liszt:updated');
-		} else {
-			select_hand.val(graph.hand_id);
-			select_allograph.val(graph.allograph_id);
-			$('select').trigger('liszt:updated');
+	var flag_allograph = 1,
+		flag_hand = 1;
+
+	for (var h = 1; h < allographs.length; h++) {
+		if (allographs[0] != allographs[h]) {
+			flag_allograph = 0;
+			break;
 		}
 	}
+
+	for (h = 1; h < hands.length; h++) {
+		if (hands[0] != hands[h]) {
+			flag_hand = 0;
+			break;
+		}
+	}
+
+	if (!flag_allograph) {
+		select_allograph.val('------');
+	} else {
+		select_allograph.val(graph.allograph_id);
+	}
+
+	if (!flag_hand) {
+		select_hand.val('------');
+	} else {
+		select_hand.val(graph.hand_id);
+	}
+
+	$('select').trigger('liszt:updated');
 }
 
 function common_components(selectedAnnotations, cacheAnnotations, data) {
@@ -248,8 +264,6 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 		intersection = intersect(ints, arrays[h + 1]);
 		ints = intersection;
 	}
-
-	console.log(intersection);
 
 	for (var k = 0; k < copy_data.length; k++) {
 		if (intersection.indexOf(copy_data[k].name) < 0) {

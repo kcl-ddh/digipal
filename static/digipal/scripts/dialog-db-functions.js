@@ -37,28 +37,25 @@ function serializeObject(obj) {
 
 
 function make_form() {
-	if ($('.tab-pane.active').attr('id') == 'annotator') {
-		select_allograph = $('#panelImageBox');
-	} else {
-		select_allograph = $('.myModal');
-	}
+
+	var select_allograph = $('.myModal');
 
 	var form = select_allograph.find('.frmAnnotation');
 	var obj = {};
+
 	var array_values_checked = [],
 		array_values_unchecked = [];
+
 	var features = {};
 	var has_features = false;
 
-	if ($('.features_box').length) {
-		$('.features_box').each(function() {
+	if (select_allograph.find('.features_box').length) {
+		select_allograph.find('.features_box').each(function() {
 			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
 				array_values_checked.push($(this).val());
 				has_features = true;
 			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
 				array_values_unchecked.push($(this).val());
-			} else {
-
 			}
 		});
 	}
@@ -92,6 +89,7 @@ function make_form() {
 
 	features.has_features = has_features;
 	features.features = array_values_checked;
+	console.log(array_values_checked);
 	obj['feature'] = array_values_checked;
 
 	var form_serialized = form.serialize();

@@ -1,46 +1,40 @@
-function Allographs() {
+function Allographs(dialog, cache) {
 
-	// referencing class to variable self
-	var self = this;
-
-	// assigning dialog class as a property of this class
-	self.dialog = dialog;
-
-	self.selectedAnnotations = {
+	var selectedAnnotations = {
 		'allograph': null,
 		'annotations': []
 	};
 
 	var temporary_vectors = [];
 
-	// importing cache class
-	self.allographs_cache = new AnnotationsCache();
-
 	// returning actual class object
-	var allographs_cache = self.allographs_cache.init();
+	var allographs_cache = cache.init();
 
 	// launcing init function
 	var init = function() {
 		events();
 	};
 
+	var self = this;
 
 	// this function declares all events at loading
 	var events = function() {
 
 		/* creating dialog */
-		self.dialog.init(annotator.image_id, {
+		dialog(annotator.image_id, {
 			'container': '#allographs'
-		}, function() {
+		}, function(dialog_instance) {
+
+			self.dialog_instance = dialog_instance;
 
 			/* applying delete event to selected feature */
-			var delete_button = self.dialog.selector.find('#delete');
+			var delete_button = dialog_instance.selector.find('#delete');
 			delete_button.click(function(event) {
 				methods.delete();
 			});
 
 			/* applying delete event to selected feature */
-			var save_button = self.dialog.selector.find('#save');
+			var save_button = dialog_instance.selector.find('#save');
 			save_button.click(function(event) {
 				methods.save();
 			});
@@ -68,16 +62,16 @@ function Allographs() {
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function(event) {
-			if (self.selectedAnnotations.annotations.length > 1) {
+			if (selectedAnnotations.annotations.length > 1) {
 				var annotations = [];
-				for (var i = 0; i < self.selectedAnnotations.annotations.length; i++) {
-					annotations.push(self.selectedAnnotations.annotations[i].graph);
+				for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
+					annotations.push(selectedAnnotations.annotations[i].graph);
 				}
 
 				methods.to_lightbox($(this), annotations, true);
 			} else {
 
-				methods.to_lightbox($(this), self.selectedAnnotations.annotations[0].graph, false);
+				methods.to_lightbox($(this), selectedAnnotations.annotations[0].graph, false);
 			}
 
 		});
@@ -107,27 +101,25 @@ function Allographs() {
 	var methods = {
 
 		select_annotation: function(this_annotation) {
-			b = self.selectedAnnotations.annotations;
-			cache = allographs_cache;
 			var annotation = getFeatureById(this_annotation.data('annotation'));
 			var current_basket;
 			var annotation_li = this_annotation;
-			var a = self.selectedAnnotations.allograph;
+			var a = selectedAnnotations.allograph;
 			/*
-			if (self.selectedAnnotations.allograph && self.selectedAnnotations.allograph != annotation.feature) {
-				self.selectedAnnotations.allograph = null;
-				self.selectedAnnotations.annotations = [];
+			if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
+				selectedAnnotations.allograph = null;
+				selectedAnnotations.annotations = [];
 				$('.annotation_li').removeClass('selected').data('selected', false);
 				temporary_vectors = [];
 			}
 			*/
 			if (annotation_li.data('selected')) {
-				utils.clean_annotations(annotation, self.selectedAnnotations.annotations);
+				utils.clean_annotations(annotation, selectedAnnotations.annotations);
 				annotation_li.data('selected', false).removeClass('selected');
 				select_annotation(annotation, false);
 			} else {
-				self.selectedAnnotations.allograph = annotation.feature;
-				self.selectedAnnotations.annotations.push(annotation);
+				selectedAnnotations.allograph = annotation.feature;
+				selectedAnnotations.annotations.push(annotation);
 				annotation_li.data('selected', true).addClass('selected');
 				modal = true;
 				select_annotation(annotation, true);
@@ -139,22 +131,22 @@ function Allographs() {
 			var features_length = features.length;
 			var selected_features = [];
 			for (var i = 0; i < features_length; i++) {
-				for (var j = 0; j < self.selectedAnnotations.annotations.length; j++) {
-					if (features[i].graph == self.selectedAnnotations.annotations[j].graph) {
+				for (var j = 0; j < selectedAnnotations.annotations.length; j++) {
+					if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 						selected_features.push(features[i]);
 					}
 				}
 			}
 			for (i = 0; i < selected_features.length; i++) {
 				annotator.selectedFeature = selected_features[i];
-				annotator.saveAnnotation(annotation, false);
+				annotator.saveAnnotation(annotation, true);
 			}
 			//annotator.vectorLayer.redraw();
 
 			/*
 			var annotations_li = $('.annotation_li');
 			annotations_li.unbind().click(function(event) {
-				self.select_annotation($(this));
+				select_annotation($(this));
 			});
 			*/
 		},
@@ -166,15 +158,15 @@ function Allographs() {
 			var vectors_list = [];
 			var i, j;
 			for (i = 0; i < features_length; i++) {
-				for (j = 0; j < self.selectedAnnotations.annotations.length; j++) {
-					if (features[i].graph == self.selectedAnnotations.annotations[j].graph) {
+				for (j = 0; j < selectedAnnotations.annotations.length; j++) {
+					if (features[i].graph == selectedAnnotations.annotations[j].graph) {
 						selected_features.push(features[i]);
 					}
 				}
 			}
 
 			j = 0;
-			var msg = 'You are about to delete ' + self.selectedAnnotations.annotations.length + ' annotations. It cannot be restored at a later time! Continue?';
+			var msg = 'You are about to delete ' + selectedAnnotations.annotations.length + ' annotations. It cannot be restored at a later time! Continue?';
 			if (confirm(msg)) {
 				var nextAll, element, value;
 				for (i = 0; i < selected_features.length; i++) {
@@ -188,9 +180,9 @@ function Allographs() {
 					element.fadeOut().remove();
 				}
 
-				self.selectedAnnotations.annotations = [];
-				self.dialog.hide();
 
+				selectedAnnotations.annotations = [];
+				self.dialog_instance.hide();
 
 			}
 		},
@@ -203,9 +195,9 @@ function Allographs() {
 			var inputs = $('input[data-key="' + key + '"]');
 			var checkboxes = ul.find('li.selected');
 
-			//self.selectedAnnotations.annotations = [];
+			//selectedAnnotations.annotations = [];
 			temporary_vectors = [];
-			//self.selectedAnnotations.allograph = null;
+			//selectedAnnotations.allograph = null;
 
 			$.each(checkboxes, function() {
 				methods.select_annotation($(this));
@@ -215,8 +207,8 @@ function Allographs() {
 				$(this).attr('checked', false);
 			});
 
-			if (self.dialog.open) {
-				self.dialog.hide();
+			if (self.dialog_instance.open) {
+				self.dialog_instance.hide();
 			}
 		},
 
@@ -265,58 +257,58 @@ function Allographs() {
 		if (typeof annotation === 'undefined') {
 			return false;
 		}
-		console.log(annotation)
-		var select_hand = $('.myModal .hand_form');
-		var select_allograph = $('.myModal .allograph_form');
-		var graph = allographs_cache.graphs[annotation.graph];
-		var panel = $('ul[data-allograph="' + self.selectedAnnotations.allograph + '"]').parent();
+
+		var graph;
+		var panel = $('ul[data-allograph="' + selectedAnnotations.allograph + '"]').parent();
 		var temp = annotation;
 
-		if (self.selectedAnnotations.annotations.length > 1) {
-			self.dialog.set_label(annotation.feature + " <span class='badge badge-important'>" + self.selectedAnnotations.annotations.length + "</span>");
+		if (selectedAnnotations.annotations.length > 1) {
+			self.dialog_instance.set_label(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 		} else {
-			self.dialog.set_label(annotation.feature);
+			self.dialog_instance.set_label(annotation.feature);
 		}
 
-
-		if (!self.selectedAnnotations.annotations.length) {
-			self.dialog.hide();
+		if (!selectedAnnotations.annotations.length) {
+			self.dialog_instance.hide();
 			$('.select_annotation_checkbox').attr('checked', false);
 			panel.find('.to_lightbox').attr('disabled', true);
 		} else {
-			self.dialog.show();
+			self.dialog_instance.show();
 			panel.find('.to_lightbox').attr('disabled', false);
 		}
 
 		var graphs = [];
 		var checkboxes;
-		for (var g = 0; g < self.selectedAnnotations.annotations.length; g++) {
-			graphs.push(self.selectedAnnotations.annotations[g].graph);
+		for (var g = 0; g < selectedAnnotations.annotations.length; g++) {
+			graphs.push(selectedAnnotations.annotations[g].graph);
 		}
 
 		if (select) {
 			load_annotations_allographs.init(annotation, function() {
+				graph = allographs_cache.graphs[annotation.graph];
 				checkboxes = $('.myModal .features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
-				common_allographs(select_hand, select_allograph, graphs, allographs_cache);
+				common_allographs(graphs, allographs_cache, graph);
 			});
 
 			return false;
 		} else {
-			annotation = self.selectedAnnotations.annotations[self.selectedAnnotations.annotations.length - 1];
+			annotation = selectedAnnotations.annotations[selectedAnnotations.annotations.length - 1];
 			if (typeof annotation !== 'undefined') {
 				load_annotations_allographs.init(annotation, function() {
+					graph = allographs_cache.graphs[annotation.graph];
 					checkboxes = $('.myModal .features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
-					common_allographs(select_hand, select_allograph, graphs, allographs_cache);
+					common_allographs(graphs, allographs_cache, graph);
 				});
 			}
 
 			if (typeof temp !== 'undefined') {
+				graph = allographs_cache.graphs[annotation.graph];
 				var graphs_annotation = temp.graph;
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
-				common_allographs(select_hand, select_allograph, graphs, allographs_cache);
+				common_allographs(graphs, allographs_cache, graph);
 			}
 		}
 	};
@@ -360,10 +352,10 @@ function Allographs() {
 
 				var select_allograph = $('.myModal');
 
-				if (self.selectedAnnotations.annotations.length > 1) {
-					self.dialog.set_label(annotation.feature + " <span class='badge badge-important'>" + self.selectedAnnotations.annotations.length + "</span>");
+				if (selectedAnnotations.annotations.length > 1) {
+					self.dialog_instance.set_label(annotation.feature + " <span class='badge badge-important'>" + selectedAnnotations.annotations.length + "</span>");
 				} else {
-					self.dialog.set_label(annotation.feature);
+					self.dialog_instance.set_label(annotation.feature);
 				}
 
 				select_allograph.find('.hand_form').val(annotation.hidden_hand);
@@ -421,8 +413,8 @@ function Allographs() {
 						$("#modal_features").fadeOut();
 						$('#status').html('-');
 						modal = false;
-						self.selectedAnnotations.allograph = null;
-						self.selectedAnnotations.annotations = [];
+						selectedAnnotations.allograph = null;
+						selectedAnnotations.annotations = [];
 						$('.to_lightbox').attr('disabled', true);
 						$('.annotation_li').removeClass('selected');
 						$('.select_annotation_checkbox').attr('checked', false);
@@ -431,7 +423,7 @@ function Allographs() {
 					var select_list = $('select');
 					select_list.chosen().trigger('liszt:updated');
 
-					self.dialog.edit_letter.init(annotation.graph);
+					self.dialog_instance.edit_letter.init(annotation.graph);
 
 					if (callback) {
 						callback();
@@ -444,25 +436,25 @@ function Allographs() {
 		},
 
 		get_features: function(annotation, callback) {
-			self.dialog.temp.graph = annotation.graph;
 			var features = annotator.vectorLayer.features;
 			var allograph = parseInt(annotation.hidden_allograph.split(':')[0], 10);
 			var graph = annotation.graph;
 			var image_id = annotator.image_id;
 			var element = $('li[data-graph="' + graph + '"]');
-			// if there's no allograph cached, I make a full AJAX call
-			if (!self.allographs_cache.search("allograph", allograph)) {
 
-				load_group(element.closest('[data-group="true"]'), self.allographs_cache, false, function(data) {
-					var output = get_graph(graph, data, cache);
+			// if there's no allograph cached, I make a full AJAX call
+			if (!cache.search("allograph", allograph)) {
+
+				load_group(element.closest('[data-group="true"]'), cache, false, function(data) {
+					var output = get_graph(graph, data, allographs_cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
 				});
 
 				// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
-			} else if (self.allographs_cache.search("allograph", allograph) && (!self.allographs_cache.search('graph', graph))) {
+			} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
 
-				load_group(element.closest('[data-group="true"]'), self.allographs_cache, true, function(data) {
-					var output = get_graph(graph, data, cache);
+				load_group(element.closest('[data-group="true"]'), cache, true, function(data) {
+					var output = get_graph(graph, data, allographs_cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
 				});
 
@@ -481,17 +473,16 @@ function Allographs() {
 
 		refresh: function(data, image_id, callback) {
 			var allograph_id = data.id;
-			self.dialog.temp.allograph_id = allograph_id;
 			var s = "<div id='box_features_container'>";
 			var string_summary = '';
 			var prefix = 'allographs_';
 			var array_features_owned = features_saved(annotation, data['features']);
 			var allographs = data['allographs'];
-			if (self.selectedAnnotations.annotations.length > 1) {
+			if (selectedAnnotations.annotations.length > 1) {
 				var selected = [];
 
-				for (var g = 0; g < self.selectedAnnotations.annotations.length; g++) {
-					selected.push(self.selectedAnnotations.annotations[g].graph);
+				for (var g = 0; g < selectedAnnotations.annotations.length; g++) {
+					selected.push(selectedAnnotations.annotations[g].graph);
 				}
 				allographs = common_components(selected, allographs_cache, allographs);
 			}
@@ -516,7 +507,7 @@ function Allographs() {
 					$.each(features, function(idx) {
 						var value = component_id + '::' + features[idx].id;
 						var names = component + ':' + features[idx].name;
-						var f = self.selectedAnnotations.annotations;
+						var f = selectedAnnotations.annotations;
 						var al = '';
 						var d = 0;
 						var title = '';
@@ -578,7 +569,7 @@ function Allographs() {
 	var refresh = function() {
 		var allographs_container = $('#allographs');
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
-		self.dialog.hide();
+		this.dialog.hide();
 		var request = $.ajax({
 			url: annotator.absolute_image_url + 'image_allographs/',
 			type: 'GET',
@@ -599,7 +590,7 @@ function Allographs() {
 					container: 'body'
 				});
 
-				self.dialog.selector = $("#modal_features");
+				this.dialog.selector = $("#modal_features");
 
 				init();
 
@@ -642,12 +633,12 @@ function Allographs() {
 	return {
 		'init': init,
 		'refresh': refresh,
-		'cache': self.allographs_cache
+		'cache': cache
 	};
 
 }
 
-
-DigipalAnnotator.prototype.Allographs = Allographs;
-var allographsPage = new annotator.Allographs();
+var allographs_cache = new AnnotationsCache();
+var dialog = new Dialog();
+var allographsPage = new Allographs(dialog, allographs_cache);
 allographsPage.init();

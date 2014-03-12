@@ -24,10 +24,24 @@ def map_view(request):
     
     # get all the item parts with coordinates
     context['q'] = request.GET.get('q', '')
-    ips = ItemPart.objects.filter(
+    ip_objs = ItemPart.objects.filter(
                                   Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']), 
                                   owners__institution__place__id__gt=0
-                                ).values(
+                                ).order_by('display_label').distinct().prefetch_related('owners', 'owners__institution', 'owners__institution__place', 'images')
+    
+#     ips = ItemPart.objects.filter(
+#                                   Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']), 
+#                                   owners__institution__place__id__gt=0
+#                                 ).values(
+#                                   'display_label', 
+#                                   'owners__institution__place__name',
+#                                   'owners__institution__place__id', 
+#                                   'owners__institution__place__northings', 
+#                                   'owners__institution__place__eastings', 
+#                                   'owners__date',
+#                                   'id'
+#                                 ).order_by('display_label').distinct()
+    ips = ip_objs.values(
                                   'display_label', 
                                   'owners__institution__place__name',
                                   'owners__institution__place__id', 
@@ -35,9 +49,9 @@ def map_view(request):
                                   'owners__institution__place__eastings', 
                                   'owners__date',
                                   'id'
-                                ).order_by('display_label').distinct()
+                                )
     
-    context['records'] = ips
+    context['records'] = ip_objs
 
     # group by location
     context['marks'] = {}

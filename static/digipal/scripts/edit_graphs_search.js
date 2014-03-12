@@ -217,7 +217,7 @@ function EditGraphsSearch() {
 				common_allographs(self.selectedAnnotations, cache, graph);
 
 				/* launching DOM events */
-				self.dialog.events_postLoading();
+				self.dialog.events_postLoading(self.dialog.selector);
 
 				/* showing dialog */
 				self.dialog.show();

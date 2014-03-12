@@ -64,7 +64,7 @@ function Dialog() {
                     selector = modal_features;
                     if (callback) {
                         callback(selector);
-                        events();
+                        events(selector);
                     }
                 }
 
@@ -81,7 +81,7 @@ function Dialog() {
 
     };
 
-    var events = function() {
+    var events = function(selector) {
         var show_summary_button = $('#show_summary');
         var summary_element = $('#summary');
         if (defaultOptions.summary) {
@@ -101,7 +101,7 @@ function Dialog() {
 
         var allograph_form = selector.find('.allograph_form');
         allograph_form.on('change', function() {
-            update_onChange($(this).val());
+            update_onChange($(this).val(), selector);
         });
 
         selector.find('.close').click(function() {
@@ -181,7 +181,7 @@ function Dialog() {
         $('select').chosen().trigger('liszt:updated');
     };
 
-    var events_postLoading = function() {
+    var events_postLoading = function(selector) {
         selector.find('.check_all').click(function(event) {
             var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
             checkboxes.attr('checked', true);
@@ -247,7 +247,7 @@ function Dialog() {
     var show = function() {
         selector.fadeIn();
         open = true;
-        events();
+        events(selector);
     };
 
     var set_label = function(label_value) {
@@ -255,19 +255,18 @@ function Dialog() {
         label.html(label_value);
     };
 
-    var update_onChange = function(allograph) {
-        var ABSOLUTE_URL = '/digipal/';
+    var update_onChange = function(allograph, selector) {
+        var ABSOLUTE_URL = '/digipal/api/';
         var PREFIX = 'search_';
         var content_type = 'allograph';
         var url = ABSOLUTE_URL + content_type + '/' + allograph;
         var request = $.getJSON(url);
-        var selector = selector;
         request.done(function(allographs) {
-            update(PREFIX, allographs, function(s) {
+            update(PREFIX, allographs[0], [], function(s) {
+                console.log(s);
                 selector.find('#features_container').html(s);
-                events_postLoading();
+                events_postLoading(selector);
             });
-            cache.allographs[allograph] = allographs;
         });
 
     };

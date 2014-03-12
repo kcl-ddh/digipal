@@ -188,7 +188,7 @@ function EditGraphsSearch() {
 
 		var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
 		var graph = cache.graphs[selectedAnnotation];
-		console.log(graph)
+
 		/* creating dialog */
 		dialog(image_id, {
 			summary: false

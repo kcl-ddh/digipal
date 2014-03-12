@@ -117,10 +117,10 @@ function Dialog() {
         var maximize_icon = $('#maximize');
         var myModal = selector;
 
-        maximize_icon.click(function() {
+        maximize_icon.on('click', function() {
 
             if (summary) {
-                summary.hide();
+                summary_element.hide();
             }
 
             if (!maximized) {
@@ -133,7 +133,8 @@ function Dialog() {
                 }, 400, function() {
 
                     if (summary) {
-                        summary.show();
+                        summary_element.show();
+                        summary_element.css('bottom', '95%');
                     }
 
                     myModal.find('.modal-body').css("max-height", "100%");
@@ -147,7 +148,7 @@ function Dialog() {
             } else {
 
                 if (summary) {
-                    summary.show();
+                    summary_element.show();
                 }
 
                 myModal.animate({
@@ -160,7 +161,8 @@ function Dialog() {
                 }, 400, function() {
 
                     if (summary) {
-                        summary.show();
+                        summary_element.show();
+                        summary_element.css('bottom', '98%');
                     }
 
                     myModal.find('.modal-body').css("max-height", "");

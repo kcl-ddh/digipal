@@ -61,6 +61,8 @@ $(document).ready(function() {
 			basket_collector.animate({
 				bottom: '0'
 			}, 350);
+
+			$(event.target).find('.drag_caption').hide();
 			//event.stopPropagation();
 		},
 
@@ -70,6 +72,8 @@ $(document).ready(function() {
 					bottom: '-28%'
 				}, 350);
 			}, 500);
+
+			$(event.target).find('.drag_caption').show();
 			//event.stopPropagation();
 		}
 	});

@@ -2210,14 +2210,7 @@ DigipalAnnotator.prototype.deleteAnnotation = function(layer, feature, number_an
 			delete_annotation(layer, feature, number_annotations);
 		}
 	}
-	var tab_link = $('a[data-target="#allographs"]');
-	var f = annotator.vectorLayer.features;
-	var y = 0;
-	while (y < f.length && f[y].attributes.saved === 1) {
-		y++;
-	}
 
-	tab_link.html('Annotations (' + y + ')');
 };
 
 
@@ -2276,8 +2269,14 @@ function delete_annotation(layer, feature, number_annotations) {
 					boxes.remove();
 				}
 
-				// deleting from annotations by allograph
-				// $('li[data-graph="' + feature.graph + ']"').remove();
+				var tab_link = $('a[data-target="#allographs"]');
+				var f = annotator.vectorLayer.features;
+				var y = 0;
+				while (y < f.length && f[y].attributes.saved === 1) {
+					y++;
+				}
+
+				tab_link.html('Annotations (' + y + ')');
 
 				annotator.has_changed = true;
 			}
@@ -2492,28 +2491,37 @@ function save(url, feature, data, ann, features) {
 					annotator.annotations[feature.graph].feature = allograph;
 					annotator.annotations[feature.graph].hidden_allograph = allograph_id + '::' + allograph;
 				}
-			}
 
-			var new_graphs = data['graphs'];
-			for (var ind = 0; ind < new_graphs.length; ind++) {
-				var new_graph = new_graphs[ind].graph,
-					new_allograph = new_graphs[ind].allograph_id;
-				annotator.cacheAnnotations.update('graph', new_graph, new_graphs[ind]);
-				annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
-				allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
-				allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
-			}
-
-			var f = annotator.vectorLayer.features;
-			var f_length = annotator.vectorLayer.features.length;
-			var n = 0;
-			for (g = 0; g < f_length; g++) {
-				if (f[g].feature == feature.feature && f[g].stored) {
-					n++;
+				var new_graphs = data['graphs'];
+				for (var ind = 0; ind < new_graphs.length; ind++) {
+					var new_graph = new_graphs[ind].graph,
+						new_allograph = new_graphs[ind].allograph_id;
+					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[ind]);
+					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
+					allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
+					allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
 				}
+
+				var f = annotator.vectorLayer.features;
+				var f_length = annotator.vectorLayer.features.length;
+				var n = 0,
+					d = 0;
+				for (g = 0; g < f_length; g++) {
+					if (f[g].feature == feature.feature && f[g].stored) {
+						n++;
+					}
+
+					if (f[g].stored) {
+						d++;
+					}
+				}
+
+				$(".number_annotated_allographs .number-allographs").html(n);
+
+				$('[data-target="#allographs"]').html('Annotations (' + d + ')');
 			}
 
-			$(".number_annotated_allographs .number-allographs").html(n);
+
 
 		},
 		complete: function() {

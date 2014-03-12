@@ -105,14 +105,7 @@ function Allographs(dialog, cache) {
 			var current_basket;
 			var annotation_li = this_annotation;
 			var a = selectedAnnotations.allograph;
-			/*
-			if (selectedAnnotations.allograph && selectedAnnotations.allograph != annotation.feature) {
-				selectedAnnotations.allograph = null;
-				selectedAnnotations.annotations = [];
-				$('.annotation_li').removeClass('selected').data('selected', false);
-				temporary_vectors = [];
-			}
-			*/
+
 			if (annotation_li.data('selected')) {
 				utils.clean_annotations(annotation, selectedAnnotations.annotations);
 				annotation_li.data('selected', false).removeClass('selected');
@@ -304,8 +297,8 @@ function Allographs(dialog, cache) {
 			}
 
 			if (typeof temp !== 'undefined') {
-				graph = allographs_cache.graphs[annotation.graph];
 				var graphs_annotation = temp.graph;
+				graph = allographs_cache.graphs[graphs_annotation];
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
 				common_allographs(graphs, allographs_cache, graph);
@@ -488,6 +481,7 @@ function Allographs(dialog, cache) {
 			}
 			if (!allographs.length) {
 				s += '<p class="component" style="margin:0;">No common components</p>';
+				string_summary = "<span class='component_summary'>No componensts</span>";
 			} else {
 				$.each(allographs, function(idx) {
 
@@ -513,8 +507,10 @@ function Allographs(dialog, cache) {
 						var title = '';
 						var ann;
 						for (var k = 0; k < f.length; k++) {
-							for (var j = 0; j < f[k].features.length; j++) {
-								if (f[k].features[j] == component_id + '::' + features[idx].id && f[k].feature == annotation.feature) {
+							var graph = allographs_cache.graphs[f[k].graph];
+							var features_graph = graph.features;
+							for (var j = 0; j < features_graph.length; j++) {
+								if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
 									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
 									if (ann) {
 										al += '<span class="label label-default label-summary">' + ann + '</span> ';
@@ -569,7 +565,7 @@ function Allographs(dialog, cache) {
 	var refresh = function() {
 		var allographs_container = $('#allographs');
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
-		this.dialog.hide();
+		self.dialog_instance.hide();
 		var request = $.ajax({
 			url: annotator.absolute_image_url + 'image_allographs/',
 			type: 'GET',
@@ -590,7 +586,7 @@ function Allographs(dialog, cache) {
 					container: 'body'
 				});
 
-				this.dialog.selector = $("#modal_features");
+				self.dialog_instance.selector = $(".myModal#modal_features");
 
 				init();
 

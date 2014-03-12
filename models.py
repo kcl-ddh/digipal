@@ -1032,7 +1032,7 @@ class ItemPart(models.Model):
         return u'%s' % (self.display_label)
     
     def clean(self):
-        if self.group_id == self.id:
+        if self.group_id and self.group_id == self.id:
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 

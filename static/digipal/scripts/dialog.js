@@ -261,9 +261,10 @@ function Dialog() {
         var content_type = 'allograph';
         var url = ABSOLUTE_URL + content_type + '/' + allograph;
         var request = $.getJSON(url);
+
         request.done(function(allographs) {
+
             update(PREFIX, allographs[0], [], function(s) {
-                console.log(s);
                 selector.find('#features_container').html(s);
                 events_postLoading(selector);
             });

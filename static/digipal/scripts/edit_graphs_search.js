@@ -365,7 +365,7 @@ function EditGraphsSearch() {
 			var ul = $('ul[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', false);
-			var annotations = ul.find('li[data-graph]');
+			var annotations = ul.find('[data-graph]').find('img').not('.graph_active').parent().parent();
 			for (var i = 0; i < annotations.length; i++) {
 				load_graph($(annotations[i]));
 			}

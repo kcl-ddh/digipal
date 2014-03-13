@@ -273,6 +273,7 @@ function Dialog() {
     };
 
     var edit_letter = {
+
         init: function(graph) {
             var editor_space = $('#image-editor-space');
             var img = $('a[data-graph="' + graph + '"]').find('img');
@@ -298,10 +299,11 @@ function Dialog() {
 
         resize: function(side, value) {
             $('#editor-space-image').fadeIn();
-            var temp = this.temp;
-            var url = this.url;
-            var old_url = this.parameters.RGN;
-            var newRGN = this.parameters.RGN.split(',');
+            var temp = edit_letter.temp;
+            var url = edit_letter.url;
+            var old_url = edit_letter.parameters.RGN;
+            var newRGN = edit_letter.parameters.RGN.split(',');
+
             if (side == 'top') {
                 //par = this.parameters.RGN[1];
                 newRGN[1] = value;
@@ -317,12 +319,13 @@ function Dialog() {
             }
 
             url = url.replace('RGN=' + old_url, 'RGN=' + newRGN.toString());
-            this.url = url;
-            this.img.attr('src', url);
-            this.img.on('load', function() {
+            edit_letter.url = url;
+
+            edit_letter.img.attr('src', url).on('load', function() {
                 $('#editor-space-image').fadeOut();
             });
-            this.parameters.RGN = newRGN.toString();
+
+            edit_letter.parameters.RGN = newRGN.toString();
         },
 
         makeBounds: function(RGN) {
@@ -337,6 +340,9 @@ function Dialog() {
 
         events: function() {
             var resize = this.resize;
+            var temp = this.temp;
+            var parameters = this.parameters;
+
             var resize_up = $('#resize-up');
             var resize_down = $('#resize-down');
             var resize_width = $('#resize-right');
@@ -347,7 +353,7 @@ function Dialog() {
             var move_right = $('#move-right');
             var move_left = $('#move-left');
 
-            var edit_letter = this.edit_letter;
+            var edit_letter = self;
             var value = 0.005;
 
             /*
@@ -355,44 +361,44 @@ function Dialog() {
             */
             resize_up.on('click', function() {
 
-                if (!edit_letter.temp['height']) {
-                    edit_letter.temp['height'] = parseFloat(edit_letter.parameters.height);
+                if (!temp['height']) {
+                    temp['height'] = parseFloat(parameters.height);
                 }
 
-                edit_letter.temp['height'] += value;
+                temp['height'] += value;
 
-                resize('height', edit_letter.temp['height']);
+                resize('height', temp['height']);
             });
 
             resize_down.on('click', function() {
 
-                if (!edit_letter.temp['height']) {
-                    edit_letter.temp['height'] = parseFloat(edit_letter.parameters.height);
+                if (!temp['height']) {
+                    temp['height'] = parseFloat(parameters.height);
                 }
 
-                edit_letter.temp['height'] -= value;
+                temp['height'] -= value;
 
-                resize('height', edit_letter.temp['height']);
+                resize('height', temp['height']);
             });
 
             resize_left.on('click', function() {
-                if (!edit_letter.temp['width']) {
-                    edit_letter.temp['width'] = parseFloat(edit_letter.parameters.width);
+                if (!temp['width']) {
+                    temp['width'] = parseFloat(parameters.width);
                 }
 
-                edit_letter.temp['width'] -= value;
+                temp['width'] -= value;
 
-                resize('width', edit_letter.temp['width']);
+                resize('width', temp['width']);
             });
 
             resize_width.on('click', function() {
-                if (!edit_letter.temp['width']) {
-                    edit_letter.temp['width'] = parseFloat(edit_letter.parameters.width);
+                if (!temp['width']) {
+                    temp['width'] = parseFloat(parameters.width);
                 }
 
-                edit_letter.temp['width'] += value;
+                temp['width'] += value;
 
-                resize('width', edit_letter.temp['width']);
+                resize('width', temp['width']);
             });
 
             /*
@@ -405,43 +411,43 @@ function Dialog() {
 
 
             move_up.on('click', function() {
-                if (!edit_letter.temp['top']) {
-                    edit_letter.temp['top'] = parseFloat(edit_letter.parameters.top);
+                if (!temp['top']) {
+                    temp['top'] = parseFloat(parameters.top);
                 }
 
-                edit_letter.temp['top'] -= value;
+                temp['top'] -= value;
 
-                resize('top', edit_letter.temp['top']);
+                resize('top', temp['top']);
             });
 
             move_down.on('click', function() {
-                if (!edit_letter.temp['top']) {
-                    edit_letter.temp['top'] = parseFloat(edit_letter.parameters.top);
+                if (!temp['top']) {
+                    temp['top'] = parseFloat(parameters.top);
                 }
 
-                edit_letter.temp['top'] += value;
+                temp['top'] += value;
 
-                resize('top', edit_letter.temp['top']);
+                resize('top', temp['top']);
             });
 
             move_left.on('click', function() {
-                if (!edit_letter.temp['left']) {
-                    edit_letter.temp['left'] = parseFloat(edit_letter.parameters.left);
+                if (!temp['left']) {
+                    temp['left'] = parseFloat(parameters.left);
                 }
 
-                edit_letter.temp['left'] -= value;
+                temp['left'] -= value;
 
-                resize('left', edit_letter.temp['left']);
+                resize('left', temp['left']);
             });
 
             move_right.on('click', function() {
-                if (!edit_letter.temp['left']) {
-                    edit_letter.temp['left'] = parseFloat(edit_letter.parameters.left);
+                if (!temp['left']) {
+                    temp['left'] = parseFloat(parameters.left);
                 }
 
-                edit_letter.temp['left'] += value;
+                temp['left'] += value;
 
-                resize('left', edit_letter.temp['left']);
+                resize('left', temp['left']);
             });
 
             /*

@@ -2249,7 +2249,9 @@ function delete_annotation(layer, feature, number_annotations) {
 
 				var allograph = $('#panelImageBox .allograph_form option:selected').text();
 				var allograph_id = $('#panelImageBox .allograph_form').val();
-				refresh_letters_container(allograph, allograph_id, true);
+				if ($('.tab-pane.active').attr('id') == 'annotator') {
+					refresh_letters_container(allograph, allograph_id, true);
+				}
 				if (temp['state'] == 'Insert') {
 					var element = $('.number_unsaved_allographs');
 					var number_unsaved = element.html();
@@ -2435,7 +2437,9 @@ function save(url, feature, data, ann, features) {
 				var allograph = select_allograph.find('.allograph_form option:selected').text();
 				var allograph_id = select_allograph.find('.allograph_form').val();
 
-				refresh_letters_container(allograph, allograph_id, true);
+				if ($('.tab-pane.active').attr('id') == 'annotator') {
+					refresh_letters_container(allograph, allograph_id, true);
+				}
 
 				var color;
 				if (temp.state == 'Insert') {

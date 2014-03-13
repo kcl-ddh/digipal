@@ -287,6 +287,7 @@ function Allographs(dialog, cache) {
 			return false;
 		} else {
 			annotation = selectedAnnotations.annotations[selectedAnnotations.annotations.length - 1];
+
 			if (typeof annotation !== 'undefined') {
 				load_annotations_allographs.init(annotation, function() {
 					graph = allographs_cache.graphs[annotation.graph];
@@ -294,15 +295,14 @@ function Allographs(dialog, cache) {
 					detect_common_features(graphs, checkboxes, allographs_cache);
 					common_allographs(graphs, allographs_cache, graph);
 				});
-			}
-
-			if (typeof temp !== 'undefined') {
-				var graphs_annotation = temp.graph;
-				graph = allographs_cache.graphs[graphs_annotation];
+			} else {
+				graphs_annotation = temp.graph;
+				graph = allographs_cache.graphs[temp.graph];
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
 				common_allographs(graphs, allographs_cache, graph);
 			}
+
 		}
 	};
 
@@ -352,7 +352,7 @@ function Allographs(dialog, cache) {
 				}
 
 				select_allograph.find('.hand_form').val(annotation.hidden_hand);
-				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation, 'hidden_allograph'));
+				select_allograph.find('.allograph_form').val(annotation.hidden_allograph.split('::')[0]);
 
 				$('#id_display_note').val(annotation.display_note).parent('p').hide();
 				$('#id_internal_note').val(annotation.internal_note).parent('p').hide();
@@ -414,7 +414,7 @@ function Allographs(dialog, cache) {
 					});
 
 					var select_list = $('select');
-					select_list.chosen().trigger('liszt:updated');
+					select_list.trigger('liszt:updated');
 
 					self.dialog_instance.edit_letter.init(annotation.graph);
 

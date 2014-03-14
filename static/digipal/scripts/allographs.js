@@ -282,6 +282,7 @@ function Allographs(dialog, cache) {
 				checkboxes = $('.myModal .features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
 				common_allographs(graphs, allographs_cache, graph);
+				events_on_labels();
 			});
 
 			return false;
@@ -294,6 +295,7 @@ function Allographs(dialog, cache) {
 					checkboxes = $('.myModal .features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
 					common_allographs(graphs, allographs_cache, graph);
+					events_on_labels();
 				});
 			} else {
 				graphs_annotation = temp.graph;
@@ -301,6 +303,7 @@ function Allographs(dialog, cache) {
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
 				common_allographs(graphs, allographs_cache, graph);
+				events_on_labels();
 			}
 
 		}
@@ -511,10 +514,10 @@ function Allographs(dialog, cache) {
 							var features_graph = graph.features;
 							for (var j = 0; j < features_graph.length; j++) {
 								if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
-									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label').text();
+									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label');
 									if (ann) {
-										al += '<span class="label label-default label-summary">' + ann + '</span> ';
-										title += ann + ' ';
+										al += '<a href="#label_' + ann.data('graph-id') + '" data-graph-id="' + ann.data('graph-id') + '" class="label label-default label-summary">' + ann.text() + '</a> ';
+										title += ann.text() + ' ';
 									}
 									d++;
 									temporary_vectors.push(names);
@@ -593,6 +596,18 @@ function Allographs(dialog, cache) {
 			}
 		});
 	};
+
+
+	var events_on_labels = function() {
+		$('.label-summary').unbind().on('mouseover', function() {
+			var graph = $(this).data('graph-id');
+			$('#label_' + graph).closest('.annotation_li').addClass('hovered_allograph');
+		}).on('mouseout', function() {
+			var graph = $(this).data('graph-id');
+			$('#label_' + graph).closest('.annotation_li').removeClass('hovered_allograph');
+		});
+	};
+
 
 	var keyboard_shortcuts = {
 		init: function() {

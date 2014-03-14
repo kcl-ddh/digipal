@@ -30,6 +30,8 @@ def get_content_type_data(request, content_type, id, only_features=False):
         data = get_features(ids, only_features)
     elif content_type == 'allograph':
         data = allograph_features(request, ids)
+    elif content_type == 'hand':
+        data = get_hands(ids)
     return HttpResponse(data, mimetype='application/json')
 
 def get_features(graph_id, only_features=False):
@@ -359,6 +361,14 @@ def hands_list(request, image_id):
         h = Hand.objects.get(id=i)
         hands.append(h.display_label)
     return HttpResponse(simplejson.dumps(hands), mimetype='application/json')
+
+def get_hands(hands):
+    hands_list = []
+    hands = str(hands).split(',')
+    for h in hands:
+        hand = Hand.objects.filter(id=h)
+        hands_list.append(hand.values())
+    return hands_list
 
 def image_metadata(request, image_id):
     """Returns a list of all the allographs/annotations for the requested

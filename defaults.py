@@ -5,7 +5,7 @@ register_setting(
     description="Sequence of setting names available within templates.",
     editable=False,
     default=(
-        'ADMIN_STYLES',
+        'ADMIN_STYLES', 'BANNER_LOGO_HTML', 'SHOW_QUICK_SEARCH_SCOPES',  
     ),
     append=True,
 )

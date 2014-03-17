@@ -106,10 +106,11 @@ def allograph_features(request, allograph_id):
                 ac_dict['id'] = ac.component.id
                 ac_dict['name'] = ac.component.name
                 ac_dict['features'] = []
-
+                ac_dict['default'] = []
                 for f in ac.component.features.all():
                     ac_dict['features'].append({'id': f.id, 'name': f.name})
-
+                    if f.componentfeature_set.all()[0].set_by_default:
+                        ac_dict['default'].append({'component': f.componentfeature_set.all()[0].component.id, 'feature': f.componentfeature_set.all()[0].feature.id})
                 allographs_list.append(ac_dict)
         obj['features'] = []
         obj['allographs'] = allographs_list

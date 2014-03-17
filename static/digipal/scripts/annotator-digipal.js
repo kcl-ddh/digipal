@@ -905,6 +905,13 @@ function updateFeatureSelect(currentFeatures, id) {
 						event.stopPropagation();
 					});
 
+					var set_by_default = dialog.find('.set_by_default');
+					set_by_default.on('click', function(event) {
+						var component_id = $(this).data('component');
+						check_features_by_default(component_id, allograph, annotator.cacheAnnotations.cache);
+						event.stopPropagation();
+					});
+
 					dialog.find('.component_labels').click(function() {
 						var div = $("#" + $(this).data('id'));
 						if (div.data('hidden') === false) {
@@ -1119,7 +1126,7 @@ function create_dialog(selectedFeature, id) {
 				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i  class='fa fa-link' ></i></button> <button title='Add graph to collection' data-toggle='tooltip' data-container='body' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button>";
+						"</span> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i  class='fa fa-link' ></i></button> <button title='Add graph to collection' data-toggle='tooltip' data-container='body' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 						title += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
 					} else {
@@ -1882,6 +1889,33 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			uncheck_all.click(function(event) {
 				var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
 				checkboxes.attr('checked', false);
+				event.stopPropagation();
+			});
+
+			var set_by_default = dialog.find('.set_by_default');
+			set_by_default.on('click', function(event) {
+				var component_id = $(this).data('component');
+				var allograph = $('#panelImageBox .allograph_form').val();
+				check_features_by_default(component_id, allograph, annotator.cacheAnnotations.cache);
+				event.stopPropagation();
+			});
+
+			var set_all_by_default = $('.set_all_by_default');
+			set_all_by_default.on('click', function(event) {
+				var components = [];
+				var allograph = $('#panelImageBox .allograph_form').val();
+
+				for (var i in annotator.cacheAnnotations.cache.allographs) {
+					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].length; j++) {
+						var component = annotator.cacheAnnotations.cache.allographs[i][j].id;
+						components.push(component);
+					}
+				}
+
+				for (var c in components) {
+					check_features_by_default(components[c], allograph, annotator.cacheAnnotations.cache);
+				}
+
 				event.stopPropagation();
 			});
 

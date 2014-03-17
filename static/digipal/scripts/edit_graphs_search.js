@@ -87,6 +87,7 @@ function EditGraphsSearch() {
 			});
 		}
 
+
 	};
 
 	/* given an $(HTML) element, this function loads data about the graph, and initializes the dialog
@@ -236,6 +237,33 @@ function EditGraphsSearch() {
 				var save_button = self.dialog.selector.find('#save');
 				save_button.click(function(event) {
 					methods.save();
+				});
+
+				var set_by_default = $('.set_by_default');
+				set_by_default.on('click', function(event) {
+					var component_id = $(this).data('component');
+					var allograph = $('.myModal .allograph_form').val();
+					check_features_by_default(component_id, allograph, cache);
+					event.stopPropagation();
+				});
+
+				var set_all_by_default = $('.set_all_by_default');
+				set_all_by_default.on('click', function(event) {
+					var components = [];
+					var allograph = $('.myModal .allograph_form').val();
+
+					for (var i in cache.allographs) {
+						for (var j = 0; j < cache.allographs[i].length; j++) {
+							var component = cache.allographs[i][j].id;
+							components.push(component);
+						}
+					}
+
+					for (var c in components) {
+						check_features_by_default(components[c], allograph, cache);
+					}
+
+					event.stopPropagation();
 				});
 
 				/*  */

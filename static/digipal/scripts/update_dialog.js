@@ -24,7 +24,7 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 			var features = allographs[idx].features;
 			s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component fa fa-angle-double-down'></span></b>";
 
-			s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
+			s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span><span data-component = '" + component_id + "' title='Check by default' data-toggle='tooltip' data-container='body' class='set_by_default btn btn-xs btn-default'><i class='fa fa-plus-square'></i></span></div></div>";
 
 			s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 
@@ -393,6 +393,24 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 	});
 }
 
+function check_features_by_default(component_id, allograph_id, cache) {
+	var allograph = cache.allographs[allograph_id];
+	for (var component in allograph) {
+		if (allograph[component].
+			default.length) {
+			for (var i = 0; i < allograph[component].
+				default.length; i++) {
+				var default_feature = allograph[component].
+				default [i].component + '::' + allograph[component].
+				default [i].feature;
+				var checkbox_val = $('input[value="' + default_feature + '"]');
+				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
+					checkbox_val.prop('checked', true);
+				}
+			}
+		}
+	}
+}
 
 function updateStatus(msg, status) {
 	var running = running || true;

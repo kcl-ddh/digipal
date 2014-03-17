@@ -373,6 +373,26 @@ function Allographs(dialog, cache) {
 
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
+					var set_by_default = $('.set_by_default');
+
+					var set_all_by_default = $('.set_all_by_default');
+					set_all_by_default.on('click', function(event) {
+						var components = [];
+						var allograph = $('.myModal .allograph_form').val();
+
+						for (var i in allographs_cache.allographs) {
+							for (var j = 0; j < allographs_cache.allographs[i].length; j++) {
+								var component = allographs_cache.allographs[i][j].id;
+								components.push(component);
+							}
+						}
+
+						for (var c in components) {
+							check_features_by_default(components[c], allograph, allographs_cache);
+						}
+
+						event.stopPropagation();
+					});
 					var prefix = 'allographs_';
 
 					check_all.on('click', function(event) {
@@ -386,6 +406,32 @@ function Allographs(dialog, cache) {
 						var component = $(this).data('component');
 						var checkboxes = $('#' + prefix + 'component_' + component).find("input[type=checkbox]");
 						checkboxes.attr('checked', false);
+						event.stopPropagation();
+					});
+
+					set_by_default.on('click', function(event) {
+						var component_id = $(this).data('component');
+						var allograph_id = select_allograph.val();
+						check_features_by_default(component_id, allograph_id, allographs_cache);
+						event.stopPropagation();
+					});
+
+					var set_all_by_default = $('.set_all_by_default');
+					set_all_by_default.on('click', function(event) {
+						var components = [];
+						var allograph = $('.mymodal .allograph_form').val();
+
+						for (var i in cache.allographs) {
+							for (var j = 0; j < cache.allographs[i].length; j++) {
+								var component = cache.allographs[i][j].id;
+								components.push(component);
+							}
+						}
+
+						for (var c in components) {
+							check_features_by_default(components[c], allograph, annotator.cacheAnnotations.cache);
+						}
+
 						event.stopPropagation();
 					});
 
@@ -496,7 +542,7 @@ function Allographs(dialog, cache) {
 
 					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
-					s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span></div></div>";
+					s += "<div class='checkboxes_div btn-group'><span data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span><span data-component = '" + component_id + "' title='Check by default' data-toggle='tooltip' data-container='body' class='set_by_default btn btn-xs btn-default'><i class='fa fa-plus-square'></i></span></div></div>";
 
 					s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
 					var n = 0;

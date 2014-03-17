@@ -684,6 +684,10 @@ function allow_multiple() {
 /* Function to refresh the layer when saved an annotation */
 DigipalAnnotator.prototype.refresh_layer = function() {
 	annotator.vectorLayer.removeAllFeatures();
+	annotator.vectorLayer.destroyFeatures();
+	annotator.vectorLayer.addFeatures([]);
+	$('circle').remove();
+	$('polyline').remove();
 	annotator.annotations = [];
 	annotator.selectedFeature = null;
 	annotator.selectedAnnotations = [];
@@ -742,6 +746,9 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 				$('.number_unsaved_allographs').html(0);
 			}
 			registerEvents();
+			restoreFullscreenPositions();
+			var activeControls = annotator.map.getControlsBy('active', true);
+			toggleAll(activeControls, false);
 		});
 	});
 };
@@ -1719,7 +1726,7 @@ function showBox(selectedFeature, callback) {
 
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
-
+	var can_edit = $('#development_annotation').is(':checked');
 	var select_allograph;
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
 		select_allograph = $('#panelImageBox');
@@ -1753,10 +1760,12 @@ function showBox(selectedFeature, callback) {
 		return false;
 	}
 
-	create_dialog(selectedFeature, id);
-	fill_dialog(id, selectedFeature);
+	if (annotator.boxes_on_click) {
+		create_dialog(selectedFeature, id);
+		fill_dialog(id, selectedFeature);
 
-	dialog = $('#dialog' + id);
+		dialog = $('#dialog' + id);
+	}
 	var n = 0;
 	var annotations = annotator.annotations;
 
@@ -2606,23 +2615,28 @@ function registerEvents() {
 				boxes_on_click = true;
 			}
 
-			annotator.boxes_on_click = true;
-			var boxes_on_click_element = $("#boxes_on_click");
-			boxes_on_click_element.prop('checked', true);
-			var boxes_on_click = false;
-			var annotation;
+			if (annotator.selectFeature.active && !annotator.boxes_on_click) {
 
-			for (var a in annotator.annotations) {
-				if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
-					annotation = annotator.annotations[a];
+				annotator.boxes_on_click = true;
+				var boxes_on_click_element = $("#boxes_on_click");
+				boxes_on_click_element.prop('checked', true);
+				var boxes_on_click = false;
+				var annotation;
+
+				for (var a in annotator.annotations) {
+					if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
+						annotation = annotator.annotations[a];
+					}
 				}
+				showBox(annotation, function() {
+					if (!boxes_on_click) {
+						annotator.boxes_on_click = false;
+						boxes_on_click_element.prop('checked', false);
+						restoreFullscreenPositions();
+					}
+				});
+
 			}
-			showBox(annotation, function() {
-				if (!boxes_on_click) {
-					annotator.boxes_on_click = false;
-					boxes_on_click_element.prop('checked', false);
-				}
-			});
 
 		});
 	}
@@ -2801,21 +2815,22 @@ function getCookie(name) {
  * Turns on keyboard shortcuts for the controls.
  */
 
-DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
-	var _self = this;
-	var toggleAll = function(activeControls, active) {
-		for (i = 0; i < activeControls.length; i++) {
-			if (activeControls[i].title) {
-				if (activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
-					if (active) {
-						activeControls[i].activate();
-					} else {
-						activeControls[i].deactivate();
-					}
+var toggleAll = function(activeControls, active) {
+	for (i = 0; i < activeControls.length; i++) {
+		if (activeControls[i].title) {
+			if (activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
+				if (active) {
+					activeControls[i].activate();
+				} else {
+					activeControls[i].deactivate();
 				}
 			}
 		}
-	};
+	}
+};
+
+DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
+	var _self = this;
 
 	$(document).bind('keydown', function(event) {
 		activeControls = _self.map.getControlsBy('active', true);

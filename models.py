@@ -16,7 +16,7 @@ import iipimage.storage
 from django.utils.html import conditional_escape, escape
 
 import logging
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 def has_edit_permission(request, model):
     '''Returns True if the user of the current HTTP request
@@ -530,16 +530,19 @@ class HistoricalItem(models.Model):
         is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
         # See JIRA 95
         for desc in  self.get_descriptions():
-            if desc.source.name == 'digipal':
+            if desc.source.id == settings.SOURCE_PROJECT_ID:
                 ret = desc
                 break
-            if is_charter and desc.source.name in ['sawyer'] and ret_priority > 1:
+            # esawyer
+            if is_charter and (desc.source.id == 5) and ret_priority > 1:
                 ret = desc
                 ret_priority = 1
-            if is_charter and desc.source.name in ['pelteret'] and ret_priority > 2:
+            # pelteret
+            if is_charter and (desc.source.id == 6) and ret_priority > 2:
                 ret = desc
                 ret_priority = 2
-            if not is_charter and desc.source.name in ['gneuss'] and ret_priority > 3:
+            # gneuss
+            if not is_charter and (desc.source.id == 2) and ret_priority > 3:
                 ret = desc
                 ret_priority = 3
             if ret_priority == 10:
@@ -1548,7 +1551,7 @@ class Hand(models.Model):
     def __getattr__(self, name):
         if name == 'description':
             ret = ''
-            for description in self.descriptions.filter(source__name='digipal'):
+            for description in self.descriptions.filter(source__id=settings.SOURCE_PROJECT_ID):
                 ret = description.description
         else:
             ret = super(Hand, self).__getattr__(name)
@@ -1556,7 +1559,7 @@ class Hand(models.Model):
 
     def __setattr__(self, name, value):
         if name == 'description':
-            self.set_description('digipal', value, True)
+            self.set_description(settings.SOURCE_PROJECT_NAME, value, True)
         else:
             super(Hand, self).__setattr__(name, value)
             
@@ -2145,9 +2148,12 @@ class StewartRecord(models.Model):
 
             # 2. Description fields
 
-            hand.set_description('scragg', self.contents)
+            # scragg
+            hand.set_description('Scragg, Conspectus of Scribal Hands', self.contents)
+            # eel
             hand.set_description('eel', self.eel)
-            hand.set_description('em1060-1220', self.em)
+            # em1060-1220
+            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
 
             # 3. Related objects
 

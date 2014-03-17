@@ -3,6 +3,7 @@ import datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
+from django.conf import settings
 
 def set_description(self, source_name, description, orm):
     ''' Set the description of a hand according to a source (e.g. ker, sawyer).
@@ -42,9 +43,9 @@ class Migration(DataMigration):
         orm['digipal.Hand'].set_description = set_description
         
         for hand in orm['digipal.Hand'].objects.all():
-            hand.set_description('digipal', hand.description, orm)
-            hand.set_description('scragg', hand.scragg_description, orm)
-            hand.set_description('em1060-1220', hand.em_description, orm)
+            hand.set_description(settings.SOURCE_PROJECT_NAME, hand.description, orm)
+            hand.set_description(settings.SOURCE_SAWYER, hand.scragg_description, orm)
+            hand.set_description('English Manuscripts 1060-1220 Project', hand.em_description, orm)
             hand.save()
 
     def backwards(self, orm):

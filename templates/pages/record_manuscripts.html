@@ -37,28 +37,29 @@
                 </dl>
 
                 <h3>Other information</h3>
-                
+
                 <dl class="dl-horizontal bs">
                     {% if item_part.historical_item.name %}
                         <dt>Name</dt>
                         <dd>{{ item_part.historical_item.name }} </dd>
                     {% endif %}
-                    
+
                     <dt>Catalogue Numbers</dt>
                     <dd>{{ item_part.historical_item.catalogue_number }}</dd>
-                    
+
                     <dt>Format</dt>
                     <dd>{{ item_part.historical_item.historical_item_format }}</dd>
                     {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
-                    
-                    <dt>Date</dt><dd>{{ item_part.historical_item.date }}</dd>
-                    
+
+                    <dt>Date</dt><dd>{{ item_part.historical_item.itemorigin_set.date }}</dd>
+
                     {% if item_part.historical_item.itemorigin_set.all.count %}
                         <dt>Origin</dt>
+
                         {% for data in item_part.historical_item.itemorigin_set.all.distinct %}
                             <dd>
-                                <b>Evidence</b>: {{ data.evidence }}
-                                {% if data.dubitable %}, <b>Dubitable</b>{% endif %}
+                                Evidence: {{ data.content_object }}
+                                {% if data.dubitable %}, Dubitable{% endif %}
                             </dd>
                         {% endfor %}
                     {% endif %}

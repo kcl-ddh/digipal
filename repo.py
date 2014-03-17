@@ -104,7 +104,7 @@ def process_commands_main_dir():
                 system('git status', '', False, '', out)
                 
                 branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
-                has_local_change = (out['output'].find('nothing to commit') == -1)
+                has_local_change = (out['output'].find('modified:') > -1)
                 
                 status = branch
                 if has_local_change:
@@ -120,7 +120,7 @@ def process_commands_main_dir():
                 branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
                 parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
                 modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
-                has_local_change = (len(modified) != out['output'])                  
+                has_local_change = (len(modified) != len(out['output']))                  
 
                 status = '%s, %s' % (branch, parent)
                 if has_local_change:

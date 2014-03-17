@@ -2127,9 +2127,9 @@ function handleErrors(data) {
 			}
 		}
 	}
-
+	console.warn(message);
 	if (message) {
-		updateStatus(message, 'error');
+		updateStatus(message, 'danger');
 	}
 
 	return (message.length > 0);
@@ -2500,6 +2500,14 @@ function save(url, feature, data, ann, features) {
 						}
 					}
 
+					/*
+
+						THIS MUST CHANGE.
+						We should change the color of the graphs according to the data returned by this function
+						and not by the value of the checkboxes, because now we have the indetermined state
+
+					*/
+
 					if (num_features > 0) {
 						color = 'green';
 						feature.described = true;
@@ -2517,6 +2525,13 @@ function save(url, feature, data, ann, features) {
 					feature.last_feature_selected = null;
 					element.html(annotations.length);
 					temp = null;
+
+					/*
+
+					UNTIL HERE.
+
+					*/
+
 				} else {
 					if (features.has_features) {
 						if (features.features.length) {

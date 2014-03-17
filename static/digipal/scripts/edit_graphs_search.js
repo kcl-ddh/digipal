@@ -45,6 +45,14 @@ function EditGraphsSearch() {
 
 		var switcher = $('#toggle-state-switch');
 		switcher.bootstrapSwitch();
+		$('[data-toggle=tooltip]').tooltip('disable'); // Disable tooltips
+		switcher.on('switch-change', function(e, data) {
+			if ($(this).bootstrapSwitch('state')) {
+				$('[data-toggle=tooltip]').tooltip('disable'); // Disable tooltips
+			} else {
+				$('[data-toggle=tooltip]').tooltip('enable'); // (Re-)enable tooltips
+			}
+		});
 
 		/*
 

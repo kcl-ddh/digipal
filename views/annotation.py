@@ -518,6 +518,9 @@ def save(request, image_id, vector_id):
                         gc.features.remove(feature)
                         gc.save()
 
+                        if not gc.features.all():
+                            gc.delete()
+
             if feature_list_checked:
 
                 for value in feature_list_checked:
@@ -533,8 +536,8 @@ def save(request, image_id, vector_id):
                         gc = gc_list[0]
                     else:
                         gc = GraphComponent(graph=graph, component=component)
+                        gc.save()
 
-                    gc.save()
                     gc.features.add(feature)
                     gc.save()
 

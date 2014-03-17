@@ -109,29 +109,37 @@ var load_group = function(group_element, cache, only_features, callback) {
 
 var reload_cache = function(graphs, cache, only_features, callback) {
 	var request, url, content_type = 'graph';
-	url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
-	if (only_features) {
-		url += 'features';
+	if (graphs.length) {
+		url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
+
+		if (only_features) {
+			url += 'features';
+		}
+
+		request = $.getJSON(url);
+		request.done(function(data) {
+
+			$("#allographs_loader_gif").remove();
+			for (var i = 0; i < data.length; i++) {
+				var graph = graphs[i];
+				var allograph = data[i]['allograph_id'];
+				if (!cache.search("allograph", allograph) && !only_features) {
+					cache.update('allograph', allograph, data[i]);
+				}
+
+				if (!cache.search("graph", graph)) {
+					cache.update('graph', graph, data[i]);
+				}
+			}
+
+			if (callback) {
+				callback(data);
+			}
+		});
+
+	} else {
+		callback();
 	}
-	request = $.getJSON(url);
-	request.done(function(data) {
-		$("#allographs_loader_gif").remove();
-		for (var i = 0; i < data.length; i++) {
-			var graph = graphs[i];
-			var allograph = data[i]['allograph_id'];
-			if (!cache.search("allograph", allograph) && !only_features) {
-				cache.update('allograph', allograph, data[i]);
-			}
-
-			if (!cache.search("graph", graph)) {
-				cache.update('graph', graph, data[i]);
-			}
-		}
-
-		if (callback) {
-			callback(data);
-		}
-	});
 };
 
 var get_graph = function(graph_id, data, cache) {
@@ -224,6 +232,11 @@ function common_allographs(selectedAnnotations, cache, graph) {
 }
 
 function common_components(selectedAnnotations, cacheAnnotations, data) {
+
+	if (!data) {
+		return false;
+	}
+
 	var allograph_id, allograph, allographs, allograph_names = [],
 		cacheAnn = [];
 
@@ -415,6 +428,10 @@ function check_features_by_default(component_id, allograph_id, cache) {
 function updateStatus(msg, status) {
 	var running = running || true;
 
+	if (typeof status == 'undefined') {
+		status = 'warning';
+	}
+
 	if (running) {
 		clearInterval(timeout);
 		$('#status').remove();
@@ -432,7 +449,6 @@ function updateStatus(msg, status) {
 	status_element.attr('class', 'alert' + status_class);
 
 	status_element.html(msg).fadeIn();
-
 
 	var timeout =
 		setTimeout(function() {

@@ -36,6 +36,9 @@ def show_help():
          
      cs
          Collectstatic
+        
+     st
+         status
          
 Options:
 
@@ -89,6 +92,43 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         dir = os.getcwd()
+        
+        if command == 'st':
+            known_command = True
+            
+            try:
+                out = {}
+
+                # GIT
+                os.chdir('digipal')
+                system('git status', '', False, '', out)
+                
+                branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
+                has_local_change = (out['output'].find('nothing to commit') == -1)
+                
+                status = branch
+                if has_local_change:
+                    status += ' (%s)' % 'LOCAL CHANGES'
+                
+                print 'digipal: %s ' % (status,)
+                
+                os.chdir(dir)
+                
+                # HG          
+                system('hg sum', '', False, '', out)
+                
+                branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
+                parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
+                modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
+                has_local_change = (len(modified) != out['output'])                  
+
+                status = '%s, %s' % (branch, parent)
+                if has_local_change:
+                    status += ' (%s)' % 'LOCAL CHANGES'
+                
+                print 'digipal_django: %s ' % (status,)
+            finally:
+                os.chdir(dir)          
         
         if command == 'hgsub':
             known_command = True

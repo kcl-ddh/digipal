@@ -179,7 +179,7 @@ class SearchManuscripts(SearchContentType):
                         description, location = historical_item.get_display_description(), 0
                     # get the description text
                     if description:
-                        text = description.description
+                        text = description.get_description_plain_text()
                         # truncate around the location
                         record.description_snippet = self._truncate_text(text, location, snippet_length)
                         # add the description author (e.g. ' (G.)' for Gneuss)
@@ -203,7 +203,7 @@ class SearchManuscripts(SearchContentType):
         if re_terms:
             # search the descriptions
             for adesc in descriptions:
-                m = re.search(ur'(?ui)' + re_terms, adesc.description)
+                m = re.search(ur'(?ui)' + re_terms, adesc.get_description_plain_text())
                 if m:
                     location = m.start()
                     desc = adesc

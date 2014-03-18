@@ -14,6 +14,7 @@ import cgi
 import iipimage.fields
 import iipimage.storage
 from django.utils.html import conditional_escape, escape
+from tinymce.models import HTMLField
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -68,7 +69,7 @@ class MediaPermission(models.Model):
         help_text='''An short label describing the type of permission. For internal use only.''')
     is_private = models.BooleanField(null=False, default=False,
         help_text='''If ticked the image the following message will be displayed instead of the image.''')
-    display_message = models.TextField(blank=True, null=False, default='',
+    display_message = HTMLField(blank=True, null=False, default='',
         help_text='''If Private is ticked the image the message will be displayed instead of the image.''')
 
     class Meta:
@@ -308,7 +309,7 @@ class Reference(models.Model):
     name = models.CharField(max_length=128)
     name_index = models.CharField(max_length=1, blank=True, null=True)
     legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
-    full_reference = models.TextField()
+    full_reference = HTMLField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -648,7 +649,7 @@ class Description(models.Model):
 
     source = models.ForeignKey(Source)
 
-    description = models.TextField(blank=True, null=True)
+    description = HTMLField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     summary = models.CharField(max_length=256, blank=True, null=True)
 
@@ -670,6 +671,13 @@ class Description(models.Model):
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source)
+    
+    def get_description_plain_text(self):
+        ret = self.description
+        if ret:
+            from django.utils.html import strip_tags
+            ret = strip_tags(ret)
+        return ret
 
 # Manuscripts in legacy db
 class Layout(models.Model):
@@ -819,7 +827,7 @@ class Repository(models.Model):
     comma = models.NullBooleanField(null=True)
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
-    copyright_notice = models.TextField(blank=True, null=True)
+    copyright_notice = HTMLField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True,
             blank=True, default=None,
             help_text='''The default permission scheme for images originating
@@ -1614,7 +1622,7 @@ Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, s
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
     source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
-    description = models.TextField()
+    description = models.TextField(help_text='''This field accepts TEI elements.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

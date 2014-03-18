@@ -1,6 +1,6 @@
 {% extends "pages/record.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags %}
+{% load pagination_tags hand_filters %}
 
 {% block meta_title %}{{ item_part.historical_item.historical_item_type|title }}: {{ item_part.display_label }}{% endblock %}
 {% block record_title %}
@@ -77,9 +77,7 @@
                                     {% endif %}
                                 {% endfor %}
                             </h3>
-                            <p>
-                                {{ desc.description }}
-                            </p>
+                            {{ desc.description|richfield }}
                         {% endfor %}
                     {% endfor %}
                 {% else %}

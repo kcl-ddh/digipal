@@ -79,6 +79,25 @@ def multiply(value, arg):
     return int(val)
 
 
+@register.filter()
+def richfield(val):
+    "Render a HTML field for the front end. Make it safe, make sure it is surrounded by <p>."
+    import re
+    
+    # trim the value from empty spaces and lines
+    ret = re.sub(ur'(?usi)^\s+', '', val)
+    ret = re.sub(ur'(?usi)\s+$', '', ret)
+    
+    if ret:
+        is_xml = (val[0] == u'<')
+        if not is_xml:
+            # this is a plain text field
+            # convert to HTML by surrounding lines with <p>
+            ret = u'<p>%s</p>' % (u'</p><p>'.join(re.split(ur'[\r\n]+', ret)),)
+    
+    return mark_safe(ret)
+
+
 # TEI conversion
 
 @register.filter
@@ -172,3 +191,4 @@ def chrono(label):
     return''
 chrono.last_time = datetime.now()
 chrono.last_times = {}
+

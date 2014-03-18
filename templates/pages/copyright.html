@@ -1,8 +1,7 @@
+{% load pagination_tags hand_filters %}
 
 <div class="alert alert-warning">
     {% for repository in repositories %}
-        <p>
-            {{ repository.copyright_notice }}
-        </p>
+        {{ repository.copyright_notice|richfield }}
     {% endfor %}
 </div>

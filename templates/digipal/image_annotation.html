@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load html_escape %}
+{% load html_escape hand_filters %}
 
 {% block meta_title %}
     {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
@@ -20,9 +20,7 @@
     </h2>
 
     {% if no_image_reason %}
-        <p>
-            {{ no_image_reason }}
-        </p>
+        {{ no_image_reason|richfield }}
     {% endif %}
     {% if not no_image_reason or can_edit %}
 

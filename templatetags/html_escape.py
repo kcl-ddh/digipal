@@ -258,3 +258,23 @@ def dp_pagination_for(context, current_page):
     ret = paginate(context)
       
     return ret
+
+@register.simple_tag
+def render_mezzanine_page(page_title, *args, **kwargs):
+    '''
+        Usage: {% render_mezzanine_page 'TITLE' %}
+        
+        Returns the content of the Mezzanine page with title TITLE.
+        The output is a string already marked as safe.
+    '''
+    ret = ''
+    from mezzanine.pages.models import Page
+    pages = Page.objects.filter(title=page_title)
+    if pages.count():
+        page = pages[0]
+        rtp = page.get_content_model()
+        if rtp:
+            ret = rtp.content
+    return ret
+
+    

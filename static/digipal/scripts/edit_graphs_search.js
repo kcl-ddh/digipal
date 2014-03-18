@@ -274,8 +274,13 @@ function EditGraphsSearch() {
 					event.stopPropagation();
 				});
 
-				/*  */
-				self.dialog.edit_letter.init(self.selectedAnnotations[self.selectedAnnotations.length - 1]);
+				var tabs = $('a[data-toggle="tab"]');
+				tabs.on('shown.bs.tab', function(e) {
+					if (e.target.getAttribute('data-target') == '#edit') {
+						self.dialog.edit_letter.init(self.selectedAnnotations[self.selectedAnnotations.length - 1]);
+					}
+				});
+
 
 				/* updating selected annotations count */
 				if (self.selectedAnnotations.length > 1) {

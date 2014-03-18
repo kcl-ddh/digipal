@@ -39,6 +39,13 @@ function Allographs(dialog, cache) {
 				methods.save();
 			});
 
+			var tabs = $('a[data-toggle="tab"]');
+			tabs.on('shown.bs.tab', function(e) {
+				if (e.target.getAttribute('data-target') == '#edit') {
+					self.dialog_instance.edit_letter.init(annotation.graph);
+				}
+			});
+
 		});
 
 		/* applying select event to annotations */
@@ -465,8 +472,6 @@ function Allographs(dialog, cache) {
 					var select_list = $('select');
 					select_list.trigger('liszt:updated');
 
-					self.dialog_instance.edit_letter.init(annotation.graph);
-
 					if (callback) {
 						callback();
 					}
@@ -695,7 +700,9 @@ function Allographs(dialog, cache) {
 
 }
 
-var allographs_cache = new AnnotationsCache();
-var dialog = new Dialog();
-var allographsPage = new Allographs(dialog, allographs_cache);
-allographsPage.init();
+(function() {
+	var allographs_cache = new AnnotationsCache();
+	var allographs_dialog = new Dialog();
+	var allographsPage = new Allographs(allographs_dialog, allographs_cache);
+	allographsPage.init();
+})();

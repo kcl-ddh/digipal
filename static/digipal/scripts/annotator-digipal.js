@@ -692,7 +692,7 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 	annotator.selectedFeature = null;
 	annotator.selectedAnnotations = [];
 	annotator.cacheAnnotations.clear();
-	$('div[role=dialog]').remove();
+	$('.dialog_annotations').parent().remove();
 	var request = $.getJSON(annotator.absolute_image_url + 'annotations/', function(data) {
 		annotator.annotations = data;
 	});

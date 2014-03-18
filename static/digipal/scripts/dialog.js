@@ -240,12 +240,12 @@ function Dialog() {
     };
 
     var hide = function() {
-        selector.fadeOut();
+        selector.hide();
         open = false;
     };
 
     var show = function() {
-        selector.fadeIn();
+        selector.show();
         open = true;
         events(selector);
     };

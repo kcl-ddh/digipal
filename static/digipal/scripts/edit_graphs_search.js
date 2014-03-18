@@ -345,14 +345,14 @@ function EditGraphsSearch() {
 		},
 
 		delete: function() {
-			var image_id = self.dialog.temp.image_id;
+			var image_id;
 			var msg, graph, annotation_id;
 
 			if (self.selectedAnnotations.length == 1) {
 				msg = 'You are about to delete 1 annotation. Continue?';
 				graph = self.selectedAnnotations[0];
 				annotation_id = cache.graphs[graph].vector_id;
-
+				image_id = cache.graphs[graph].image_id;
 				if (confirm(msg)) {
 					delete_annotation(image_id, annotation_id, function() {
 						var graph_element = $('[data-graph="' + graph + '"]');
@@ -369,6 +369,7 @@ function EditGraphsSearch() {
 					for (var i = 0; i < self.selectedAnnotations.length; i++) {
 						graph = self.selectedAnnotations[i];
 						annotation_id = cache.graphs[graph].vector_id;
+						image_id = cache.graphs[graph].image_id;
 						delete_annotation(image_id, annotation_id);
 						var graph_element = $('[data-graph="' + graph + '"]');
 						graph_element.fadeOut().remove();

@@ -357,7 +357,7 @@ function EditGraphsSearch() {
 					delete_annotation(image_id, annotation_id, function() {
 						var graph_element = $('[data-graph="' + graph + '"]');
 						graph_element.fadeOut().remove();
-
+						self.selectedAnnotations = [];
 						// deleting graph from cache
 						delete cache.graphs[graph];
 					});

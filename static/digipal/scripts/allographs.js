@@ -217,7 +217,7 @@ function Allographs(dialog, cache) {
 			var ul = $('ul[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', false);
-			var checkboxes = ul.find('li');
+			var checkboxes = ul.find('li').not('.selected');
 			for (var i = 0; i < checkboxes.length; i++) {
 				methods.select_annotation($(checkboxes[i]));
 			}

@@ -68,7 +68,9 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
+					notify('Image succesfully added to collection', 'success');
 				} else {
+					notify('Annotation has already been added to Collection', 'danger');
 					continue;
 				}
 			}
@@ -110,6 +112,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 
 					if (elements[j] == graph) {
 						flag = false;
+						break;
 					}
 
 				} else {
@@ -184,7 +187,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 	}
 
 	update_collection_counter();
-	notify('Image succesfully added to collection', 'success');
 	return true;
 }
 

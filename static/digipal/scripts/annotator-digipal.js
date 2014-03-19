@@ -1738,7 +1738,6 @@ function showBox(selectedFeature, callback) {
 		highlight_vectors();
 	}
 
-
 	if (selectedFeature === null || typeof selectedFeature == "undefined") {
 		create_dialog(null, id);
 		fill_dialog(id, null);
@@ -1763,9 +1762,8 @@ function showBox(selectedFeature, callback) {
 	if (annotator.boxes_on_click) {
 		create_dialog(selectedFeature, id);
 		fill_dialog(id, selectedFeature);
-
-		dialog = $('#dialog' + id);
 	}
+
 	var n = 0;
 	var annotations = annotator.annotations;
 
@@ -1803,7 +1801,7 @@ function showBox(selectedFeature, callback) {
 			cache.update('allograph', data[0]['allograph_id'], data[0]);
 			cache.update('graph', graph, data[0]);
 			if (annotator.boxes_on_click) {
-				refresh_dialog(dialog, data[0], selectedFeature, callback);
+				refresh_dialog(id, data[0], selectedFeature, callback);
 			}
 		});
 
@@ -1816,7 +1814,7 @@ function showBox(selectedFeature, callback) {
 			data[0]['allographs'] = cache.cache.allographs[allograph];
 			cache.update('graph', graph, data[0]);
 			if (annotator.boxes_on_click) {
-				refresh_dialog(dialog, data[0], selectedFeature, callback);
+				refresh_dialog(id, data[0], selectedFeature, callback);
 			}
 		});
 
@@ -1829,7 +1827,7 @@ function showBox(selectedFeature, callback) {
 		data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
 		data['hands'] = cache.cache.graphs[graph]['hands'];
 		if (annotator.boxes_on_click) {
-			refresh_dialog(dialog, data, selectedFeature, callback);
+			refresh_dialog(id, data, selectedFeature, callback);
 		}
 	}
 }
@@ -1852,9 +1850,10 @@ function refresh_features_dialog(features, dialog) {
 	dialog.html(s);
 }
 
-function refresh_dialog(dialog, data, selectedFeature, callback) {
+function refresh_dialog(dialog_id, data, selectedFeature, callback) {
 
 	var can_edit = $('#development_annotation').is(':checked');
+	var dialog = $('#dialog' + dialog_id);
 
 	if (can_edit) {
 

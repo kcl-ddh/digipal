@@ -37,12 +37,6 @@ function AnnotatorLoader() {
 		reload_described_annotations();
 		trigger_highlight_unsaved_vectors();
 
-
-		// loading annotations through URL (if there are)
-		self.load_temporary_vector();
-		self.load_stored_vector();
-
-
 		// activating event on filter button
 		var filter_allographs_button = $('#filterAllographs');
 		filter_allographs_button.click(function() {
@@ -168,6 +162,10 @@ function AnnotatorLoader() {
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 		self.toolbar_position();
+
+		// loading annotations through URL (if there are)
+		self.load_temporary_vector();
+		self.load_stored_vector();
 
 		$('#toolbar div').tooltip({
 			container: 'body',

@@ -1966,6 +1966,38 @@ class Proportion(models.Model):
     def __unicode__(self):
         #return u'%s. %s' % (self.hand, self.measurement)
         return get_list_as_string(self.hand, '. ', self.measurement)
+    
+class CarouselItem(models.Model):
+    link = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the page this item links to. E.g. /digipal/page/80/')
+    image = models.CharField(max_length=200, blank=False, null=False, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg')
+    image_alt = models.CharField(max_length=300, blank=True, null=True, help_text='a few words describing the image content.')
+    image_title = models.CharField(max_length=300, blank=True, null=True, help_text='the piece of text that appears when the user moved the mouse over the image (optional).')
+    sort_order = models.IntegerField(help_text='The order of this item in the carousel. 1 appears first, 2 second, etc. 0 is hidden.')
+    title = models.CharField(max_length=300, help_text='The caption under the image of this item. This can contain some inline HTML. You can surround some text with just <a>...</a>.')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['sort_order', 'title']
+
+    def __unicode__(self):
+        return u'%s' % (self.title)
+    
+    @staticmethod
+    def get_visible_items():
+        '''Returns the visible carousel slides/items in the correct display order'''
+        ret = CarouselItem.objects.filter(sort_order__gt=0).order_by('sort_order')
+        return ret
+    
+    def title_with_link(self):
+        '''Returns the item title with a correct hyperlink'''
+        ret = self.title
+        if ret.find('<a>') == -1:
+            ret = '<a href="%s">%s</a>' % (self.link, ret)
+        else:
+            ret = ret.replace('<a>', '<a href="%s">' % self.link)
+        return mark_safe(ret)
 
 # Import of Stewart's database
 class StewartRecord(models.Model):

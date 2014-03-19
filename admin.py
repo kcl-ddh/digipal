@@ -21,7 +21,8 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord, HandDescription, RequestLog, Text, TextItemPart
+        StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
+        CarouselItem
 import reversion
 import django_admin_customisations
 from mezzanine.core.admin import StackedDynamicInlineAdmin
@@ -1231,6 +1232,15 @@ class TextAdmin(reversion.VersionAdmin):
     
     inlines = [TextItemPartInline, CatalogueNumberInline, DescriptionInline]
 
+class CarouselItemAdmin(reversion.VersionAdmin):
+    model = CarouselItem
+    
+    list_display = ['title', 'sort_order', 'created', 'modified']
+    list_display_link = ['title', 'created', 'modified']
+    list_editable = ['sort_order']
+    search_fields = ['title']
+    ordering = ['sort_order']
+
 class StewartRecordFilterMatched(admin.SimpleListFilter):
     title = 'Match'
     parameter_name = 'matched'
@@ -1404,6 +1414,7 @@ admin.site.register(Script, ScriptAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Status, StatusAdmin)
 admin.site.register(MediaPermission, MediaPermissionAdmin)
+admin.site.register(CarouselItem, CarouselItemAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(Text, TextAdmin)

@@ -1991,12 +1991,16 @@ class CarouselItem(models.Model):
         return ret
     
     def title_with_link(self):
-        '''Returns the item title with a correct hyperlink'''
+        '''Returns the item title with a correct hyperlink
+            The HTML is marked safe and the links are properly escaped (e.g. &amp;)
+            so no further trasnform is needed in the template.
+        '''
+        from django.utils.html import escape
         ret = self.title
         if ret.find('<a>') == -1:
-            ret = '<a href="%s">%s</a>' % (self.link, ret)
+            ret = '<a href="%s">%s</a>' % (escape(self.link), ret)
         else:
-            ret = ret.replace('<a>', '<a href="%s">' % self.link)
+            ret = ret.replace('<a>', '<a href="%s">' % escape(self.link))
         return mark_safe(ret)
 
 # Import of Stewart's database

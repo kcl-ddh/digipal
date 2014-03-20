@@ -888,6 +888,17 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ) 
     filter_horizontal = ['owners']
     inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    
+    # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
+    # to update this field and resave the IP *after* the related models have been saved!
+    # See https://code.djangoproject.com/ticket/13950 
+    def response_add(self, request, obj, *args, **kwargs):
+        obj._update_display_label_and_save()
+        return super(ItemPartAdmin, self).response_add(request, obj, *args, **kwargs)
+    
+    def response_change(self, request, obj, *args, **kwargs):
+        obj._update_display_label_and_save()
+        return super(ItemPartAdmin, self).response_change(request, obj, *args, **kwargs)
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType

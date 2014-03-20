@@ -1054,15 +1054,24 @@ class ItemPart(models.Model):
         return self.subdivisions.all().count()
     get_part_count.short_description = 'Parts'
     get_part_count.allow_tags = False
+    
+    def _update_display_label_and_save(self):
+        ''' only save if the display label has changed '''
+        if self._update_display_label():
+            self.save()
 
-    def save(self, *args, **kwargs):
-        #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
+    def _update_display_label(self):
+        old_label = self.display_label
         if self.current_item:
             self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
         else:
             label = self.historical_label
             if label:
                 self.display_label = label
+        return old_label != self.display_label
+    
+    def save(self, *args, **kwargs):
+        self._update_display_label()
         super(ItemPart, self).save(*args, **kwargs)
 
     @property

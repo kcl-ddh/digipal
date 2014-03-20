@@ -700,9 +700,8 @@ function Allographs(dialog, cache) {
 
 }
 
-(function() {
-	var allographs_cache = new AnnotationsCache();
-	var allographs_dialog = new Dialog();
-	var allographsPage = new Allographs(allographs_dialog, allographs_cache);
-	allographsPage.init();
-})();
+
+var allographs_cache = new AnnotationsCache();
+var allographs_dialog = new Dialog();
+var allographsPage = new Allographs(allographs_dialog, allographs_cache);
+allographsPage.init();

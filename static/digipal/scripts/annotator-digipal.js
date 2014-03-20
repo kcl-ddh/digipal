@@ -2451,7 +2451,6 @@ function make_form() {
 function save(url, feature, data, ann, features) {
 	var id = feature.id;
 	var temp = feature;
-
 	var form_serialized = data;
 	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 	var geoJson = annotator.format.write(feature);
@@ -2561,6 +2560,8 @@ function save(url, feature, data, ann, features) {
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
 					allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
 					allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
+					annotation.hidden_allograph = new_allograph + '::' + allograph;
+
 				}
 
 				var f = annotator.vectorLayer.features;

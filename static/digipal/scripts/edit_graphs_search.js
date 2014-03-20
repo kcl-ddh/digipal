@@ -314,12 +314,15 @@ function EditGraphsSearch() {
 
 				save(url, feature, data.form_serialized, function(data) {
 					var new_graphs = data['graphs'];
+					console.log(data);
+
 					for (var ind = 0; ind < new_graphs.length; ind++) {
 						var new_graph = new_graphs[ind].graph,
 							new_allograph = new_graphs[ind].allograph_id;
 						self.cache.update('graph', new_graph, new_graphs[ind]);
-						self.cache.update('allograph', new_allograph, new_graphs[ind]);
+						//self.cache.update('allograph', new_allograph, new_graphs[ind]);
 					}
+					console.log(self.cache);
 				});
 
 			} else {

@@ -1004,7 +1004,7 @@ class ImageAdmin(reversion.VersionAdmin):
             'annotation_status', 'media_permission', 'created', 'modified',
             'iipimage']
     search_fields = ['id', 'display_label', 'locus', 
-            'item_part__display_label', 'iipimage', 'annotation_status']
+            'item_part__display_label', 'iipimage', 'annotation_status__name']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
     

@@ -7,16 +7,16 @@
 {% block head %}
     <h1>Map Search</h1>
 
-    <div class="row" id="map-panel">
-        <div class="span4" id="map-search">
+    <div class="panel" id="map-panel">
+        <div class="col-sm-4" id="map-search">
             <form method="get" action=".">
                 <input type="text" name="q" value="{{ q }}" title="Search for place, shelfmark or MS" data-toggle="tooltip"/>
                 <button type="submit" name="s" value="1">Search</button>
             </form>
             <h4>Place name</h4>
-            <ul>
+            <ul class="list-group">
                 {% for record in records %}
-                    <li class="record place-{{ record.owners.all.0.institution.place.id }}">
+                    <li class="list-group-item record place-{{ record.owners.all.0.institution.place.id }}">
                         <a title="See the itempart record" href="{{ record.get_absolute_url }}">{{ record.display_label }}</a> 
                         <span class="place-name">
                             in
@@ -36,7 +36,7 @@
                 {% endfor %}
             </ul>
         </div>
-        <div class="span8">
+        <div class="col-sm-8">
             <div id="map"/>
         </div>
     </div>
@@ -50,11 +50,13 @@
     <style>
     #map-panel {
         height: 500px;
+        /*
         padding: 1em;
-        border: 1px solid lightgrey;
+        border: 1px solid lightgrey; 
+        */
     }
     #map {
-        height: 500px;
+        height: 485px;
     }
     #map-search {
         height: 100%;

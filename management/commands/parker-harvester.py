@@ -128,6 +128,12 @@ class Command(BaseCommand):
     def make_csv(self, output):
         print output
 
+        with open("output.csv", 'wb') as outcsv:
+            writer = csv.writer(outcsv, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
+            writer.writerow(['Repository', 'Shelfmark', 'Page', 'URL'])
+            for item in output:
+                writer.writerow([item[0], item[1], item[2], item[3]])
+
     def lookup_collection_manifest(self, url_json_file, manuscripts_csv):
 
         # getting colle+ctions manifest json
@@ -152,8 +158,9 @@ class Command(BaseCommand):
 
     def lookup_manuscript_manifest(self, manuscripts_from_json, manuscripts_csv):
         output = []
-        for manuscript in manuscripts_from_json:
-            output_obj = {}
+        for manuscript in manuscripts_from_json[:5]:
+            output_obj = []
+
             if self.command == 'test':
                 print '\n---------------------------------------------'
                 print 'Manuscript: %s' % (manuscript['manuscript'])
@@ -163,7 +170,10 @@ class Command(BaseCommand):
             json_file = urllib2.urlopen(request).read()
             json_object = json.loads(json_file)
             shelfmark = re.sub(r'CCCC MS ([\d]+)(.)*', r'\g<1>', manuscript['manuscript'])
-            output_obj['manuscript'] = manuscript['manuscript']
+
+            output_obj.append("CCCC")
+            output_obj.append(shelfmark)
+
             # parsing json file
             sequences = json_object['sequences']
 
@@ -181,12 +191,14 @@ class Command(BaseCommand):
                             url = url[0:index] + 'app/' + url[index: len(url)]
 
                             # building output object
-                            output_obj['page'] = canvas['label']
-                            output_obj['url'] = url
+                            output_obj.append(canvas['label']) # page
+                            output_obj.append(url)  # url
                             output.append(output_obj)
+
                             if self.command == 'test':
                                 print "Label: ", canvas['label']
                                 print "URL: ", url
+
                             if self.command == "download":
                                 self.download(url, canvas['label'] + '.jpg', manuscript['manuscript'])
         return output

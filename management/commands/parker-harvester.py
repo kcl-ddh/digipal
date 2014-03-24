@@ -1,5 +1,5 @@
-import urllib2, sys, json, csv, os, base64, re
-from django.core.management.base import BaseCommand, CommandError
+import urllib2, json, csv, os, base64, re
+from django.core.management.base import BaseCommand
 from optparse import make_option
 
 class Command(BaseCommand):
@@ -24,24 +24,32 @@ class Command(BaseCommand):
         make_option('--size',
             default='',
             help='size of the images to download. Must be one among ["small", "medium", "large", "xlarge", "full", "thumb"]'),
-        make_option('--csv_filename',
+        make_option('--csv-file',
             default=False,
             help='csv file to be parsed'),
+        make_option('--output-folder',
+            default=False,
+            help='folder where to store downloaded images'),
         make_option('--dry-run',
             default=False,
             help='a boolean to specify whether download the images or not')
         )
 
     def handle(self, *args, **options):
-        # allowed sizes provided by the Parker APIs
-        # if a wrong size is provided, raise an exception
 
         self.username = args[0]
         self.password = args[1]
         self.size = args[2]
         self.input_csv = args[3]
-        self.dry_run = args[4]
+        self.output_folder = args[4]
 
+        if args < 4:
+            self.dry_run = True
+        else:
+            self.dry_run = args[5]
+
+        # allowed sizes provided by the Parker APIs
+        # if a wrong size is provided, raise an exception
         allowed_sizes = ["small", "medium", "large", "xlarge", "full", "thumb"]
 
         if self.size and self.size not in allowed_sizes:
@@ -111,7 +119,7 @@ class Command(BaseCommand):
     def lookup_manuscript_manifest(self, manuscripts_from_json, manuscripts_csv):
         output = {}
         m = 0
-        for manuscript in manuscripts_from_json:
+        for manuscript in manuscripts_from_json[:5]:
 
             print '\n---------------------------------------------'
             print 'Manuscript: %s' % (manuscript['manuscript'])
@@ -141,7 +149,7 @@ class Command(BaseCommand):
                             url = url[0:index] + 'app/' + url[index: len(url)]
                             print "Label: ", canvas['label']
                             print "URL: ", url
-                            if self.dry_run == "--dry-run":
+                            if self.dry_run == "True":
                                 self.download(url, canvas['label'] + '.jpg')
 
     def download(self, url, filename):
@@ -152,7 +160,11 @@ class Command(BaseCommand):
         authheader =  "Basic %s" % base64string
         request.add_header("Authorization", authheader)
 
+        if not os.path.isdir(self.output_folder):
+            os.mkdir(self.output_folder)
+
+        print os.path.isdir(self.output_folder)
         # open a file and write image's data
-        image_file = open(filename, 'wb')
+        image_file = open(self.output_folder + '/' + filename, 'wb')
         image_data = urllib2.urlopen(request).read()
         image_file.write(image_data)

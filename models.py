@@ -673,11 +673,9 @@ class Description(models.Model):
         return get_list_as_string(self.historical_item, ' ', self.source)
     
     def get_description_plain_text(self):
-        ret = self.description
-        if ret:
-            from django.utils.html import strip_tags
-            ret = strip_tags(ret)
-        return ret
+        '''Returns the description in plain text, no html tag or any encoding, just utf-8'''
+        from utils import get_plain_text_from_html
+        return get_plain_text_from_html(self.description)
 
 # Manuscripts in legacy db
 class Layout(models.Model):

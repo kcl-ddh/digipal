@@ -157,7 +157,7 @@ class SearchManuscripts(SearchContentType):
         # If no match at all, we use the normal description selection.
         whoosh_dict = self.get_whoosh_dict()
         for record in ret:
-            # Shoosh snippets temporary disabled, see reason below
+            # Whoosh snippets temporary disabled, see reason below
             if 0:
                 description = record.historical_item.get_display_description().description
                 if whoosh_dict:

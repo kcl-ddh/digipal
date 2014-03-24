@@ -230,3 +230,14 @@ def get_int_from_roman_number(input):
     for n in places: sum += n
     return sum
 
+def get_plain_text_from_html(html):
+    '''Returns the unencoded text from a HTML fragment. No tags, no entities, just plain utf-8 text.'''
+    ret = html
+    if ret:
+        from django.utils.html import strip_tags
+        import HTMLParser
+        html_parser = HTMLParser.HTMLParser()
+        ret = strip_tags(html_parser.unescape(ret))        
+    else:
+        ret = u''
+    return ret

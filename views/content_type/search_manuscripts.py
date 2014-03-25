@@ -3,6 +3,7 @@ from search_content_type import SearchContentType
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
+from django.conf import settings
 
 class SearchManuscripts(SearchContentType):
 
@@ -24,13 +25,14 @@ class SearchManuscripts(SearchContentType):
         return ret
 
     def get_headings(self):
-        return [
+        ret = [
                     {'label': 'Index', 'key': 'index', 'is_sortable': False},
                     {'label': 'Repository', 'key': 'repository', 'is_sortable': True, 'title': 'Repository and Shelfmark'},
                     {'label': 'Shelfmark', 'key': 'shelfmark', 'is_sortable': False},
                     {'label': 'Folio(s)', 'key': 'folio', 'is_sortable': False},
                     {'label': 'Description', 'key': 'description', 'is_sortable': False},
                 ]
+        return getattr(settings, 'SEARCH_ITEM_PART_HEADINGS', ret)
     
     def get_default_ordering(self):
         return 'repository'

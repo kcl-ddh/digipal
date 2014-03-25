@@ -7,13 +7,14 @@ from optparse import make_option
 class Command(BaseCommand):
     help = """
         Parker Harvester script
-        parker-harvester.py <username> <password> <size> <input_csv> <dry_run>
+        parker-harvester.py <command> <username> <password> <size> <input_csv> <folder_output>
         \n\tOptions:
+        \t\t<command>:\tcommand to be executed test|download
         \t\t<username>:\tusername to authenticate to the Parker On The Web server
         \t\t<password>:\tpassword to authenticate to the Parker On The Web server
         \t\t<size>:\tsize of the images to download. Must be one among ["small", "medium", "large", "xlarge", "full", "thumb"]
         \t\t<input_csv>:\tname of the .csv file to be parsed
-        \t\t<dry_run>:\ta boolean to specify whether download the images or not
+        \t\t<folder_output>:\tfolder where files will be downloaded
     """
 
     option_list = BaseCommand.option_list + (
@@ -49,7 +50,7 @@ class Command(BaseCommand):
         self.input_csv = args[4]
         self.output_folder = args[5]
 
-        # run download command
+        # run command
         self.run_command()
 
     def run_command(self):
@@ -67,7 +68,10 @@ class Command(BaseCommand):
         selected_manuscripts = self.selected_manuscripts(manuscripts_csv)
 
         manuscripts_collection = self.lookup_collection_manifest(url_json_manifest, manuscripts_shelfmark_csv)
-        self.lookup_manuscript_manifest(manuscripts_collection, selected_manuscripts)
+        output = self.lookup_manuscript_manifest(manuscripts_collection, selected_manuscripts)
+
+        # making csv output file
+        self.make_csv(output)
 
     def csv_to_array(self, csv_dict):
         # building array manuscripts contained in the csv file
@@ -121,6 +125,15 @@ class Command(BaseCommand):
             csv_object = csv.DictReader(open(file_name))
         return csv_object
 
+    def make_csv(self, output):
+        print output
+
+        with open("output.csv", 'wb') as outcsv:
+            writer = csv.writer(outcsv, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
+            writer.writerow(['Repository', 'Shelfmark', 'Page', 'URL'])
+            for item in output:
+                writer.writerow([item[0], item[1], item[2], item[3]])
+
     def lookup_collection_manifest(self, url_json_file, manuscripts_csv):
 
         # getting colle+ctions manifest json
@@ -144,7 +157,9 @@ class Command(BaseCommand):
 
 
     def lookup_manuscript_manifest(self, manuscripts_from_json, manuscripts_csv):
-        for manuscript in manuscripts_from_json:
+        output = []
+        for manuscript in manuscripts_from_json[:5]:
+            output_obj = []
 
             if self.command == 'test':
                 print '\n---------------------------------------------'
@@ -155,6 +170,9 @@ class Command(BaseCommand):
             json_file = urllib2.urlopen(request).read()
             json_object = json.loads(json_file)
             shelfmark = re.sub(r'CCCC MS ([\d]+)(.)*', r'\g<1>', manuscript['manuscript'])
+
+            output_obj.append("CCCC")
+            output_obj.append(shelfmark)
 
             # parsing json file
             sequences = json_object['sequences']
@@ -172,11 +190,18 @@ class Command(BaseCommand):
                             index = url.find('/image/') + len('/image/')
                             url = url[0:index] + 'app/' + url[index: len(url)]
 
+                            # building output object
+                            output_obj.append(canvas['label']) # page
+                            output_obj.append(url)  # url
+                            output.append(output_obj)
+
                             if self.command == 'test':
                                 print "Label: ", canvas['label']
                                 print "URL: ", url
+
                             if self.command == "download":
                                 self.download(url, canvas['label'] + '.jpg', manuscript['manuscript'])
+        return output
 
     def download(self, url, file_name, folder_name):
 

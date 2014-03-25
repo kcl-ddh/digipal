@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib2, json, csv, os, base64, re
+import urllib2, json, csv, os, base64, re, time
 from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
 
@@ -126,7 +126,7 @@ class Command(BaseCommand):
         return csv_object
 
     def make_csv(self, output):
-        print output
+
         with open("output.csv", 'wb') as outcsv:
             writer = csv.writer(outcsv, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
             writer.writerow(['Repository', 'Shelfmark', 'Page', 'URL'])
@@ -199,6 +199,7 @@ class Command(BaseCommand):
 
                             if self.command == "download":
                                 self.download(url, canvas['label'], manuscript['manuscript'])
+                                time.sleep(12)
         return output
 
     def download(self, url, file_name, folder_name):

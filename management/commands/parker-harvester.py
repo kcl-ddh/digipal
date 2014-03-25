@@ -187,6 +187,7 @@ class Command(BaseCommand):
                                 url += '_' + self.size
                             index = url.find('/image/') + len('/image/')
                             url = url[0:index] + 'app/' + url[index: len(url)]
+                            url = url.replace('TC', 'NC')
 
                             # building output object
                             output_obj.append(canvas['label']) # page

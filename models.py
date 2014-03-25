@@ -1116,6 +1116,17 @@ class ItemPart(models.Model):
             pass
         return ret
 
+    def get_current_items(self):
+         # this function will return all related current items.
+         # by looking at this CI and also the subdivisions CI.
+         ret = {}
+         if self.current_item:
+             ret[self.current_item.id] = self.current_item
+         for subdivision in self.subdivisions.all().order_by('id'):
+             if subdivision.current_item:
+                 ret[subdivision.current_item.id] = subdivision.current_item
+         return ret.values()
+
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''

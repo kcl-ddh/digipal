@@ -127,7 +127,6 @@ class Command(BaseCommand):
 
     def make_csv(self, output):
         print output
-
         with open("output.csv", 'wb') as outcsv:
             writer = csv.writer(outcsv, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
             writer.writerow(['Repository', 'Shelfmark', 'Page', 'URL'])
@@ -158,8 +157,7 @@ class Command(BaseCommand):
 
     def lookup_manuscript_manifest(self, manuscripts_from_json, manuscripts_csv):
         output = []
-        for manuscript in manuscripts_from_json[:5]:
-            output_obj = []
+        for manuscript in manuscripts_from_json:
 
             if self.command == 'test':
                 print '\n---------------------------------------------'
@@ -171,9 +169,6 @@ class Command(BaseCommand):
             json_object = json.loads(json_file)
             shelfmark = re.sub(r'CCCC MS ([\d]+)(.)*', r'\g<1>', manuscript['manuscript'])
 
-            output_obj.append("CCCC")
-            output_obj.append(shelfmark)
-
             # parsing json file
             sequences = json_object['sequences']
 
@@ -182,6 +177,9 @@ class Command(BaseCommand):
                 for canvas in canvases:
                     value_canvas = re.sub(r'(p|f)*[^\w]*', '', canvas['label']).lower().replace(' ','')
                     if value_canvas in manuscripts_csv[shelfmark]:
+                        output_obj = []
+                        output_obj.append("CCCC")
+                        output_obj.append(shelfmark)
                         resources = canvas['resources']
                         for resource in resources:
                             url = resource['resource']['@id']
@@ -200,10 +198,12 @@ class Command(BaseCommand):
                                 print "URL: ", url
 
                             if self.command == "download":
-                                self.download(url, canvas['label'] + '.jpg', manuscript['manuscript'])
+                                self.download(url, canvas['label'], manuscript['manuscript'])
         return output
 
     def download(self, url, file_name, folder_name):
+
+        image_file_name = self.output_folder + '/' + folder_name + '/' + file_name + '.' + self.size + '.jpg'
 
         if not os.path.isdir(self.output_folder):
             os.mkdir(self.output_folder)
@@ -211,7 +211,7 @@ class Command(BaseCommand):
         if not os.path.isdir(self.output_folder + '/' + folder_name):
             os.mkdir(self.output_folder + '/' + folder_name)
 
-        if not os.path.isfile(self.output_folder + '/' + folder_name + '/' + file_name):
+        if not os.path.isfile(image_file_name):
 
             # building request
             request = urllib2.Request(url)
@@ -220,7 +220,7 @@ class Command(BaseCommand):
             request.add_header("Authorization", authheader)
 
             # open a file and write image's data
-            image_file = open(self.output_folder + '/' + folder_name + '/' + file_name, 'wb')
+            image_file = open(image_file_name, 'wb')
             image_data = urllib2.urlopen(request).read()
             image_file.write(image_data)
             image_file.close()

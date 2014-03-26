@@ -136,10 +136,13 @@ class Command(BaseCommand):
     def lookup_collection_manifest(self, url_json_file, manuscripts_csv):
 
         # getting colle+ctions manifest json
-        request = urllib2.Request(url_json_file)
-        json_file = urllib2.urlopen(request).read()
-        json_object = json.loads(json_file.replace('\'', '"'))
-
+        try:
+            request = urllib2.Request(url_json_file)
+            json_file = urllib2.urlopen(request).read()
+            json_object = json.loads(json_file.replace('\'', '"'))
+        except:
+            print 'ERROR:'
+            print 'Tried to Download %s' % (url_json_file)
         # list for storing final manuscripts array
         list_manuscripts = []
 
@@ -216,16 +219,22 @@ class Command(BaseCommand):
         if not os.path.isfile(image_file_name):
 
             # building request
-            request = urllib2.Request(url)
-            base64string = base64.encodestring('%s:%s' % (self.username, self.password))
-            authheader =  "Basic %s" % base64string
-            request.add_header("Authorization", authheader)
 
-            # open a file and write image's data
-            image_file = open(image_file_name, 'wb')
-            image_data = urllib2.urlopen(request).read()
-            image_file.write(image_data)
-            image_file.close()
+            try:
+                request = urllib2.Request(url)
+                base64string = base64.encodestring('%s:%s' % (self.username, self.password))
+                authheader =  "Basic %s" % base64string
+                request.add_header("Authorization", authheader)
+
+                # open a file and write image's data
+                image_file = open(image_file_name, 'wb')
+                image_data = urllib2.urlopen(request).read()
+                image_file.write(image_data)
+                image_file.close()
+
+            except:
+                print 'ERROR:'
+                print 'Tried to Download %s, %s' % (folder_name, file_name)
 
         else:
             return False

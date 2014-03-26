@@ -1,6 +1,9 @@
-Django
+Django==1.4.3
 South
 -e git+https://github.com/toastdriven/django-haystack.git@master#egg=django-haystack
 django-reversion
 pyelasticsearch
-PIL
+mezzanine==1.4.3
+django-tinymce
+-e git+https://github.com/kcl-ddh/django-iipimage.git
+-e git+https://github.com/Gbuomprisco/django-pagination.git

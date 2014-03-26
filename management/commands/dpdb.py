@@ -66,6 +66,12 @@ Commands:
  						
   merge_frg
   						Merge Fragments (ScandiPal) 
+
+  build
+  						show the build number and the build date from the database
+
+  setbuild [--branch=master|staging]]
+  						set the build number and the build date in the database
 	"""
 	
 	args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
@@ -76,6 +82,11 @@ Commands:
             dest='db',
             default='default',
             help='Database alias'),
+		make_option('--branch',
+			action='store',
+			dest='branch',
+			default='',
+			help='Branch name'),
 		make_option('--force',
 			action='store_true',
 			dest='force',
@@ -1203,6 +1214,14 @@ Commands:
 
 		db_settings = settings.DATABASES[options['db']]
 		
+		if command == 'build':
+			known_command = True
+			self.show_build_info()
+
+		if command == 'setbuild':
+			known_command = True
+			self.set_build_info()
+		
 		if command == 'test':
 			known_command = True
 			self.test(options)
@@ -1335,6 +1354,29 @@ Commands:
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
 	
+	def show_build_info(self):
+		from mezzanine.conf import settings
+		settings.use_editable()
+		print '%s, %s (branch %s)' % (settings.DP_BUILD_NUMBER, settings.DP_BUILD_TIMESTAMP, settings.DP_BUILD_BRANCH)
+
+	def set_build_info(self):
+		from mezzanine.conf import settings
+		settings.use_editable()
+		
+		self.set_settings('DP_BUILD_NUMBER', settings.DP_BUILD_NUMBER + 1)
+		from datetime import datetime
+		self.set_settings('DP_BUILD_TIMESTAMP', datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
+		self.set_settings('DP_BUILD_BRANCH', self.options['branch'].strip())
+		self.show_build_info()
+		
+	def set_settings(self, name, value):
+		''' Set a Mezzanine settings variable in the database '''
+		from mezzanine.conf.models import Setting
+		s, created = Setting.objects.get_or_create(name=name)
+		s.value = value
+		s.save()
+		from mezzanine.conf import settings
+
 	def get_backup_path(self):
 		ret = getattr(settings, 'DB_BACKUP_PATH', None)
 		return ret

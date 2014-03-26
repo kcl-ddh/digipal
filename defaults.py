@@ -10,3 +10,25 @@ register_setting(
     ),
     append=True,
 )
+
+# Build information, see repo.py and dpdb.py
+register_setting(
+    name="DP_BUILD_NUMBER",
+    description="DigiPal Build Number",
+    editable=True,
+    default=0,
+)
+
+register_setting(
+    name="DP_BUILD_TIMESTAMP",
+    description="DigiPal Build Date Time",
+    editable=True,
+    default='',
+)
+
+register_setting(
+    name="DP_BUILD_BRANCH",
+    description="DigiPal Build Branch",
+    editable=True,
+    default='',
+)

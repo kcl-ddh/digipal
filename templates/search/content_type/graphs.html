@@ -24,15 +24,15 @@
             {% for hand in ghands %}
 
                 {% if forloop.counter0|divisibleby:4 %}
-                    <div class='row'>
+                    <div class='row {% if can_edit %} row-min-admin {% endif %}'>
                 {% endif %}
                         <div class='col-md-3 centered col-xs-12'>
 
-                            <dl class="imageDatabase panel">
+                            <dl class="imageDatabase panel" data-group='true'>
                                 <dt>
                                     {% for graph in hand.graphs_template %}
                                         {% if forloop.counter < 10 %}
-                                            <a data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-id='{{ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                 {% annotation_img graph.annotation lazy=1 %}
                                             </a>
                                         {% endif %}
@@ -69,10 +69,10 @@
                     <th>Catalogue Number</th>
                 </tr>
                 {% for hand in ghands %}
-                    <tr class="{% cycle 'bgColour' '' %}">
-                        <td>
+                    <tr>
+                        <td data-group='true'>
                             {% for graph in hand.graphs_template %}
-                                <a data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-id='{{ graph.id }}' class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
                                     {% annotation_img graph.annotation lazy=1 %}
                                 </a>
                             {% endfor %}
@@ -95,4 +95,3 @@
     {% chrono ":table tab" %}
 
 </div>
-

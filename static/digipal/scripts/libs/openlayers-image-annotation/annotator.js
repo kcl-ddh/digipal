@@ -19,6 +19,13 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// to make it accessible when 'this' loses scope
 	var _self = this;
 
+	var isEmpty = function(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) return false;
+		}
+		return true;
+	};
+
 	this.imageUrl = imageUrl;
 	this.imageWidth = imageWidth;
 	this.imageHeight = imageHeight;
@@ -93,12 +100,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		},
 		'featureunselected': function(e) {
 			// function to check if an object is empty, boolean returned
-			var isEmpty = function(obj) {
-				for (var prop in obj) {
-					if (obj.hasOwnProperty(prop)) return false;
-				}
-				return true;
-			};
+
 
 			if (typeof e.feature.linked_to !== "undefined" && !isEmpty(e.feature.linked_to[0])) {
 				$.each(e.feature.linked_to[0], function(index, value) {
@@ -205,25 +207,25 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'transform': function(e) {
 			var feature = e.object.feature;
 
-			if (feature.geometry.bounds.right - feature.geometry.bounds.left < 8) {
+			/*
+			if (feature.geometry.bounds.top - feature.geometry.bounds.bottom < 5 || feature.geometry.bounds.right - feature.geometry.bounds.left < 10) {
 				feature.destroy();
 				$('circle').remove();
 				$('polyline').remove();
-
 				return false;
 			}
-
+			*/
 
 		},
 		'beforeset': function(e) {
 
 		},
 		'setfeature': function(e) {
-			var hand = $('#id_hand').val();
-			var allograph = $('#id_allograph').val();
+			var hand = $('#panelImageBox .allograph_form').val();
+			var allograph = $('#panelImageBox .allograph_form').val();
 			e.feature.hand = hand;
 			e.feature.allograph = allograph;
-			e.feature.feature = $('#id_allograph option:selected').text();
+			e.feature.feature = $('#panelImageBox .allograph_form option:selected').text();
 
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {

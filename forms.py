@@ -52,17 +52,17 @@ class ImageAnnotationForm(forms.Form):
 
     #status = forms.ModelChoiceField(queryset=Status.objects.all(),
     #        initial=default_status)
-    hand = forms.ModelChoiceField(queryset=Hand.objects.all(),
+    hand = forms.ModelChoiceField(required=False, queryset=Hand.objects.all(),
         widget = Select(attrs={'name': 'hand', 'class':'chzn-select hand_form', 'data-placeholder':"Hand"}),
         label = "",
-        empty_label = None
+        empty_label = '------',
         )
     #after = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
-    allograph = forms.ModelChoiceField(queryset=Allograph.objects.all(),
+    allograph = forms.ModelChoiceField(required=False, queryset=Allograph.objects.all(),
         widget = AllographSelect(attrs={'name': 'allograph', 'class':'chzn-select allograph_form', 'data-placeholder':"Allograph"}),
         label = "",
-        empty_label =None,
+        empty_label = '------',
     )
     #before = forms.ModelChoiceField(required=False,
     #        queryset=Allograph.objects.all())
@@ -251,7 +251,7 @@ class GraphSearchForm(forms.Form):
         empty_label = "Feature",
         label='',
         required=False
-    )    
+    )
     # hidden field which we populate with the existing search term in the view
     terms = forms.CharField(
         required=False,

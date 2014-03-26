@@ -77,7 +77,10 @@ class SearchGraphs(SearchContentType):
                     Q(hand__assigned_date__date__icontains=term) | \
                     Q(hand__item_part__current_item__shelfmark__icontains=term) | \
                     Q(hand__item_part__current_item__repository__name__icontains=term) | \
-                    Q(hand__item_part__historical_items__catalogue_number__icontains=term))
+                    Q(hand__item_part__historical_items__catalogue_number__icontains=term) | \
+                    # JIRA 423
+                    Q(hand__item_part__display_label__contains=term) | \
+                    Q(hand__item_part__group__display_label__contains=term))
         else:
             graphs = Graph.objects.all()
             

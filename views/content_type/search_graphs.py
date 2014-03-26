@@ -17,9 +17,11 @@ class SearchGraphs(SearchContentType):
         # TODO: new search field
         return ret
     
-    @property
-    def form(self):
-        return FilterGraphs()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterGraphs(initials)
     
     @property
     def key(self):

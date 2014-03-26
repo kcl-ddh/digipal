@@ -75,9 +75,11 @@ class SearchHands(SearchContentType):
         context['hands_page'] = True
         context['result'] = current_hand
 
-    @property
-    def form(self):
-        return FilterHands()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterHands(initials)
 
     @property
     def key(self):

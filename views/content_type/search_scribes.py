@@ -47,9 +47,11 @@ class SearchScribes(SearchContentType):
     def get_model(self):
         return Scribe
 
-    @property
-    def form(self):
-        return FilterScribes()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterScribes(initials)
     
     @property
     def key(self):

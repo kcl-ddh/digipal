@@ -186,7 +186,7 @@ def search_record_view(request):
     from django.utils import simplejson
     context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
     
-    custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'))
+    custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
     context['expanded_custom_filters'] = custom_filters['advanced_search_expanded'] 
     context['search_page_options_json'] = simplejson.dumps(custom_filters)
     for custom_filter in custom_filters['filters']:
@@ -253,7 +253,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
-        context['query_summary'] = get_query_summary(request, term, context['submitted'], [type.form for type in context['types']])
+        context['query_summary'] = get_query_summary(request, term, context['submitted'], [type.get_form(request) for type in context['types']])
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
@@ -300,11 +300,11 @@ def get_query_summary(request, term, submitted, forms):
             
     return ret
 
-def get_search_page_js_data(content_types, expanded_search=False):
+def get_search_page_js_data(content_types, expanded_search=False, request=None):
     filters = []
     for type in content_types:
         filters.append({
-                         'html': type.form.as_ul(),
+                         'html': type.get_form(request).as_ul(),
                          'label': type.label,
                          'key': type.key,
                          })        

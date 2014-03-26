@@ -105,9 +105,11 @@ class SearchManuscripts(SearchContentType):
         ret = 'List of manuscripts with images'
         return ret
 
-    @property
-    def form(self):
-        return FilterManuscripts()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterManuscripts(initials)
 
     @property
     def key(self):

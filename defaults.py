@@ -6,7 +6,8 @@ register_setting(
     editable=False,
     default=(
         'ADMIN_STYLES', 'BANNER_LOGO_HTML', 'SHOW_QUICK_SEARCH_SCOPES',  
-        'GITHUB', 'TWITTER',
+        'GITHUB', 'TWITTER', 
+        'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH'
     ),
     append=True,
 )

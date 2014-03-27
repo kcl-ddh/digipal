@@ -184,7 +184,7 @@ def search_record_view(request):
 
     # Initialise the advanced search forms 
     from django.utils import simplejson
-    context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
+    #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
     
     custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
     context['expanded_custom_filters'] = custom_filters['advanced_search_expanded'] 

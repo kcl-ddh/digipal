@@ -1,5 +1,5 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
@@ -235,30 +235,8 @@ class SearchManuscripts(SearchContentType):
 
 from digipal.utils import sorted_natural
 class FilterManuscripts(forms.Form):
-
-    index = forms.ChoiceField(
-        choices = [("", "Catalogue Number")] + 
-                    [(cn, cn) for cn in sorted_natural(
+    index = get_form_field_from_queryset(sorted_natural(
                             '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
-                        )
-                    ],
-        widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
-        label = "",
-        initial = "Catalogue Number",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()],
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        label = "",
-        initial = "Repository",
-        required = False)
-
-    date = forms.ChoiceField(
-        # TODO: order the dates
-        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct()))],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)
-
+                        ), 'Catalogue Number')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')

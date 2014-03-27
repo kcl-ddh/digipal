@@ -1,4 +1,5 @@
 from django.conf import settings
+from django import forms
 
 class SearchContentType(object):
     
@@ -687,3 +688,39 @@ class QuerySetAsList(list):
     def count(self):
         return len(self) 
 
+from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
+from django.template.defaultfilters import slugify
+def get_form_field_from_queryset(values, label, is_model_choice_field=False):
+    ''' Returns a choice field from a set of values
+        If is_model_choice_field is True a forms.ModelChoiceField is returned, 
+        otherwise a forms.ChoiceField is returned.
+        Note that forms.ModelChoiceField will run the query each time the form is rendered.
+        Whereas forms.ChoiceField will have its choices effectively cached for the whole 
+        duration of the web application lifetime. Which is more efficient but might be
+        an issue if the applicaiton is not restarted after a database update.
+    '''
+    label_prefix = 'a'
+    if label[0] in ['a', 'e', 'i', 'o', 'u', 'y']:
+        label_prefix = 'an'
+        
+    options = {
+                'widget': Select(attrs={'id':'%s-select' % slugify(label), 'class':'chzn-select', 'data-placeholder': 'Choose %s %s' % (label_prefix, label)}),
+                'label': '',
+                'required': False,                                
+               }
+    if is_model_choice_field:
+        print 'Create model choice field'
+        ret = forms.ModelChoiceField(
+            #queryset = Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(),
+            queryset = values,
+            empty_label = label,
+            **options
+        )
+    else:
+        ret = forms.ChoiceField(
+            #choices = [('', 'Date')] + [(d, d) for d in list(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct())],
+            choices = [('', label)] + [(d, d) for d in values],
+            initial = label,
+            **options
+        )
+    return ret

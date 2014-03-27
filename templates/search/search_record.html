@@ -83,20 +83,6 @@
 
     </form>
 
-    {% comment %}
-    <div class="panel" id='filtersform'>
-        <h5 class='header5'>Show Graphs filtered by:</h5>
-        <form class="form-inline"  method="GET" action="/digipal/search/graph">
-            <ul>{{ drilldownform.as_ul }}</ul>
-
-            <div>
-                <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                <input type='reset' class='btn btn-default' />
-            </div>
-        </form>
-    </div>
-    {% endcomment %}
-
     {% if submitted %}
         {% if query_summary %}
             <p class='breadcrumb' id="search-breadcrumb">

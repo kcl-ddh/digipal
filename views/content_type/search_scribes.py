@@ -1,5 +1,5 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
@@ -104,49 +104,14 @@ class SearchScribes(SearchContentType):
 
 from digipal.utils import sorted_natural
 class FilterScribes(forms.Form):
-    name = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'name-select', 'class':'chzn-select', 'data-placeholder':"Choose a Name"}),
-        label = "",
-        empty_label = "Name",
-        required = False)
-
+    name = get_form_field_from_queryset(Scribe.objects.values_list('name', flat=True).order_by('name').distinct(), 'Name')
     # Was previously called 'scriptorium'
-    place = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
-        empty_label = "Scriptorium",
-        label = "",
-        required = False)
-
-    date = forms.ChoiceField(
-        # TODO: order the dates
-        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct()))],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)
-
-    character = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(),
-        widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
-        label = "",
-        empty_label = "Character",
-        required = False)
-
-    component = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(),
-        widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
-        label = "",
-        empty_label = "Component",
-        required = False)
-
-    feature = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(),
-        widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
-        label = "",
-        empty_label = "Feature",
-        required = False)
+    place = get_form_field_from_queryset(Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(), 'Place')
+    # TODO: order the dates
+    date = get_form_field_from_queryset(sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct())), 'Date')
+    character = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(), 'Character')
+    component = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(), 'Component')
+    feature = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(), 'Feature')
 
 def scribe_details(request):
     """

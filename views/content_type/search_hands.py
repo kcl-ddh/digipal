@@ -1,5 +1,5 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
@@ -132,30 +132,8 @@ class SearchHands(SearchContentType):
 
 from digipal.utils import sorted_natural
 class FilterHands(forms.Form):
-    scribes = forms.ModelChoiceField(
-        queryset = Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(),
-        widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
-        label = "",
-        empty_label = "Scribe",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()],
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        label = "",
-        initial = "Repository",
-        required = False)
-
-    place = forms.ModelChoiceField(
-        queryset = Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Place"}),
-        label = "",
-        empty_label = "Place",
-        required = False)
-
-    date = forms.ChoiceField(
-        choices = [('', 'Date')] + [(d, d) for d in list(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct())],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)
+    scribes = get_form_field_from_queryset(Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(), 'Scribe')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    place = get_form_field_from_queryset(Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(), 'Place')
+    date = get_form_field_from_queryset(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct(), 'Date')
+    

@@ -20,6 +20,9 @@ function Allographs(dialog, cache) {
 	// this function declares all events at loading
 	var events = function() {
 
+		var switcher = $('#toggle-annotations-mode');
+		switcher.bootstrapSwitch();
+
 		/* creating dialog */
 		dialog(annotator.image_id, {
 			'container': '#allographs'
@@ -86,19 +89,22 @@ function Allographs(dialog, cache) {
 		/* event to redirect from letters to annotator */
 		var a_images = $('.annotation_li a');
 		a_images.click(function(event) {
-			var id = $(this).parent('.annotation_li').data('annotation');
-			methods.to_annotator(id);
+			if (!switcher.bootstrapSwitch('state')) {
+				var id = $(this).parent('.annotation_li').data('annotation');
+				methods.to_annotator(id);
 
-			/*
-			var panel = $('#panelImageBox');
-			$('body').animate({
-				scrollLeft: panel.position().left,
-				scrollTop: panel.position().top
-			});
-			*/
+				/*
+				var panel = $('#panelImageBox');
+				$('body').animate({
+					scrollLeft: panel.position().left,
+					scrollTop: panel.position().top
+				});
+				*/
+				event.stopPropagation();
 
-			event.stopPropagation();
+			}
 			event.preventDefault();
+
 		});
 
 		keyboard_shortcuts.init();

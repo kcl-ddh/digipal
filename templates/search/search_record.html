@@ -12,12 +12,12 @@
     {% if not submitted or is_empty %}
         <h1 class='header1'>Search</h1>
         <p>
-            Please use the form below to search for {{ search_types_display }}. 
+            Please use the form below to search for {{ search_types_display }}.
             You can type in keywords for broad searches or use the filters for better precision. You can also use keywords and filters together.
             See '<a href="{{ search_help_url }}">How to Use Digipal</a>' for more help.
         </p>
     {% endif %}
-    
+
     <form id='searchform' class="panel" method="GET" action="/digipal/search/">
         <div class='row'>
             {# {% csrf_token %} #}
@@ -110,7 +110,7 @@
             {% if can_edit %}
             <div id="switcher" class='pull-right'>
                 <label for="">Annotating mode</label>
-                <input data-toggle="tooltip" title='Annotating Mode' id="toggle-state-switch" type="checkbox" checked />
+                <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" type="checkbox" checked />
             </div>
             {% endif %}
 

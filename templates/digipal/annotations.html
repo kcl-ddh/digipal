@@ -4,10 +4,10 @@
 {# {annotations_list} #}
 {% if annotations_list %}
 
-      {% if can_edit and not image_server_url %}
+      {% if can_edit %}
       <div id="switcher" class='pull-right'>
           <label for="">Annotating mode</label>
-          <input data-toggle="tooltip" title='Annotating Mode' id="toggle-state-switch" type="checkbox" checked />
+          <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" type="checkbox" checked />
       </div>
       {% endif %}
      <!-- if there are at least 2 annotated hands, show the list -->

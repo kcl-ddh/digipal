@@ -54,7 +54,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.map = new OpenLayers.Map('map', {
 		maxExtent: maxExtent,
 		maxResolution: Math.pow(2, this.imageLayer.numberOfTiers - 1),
-		numZoomLevels: this.imageLayer.numberOfTiers,
+		numZoomLevels: 7,
 		projection: 'EPSG:3785',
 		units: 'm'
 	});

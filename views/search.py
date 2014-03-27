@@ -273,16 +273,24 @@ def get_query_summary(request, term, submitted, forms):
     # The first string is plain text, the second is in HTML and allows the user to remove filters 
     # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"', 
     # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
-    ret = ''
-    ret_interactive = ''
+    ret = u''
+    ret_interactive = u''
     
     from django.utils.html import conditional_escape, escape, strip_tags
     
+    def get_filter_html(val, param, label=''):
+        ret = u''
+        if label:
+            ret += u'%s: ' % label
+        ret += u'"%s" <a href="%s"><span class="glyphicon glyphicon-remove"></span></a>' % (escape(val), update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param))
+        return ret
+        
     if submitted:
         from digipal.templatetags.html_escape import update_query_params
         
         if term.strip():
-            ret = '"%s"' % term
+            ret = u'"%s"' % term
+            ret_interactive += get_filter_html(term, 'terms')
         
         # Generate a dictionary with the form fields.
         # The key is the internal name of the field and the value is the display label 
@@ -301,10 +309,10 @@ def get_query_summary(request, term, submitted, forms):
                 if val:
                     if ret:
                         ret += ', '
-                    if ret:
+                    if ret_interactive:
                         ret_interactive += ', '
-                    ret += '%s: "%s"' % (fields[param], val)
-                    ret_interactive += '%s: "%s" <a href="%s"><span class="glyphicon glyphicon-remove"></span></a>' % (fields[param], escape(val), update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param))
+                    ret += u'%s: "%s"' % (fields[param], val)
+                    ret_interactive += get_filter_html(val, param, fields[param])
             
         if not ret.strip():
             ret = 'All'

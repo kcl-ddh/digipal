@@ -176,8 +176,8 @@ class SearchGraphs(SearchContentType):
 
 class FilterGraphs(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
-    script = get_form_field_from_queryset(Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(), 'Script')
-    character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character')
+    script = get_form_field_from_queryset(Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(), 'Script', aid='script')
+    character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
     allograph = forms.ChoiceField(
         choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
@@ -186,5 +186,5 @@ class FilterGraphs(forms.Form):
         initial='Allograph',
         required=False
     )
-    component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component')
-    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature')
+    component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
+    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature')

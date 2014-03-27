@@ -2547,11 +2547,6 @@ function save(url, feature, data, ann, features) {
 
 				feature.feature = allograph;
 
-				if (annotator.annotations[feature.graph]) {
-					annotator.annotations[feature.graph].feature = allograph;
-					annotator.annotations[feature.graph].hidden_allograph = allograph_id + '::' + allograph;
-				}
-
 				var new_graphs = data['graphs'];
 				for (var ind = 0; ind < new_graphs.length; ind++) {
 					var new_graph = new_graphs[ind].graph,
@@ -2560,7 +2555,12 @@ function save(url, feature, data, ann, features) {
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
 					allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
 					allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
-					annotation.hidden_allograph = new_allograph + '::' + allograph;
+					for (var ann in annotator.annotations) {
+						if (annotator.annotations[ann].graph == feature.graph) {
+							annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
+							annotator.annotations[ann].feature = allograph;
+						}
+					}
 
 				}
 

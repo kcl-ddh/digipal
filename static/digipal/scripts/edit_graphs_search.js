@@ -43,7 +43,7 @@ function EditGraphsSearch() {
 
 	var events = function() {
 
-		var switcher = $('#toggle-state-switch');
+		var switcher = $('#toggle-annotations-mode');
 		switcher.bootstrapSwitch();
 		$('[data-toggle=tooltip]').tooltip('disable'); // Disable tooltips
 		switcher.on('switch-change', function(e, data) {

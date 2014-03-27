@@ -19,6 +19,7 @@ from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         has_edit_permission
 import ast
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
@@ -177,7 +178,7 @@ def image(request, image_id):
 
     width, height = image.dimensions()
     image_server_url = image.zoomify
-
+    zoom_levels = settings.ANNOTATOR_ZOOM_LEVELS
     is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
@@ -191,6 +192,7 @@ def image(request, image_id):
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
+               'zoom_levels': zoom_levels,
                'repositories': Repository.objects.filter(currentitem__itempart__images=image_id)
                }
 

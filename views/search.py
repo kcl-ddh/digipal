@@ -117,9 +117,9 @@ def search_ms_image_view(request):
 
     context['images'] = images
 
-    image_search_form = FilterManuscriptsImages()
+    image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form
-    context['query_summary'] = get_query_summary(request, '', True, [image_search_form])
+    context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, '', True, [image_search_form])
 
     return render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
 
@@ -253,7 +253,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
-        context['query_summary'] = get_query_summary(request, term, context['submitted'], [type.get_form(request) for type in context['types']])
+        context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, term, context['submitted'], [type.get_form(request) for type in context['types']])
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
@@ -269,10 +269,18 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
                     hand_filters.chrono(':Search %s' % type.key)
 
 def get_query_summary(request, term, submitted, forms):
-    # return a string that summarises the query
+    # Return two strings that summaries the query
+    # The first string is plain text, the second is in HTML and allows the user to remove filters 
+    # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"', 
+    # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
     ret = ''
+    ret_interactive = ''
+    
+    from django.utils.html import conditional_escape, escape, strip_tags
     
     if submitted:
+        from digipal.templatetags.html_escape import update_query_params
+        
         if term.strip():
             ret = '"%s"' % term
         
@@ -293,12 +301,16 @@ def get_query_summary(request, term, submitted, forms):
                 if val:
                     if ret:
                         ret += ', '
+                    if ret:
+                        ret_interactive += ', '
                     ret += '%s: "%s"' % (fields[param], val)
+                    ret_interactive += '%s: "%s" <a href="%s"><span class="glyphicon glyphicon-remove"></span></a>' % (fields[param], escape(val), update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param))
             
         if not ret.strip():
             ret = 'All'
+            ret_interactive = 'All'
             
-    return ret
+    return ret, ret_interactive
 
 def get_search_page_js_data(content_types, expanded_search=False, request=None):
     filters = []
@@ -331,120 +343,6 @@ def search_graph_view(request):
     # TODO: get digipal from current project name or current URL
     redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (request.META['QUERY_STRING'].replace('_select=', '='),)
     return redirect(redirect_url)
-    
-    """ View for Hand record drill-down """
-    context = {}
-
-    term = request.GET.get('terms', '').strip()
-    script = request.GET.get('script_select', '')
-    character = request.GET.get('character_select', '')
-    allograph = request.GET.get('allograph_select', '')
-    component = request.GET.get('component_select', '')
-    feature = request.GET.get('feature_select', '')
-    context['submitted'] = request.GET.get('submitted', '') or term or script or character or allograph or component or feature
-    context['style']= 'allograph_list'
-    context['term'] = term
-    context['view'] = request.GET.get('view', 'images')
-    
-    context['drilldownform'] = GraphSearchForm()
-    
-    from datetime import datetime
-    
-    t0 = datetime.now()
-    t4 = datetime.now()
-    
-    if context['submitted']:
-        # .order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
-        # Although we are listing hands on the front-end, we search for graphs and not for hand.
-        # Two reasons: 
-        #    searching for character and allograh at the same time through a Hand model would generate two separate joins to graph
-        #        this would bring potentially invalid results and it is also much slower
-        #    it is faster than excluding all the hands without a graph (yet another expensive join)
-        #
-        context['query_summary'] = get_query_summary(request, term, context['submitted'], [context['drilldownform']])
-        
-        if term:
-            graphs = Graph.objects.filter(
-                    Q(hand__descriptions__description__icontains=term) | \
-                    Q(hand__scribe__name__icontains=term) | \
-                    Q(hand__assigned_place__name__icontains=term) | \
-                    Q(hand__assigned_date__date__icontains=term) | \
-                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
-                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
-                    Q(hand__item_part__historical_items__catalogue_number__icontains=term))
-        else:
-            graphs = Graph.objects.all()
-            
-        t1 = datetime.now()
-        
-        combine_component_and_feature = True
-    
-        wheres = []
-        if script:
-            graphs = graphs.filter(hand__script__name=script)
-            context['script'] = Script.objects.get(name=script)
-        if character:
-            graphs = graphs.filter(
-                idiograph__allograph__character__name=character)
-            context['character'] = Character.objects.get(name=character)
-        if allograph:
-            graphs = graphs.filter(
-                idiograph__allograph__name=allograph)
-            context['allograph'] = Allograph.objects.filter(name=allograph)
-        if component:
-            wheres.append(Q(graph_components__component__name=component) | Q(idiograph__allograph__allograph_components__component__name=component))
-            context['component'] = Component.objects.get(name=component)
-        if feature:
-            wheres.append(Q(graph_components__features__name=feature))
-            context['feature'] = Feature.objects.get(name=feature)
-
-        # ANDs all the Q() where clauses together
-        if wheres:
-            where_and = wheres.pop(0)
-            for where in wheres:
-                where_and = where_and & where    
-            
-            graphs = graphs.filter(where_and)
-        
-        t2 = datetime.now()
-    
-        # Get the graphs then id of all the related Hands
-        # We use values_list because it is much faster, we don't need to fetch all the Hands at this stage
-        # That will be done after pagination in the template
-        # Distinct is needed here.
-        graphs = graphs.distinct().order_by('hand__scribe__name', 'hand__id')
-        #print graphs.query
-        graph_ids = graphs.values_list('id', 'hand_id')
-        
-        # Build a structure that groups all the graph ids by hand id
-        # context['hand_ids'] = [[1, 101, 102], [2, 103, 104]]
-        # In the above we have two hands: 1 and 2. For hand 1 we have Graph 101 and 102.
-        context['hand_ids'] = [[0]]
-        last = 0
-        for g in graph_ids:
-            if g[1] != context['hand_ids'][-1][0]:
-                context['hand_ids'].append([g[1]])
-            context['hand_ids'][-1].append(g[0])
-        del(context['hand_ids'][0])
-
-        t3 = datetime.now()
-
-        context['graphs_count'] = len(graph_ids)
-        
-        t4 = datetime.now()
-        
-        #print 'search %s; hands query: %s + graph count: %s' % (t4 - t0, t3 - t2, t4 - t3)
-        
-    t5 = datetime.now()
-    
-    ret = render_to_response(
-        'search/search_graph.html',
-        context,
-        context_instance=RequestContext(request))
-    
-    t6 = datetime.now()
-
-    return ret
 
 def search_suggestions(request):
     from digipal.utils import get_json_response

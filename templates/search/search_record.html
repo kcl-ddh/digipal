@@ -84,11 +84,11 @@
     </form>
 
     {% if submitted %}
-        {% if query_summary %}
+        {% if query_summary_interactive %}
             <p class='breadcrumb' id="search-breadcrumb">
                 <span id="auto-scroll"></span>
                 You are searching for:
-                {{ query_summary|truncatechars:200 }}
+                {{ query_summary_interactive|safe }}
             </p>
         {% endif %}
         {% if not is_empty %}

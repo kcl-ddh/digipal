@@ -214,7 +214,7 @@ class SearchPageForm(forms.Form):
         widget=HiddenInput()
     )
     # page size
-    pgs = forms.IntegerField(
+    pgs = forms.CharField(
         initial=10,
         required=False,
         label='',

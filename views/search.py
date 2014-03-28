@@ -227,8 +227,12 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
 
     # pagination sizes
     context['page_sizes'] = [10, 20, 50, 100]
-    context['page_size'] = request.GET.get('pgs', 10)
-    
+    context['page_size'] = request.GET.get('pgs', '')
+    if context['page_size'] and context['page_size'].isdigit():
+        context['page_size'] = int(context['page_size'])
+    if context['page_size'] not in context['page_sizes']:
+        context['page_size'] = context['page_sizes'][0]  
+        
     # list of query parameter/form fields which can be changed without triggering a search 
     context['submitted'] = False
     non_search_params = ['basic_search_type', 'from_link', 'result_type']

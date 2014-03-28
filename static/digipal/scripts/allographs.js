@@ -143,18 +143,7 @@ function Allographs(dialog, cache) {
 					}
 				}
 			}
-			for (i = 0; i < selected_features.length; i++) {
-				annotator.selectedFeature = selected_features[i];
-				annotator.saveAnnotation(annotation, true);
-			}
-			//annotator.vectorLayer.redraw();
-
-			/*
-			var annotations_li = $('.annotation_li');
-			annotations_li.unbind().click(function(event) {
-				select_annotation($(this));
-			});
-			*/
+			annotator.saveAnnotation(selected_features, true);
 		},
 
 		delete: function() {

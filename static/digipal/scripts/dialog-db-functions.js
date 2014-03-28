@@ -138,18 +138,17 @@ function save(url, feature, data, callback) {
 		url: url,
 		data: data,
 		beforeSend: function() {
-			updateStatus('Saving annotation', 'success');
+			updateStatus('Saving annotation ...', 'warning');
 		},
 		error: function(xhr, textStatus, errorThrown) {
-			console.log(textStatus, 'error');
 			updateStatus('Error in saving annotation', 'danger');
 		},
 		success: function(data) {
+			if (data['success']) {
+				updateStatus('Annotation successfully saved', 'success');
+			}
 			if (callback) {
 				callback(data);
-			}
-			if (data['success'] == 'True') {
-				updateStatus('Annotation successfully saved', 'success');
 			}
 		}
 	});

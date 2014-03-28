@@ -304,47 +304,34 @@ function EditGraphsSearch() {
 			var url, image_id;
 
 			var hand, allograph;
-			if (self.selectedAnnotations.length == 1) {
-				graph = self.selectedAnnotations[0];
-				feature = self.annotations[graph];
-				vector_id = cache.graphs[graph].vector_id;
+
+			var graphs = [];
+
+			for (var i = 0; i < self.selectedAnnotations.length; i++) {
+				graph = self.selectedAnnotations[i];
 				image_id = cache.graphs[graph].image_id;
+				vector_id = cache.graphs[graph].vector_id;
 
-				url = '/digipal/page/' + image_id + '/save/' + vector_id + '/';
+				vector = {};
+				vector['id'] = graph;
+				vector['image'] = image_id;
+				vector['vector_id'] = vector_id;
+				graphs.push(vector);
 
-				save(url, feature, data.form_serialized, function(data) {
-					var new_graphs = data['graphs'];
-					console.log(data);
-
-					for (var ind = 0; ind < new_graphs.length; ind++) {
-						var new_graph = new_graphs[ind].graph,
-							new_allograph = new_graphs[ind].allograph_id;
-						self.cache.update('graph', new_graph, new_graphs[ind]);
-						//self.cache.update('allograph', new_allograph, new_graphs[ind]);
-					}
-					console.log(self.cache);
-				});
-
-			} else {
-
-				for (var i = 0; i < self.selectedAnnotations.length; i++) {
-					graph = self.selectedAnnotations[i];
-					vector_id = cache.graphs[graph].vector_id;
-					image_id = cache.graphs[graph].image_id;
-					url = '/digipal/page/' + image_id + '/save/' + vector_id + '/';
-
-					save(url, feature, data.form_serialized, function(data) {
-						var new_graphs = data['graphs'];
-						for (var ind = 0; ind < new_graphs.length; ind++) {
-							var new_graph = new_graphs[ind].graph,
-								new_allograph = new_graphs[ind].allograph_id;
-							self.cache.update('graph', new_graph, new_graphs[ind]);
-							self.cache.update('allograph', new_allograph, new_graphs[ind]);
-						}
-
-					});
-				}
 			}
+
+			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+
+			save(url, graphs, data.form_serialized, function(data) {
+				var new_graphs = data['graphs'];
+				for (var ind = 0; ind < new_graphs.length; ind++) {
+					var new_graph = new_graphs[ind].graph,
+						new_allograph = new_graphs[ind].allograph_id;
+					self.cache.update('graph', new_graph, new_graphs[ind]);
+					self.cache.update('allograph', new_allograph, new_graphs[ind]);
+				}
+			});
+
 		},
 
 		delete: function() {

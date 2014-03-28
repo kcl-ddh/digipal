@@ -9,7 +9,7 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-import sys
+import sys, re
 from django.utils.safestring import mark_safe
 
 
@@ -386,7 +386,7 @@ def image_metadata(request, image_id):
 
 def image_copyright(request, image_id):
     context = {}
-    image = Image.objects.get(id=image_id)
+    #image = Image.objects.get(id=image_id)
     #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
     #context['copyright'] = repository.values_list('copyright_notice', flat = True)
     # TODO: check this path
@@ -439,127 +439,137 @@ def form_dialog(request, image_id):
 
 @login_required
 @transaction.commit_manually
-def save(request, image_id, vector_id):
+def save(request, graphs):
     """Saves an annotation and creates a cutout of the annotation."""
+
+    data = {
+        'success': False,
+        'graphs': []
+    }
+
     try:
 
-        data = {
-            'success': False,
-            'graphs': []
-        }
+        graphs = graphs.replace('/"', "'")
+        graphs = simplejson.loads(graphs)
 
-        image = Image.objects.get(id=image_id)
+        for gr in graphs:
 
-        get_data = request.GET.copy()
+            graph_object = False
 
-        if 'geo_json' in get_data:
-            geo_json = get_data['geo_json']
-        else:
-            geo_json = False
-        annotation_list = Annotation.objects.filter(image=image,
-                vector_id=vector_id)
+            if 'id' in gr:
+                graph_object = Graph.objects.get(id=gr['id'])
 
-        if annotation_list:
-            annotation = annotation_list[0]
-            graph = annotation.graph
-        else:
-            annotation = Annotation(image=image, vector_id=vector_id)
-            graph = Graph()
+            image = Image.objects.get(id=gr['image'])
 
-        form = ImageAnnotationForm(data=get_data)
+            if graph_object:
+                annotation = graph_object.annotation
+                graph = graph_object
+            else:
+                graph = Graph()
+                annotation = Annotation(image=image, vector_id=gr['vector_id'])
 
-        if form.is_valid():
-            clean = form.cleaned_data
+            get_data = request.GET.copy()
 
-            if geo_json:
-                annotation.geo_json = geo_json
-            annotation.display_note = clean['display_note']
-            annotation.internal_note = clean['internal_note']
-            annotation.author = request.user
-            #annotation.before = clean['before']
-            #annotation.after = clean['after']
+            if 'geoJson' in gr:
+                geo_json = str(gr['geoJson'])
+            else:
+                geo_json = False
 
-            allograph = clean['allograph']
-            hand = clean['hand']
 
-            if hand and allograph:
-                scribe = hand.scribe
+            form = ImageAnnotationForm(data=get_data)
 
-                idiograph_list = Idiograph.objects.filter(allograph=allograph,
-                        scribe=scribe)
+            if form.is_valid():
+                clean = form.cleaned_data
 
-                if idiograph_list:
-                    idiograph = idiograph_list[0]
-                    idiograph.id
-                else:
-                    idiograph = Idiograph(allograph=allograph, scribe=scribe)
-                    idiograph.save()
+                if geo_json:
+                    annotation.geo_json = geo_json
+                annotation.display_note = clean['display_note']
+                annotation.internal_note = clean['internal_note']
+                annotation.author = request.user
+                #annotation.before = clean['before']
+                #annotation.after = clean['after']
 
-                graph.idiograph = idiograph
-                graph.hand = hand
+                allograph = clean['allograph']
+                hand = clean['hand']
 
-                graph.save() # error is here
+                if hand and allograph:
+                    scribe = hand.scribe
 
-            feature_list_checked = get_data.getlist('feature')
-            feature_list_unchecked = get_data.getlist('-feature')
-            #graph.graph_components.all().delete()
+                    idiograph_list = Idiograph.objects.filter(allograph=allograph,
+                            scribe=scribe)
 
-            if feature_list_unchecked:
-
-                for value in feature_list_unchecked:
-
-                    cid, fid = value.split('::')
-
-                    component = Component.objects.get(id=cid)
-                    feature = Feature.objects.get(id=fid)
-                    gc_list = GraphComponent.objects.filter(graph=graph,
-                            component=component)
-
-                    if gc_list:
-                        gc = gc_list[0]
-                        gc.features.remove(feature)
-                        gc.save()
-
-                        if not gc.features.all():
-                            gc.delete()
-
-            if feature_list_checked:
-
-                for value in feature_list_checked:
-
-                    cid, fid = value.split('::')
-
-                    component = Component.objects.get(id=cid)
-                    feature = Feature.objects.get(id=fid)
-                    gc_list = GraphComponent.objects.filter(graph=graph,
-                            component=component)
-
-                    if gc_list:
-                        gc = gc_list[0]
+                    if idiograph_list:
+                        idiograph = idiograph_list[0]
+                        idiograph.id
                     else:
-                        gc = GraphComponent(graph=graph, component=component)
+                        idiograph = Idiograph(allograph=allograph, scribe=scribe)
+                        idiograph.save()
+
+                    graph.idiograph = idiograph
+                    graph.hand = hand
+
+                    graph.save() # error is here
+
+                feature_list_checked = get_data.getlist('feature')
+                feature_list_unchecked = get_data.getlist('-feature')
+                #graph.graph_components.all().delete()
+
+                if feature_list_unchecked:
+
+                    for value in feature_list_unchecked:
+
+                        cid, fid = value.split('::')
+
+                        component = Component.objects.get(id=cid)
+                        feature = Feature.objects.get(id=fid)
+                        gc_list = GraphComponent.objects.filter(graph=graph,
+                                component=component)
+
+                        if gc_list:
+                            gc = gc_list[0]
+                            gc.features.remove(feature)
+                            gc.save()
+
+                            if not gc.features.all():
+                                gc.delete()
+
+                if feature_list_checked:
+
+                    for value in feature_list_checked:
+
+                        cid, fid = value.split('::')
+
+                        component = Component.objects.get(id=cid)
+                        feature = Feature.objects.get(id=fid)
+                        gc_list = GraphComponent.objects.filter(graph=graph,
+                                component=component)
+
+                        if gc_list:
+                            gc = gc_list[0]
+                        else:
+                            gc = GraphComponent(graph=graph, component=component)
+                            gc.save()
+
+                        gc.features.add(feature)
                         gc.save()
 
-                    gc.features.add(feature)
-                    gc.save()
+                # attach the graph to a containing one
+                annotation.set_graph_group()
+                annotation.graph = graph
+                annotation.save()
+                new_graph = simplejson.loads(get_features(annotation.graph.id))
+                data['graphs'].append(new_graph[0])
 
-            annotation.graph = graph
+                transaction.commit()
+                data['success'] = True
+            else:
+                transaction.rollback()
+                data['success'] = False
+                data['errors'] = get_json_error_from_form_errors(form)
 
-            # attach the graph to a containing one
-            annotation.set_graph_group()
-
-            annotation.save()
-            new_graph = simplejson.loads(get_features(annotation.graph.id))
-            data['graphs'] = new_graph
-
-            transaction.commit()
-
-            data['success'] = True
-        else:
-            transaction.rollback()
-            data['errors'] = get_json_error_from_form_errors(form)
     except Exception as e:
         transaction.rollback()
+        data['success'] = False
         data['errors'] = ['Internal error: %s' % e.message]
         #tb = sys.exc_info()[2]
 

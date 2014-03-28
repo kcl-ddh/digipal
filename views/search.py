@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.db.models import Q
 from django.utils import simplejson
 from digipal.models import *
-from digipal.forms import GraphSearchForm, SearchPageForm
+from digipal.forms import SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
@@ -151,6 +151,7 @@ def search_record_view(request):
     
     # Actually run the searches
     context = {}
+
     set_search_results_to_context(request, context=context, show_advanced_search_form=True)
 
     # check if the search was executed or not (e.g. form not submitted or invalid form)
@@ -198,7 +199,7 @@ def search_record_view(request):
 
     hand_filters.chrono(':SEARCH LOGIC')
     hand_filters.chrono('SEARCH TEMPLATE:')
-
+    
     ret = render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':SEARCH TEMPLATE')
@@ -223,6 +224,10 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     #context = kwargs.get('context', {})
     
     context['terms'] = ''
+
+    # pagination sizes
+    context['page_sizes'] = [10, 20, 50, 100]
+    context['page_size'] = request.GET.get('pgs', 10)
     
     # list of query parameter/form fields which can be changed without triggering a search 
     context['submitted'] = False
@@ -237,6 +242,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     context['view'] = request.GET.get('view', '')
     for type in context['types']:
         type.set_desired_view(context['view'])
+        type.set_page_size(context['page_size'])
     
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True

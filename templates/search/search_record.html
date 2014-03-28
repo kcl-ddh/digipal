@@ -28,6 +28,7 @@
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
                 <input type='hidden' name="view" value='{{ view }}' />
+                {{ advanced_search_form.pgs }}
             </div>
             <div class='col-md-6'>
                 {{ advanced_search_form.from_link }}
@@ -136,7 +137,7 @@
                                         {% endif %}
 
                                         {% filter update_query_params:type.result_type_qs %}
-                                            {% paginate %}
+                                            {% include "pagination/pagination_with_size.html" %}
                                         {% endfilter %}
                                     </div>
 

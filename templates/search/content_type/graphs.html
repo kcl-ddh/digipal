@@ -1,9 +1,5 @@
 {% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
-{% comment %}
-    TODO: migrate old graph template into this one
-{% endcomment %}
-
 {% chrono "start template:" %}
 
 {% chrono "pagination and loading:" %}
@@ -12,50 +8,15 @@
     {% chrono "load graphs:" %}
     {% load_hands 'records' as ghands %}
     {% chrono ":load_graphs" %}
+    {{ type.count }} graphs in {{ type.get_hand_count }} hands
 </p>
 
 <div class='tabbable'>
     <div class="tab-content">
 
-        {% chrono "grid tab:" %}
-
-        <div class="tab-pane fade {% if type.views.0.active %}active in{% endif %}" id="{{ type.key }}-images">
-
-            {% for hand in ghands %}
-
-                {% if forloop.counter0|divisibleby:4 %}
-                    <div class='row {% if can_edit %} row-min-admin {% endif %}'>
-                {% endif %}
-                        <div class='col-md-3 centered col-xs-12'>
-
-                            <dl class="imageDatabase panel" data-group='true'>
-                                <dt>
-                                    {% for graph in hand.graphs_template %}
-                                        {% if forloop.counter < 10 %}
-                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
-                                                {% annotation_img graph.annotation lazy=1 %}
-                                            </a>
-                                        {% endif %}
-                                    {% endfor %}
-                                </dt>
-                                <dd>
-                                    <a href="{{ hand.get_absolute_url }}">
-                                        <strong>{{ hand }}</strong>
-                                    </a>
-                                </dd>
-                            </dl>
-                        </div>
-                {% if forloop.counter|divisibleby:4 or forloop.last %}
-                    </div>
-                {% endif %}
-
-            {% endfor %}
-
-        </div>
-
         {% chrono "table tab:" %}
 
-        <div class="tab-pane fade {% if type.views.1.active %}active in{% endif %}" id="{{ type.key }}-list">
+        <div class="tab-pane fade {% if type.views.0.active %}active in{% endif %}" id="{{ type.key }}-list">
 
             <table class="table table-condensed">
                 <tr>
@@ -87,6 +48,42 @@
                     </tr>
                 {% endfor %}
             </table>
+
+        </div>
+
+        {% chrono "grid tab:" %}
+
+        <div class="tab-pane fade {% if type.views.1.active %}active in{% endif %}" id="{{ type.key }}-images">
+
+            {% for hand in ghands %}
+
+                {% if forloop.counter0|divisibleby:4 %}
+                    <div class='row {% if can_edit %} row-min-admin {% endif %}'>
+                {% endif %}
+                        <div class='col-md-3 centered col-xs-12'>
+
+                            <dl class="imageDatabase panel" data-group='true'>
+                                <dt>
+                                    {% for graph in hand.graphs_template %}
+                                        {% if forloop.counter < 10 %}
+                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                {% annotation_img graph.annotation lazy=1 %}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </dt>
+                                <dd>
+                                    <a href="{{ hand.get_absolute_url }}">
+                                        <strong>{{ hand }}</strong>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                {% if forloop.counter|divisibleby:4 or forloop.last %}
+                    </div>
+                {% endif %}
+
+            {% endfor %}
 
         </div>
 

@@ -37,14 +37,16 @@ class SearchGraphs(SearchContentType):
     @property
     def count(self):
         '''
-            Returns the number of records found.
+            Returns the number of records (graphs) found.
             -1 if the no search was executed.
         '''
         ret = super(SearchGraphs, self).count
         if ret > 0:
             ret = self.graphs_count
         return ret
-
+    
+    def get_hand_count(self):
+        return super(SearchGraphs, self).count
 
     def _build_queryset(self, request, term):
         """ View for Hand record drill-down """
@@ -164,13 +166,13 @@ class SearchGraphs(SearchContentType):
         # so the standard processing will be bypassed
         return False
 
-    def get_page_size(self):
-        return 12
+#     def get_page_size(self):
+#         return 12
     
     def _get_available_views(self):
         ret = [
-               {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
                {'key': 'list', 'label': 'List', 'title': 'Change to list view'},
+               {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
                ]
         return ret
 

@@ -10,6 +10,7 @@ class SearchContentType(object):
         self._init_field_types()
         self.desired_view = ''
         self.ordering = None
+        self.set_page_size()
         
     def is_slow(self):
         # return True if this search is noticeably slower than the other
@@ -654,8 +655,11 @@ class SearchContentType(object):
     def results_are_recordids(self):
         return True
     
+    def set_page_size(self, page_size=10):
+        self.page_size = page_size
+    
     def get_page_size(self):
-        return 10
+        return self.page_size
 
     def get_records_from_ids(self, recordids):
         # TODO: preload related objects?

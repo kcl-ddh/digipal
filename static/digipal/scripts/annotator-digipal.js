@@ -2178,37 +2178,74 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		this.selectedAnnotations.reverse();
 	}
 
-	updateStatus('-');
+	updateStatus('Saving Annotation...', 'warning');
 
+	var image_id = annotator.image_id;
+	var graphs = [],
+		vector = {}, geoJson;
 	var feature;
 	var data = make_form();
 	var url = annotator.absolute_image_url + 'save';
+	var cache = this.cacheAnnotations.cache;
 	if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
+
 		var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
+
 		if (confirm(msg)) {
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
+
 				feature = this.selectedAnnotations[i];
-				save(url, feature, data, ann, data.features);
-				delete annotator.cacheAnnotations.cache.graphs[feature.graph];
+				geoJson = annotator.format.write(feature);
+
+				vector = {};
+				vector['id'] = feature.graph;
+				vector['image'] = image_id;
+				vector['geoJson'] = geoJson;
+				vector['vector_id'] = feature.id;
+				graphs.push(vector);
+
 			}
-		} else {
-			return false;
+
+			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+			save(url, graphs, data, ann, data.features);
+
 		}
+
 	} else {
 
-		if (this.selectedFeature) {
+		if (allographs_page) {
 
-			save(url, this.selectedFeature, data, ann, data.features);
-
-			//this.loadAnnotations();
-		} else {
-			for (var idx = 0; idx < this.vectorLayer.features.length; idx++) {
-				feature = this.vectorLayer.features[idx];
-
-				if (!feature.attributes.saved) {
-					save(url, feature, data, ann, data.features);
-				}
+			for (ind2 = 0; ind2 < ann.length; ind2++) {
+				geoJson = annotator.format.write(ann[ind2]);
+				graphs.push({
+					'id': ann[ind2].graph,
+					'image': image_id,
+					'geoJson': geoJson,
+					'vector_id': ann[ind2].id
+				});
 			}
+
+			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+			save(url, graphs, data, ann, data.features);
+
+		} else {
+			if (this.selectedFeature) {
+				feature = this.selectedFeature;
+				geoJson = annotator.format.write(feature);
+
+				vector = {};
+				vector['id'] = feature.graph;
+				vector['image'] = image_id;
+				vector['geoJson'] = geoJson;
+				vector['vector_id'] = feature.id;
+
+				graphs.push(vector);
+
+				url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+				save(url, graphs, data, ann, data.features);
+
+			}
+
 		}
 	}
 
@@ -2403,8 +2440,6 @@ function make_form() {
 	});
 
 
-	features.has_features = has_features;
-	features.features = array_values_checked;
 	obj['feature'] = array_values_checked;
 
 	var form_serialized = form.serialize();
@@ -2429,8 +2464,6 @@ function make_form() {
 	}
 
 	return {
-		'has_features': has_features,
-		'features': features,
 		'form_serialized': form_serialized,
 		'features_labels': features_labels
 	};
@@ -2448,21 +2481,17 @@ function make_form() {
  *              Additional data for the annotation.
  */
 
-function save(url, feature, data, ann, features) {
-	var id = feature.id;
-	var temp = feature;
-	var form_serialized = data;
-	annotator.setSavedAttribute(feature, Annotator.SAVED, false);
-	var geoJson = annotator.format.write(feature);
+function save(url, graphs, data, ann, features) {
+	console.log(graphs)
 	var save_annotations = $.ajax({
-		url: url + '/' + id + '/?geo_json=' + geoJson,
-		data: form_serialized['form_serialized'],
+		url: url,
+		data: data['form_serialized'],
 		beforeSend: function() {
 			updateStatus('Saving annotation ...');
 		},
 		error: function(xhr, textStatus, errorThrown) {
 			updateStatus(textStatus, 'error');
-			annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
+			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
 			console.log(data);
@@ -2482,108 +2511,95 @@ function save(url, feature, data, ann, features) {
 					refresh_letters_container(allograph, allograph_id, true);
 				}
 
-				var color;
-				if (temp.state == 'Insert') {
+				var f = annotator.vectorLayer.features;
+				var f_length = annotator.vectorLayer.features.length;
+				var feature, id, temp;
+				var form_serialized = data;
 
-					var num_features = features.features.length;
-					feature.features = features.features;
-					var element = $('.number_unsaved_allographs');
-					var number_unsaved = element.html();
-					var annotations = annotator.unsaved_annotations;
-					for (var i = 0; i < annotations.length; i++) {
-						if (annotations[i].feature.id == feature.id) {
-							annotations.splice(i, 1);
-							i--;
-							break;
+				var new_graphs = data['graphs'];
+
+				for (var i = 0; i < new_graphs.length; i++) {
+
+					/*	Updating cache	*/
+					var new_graph = new_graphs[i].graph,
+						new_allograph = new_graphs[i].allograph_id;
+					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[i]);
+					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
+					allographsPage.cache.update('graph', new_graph, new_graphs[i]);
+					allographsPage.cache.update('allograph', new_allograph, new_graphs[i]);
+
+					/*	Updating annotator features	*/
+					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
+						if (f[feature_ind].graph == new_graphs[i].graph) {
+							feature = f[feature_ind];
+							id = feature.id;
+							feature.feature = allograph;
+							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
+
+							var color;
+
+							feature.features = new_graphs[i].features;
+							var num_features = new_graphs[i].features.length;
+							var element = $('.number_unsaved_allographs');
+							var number_unsaved = element.html();
+							var unsaved_annotations = annotator.unsaved_annotations;
+
+							for (var ind = 0; ind < unsaved_annotations.length; ind++) {
+								if (unsaved_annotations[ind].feature.id == feature.id) {
+									unsaved_annotations.splice(ind, 1);
+									ind--;
+									break;
+								}
+							}
+
+							for (var ann in annotator.annotations) {
+								if (annotator.annotations[ann].graph == feature.graph) {
+									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
+									annotator.annotations[ann].feature = allograph;
+								}
+							}
+
+							if (num_features > 0) {
+								color = 'green';
+								feature.described = true;
+								feature.num_features = feature.features.length + 1;
+							} else {
+								color = '#ee9900';
+								feature.described = false;
+								feature.num_features = 0;
+							}
+
+							stylize(feature, color, color, 0.4);
+							feature.style.originalColor = color;
+							feature.style.strokeWidth = 2;
+							feature.stored = true;
+							feature.last_feature_selected = null;
+							element.html(annotations.length);
+
+							var n = 0,
+								d = 0;
+							for (g = 0; g < f_length; g++) {
+								if (f[g].feature == feature.feature && f[g].stored) {
+									n++;
+								}
+
+								if (f[g].stored) {
+									d++;
+								}
+							}
+
+							$(".number_annotated_allographs .number-allographs").html(n);
+
+							$('[data-target="#allographs"]').html('Annotations (' + d + ')');
 						}
 					}
-
-					/*
-
-						THIS MUST CHANGE.
-						We should change the color of the graphs according to the data returned by this function
-						and not by the value of the checkboxes, because now we have the indetermined state
-
-					*/
-
-					if (num_features > 0) {
-						color = 'green';
-						feature.described = true;
-						feature.num_features = feature.features.length + 1;
-					} else {
-						color = '#ee9900';
-						feature.described = false;
-						feature.num_features = 0;
-					}
-
-					stylize(feature, color, color, 0.4);
-					feature.style.originalColor = color;
-					feature.style.strokeWidth = 2;
-					feature.stored = true;
-					feature.last_feature_selected = null;
-					element.html(annotations.length);
-					temp = null;
-
-					/*
-
-					UNTIL HERE.
-
-					*/
-
-				} else {
-					if (features.has_features) {
-						if (features.features.length) {
-							color = 'green';
-							feature.described = true;
-						}
-					} else {
-						color = '#ee9900';
-						feature.described = false;
-					}
-					stylize(feature, color, color, 0.4);
 				}
+
+
 
 				annotator.selectedAnnotations = [];
 
-				feature.feature = allograph;
-
-				var new_graphs = data['graphs'];
-				for (var ind = 0; ind < new_graphs.length; ind++) {
-					var new_graph = new_graphs[ind].graph,
-						new_allograph = new_graphs[ind].allograph_id;
-					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[ind]);
-					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[ind]);
-					allographsPage.cache.update('graph', new_graph, new_graphs[ind]);
-					allographsPage.cache.update('allograph', new_allograph, new_graphs[ind]);
-					for (var ann in annotator.annotations) {
-						if (annotator.annotations[ann].graph == feature.graph) {
-							annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
-							annotator.annotations[ann].feature = allograph;
-						}
-					}
-
-				}
-
-				var f = annotator.vectorLayer.features;
-				var f_length = annotator.vectorLayer.features.length;
-				var n = 0,
-					d = 0;
-				for (g = 0; g < f_length; g++) {
-					if (f[g].feature == feature.feature && f[g].stored) {
-						n++;
-					}
-
-					if (f[g].stored) {
-						d++;
-					}
-				}
-
-				$(".number_annotated_allographs .number-allographs").html(n);
-
-				$('[data-target="#allographs"]').html('Annotations (' + d + ')');
 			}
-
-
 
 		},
 		complete: function() {

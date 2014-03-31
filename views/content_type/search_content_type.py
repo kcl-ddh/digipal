@@ -535,11 +535,11 @@ class SearchContentType(object):
         '''
         self.desired_view = view_key
     
-    def build_queryset(self, request, term):
+    def build_queryset(self, request, term, force_search=False):
         ret = []
         self.set_ordering(request.GET.get('ordering'))
-        # only run slow searches if that tab is selected; always run other searches
-        if not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
+        # only run slow searches if that tab is selected or forced search; always run other searches
+        if force_search or not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)
         return ret
         

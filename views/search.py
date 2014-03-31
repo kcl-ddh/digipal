@@ -269,13 +269,17 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
         context['search_type_defaulted'] = context['search_type'] or context['types'][0].key
         
-        if context['submitted']: 
+        has_result = False
+        
+        if context['submitted']:
             # Create the queryset for each allowed content type.
             # If allowed_types is None, search for each supported content type.
             for type in context['types']:
                 if allowed_type in [None, type.key]:
                     hand_filters.chrono('Search %s:' % type.key)
-                    context['results'] = type.build_queryset(request, term)
+                    context['results'] = type.build_queryset(request, term, not has_result)
+                    if type.is_empty == False:
+                        has_result = True
                     hand_filters.chrono(':Search %s' % type.key)
 
 def get_query_summary(request, term, submitted, forms):

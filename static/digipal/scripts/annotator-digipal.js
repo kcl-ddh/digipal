@@ -444,6 +444,7 @@ DigipalAnnotator.prototype.filterAnnotation = function(checkboxes, formal_attrib
 
 	}
 	_self.vectorLayer.redraw();
+	restoreFullscreenPositions();
 };
 
 DigipalAnnotator.prototype.filterCheckboxes = function(checkboxes, check) {

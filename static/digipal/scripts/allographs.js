@@ -284,6 +284,7 @@ function Allographs(dialog, cache) {
 				checkboxes = $('.myModal .features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
 				common_allographs(graphs, allographs_cache, graph);
+				update_summary();
 				events_on_labels();
 			});
 
@@ -297,6 +298,7 @@ function Allographs(dialog, cache) {
 					checkboxes = $('.myModal .features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
 					common_allographs(graphs, allographs_cache, graph);
+					update_summary();
 					events_on_labels();
 				});
 			} else {
@@ -305,6 +307,7 @@ function Allographs(dialog, cache) {
 				var element_value = $('li[data-graph="' + graphs_annotation + '"]').find('.label-default').text();
 				$('.label-summary:contains(' + element_value + ')').remove();
 				common_allographs(graphs, allographs_cache, graph);
+				update_summary();
 				events_on_labels();
 			}
 
@@ -437,6 +440,8 @@ function Allographs(dialog, cache) {
 						event.stopPropagation();
 					});
 
+
+
 					myModal.find('select').chosen();
 
 					myModal.find('.component_labels').click(function() {
@@ -538,7 +543,7 @@ function Allographs(dialog, cache) {
 					var component_id = allographs[idx].id;
 					var is_empty;
 					var features = allographs[idx].features;
-					string_summary += "<span class='component_summary'>" + allographs[idx].name + "</span>";
+					string_summary += "<span class='component_summary' data-component='" + component_id + "'>" + allographs[idx].name + "</span>";
 
 					s += "<div class='component_labels' data-id='" + prefix + "component_" + component_id + "' style='border-bottom:1px solid #ccc'><b>" + component + " <span class='arrow_component icon-arrow-up'></span></b>";
 
@@ -588,7 +593,7 @@ function Allographs(dialog, cache) {
 						}
 
 						if (array_features_owned_temporary.indexOf(names) >= 0) {
-							string_summary += "<span title='" + features[idx].name + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+							string_summary += "<span data-component='" + component_id + "' title='" + features[idx].name + "' data-feature = '" + features[idx].id + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
 							n++;
 						}
 
@@ -597,7 +602,7 @@ function Allographs(dialog, cache) {
 
 					s += "</div>";
 					if (!n) {
-						string_summary += "<span class='feature_summary'>undefined</span>";
+						string_summary += "<span class='feature_summary' data-feature = '0' data-component='" + component_id + "'>undefined</span>";
 					}
 
 				});
@@ -645,12 +650,45 @@ function Allographs(dialog, cache) {
 
 
 	var events_on_labels = function() {
+
 		$('.label-summary').unbind().on('mouseover', function() {
 			var graph = $(this).data('graph-id');
 			$('#label_' + graph).closest('.annotation_li').addClass('hovered_allograph');
 		}).on('mouseout', function() {
 			var graph = $(this).data('graph-id');
 			$('#label_' + graph).closest('.annotation_li').removeClass('hovered_allograph');
+		});
+	};
+
+
+	var update_summary = function() {
+		var summary = $('#summary');
+		$('.features_box').on('change', function() {
+			var id = $(this).attr('id');
+			var component_id = $(this).val().split('::')[0];
+			var feature_id = $(this).val().split('::')[1];
+			var feature = $("label[for='" + id + "']").text();
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+
+				var selected = '';
+				for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
+					var graph = selectedAnnotations.annotations[i].graph;
+					var label_number = $('.label[data-graph-id="' + graph + '"]');
+					selected += ' <a href="#label_' + graph + '" data-graph-id="' + graph + '" class="label label-default label-summary">' + label_number.html() + '</a>';
+				}
+
+				var html_feature_string = "<span data-feature='" + feature_id + "' data-component='" + component_id + "' class='feature_summary'>" + feature + selected + "</span>";
+
+				summary.find('.feature_summary[data-component="' + component_id + '"]').last().after(html_feature_string);
+				summary.find('.feature_summary[data-component="' + component_id + '"][data-feature=0]').remove();
+			} else {
+				summary.find('.feature_summary[data-component="' + component_id + '"][data-feature="' + feature_id + '"]').remove();
+				if (!summary.find('.feature_summary[data-component="' + component_id + '"]').length) {
+					var undefined_feature_string = "<span data-feature='0' data-component='" + component_id + "' class='feature_summary'>undefined</span>";
+					summary.find('.component_summary[data-component="' + component_id + '"]').after(undefined_feature_string);
+				}
+			}
+			events_on_labels();
 		});
 	};
 

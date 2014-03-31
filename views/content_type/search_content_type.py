@@ -442,7 +442,8 @@ class SearchContentType(object):
                 # 'hand'), ('name', 'hand'), ('description', 'handsom'), 
                 # ('label', 'hand')])
                 for term_info in results.matched_terms():
-                    terms[term_info[1].title()] = 1
+                    t = term_info[1].decode('utf-8')
+                    terms[t.title()] = 1
             self.close_whoosh_searcher()
             ret = terms.keys()
             
@@ -460,7 +461,8 @@ class SearchContentType(object):
                 ret = ret[0:limit]
             
             # Add the prefix to all the results
-            ret = [ur'%s%s' % (prefix, r.decode('utf8')) for r in ret]
+            #ret = [ur'%s%s' % (prefix, r.decode('utf8')) for r in ret]
+            ret = [ur'%s%s' % (prefix, r) for r in ret]
 
         return ret
     

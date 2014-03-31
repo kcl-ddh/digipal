@@ -157,8 +157,8 @@ def get_tokens_from_phrase(phrase, lowercase=False):
         Discard stop words (NOT, OR, AND)
         Detect quoted pieces ("two glosses")
     
-        e.g. "ab cd" ef NOT gh
-        => ['ab cd', 'ef', 'gh']
+        e.g. "ab cd" ef-yo NOT (gh)
+        => ['ab cd', 'ef', 'yo', 'gh']
     '''
     ret = []
     
@@ -172,6 +172,9 @@ def get_tokens_from_phrase(phrase, lowercase=False):
         ret.append(part)
         
     phrase = re.sub(ur'"[^"]+"', '', phrase)
+    
+    # JIRA 358: search for 8558-8563 => no highlight if we don't remove non-characters before tokenising
+    phrase = re.sub(ur'\W', ' ', phrase)
     
     # add the remaining tokens
     if phrase:

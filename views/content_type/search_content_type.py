@@ -40,7 +40,8 @@ class SearchContentType(object):
         # A title (e.g. British Library)
         self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None))
         # A code (e.g. K. 402, Royal 7.C.xii)
-        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))
+        # See JIRA 358
+        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True))
         # An ID (e.g. 708-AB)
         self.FT_ID = ID()
     

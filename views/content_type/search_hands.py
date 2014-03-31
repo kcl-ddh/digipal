@@ -92,6 +92,9 @@ class SearchHands(SearchContentType):
     @property
     def label_singular(self):
         return 'Hand'
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('item_part__current_item__repository__place', 'assigned_place', 'assigned_date').prefetch_related('images', 'item_part__historical_items__catalogue_numbers').in_bulk(recordids)
 
     def _build_queryset_django(self, request, term):
         type = self.key

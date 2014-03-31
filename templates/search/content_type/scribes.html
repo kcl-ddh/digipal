@@ -18,11 +18,14 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
                 <td>{{ scribe.name }}
-                    {% if scribe.images.all %}
-                        <a class='imageIcon' href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
-                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{scribe.images.count}} images' />
-                        </a>
-                        ({{scribe.images.count}})
+                    {% if scribe.get_image_count %}
+                        {% spaceless %}
+                        (<a class='imageIcon' data-toggle="tooltip" alt='manuscript' title='This record contains {{scribe.hands.count}} images' 
+                            href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'
+                            >{{scribe.get_image_count}}
+                                <i class="fa fa-picture-o"></i>
+                            </a> )
+                        {% endspaceless %}
                     {% endif %}
                 </td>
                 <td>{{ scribe.date }}</td>

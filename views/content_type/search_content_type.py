@@ -688,15 +688,13 @@ class SearchContentType(object):
         '''
         return getattr(self, 'whoosh_dict', None)
 
-    def _get_query_terms(self):
-        phrase = self.query_phrase
-        # remove punctuation characters (but keep spaces and alphanums)
-        import re
-        phrase = re.sub(ur'[^\w\s]', u'', phrase)
-    
-        # get terms from the phrase
-        terms = re.split(ur'\s+', phrase.lower().strip())
-        return terms
+    def _get_query_terms(self, lowercase=False):
+        '''
+            Returns a list of tokens found in the search query. 
+        '''
+        from digipal.utils import get_tokens_from_phrase
+        ret = get_tokens_from_phrase(self.query_phrase, lowercase)
+        return ret        
     
 class QuerySetAsList(list):
     def count(self):
@@ -726,7 +724,6 @@ def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid
                 'required': False,                                
                }
     if is_model_choice_field:
-        print 'Create model choice field'
         ret = forms.ModelChoiceField(
             #queryset = Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(),
             queryset = values,

@@ -87,15 +87,17 @@ def plural(value, count=2):
 @register.filter
 def tag_phrase_terms(value, phrase=''):
     '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
-    import re
+    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase
 
     # remove punctuation characters (but keep spaces and alphanums)
-    phrase = re.sub(ur'[^\w\s]+', u' ', phrase)
-
-    if len(phrase.strip()):
-
+    #phrase = re.sub(ur'[^\w\s]+', u' ', phrase)
+    terms = get_tokens_from_phrase(phrase)
+    
+    #if len(phrase.strip()):
+    if terms:
+        
         # get terms from the phrase
-        terms = re.split(ur'\s+', phrase.lower().strip())
+        #terms = re.split(ur'\s+', phrase.lower().strip())
 
         # Surround the occurrences of those terms in the value with a span (class="found-term")
         # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
@@ -103,12 +105,11 @@ def tag_phrase_terms(value, phrase=''):
         # Here we have a simple implementation that look for exact and complete matches only.
         # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
         #         or headings.
-        from digipal.utils import get_regexp_from_terms
         re_terms = get_regexp_from_terms(terms)
         if re_terms:
             # a trick to prevent recursive substitution
             stop_keyword = 'AAAA'
-            # The loop here is necessary because the matches overlap therefore only the last occurence is found each time
+            # The loop here is necessary because the matches overlap therefore only the last occurrence is found each time
             while True:
                 l = len(value)
                 value = re.sub(ur'(?iu)(>[^<]*)('+re_terms+ur')', ur'\1<span class="found-term">\2' + stop_keyword + ur'</span>', u'>'+value)

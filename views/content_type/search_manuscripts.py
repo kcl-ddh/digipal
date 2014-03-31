@@ -206,8 +206,10 @@ class SearchManuscripts(SearchContentType):
         '''
         desc = None
         location = 0
-        terms = [t.lower() for t in self._get_query_terms() if t not in [u'or', u'and', u'not']]
+        #terms = [t.lower() for t in self._get_query_terms() if t not in [u'or', u'and', u'not']]
         from digipal.utils import get_regexp_from_terms
+        #terms = get_tokens_from_phrase(descriptions)
+        terms = self._get_query_terms(True)
         re_terms = get_regexp_from_terms(terms)
 
         if re_terms:
@@ -234,7 +236,13 @@ class SearchManuscripts(SearchContentType):
             start -= 1
         while end < len(text) and re.match(ur'\w', text[end]):
             end += 1
-        return text[start:end]
+            
+        ret = text[start:end].strip()
+        
+        if start > 0: ret = u'\u2026' + ret
+        if end < len(text): ret += u'\u2026'
+        
+        return ret
 
 from digipal.utils import sorted_natural
 class FilterManuscripts(forms.Form):

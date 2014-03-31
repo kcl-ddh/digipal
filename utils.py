@@ -151,10 +151,37 @@ def get_json_response(data):
     from django.http import HttpResponse 
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
+def get_tokens_from_phrase(phrase, lowercase=False):
+    ''' Returns a list of tokens from a query phrase.
+    
+        Discard stop words (NOT, OR, AND)
+        Detect quoted pieces ("two glosses")
+    
+        e.g. "ab cd" ef NOT gh
+        => ['ab cd', 'ef', 'gh']
+    '''
+    ret = []
+    
+    if lowercase:
+        phrase = phrase.lower()
+    
+    phrase = phrase.strip()
+    
+    # extract the quoted pieces
+    for part in re.findall(ur'"([^"]+)"', phrase):
+        ret.append(part)
+        
+    phrase = re.sub(ur'"[^"]+"', '', phrase)
+    
+    # add the remaining tokens
+    if phrase:
+        ret.extend([t for t in re.split(ur'\s+', phrase.lower().strip()) if t.lower() not in ['and', 'or', 'not']])
+    
+    return ret
+
 def get_regexp_from_terms(terms):
     ret = ''
     if terms:
-        import re
         # create a regexp
         ret = []
         for t in terms:
@@ -165,10 +192,12 @@ def get_regexp_from_terms(terms):
             ret.append(t)
         ret = ur'|'.join(ret)
         
+        # convert all \* into \W*
+        #ret = ret.replace(ur'\*', ur'\w*')
+    
     return ret
 
 def find_first(pattern, text, default=''):
-    import re
     ret = default
     matches = re.findall(pattern, text)
     if matches: ret = matches[0]

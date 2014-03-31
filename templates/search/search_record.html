@@ -127,6 +127,8 @@
                                 <div class="row">
 
                                     <div class="col-md-10">
+                                        {% chrono "pagination:" %}
+                                    
                                         {% reset_recordids as recordids %}
                                         {% if type.results_are_recordids %}
                                             {% autopaginate type.queryset type.get_page_size as recordids %}
@@ -135,6 +137,8 @@
                                             {% reset_recordids as records %}
                                             {% autopaginate type.queryset type.get_page_size as records %}
                                         {% endif %}
+
+                                        {% chrono ":pagination" %}
 
                                         {% filter update_query_params:type.result_type_qs %}
                                             {% include "pagination/pagination_with_size.html" %}
@@ -160,7 +164,9 @@
 
                                 </div>
 
+                                {% chrono type.key %}
                                 {% include type.template_path with template_type=type.key %}
+                                {% chrono type.key %}
 
                                 {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}

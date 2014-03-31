@@ -154,6 +154,9 @@ class SearchManuscripts(SearchContentType):
         self._queryset = query_manuscripts.distinct().order_by('folio_number', 'historical_items__catalogue_number', 'id')
 
         return self._queryset
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('current_item').prefetch_related('historical_items__catalogue_numbers', 'historical_items__description_set', 'images', 'current_item__repository').in_bulk(recordids)
 
     def get_records_from_ids(self, recordids):
         ret = super(SearchManuscripts, self).get_records_from_ids(recordids)

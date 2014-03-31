@@ -63,7 +63,10 @@ class SearchScribes(SearchContentType):
     
     @property
     def label_singular(self):
-        return 'Scribe'    
+        return 'Scribe'
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('scriptorium').prefetch_related('hands__images').in_bulk(recordids)
     
     def _build_queryset_django(self, request, term):
         type = self.key

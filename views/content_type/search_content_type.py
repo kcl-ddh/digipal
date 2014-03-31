@@ -1,5 +1,6 @@
 from django.conf import settings
 from django import forms
+from digipal.templatetags.hand_filters import chrono
 
 class SearchContentType(object):
     
@@ -660,15 +661,24 @@ class SearchContentType(object):
     
     def get_page_size(self):
         return self.page_size
+    
+    def bulk_load_records(self, recordids):
+        '''Read all the records from the database
+            This can be overridden to significantly optimise the template 
+            rendering by pre-fetching the related records.  
+        '''
+        return (self.get_model()).objects.in_bulk(recordids)
 
     def get_records_from_ids(self, recordids):
         # TODO: preload related objects?
         # Fetch all the records from the DB
-        records = (self.get_model()).objects.in_bulk(recordids)
+        records = self.bulk_load_records(recordids)
         # Make sure they are in the desired order
         # 'if id in records' is important because of ghost recordids 
         # returned by a stale whoosh index.
+        chrono('group:')
         ret = [records[id] for id in recordids if id in records]
+        chrono(':group')
         return ret
     
     def get_whoosh_dict(self):

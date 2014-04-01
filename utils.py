@@ -167,7 +167,7 @@ def get_tokens_from_phrase(phrase, lowercase=False):
         phrase = phrase.lower()
         
     # Remove field scopes. E.g. repository:London => London
-    phrase = re.sub(ur'\w+:', ur'', phrase)
+    phrase = re.sub(ur'(?u)\w+:', ur'', phrase)
     
     phrase = phrase.strip()
     
@@ -180,7 +180,7 @@ def get_tokens_from_phrase(phrase, lowercase=False):
     
     # JIRA 358: search for 8558-8563 => no highlight if we don't remove non-characters before tokenising
     # * is for searches like 'digi*'
-    phrase = re.sub(ur'[^\w*]', ' ', phrase)
+    phrase = re.sub(ur'(?u)[^\w*]', ' ', phrase)
     
     # add the remaining tokens
     if phrase:

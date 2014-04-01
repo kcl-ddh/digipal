@@ -74,7 +74,7 @@ function make_form() {
 			$.each(features_input, function() {
 				f_id = $(this).attr('id');
 				f_value = $(this).val();
-				label_element = $('label[for="' + f_id + '"');
+				label_element = $('label[for="' + f_id + '"]');
 				features_labels_array.push(label_element.text());
 			});
 

@@ -1,10 +1,10 @@
-{% load mezzanine_tags pagination_tags html_escape %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 <table class="table table-condensed">
     <tr>
         {% include "search/search_headings.html" %}
     </tr>
-
+    
     {% filter tag_phrase_terms:terms %}
         {% for hand in records %}
             <tr class="{% cycle 'bgColour' '' %}">
@@ -16,7 +16,7 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
 
-                <td>Digipal Hand {{ hand.num }}</td>
+                <td>DigiPal Hand {{ hand.num }}</td>
 
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
 
@@ -40,4 +40,5 @@
             </tr>
         {% endfor %}
     {% endfilter %}
+    
 </table>

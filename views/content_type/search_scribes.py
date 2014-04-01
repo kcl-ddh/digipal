@@ -10,7 +10,7 @@ class SearchScribes(SearchContentType):
         ''' See SearchContentType.get_fields_info() for a description of the field structure '''
         
         ret = super(SearchScribes, self).get_fields_info()
-        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name', 'boost': 3.0}, 'advanced': True}
+        ret['name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'name', 'boost': 3.0}, 'advanced': True}
         ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date', 'boost': 1.0}, 'advanced': True}
         ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 0.3}}

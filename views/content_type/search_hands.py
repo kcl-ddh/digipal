@@ -13,7 +13,11 @@ class SearchHands(SearchContentType):
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
         ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.3}, 'long_text': True}
-        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes', 'boost': 0.3}, 'advanced': True}
+        # Use FT_CODE instead of FT_TITLE because we have numbers in the field e.g. "Digipal Hand 1" woudln't return anything with FT_TITLE 
+        ret['scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribes', 'boost': 0.3}, 'advanced': True}
+        # JIRA 358: we need to search by the hand name
+        ret['num'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand', 'format': 'DigiPal Hand %s'}}
+        
         ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
         ret['item_part__current_item__repository__place__name, item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}

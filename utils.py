@@ -156,6 +156,7 @@ def get_tokens_from_phrase(phrase, lowercase=False):
     
         Discard stop words (NOT, OR, AND)
         Detect quoted pieces ("two glosses")
+        Remove field scopes. E.g. repository:London => London
     
         e.g. "ab cd" ef-yo NOT (gh)
         => ['ab cd', 'ef', 'yo', 'gh']
@@ -164,17 +165,22 @@ def get_tokens_from_phrase(phrase, lowercase=False):
     
     if lowercase:
         phrase = phrase.lower()
+        
+    # Remove field scopes. E.g. repository:London => London
+    phrase = re.sub(ur'\w+:', ur'', phrase)
     
     phrase = phrase.strip()
     
     # extract the quoted pieces
     for part in re.findall(ur'"([^"]+)"', phrase):
         ret.append(part)
-        
+    
+    # remove them from the phrase
     phrase = re.sub(ur'"[^"]+"', '', phrase)
     
     # JIRA 358: search for 8558-8563 => no highlight if we don't remove non-characters before tokenising
-    phrase = re.sub(ur'\W', ' ', phrase)
+    # * is for searches like 'digi*'
+    phrase = re.sub(ur'[^\w*]', ' ', phrase)
     
     # add the remaining tokens
     if phrase:
@@ -182,21 +188,29 @@ def get_tokens_from_phrase(phrase, lowercase=False):
     
     return ret
 
-def get_regexp_from_terms(terms):
-    ret = ''
+def get_regexp_from_terms(terms, as_list=False):
+    ''' input: list of query terms, e.g. ['ab', cd ef', 'gh']
+        output: a regexp, e.g. '\bab\b|\bcd\b...
+                if as_list is True: ['\bab\b', '\bcd\b']
+    '''
+    ret = []
     if terms:
         # create a regexp
-        ret = []
         for t in terms:
             t = re.escape(t)
+
             if len(t) > 1:
                 t += ur'?'
             t = ur'\b%ss?\b' % t
+            
+            # convert all \* into \W*
+            # * is for searches like 'digi*'
+            t = t.replace(ur'\*', ur'\w*')
+            
             ret.append(t)
+
+    if not as_list:
         ret = ur'|'.join(ret)
-        
-        # convert all \* into \W*
-        #ret = ret.replace(ur'\*', ur'\w*')
     
     return ret
 

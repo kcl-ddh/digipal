@@ -336,6 +336,9 @@ class SearchContentType(object):
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
+                        format = fields[k]['whoosh'].get('format', '')
+                        if format:
+                            val = format % val
                         document[fields[k]['whoosh']['name']] = val
                     
             if document:

@@ -306,7 +306,7 @@ class SearchContentType(object):
             
         return records
     
-    def write_index(self, writer, verbose=False):
+    def write_index(self, writer, verbose=False, aci={}):
         import re 
 
         fields = self.get_fields_info()
@@ -340,6 +340,10 @@ class SearchContentType(object):
                         if format:
                             val = format % val
                         document[fields[k]['whoosh']['name']] = val
+                        val2 = val
+                        if len(val2) < 30:
+                            val2 += '|'
+                        aci[val2] = 1
                     
             if document:
                 if verbose:

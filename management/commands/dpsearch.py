@@ -260,9 +260,14 @@ Options:
         # Add documents to the index
         print '\tWrite indexes:'
         writer = index.writer()
+        aci = {}
         for type in types:
-            count = type.write_index(writer, self.is_verbose())
+            count = type.write_index(writer, self.is_verbose(), aci)
             print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
+            
+        f = open('ica.idx', 'w')
+        f.write((ur'|'.join(aci.keys())).encode('utf8'))
+        f.close()
         
         writer.commit()
 

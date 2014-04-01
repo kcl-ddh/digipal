@@ -9,6 +9,7 @@ from optparse import make_option
 from django.db import IntegrityError
 from digipal.models import *
 from digipal.utils import natural_sort_key
+from digipal.templatetags.hand_filters import chrono
 
 class Command(BaseCommand):
 	help = """
@@ -99,8 +100,24 @@ Commands:
 			known_command = True
 			self.catnum(*args[1:])
 
+		if command == 'autocomplete':
+			known_command = True
+			self.autocomplete(*args[1:])
+
+	def autocomplete(self, phrase, **kwargs):
+		from utils import readFile
+		settings.DEV_SERVER = True
+		# split into terms
+		terms = re.split(ur'(?ui)[^\w*]+', phrase)
+
+		chrono('search:')
+		idx = readFile('ica.idx')
+		matches = re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||\w*\b)' % re.escape(phrase), idx)
+		chrono(':search')
+		print (u'\n'.join(set(matches))).encode('ascii', 'ignore')
+		print len(idx)
+
 	def catnum(self, root=None):
-		from digipal.models import *
 		print '\nh1 NOCAT'
 		hi1 = HistoricalItem(historical_item_type_id=1)
 		hi1.save() 

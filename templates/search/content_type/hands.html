@@ -16,7 +16,7 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
 
-                <td>DigiPal Hand {{ hand.num }}</td>
+                <td>DigiPal Hand {{ hand.id }}</td>
 
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
 

@@ -293,9 +293,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     else:
         return data
 
-def get_allographs_by_graph(request, image_id, character_id, graph_id):
+def get_allographs_by_graph(request, image_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
+        character_id = graph.idiograph.allograph.character.id
         annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__id=character_id, image=image_id)
         annotations_list = []
         if annotations:
@@ -459,14 +460,14 @@ def save(request, graphs):
             graphs = simplejson.loads(graphs)
 
             for gr in graphs:
-
+                print gr
                 graph_object = False
 
                 if 'id' in gr:
                     graph_object = Graph.objects.get(id=gr['id'])
 
                 image = Image.objects.get(id=gr['image'])
-
+                print graph_object
                 if graph_object:
                     annotation = graph_object.annotation
                     graph = graph_object

@@ -1318,78 +1318,77 @@ function load_allographs_container(allograph_value, url, show, allograph_id) {
 			}
 
 			$(s).find('img').each(function() {
-				$(this).on('load', function() {
 
-					img.remove();
-					container_div.html(s);
+				img.remove();
+				container_div.html(s);
 
-					var button = $('.close_top_div_annotated_allographs');
-					var container = $('.letters-allograph-container');
-					var container_number = $('.number_annotated_allographs');
-					var images_link = $('.vector_image_link');
-					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
-					var features = annotator.vectorLayer.features;
+				var button = $('.close_top_div_annotated_allographs');
+				var container = $('.letters-allograph-container');
+				var container_number = $('.number_annotated_allographs');
+				var images_link = $('.vector_image_link');
+				var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+				var features = annotator.vectorLayer.features;
 
-					images_link.fadeIn();
+				images_link.fadeIn();
 
-					button.click(function() {
-						container.fadeOut().remove();
-						container_number.removeClass('active');
-					});
-
-
-					images_link.click(function() {
-						var vector = $(this);
-						annotator.centreById(vector.data('vector-id'));
-					});
-
-
-					// waiting for all images to be loaded
-					images_link.on("mouseover", function() {
-						var vector = $(this);
-						for (var i = 0; i < features.length; i++) {
-							if (features[i].id == vector.data('vector-id')) {
-								features[i].originalColor = features[i].style.fillColor;
-								features[i].style.strokeColor = 'red';
-								features[i].style.strokeWidth = 6;
-								break;
-							}
-						}
-						annotator.vectorLayer.redraw();
-						restoreFullscreenPositions();
-					});
-
-
-					images_link.mouseout(function() {
-						var vector = $(this);
-						for (var i = 0; i < features.length; i++) {
-							if (features[i].id == vector.data('vector-id')) {
-								features[i].style.strokeColor = features[i].originalColor;
-								features[i].style.strokeWidth = 2;
-								break;
-							}
-						}
-						annotator.vectorLayer.redraw();
-						restoreFullscreenPositions();
-					});
-
-					images_link.dblclick(function() {
-						var vector = $(this);
-						annotator.selectFeatureByIdAndCentre(vector.data('vector-id'));
-					});
-
-
-					var hands = $('.hands_labels');
-					$.each(hands, function(index_hands, hand) {
-						var c = 0;
-						$.each(images_link, function(index_images, image) {
-							if ($(image).data('hand') == $(hand).data('hand')) {
-								c++;
-							}
-						});
-						$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
-					});
+				button.click(function() {
+					container.fadeOut().remove();
+					container_number.removeClass('active');
 				});
+
+
+				images_link.click(function() {
+					var vector = $(this);
+					annotator.centreById(vector.data('vector-id'));
+				});
+
+
+				// waiting for all images to be loaded
+				images_link.on("mouseover", function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].originalColor = features[i].style.fillColor;
+							features[i].style.strokeColor = 'red';
+							features[i].style.strokeWidth = 6;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+					restoreFullscreenPositions();
+				});
+
+
+				images_link.mouseout(function() {
+					var vector = $(this);
+					for (var i = 0; i < features.length; i++) {
+						if (features[i].id == vector.data('vector-id')) {
+							features[i].style.strokeColor = features[i].originalColor;
+							features[i].style.strokeWidth = 2;
+							break;
+						}
+					}
+					annotator.vectorLayer.redraw();
+					restoreFullscreenPositions();
+				});
+
+				images_link.dblclick(function() {
+					var vector = $(this);
+					annotator.selectFeatureByIdAndCentre(vector.data('vector-id'));
+				});
+
+
+				var hands = $('.hands_labels');
+				$.each(hands, function(index_hands, hand) {
+					var c = 0;
+					$.each(images_link, function(index_images, image) {
+						if ($(image).data('hand') == $(hand).data('hand')) {
+							c++;
+						}
+					});
+					$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
+				});
+
 			});
 
 			/*
@@ -1432,18 +1431,17 @@ function open_allographs(allograph, show) {
 	}
 	if (allograph_value) {
 		var features = annotator.vectorLayer.features;
-		var feature, character;
+		var feature;
 		for (var i = 0; i < features.length; i++) {
 			if (features[i].feature == allograph_value) {
 				feature = features[i].graph;
-				character = features[i].character_id;
 				break;
 			}
 		}
-		if (!feature && !character) {
+		if (!feature) {
 			return false;
 		}
-		var url = annotator.absolute_image_url + "graph/" + feature + "/" + character + "/allographs_by_graph/";
+		var url = annotator.absolute_image_url + "graph/" + feature + "/allographs_by_graph/";
 		load_allographs_container(allograph_value, url, show, allograph_id);
 	}
 }
@@ -1458,17 +1456,7 @@ function refresh_letters_container(allograph, allograph_id, show) {
 		show = false;
 	}
 	var features = annotator.vectorLayer.features;
-	var character_id;
-	for (i = 0; i < features.length; i++) {
-		if (features[i].feature == allograph) {
-			character_id = features[i].character_id;
-			break;
-		}
-	}
-	if (typeof character_id == "undefined") {
-		return false;
-	}
-	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
+	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/allographs_by_allograph/";
 	load_allographs_container(allograph, url, show);
 }
 
@@ -2179,6 +2167,11 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		this.selectedAnnotations.reverse();
 	}
 
+	if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
+		updateStatus('Select annotations to proceed', 'danger');
+		return false;
+	}
+
 	updateStatus('Saving Annotation...', 'warning');
 
 	var image_id = annotator.image_id;
@@ -2204,7 +2197,7 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 				vector['geoJson'] = geoJson;
 				vector['vector_id'] = feature.id;
 				graphs.push(vector);
-
+				console.log(vector);
 			}
 
 			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
@@ -2241,7 +2234,6 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 				vector['vector_id'] = feature.id;
 
 				graphs.push(vector);
-
 				url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
 				save(url, graphs, data, ann, data.features);
 
@@ -2531,10 +2523,12 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].graph == new_graphs[i].graph) {
+						if (f[feature_ind].id == new_graphs[i].vector_id) {
 							feature = f[feature_ind];
 							id = feature.id;
 							feature.feature = allograph;
+							feature.graph = new_graph;
+							feature.state = null;
 							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 
 							var color;
@@ -2554,9 +2548,10 @@ function save(url, graphs, data, ann, features) {
 							}
 
 							for (var ann in annotator.annotations) {
-								if (annotator.annotations[ann].graph == feature.graph) {
+								if (annotator.annotations[ann].vector_id == feature.id) {
 									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
 									annotator.annotations[ann].feature = allograph;
+									annotator.annotations[ann].graph = new_graph;
 								}
 							}
 

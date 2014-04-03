@@ -480,7 +480,6 @@ class SearchContentType(object):
             
         if query and limit > 0:
             import re
-            settings.DEV_SERVER = True
             phrase = query
     
             chrono('regexp:')

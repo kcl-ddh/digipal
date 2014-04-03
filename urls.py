@@ -69,6 +69,7 @@ if settings.DEBUG:
                            (r'test/iipimage/$', 'iipimage'),
                            (r'test/similar_graph/$', 'similar_graph_view'),
                            (r'test/map/$', 'map_view'),
+                           (r'test/autocomplete/$', 'autocomplete_view'),
                            )
 
 urlpatterns += patterns('haystack.views',

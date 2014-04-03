@@ -341,8 +341,10 @@ class SearchContentType(object):
                             val = format % val
                         document[fields[k]['whoosh']['name']] = val
                         val2 = val
-                        if len(val2) < 30:
+                        if id(fields[k]['whoosh']['type']) not in [id(self.FT_LONG_FIELD)]:
                             val2 += '|'
+                        #print fields[k]['whoosh']['type'].analyzer
+                        #print dir(fields[k]['whoosh']['type'].analyzer)
                         aci[val2] = 1
                     
             if document:
@@ -415,6 +417,7 @@ class SearchContentType(object):
         return parser
     
     def get_suggestions(self, query, limit=8):
+        chrono('suggestions:')
         ret = []
         #query = query.lower()
         query_parts = query.split()
@@ -432,9 +435,81 @@ class SearchContentType(object):
             ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
             if query_parts: 
                 prefix += query_parts.pop(0) + u' '
+        chrono(':suggestions')
         return ret
+    
+    def get_autocomplete_path(self, can_create_path=False):
+        ''' returns the path of the autocomplete index on the filesystem'''
+        ret = None
+        index_name = 'autocomplete'
+        import os.path
+        path = settings.SEARCH_INDEX_PATH
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+        path = os.path.join(path, index_name)
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+            
+        path = os.path.join(path, index_name + '.idx')
+
+        return path
 
     def get_suggestions_single_query(self, query, limit=8, prefix=u''):
+        ret = []
+
+        settings.suggestions_index = None
+        
+        if not getattr(settings, 'suggestions_index', None):
+            chrono('load:')
+            path = self.get_autocomplete_path()
+            if path:
+                import os
+                if os.path.exists(path):
+                    from digipal.management.commands.utils import readFile
+                    settings.suggestions_index = readFile(path)
+            chrono(':load')
+            
+        if not settings.suggestions_index:
+            return ret
+            
+        if query and limit > 0:
+            import re
+            settings.DEV_SERVER = True
+            phrase = query
+    
+            chrono('regexp:')
+            ret = {}
+            for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
+                m = m.strip('|')
+                ret[m.lower()] = m
+            ret = ret.values()
+            chrono(':regexp')
+
+            # sort the results by length then by character 
+            ql = len(query)
+            def key(k):
+                ret = len(k) * 100000
+                if len(k) > ql:
+                    ret += ord(k[ql]) * 10000
+                if len(k) > ql + 1:
+                    ret += ord(k[ql + 1])
+                return ret
+            ret = sorted(ret, key=key)
+            if len(ret) > limit:
+                ret = ret[0:limit]
+            
+            # Add the prefix to all the results
+            ret = [(ur'%s%s' % (prefix, r)) for r in ret]
+            
+        return ret
+
+    def get_suggestions_single_query_old(self, query, limit=8, prefix=u''):
         ret = []
         # TODO: set a time limit on the search.
         # See http://pythonhosted.org/Whoosh/searching.html#time-limited-searches

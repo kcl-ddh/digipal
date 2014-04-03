@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags html_escape %}
+
+{% block head %}
+
+    <div>
+        <input type="text" id="ac" />
+        <div id="ac_results">
+        
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super  }}
+    <script>
+        $(function() {
+            $('#ac').on('keyup', function() {
+                $.getJSON('/digipal/search/suggestions.json', {'q': $('#ac').val()}, function(data) { console.log(data); });
+            });
+        });
+    </script>
+{% endblock %}

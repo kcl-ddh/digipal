@@ -308,6 +308,7 @@ class SearchContentType(object):
     
     def write_index(self, writer, verbose=False, aci={}):
         import re 
+        from django.utils.html import (conditional_escape, escapejs, fix_ampersands, escape, urlize as urlize_impl, linebreaks, strip_tags)
 
         fields = self.get_fields_info()
 
@@ -336,6 +337,7 @@ class SearchContentType(object):
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
+                        val = strip_tags(val)
                         format = fields[k]['whoosh'].get('format', '')
                         if format:
                             val = format % val
@@ -432,35 +434,13 @@ class SearchContentType(object):
         prefix = u''
         while query_parts and len(ret) < limit:
             query = u' '.join(query_parts).lower()
-            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
+            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix, ret))
             if query_parts: 
                 prefix += query_parts.pop(0) + u' '
         chrono(':suggestions')
         return ret
     
-    def get_autocomplete_path(self, can_create_path=False):
-        ''' returns the path of the autocomplete index on the filesystem'''
-        ret = None
-        index_name = 'autocomplete'
-        import os.path
-        path = settings.SEARCH_INDEX_PATH
-        if not os.path.exists(path):
-            if can_create_path:
-                os.mkdir(path)
-            else:
-                return ret
-        path = os.path.join(path, index_name)
-        if not os.path.exists(path):
-            if can_create_path:
-                os.mkdir(path)
-            else:
-                return ret
-            
-        path = os.path.join(path, index_name + '.idx')
-
-        return path
-
-    def get_suggestions_single_query(self, query, limit=8, prefix=u''):
+    def get_suggestions_single_query(self, query, limit=8, prefix=u'', exclude_list=[]):
         ret = []
 
         settings.suggestions_index = None
@@ -484,22 +464,30 @@ class SearchContentType(object):
     
             chrono('regexp:')
             ret = {}
+            exclude_list_lower = [s.lower() for s in exclude_list]
             for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
                 m = m.strip('|')
-                ret[m.lower()] = m
+                if m[-1] == ')' and '(' not in m: m = m[:-1]
+                if m[-1] == ']' and '[' not in m: m = m[:-1]
+                if ur'%s%s' % (prefix, m.lower()) not in exclude_list_lower:
+                    ret[m.lower()] = m
             ret = ret.values()
             chrono(':regexp')
 
-            # sort the results by length then by character 
-            ql = len(query)
-            def key(k):
-                ret = len(k) * 100000
-                if len(k) > ql:
-                    ret += ord(k[ql]) * 10000
-                if len(k) > ql + 1:
-                    ret += ord(k[ql + 1])
-                return ret
-            ret = sorted(ret, key=key)
+            # sort the results by length then by character
+            chrono('sort:')
+            def comp(a,b):
+                d1 = len(a) - len(b)
+                if d1 < 0:
+                    return -1
+                if d1 > 0:
+                    return 1
+                return cmp(a, b)
+                
+            ret.sort(comp)
+            chrono(':sort')
+
+            #print ret
             if len(ret) > limit:
                 ret = ret[0:limit]
             
@@ -548,6 +536,28 @@ class SearchContentType(object):
 
         return ret
     
+    def get_autocomplete_path(self, can_create_path=False):
+        ''' returns the path of the autocomplete index on the filesystem'''
+        ret = None
+        index_name = 'autocomplete'
+        import os.path
+        path = settings.SEARCH_INDEX_PATH
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+        path = os.path.join(path, index_name)
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+            
+        path = os.path.join(path, index_name + '.idx')
+
+        return path
+
     def get_whoosh_index(self, index_name='unified'):
         from whoosh.index import open_dir
         import os

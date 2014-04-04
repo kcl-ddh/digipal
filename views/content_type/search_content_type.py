@@ -644,7 +644,7 @@ class SearchContentType(object):
             # load from DB
             from digipal.models import Repository
             for repo in Repository.objects.all():
-                if repo.short_name == repo.short_name.upper():
+                if repo.short_name and (repo.short_name == repo.short_name.upper()):
                     expansions[repo.short_name] = repo.human_readable()
             cls.expansions = expansions
         
@@ -661,7 +661,7 @@ class SearchContentType(object):
         # expand
         import re
         for k in expansions:
-            query = re.sub(ur'\b%s\b' % re.escape(k), ur'($1 OR "%s")' % expansions[k], query)
+            query = re.sub(ur'\b(%s)\b' % re.escape(k), ur'(\1 OR "%s")' % expansions[k], query)
         
         return query
 

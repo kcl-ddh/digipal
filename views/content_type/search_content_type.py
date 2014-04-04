@@ -460,11 +460,12 @@ class SearchContentType(object):
             
         if query and limit > 0:
             import re
+            from django.utils.html import strip_tags
             phrase = query
     
             chrono('regexp:')
             ret = {}
-            exclude_list_lower = [s.lower() for s in exclude_list]
+            exclude_list_lower = [strip_tags(s.lower()) for s in exclude_list]
             for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
                 m = m.strip('|')
                 if m[-1] == ')' and '(' not in m: m = m[:-1]
@@ -492,7 +493,7 @@ class SearchContentType(object):
                 ret = ret[0:limit]
             
             # Add the prefix to all the results
-            ret = [(ur'%s%s' % (prefix, r)) for r in ret]
+            ret = [(ur'%s<strong>%s</strong>' % (prefix, r)) for r in ret]
             
         return ret
 

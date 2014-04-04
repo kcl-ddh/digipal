@@ -630,11 +630,40 @@ class SearchContentType(object):
     def build_queryset(self, request, term, force_search=False):
         ret = []
         self.set_ordering(request.GET.get('ordering'))
+        term = SearchContentType.expand_query(term)
         # only run slow searches if that tab is selected or forced search; always run other searches
         if force_search or not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)
         return ret
+    
+    @classmethod
+    def get_term_expansions(cls):
+        # load expansions and cache them
+        expansions = getattr(cls, 'expansions', {})
+        if not expansions:
+            # load from DB
+            from digipal.models import Repository
+            for repo in Repository.objects.all():
+                if repo.short_name == repo.short_name.upper():
+                    expansions[repo.short_name] = repo.human_readable()
+            cls.expansions = expansions
         
+        return expansions
+        
+    @classmethod
+    def expand_query(cls, query):
+        ''' Expand terms in the query. E.g. BL => British Library'''
+        # TODO: don't expand if surrounded by quotes
+        # TODO: expand place name? otherwise it may be ambiguous (e.g. CCCC == OCCC)
+        
+        expansions = cls.get_term_expansions()
+        
+        # expand
+        import re
+        for k in expansions:
+            query = re.sub(ur'\b%s\b' % re.escape(k), ur'($1 OR "%s")' % expansions[k], query)
+        
+        return query
 
     def _build_queryset(self, request, term):
         '''

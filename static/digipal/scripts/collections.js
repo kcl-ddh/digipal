@@ -115,6 +115,7 @@ function Collections() {
 		collections.click(function() {
 			select_collection($(this));
 		}).dblclick(function() {
+			localStorage.setItem('selectedCollection', $(this).attr('id'));
 			location.href = window.location.href + $(this).find('span').data('href');
 		});
 
@@ -131,7 +132,7 @@ function Collections() {
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
 				collection.addClass('col-md-2');
-				collection.append('<span data-href="' + index.replace(' ', '') + '"><img title="Click to select; Double click to open0" src="/static/img/folder.png" /></span>');
+				collection.append('<span data-href="' + index.replace(' ', '') + '"><img title="Click to select; Double click to open" src="/static/img/folder.png" /></span>');
 				collection.append('<label>' + index + '<label>');
 				container.append(collection);
 			});
@@ -253,12 +254,10 @@ function Collections() {
 			if (collection_name) {
 				if (collections) {
 					collections[collection_name] = {};
-					collections[collection_name]['basket'] = [];
 					collections[collection_name]['id'] = id;
 				} else {
 					collections = {};
 					collections[collection_name] = {};
-					collections[collection_name]['basket'] = [];
 					collections[collection_name]['id'] = id;
 				}
 
@@ -276,6 +275,7 @@ function Collections() {
 				collection.click(function() {
 					select_collection($(this));
 				}).dblclick(function() {
+					localStorage.setItem('selectedCollection', $(this).attr('id'));
 					location.href = window.location.href + $(this).find('span').data('href');
 				});
 				notify('<span style="color: #468847;">New Collection succesfully created</span>', "success");
@@ -312,7 +312,7 @@ function Collections() {
 			}
 			if (basket && basket.images && basket.images.length) {
 				for (i = 0; i < basket.images.length; i++) {
-					element = basket.images[i].id;
+					element = basket.images[i];
 					images.push(element);
 				}
 			}

@@ -15,14 +15,14 @@ function length_basket_elements(elements) {
 
 function update_collection_counter() {
 
-	var basket;
-	if (localStorage.getItem('lightbox_basket')) {
-		basket = localStorage.getItem('lightbox_basket');
+	var collections;
+	if (localStorage.getItem('collections')) {
+		collections = localStorage.getItem('collections');
 	} else {
 		return false;
 	}
 
-	var basket_elements = JSON.parse(basket);
+	var basket_elements = JSON.parse(collections);
 	var menu_links = $('.navLink');
 	var basket_element;
 
@@ -37,20 +37,33 @@ function update_collection_counter() {
 		basket_element = $('#collection_link');
 	}
 
-	var length_basket = length_basket_elements(basket_elements);
-	basket_element.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
+	var i = 0;
+	for (var d in basket_elements) {
+		i++;
+	}
+
+	basket_element.html("Collections (" + i + " <i class='fa fa-picture-o'> </i> )");
 
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
-	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
-	if (!current_basket) {
-		current_basket = {};
-	}
+	var selectedCollection = localStorage.getItem('selectedCollection');
+	var collections = JSON.parse(localStorage.getItem('collections'));
+	var collection_name;
+	var collection_id;
+	$.each(collections, function(index, value) {
+		if (value.id == selectedCollection) {
+			current_basket = value;
+			collection_name = index;
+			collection_id = value.id;
+		}
+	});
+
 	if (annotations === null) {
-		notify('Error. Try again');
+		notify('Error. Try again', 'danger');
 		return false;
 	}
+
 	var flag, i, j, elements, image_id;
 	if (multiple) {
 		if (current_basket && current_basket.annotations) {
@@ -82,7 +95,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.annotations.push(parseInt(annotations[i], 10));
 			}
 		}
-		localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+		localStorage.setItem('collections', JSON.stringify(collections));
 	} else {
 		var graph;
 		if (type == 'annotation') {
@@ -129,15 +142,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						return false;
 					}
 					elements.push(annotations);
+					notify('Annotation succesfully added to collection', 'success');
 				} else {
 					if (typeof annotator != 'undefined') {
 						image_id = annotator.image_id;
 					} else {
 						image_id = graph;
 					}
-					elements.push({
-						'id': image_id
-					});
+					elements.push(image_id);
+					notify('Image succesfully added to collection', 'success');
 				}
 			} else {
 				if (type == 'annotation') {
@@ -148,9 +161,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				return false;
 			}
 
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+			localStorage.setItem('collections', JSON.stringify(collections));
 
 		} else {
+
 			if (type == 'annotation') {
 				if (current_basket.hasOwnProperty('images')) {
 					current_basket.annotations = [];
@@ -159,6 +173,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket = {};
 					current_basket.annotations = [];
 					current_basket.annotations.push(annotations);
+					current_basket['id'] = collection_id;
+					collections[collection_name] = current_basket;
 				}
 
 			} else {
@@ -171,18 +187,16 @@ function add_to_lightbox(button, type, annotations, multiple) {
 
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];
-					current_basket.images.push({
-						id: image_id
-					});
+					current_basket.images.push(image_id);
 				} else {
 					current_basket = {};
 					current_basket.images = [];
-					current_basket.images.push({
-						id: image_id
-					});
+					current_basket.images.push(image_id);
+					current_basket['id'] = collection_id;
+					collections[collection_name] = current_basket;
 				}
 			}
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+			localStorage.setItem('collections', JSON.stringify(collections));
 		}
 	}
 

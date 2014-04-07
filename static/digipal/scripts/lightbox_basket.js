@@ -40,26 +40,26 @@ function main() {
 
 	var header = $('.page-header');
 	header.find('h1').html(collection_name);
-	var length_basket = length_basket_elements(collection.basket) || 0;
+	var length_basket = length_basket_elements(collection) || 0;
 
 	var graphs = [],
 		images = [],
 		data = {};
 
-	if (collection.basket.annotations && collection.basket.annotations.length) {
-		s += "<h3 id='header_annotations'>Annotations (" + collection.basket.annotations.length + ")</h3>";
-		for (var i = 0; i < collection.basket.annotations.length; i++) {
-			graphs.push(collection.basket.annotations[i]);
+	if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
+		s += "<h3 id='header_annotations'>Annotations (" + collection.annotations.length + ")</h3>";
+		for (var i = 0; i < collection.annotations.length; i++) {
+			graphs.push(collection.annotations[i]);
 		}
 		data.annotations = graphs;
 	}
 
-	if (collection.basket.images && collection.basket.images.length) {
-		for (d = 0; d < collection.basket.images.length; d++) {
-			if (typeof collection.basket.images[d] != 'number') {
-				images.push(collection.basket.images[d].id);
+	if (typeof collection.images !== 'undefined' && collection.images.length) {
+		for (d = 0; d < collection.images.length; d++) {
+			if (typeof collection.images[d] != 'number') {
+				images.push(collection.images[d].id);
 			} else {
-				images.push(collection.basket.images[d]);
+				images.push(collection.images[d]);
 			}
 		}
 		data.images = images;
@@ -122,8 +122,8 @@ function main() {
 
 				s += "</table>";
 
-				if (collection.basket.images && collection.basket.images.length) {
-					s += "<h3 id ='header_images'>Images (" + collection.basket.images.length + ")</h3>";
+				if (collection.images && collection.images.length) {
+					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table class='table table-condensed'>";
 					s += '<th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
 					for (i = 0; i < data['images'].length; i++) {
@@ -141,13 +141,21 @@ function main() {
 					container_basket.html(s);
 
 					$('.remove_graph').click(function() {
-						var basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+						var selectedCollection = localStorage.getItem('selectedCollection');
+						var collections = JSON.parse(localStorage.getItem('collections'));
+						var basket;
+						$.each(collections, function(index, value) {
+							if (value.id == selectedCollection) {
+								basket = value;
+							}
+						});
+
 						var graph = $(this).data('graph');
 						var type = $(this).data('type');
 						var element;
 						if (type == 'annotation') {
-							for (i = 0; i < collection.basket.annotations.length; i++) {
-								element = collection.basket.annotations[i];
+							for (i = 0; i < basket.annotations.length; i++) {
+								element = basket.annotations[i];
 								var element_graph;
 								if (element.hasOwnProperty('graph')) {
 									element_graph = element.graph;
@@ -155,43 +163,25 @@ function main() {
 									element_graph = element;
 								}
 								if (graph == element_graph) {
-									collection.basket.annotations.splice(i, 1);
+									basket.annotations.splice(i, 1);
 									break;
 								}
 							}
-							$('#header_annotations').html("Annotations (" + collection.basket.annotations.length + ")");
+							$('#header_annotations').html("Annotations (" + basket.annotations.length + ")");
 						} else {
-							for (i = 0; i < collection.basket.images.length; i++) {
-								element = collection.basket.images[i];
-								if (graph == element.id) {
+							for (i = 0; i < basket.images.length; i++) {
+								image_id = basket.images[i];
+								if (graph == image_id) {
 									basket.images.splice(i, 1);
-
 									break;
 								}
 							}
-							$('#header_images').html("Images (" + collection.basket.images.length + ")");
+							$('#header_images').html("Images (" + basket.images.length + ")");
 						}
 
 						$('tr[data-graph="' + graph + '"]').fadeOut().remove();
 
-						var length_basket = length_basket_elements(basket);
-
-						if (length_basket == 1) {
-							element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
-						} else {
-							element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
-						}
-
-						/*
-
-						if (basket.annotations && !basket.annotations.length && basket.images && !basket.images.length) {
-							s = '<div class="container alert alert-warning">The Collection is empty</div>';
-							container_basket.html(s);
-						}
-
-						*/
-
-						localStorage.setItem('lightbox_basket', JSON.stringify(basket));
+						localStorage.setItem('collections', JSON.stringify(collections));
 
 					});
 				});
@@ -226,15 +216,6 @@ function main() {
 		}
 	}
 
-	length_basket = length_basket_elements(collection.basket);
-
-	if (length_basket == 1) {
-		element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
-	} else {
-		element_basket.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
-	}
-
-	global_length_basket = length_basket;
 
 }
 

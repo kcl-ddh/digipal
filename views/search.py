@@ -374,5 +374,5 @@ def search_suggestions(request):
         limit = int(request.GET.get('l'))
     except:
         limit = 8
-    suggestions = SearchContentType().get_suggestions(query)
+    suggestions = SearchContentType().get_suggestions(query, limit)
     return get_json_response(suggestions)

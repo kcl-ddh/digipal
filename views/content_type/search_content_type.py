@@ -308,6 +308,7 @@ class SearchContentType(object):
     
     def write_index(self, writer, verbose=False, aci={}):
         import re 
+        from django.utils.html import (conditional_escape, escapejs, fix_ampersands, escape, urlize as urlize_impl, linebreaks, strip_tags)
 
         fields = self.get_fields_info()
 
@@ -336,13 +337,16 @@ class SearchContentType(object):
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
+                        val = strip_tags(val)
                         format = fields[k]['whoosh'].get('format', '')
                         if format:
                             val = format % val
                         document[fields[k]['whoosh']['name']] = val
                         val2 = val
-                        if len(val2) < 30:
+                        if id(fields[k]['whoosh']['type']) not in [id(self.FT_LONG_FIELD)]:
                             val2 += '|'
+                        #print fields[k]['whoosh']['type'].analyzer
+                        #print dir(fields[k]['whoosh']['type'].analyzer)
                         aci[val2] = 1
                     
             if document:
@@ -415,6 +419,7 @@ class SearchContentType(object):
         return parser
     
     def get_suggestions(self, query, limit=8):
+        chrono('suggestions:')
         ret = []
         #query = query.lower()
         query_parts = query.split()
@@ -429,12 +434,70 @@ class SearchContentType(object):
         prefix = u''
         while query_parts and len(ret) < limit:
             query = u' '.join(query_parts).lower()
-            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
+            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix, ret))
             if query_parts: 
                 prefix += query_parts.pop(0) + u' '
+        chrono(':suggestions')
+        return ret
+    
+    def get_suggestions_single_query(self, query, limit=8, prefix=u'', exclude_list=[]):
+        ret = []
+
+        settings.suggestions_index = None
+        
+        if not getattr(settings, 'suggestions_index', None):
+            chrono('load:')
+            path = self.get_autocomplete_path()
+            if path:
+                import os
+                if os.path.exists(path):
+                    from digipal.management.commands.utils import readFile
+                    settings.suggestions_index = readFile(path)
+            chrono(':load')
+            
+        if not settings.suggestions_index:
+            return ret
+            
+        if query and limit > 0:
+            import re
+            from django.utils.html import strip_tags
+            phrase = query
+    
+            chrono('regexp:')
+            ret = {}
+            exclude_list_lower = [strip_tags(s.lower()) for s in exclude_list]
+            for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
+                m = m.strip('|')
+                if m[-1] == ')' and '(' not in m: m = m[:-1]
+                if m[-1] == ']' and '[' not in m: m = m[:-1]
+                if ur'%s%s' % (prefix, m.lower()) not in exclude_list_lower:
+                    ret[m.lower()] = m
+            ret = ret.values()
+            chrono(':regexp')
+
+            # sort the results by length then by character
+            chrono('sort:')
+            def comp(a,b):
+                d1 = len(a) - len(b)
+                if d1 < 0:
+                    return -1
+                if d1 > 0:
+                    return 1
+                return cmp(a, b)
+                
+            ret.sort(comp)
+            chrono(':sort')
+
+            #print ret
+            if len(ret) > limit:
+                ret = ret[0:limit]
+            
+            # Add the prefix to all the results
+            ret = [(ur'%s<strong>%s</strong>' % (prefix, r)) for r in ret]
+            
         return ret
 
-    def get_suggestions_single_query(self, query, limit=8, prefix=u''):
+    def get_suggestions_single_query_old(self, query, limit=8, prefix=u''):
         ret = []
         # TODO: set a time limit on the search.
         # See http://pythonhosted.org/Whoosh/searching.html#time-limited-searches
@@ -474,6 +537,28 @@ class SearchContentType(object):
 
         return ret
     
+    def get_autocomplete_path(self, can_create_path=False):
+        ''' returns the path of the autocomplete index on the filesystem'''
+        ret = None
+        index_name = 'autocomplete'
+        import os.path
+        path = settings.SEARCH_INDEX_PATH
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+        path = os.path.join(path, index_name)
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+            
+        path = os.path.join(path, index_name + '.idx')
+
+        return path
+
     def get_whoosh_index(self, index_name='unified'):
         from whoosh.index import open_dir
         import os
@@ -545,11 +630,40 @@ class SearchContentType(object):
     def build_queryset(self, request, term, force_search=False):
         ret = []
         self.set_ordering(request.GET.get('ordering'))
+        term = SearchContentType.expand_query(term)
         # only run slow searches if that tab is selected or forced search; always run other searches
         if force_search or not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)
         return ret
+    
+    @classmethod
+    def get_term_expansions(cls):
+        # load expansions and cache them
+        expansions = getattr(cls, 'expansions', {})
+        if not expansions:
+            # load from DB
+            from digipal.models import Repository
+            for repo in Repository.objects.all():
+                if repo.short_name and (repo.short_name == repo.short_name.upper()):
+                    expansions[repo.short_name] = repo.human_readable()
+            cls.expansions = expansions
         
+        return expansions
+        
+    @classmethod
+    def expand_query(cls, query):
+        ''' Expand terms in the query. E.g. BL => British Library'''
+        # TODO: don't expand if surrounded by quotes
+        # TODO: expand place name? otherwise it may be ambiguous (e.g. CCCC == OCCC)
+        
+        expansions = cls.get_term_expansions()
+        
+        # expand
+        import re
+        for k in expansions:
+            query = re.sub(ur'\b(%s)\b' % re.escape(k), ur'(\1 OR "%s")' % expansions[k], query)
+        
+        return query
 
     def _build_queryset(self, request, term):
         '''

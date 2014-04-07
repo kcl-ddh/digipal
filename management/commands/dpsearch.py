@@ -151,9 +151,12 @@ Options:
                 # print the schema
                 print
                 from whoosh.index import open_dir
-                index = open_dir(dir_abs)
-                for item in index.schema.items():
-                    print '\t%s' % repr(item)
+                try:
+                    index = open_dir(dir_abs)
+                    for item in index.schema.items():
+                        print '\t%s' % repr(item)
+                except:
+                    print 'Whoosh index not found'
             
             print
             
@@ -184,7 +187,8 @@ Options:
             self.index(name)
             
     def get_requested_index_names(self):
-        ret = ['unified', 'autocomplete']
+        #ret = ['unified', 'autocomplete']
+        ret = ['unified']
         index_filter = self.options['index_filter'] 
         if index_filter:
             if index_filter not in ret:
@@ -264,10 +268,12 @@ Options:
         for type in types:
             count = type.write_index(writer, self.is_verbose(), aci)
             print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
-            
-        f = open('ica.idx', 'w')
-        f.write((ur'|'.join(aci.keys())).encode('utf8'))
-        f.close()
+        
+        # autocomplete
+        if index_name == 'unified':
+            f = open(types[0].get_autocomplete_path(True), 'w')
+            f.write((ur'|'.join(aci.keys())).encode('utf8'))
+            f.close()
         
         writer.commit()
 

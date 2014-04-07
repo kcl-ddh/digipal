@@ -17,6 +17,12 @@ def iipimage(request):
     return render_to_response('test/iipimage.html', context,
             context_instance=RequestContext(request))
 
+def autocomplete_view(request):
+    context = {}
+
+    return render_to_response('test/autocomplete.html', context,
+            context_instance=RequestContext(request))
+
 def map_view(request):
     from digipal.models import ItemPart
     from django.db.models import Q

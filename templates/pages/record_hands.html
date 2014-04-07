@@ -1,6 +1,6 @@
 {% extends "pages/record.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags hand_filters %}
+{% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
 {% block meta_title %}Hand: {{ result }}{% endblock %}
 {% block record_title %}
@@ -60,7 +60,9 @@
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% for description in result.descriptions.all %}
                     <p>
-                        {{ description.description|tei }}
+                        {% filter tag_phrase_terms:terms %}
+                            {{ description.description|tei }}
+                        {% endfilter %}
                         ({{ description.source.get_display_reference }})
                     </p>
                 {% empty %}

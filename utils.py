@@ -199,9 +199,14 @@ def get_regexp_from_terms(terms, as_list=False):
         for t in terms:
             t = re.escape(t)
 
-            if len(t) > 1:
-                t += ur'?'
-            t = ur'\b%ss?\b' % t
+            if t[-1] == u's':
+                t += u'?'
+            else:
+                t += u's?'
+#             if len(t) > 1:
+#                 t += ur'?'
+#             t = ur'\b%ss?\b' % t
+            t = ur'\b%s\b' % t
             
             # convert all \* into \W*
             # * is for searches like 'digi*'

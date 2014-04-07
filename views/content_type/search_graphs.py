@@ -74,6 +74,7 @@ class SearchGraphs(SearchContentType):
         #    it is faster than excluding all the hands without a graph (yet another expensive join)
         #
         if term:
+            term = term.replace('"', '')
             graphs = Graph.objects.filter(
                     Q(hand__descriptions__description__icontains=term) | \
                     Q(hand__scribe__name__icontains=term) | \
@@ -83,8 +84,11 @@ class SearchGraphs(SearchContentType):
                     Q(hand__item_part__current_item__repository__name__icontains=term) | \
                     Q(hand__item_part__historical_items__catalogue_number__icontains=term) | \
                     # JIRA 423
-                    Q(hand__item_part__display_label__contains=term) | \
-                    Q(hand__item_part__group__display_label__contains=term))
+                    Q(hand__item_part__historical_items__name__icontains=term) | \
+                    Q(hand__item_part__group__historical_items__name__icontains=term) | \
+                    Q(hand__item_part__display_label__icontains=term) | \
+                    Q(hand__item_part__group__display_label__icontains=term)
+                    )
         else:
             graphs = Graph.objects.all()
             

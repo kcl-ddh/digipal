@@ -4,18 +4,6 @@
  */
 
 
-function getParameter(paramName) {
-	var searchString = window.location.search.substring(1),
-		i, val, params = searchString.split("&");
-	var parameters = [];
-	for (i = 0; i < params.length; i++) {
-		val = params[i].split("=");
-		if (val[0] == paramName) {
-			parameters.push(unescape(val[1]));
-		}
-	}
-	return parameters;
-}
 
 function notify(msg, status) {
 	var status_element = $('#status');
@@ -343,8 +331,7 @@ function Collections() {
 				}
 			});
 
-			var url = window.location.hostname +
-				document.location.pathname +
+			var url = window.location.hostname + '/digipal/collection/shared/1/' +
 				'?collection=' + encodeURIComponent(JSON.stringify(basket));
 
 			var scriptTwitter = '<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>';

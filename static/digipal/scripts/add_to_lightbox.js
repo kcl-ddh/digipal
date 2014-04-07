@@ -129,7 +129,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					}
 
 				} else {
-					if (elements[j].id == graph) {
+					if (elements[j] == graph) {
 						flag = false;
 						break;
 					}

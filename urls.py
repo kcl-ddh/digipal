@@ -31,6 +31,9 @@ urlpatterns = patterns('digipal.views.annotation',
                         (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/$', direct_to_template, {
                           'template': 'digipal/collection.html'
                         }),
+                       (r'^collection/shared/1/$', direct_to_template, {
+                          'template': 'digipal/collection.html'
+                        }),
                        (r'^collection/$', direct_to_template, {
                           'template': 'digipal/lightbox_basket.html'
                         }),

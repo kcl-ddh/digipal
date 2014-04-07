@@ -21,55 +21,77 @@ function getCookie(name) {
 	return cookieValue;
 }
 
+function getParameter(paramName) {
+	var searchString = window.location.search.substring(1),
+		i, val, params = searchString.split("&");
+	var parameters = [];
+	for (i = 0; i < params.length; i++) {
+		val = params[i].split("=");
+		if (val[0] == paramName) {
+			parameters.push(unescape(val[1]));
+		}
+	}
+	return parameters;
+}
+
 function main() {
 
 	var s = '';
-	var collections = JSON.parse(localStorage.getItem('collections')),
-		collection, collection_name;
-	var url = location.href;
-	var collection_name_from_url = url.split('/')[url.split('/').length - 2];
 	var element_basket = $('#collection_link');
 	var container_basket = $('#container_basket');
+	var collection, collection_name, data = {};
 
-	$.each(collections, function(index, value) {
-		if (index.replace(' ', '') == collection_name_from_url) {
-			collection = value;
-			collection_name = index;
+	if (!getParameter('collection').length) {
+		var collections = JSON.parse(localStorage.getItem('collections'));
+		var url = location.href;
+		var collection_name_from_url = url.split('/')[url.split('/').length - 2];
+
+
+		$.each(collections, function(index, value) {
+			if (index.replace(' ', '') == collection_name_from_url) {
+				collection = value;
+				collection_name = index;
+			}
+		});
+
+		var graphs = [],
+			images = [];
+
+		if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
+			s += "<h3 id='header_annotations'>Annotations (" + collection.annotations.length + ")</h3>";
+			for (var i = 0; i < collection.annotations.length; i++) {
+				graphs.push(collection.annotations[i]);
+			}
+			data.annotations = graphs;
 		}
-	});
+
+		if (typeof collection.images !== 'undefined' && collection.images.length) {
+			for (d = 0; d < collection.images.length; d++) {
+				if (typeof collection.images[d] != 'number') {
+					images.push(collection.images[d].id);
+				} else {
+					images.push(collection.images[d]);
+				}
+			}
+			data.images = images;
+		}
+
+	} else {
+		var external_collection = JSON.parse(getParameter('collection'));
+		collection_name = 'Shared Collection';
+		data = external_collection;
+		collection = data;
+	}
 
 	var header = $('.page-header');
 	header.find('h1').html(collection_name);
 	var length_basket = length_basket_elements(collection) || 0;
 
-	var graphs = [],
-		images = [],
-		data = {};
-
-	if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
-		s += "<h3 id='header_annotations'>Annotations (" + collection.annotations.length + ")</h3>";
-		for (var i = 0; i < collection.annotations.length; i++) {
-			graphs.push(collection.annotations[i]);
-		}
-		data.annotations = graphs;
-	}
-
-	if (typeof collection.images !== 'undefined' && collection.images.length) {
-		for (d = 0; d < collection.images.length; d++) {
-			if (typeof collection.images[d] != 'number') {
-				images.push(collection.images[d].id);
-			} else {
-				images.push(collection.images[d]);
-			}
-		}
-		data.images = images;
-	}
-
 	if (!$.isEmptyObject(data)) {
 
 		var request = $.ajax({
 			type: 'POST',
-			url: 'images/',
+			url: '/digipal/collection/' + collection_name.replace(' ', '') + '/images/',
 			data: {
 				'data': JSON.stringify(data),
 				"X-CSRFToken": csrftoken

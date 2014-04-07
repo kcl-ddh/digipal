@@ -399,10 +399,8 @@ def image_copyright(request, image_id):
 def images_lightbox(request, collection_name):
 
     if request.is_ajax():
-        print request.POST.get('data', '')
         if 'data' in request.POST and request.POST.get('data', ''):
             graphs = simplejson.loads(request.POST.get('data', ''))
-            print graphs
             data = {}
 
             if 'annotations' in graphs:

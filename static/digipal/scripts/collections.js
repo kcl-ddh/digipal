@@ -137,7 +137,7 @@ function Collections() {
 				container.append(collection);
 			});
 		} else {
-			var s = '<div class="container alert alert-warning">No collections saved</div>';
+			var s = '<div class="container alert alert-warning">No collections</div>';
 			container.append(s);
 		}
 		$('.remove_collection').click(function(event) {
@@ -238,13 +238,20 @@ function Collections() {
 				$.each(collections, function(index, value) {
 					if (value.id == selectedCollections[i]) {
 						delete collections[index];
-						$('#' + value.id).remove();
+						$('#' + value.id).fadeOut().remove();
 					}
 				});
 			}
-
 			localStorage.setItem('collections', JSON.stringify(collections));
 			$('#delete-collection-div').fadeOut().remove();
+
+			if ($.isEmptyObject(collections)) {
+				var s = '<div class="container alert alert-warning">No collections</div>';
+				container_basket.append(s);
+			}
+
+			selectedCollections = [];
+			update_toolbar();
 		},
 
 		save: function(collections, lightbox_basket) {
@@ -279,6 +286,7 @@ function Collections() {
 					location.href = window.location.href + $(this).find('span').data('href');
 				});
 				notify('<span style="color: #468847;">New Collection succesfully created</span>', "success");
+				$('.alert').remove();
 			} else {
 				notify('Please enter a name for this collection', "danger");
 			}
@@ -390,18 +398,11 @@ function Collections() {
 				}
 			}
 		} else {
-			selectedCollections.push(collection.data('id'));
+			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
 		}
 
-		if (selectedCollections.length == 1) {
-			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
-		} else if (selectedCollections.length > 1) {
-			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-			$('#delete_collection').attr('disabled', false);
-		} else {
-			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-		}
+		update_toolbar();
 	};
 
 	var filter = function(pattern) {
@@ -414,6 +415,17 @@ function Collections() {
 				element.fadeIn();
 			}
 		});
+	};
+
+	var update_toolbar = function() {
+		if (selectedCollections.length == 1) {
+			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
+		} else if (selectedCollections.length > 1) {
+			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+			$('#delete_collection').attr('disabled', false);
+		} else {
+			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+		}
 	};
 
 	return {

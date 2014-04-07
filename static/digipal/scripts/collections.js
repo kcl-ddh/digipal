@@ -183,6 +183,8 @@ function Collections() {
 				event.preventDefault();
 			});
 
+			$('#name_collection').focus();
+
 			$(document).on('keydown', function(event) {
 				var code = (event.keyCode ? event.keyCode : event.which);
 				if ($('#name_collection').is(':focus') && code == 13) {
@@ -276,7 +278,7 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
 				collection.addClass('col-md-2');
-				collection.append('<span data-id=' + id + ' data-href="?collection=' + collection_name + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
+				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(' ', '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
 				collection.append('<label>' + collection_name + '<label>');
 				container.append(collection);
 				collection.click(function() {

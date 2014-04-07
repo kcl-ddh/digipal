@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load html_escape %}
+
+{% block meta_title %}Collection{% endblock %}
+{% block main %}
+
+<div class="page-header row">
+    <h1 class='pull-left' contenteditable></h1>
+    <div class='pager compact pull-right' style='margin:0'>
+        <li><a href='../'>Back to Collections</a></li>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div id='container_basket'>
+
+        </div>
+    </div>
+</div>
+
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <p>
+      <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
+    </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+    <script src='https://apis.google.com/js/client.js'></script>
+{% endblock %}

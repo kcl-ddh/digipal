@@ -3,8 +3,6 @@
    -- Digipal Project --> digipal.eu
  */
 
-$.getScript("collections-utils.js");
-
 function Collections() {
 
 	var element_basket = $('#collection_link');
@@ -50,9 +48,7 @@ function Collections() {
 		});
 
 		var filter_input = $('#filter');
-		filter_input.on('keydown', function() {
-			filter($(this).val());
-		}).on('keyup', function() {
+		filter_input.on('keyup', function() {
 			filter($(this).val());
 		}).on('change', function() {
 			filter($(this).val());
@@ -125,18 +121,20 @@ function Collections() {
 		create_collection: function() {
 			var collections = JSON.parse(localStorage.getItem('collections'));
 			var window_save_collection = $('<div>');
+			var background_div = $('<div class="dialog-background">');
 			var lightbox_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
 			var s = '';
 			window_save_collection.attr('class', 'loading-div').attr('id', 'new-collection-div');
 			s += '<h3>Create New Collection</h3>';
-			s += '<div style="margin-top:0.5em"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
+			s += '<div style="margin-top:2em"><input required placeholder="Enter here collection name" type="text" id= "name_collection" class="form-control" />';
 			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="save_collection" type="button" value="Create" /> ';
 			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Cancel" /></div></div>';
 
 			window_save_collection.html(s);
 
 			if (!$('#new-collection-div').length) {
-				$('body').append(window_save_collection);
+				background_div.html(window_save_collection);
+				$('body').append(background_div);
 			}
 
 			$('#save_collection').unbind().click(function(event) {
@@ -155,13 +153,14 @@ function Collections() {
 			});
 
 			$('#close_window_collections').unbind().click(function(event) {
-				window_save_collection.fadeOut().remove();
+				background_div.fadeOut().remove();
 				event.stopPropagation();
 			});
 		},
 
 		delete_collections: function() {
 			var collections = JSON.parse(localStorage.getItem('collections'));
+			var background_div = $('<div class="dialog-background">');
 			var window_save_collection = $('<div>');
 			var s = '';
 
@@ -179,7 +178,8 @@ function Collections() {
 			window_save_collection.html(s);
 
 			if (!$('#delete-collection-div').length) {
-				$('body').append(window_save_collection);
+				background_div.html(window_save_collection);
+				$('body').append(background_div);
 			}
 
 			$('#delete').unbind().click(function(event) {
@@ -189,7 +189,7 @@ function Collections() {
 			});
 
 			$('#close_window_collections').unbind().click(function(event) {
-				window_save_collection.fadeOut().remove();
+				background_div.fadeOut().remove();
 				event.stopPropagation();
 			});
 
@@ -366,7 +366,7 @@ function Collections() {
 	var select_collection = function(collection) {
 		if (collection.hasClass('selected-collection')) {
 			collection.removeClass('selected-collection');
-			collection.find('label').removeClass('label label-primary')
+			collection.find('label').removeClass('label label-primary');
 			for (var i = 0; i < selectedCollections.length; i++) {
 				if (selectedCollections[i] == collection.data('id')) {
 					selectedCollections.splice(i, 1);
@@ -383,11 +383,12 @@ function Collections() {
 	};
 
 	var filter = function(pattern) {
-		var re = new RegExp('^' + pattern, "gi");
-		console.log(re);
+		var re = new RegExp('^' + $.trim(pattern), "gi");
+		var element;
 		$.each(this.collections, function(index, value) {
-			var element = $('.collection[id="' + value.id + '"]');
-			if (!re.test(index) && pattern !== '') {
+			element = $('.collection[id="' + value.id + '"]');
+			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
+				console.log(index, pattern, element);
 				element.fadeOut();
 			} else {
 				element.fadeIn();

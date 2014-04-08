@@ -429,7 +429,7 @@ def images_lightbox(request, collection_name):
                 images = []
                 for img in graphs['images']:
                     image = Image.objects.get(id=img)
-                    images.append([image.thumbnail(180, 180), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                    images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 data['images'] = images
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 

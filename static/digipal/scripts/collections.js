@@ -20,6 +20,11 @@ function notify(msg, status) {
 	}, 5000);
 }
 
+function increment_last(v) {
+	return v.replace(/[0-9]+(?!.*[0-9])/, parseInt(v.match(/[0-9]+(?!.*[0-9])/), 10) + 1);
+}
+
+
 function uniqueid() {
 	var text = "";
 	var possible = "0123456789";
@@ -108,7 +113,6 @@ function Collections() {
 				if (this['annotations']) {
 					n += this['annotations'].length;
 				}
-				console.log(this);
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
@@ -246,6 +250,16 @@ function Collections() {
 			var collection_name_trimmed = collection_name.replace(' ', '');
 			if (collection_name && re.test(collection_name_trimmed)) {
 				if (collections) {
+					if (collections[collection_name]) {
+						var new_re = /^[\w]*([0-9])$/;
+						if (!new_re.test(collection_name)) {
+							collection_name += '0';
+						}
+						while (collections[collection_name]) {
+							collection_name = increment_last(collection_name);
+						}
+
+					}
 					collections[collection_name] = {};
 					collections[collection_name]['id'] = id;
 				} else {
@@ -263,7 +277,7 @@ function Collections() {
 				collection.attr('id', id);
 				collection.addClass('col-md-2');
 				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(' ', '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
-				collection.append('<label>' + collection_name + '<label>');
+				collection.append('<label>' + collection_name + ' (0)<label>');
 				container.append(collection);
 				collection.click(function() {
 					select_collection($(this));

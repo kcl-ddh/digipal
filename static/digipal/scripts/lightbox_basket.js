@@ -232,6 +232,44 @@ function main() {
 							$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
 						}
 					});
+
+					$('#to_lightbox').click(function() {
+						var graphs = [],
+							images = [],
+							element,
+							basket;
+
+						var selectedCollection = localStorage.getItem('selectedCollection');
+						var collections = JSON.parse(localStorage.getItem('collections'));
+
+						$.each(collections, function(index, value) {
+							if (value.id == selectedCollection) {
+								basket = value;
+							}
+						});
+
+						if (basket && basket.annotations && basket.annotations.length) {
+							for (i = 0; i < basket.annotations.length; i++) {
+								if (basket.annotations[i].hasOwnProperty('graph')) {
+									element = basket.annotations[i].graph;
+								} else {
+									element = basket.annotations[i];
+								}
+								if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+									graphs.push(element);
+								}
+							}
+						}
+						if (basket && basket.images && basket.images.length) {
+							for (i = 0; i < basket.images.length; i++) {
+								element = basket.images[i];
+								if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+									images.push(element);
+								}
+							}
+						}
+						location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
+					});
 				});
 			},
 

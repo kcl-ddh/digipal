@@ -109,7 +109,7 @@ function main() {
 			success: function(data) {
 
 				if (data['annotations']) {
-					s += "<table id='table-annotations' class='table table-condensed'>";
+					s += "<table id='table-annotations' class='table'>";
 					s += '<th><input type="checkbox" id="check_annotations_all" checked /></th><th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
@@ -156,7 +156,7 @@ function main() {
 
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
-					s += "<table id='table-images' class='table table-condensed'>";
+					s += "<table id='table-images' class='table'>";
 					s += '<th><input type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];

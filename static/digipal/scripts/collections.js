@@ -47,22 +47,7 @@ function Collections() {
 		if (loading_div.length) {
 			loading_div.fadeOut().remove();
 		}
-		/*if (collections) {
-			main(basket, function() {
-				events();
-			});
-		} else {
-			var empty_collection_string = '<div class="container alert alert-warning" style="margin-top:5%">The Collection is empty</div>';
-			container_basket.html(empty_collection_string);
 
-			var loading_div = $(".loading-div");
-			if (loading_div.length) {
-				loading_div.fadeOut().remove();
-			}
-
-			events();
-		}
-		*/
 	};
 
 	var events = function() {
@@ -116,13 +101,22 @@ function Collections() {
 		if (collections) {
 			$.each(collections, function(index, value) {
 				var collection = $('<div>');
+				var n = 0;
+				if (this['images']) {
+					n += this['images'].length;
+				}
+				if (this['annotations']) {
+					n += this['annotations'].length;
+				}
+				console.log(this);
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
 				collection.addClass('col-md-2');
-				collection.append('<span data-href="' + index.replace(' ', '') + '"><img title="Click to select; Double click to open" src="/static/img/folder.png" /></span>');
-				collection.append('<label>' + index + '<label>');
+				collection.append('<span data-href="' + index.replace(' ', '') + '"><img data-toggle="tooltip" data-placement="top" title="Click to select; Double click to open" src="/static/img/folder.png" /></span>');
+				collection.append('<label data-placement="bottom" data-toggle="tooltip" title="' + index + ' has ' + n + ' items">' + index + ' (' + n + ')<label>');
 				container.append(collection);
+				$('[data-toggle="tooltip"]').tooltip();
 			});
 		} else {
 			var s = '<div class="container alert alert-warning">No collections</div>';
@@ -382,6 +376,7 @@ function Collections() {
 	var select_collection = function(collection) {
 		if (collection.hasClass('selected-collection')) {
 			collection.removeClass('selected-collection');
+			collection.find('label').removeClass('label label-primary')
 			for (var i = 0; i < selectedCollections.length; i++) {
 				if (selectedCollections[i] == collection.data('id')) {
 					selectedCollections.splice(i, 1);
@@ -391,6 +386,7 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
+			collection.find('label').addClass('label label-primary')
 		}
 
 		update_toolbar();

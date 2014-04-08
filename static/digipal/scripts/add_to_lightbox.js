@@ -31,8 +31,13 @@ function update_collection_counter() {
 	for (var col in basket_elements) {
 		if (basket_elements[col].id == current_collection.id) {
 			current_collection['name'] = col;
+			break;
+		} else {
+			current_collection['name'] = col;
+			current_collection['id'] = basket_elements[col].id;
 		}
 	}
+
 
 	for (var ind = 0; ind < menu_links.length; ind++) {
 		if ($.trim(menu_links[ind].innerHTML) == 'Collection') {

@@ -3,38 +3,7 @@
    -- Digipal Project --> digipal.eu
  */
 
-
-
-function notify(msg, status) {
-	var status_element = $('#status');
-	if (!status_element.length) {
-		status_element = $('<div id="status">');
-		$('body').append(status_element.hide());
-	}
-	status_class = status ? ' alert-' + status : '';
-	status_element.attr('class', 'alert' + status_class);
-	status_element.html(msg).fadeIn();
-
-	setTimeout(function() {
-		status_element.fadeOut();
-	}, 5000);
-}
-
-function increment_last(v) {
-	return v.replace(/[0-9]+(?!.*[0-9])/, parseInt(v.match(/[0-9]+(?!.*[0-9])/), 10) + 1);
-}
-
-
-function uniqueid() {
-	var text = "";
-	var possible = "0123456789";
-
-	for (var i = 0; i < 3; i++)
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-	return text;
-}
-
+$.getScript("collections-utils.js");
 function Collections() {
 
 	var element_basket = $('#collection_link');
@@ -337,10 +306,10 @@ function Collections() {
 
 			$.each(collections, function(index, value) {
 				if (value.id == selectedCollection) {
-					basket = value;
+					basket = this;
+					basket['name'] = index;
 				}
 			});
-
 			var url = window.location.hostname + '/digipal/collection/shared/1/' +
 				'?collection=' + encodeURIComponent(JSON.stringify(basket));
 
@@ -400,17 +369,18 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
-			collection.find('label').addClass('label label-primary')
+			collection.find('label').addClass('label label-primary');
 		}
 
 		update_toolbar();
 	};
 
 	var filter = function(pattern) {
-		var re = new RegExp(pattern, "gi");
+		var re = new RegExp('^' + pattern, "gi");
+		console.log(re);
 		$.each(this.collections, function(index, value) {
 			var element = $('.collection[id="' + value.id + '"]');
-			if (!index.match(re)) {
+			if (!re.test(index) && pattern !== '') {
 				element.fadeOut();
 			} else {
 				element.fadeIn();

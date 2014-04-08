@@ -107,14 +107,14 @@ function main() {
 				"X-CSRFToken": csrftoken
 			},
 			success: function(data) {
-				console.log(data);
+
 				if (data['annotations']) {
-					s += "<table class='table table-condensed'>";
-					s += '<th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th><th>Remove</th>';
+					s += "<table id='table-annotations' class='table table-condensed'>";
+					s += '<th><input type="checkbox" id="check_annotations_all" checked /></th><th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Date</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr data-graph = '" + annotation[1] + "'><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr data-graph = '" + annotation[1] + "'><td><input data-graph = '" + annotation[1] + "' type='checkbox' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -148,7 +148,7 @@ function main() {
 						}
 
 
-						s += "<td><button title = 'Remove from basket' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title = 'Remove from basket' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 				}
 
@@ -156,14 +156,14 @@ function main() {
 
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
-					s += "<table class='table table-condensed'>";
-					s += '<th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
+					s += "<table id='table-images' class='table table-condensed'>";
+					s += '<th><input type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr data-graph = '" + image[1] + "'><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<tr data-graph = '" + image[1] + "'><td><input data-graph = '" + image[1] + "' type='checkbox' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'>Remove</button></td></tr>";
+						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 					s += "</table>";
 				}
@@ -215,6 +215,22 @@ function main() {
 
 						localStorage.setItem('collections', JSON.stringify(collections));
 
+					});
+
+					$('#check_images_all').on('change', function() {
+						if ($(this).is(':checked')) {
+							$('#table-images').find('input[type="checkbox"]').prop('checked', true);
+						} else {
+							$('#table-images').find('input[type="checkbox"]').prop('checked', false);
+						}
+					});
+
+					$('#check_annotations_all').on('change', function() {
+						if ($(this).is(':checked')) {
+							$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
+						} else {
+							$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
+						}
 					});
 				});
 			},

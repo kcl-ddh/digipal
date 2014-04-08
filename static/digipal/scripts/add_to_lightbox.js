@@ -46,9 +46,14 @@ function update_collection_counter() {
 	}
 
 	var i = 0;
-	for (var d in basket_elements) {
-		i++;
+
+	if (basket_elements[current_collection['name']]['images']) {
+		i += basket_elements[current_collection['name']]['images'].length;
 	}
+	if (basket_elements[current_collection['name']]['annotations']) {
+		i += basket_elements[current_collection['name']]['annotations'].length;
+	}
+
 
 	basket_element.html(current_collection['name'] + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', basket_element.attr('href') + '/' + current_collection['name'].replace(' ', ''));

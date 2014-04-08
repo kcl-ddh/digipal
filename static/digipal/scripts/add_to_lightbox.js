@@ -8,7 +8,7 @@
 function update_collection_counter() {
 
 	var collections;
-	if (localStorage.getItem('collections') && !($.isEmptyObject(JSON.parse(localStorage.getItem('collections'))))) {
+	if (localStorage.getItem('collections')) {
 		collections = localStorage.getItem('collections');
 	} else {
 		collections = {
@@ -28,8 +28,10 @@ function update_collection_counter() {
 		"id": localStorage.getItem('selectedCollection')
 	};
 
+	var current_collection_id = current_collection.id;
+
 	for (var col in basket_elements) {
-		if (basket_elements[col].id == current_collection.id) {
+		if (basket_elements[col].id == current_collection_id) {
 			current_collection['name'] = col;
 			break;
 		} else {
@@ -61,7 +63,7 @@ function update_collection_counter() {
 
 
 	basket_element.html(current_collection['name'] + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
-	basket_element.attr('href', basket_element.attr('href') + '/' + current_collection['name'].replace(' ', ''));
+	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(' ', ''));
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {

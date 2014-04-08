@@ -273,7 +273,9 @@ function main() {
 		});
 
 	} else {
-		s = '<div class="container alert alert-warning">The collection is empty.</div>';
+		s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
+		s += '<p>Start adding images from <a href="digipal/page">Browse Images</a> or using the Digipal <a href="http://127.0.0.1:8000/digipal/search/?from_link=true">search engine</a></div>';
+
 		container_basket.html(s);
 
 		var loading_div = $(".loading-div");

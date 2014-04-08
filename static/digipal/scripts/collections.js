@@ -4,6 +4,7 @@
  */
 
 $.getScript("collections-utils.js");
+
 function Collections() {
 
 	var element_basket = $('#collection_link');
@@ -59,11 +60,16 @@ function Collections() {
 
 
 		var collections = $('.collection');
-		collections.click(function() {
-			select_collection($(this));
-		}).dblclick(function() {
-			localStorage.setItem('selectedCollection', $(this).attr('id'));
-			location.href = window.location.href + $(this).find('span').data('href');
+		collections.find('input').on('change', function(event) {
+			select_collection($(this).parent());
+			event.stopPropagation();
+			event.stopImmediatePropagation();
+		});
+
+		collections.find('img').on('click', function(event) {
+			localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
+			location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+			event.stopPropagation();
 		});
 
 	};
@@ -85,9 +91,10 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
-				collection.addClass('col-md-2');
-				collection.append('<span data-href="' + index.replace(' ', '') + '"><img data-toggle="tooltip" data-placement="top" title="Click to select; Double click to open" src="/static/img/folder.png" /></span>');
-				collection.append('<label data-placement="bottom" data-toggle="tooltip" title="' + index + ' has ' + n + ' items">' + index + ' (' + n + ')<label>');
+				collection.addClass('col-md-1');
+				collection.append('<span data-href="' + index.replace(' ', '') + '"><img src="/static/img/folder.png" /></span>');
+				collection.append('<label for= "' + index + '" data-placement="bottom" data-toggle="tooltip" title="' + index + ' has ' + n + ' items">' + index + ' (' + n + ')<label>');
+				collection.append('<input type="checkbox" id="' + index + '" />');
 				container.append(collection);
 				$('[data-toggle="tooltip"]').tooltip();
 			});
@@ -244,7 +251,7 @@ function Collections() {
 				var collection = $('<div>');
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
-				collection.addClass('col-md-2');
+				collection.addClass('col-md-1');
 				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(' ', '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
 				collection.append('<label>' + collection_name + ' (0)<label>');
 				container.append(collection);

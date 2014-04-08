@@ -3,28 +3,36 @@
    -- Digipal Project --> digipal.eu
  */
 
-function length_basket_elements(elements) {
-	var n = 0;
-	if (elements) {
-		$.each(elements, function() {
-			n += this.length;
-		});
-	}
-	return n;
-}
+
 
 function update_collection_counter() {
 
 	var collections;
-	if (localStorage.getItem('collections')) {
+	if (localStorage.getItem('collections') && !($.isEmptyObject(JSON.parse(localStorage.getItem('collections'))))) {
 		collections = localStorage.getItem('collections');
 	} else {
-		return false;
+		collections = {
+			'Collection': {
+				'id': "1"
+			}
+		};
+		localStorage.setItem('collections', JSON.stringify(collections));
+		localStorage.setItem('selectedCollection', '1');
 	}
+
 
 	var basket_elements = JSON.parse(collections);
 	var menu_links = $('.navLink');
 	var basket_element;
+	var current_collection = {
+		"id": localStorage.getItem('selectedCollection')
+	};
+
+	for (var col in basket_elements) {
+		if (basket_elements[col].id == current_collection.id) {
+			current_collection['name'] = col;
+		}
+	}
 
 	for (var ind = 0; ind < menu_links.length; ind++) {
 		if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
@@ -42,8 +50,8 @@ function update_collection_counter() {
 		i++;
 	}
 
-	basket_element.html("Collections (" + i + " <i class='fa fa-picture-o'> </i> )");
-
+	basket_element.html(current_collection['name'] + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
+	basket_element.attr('href', basket_element.attr('href') + '/' + current_collection['name'].replace(' ', ''));
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
@@ -70,7 +78,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			for (i = 0; i < annotations.length; i++) {
 				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
-					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
 					if (!annotations[i]) {
 						notify('Annotation has not been saved yet. Otherwise, refresh the layer', 'danger');
 						return false;

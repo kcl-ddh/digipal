@@ -21,6 +21,16 @@ function getCookie(name) {
 	return cookieValue;
 }
 
+function length_basket_elements(elements) {
+	var n = 0;
+	if (elements) {
+		$.each(elements, function() {
+			n += this.length;
+		});
+	}
+	return n;
+}
+
 function getParameter(paramName) {
 	var searchString = window.location.search.substring(1),
 		i, val, params = searchString.split("&");

@@ -248,7 +248,9 @@ function Collections() {
 			var collection_name = $('#name_collection').val();
 			var window_save_collection = $('#new-collection-div');
 			var id = uniqueid();
-			if (collection_name) {
+			var re = /^\w*$/;
+			var collection_name_trimmed = collection_name.replace(' ', '');
+			if (collection_name && re.test(collection_name_trimmed)) {
 				if (collections) {
 					collections[collection_name] = {};
 					collections[collection_name]['id'] = id;
@@ -278,7 +280,7 @@ function Collections() {
 				notify('<span style="color: #468847;">New Collection succesfully created</span>', "success");
 				$('.alert').remove();
 			} else {
-				notify('Please enter a name for this collection', "danger");
+				notify('Please enter a name for this collection (Do not use special characters)', "danger");
 			}
 			return false;
 		},

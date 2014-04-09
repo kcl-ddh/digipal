@@ -172,7 +172,7 @@ function Collections() {
 				s += '<p>You are about to delete ' + selectedCollections.length + ' collections</p>';
 			}
 
-			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-danger" id="delete" type="button" value="Delete" /> ';
+			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="delete" type="button" value="Delete" /> ';
 			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Cancel" /></div></div>';
 
 			window_save_collection.html(s);
@@ -325,8 +325,8 @@ function Collections() {
 			if (!div.length) {
 				div = $('<div class="loading-div" id="share_basket_div">');
 				div.html('<h3>Share Collection URL</h3>');
-				div.append('<p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
-				div.append('<p><button class="btn btn-danger btn-small">Close</button></p>');
+				div.append('<div style="margin-top:2em"><p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
+				div.append('<p><button class="btn btn-danger btn-sm">Close Window</button></p></div>');
 				$('body').append(div);
 
 				div.find('button').click(function() {

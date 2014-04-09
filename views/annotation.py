@@ -396,7 +396,8 @@ def image_copyright(request, image_id):
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-def images_lightbox(request):
+def images_lightbox(request, collection_name):
+
     if request.is_ajax():
         if 'data' in request.POST and request.POST.get('data', ''):
             graphs = simplejson.loads(request.POST.get('data', ''))
@@ -428,7 +429,7 @@ def images_lightbox(request):
                 images = []
                 for img in graphs['images']:
                     image = Image.objects.get(id=img)
-                    images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                    images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 data['images'] = images
             return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 

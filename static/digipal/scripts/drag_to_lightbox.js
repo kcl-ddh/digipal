@@ -45,7 +45,7 @@ $(document).ready(function() {
 		}
 	});
 
-	var switcher = $('#toggle-state-switch');
+	var switcher = $('#toggle-annotations-mode');
 	var images = $('a.droppable_image');
 	images.draggable({
 		containment: false,

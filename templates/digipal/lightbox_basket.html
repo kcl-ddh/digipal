@@ -1,53 +1,45 @@
 {% extends "base.html" %}
 {% load html_escape %}
 
-{% block meta_title %}Digipal Collection{% endblock %}
-{% block extra_css %}
-<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-{% endblock %}
+{% block meta_title %}Digipal Collections{% endblock %}
 {% block main %}
 <div class="page-header">
-    <h1>Collection</h1>
+    <h1>Collections</h1>
 </div>
 <div class="container">
-    <div class="row">
 
-        <ul class="nav nav-tabs col-md-3 col-sm-6 col-xs-6">
-            <li class='active'><a data-target="#container_basket" data-toggle="tab" href="#">Collection</a></li>
-            <li><a data-target="#container_collections" data-toggle="tab" href='#'>Manage Collections</a></li>
-        </ul>
+    <div class="row" id='collection-toolbar'>
 
-        <div class="pull-right col-md-3">
-            <input id='filter' type="text" class="form-control" placeholder='Filter Collections' disabled />
+        <div class="btn-group">
+
+            <button data-toggle='tooltip' data-container='body' title = 'Create new empty collection'  class='btn btn-default btn-sm' id='new_collection'>
+                New
+            </button>
+
+            <button data-toggle='tooltip' data-container='body' title = 'Delete collection'  class='btn btn-default btn-sm' id='delete_collection' disabled>
+                Delete
+
+            <button data-toggle='tooltip' data-container='body' title = 'Copy Collection'  class='btn btn-default btn-sm' id='copy_collection' disabled>
+                Copy
+            </button>
+
+            <button data-toggle='tooltip' data-container='body' title='Send to Digital Lightbox' class='btn btn-default btn-sm' id='to_lightbox' disabled>
+                Lightbox
+            </button>
+
+            <button data-toggle='tooltip' data-container='body' title='Share this Collection' class='btn btn-default btn-sm' id='share_collection' disabled>
+                Share
+            </button>
         </div>
 
-        <div class="btn-group pull-right col-md-2">
-            <button data-toggle='tooltip' data-container='body' title = 'Send images to the Lightbox'  class='btn btn-default' id='to_lightbox'>
-                <i class="fa fa-picture-o"></i>
-            </button>
-
-            <button data-toggle='tooltip' data-container='body' title = 'Save Collection' class='btn btn-default' id='add_collection'>
-                <i class="fa fa-floppy-o"></i>
-            </button>
-
-            <button data-toggle='tooltip' data-container='body' title='Share this Collection' class='btn btn-default' id='share_collection'>
-                <i class="fa fa-share"></i>
-            </button>
+        <div class="col-md-3 pull-right">
+            <input id='filter' type="text" class="form-control" placeholder='Filter Collections' />
         </div>
     </div>
-</div>
 
-<div class="container">
     <div class="row">
-        <div class="tabbable">
-            <div class='tab-content'>
-                <div class="tab-pane fade active in" id='container_basket'>
+        <div id='container_collections'>
 
-                </div>
-                <div class="tab-pane fade" id='container_collections'>
-
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -62,7 +54,7 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src ='/static/digipal/scripts/collections-utils.js'></script>
     <script src ='/static/digipal/scripts/collections.js'></script>
-    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
     <script src='https://apis.google.com/js/client.js'></script>
 {% endblock %}

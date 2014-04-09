@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load html_escape %}
+
+{% block meta_title %}Collection{% endblock %}
+{% block main %}
+
+<div class="page-header row">
+    <h1 class='pull-left' contenteditable></h1>
+    <div  class='pager compact pull-right' style='margin:0'>
+        <li>
+            <a title='Go back to Collections page' data-toggle='tooltip' data-container='body' data-placement='bottom' href='/digipal/collection/'>Back to Collections</a>
+        </li>
+    </div>
+</div>
+
+<div class="row">
+    <div class='pull-right'>
+    <button data-toggle='tooltip' data-container='body' data-placement='bottom' title='Send to Digital Lightbox' class='btn btn-default btn-sm' id='to_lightbox'>
+    Send to Lightbox
+    </button>
+</div>
+</div>
+
+
+<div class="container">
+    <div class="row">
+        <div id='container_basket'>
+
+        </div>
+    </div>
+</div>
+
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <p>
+      <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
+    </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src ='/static/digipal/scripts/collections-utils.js'></script>
+    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+{% endblock %}

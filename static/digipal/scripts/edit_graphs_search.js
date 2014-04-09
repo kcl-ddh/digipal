@@ -35,7 +35,6 @@ function EditGraphsSearch() {
 		'PREFIX': 'search_'
 	};
 
-
 	// the init function launch the events function, ant it is the only method returned by the class
 	var init = function() {
 		events();

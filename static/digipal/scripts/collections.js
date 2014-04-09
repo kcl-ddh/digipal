@@ -411,7 +411,6 @@ function Collections() {
 		var element;
 		$.each(this.collections, function(index, value) {
 			element = $('.collection[id="' + value.id + '"]');
-			//console.log(pattern, index, re.test($.trim(index)));
 			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
 				if (element.css('display') == 'block') {
 					element.fadeOut();

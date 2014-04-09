@@ -38,6 +38,10 @@ function main() {
 			}
 		});
 
+		if (!collection) {
+			location.href = "../";
+		}
+
 		var graphs = [],
 			images = [];
 
@@ -281,7 +285,7 @@ function main() {
 
 	} else {
 		s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
-		s += '<p>Start adding images from <a href="digipal/page">Browse Images</a> or using the Digipal <a href="http://127.0.0.1:8000/digipal/search/?from_link=true">search engine</a></div>';
+		s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the Digipal <a href="http://127.0.0.1:8000/digipal/search/?from_link=true">search engine</a></div>';
 
 		container_basket.html(s);
 
@@ -305,6 +309,7 @@ function main() {
 					collections[name] = collections[index];
 					delete collections[index];
 					basket = value;
+					history.pushState(null, null, '../' + name);
 					flag = true;
 					return false;
 				}

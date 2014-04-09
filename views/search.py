@@ -288,7 +288,6 @@ def get_query_summary(request, term, submitted, forms):
     # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"', 
     # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
     ret = u''
-    ret_interactive = u''
     
     from django.utils.html import conditional_escape, escape, strip_tags
     
@@ -303,36 +302,29 @@ def get_query_summary(request, term, submitted, forms):
         from digipal.templatetags.html_escape import update_query_params
         
         if term.strip():
-            ret = u'"%s"' % term
-            ret_interactive += get_filter_html(term, 'terms')
+            ret += get_filter_html(term, 'terms')
         
-        # Generate a dictionary with the form fields.
-        # The key is the internal name of the field and the value is the display label 
-        fields = {}
+        found_params = []
         for form in forms:
             for field_name in form.fields:
-                field = form[field_name]
-                # generate the display label
-                # try, successively, the label, the empty_label then the initial value of the field
-                fields[field_name] = getattr(field, 'label', '') or getattr(field.field, 'empty_label', '') or (field.field.initial) or field_name.title()
+                if field_name not in found_params:
+                    boundfield = form[field_name]
+                    field_label = getattr(boundfield, 'label', '') or getattr(boundfield.field, 'empty_label', '') or (boundfield.field.initial) or field_name.title()
+                    value = boundfield.value()
+                    if value:
+                        for choice_value, choice_label in boundfield.field.choices:
+                            if unicode(value) == unicode(choice_value):
+                                if ret:
+                                    ret += ', '
+                                ret += get_filter_html(choice_label, field_name, field_label)
+                                found_params.append(field_name)
+                                break
+                
         
-        # Transform the query string into a list of field label and their values             
-        for param in request.GET:
-            if param in fields:
-                val = request.GET.get(param, '').strip()
-                if val:
-                    if ret:
-                        ret += ', '
-                    if ret_interactive:
-                        ret_interactive += ', '
-                    ret += u'%s: "%s"' % (fields[param], val)
-                    ret_interactive += get_filter_html(val, param, fields[param])
-            
         if not ret.strip():
             ret = 'All'
-            ret_interactive = 'All'
             
-    return ret, ret_interactive
+    return strip_tags(ret), ret
 
 def get_search_page_js_data(content_types, expanded_search=False, request=None):
     filters = []

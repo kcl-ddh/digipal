@@ -292,3 +292,14 @@ def get_plain_text_from_html(html):
     else:
         ret = u''
     return ret
+
+def set_left_joins_in_queryset(qs):
+    for alias in qs.query.alias_map:
+        qs.query.promote_alias(alias, True)
+
+def get_str_from_queryset(queryset):
+    ret = unicode(queryset.query)
+    ret = re.sub(ur'(INNER|FROM|AND|OR|WHERE|GROUP|ORDER|LEFT|RIGHT|HAVING)', ur'\n\1', ret)
+    ret = re.sub(ur'(INNER|AND|OR|LEFT|RIGHT)', ur'\t\1', ret)
+    return ret.encode('ascii', 'ignore')
+

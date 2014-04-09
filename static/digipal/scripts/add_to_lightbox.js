@@ -195,7 +195,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket['id'] = collection_id;
 					collections[collection_name] = current_basket;
 				}
-
+				notify('Annotation succesfully added to collection', 'success');
 			} else {
 
 				if (typeof annotator != 'undefined') {
@@ -214,6 +214,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket['id'] = collection_id;
 					collections[collection_name] = current_basket;
 				}
+				notify('Image succesfully added to collection', 'success');
 			}
 			localStorage.setItem('collections', JSON.stringify(collections));
 		}

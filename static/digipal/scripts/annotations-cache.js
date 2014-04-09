@@ -40,6 +40,7 @@ function AnnotationsCache() {
 			obj[id]['vector_id'] = object['vector_id'];
 			obj[id]['image_id'] = object['image_id'];
 			obj[id]['hands'] = object['hands'];
+			obj[id]['item_part'] = object['item_part'];
 		}
 
 		return obj;

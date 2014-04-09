@@ -262,12 +262,19 @@ function Collections() {
 				collection.append('<label>' + collection_name + ' (0)<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + id + '" />');
 				container.append(collection);
-				collection.click(function() {
-					select_collection($(this));
-				}).dblclick(function() {
-					localStorage.setItem('selectedCollection', $(this).attr('id'));
-					location.href = window.location.href + $(this).find('span').data('href');
+
+				collection.find('input').on('change', function(event) {
+					select_collection($(this).parent());
+					event.stopPropagation();
+					event.stopImmediatePropagation();
 				});
+
+				collection.find('img').on('click', function(event) {
+					localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
+					location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+					event.stopPropagation();
+				});
+
 				notify('<span style="color: #468847;">New Collection succesfully created</span>', "success");
 				$('.alert').remove();
 			} else {
@@ -404,7 +411,6 @@ function Collections() {
 		var element;
 		$.each(this.collections, function(index, value) {
 			element = $('.collection[id="' + value.id + '"]');
-			//console.log(pattern, index, re.test($.trim(index)));
 			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
 				if (element.css('display') == 'block') {
 					element.fadeOut();

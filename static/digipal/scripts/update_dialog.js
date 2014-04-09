@@ -154,6 +154,7 @@ var get_graph = function(graph_id, data, cache) {
 	result['allograph_id'] = graph.allograph_id;
 	result['hand_id'] = graph['hand_id'];
 	result['hands'] = graph['hands'];
+	result['item_part'] = graph['item_part'];
 	return result;
 
 };
@@ -196,8 +197,9 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	for (var j = 0; j < selectedAnnotations.length; j++) {
 		var allograph_id = cache.graphs[selectedAnnotations[j]].allograph_id;
 		var hand_id = cache.graphs[selectedAnnotations[j]].hand_id;
+		var item_part = cache.graphs[selectedAnnotations[j]].item_part;
 		allographs.push(allograph_id);
-		hands.push(hand_id);
+		hands.push(item_part);
 	}
 
 	var flag_allograph = 1,

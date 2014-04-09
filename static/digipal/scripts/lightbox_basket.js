@@ -5,6 +5,17 @@ $.ajaxSetup({
 	}
 });
 
+var sum_images_collection = function(basket) {
+	var n = 0;
+	if (basket.annotations) {
+		n += basket.annotations.length;
+	}
+
+	if (basket.images) {
+		n += basket.images.length;
+	}
+	return n;
+};
 
 function main() {
 
@@ -18,7 +29,7 @@ function main() {
 		var collections = JSON.parse(localStorage.getItem('collections'));
 		var url = location.href;
 		var collection_name_from_url = url.split('/')[url.split('/').length - 2];
-
+		var selectedCollection = localStorage.getItem('selectedCollection');
 
 		$.each(collections, function(index, value) {
 			if (index.replace(' ', '') == collection_name_from_url) {
@@ -132,8 +143,6 @@ function main() {
 					s += "</table>";
 				}
 
-
-
 				if (isExternal) {
 					var alert_string = "<div id='alert-save-collection' class='alert alert-success'>This is an external collection. Do you want to save it?  <div class='pull-right'><input type='button' id='save-collection' class='btn btn-xs btn-success' value='Save' /> <input id='close-alert' type='button' class='btn btn-xs btn-danger' value='Close' /></div> </div>";
 					s = alert_string + s;
@@ -142,12 +151,11 @@ function main() {
 				container_basket.html(s);
 
 				$('.remove_graph').click(function() {
-					var selectedCollection = localStorage.getItem('selectedCollection');
-					var collections = JSON.parse(localStorage.getItem('collections'));
 					var basket;
 					$.each(collections, function(index, value) {
 						if (value.id == selectedCollection) {
 							basket = value;
+							basket['name'] = index;
 						}
 					});
 
@@ -181,7 +189,7 @@ function main() {
 					}
 
 					$('tr[data-graph="' + graph + '"]').fadeOut().remove();
-
+					element_basket.html(basket['name'] + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
 					localStorage.setItem('collections', JSON.stringify(collections));
 
 				});
@@ -250,7 +258,6 @@ function main() {
 					notify('Collection succesfully saved', 'success');
 				});
 
-
 			},
 
 			complete: function() {
@@ -283,6 +290,35 @@ function main() {
 			loading_div.fadeOut().remove();
 		}
 	}
+
+
+	header.find('h1').on('blur', function() {
+
+		var name = $(this).get(0).innerHTML,
+			flag = false;
+
+		$.each(collections, function(index, value) {
+			if (name == index) {
+				return false;
+			} else {
+				if (value.id == selectedCollection) {
+					collections[name] = collections[index];
+					delete collections[index];
+					basket = value;
+					flag = true;
+					return false;
+				}
+			}
+		});
+
+		if (flag) {
+			localStorage.setItem('collections', JSON.stringify(collections));
+			element_basket.html(name + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
+			notify("Collection renamed as " + name, 'success');
+		} else {
+			notify("There's a collection with the same name", 'danger');
+		}
+	});
 
 
 }

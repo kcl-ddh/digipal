@@ -68,6 +68,11 @@ function Collections() {
 			event.stopPropagation();
 		});
 
+		var check_collections = $('#check_collections');
+		check_collections.on('change', function() {
+			methods.check_collections($(this));
+		});
+
 	};
 
 
@@ -361,6 +366,16 @@ function Collections() {
 					}
 				});
 			});
+		},
+
+		check_collections: function(checkbox) {
+			var is_checked = checkbox.is(':checked');
+			if (is_checked) {
+				$('.collection').not('.selected-collection').find('input').trigger('change').prop('checked', true);
+			} else {
+				$('.selected-collection').find('input').trigger('change').prop('checked', false);
+			}
+			checkbox.prop('indeterminate', false);
 		}
 
 	};
@@ -377,6 +392,8 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
+			var check_collections = $('#check_collections');
+			check_collections.prop('indeterminate', true);
 		}
 
 		update_toolbar();
@@ -401,14 +418,24 @@ function Collections() {
 	};
 
 	var update_toolbar = function() {
-		if (selectedCollections.length == 1) {
-			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
-		} else if (selectedCollections.length > 1) {
-			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-			$('#delete_collection').attr('disabled', false);
-		} else {
+		var n = 0;
+		$.each(this.collections, function() {
+			n++;
+		});
+
+		if (!selectedCollections.length) {
 			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+			$('#check_collections').prop('indeterminate', false).prop('checked', false);
+		} else if (selectedCollections.length == 1) {
+			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
+		} else if (selectedCollections.length > 1 && selectedCollections.length < n) {
+			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+			$('#check_collections').prop('indeterminate', true);
+			$('#delete_collection').attr('disabled', false);
+		} else if (selectedCollections.length == n) {
+			$('#check_collections').prop('indeterminate', false).prop('checked', true);
 		}
+
 	};
 
 	return {

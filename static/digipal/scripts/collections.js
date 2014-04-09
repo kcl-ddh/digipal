@@ -206,8 +206,9 @@ function Collections() {
 					}
 				});
 			}
+
 			localStorage.setItem('collections', JSON.stringify(collections));
-			$('#delete-collection-div').fadeOut().remove();
+			$('#delete-collection-div').parent().fadeOut().remove();
 
 			if ($.isEmptyObject(collections)) {
 				var s = '<div class="container alert alert-warning">No collections</div>';
@@ -245,7 +246,7 @@ function Collections() {
 				}
 
 				localStorage.setItem("collections", JSON.stringify(collections));
-				window_save_collection.fadeOut().remove();
+				window_save_collection.parent().fadeOut().remove();
 
 				var container = $('#container_collections');
 				var collection = $('<div>');
@@ -254,6 +255,7 @@ function Collections() {
 				collection.addClass('col-md-1');
 				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(' ', '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
 				collection.append('<label>' + collection_name + ' (0)<label>');
+				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + id + '" />');
 				container.append(collection);
 				collection.click(function() {
 					select_collection($(this));
@@ -385,11 +387,15 @@ function Collections() {
 		var element;
 		$.each(this.collections, function(index, value) {
 			element = $('.collection[id="' + value.id + '"]');
+			//console.log(pattern, index, re.test($.trim(index)));
 			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
-				console.log(index, pattern, element);
-				element.fadeOut();
+				if (element.css('display') == 'block') {
+					element.fadeOut();
+				}
 			} else {
-				element.fadeIn();
+				if (element.css('display') == 'none') {
+					element.fadeIn();
+				}
 			}
 		});
 	};

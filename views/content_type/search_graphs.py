@@ -4,6 +4,7 @@ from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
 from digipal.templatetags.hand_filters import chrono
+from django.utils.datastructures import SortedDict
 
 class SearchGraphs(SearchContentType):
 
@@ -47,19 +48,23 @@ class SearchGraphs(SearchContentType):
     
     def get_hand_count(self):
         return super(SearchGraphs, self).count
-
+    
     def _build_queryset(self, request, term):
         """ View for Hand record drill-down """
         context = {}
         self.graphs_count = 0
         
-        scribe = request.GET.get('scribes', '')
+        undefined = u''
+        
+        scribe = request.GET.get('scribes', undefined)
         # alternative names are for backward compatibility with old-style graph search page  
-        script = request.GET.get('script', '')
-        character = request.GET.get('character', '')
-        allograph = request.GET.get('allograph', '')
-        component = request.GET.get('component', '')
-        feature = request.GET.get('feature', '')
+        script = request.GET.get('script', undefined)
+        character = request.GET.get('character', undefined)
+        allograph = request.GET.get('allograph', undefined)
+        component = request.GET.get('component', undefined)
+        feature = request.GET.get('feature', undefined)
+        none = u'-1'
+        one_or_more = u'-2'
         
         from datetime import datetime
         
@@ -105,10 +110,21 @@ class SearchGraphs(SearchContentType):
         if allograph:
             graphs = graphs.filter(
                 idiograph__allograph__name=allograph)
+        
+        # condition on component
         if component:
-            wheres.append(Q(graph_components__component__name=component) | Q(idiograph__allograph__allograph_components__component__name=component))
-        if feature:
+            component_where = Q(graph_components__component__name=component)
+            if feature in [undefined, none]:
+                # If no feature is specified we find all the graph which are supposed to have a component
+                # according to their idiograph
+                component_where = component_where | Q(idiograph__allograph__allograph_components__component__name=component)
+            wheres.append(component_where)
+
+        # condition on feature
+        if feature not in [undefined, none, one_or_more]:
             wheres.append(Q(graph_components__features__name=feature))
+        if feature in [one_or_more]:
+            wheres.append(Q(graph_components__features__id__isnull=False))
 
         # ANDs all the Q() where clauses together
         if wheres:
@@ -117,6 +133,18 @@ class SearchGraphs(SearchContentType):
                 where_and = where_and & where    
             
             graphs = graphs.filter(where_and)
+        
+        # Treat the feature=none case 
+        if feature == none:
+            excluded_q = Q(graph_components__features__id__isnull=False)
+            if component:
+                excluded_q = excluded_q & Q(graph_components__component__name=component)
+            excluded_graphs = Graph.objects.filter(excluded_q)
+            graphs = graphs.exclude(id__in=excluded_graphs.values_list('id', flat=True))
+        
+        from digipal.utils import set_left_joins_in_queryset, get_str_from_queryset
+        set_left_joins_in_queryset(graphs)
+        #print get_str_from_queryset(graphs)
         
         t2 = datetime.now()
     
@@ -193,4 +221,4 @@ class FilterGraphs(forms.Form):
         required=False
     )
     component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
-    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature')
+    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature', other_choices=[(-1, 'No Features'), (-2, 'One of more features')])

@@ -33,7 +33,11 @@
                     <tr>
                         <td data-group='true'>
                             {% for graph in hand.graphs_template %}
-                                <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' 
+                                    data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' 
+                                    data-id='{{ graph.id }}' class='droppable_image graph_img' 
+                                    data-toggle="tooltip" title="{{ graph.get_short_label }}" 
+                                    href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
                                     {% annotation_img graph.annotation lazy=1 %}
                                 </a>
                             {% endfor %}
@@ -82,7 +86,7 @@
                                         <strong>{{ hand.get_short_label }}</strong>
                                     </a>
                                     in 
-                                    <a href="{{ hand.item_part.get_absolute_url }}">{{ hand.item_part.display_label|truncatewords:2 }}</a>
+                                    <a href="{{ hand.item_part.get_absolute_url }}">{{ hand.item_part.display_label|truncatewords:3 }}</a>
                                 </dd>
                             </dl>
                         </div>

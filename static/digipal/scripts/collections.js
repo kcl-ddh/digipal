@@ -366,7 +366,6 @@ function Collections() {
 	var select_collection = function(collection) {
 		if (collection.hasClass('selected-collection')) {
 			collection.removeClass('selected-collection');
-			collection.find('label').removeClass('label label-primary');
 			for (var i = 0; i < selectedCollections.length; i++) {
 				if (selectedCollections[i] == collection.data('id')) {
 					selectedCollections.splice(i, 1);
@@ -376,7 +375,6 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
-			collection.find('label').addClass('label label-primary');
 		}
 
 		update_toolbar();

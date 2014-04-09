@@ -1567,6 +1567,11 @@ class Hand(models.Model):
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
+    def get_short_label(self):
+        ret = unicode(self)
+        ret = re.sub(ur'\([^)]*\)', ur'', ret)
+        return ret
+
     def __unicode__(self):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76,
@@ -1706,6 +1711,10 @@ class Graph(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
+    def get_short_label(self):
+        ret = '%s, %s' % (self.idiograph.allograph, self.annotation.image.locus)
+        return ret
+    
     def save(self, *args, **kwargs):
         #self.display_label = u'%s. %s' % (self.idiograph, self.hand)
         self.display_label = get_list_as_string(self.idiograph, '. ', self.hand)

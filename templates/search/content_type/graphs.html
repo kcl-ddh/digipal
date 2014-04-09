@@ -66,16 +66,23 @@
                                 <dt>
                                     {% for graph in hand.graphs_template %}
                                         {% if forloop.counter < 10 %}
-                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' data-id='{{ graph.id }}' class='droppable_image' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' 
+                                                data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' 
+                                                data-id='{{ graph.id }}' class='droppable_image' data-container='body' 
+                                                data-toggle="tooltip" title="{{ graph.get_short_label }}" 
+                                                href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                 {% annotation_img graph.annotation lazy=1 %}
                                             </a>
                                         {% endif %}
                                     {% endfor %}
                                 </dt>
-                                <dd>
+                                {# see JIRA DIGIPAL-422 for spec about graph tooltips #}
+                                <dd title="{{ hand }} in {{ hand.item_part }} by {{ hand.scribe }}" data-toggle="tooltip">
                                     <a href="{{ hand.get_absolute_url }}">
-                                        <strong>{{ hand }}</strong>
+                                        <strong>{{ hand.get_short_label }}</strong>
                                     </a>
+                                    in 
+                                    <a href="{{ hand.item_part.get_absolute_url }}">{{ hand.item_part.display_label|truncatewords:2 }}</a>
                                 </dd>
                             </dl>
                         </div>

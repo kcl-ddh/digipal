@@ -52,6 +52,7 @@ def get_features(graph_id, only_features=False):
         allograph_id = g.idiograph.allograph.id
         image_id = g.annotation.image.id
         hands_list = []
+        item_part = g.annotation.image.item_part.id
         hands = g.annotation.image.hands.all()
 
         for hand in hands:
@@ -82,6 +83,7 @@ def get_features(graph_id, only_features=False):
         obj['allograph_id'] = allograph_id
         obj['hands'] = hands_list
         obj['graph'] = g.id
+        obj['item_part'] = item_part
         data.append(obj)
 
     return simplejson.dumps(data)

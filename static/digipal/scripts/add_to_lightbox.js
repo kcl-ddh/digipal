@@ -100,7 +100,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
-					notify('Image succesfully added to collection', 'success');
+					notify('Annotation succesfully added to collection', 'success');
 				} else {
 					notify('Annotation has already been added to Collection', 'danger');
 					continue;
@@ -114,7 +114,13 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.annotations.push(parseInt(annotations[i], 10));
 			}
 		}
+		collections[collection_name].annotations = current_basket.annotations;
 		localStorage.setItem('collections', JSON.stringify(collections));
+		if (annotations.length > 1) {
+			notify('Annotations succesfully added to collection', 'success');
+		} else {
+			notify('Annotation succesfully added to collection', 'success');
+		}
 	} else {
 		var graph;
 		if (type == 'annotation') {

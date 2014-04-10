@@ -99,6 +99,11 @@ function EditGraphsSearch() {
 			methods.toggle_all($(this));
 		});
 
+		var to_lightbox = $('.to_lightbox');
+		to_lightbox.click(function() {
+			methods.to_lightbox($(this));
+		});
+
 
 	};
 
@@ -184,6 +189,13 @@ function EditGraphsSearch() {
 			}
 
 			self.selectedAllograph = allograph;
+		}
+
+		var panel = elements.closest('.allograph-item');
+		if (!self.selectedAnnotations.length) {
+			panel.find('.to_lightbox').attr('disabled', true);
+		} else {
+			panel.find('.to_lightbox').attr('disabled', false);
 		}
 	};
 
@@ -452,6 +464,10 @@ function EditGraphsSearch() {
 
 				button.data('checked', false);
 			}
+		},
+
+		to_lightbox: function(button) {
+			add_to_lightbox(button, 'annotation', self.selectedAnnotations, true);
 		}
 	};
 

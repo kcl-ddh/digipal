@@ -90,11 +90,11 @@ function main() {
 
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
-					s += '<th><input type="checkbox" id="check_annotations_all" checked /></th><th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Remove</th>';
+					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Remove</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr data-graph = '" + annotation[1] + "'><td><input data-graph = '" + annotation[1] + "' type='checkbox' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -128,7 +128,7 @@ function main() {
 						}*/
 
 
-						s += "<td><button title = 'Remove from basket' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
+						s += "<td><button data-toggle='tooltip' title = 'Remove from collection' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 				}
 
@@ -137,13 +137,13 @@ function main() {
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table id='table-images' class='table'>";
-					s += '<th><input type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
+					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr data-graph = '" + image[1] + "'><td><input data-graph = '" + image[1] + "' type='checkbox' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<tr data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button title ='Remove from basket' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
+						s += "<td><button data-toggle='tooltip' title ='Remove from collection' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 					s += "</table>";
 				}
@@ -262,6 +262,8 @@ function main() {
 					$('#alert-save-collection').fadeOut().remove();
 					notify('Collection succesfully saved', 'success');
 				});
+
+				$('[data-toggle="tooltip"]').tooltip();
 
 			},
 

@@ -33,10 +33,10 @@
                     <tr>
                         <td data-group='true'>
                             {% for graph in hand.graphs_template %}
-                                <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' 
-                                    data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' 
-                                    data-id='{{ graph.id }}' class='droppable_image graph_img' 
-                                    data-toggle="tooltip" title="{{ graph.get_short_label }}" 
+                                <a data-checked='false' data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body'
+                                    data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
+                                    data-id='{{ graph.id }}' class='droppable_image graph_img'
+                                    data-toggle="tooltip" title="{{ graph.get_short_label }}"
                                     href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
                                     {% annotation_img graph.annotation lazy=1 %}
                                 </a>
@@ -67,13 +67,14 @@
                         <div class='col-md-3 centered col-xs-12'>
 
                             <dl class="imageDatabase panel" data-group='true'>
+                                <button style='margin:0.5em;' class="btn btn-default btn-sm toggle-all">Toggle All</button>
                                 <dt>
                                     {% for graph in hand.graphs_template %}
                                         {% if forloop.counter < 10 %}
-                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' 
-                                                data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}' 
-                                                data-id='{{ graph.id }}' class='droppable_image' data-container='body' 
-                                                data-toggle="tooltip" title="{{ graph.get_short_label }}" 
+                                            <a data-checked='false' data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom'
+                                                data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
+                                                data-id='{{ graph.id }}' class='droppable_image' data-container='body'
+                                                data-toggle="tooltip" title="{{ graph.get_short_label }}"
                                                 href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
                                                 {% annotation_img graph.annotation lazy=1 %}
                                             </a>
@@ -85,7 +86,7 @@
                                     <a href="{{ hand.get_absolute_url }}">
                                         <strong>{{ hand.get_short_label }}</strong>
                                     </a>
-                                    in 
+                                    in
                                     <a href="{{ hand.item_part.get_absolute_url }}">{{ hand.item_part.display_label|truncatewords:3 }}</a>
                                 </dd>
                             </dl>

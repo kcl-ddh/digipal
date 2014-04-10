@@ -94,6 +94,11 @@ function EditGraphsSearch() {
 			});
 		}
 
+		var toggle_all = $('.toggle-all');
+		toggle_all.click(function() {
+			methods.toggle_all($(this));
+		});
+
 
 	};
 
@@ -188,8 +193,6 @@ function EditGraphsSearch() {
 	*/
 	var refresh = function(data, image_id) {
 		var allographs = data;
-		console.log(data);
-
 		if (self.selectedAnnotations.length > 1) {
 			allographs['allographs'] = common_components(self.selectedAnnotations, cache, allographs['allographs']);
 		}
@@ -197,101 +200,122 @@ function EditGraphsSearch() {
 		var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
 		var graph = cache.graphs[selectedAnnotation];
 
-		/* creating dialog */
-		dialog(image_id, {
-			summary: false
-		}, function(dialog_instance) {
-			self.dialog = dialog_instance;
+		if (!self.dialog) {
+			/* creating dialog */
+			dialog(image_id, {
+				summary: false
+			}, function(dialog_instance) {
+				self.dialog = dialog_instance;
+
+				self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
+
+					/* fill container content */
+					self.dialog.selector.find('#features_container').html(s);
+
+					/* showing dialog */
+					self.dialog.show();
+
+					var select_hand = self.dialog.selector.find('.hand_form');
+					var checkboxes = self.dialog.selector.find('.features_box');
+
+					rewriteHands(select_hand, graph.hands);
+					detect_common_features(self.selectedAnnotations, checkboxes, cache);
+					common_allographs(self.selectedAnnotations, cache, graph);
+
+					/* launching DOM events */
+					self.dialog.events_postLoading(self.dialog.selector);
+
+					/* setting dialog label */
+					var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
+					self.dialog.set_label(allograph_label);
+
+					/* applying delete event to selected feature */
+					var delete_button = self.dialog.selector.find('#delete');
+					delete_button.click(function(event) {
+						methods.delete();
+					});
+
+					/* applying delete event to selected feature */
+					var save_button = self.dialog.selector.find('#save');
+					save_button.click(function(event) {
+						methods.save();
+					});
+
+					var set_by_default = self.dialog.selector.find('.set_by_default');
+					set_by_default.on('click', function(event) {
+						var component_id = $(this).data('component');
+						var allograph = self.dialog.selector.find('.allograph_form').val();
+						check_features_by_default(component_id, allograph, cache);
+						event.stopPropagation();
+					});
+
+					var set_all_by_default = self.dialog.selector.find('.set_all_by_default');
+					set_all_by_default.on('click', function(event) {
+						var components = [];
+						var allograph = self.dialog.selector.find('.allograph_form').val();
+
+						for (var i in cache.allographs) {
+							for (var j = 0; j < cache.allographs[i].length; j++) {
+								var component = cache.allographs[i][j].id;
+								components.push(component);
+							}
+						}
+
+						for (var c in components) {
+							check_features_by_default(components[c], allograph, cache);
+						}
+
+						event.stopPropagation();
+					});
+
+					var tabs = $('a[data-toggle="tab"]');
+					tabs.on('shown.bs.tab', function(e) {
+						if (e.target.getAttribute('data-target') == '#edit') {
+							self.dialog.edit_letter.init(self.selectedAnnotations[self.selectedAnnotations.length - 1]);
+						}
+					});
+
+
+					/* updating selected annotations count */
+
+					if (self.dialog.selector.find('.badge').length) {
+						self.dialog.selector.find('.badge').html(self.selectedAnnotations.length);
+					} else {
+						self.dialog.selector.find('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
+					}
+
+
+				});
+			});
+		} else {
 
 			self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
 
 				/* fill container content */
 				self.dialog.selector.find('#features_container').html(s);
 
-				var checkboxes = $('.myModal .features_box');
+				self.dialog.show();
 
-				var select_hand = $('.myModal .hand_form');
-
-				/* rewriting hands select */
-				var string_hand_select = '<option value>------</option>';
-				for (var h = 0; h < graph.hands.length; h++) {
-					string_hand_select += '<option value="' + graph.hands[h].id + '">' +
-						graph.hands[h].label + '</option>';
-				}
-
-				select_hand.html(string_hand_select);
-
+				var select_hand = self.dialog.selector.find('.hand_form');
+				var checkboxes = self.dialog.selector.find('.features_box');
+				rewriteHands(select_hand, graph.hands);
 				detect_common_features(self.selectedAnnotations, checkboxes, cache);
 				common_allographs(self.selectedAnnotations, cache, graph);
 
-				/* launching DOM events */
-				self.dialog.events_postLoading(self.dialog.selector);
-
-				/* showing dialog */
-				self.dialog.show();
-
 				/* setting dialog label */
-				var allograph_label = $('.myModal .allograph_form option:selected').text();
+				var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
 				self.dialog.set_label(allograph_label);
 
-				/* applying delete event to selected feature */
-				var delete_button = self.dialog.selector.find('#delete');
-				delete_button.click(function(event) {
-					methods.delete();
-				});
-
-				/* applying delete event to selected feature */
-				var save_button = self.dialog.selector.find('#save');
-				save_button.click(function(event) {
-					methods.save();
-				});
-
-				var set_by_default = $('.set_by_default');
-				set_by_default.on('click', function(event) {
-					var component_id = $(this).data('component');
-					var allograph = $('.myModal .allograph_form').val();
-					check_features_by_default(component_id, allograph, cache);
-					event.stopPropagation();
-				});
-
-				var set_all_by_default = $('.set_all_by_default');
-				set_all_by_default.on('click', function(event) {
-					var components = [];
-					var allograph = $('.myModal .allograph_form').val();
-
-					for (var i in cache.allographs) {
-						for (var j = 0; j < cache.allographs[i].length; j++) {
-							var component = cache.allographs[i][j].id;
-							components.push(component);
-						}
-					}
-
-					for (var c in components) {
-						check_features_by_default(components[c], allograph, cache);
-					}
-
-					event.stopPropagation();
-				});
-
-				var tabs = $('a[data-toggle="tab"]');
-				tabs.on('shown.bs.tab', function(e) {
-					if (e.target.getAttribute('data-target') == '#edit') {
-						self.dialog.edit_letter.init(self.selectedAnnotations[self.selectedAnnotations.length - 1]);
-					}
-				});
-
-
 				/* updating selected annotations count */
-				if (self.selectedAnnotations.length > 1) {
-					if ($('.myModal .badge').length) {
-						$('.myModal .badge').html(self.selectedAnnotations.length);
-					} else {
-						$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
-					}
+
+				if ($('.myModal .badge').length) {
+					$('.myModal .badge').html(self.selectedAnnotations.length);
+				} else {
+					$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
 				}
 
 			});
-		});
+		}
 	};
 
 	var methods = {
@@ -401,6 +425,45 @@ function EditGraphsSearch() {
 				load_graph($(annotations[i]));
 			}
 		},
+
+		toggle_all: function(button) {
+			var graphs_elements = button.next().find('a[data-graph]');
+			if (!button.data('checked')) {
+				graphs_elements.click();
+				button.data('checked', true);
+			} else {
+				var graphs = [];
+
+				$.each(graphs_elements, function() {
+					graphs.push($(this).data('graph'));
+				});
+
+				for (var i = 0; i < self.selectedAnnotations.length; i++) {
+					if (graphs.indexOf(self.selectedAnnotations[i]) >= 0) {
+						$('a[data-graph="' + self.selectedAnnotations[i] + '"]').find('img').removeClass('graph_active');
+						self.selectedAnnotations.splice(i, 1);
+						i--;
+					}
+				}
+
+				if (!self.selectedAnnotations.length) {
+					self.dialog.hide();
+				}
+
+				button.data('checked', false);
+			}
+		}
+	};
+
+	var rewriteHands = function(select_hand, hands) {
+		/* rewriting hands select */
+		var string_hand_select = '<option value>------</option>';
+		for (var h = 0; h < hands.length; h++) {
+			string_hand_select += '<option value="' + hands[h].id + '">' +
+				hands[h].label + '</option>';
+		}
+
+		select_hand.html(string_hand_select);
 	};
 
 	var removeSelected = function(elements, graph) {

@@ -189,8 +189,10 @@ function intersect(a, b) {
 }
 
 function common_allographs(selectedAnnotations, cache, graph) {
-	var allographs = [];
-	var hands = [];
+	var allographs = [],
+		hands = [],
+		item_parts = [];
+
 	var select_hand = $('.myModal .hand_form');
 	var select_allograph = $('.myModal .allograph_form');
 
@@ -199,11 +201,13 @@ function common_allographs(selectedAnnotations, cache, graph) {
 		var hand_id = cache.graphs[selectedAnnotations[j]].hand_id;
 		var item_part = cache.graphs[selectedAnnotations[j]].item_part;
 		allographs.push(allograph_id);
-		hands.push(item_part);
+		hands.push(hand_id);
+		item_parts.push(item_part);
 	}
 
 	var flag_allograph = 1,
-		flag_hand = 1;
+		flag_hand = 1,
+		flag_ip = 1;
 
 	for (var h = 1; h < allographs.length; h++) {
 		if (allographs[0] != allographs[h]) {
@@ -219,19 +223,28 @@ function common_allographs(selectedAnnotations, cache, graph) {
 		}
 	}
 
+	for (h = 1; h < item_parts.length; h++) {
+		if (item_parts[0] != item_parts[h]) {
+			flag_ip = 0;
+			break;
+		}
+	}
+
 	if (!flag_allograph) {
 		select_allograph.val('------');
 	} else {
 		select_allograph.val(graph.allograph_id);
 	}
 
-	if (!flag_hand) {
+	if (!flag_hand && flag_ip) {
 		select_hand.val('------');
+	} else if (!flag_hand && !flag_ip) {
+		select_hand.html('<option selected>------</option>');
 	} else {
 		select_hand.val(graph.hand_id);
 	}
 
-	$('select').trigger('liszt:updated');
+	select_hand.add(select_allograph).trigger('liszt:updated');
 }
 
 function common_components(selectedAnnotations, cacheAnnotations, data) {

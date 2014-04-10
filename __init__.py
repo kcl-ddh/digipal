@@ -1,3 +1,8 @@
+from django.conf import settings
+# leave this at the top as the import will immediatelly re-import this code!
+if 'mezzanine.blog' in settings.INSTALLED_APPS:
+    from mezzanine.conf import settings as ms
+
 # Tell South about the iipimage field
 # See http://south.readthedocs.org/en/latest/tutorial/part4.html#simple-inheritance
 from south.modelsinspector import add_introspection_rules
@@ -5,7 +10,6 @@ add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 
 # patch the iipimage to correct a bug (.image was hardcoded)
 from iipimage import storage
-from django.conf import settings
 
 import logging
 import re
@@ -122,15 +126,20 @@ fields.ImageFieldFile.thumbnail_url = thumbnail_url
 # See https://github.com/stephenmcd/mezzanine/issues/647
 
 if 'mezzanine.blog' in settings.INSTALLED_APPS:
-    
+
     keyword_exists = True
     from django.contrib.admin.views.decorators import staff_member_required
     from django.http import HttpResponse, HttpResponseRedirect
     try:
         from mezzanine.generic.models import Keyword
+        # Let's add the Keywords to the admin interface
+        from django.contrib import admin
+        admin.site.register(Keyword)    
     except Exception, e:
         keyword_exists = False 
-
+        if getattr(settings, 'DEV_SERVER', False):
+            print 'WARNING: import failed (%s) and Mezzanine Blog case-sensitive keywords patch cannot be applied.' % e 
+    
     if keyword_exists:
         
         @staff_member_required

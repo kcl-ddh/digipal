@@ -74,6 +74,7 @@ function main() {
 
 	var header = $('.page-header');
 	header.find('h1').html(collection_name);
+	$('#breadcrumb-current-collection').html(collection_name);
 	var length_basket = length_basket_elements(collection) || 0;
 
 	if (!$.isEmptyObject(data)) {
@@ -298,7 +299,7 @@ function main() {
 
 	header.find('h1').on('blur', function() {
 
-		var name = $(this).get(0).innerHTML,
+		var name = $(this).get(0).innerText,
 			flag = false;
 
 		$.each(collections, function(index, value) {
@@ -319,10 +320,27 @@ function main() {
 		if (flag) {
 			localStorage.setItem('collections', JSON.stringify(collections));
 			element_basket.html(name + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
+			$('#breadcrumb-current-collection').html(name);
 			notify("Collection renamed as " + name, 'success');
 		} else {
 			notify("There's a collection with the same name", 'danger');
 		}
+	}).on('focus', function(event) {
+		$(this).on('keyup', function(event) {
+			var code = (event.keyCode ? event.keyCode : event.which);
+			if (code == 13) {
+				$(this).blur();
+				event.preventDefault();
+				return false;
+			}
+		}).on('keydown', function(event) {
+			var code = (event.keyCode ? event.keyCode : event.which);
+			if (code == 13) {
+				$(this).blur();
+				event.preventDefault();
+				return false;
+			}
+		});
 	});
 
 

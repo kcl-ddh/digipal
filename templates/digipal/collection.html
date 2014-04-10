@@ -5,24 +5,29 @@
 {% block main %}
 
 <div class="page-header row">
-    <h1 class='pull-left' contenteditable></h1>
-    <div class='col-md-2'>
+    <h1 class='pull-left collection-title' data-toggle='tooltip' data-container='body' data-placement='bottom' title='Rename Collection' contenteditable></h1>
+    <div class='col-md-2 pull-right'>
             <button data-toggle='tooltip' data-container='body' data-placement='bottom' title='Send to Digital Lightbox' class='btn btn-default btn-sm' id='to_lightbox'>
         Send to Lightbox
         </button>
-    </div>
-    <div  class='pager compact pull-right' style='margin:0'>
-        <li>
-            <a title='Go back to Collections page' data-toggle='tooltip' data-container='body' data-placement='bottom' href='/digipal/collection/'>Back to Collections</a>
-        </li>
     </div>
 </div>
 
 <div class="container">
     <div class="row">
-        <div id='container_basket'>
+        <ul class="breadcrumb col-md-5">
+            <li>
+                <a href="/digipal/collection/">My Collections</a>
+            </li>
+            <li class='active' id='breadcrumb-current-collection'>
+
+            </li>
+        </ul>
+
+        <div id='container_basket' class='col-md-12'>
 
         </div>
+
     </div>
 </div>
 

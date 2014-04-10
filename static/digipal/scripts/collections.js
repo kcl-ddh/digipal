@@ -442,6 +442,8 @@ function Collections() {
 			$('#check_collections').prop('indeterminate', false).prop('checked', true);
 		}
 
+		$('#counter-collections').html(selectedCollections.length);
+
 	};
 
 	return {

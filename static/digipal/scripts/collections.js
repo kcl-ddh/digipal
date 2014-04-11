@@ -94,7 +94,7 @@ function Collections() {
 				collection.data('id', value.id);
 				collection.addClass('col-md-1');
 				collection.append('<span data-href="' + index.replace(/\s+/gi, '') + '"><img src="/static/img/folder.png" /></span>');
-				collection.append('<label for= "' + index + '" data-placement="bottom" data-toggle="tooltip" title="' + index + ' has ' + n + ' items">' + index + ' (' + n + ')<label>');
+				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
 				container.append(collection);
 				$('[data-toggle="tooltip"]').tooltip();

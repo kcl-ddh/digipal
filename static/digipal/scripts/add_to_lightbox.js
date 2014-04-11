@@ -69,7 +69,7 @@ function update_collection_counter() {
 	}
 
 	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
-	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(' ', ''));
+	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
 
 	/*
 	if (children > 1) {

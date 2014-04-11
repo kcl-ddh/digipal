@@ -305,9 +305,8 @@ function main() {
 		}
 	}
 
-
 	header.find('.collection-title').on('blur', function() {
-
+		var collections = JSON.parse(localStorage.getItem('collections'));
 		var name = $(this).text(),
 			flag = false;
 
@@ -317,12 +316,20 @@ function main() {
 				return false;
 			} else {
 				if (value.id == selectedCollection) {
-					collections[name] = collections[index];
-					delete collections[index];
-					basket = value;
-					history.pushState(null, null, '../' + name);
-					flag = true;
-					return false;
+					var re = /^\w*$/;
+					name = name.replace(/\s+/gi, '');
+					if (name && re.test(name) && name.length <= 30) {
+						collections[name] = collections[index];
+						delete collections[index];
+						basket = value;
+						history.pushState(null, null, '../' + name);
+						flag = true;
+						return false;
+					} else {
+						notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+						$('.collection-title').html(index);
+						return false;
+					}
 				}
 			}
 		});
@@ -330,6 +337,7 @@ function main() {
 		if (flag) {
 			localStorage.setItem('collections', JSON.stringify(collections));
 			element_basket.html(name + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
+			element_basket.attr('href', '/digipal/collection/' + name.replace(/\s+/gi), '');
 			$('#breadcrumb-current-collection').html(name);
 			notify("Collection renamed as " + name, 'success');
 		} else {

@@ -352,6 +352,15 @@ function main() {
 			}
 		});
 	});
+
+	$('#share-collection').on('click', function() {
+		share([collection['id']]);
+	});
+
+	$('#delete-collection').on('click', function() {
+		delete_collections([collection['id']], false, true);
+	});
+
 }
 
 $(document).ready(function() {

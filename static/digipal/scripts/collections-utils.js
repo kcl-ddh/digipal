@@ -94,7 +94,7 @@ function save_collection(collection) {
     }
 }
 
-function delete_collections(selectedCollections, update_toolbar) {
+function delete_collections(selectedCollections, update_toolbar, collection_page) {
     var collections = JSON.parse(localStorage.getItem('collections'));
     var background_div = $('<div class="dialog-background">');
     var window_save_collection = $('<div>');
@@ -118,16 +118,20 @@ function delete_collections(selectedCollections, update_toolbar) {
         $('body').append(background_div);
     }
 
-    $('#delete').unbind().click(function(event) {
-        _delete(selectedCollections, update_toolbar);
-        event.stopPropagation();
-        event.preventDefault();
-    });
-
     $('#close_window_collections').unbind().click(function(event) {
         background_div.fadeOut().remove();
         event.stopPropagation();
     });
+
+    $('#delete').unbind().click(function(event) {
+        _delete(selectedCollections, update_toolbar);
+        event.stopPropagation();
+        event.preventDefault();
+        if (collection_page) {
+            location.href = '../';
+        }
+    });
+
 
 }
 
@@ -152,7 +156,9 @@ function _delete(selectedCollections, update_toolbar) {
     }
 
     selectedCollections = [];
-    update_toolbar();
+    if (update_toolbar) {
+        update_toolbar();
+    }
 }
 
 function share(selectedCollections) {

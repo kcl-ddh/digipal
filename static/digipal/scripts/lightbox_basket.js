@@ -340,6 +340,7 @@ function main() {
 			element_basket.attr('href', '/digipal/collection/' + name.replace(/\s+/gi), '');
 			$('#breadcrumb-current-collection').html(name);
 			notify("Collection renamed as " + name, 'success');
+			$(this).blur();
 		} else {
 			return false;
 		}

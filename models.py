@@ -1465,6 +1465,41 @@ class Image(models.Model):
 
 
         return zoomify
+    
+    @classmethod
+    def get_duplicates(cls, ids=None):
+        ''' Returns a dictionary of duplicate images
+            e.g. {1: (3,), 2: (8,), 3: (1,), 8: (2,)}
+            Images are considered as duplicates if they have the same CI.id and the same locus.
+            Means that 1 and 3 are duplicates and 2 and 8 are duplicates
+            If id is none, all possible duplicates are returned.
+            Otherwise only duplicates for the given list of ids are returned.
+        '''
+        ret = {}
+        from django.db import connection
+        cursor = connection.cursor()
+        selection_condition = u''
+        if ids is not None:
+            selection_condition = 'and i1.id in (%s)' % ', '.join([unicode(item) for item in ids])
+        select = u'''
+            select distinct i1.id, i2.id
+            from digipal_image i1 join digipal_itempart ip1 on i1.item_part_id = ip1.id,
+            digipal_image i2 join digipal_itempart ip2 on i2.item_part_id = ip2.id
+            where i1.id <> i2.id
+            and replace(lower(i1.locus), ' ', '') = replace(lower(i2.locus), ' ', '')
+            and ip1.current_item_id = ip2.current_item_id
+            %s
+            order by i1.id, i2.id''' % selection_condition
+        cursor.execute(select)
+
+        for (id1, id2) in list(cursor.fetchall()):
+            ret[id1] = ret.get(id1, [])
+            ret[id1].append(id2)
+        cursor.close()
+        
+        return ret
+
+    
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
@@ -1790,7 +1825,7 @@ class Annotation(models.Model):
     class Meta:
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
-
+        
     def get_coordinates(self, geo_json=None):
         ''' Returns the coordinates of the graph rectangle
             E.g. ((602, 56), (998, 184))

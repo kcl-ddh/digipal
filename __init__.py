@@ -13,7 +13,7 @@ from iipimage import storage
 
 import logging
 import re
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 # PATCH 1:
 
@@ -89,7 +89,7 @@ def _call_image_conversion (command, input_path):
 
     """
     try:
-        #subprocess.check_call(shlex.split(command.encode('ascii')))
+        # subprocess.check_call(shlex.split(command.encode('ascii')))
         os.system(command.encode('ascii'))
     except subprocess.CalledProcessError, e:
         os.remove(input_path)
@@ -279,4 +279,4 @@ def array_union_matcher_skip_to(self, docnum):
         self._docnum = self._doccount
     
 # Commnented out as the code seem the have been fixed in new version of Whoosh
-##ArrayUnionMatcher.skip_to = array_union_matcher_skip_to
+# #ArrayUnionMatcher.skip_to = array_union_matcher_skip_to

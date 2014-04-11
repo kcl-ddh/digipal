@@ -104,6 +104,15 @@ Commands:
 			known_command = True
 			self.autocomplete(*args[1:])
 
+		if command == 'dupim':
+			known_command = True
+			self.find_dup_im(*args[1:])
+			
+	def find_dup_im(self, **kwargs):
+		print 'duplicates'
+		from digipal.models import Image
+		print repr(Image.get_duplicates())
+
 	def autocomplete(self, phrase, **kwargs):
 		from utils import readFile
 		settings.DEV_SERVER = True

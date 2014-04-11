@@ -95,6 +95,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 	if (!$('#allographs_loader_gif').length) {
 		$('.myModalLabel .set_all_by_default').after(" <img id='allographs_loader_gif' src='/static/digipal/images/ajax-loader3.gif' />");
 	}
+
 	var graphs, graph, url, graphs_list = [];
 	var content_type = 'graph';
 	graphs = group_element.find('a[data-graph]');
@@ -110,6 +111,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 
 var reload_cache = function(graphs, cache, only_features, callback) {
 	var request, url, content_type = 'graph';
+	$('#features_container').html('<img style="position:absolute;top:40%;left:40%;" src="/static/digipal/images/ajax-loader4.gif" />');
 	if (graphs.length) {
 		url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
 

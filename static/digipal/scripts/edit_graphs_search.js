@@ -326,6 +326,8 @@ function EditGraphsSearch() {
 					$('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
 				}
 
+				self.dialog.events_postLoading(self.dialog.selector);
+
 			});
 		}
 	};

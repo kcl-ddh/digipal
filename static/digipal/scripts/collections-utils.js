@@ -93,3 +93,122 @@ function save_collection(collection) {
         localStorage.setItem("collections", JSON.stringify(collections));
     }
 }
+
+function delete_collections(selectedCollections, update_toolbar) {
+    var collections = JSON.parse(localStorage.getItem('collections'));
+    var background_div = $('<div class="dialog-background">');
+    var window_save_collection = $('<div>');
+    var s = '';
+
+    window_save_collection.attr('class', 'loading-div').attr('id', 'delete-collection-div');
+    s += '<h3>Delete Collections?</h3>';
+    if (selectedCollections.length == 1) {
+        s += '<p>You are about to delete 1 collection</p>';
+    } else {
+        s += '<p>You are about to delete ' + selectedCollections.length + ' collections</p>';
+    }
+
+    s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="delete" type="button" value="Delete" /> ';
+    s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Cancel" /></div></div>';
+
+    window_save_collection.html(s);
+
+    if (!$('#delete-collection-div').length) {
+        background_div.html(window_save_collection);
+        $('body').append(background_div);
+    }
+
+    $('#delete').unbind().click(function(event) {
+        _delete(selectedCollections, update_toolbar);
+        event.stopPropagation();
+        event.preventDefault();
+    });
+
+    $('#close_window_collections').unbind().click(function(event) {
+        background_div.fadeOut().remove();
+        event.stopPropagation();
+    });
+
+}
+
+function _delete(selectedCollections, update_toolbar) {
+    var collections = JSON.parse(localStorage.getItem('collections'));
+
+    for (var i = 0; i < selectedCollections.length; i++) {
+        $.each(collections, function(index, value) {
+            if (value.id == selectedCollections[i]) {
+                delete collections[index];
+                $('#' + value.id).fadeOut().remove();
+            }
+        });
+    }
+
+    localStorage.setItem('collections', JSON.stringify(collections));
+    $('#delete-collection-div').parent().fadeOut().remove();
+
+    if ($.isEmptyObject(collections)) {
+        var s = '<div class="container alert alert-warning">No collections</div>';
+        container_basket.append(s);
+    }
+
+    selectedCollections = [];
+    update_toolbar();
+}
+
+function share(selectedCollections) {
+    var b = {},
+        i = 0;
+
+    var selectedCollection = selectedCollections[0];
+    var collections = JSON.parse(localStorage.getItem('collections'));
+    var basket;
+
+    $.each(collections, function(index, value) {
+        if (value.id == selectedCollection) {
+            basket = this;
+            basket['name'] = index;
+        }
+    });
+    var url = window.location.hostname + '/digipal/collection/shared/1/' +
+        '?collection=' + encodeURIComponent(JSON.stringify(basket));
+
+    var scriptTwitter = '<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>';
+    var div = $('#share_basket_div');
+    if (!div.length) {
+        div = $('<div class="loading-div" id="share_basket_div">');
+        div.html('<h3>Share Collection URL</h3>');
+        div.append('<div style="margin-top:2em"><p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
+        div.append('<p><button class="btn btn-danger btn-sm">Close Window</button></p></div>');
+        $('body').append(div);
+
+        div.find('button').click(function() {
+            div.fadeOut();
+        });
+    } else {
+        div.fadeIn();
+    }
+
+    gapi.client.load('urlshortener', 'v1', function() {
+
+        var request = gapi.client.urlshortener.url.insert({
+            'resource': {
+                'longUrl': url
+            }
+        });
+
+        var resp = request.execute(function(resp) {
+            if (resp.error) {
+                return false;
+            } else {
+
+                $("#basket_url").attr('href', resp.id).text(resp.id).addClass('basket_url');
+                var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + resp.id + '">Tweet</a>';
+                if (!$('.twitter-hashtag-button').length) {
+                    $('#basket_url').after(linkTwitter + scriptTwitter);
+                } else {
+                    twttr.widgets.load();
+                }
+            }
+        });
+    });
+}

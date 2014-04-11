@@ -29,8 +29,9 @@ function update_collection_counter() {
 	};
 
 	var current_collection_id = current_collection.id;
-
+	var children = 0;
 	for (var col in basket_elements) {
+		children++;
 		if (basket_elements[col].id == current_collection_id) {
 			current_collection['name'] = col;
 			break;
@@ -61,9 +62,28 @@ function update_collection_counter() {
 		i += basket_elements[current_collection['name']]['annotations'].length;
 	}
 
+	var link_label = current_collection['name'];
 
-	basket_element.html(current_collection['name'] + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
+	if (link_label.length > 20) {
+		link_label = link_label.substr(0, 17) + '...';
+	}
+
+	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(' ', ''));
+
+	/*
+	if (children > 1) {
+		var ul = $('<ul class="dropdown-menu">');
+		var caret = '<span class="caret"></span>';
+		$.each(basket_elements, function(index, value) {
+			var li = "<li><a href='/digipal/collection/" + index + "'>" + index + "</a></li>";
+			ul.append(li);
+		});
+		basket_element.data('toggle', 'dropdown');
+		basket_element.append(caret);
+		basket_element.after(ul);
+	}
+	*/
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {

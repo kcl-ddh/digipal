@@ -247,7 +247,6 @@ function Dialog() {
     var show = function() {
         selector.show();
         open = true;
-        events(selector);
     };
 
     var set_label = function(label_value) {

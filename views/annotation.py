@@ -38,14 +38,18 @@ def get_content_type_data(request, content_type, id, only_features=False):
 def get_features(graph_id, only_features=False):
     data = []
     graphs = str(graph_id).split(',')
+    allographs_cache = []
     for graph in graphs:
         obj = {}
         dict_features = list([])
         g = Graph.objects.get(id=graph)
+        a = g.idiograph.allograph.id
         graph_components = g.graph_components
 
-        if not only_features:
-            allograph = allograph_features(False, g.idiograph.allograph.id)
+        if not only_features and not a in allographs_cache:
+            allograph = allograph_features(False, a)
+            obj['allographs'] = allograph
+            allographs_cache.append(a)
 
         vector_id = g.annotation.vector_id
         hand_id = g.hand.id
@@ -75,8 +79,6 @@ def get_features(graph_id, only_features=False):
 
 
         obj['features'] = dict_features
-        if not only_features:
-             obj['allographs'] = allograph
         obj['vector_id'] = vector_id
         obj['image_id'] = image_id
         obj['hand_id'] = hand_id

@@ -502,12 +502,14 @@ function EditGraphsSearch() {
 	};
 
 	return {
-		'init': init
+		'init': init,
+		'cache': self.cache.cache
 	};
 
 }
 
+var editGraphsSearch;
 $(document).ready(function() {
-	var editGraphsSearch = new EditGraphsSearch();
+	editGraphsSearch = new EditGraphsSearch();
 	editGraphsSearch.init();
 });

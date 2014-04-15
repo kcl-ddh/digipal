@@ -135,6 +135,9 @@ function Collections() {
 			$('#check_collections').prop('indeterminate', false).prop('checked', false);
 		} else if (selectedCollections.length == 1) {
 			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
+			if (n !== 1) {
+				$('#check_collections').prop('indeterminate', true);
+			}
 		} else if (selectedCollections.length > 1 && selectedCollections.length < n) {
 			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
 			$('#check_collections').prop('indeterminate', true);
@@ -409,8 +412,6 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
-			var check_collections = $('#check_collections');
-			check_collections.prop('indeterminate', true);
 		}
 
 		update_toolbar();

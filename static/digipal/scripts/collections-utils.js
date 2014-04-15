@@ -148,6 +148,7 @@ function _delete(selectedCollections, update_toolbar) {
     }
 
     localStorage.setItem('collections', JSON.stringify(collections));
+    localStorage.removeItem('selectedCollection');
     $('#delete-collection-div').parent().fadeOut().remove();
 
     if ($.isEmptyObject(collections)) {

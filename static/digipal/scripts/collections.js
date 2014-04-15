@@ -417,18 +417,16 @@ function Collections() {
 	};
 
 	var filter = function(pattern) {
-		var re = new RegExp('^' + $.trim(pattern), "gi");
-		var element;
+		var re = new RegExp('^' + $.trim(pattern), "mi");
+		var element, test;
 		$.each(this.collections, function(index, value) {
-			element = $('.collection[id="' + value.id + '"]');
-			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
-				if (element.css('display') == 'block') {
-					element.fadeOut();
-				}
+			element = $('#' + value.id);
+			test = re.test($.trim(index));
+			console.log(test, element);
+			if (!test && pattern) {
+				element.fadeOut();
 			} else {
-				if (element.css('display') == 'none') {
-					element.fadeIn();
-				}
+				element.fadeIn();
 			}
 		});
 	};

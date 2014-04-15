@@ -280,6 +280,13 @@ function EditGraphsSearch() {
 						event.stopPropagation();
 					});
 
+					var deselect_all_graphs = $('.deselect_all_graphs');
+					deselect_all_graphs.click(function() {
+						$('img.graph_active').removeClass('graph_active');
+						self.selectedAnnotations = [];
+						self.dialog.hide();
+					});
+
 					var tabs = $('a[data-toggle="tab"]');
 					tabs.on('shown.bs.tab', function(e) {
 						if (e.target.getAttribute('data-target') == '#edit') {

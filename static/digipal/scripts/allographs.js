@@ -439,7 +439,12 @@ function Allographs(dialog, cache) {
 						event.stopPropagation();
 					});
 
-
+					var deselect_all_graphs = $('.deselect_all_graphs');
+					deselect_all_graphs.click(function() {
+						$('.annotation_li.selected').removeClass('selected');
+						selectedAnnotations.annotations = [];
+						self.dialog_instance.hide();
+					});
 
 					myModal.find('select').chosen();
 

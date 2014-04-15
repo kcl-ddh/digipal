@@ -81,7 +81,7 @@ function main() {
 
 		var request = $.ajax({
 			type: 'POST',
-			url: '/digipal/collection/' + collection_name.replace(' ', '') + '/images/',
+			url: '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/',
 			data: {
 				'data': JSON.stringify(data),
 				"X-CSRFToken": csrftoken
@@ -306,56 +306,58 @@ function main() {
 	}
 
 	header.find('.collection-title').on('blur', function() {
-		var collections = JSON.parse(localStorage.getItem('collections'));
-		var name = $(this).text(),
-			flag = false;
-
-		$.each(collections, function(index, value) {
-			if (name == index) {
+		if (!$(this).data('active')) {
+			$(this).data('active', true);
+			var collections = JSON.parse(localStorage.getItem('collections'));
+			var name = $(this).text(),
 				flag = false;
-				return false;
-			} else {
-				if (value.id == selectedCollection) {
-					var re = /^\w*$/;
-					name = name.replace(/\s+/gi, '');
-					if (name && re.test(name) && name.length <= 30) {
-						collections[name] = collections[index];
-						delete collections[index];
-						basket = value;
-						history.pushState(null, null, '../' + name);
-						flag = true;
-						return false;
-					} else {
-						notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
-						$('.collection-title').html(index);
-						return false;
+
+			$.each(collections, function(index, value) {
+				if (name == index) {
+					flag = false;
+					return false;
+				} else {
+					if (value.id == selectedCollection) {
+						var re = /^\w*$/;
+						name = name.replace(/\s+/gi, '');
+						if (name && re.test(name) && name.length <= 30) {
+							collections[name] = collections[index];
+							delete collections[index];
+							basket = value;
+							history.pushState(null, null, '../' + name);
+							flag = true;
+							return false;
+						} else {
+							notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+							$('.collection-title').html(index);
+							return false;
+						}
 					}
 				}
-			}
-		});
+			});
 
-		if (flag) {
-			localStorage.setItem('collections', JSON.stringify(collections));
-			element_basket.html(name + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
-			element_basket.attr('href', '/digipal/collection/' + name.replace(/\s+/gi), '');
-			$('#breadcrumb-current-collection').html(name);
-			notify("Collection renamed as " + name, 'success');
-			$(this).blur();
-		} else {
-			return false;
+			if (flag) {
+				localStorage.setItem('collections', JSON.stringify(collections));
+				element_basket.html(name + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
+				element_basket.attr('href', '/digipal/collection/' + name.replace(/\s+/gi), '');
+				$('#breadcrumb-current-collection').html(name);
+				notify("Collection renamed as " + name, 'success');
+			} else {
+				return false;
+			}
 		}
 	}).on('focus', function(event) {
 		$(this).on('keyup', function(event) {
 			var code = (event.keyCode ? event.keyCode : event.which);
 			if (code == 13) {
-				$(this).blur();
+				$(this).blur().data('active', false);
 				event.preventDefault();
 				return false;
 			}
 		}).on('keydown', function(event) {
 			var code = (event.keyCode ? event.keyCode : event.which);
 			if (code == 13) {
-				$(this).blur();
+				$(this).blur().data('active', false);
 				event.preventDefault();
 				return false;
 			}

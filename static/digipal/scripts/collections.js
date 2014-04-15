@@ -323,7 +323,7 @@ function Collections() {
 			var flag = false;
 			var collections = JSON.parse(localStorage.getItem('collections'));
 			$.each(collections, function(index, value) {
-				if (new_collection_name != index && re.test(new_collection_name) && new_collection_name.length <= 30) {
+				if (new_collection_name != index && re.test(new_collection_name.replace(/\s*/gi), '') && new_collection_name.length <= 30) {
 					flag = true;
 				}
 			});
@@ -339,6 +339,19 @@ function Collections() {
 			});
 			localStorage.setItem('collections', JSON.stringify(collections));
 			show_collections(collections);
+
+			var collection = $('#' + id);
+			collection.find('input').on('change', function(event) {
+				select_collection($(this).parent());
+				event.stopPropagation();
+				event.stopImmediatePropagation();
+			});
+
+			collection.find('img').on('click', function(event) {
+				localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
+				location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+				event.stopPropagation();
+			});
 		},
 
 		copy_collection: function() {

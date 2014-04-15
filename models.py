@@ -1466,8 +1466,19 @@ class Image(models.Model):
 
         return zoomify
     
+    def get_duplicates(self):
+        '''Returns a list of Images with the same locus and shelfmark.'''
+        return Image.objects.filter(id__in=Image.get_duplicates_from_ids([self.id]).get(self.id, []))
+
+    def get_img_size(self):
+        '''Returns (w, h), the width and height of the image
+            WARNING: this function is SLOW because it makes a HTTP request to the image server.
+            Only call if absolutely necessary. 
+        '''
+        return self.iipimage._get_image_dimensions()
+
     @classmethod
-    def get_duplicates(cls, ids=None):
+    def get_duplicates_from_ids(cls, ids=None):
         ''' Returns a dictionary of duplicate images
             e.g. {1: (3,), 2: (8,), 3: (1,), 8: (2,)}
             Images are considered as duplicates if they have the same CI.id and the same locus.
@@ -1486,7 +1497,8 @@ class Image(models.Model):
             from digipal_image i1 join digipal_itempart ip1 on i1.item_part_id = ip1.id,
             digipal_image i2 join digipal_itempart ip2 on i2.item_part_id = ip2.id
             where i1.id <> i2.id
-            and replace(lower(i1.locus), ' ', '') = replace(lower(i2.locus), ' ', '')
+            and regexp_replace(replace(replace(lower(i1.locus), 'recto', 'r'), 'verso', 'v'), '^(p|f|pp)(\.|\s)|\s+', '', 'g') = 
+                regexp_replace(replace(replace(lower(i2.locus), 'recto', 'r'), 'verso', 'v'), '^(p|f|pp)(\.|\s)|\s+', '', 'g')
             and ip1.current_item_id = ip2.current_item_id
             %s
             order by i1.id, i2.id''' % selection_condition
@@ -1806,6 +1818,8 @@ class Annotation(models.Model):
     # TODO: to remove
     #page = models.ForeignKey(Image, related_name='to_be_removed')
     image = models.ForeignKey(Image, null=True, blank=False)
+    # WARNING: this value is derived from geo_json on save()
+    # No need to change it directly
     cutout = models.CharField(max_length=256)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
@@ -1829,6 +1843,8 @@ class Annotation(models.Model):
     def get_coordinates(self, geo_json=None):
         ''' Returns the coordinates of the graph rectangle
             E.g. ((602, 56), (998, 184))
+            
+            WARNING: the y coordinates are relative to the BOTTOM of the image!
         '''
         import json
         if geo_json is None: geo_json = self.geo_json
@@ -1845,12 +1861,12 @@ class Annotation(models.Model):
         ret = json.loads(geo_json)
         # TODO: test if this exists!
         ret = ret['geometry']['coordinates'][0]
-        ret = (
-                (min([c[0] for c in ret]),
-                min([c[1] for c in ret])),
-                (max([c[0] for c in ret]),
-                max([c[1] for c in ret]))
-            )
+        ret = [
+                [min([c[0] for c in ret]),
+                min([c[1] for c in ret])],
+                [max([c[0] for c in ret]),
+                max([c[1] for c in ret])]
+            ]
         return ret
 
     def set_graph_group(self):
@@ -1950,7 +1966,7 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url(self, esc=False):
+    def get_cutout_url(self, esc=False, full_size=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
             If esc is True, special chars are turned into entities (e.g. & -> &amp;) 
@@ -1965,6 +1981,13 @@ class Annotation(models.Model):
         # Just concatenate things together instead
         image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
         ret = u'%s?%s' % (image_url, cutout_qs)
+        ret = re.sub(ur'FIF=[^&]+', 'FIF='+unicode(self.image.iipimage), ret)
+        if full_size:
+            # for some resson a HEI value is included within the cutout_url
+            # we remove this and ask for full quality for the full_size version
+            ret = re.sub(ur'HEI=[^&]+', ur'', ret)
+            ret = re.sub(ur'WID=[^&]+', ur'', ret)
+            ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
         if esc: ret = escape(ret)
         return ret
 

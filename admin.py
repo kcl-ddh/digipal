@@ -91,7 +91,7 @@ class ImageFilterDuplicate(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() in ['1', '-1']:
-            all_duplicates_ids = Image.get_duplicates().keys()
+            all_duplicates_ids = Image.get_duplicates_from_ids().keys()
         
         if self.value() == '1':
             return queryset.filter(id__in = all_duplicates_ids).distinct()

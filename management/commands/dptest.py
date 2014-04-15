@@ -10,6 +10,7 @@ from django.db import IntegrityError
 from digipal.models import *
 from digipal.utils import natural_sort_key
 from digipal.templatetags.hand_filters import chrono
+from django.template.defaultfilters import slugify
 
 class Command(BaseCommand):
 	help = """
@@ -108,10 +109,14 @@ Commands:
 			known_command = True
 			self.find_dup_im(*args[1:])
 			
+		if command == 'find_offset':
+			known_command = True
+			self.find_image_offset(*args[1:])
+			
 	def find_dup_im(self, **kwargs):
 		print 'duplicates'
 		from digipal.models import Image
-		print repr(Image.get_duplicates())
+		print repr(Image.get_duplicates([744]))
 
 	def autocomplete(self, phrase, **kwargs):
 		from utils import readFile
@@ -640,7 +645,19 @@ Commands:
 		print '\n'
 		print '%d source images;  %d destination images' % (len(src['images']), len(dst['images']))
 		print '%d new images; %d same images; %d different images' % (len(new), len(same), len(different))
+
+	# ------------------------------------------------------------------------------	
+
+	def find_image_offset(self, id1, id2):
+		from digipal.images.models import Image
+		im1 = Image.objects.get(id=id1)
+		im2 = Image.objects.get(id=id2)
+		ret = im1.find_image_offset(im2)
+		print ret
+		return ret
 		
+	# ------------------------------------------------------------------------------	
+	
 	def get_image_offset(self, src, dst, f):
 		'''
 		 Given one image and its cropped version, returns where the crop was made.

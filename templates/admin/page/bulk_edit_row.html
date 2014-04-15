@@ -1,0 +1,80 @@
+{% load i18n html_escape %}
+
+<tr class="{% if main_folio %}folio-duplicate{%else%} row {% if forloop.counter|divisibleby:2 %}row2{% else %}row1{% endif %}  {% endif %} ">
+	<td>
+        <a href="/admin/digipal/image/{{folio.id}}/">{{folio.id}}</a>
+    </td>
+	<td>{{folio.iipimage.name}}</td>
+	<td>
+        {% if folio.item_part %}
+            {{folio.item_part.display_label}}
+        {% else %}
+            <span style="color:red">no item part</span>
+        {% endif %}
+    </td>
+	<td>
+        <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
+                name="fn-{{folio.id}}" value="{{folio.folio_number|default:''}}" />
+        {% if show_duplicates %}
+            {{folio.folio_number|default:''}}
+        {% endif %}
+	</td>
+	<td>
+        {% if show_duplicates %}
+            {{folio.folio_side|default:''}}
+        {% else %}
+            <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
+                    name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
+        {% endif %}
+	</td>
+    <td>
+        {{ folio.get_locus_label }}
+    </td>
+    <td>
+        {% for hand in folio.hands.all %}
+            {% if not forloop.first %}, {% endif %}
+            {{ hand }}
+        {% empty %}
+            <span style="color:red">no hand</span>
+        {% endfor %}
+    </td>
+    <td>
+        {{ folio.annotation_set.count }}
+    </td>
+	<td>
+		<a class="img-prv" href="{{ folio.full|safe }}">
+			{% iip_img_a folio.iipimage width=70 lazy=1 cls="img-expand" %}
+		</a>
+	</td>
+    {% if show_duplicates %}
+        <td>
+            <select class="replace-image" name="replace-image-{{ folio.id }}">
+                <option value="{{ folio.id }}">
+                    Don't change anything
+                </option>
+                {% for dup in folio.get_duplicates %}
+                    <option value="{{ dup.id }}">
+                        Use image file from record # {{dup.id}}
+                    </option>
+                {% endfor %}
+            </select>
+        </td>
+    {% endif %}
+</tr>
+{% if show_duplicates %}
+    <tr class="replace-image replace-image-{{ folio.id }}">
+        <td colspan="10">
+            <p class="message"></p>
+            <div class="samples">
+                &nbsp;
+                <span class="img">
+                    <img class="first" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
+                </span>
+                <span class="img">
+                    <img class="second" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
+                </span>
+            </div>
+        </td>
+    </tr>
+{% endif %}
+

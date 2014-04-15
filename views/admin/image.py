@@ -109,12 +109,32 @@ def get_requested_itempart(request):
     
     return item_part
 
+def process_bulk_image_ajax(request):
+    data = {'result': 'success'}
+    
+    action = request.GET.get('action', '')
+    if action == 'test_replace_image':
+        iids = [request.GET.get('image1', ''), request.GET.get('image2', '')]
+        if iids[0] and iids[1]:
+            from digipal.images.models import Image
+            image = Image.objects.get(id=iids[0])
+            data = image.find_image_offset(Image.objects.get(id=iids[1]))
+            data['image1'] = iids[0];
+            data['image2'] = iids[1];
+    
+    #find_image_offset
+    
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+
 @staff_member_required
 def image_bulk_edit(request, url=None):
     '''
         This is the view for the bulk editing of the images.
         It helps with cataloguing a selection of of images.
     '''
+    if request.is_ajax():
+        return process_bulk_image_ajax(request)            
+    
     context = {}
     context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
     
@@ -137,7 +157,8 @@ def image_bulk_edit(request, url=None):
     
     context['title'] = 'Bulk Edit Images'
     
-    context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
+    #context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
+    context['show_duplicates'] = request.POST.get('duplicate_set', 0)
 
     # read the selected foliation/pagination options
     page = request.POST.get('page_number', '').strip()
@@ -162,6 +183,22 @@ def image_bulk_edit(request, url=None):
 
     #if action == 'operations':
 
+    if action == 'change_values':
+        # change image
+        from django.db import IntegrityError, transaction
+        
+        for key, val in request.POST.iteritems():
+            image_id = re.sub(ur'^replace-image-(\d+)$', ur'\1', key)
+            if image_id != key:
+                context['show_duplicates'] = True
+                new_image_id = val
+                if image_id != new_image_id:
+                    import digipal.images.models
+                    im1 = digipal.images.models.Image.objects.get(id=image_id)
+                    im2 = digipal.images.models.Image.objects.get(id=new_image_id)
+                    offset_info = im1.find_image_offset(im2)
+                    if sum(offset_info['offsets']) > 0:
+                        im1.replace_image_and_update_annotations(offset_info['offsets'], im2)
 
     if len(action):
         
@@ -242,7 +279,7 @@ def image_bulk_edit(request, url=None):
                         <input type="checkbox" name="arch-{{folio.id}}" {% if folio.archived %}checked="checked"{% endif %} />
                         <textarea class="txta-folio-note" name="inotes-{{folio.id}}">{{ folio.internal_notes }}</textarea>
                 '''
-
+                
                 folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
                 #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
                 folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()

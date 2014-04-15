@@ -155,10 +155,6 @@ function _delete(selectedCollections, update_toolbar) {
         container_basket.append(s);
     }
 
-    selectedCollections = [];
-    if (update_toolbar) {
-        update_toolbar();
-    }
 }
 
 function share(selectedCollections) {

@@ -45,6 +45,10 @@ function Collections() {
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {
 			methods.delete_collections(selectedCollections, update_toolbar);
+			selectedCollections = [];
+			if (update_toolbar) {
+				update_toolbar();
+			}
 		});
 
 		var filter_input = $('#filter');
@@ -73,6 +77,11 @@ function Collections() {
 			methods.check_collections($(this));
 		});
 
+		var copy_collection = $('#copy_collection');
+		copy_collection.on('click', function() {
+			methods.copy_collection();
+		});
+
 	};
 
 
@@ -96,7 +105,9 @@ function Collections() {
 				collection.append('<span data-href="' + index.replace(/\s+/gi, '') + '"><img src="/static/img/folder.png" /></span>');
 				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
-				container.append(collection);
+				if (!$('#' + value.id).length) {
+					container.append(collection);
+				}
 				$('[data-toggle="tooltip"]').tooltip();
 			});
 		} else {
@@ -304,8 +315,73 @@ function Collections() {
 				$('.selected-collection').find('input').trigger('change').prop('checked', false);
 			}
 			checkbox.prop('indeterminate', false);
-		}
+		},
 
+		copy: function(selectedCollection, new_collection_name) {
+			var id = uniqueid();
+			var re = /^\w*$/;
+			var flag = false;
+			var collections = JSON.parse(localStorage.getItem('collections'));
+			$.each(collections, function(index, value) {
+				if (new_collection_name != index && re.test(new_collection_name) && new_collection_name.length <= 30) {
+					flag = true;
+				}
+			});
+			$.each(collections, function(index, value) {
+				if (value.id == selectedCollection && flag) {
+					var object_clone = $.extend({}, value);
+					collections[new_collection_name] = object_clone;
+					collections[new_collection_name].id = id;
+					notify('Collection successfully copied', 'success');
+				} else {
+					notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+				}
+			});
+			localStorage.setItem('collections', JSON.stringify(collections));
+			show_collections(collections);
+		},
+
+		copy_collection: function() {
+			var current_collection = selectedCollections[0];
+			var window_save_collection = $('<div>');
+			var background_div = $('<div class="dialog-background">');
+			var lightbox_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
+			var s = '';
+			window_save_collection.attr('class', 'loading-div').attr('id', 'new-collection-div');
+			s += '<h3>Copy Collection</h3>';
+			s += '<div style="margin-top:2em"><input required placeholder="Enter a name to copy collection" type="text" id= "name_collection" class="form-control" />';
+			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="copy_collection_button" type="button" value="Copy" /> ';
+			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Cancel" /></div></div>';
+
+			window_save_collection.html(s);
+
+			if (!$('#new-collection-div').length) {
+				background_div.html(window_save_collection);
+				$('body').append(background_div);
+			}
+
+			$('#copy_collection_button').unbind().click(function(event) {
+				methods.copy(current_collection, $('#name_collection').val());
+				background_div.fadeOut().remove();
+				event.stopPropagation();
+				event.preventDefault();
+			});
+
+			$(document).on('keydown', function(event) {
+				var code = (event.keyCode ? event.keyCode : event.which);
+				if ($('#name_collection').is(':focus') && code == 13) {
+					methods.copy(current_collection, $('#name_collection').val());
+					background_div.fadeOut().remove();
+				}
+			});
+
+			$('#name_collection').focus();
+
+			$('#close_window_collections').unbind().click(function(event) {
+				background_div.fadeOut().remove();
+				event.stopPropagation();
+			});
+		}
 	};
 
 	var select_collection = function(collection) {

@@ -8,7 +8,7 @@ function Collections() {
 	var element_basket = $('#collection_link');
 	var container_basket = $('#container_collections');
 	var selectedCollections = [];
-
+	var self = this;
 	var init = function() {
 
 		var collections = get_collections();
@@ -37,14 +37,14 @@ function Collections() {
 
 		var share_collection = $('#share_collection');
 		share_collection.on('click', function(event) {
-			methods.share();
+			methods.share(selectedCollections);
 			event.stopPropagation();
 			event.preventDefault();
 		});
 
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {
-			methods.delete_collections();
+			methods.delete_collections(selectedCollections, update_toolbar);
 		});
 
 		var filter_input = $('#filter');
@@ -93,8 +93,8 @@ function Collections() {
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
 				collection.addClass('col-md-1');
-				collection.append('<span data-href="' + index.replace(' ', '') + '"><img src="/static/img/folder.png" /></span>');
-				collection.append('<label for= "' + index + '" data-placement="bottom" data-toggle="tooltip" title="' + index + ' has ' + n + ' items">' + index + ' (' + n + ')<label>');
+				collection.append('<span data-href="' + index.replace(/\s+/gi, '') + '"><img src="/static/img/folder.png" /></span>');
+				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
 				container.append(collection);
 				$('[data-toggle="tooltip"]').tooltip();
@@ -107,6 +107,33 @@ function Collections() {
 			_self.delete($(this));
 			event.stopPropagation();
 		});
+	};
+
+	var update_toolbar = function() {
+
+		this.collections = JSON.parse(localStorage.getItem('collections'));
+		var collections = $.extend({}, this.collections);
+
+		var n = 0;
+		$.each(collections, function() {
+			n++;
+		});
+
+		if (!selectedCollections.length) {
+			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+			$('#check_collections').prop('indeterminate', false).prop('checked', false);
+		} else if (selectedCollections.length == 1) {
+			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
+		} else if (selectedCollections.length > 1 && selectedCollections.length < n) {
+			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
+			$('#check_collections').prop('indeterminate', true);
+			$('#delete_collection').attr('disabled', false);
+		} else if (selectedCollections.length == n) {
+			$('#check_collections').prop('indeterminate', false).prop('checked', true);
+		}
+
+		$('#counter-collections').html(selectedCollections.length);
+
 	};
 
 
@@ -161,76 +188,24 @@ function Collections() {
 				background_div.fadeOut().remove();
 				event.stopPropagation();
 			});
-		},
-
-		delete_collections: function() {
-			var collections = JSON.parse(localStorage.getItem('collections'));
-			var background_div = $('<div class="dialog-background">');
-			var window_save_collection = $('<div>');
-			var s = '';
-
-			window_save_collection.attr('class', 'loading-div').attr('id', 'delete-collection-div');
-			s += '<h3>Delete Collections?</h3>';
-			if (selectedCollections.length == 1) {
-				s += '<p>You are about to delete 1 collection</p>';
-			} else {
-				s += '<p>You are about to delete ' + selectedCollections.length + ' collections</p>';
-			}
-
-			s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="delete" type="button" value="Delete" /> ';
-			s += '<input type = "button" class="btn btn-sm btn-danger" id="close_window_collections" value="Cancel" /></div></div>';
-
-			window_save_collection.html(s);
-
-			if (!$('#delete-collection-div').length) {
-				background_div.html(window_save_collection);
-				$('body').append(background_div);
-			}
-
-			$('#delete').unbind().click(function(event) {
-				methods.delete(collections);
-				event.stopPropagation();
-				event.preventDefault();
-			});
-
-			$('#close_window_collections').unbind().click(function(event) {
-				background_div.fadeOut().remove();
-				event.stopPropagation();
-			});
-
 
 		},
 
-		delete: function(collections) {
+		delete_collections: delete_collections,
 
-			for (var i = 0; i < selectedCollections.length; i++) {
-				$.each(collections, function(index, value) {
-					if (value.id == selectedCollections[i]) {
-						delete collections[index];
-						$('#' + value.id).fadeOut().remove();
-					}
-				});
-			}
-
-			localStorage.setItem('collections', JSON.stringify(collections));
-			$('#delete-collection-div').parent().fadeOut().remove();
-
-			if ($.isEmptyObject(collections)) {
-				var s = '<div class="container alert alert-warning">No collections</div>';
-				container_basket.append(s);
-			}
-
-			selectedCollections = [];
-			update_toolbar();
-		},
+		delete: _delete,
 
 		save: function(collections, lightbox_basket) {
 			var collection_name = $('#name_collection').val();
 			var window_save_collection = $('#new-collection-div');
 			var id = uniqueid();
 			var re = /^\w*$/;
-			var collection_name_trimmed = collection_name.replace(' ', '');
+			var collection_name_trimmed = collection_name.replace(/\s+/gi, '');
 			if (collection_name && re.test(collection_name_trimmed)) {
+				if (collection_name.length > 30) {
+					notify('Please enter a shorter name (max 30 chars)', "danger");
+					return false;
+				}
 				if (collections) {
 					if (collections[collection_name]) {
 						var new_re = /^[\w]*([0-9])$/;
@@ -257,8 +232,9 @@ function Collections() {
 				var collection = $('<div>');
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
+				collection.data('id', id);
 				collection.addClass('col-md-1');
-				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(' ', '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
+				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(/\s+/gi, '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
 				collection.append('<label>' + collection_name + ' (0)<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + id + '" />');
 				container.append(collection);
@@ -280,6 +256,7 @@ function Collections() {
 			} else {
 				notify('Please enter a name for this collection (Do not use special characters)', "danger");
 			}
+
 			return false;
 		},
 
@@ -317,63 +294,7 @@ function Collections() {
 			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
 		},
 
-		share: function() {
-			var b = {},
-				i = 0;
-
-			var selectedCollection = selectedCollections[0];
-			var collections = JSON.parse(localStorage.getItem('collections'));
-			var basket;
-
-			$.each(collections, function(index, value) {
-				if (value.id == selectedCollection) {
-					basket = this;
-					basket['name'] = index;
-				}
-			});
-			var url = window.location.hostname + '/digipal/collection/shared/1/' +
-				'?collection=' + encodeURIComponent(JSON.stringify(basket));
-
-			var scriptTwitter = '<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>';
-			var div = $('#share_basket_div');
-			if (!div.length) {
-				div = $('<div class="loading-div" id="share_basket_div">');
-				div.html('<h3>Share Collection URL</h3>');
-				div.append('<div style="margin-top:2em"><p><a id="basket_url" ><img src="/static/digipal/images/ajax-loader.gif" /></a></p>');
-				div.append('<p><button class="btn btn-danger btn-sm">Close Window</button></p></div>');
-				$('body').append(div);
-
-				div.find('button').click(function() {
-					div.fadeOut();
-				});
-			} else {
-				div.fadeIn();
-			}
-
-			gapi.client.load('urlshortener', 'v1', function() {
-
-				var request = gapi.client.urlshortener.url.insert({
-					'resource': {
-						'longUrl': url
-					}
-				});
-
-				var resp = request.execute(function(resp) {
-					if (resp.error) {
-						return false;
-					} else {
-
-						$("#basket_url").attr('href', resp.id).text(resp.id).addClass('basket_url');
-						var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + resp.id + '">Tweet</a>';
-						if (!$('.twitter-hashtag-button').length) {
-							$('#basket_url').after(linkTwitter + scriptTwitter);
-						} else {
-							twttr.widgets.load();
-						}
-					}
-				});
-			});
-		},
+		share: share,
 
 		check_collections: function(checkbox) {
 			var is_checked = checkbox.is(':checked');
@@ -421,29 +342,6 @@ function Collections() {
 				}
 			}
 		});
-	};
-
-	var update_toolbar = function() {
-		var n = 0;
-		$.each(this.collections, function() {
-			n++;
-		});
-
-		if (!selectedCollections.length) {
-			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-			$('#check_collections').prop('indeterminate', false).prop('checked', false);
-		} else if (selectedCollections.length == 1) {
-			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
-		} else if (selectedCollections.length > 1 && selectedCollections.length < n) {
-			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-			$('#check_collections').prop('indeterminate', true);
-			$('#delete_collection').attr('disabled', false);
-		} else if (selectedCollections.length == n) {
-			$('#check_collections').prop('indeterminate', false).prop('checked', true);
-		}
-
-		$('#counter-collections').html(selectedCollections.length);
-
 	};
 
 	return {

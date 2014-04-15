@@ -263,6 +263,12 @@ function Allographs(dialog, cache) {
 			self.dialog_instance.set_label(annotation.feature);
 		}
 
+		var graphs = [];
+		var checkboxes;
+		for (var g = 0; g < selectedAnnotations.annotations.length; g++) {
+			graphs.push(selectedAnnotations.annotations[g].graph);
+		}
+
 		if (!selectedAnnotations.annotations.length) {
 			self.dialog_instance.hide();
 			$('.select_annotation_checkbox').attr('checked', false);
@@ -272,16 +278,10 @@ function Allographs(dialog, cache) {
 			panel.find('.to_lightbox').attr('disabled', false);
 		}
 
-		var graphs = [];
-		var checkboxes;
-		for (var g = 0; g < selectedAnnotations.annotations.length; g++) {
-			graphs.push(selectedAnnotations.annotations[g].graph);
-		}
-
 		if (select) {
 			load_annotations_allographs.init(annotation, function() {
 				graph = allographs_cache.graphs[annotation.graph];
-				checkboxes = $('.myModal .features_box');
+				checkboxes = self.dialog_instance.selector.find('.features_box');
 				detect_common_features(graphs, checkboxes, allographs_cache);
 				common_allographs(graphs, allographs_cache, graph);
 				update_summary();
@@ -291,11 +291,10 @@ function Allographs(dialog, cache) {
 			return false;
 		} else {
 			annotation = selectedAnnotations.annotations[selectedAnnotations.annotations.length - 1];
-
 			if (typeof annotation !== 'undefined') {
 				load_annotations_allographs.init(annotation, function() {
 					graph = allographs_cache.graphs[annotation.graph];
-					checkboxes = $('.myModal .features_box');
+					checkboxes = self.dialog_instance.selector.find('.features_box');
 					detect_common_features(graphs, checkboxes, allographs_cache);
 					common_allographs(graphs, allographs_cache, graph);
 					update_summary();
@@ -310,8 +309,8 @@ function Allographs(dialog, cache) {
 				update_summary();
 				events_on_labels();
 			}
-
 		}
+
 	};
 
 	var utils = {

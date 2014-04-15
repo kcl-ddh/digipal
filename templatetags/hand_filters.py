@@ -84,6 +84,8 @@ def richfield(val):
     "Render a HTML field for the front end. Make it safe, make sure it is surrounded by <p>."
     import re
     
+    if val is None: val = u''
+    
     # trim the value from empty spaces and lines
     ret = re.sub(ur'(?usi)^\s+', '', val)
     ret = re.sub(ur'(?usi)\s+$', '', ret)

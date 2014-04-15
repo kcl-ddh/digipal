@@ -93,7 +93,7 @@ function features_saved(selectedFeature, features) {
 var load_group = function(group_element, cache, only_features, callback) {
 
 	if (!$('#allographs_loader_gif').length) {
-		$('.myModalLabel .set_all_by_default').after(" <img id='allographs_loader_gif' src='/static/digipal/images/ajax-loader3.gif' />");
+		$('.myModalLabel .deselect_all_graphs').after(" <img id='allographs_loader_gif' src='/static/digipal/images/ajax-loader3.gif' />");
 	}
 
 	var graphs, graph, url, graphs_list = [];

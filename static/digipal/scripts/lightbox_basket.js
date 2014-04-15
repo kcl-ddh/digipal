@@ -350,18 +350,18 @@ function main() {
 		$(this).on('keyup', function(event) {
 			var code = (event.keyCode ? event.keyCode : event.which);
 			if (code == 13) {
-				$(this).blur().data('active', false);
+				$(this).blur();
 				event.preventDefault();
 				return false;
 			}
 		}).on('keydown', function(event) {
 			var code = (event.keyCode ? event.keyCode : event.which);
 			if (code == 13) {
-				$(this).blur().data('active', false);
+				$(this).blur();
 				event.preventDefault();
 				return false;
 			}
-		});
+		}).data('active', false);
 	});
 
 	$('#share-collection').on('click', function() {

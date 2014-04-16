@@ -9,19 +9,22 @@
         <a href="/digipal/collection/">My Collections</a> / <span title='Rename Collection' data-placement='right' data-toggle='tooltip' data-container='body' class='collection-title' contenteditable></span>
     </h1>
 
-        <div class='col-md-3 pull-right'>
+        <div class='col-md-2 pull-right'>
             <div class="btn-group">
-                <button id='share-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' title='Share Collection' class="btn btn-default btn-sm">Share</button>
-                <button id='delete-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' title='Delete Collection' class="btn btn-default btn-sm">Delete</button>
-                <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Send Collection to Lightbox' id='to_lightbox' class="btn btn-default btn-sm">Send to Lightbox</button>
+                <button id='delete-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' title='Delete Collection' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span> Delete</button>
+                <button id='share-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' title='Share Collection' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share"></span> Share</button>
             </div>
         </div>
 
 </div>
 
-<div class="container">
-    <div class="row">
-
+<div class="row">
+    <div class="container">
+        {% if LIGHTBOX %}
+        <div class='col-md-2 pull-right'>
+            <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Send selected Images to Lightbox' id='to_lightbox' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-picture"></span> Lightbox</button>
+        </div>
+        {% endif %}
         <div id='container_basket' class='col-md-12'>
 
         </div>

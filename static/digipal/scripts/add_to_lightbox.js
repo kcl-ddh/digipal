@@ -28,6 +28,13 @@ function update_collection_counter() {
 		"id": localStorage.getItem('selectedCollection')
 	};
 
+	if (!current_collection.id) {
+		$.each(basket_elements, function(index, value) {
+			current_collection.id = value.id;
+		});
+		localStorage.setItem('selectedCollection', current_collection.id);
+	}
+
 	var current_collection_id = current_collection.id;
 	var children = 0;
 	for (var col in basket_elements) {
@@ -283,6 +290,6 @@ function notify(msg, status) {
 		}, 5000);
 }
 
-(function() {
+$(document).ready(function() {
 	update_collection_counter();
-})();
+});

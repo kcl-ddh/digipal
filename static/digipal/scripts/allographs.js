@@ -441,7 +441,7 @@ function Allographs(dialog, cache) {
 
 					var deselect_all_graphs = $('.deselect_all_graphs');
 					deselect_all_graphs.click(function() {
-						$('.annotation_li.selected').removeClass('selected');
+						$('.annotation_li.selected').removeClass('selected').data('selected', false);
 						selectedAnnotations.annotations = [];
 						self.dialog_instance.hide();
 					});

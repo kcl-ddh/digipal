@@ -94,7 +94,7 @@ function save_collection(collection) {
     }
 }
 
-function delete_collections(selectedCollections, update_toolbar, collection_page) {
+function delete_collections(selectedCollections, collection_page) {
     var collections = JSON.parse(localStorage.getItem('collections'));
     var background_div = $('<div class="dialog-background">');
     var window_save_collection = $('<div>');
@@ -124,7 +124,7 @@ function delete_collections(selectedCollections, update_toolbar, collection_page
     });
 
     $('#delete').unbind().click(function(event) {
-        _delete(selectedCollections, update_toolbar);
+        _delete(selectedCollections);
         event.stopPropagation();
         event.preventDefault();
         if (collection_page) {
@@ -135,7 +135,7 @@ function delete_collections(selectedCollections, update_toolbar, collection_page
 
 }
 
-function _delete(selectedCollections, update_toolbar) {
+function _delete(selectedCollections) {
     var collections = JSON.parse(localStorage.getItem('collections'));
 
     for (var i = 0; i < selectedCollections.length; i++) {
@@ -148,6 +148,7 @@ function _delete(selectedCollections, update_toolbar) {
     }
 
     localStorage.setItem('collections', JSON.stringify(collections));
+    localStorage.removeItem('selectedCollection');
     $('#delete-collection-div').parent().fadeOut().remove();
 
     if ($.isEmptyObject(collections)) {

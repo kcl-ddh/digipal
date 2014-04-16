@@ -44,7 +44,7 @@ function Collections() {
 
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {
-			methods.delete_collections(selectedCollections, update_toolbar);
+			methods.delete_collections(selectedCollections);
 			selectedCollections = [];
 			if (update_toolbar) {
 				update_toolbar();
@@ -101,7 +101,7 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
-				collection.addClass('col-md-1');
+				collection.addClass('col-md-2 col-xs-5 col-sm-3');
 				collection.append('<span data-href="' + index.replace(/\s+/gi, '') + '"><img src="/static/img/folder.png" /></span>');
 				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
@@ -135,12 +135,17 @@ function Collections() {
 			$('#check_collections').prop('indeterminate', false).prop('checked', false);
 		} else if (selectedCollections.length == 1) {
 			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
-		} else if (selectedCollections.length > 1 && selectedCollections.length < n) {
+			if (n !== 1) {
+				$('#check_collections').prop('indeterminate', true);
+			}
+		} else if (selectedCollections.length > 1) {
 			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);
-			$('#check_collections').prop('indeterminate', true);
 			$('#delete_collection').attr('disabled', false);
-		} else if (selectedCollections.length == n) {
-			$('#check_collections').prop('indeterminate', false).prop('checked', true);
+			if (selectedCollections.length != n) {
+				$('#check_collections').prop('indeterminate', true);
+			} else {
+				$('#check_collections').prop('indeterminate', false).prop('checked', true);
+			}
 		}
 
 		$('#counter-collections').html(selectedCollections.length);
@@ -244,10 +249,10 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
 				collection.data('id', id);
-				collection.addClass('col-md-1');
+				collection.addClass('col-md-2 col-xs-5 col-sm-3');
 				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(/\s+/gi, '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
-				collection.append('<label>' + collection_name + ' (0)<label>');
-				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + id + '" />');
+				collection.append('<label for ="' + collection_name + '">' + collection_name + ' (0)<label>');
+				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + collection_name + '" />');
 				container.append(collection);
 
 				collection.find('input').on('change', function(event) {
@@ -409,26 +414,22 @@ function Collections() {
 		} else {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
-			var check_collections = $('#check_collections');
-			check_collections.prop('indeterminate', true);
 		}
 
 		update_toolbar();
 	};
 
 	var filter = function(pattern) {
-		var re = new RegExp('^' + $.trim(pattern), "gi");
-		var element;
+		var re = new RegExp('^' + $.trim(pattern), "mi");
+		var element, test;
 		$.each(this.collections, function(index, value) {
-			element = $('.collection[id="' + value.id + '"]');
-			if (!re.test($.trim(index)) && $.trim(pattern) !== '') {
-				if (element.css('display') == 'block') {
-					element.fadeOut();
-				}
+			element = $('#' + value.id);
+			test = re.test($.trim(index));
+			console.log(test, element);
+			if (!test && pattern) {
+				element.fadeOut();
 			} else {
-				if (element.css('display') == 'none') {
-					element.fadeIn();
-				}
+				element.fadeIn();
 			}
 		});
 	};

@@ -61,7 +61,7 @@ class Image(digipal.models.Image):
         '''
         ret = None
         from django.template.defaultfilters import slugify
-        disk_path = os.path.join(settings.UPLOAD_IMAGES_ROOT, '%s.jpg' % slugify(url))
+        disk_path = os.path.join(settings.IMAGE_CACHE_ROOT, '%s.jpg' % slugify(url))
         if not cache or not os.path.exists(disk_path):
             from digipal.management.commands.utils import web_fetch, write_file
             #print '\tDL: %s' % url

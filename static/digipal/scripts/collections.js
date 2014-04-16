@@ -101,7 +101,7 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
-				collection.addClass('col-md-2 col-xs-12 col-sm-4');
+				collection.addClass('col-md-2 col-xs-5 col-sm-3');
 				collection.append('<span data-href="' + index.replace(/\s+/gi, '') + '"><img src="/static/img/folder.png" /></span>');
 				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
@@ -249,7 +249,7 @@ function Collections() {
 				collection.attr('class', 'collection');
 				collection.attr('id', id);
 				collection.data('id', id);
-				collection.addClass('col-md-2 col-xs-12 col-sm-4');
+				collection.addClass('col-md-2 col-xs-5 col-sm-3');
 				collection.append('<span data-id=' + id + ' data-href="' + collection_name.replace(/\s+/gi, '') + '"><img title="Send collection to Collection" src="/static/img/folder.png" /></span>');
 				collection.append('<label for ="' + collection_name + '">' + collection_name + ' (0)<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + collection_name + '" />');

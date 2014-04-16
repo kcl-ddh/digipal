@@ -123,18 +123,21 @@ $(function(){
 	$('select[name=manuscript], select[name=hand]').change(refresh_links);
 	
 	function show_image_replace_info(data) {
-	    console.log(data);
-
 	    var image_id = data['image1'];
     	$replace_row = $('tr.replace-image-' + image_id);
-    	$replace_row.find('.message').html('Below you can see an annotation from this image and the same annotation after replacing with the new image. If they don\'t match revert to the original image by undoing your change in the drop down. <a class="try-another-graph" href="#">Try another graph</a>');
-    	$replace_row.find('.samples img.first').attr('src', data['annotations'][0]);
-    	$replace_row.find('.samples img.second').attr('src', data['annotations'][1]);
-    	$replace_row.find('.samples').show();
-    	$replace_row.find('.try-another-graph').click(function() { 
-    	   $('select[name=replace-image-' + image_id + ']').change(); 
-    	   return false;
-    	});
+    	
+    	if (data['annotations'] && data['annotations'].length) {
+        	$replace_row.find('.message').html('Below you can see an annotation from this image and the same annotation after replacing with the new image. If they don\'t match revert to the original image by undoing your change in the drop down. <a class="try-another-graph" href="#">Try another graph</a>');
+        	$replace_row.find('.samples img.first').attr('src', data['annotations'][0]);
+        	$replace_row.find('.samples img.second').attr('src', data['annotations'][1]);
+        	$replace_row.find('.samples').show();
+        	$replace_row.find('.try-another-graph').click(function() { 
+        	   $('select[name=replace-image-' + image_id + ']').change(); 
+        	   return false;
+        	});
+    	} else {
+        	$replace_row.find('.message').html('This image record has no annotation. Only the image file will be replaced.');
+    	}
 	}
 	
 	$('select.replace-image').change(function () {
@@ -154,34 +157,6 @@ $(function(){
 	    	$.getJSON('', {action: 'test_replace_image', image1: image_id, image2: new_image_id}, show_image_replace_info);
 	    }
     	
-	    /*
-	    var $chk_box_clicked = $(this);
-	    var grp = $chk_box_clicked.attr('class').match(/\bmerge-group-\d+/);
-	    if (grp) {
-	        var iids = [];
-	        
-	        grp = grp[0];
-		    var at_least_one_checked = $('.'+grp).is(':checked');
-	        // find all the check boxes of the duplicate images
-	        $('.'+grp).each(function() {
-	            var $chk_box = $(this);
-	            // disable all other check boxes in the same group
-	            var image_id = $chk_box.attr('name').match(/\d+/)[0];
-	            if ($chk_box[0] != $chk_box_clicked[0]) {
-	                $chk_box.removeAttr('checked');
-		            iids.push(image_id);
-	            } else {
-	                iids.unshift(image_id);
-	            }
-	            // set the classes on the <tr>s
-	            $chk_box.parents('tr').toggleClass('preserve-image', at_least_one_checked && $chk_box.is(':checked')).toggleClass('discard-image', at_least_one_checked && !($chk_box.is(':checked')));
-	        });
-	        
-	        if (at_least_one_checked) {
-	        	console.log($.getJSON('', {action: 'test_merge', iids: iids}));
-	        }
-	    }
-	    */
 	});
 	
 	refresh_links();	

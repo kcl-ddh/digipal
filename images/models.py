@@ -19,15 +19,22 @@ class Image(digipal.models.Image):
         '''
             return a PIl image from the digipal image
             if not in cache, download from the image server
+            
+            The image returned by the image server may have different 
+            dimensions than the one requested.
+            This function will update actual_ratios with the actual X 
+            and Y ratios.
         '''
         if ratio != 1.0:
             size = self.get_img_size()
-            query = '&WID=%sHEI=%s&%s' % (int(size[0] * ratio), int(size[1] * ratio), query)
+            query = '&WID=%sHEI=%s&%s' % (int(size[0] * ratio + 0.5), int(size[1] * ratio + 0.5), query)
         
         from django.utils.html import escape
         url = escape(self.iipimage.full_base_url)+query
 
-        return self.get_pil_img_from_url(url, cache, grey)
+        ret = self.get_pil_img_from_url(url, cache, grey)
+
+        return ret
 
     @classmethod
     def get_pil_img_from_url(cls, url, cache=False, grey=False):
@@ -87,6 +94,7 @@ class Image(digipal.models.Image):
         for x in range(0, ims[0].size[0] - ims[1].size[0] + 1):
             for y in range(0, ims[0].size[1] - ims[1].size[1] + 1):
                 current = [x, y, reduce(lambda a, b: a * 2 + b, ImageChops.difference(ims[0].crop((x + 0, y + 0, x + ims[1].size[0] - 1, y + ims[1].size[1] - 1)), ims[1]).histogram()[::-1])]
+                #print '%3d, %3d : %60d' % (current[0], current[1], current[2]) 
                 if (best is None) or (best[2] > current[2]):
                     best = current
         return best[0:2]
@@ -199,6 +207,11 @@ class Image(digipal.models.Image):
             downsample_ratio specifies how small the thumbnail is compared
             to the original.
         '''
+        from digipal.templatetags.hand_filters import chrono
+        
+        chrono('comp:')
+        chrono('step1:')
+        
         ret = {'offsets': [0,0], 'annotations': []}
         
         if self.annotation_set.count() + image2.annotation_set.count() == 0:
@@ -226,6 +239,10 @@ class Image(digipal.models.Image):
         if best is None:
             return ret
 
+        chrono(':step1')
+
+        chrono('step2:')
+        
         # -------------------
         # Step 2: Compare an annotation from one image with the containing region in the other image
         # -------------------
@@ -236,6 +253,7 @@ class Image(digipal.models.Image):
         # get one annotation (ann)
         for annotation_image_index in range(0, 2):
             anns = digipal_images[annotation_image_index].annotation_set.all().order_by('?')
+            #anns = digipal_images[annotation_image_index].annotation_set.all().order_by('id')
             if anns.count():
                 ann = anns[0]
                 break
@@ -249,11 +267,20 @@ class Image(digipal.models.Image):
             sign = -1
         for pair in region:
             region_search.append([pair[0] + ret['offsets'][0] * sign, pair[1] + ret['offsets'][1] * sign])
+        
         # extend the search region by downsample_ratio/2 pixels in every direction 
-        # (due to approximation of the first step)
+        # (due to approximation of the first step - every pixel in thumbnail = 
+        # downsample_ratio pixels in the original)
+        #
+        # Now add a bit more to that because of the rounding errors when asking for the 
+        # thumbnail dimensions and other possible source of perturbation.
+        # We take 50% (* 1.5) safety margin more on each side
+        #
+        safety_margin = 2.2
+        search_margin = int((downsample_ratio / 2.0) * safety_margin + 0.5)
         region_search = [
-                            [region_search[0][0] - downsample_ratio/2.0, region_search[0][1] - downsample_ratio/2.0], 
-                            [region_search[1][0] + downsample_ratio/2.0, region_search[1][1] + downsample_ratio/2.0], 
+                            [region_search[0][0] - search_margin, region_search[0][1] - search_margin], 
+                            [region_search[1][0] + search_margin, region_search[1][1] + search_margin], 
                         ]
         
         # iip img server only accepts relative coordinates, so convert them into relatives
@@ -272,7 +299,7 @@ class Image(digipal.models.Image):
         offsets = self.find_offsets_from_pil_images(rgn_im, ann_im)
         
         # Now add local offset to the global estimate
-        ret['offsets'] = [offsets[0] + ret['offsets'][0] - downsample_ratio / 2, offsets[1] + ret['offsets'][1] - downsample_ratio / 2]
+        ret['offsets'] = [offsets[0] + ret['offsets'][0] - search_margin, offsets[1] + ret['offsets'][1] - search_margin]
         
         # Get the URL of the reference annotation and the matching one in the other image 
         ret_relative = digipal_images[1-annotation_image_index].get_relative_coordinates([[region[0][0] + ret['offsets'][0], region[0][1] + ret['offsets'][1]], [region[1][0] + ret['offsets'][0], region[1][1] + ret['offsets'][1]]])
@@ -283,6 +310,9 @@ class Image(digipal.models.Image):
         # Adjust the crop signs
         if not reverse_order:
             ret['offsets'] = [-ret['offsets'][0], -ret['offsets'][1]]
+
+        chrono(':step2')
+        chrono(':comp')
 
         return ret    
 

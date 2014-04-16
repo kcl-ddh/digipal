@@ -1324,6 +1324,9 @@ class Image(models.Model):
             cls.public_images = Image.filter_public_permissions(Image.objects.all())
         return cls.public_images
 
+    def get_locus_label_without_type(self, hide_type=False):
+        return self.get_locus_label(True)
+    
     def get_locus_label(self, hide_type=False):
         ''' Returns a label for the locus from the side and number fields.
             If hide_type is False, don't include p. or f. in the output.

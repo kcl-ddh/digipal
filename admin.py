@@ -78,15 +78,15 @@ class ImageFilterNoItemPart(SimpleListFilter):
         if self.value() == 'without':
             return queryset.exclude(item_part_id__gt = 0).distinct()
 
-class ImageFilterDuplicate(SimpleListFilter):
-    title = 'Duplicates'
+class ImageFilterDuplicateShelfmark(SimpleListFilter):
+    title = 'Duplicate Shelfmark'
 
     parameter_name = ('dup')
 
     def lookups(self, request, model_admin):
         return (
-            ('1', ('is duplicate')),
-            ('-1', ('is not duplicate')),
+            ('1', ('has duplicate shelfmark')),
+            ('-1', ('has unique shelfmark')),
         )        
 
     def queryset(self, request, queryset):
@@ -97,6 +97,26 @@ class ImageFilterDuplicate(SimpleListFilter):
             return queryset.filter(id__in = all_duplicates_ids).distinct()
         if self.value() == '-1':
             return queryset.exclude(id__in = all_duplicates_ids).distinct()
+
+class ImageFilterDuplicateFilename(SimpleListFilter):
+    title = 'Duplicate Image File'
+
+    parameter_name = ('dupfn')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', ('has duplicate filename')),
+            ('-1', ('has unique filename')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() in ['-1', '1']:
+            duplicate_iipimages = Image.objects.all().values_list('iipimage').annotate(dcount=Count('iipimage')).filter(dcount__gt=1).values_list('iipimage', flat=True)
+        
+        if self.value() == '1':
+            return queryset.filter(iipimage__in = duplicate_iipimages).distinct()
+        if self.value() == '-1':
+            return queryset.exclude(iipimage__in = duplicate_iipimages).distinct()
 
 class ImageWithFeature(SimpleListFilter):
     title = ('Associated Features')
@@ -1047,7 +1067,7 @@ class ImageAdmin(reversion.VersionAdmin):
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
     
-    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicate]
+    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
     readonly_fields = ('display_label', 'folio_number', 'folio_side')
     

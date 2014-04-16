@@ -20,11 +20,10 @@
         {% endif %}
 	</td>
 	<td>
+        <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
+                name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
         {% if show_duplicates %}
             {{folio.folio_side|default:''}}
-        {% else %}
-            <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
-                    name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
         {% endif %}
 	</td>
     <td>

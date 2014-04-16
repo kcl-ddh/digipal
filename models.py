@@ -1486,7 +1486,7 @@ class Image(models.Model):
             e.g. {1: (3,), 2: (8,), 3: (1,), 8: (2,)}
             Images are considered as duplicates if they have the same CI.id and the same locus.
             Means that 1 and 3 are duplicates and 2 and 8 are duplicates
-            If id is none, all possible duplicates are returned.
+            If ids is none, all possible duplicates are returned.
             Otherwise only duplicates for the given list of ids are returned.
         '''
         ret = {}

@@ -29,7 +29,10 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$',
                         'get_vector'),
                         (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/$', direct_to_template, {
-                          'template': 'digipal/collection.html'
+                          'template': 'digipal/collection.html',
+                          'extra_context': {
+                                'LIGHTBOX': settings.LIGHTBOX,
+                          }
                         }),
                        (r'^collection/shared/1/$', direct_to_template, {
                           'template': 'digipal/collection.html',

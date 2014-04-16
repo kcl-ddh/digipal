@@ -207,10 +207,6 @@ class Image(digipal.models.Image):
             downsample_ratio specifies how small the thumbnail is compared
             to the original.
         '''
-        from digipal.templatetags.hand_filters import chrono
-        
-        chrono('comp:')
-        chrono('step1:')
         
         ret = {'offsets': [0,0], 'annotations': []}
         
@@ -239,9 +235,6 @@ class Image(digipal.models.Image):
         if best is None:
             return ret
 
-        chrono(':step1')
-
-        chrono('step2:')
         
         # -------------------
         # Step 2: Compare an annotation from one image with the containing region in the other image
@@ -311,8 +304,6 @@ class Image(digipal.models.Image):
         if not reverse_order:
             ret['offsets'] = [-ret['offsets'][0], -ret['offsets'][1]]
 
-        chrono(':step2')
-        chrono(':comp')
 
         return ret    
 

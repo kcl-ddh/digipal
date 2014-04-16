@@ -12,8 +12,24 @@ class Image(digipal.models.Image):
     class Meta:
         proxy = True    
 
-    #def get_img_size(self):
-    #    return (self.get_pil_img(cache=True, query='&RGN=0,0,1,0.0001&QLT=1&CVT=JPG').size[0], self.get_pil_img(cache=True, query='&RGN=0,0,0.0001,1&QLT=1&CVT=JPG').size[1])
+    def get_img_size(self):
+        ret = [0, 0]
+        url = self.iipimage.full_base_url+'&OBJ=Max-size'
+        from digipal.management.commands.utils import web_fetch
+        res = web_fetch(url)
+        if not res['error']:
+            import re
+            matches = re.match(r'^.*?Max-size:(\d+)\s+(\d+).*?$', res['body'].strip())
+            if matches:
+                ret = [int(matches.group(1)), int(matches.group(2))]
+        
+        return ret
+        
+#             matches = re.match(r'^.*?Max-size:(\d+)\s+(\d+).*?$',
+#                        r.text.strip())
+#             if matches:
+#                 width = int(matches.group(1))
+#                 height = int(matches.group(2))
     
     def get_pil_img(self, ratio=1.0, cache=False, query='&QLT=100&CVT=JPG', grey=False):
         '''
@@ -27,7 +43,7 @@ class Image(digipal.models.Image):
         '''
         if ratio != 1.0:
             size = self.get_img_size()
-            query = '&WID=%sHEI=%s&%s' % (int(size[0] * ratio + 0.5), int(size[1] * ratio + 0.5), query)
+            query = '&WID=%s&HEI=%s&%s' % (int(size[0] * ratio + 0.5), int(size[1] * ratio + 0.5), query)
         
         from django.utils.html import escape
         url = escape(self.iipimage.full_base_url)+query

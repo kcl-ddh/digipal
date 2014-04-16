@@ -650,6 +650,7 @@ Commands:
 
 	def find_image_offset(self, id1, id2):
 		from digipal.images.models import Image
+		settings.DEV_SERVER = True
 		im1 = Image.objects.get(id=id1)
 		im2 = Image.objects.get(id=id2)
 		ret = im1.find_image_offset(im2)

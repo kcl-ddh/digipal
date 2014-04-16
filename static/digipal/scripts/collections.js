@@ -44,7 +44,7 @@ function Collections() {
 
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {
-			methods.delete_collections(selectedCollections, update_toolbar);
+			methods.delete_collections(selectedCollections);
 			selectedCollections = [];
 			if (update_toolbar) {
 				update_toolbar();

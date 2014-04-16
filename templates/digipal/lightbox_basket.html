@@ -22,11 +22,11 @@
             <button data-toggle='tooltip' data-container='body' title = 'Copy Collection'  class='btn btn-default btn-sm' id='copy_collection' disabled>
                 <span class="glyphicon glyphicon-save"></span> Copy
             </button>
-
+            {% if LIGHTBOX %}
             <button data-toggle='tooltip' data-container='body' title='Send to Digital Lightbox' class='btn btn-default btn-sm' id='to_lightbox' disabled>
                 <span class="glyphicon glyphicon-picture"></span> Lightbox
             </button>
-
+            {% endif %}
             <button data-toggle='tooltip' data-container='body' title='Share Collection' class='btn btn-default btn-sm' id='share_collection' disabled>
                 <span class="glyphicon glyphicon-share"></span> Share
             </button>

@@ -236,13 +236,16 @@ def image_bulk_edit(request, url=None):
                         folio.folio_number = ''
                     modified = True
                 if str(request.POST.get('folio_side_set', '0')) == '1':
-                    if re.search('(?i)[^a-z]r$', name):
-                        folio.folio_side = recto
-                    elif re.search('(?i)[^a-z]v$', name):
-                        folio.folio_side = verso
+                    if folio.item_part and folio.item_part.pagination:
+                        folio.folio_side = ''
                     else:
-                        folio.folio_side = recto
-                        #folio.folio_side = unspecified_side
+                        if re.search('(?i)[^a-z]r([^a-z]|$)', name):
+                            folio.folio_side = recto
+                        elif re.search('(?i)[^a-z]v([^a-z]|$)', name):
+                            folio.folio_side = verso
+                        else:
+                            folio.folio_side = recto
+                            #folio.folio_side = unspecified_side
                     modified = True
                 if str(request.POST.get('page_number_set', '0')) == '1':
                     if len(number) > 0:

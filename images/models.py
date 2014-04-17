@@ -10,27 +10,27 @@ class Image(digipal.models.Image):
     '''
     
     class Meta:
-        proxy = True    
+        proxy = True
 
     def get_img_size(self):
-        ret = [0, 0]
+        ''' Returns the size of the full res. image as a list: [width, height] '''
+        cached_sizes = getattr(self, 'cached_sizes', {})
+
         url = self.iipimage.full_base_url+'&OBJ=Max-size'
-        from digipal.management.commands.utils import web_fetch
-        res = web_fetch(url)
-        if not res['error']:
-            import re
-            matches = re.match(r'^.*?Max-size:(\d+)\s+(\d+).*?$', res['body'].strip())
-            if matches:
-                ret = [int(matches.group(1)), int(matches.group(2))]
-        
-        return ret
-        
-#             matches = re.match(r'^.*?Max-size:(\d+)\s+(\d+).*?$',
-#                        r.text.strip())
-#             if matches:
-#                 width = int(matches.group(1))
-#                 height = int(matches.group(2))
+        if url not in cached_sizes:
+            cached_sizes[url] = [0, 0]
+            from digipal.management.commands.utils import web_fetch
+            res = web_fetch(url)
+            if not res['error']:
+                import re
+                matches = re.match(r'^.*?Max-size:(\d+)\s+(\d+).*?$', res['body'].strip())
+                if matches:
+                    cached_sizes[url] = [int(matches.group(1)), int(matches.group(2))]
     
+            self.cached_sizes = cached_sizes
+        
+        return cached_sizes[url]
+        
     def get_pil_img(self, ratio=1.0, cache=False, query='&QLT=100&CVT=JPG', grey=False):
         '''
             return a PIl image from the digipal image
@@ -61,7 +61,7 @@ class Image(digipal.models.Image):
         '''
         ret = None
         from django.template.defaultfilters import slugify
-        disk_path = os.path.join(settings.UPLOAD_IMAGES_ROOT, '%s.jpg' % slugify(url))
+        disk_path = os.path.join(settings.IMAGE_CACHE_ROOT, '%s.jpg' % slugify(url))
         if not cache or not os.path.exists(disk_path):
             from digipal.management.commands.utils import web_fetch, write_file
             #print '\tDL: %s' % url
@@ -89,13 +89,18 @@ class Image(digipal.models.Image):
         return ret
 
     @classmethod
-    def get_annotation_coordinates(cls, ann):
+    def get_annotation_coordinates(cls, ann, annotation_image=None):
         ''' 
             Same as Annotation.get_coordinates() but return y values relative 
             to the TOP of the image. 
+            
+            annotation_image is optional, can be provided to avoid additional 
+            request to get the image size
         '''
         ret = ann.get_coordinates()
-        height = cls.from_digipal_image(ann.image).get_img_size()[1]
+        if not isinstance(annotation_image, Image):
+            annotation_image = cls.from_digipal_image(ann.image)
+        height = annotation_image.get_img_size()[1]
         return [[ret[0][0], height - ret[1][1]], [ret[1][0], height - ret[0][1]]]
 
     @classmethod
@@ -268,8 +273,8 @@ class Image(digipal.models.Image):
                 break
         
         # Calculate the search region (region_search):
-        # start from the coordinated of the annotation in the first image (region)
-        region = self.get_annotation_coordinates(ann)
+        # start from the coordinates of the annotation in the first image (region)
+        region = self.get_annotation_coordinates(ann, digipal_images[annotation_image_index])
         region_search = []
         sign = 1
         if annotation_image_index == 0:

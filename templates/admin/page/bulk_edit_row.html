@@ -20,15 +20,17 @@
         {% endif %}
 	</td>
 	<td>
+        <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
+                name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
         {% if show_duplicates %}
             {{folio.folio_side|default:''}}
-        {% else %}
-            <input class="txt-folio-number" type="{% if show_duplicates %}hidden{% else %}text{% endif %}" 
-                    name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
         {% endif %}
 	</td>
     <td>
         {{ folio.get_locus_label }}
+        {% if folio.get_locus_label_without_type != folio.locus %}
+            <br/>(recorded as '{{ folio.locus }}')
+        {% endif %}
     </td>
     <td>
         {% for hand in folio.hands.all %}

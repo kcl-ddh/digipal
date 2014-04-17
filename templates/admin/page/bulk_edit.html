@@ -399,6 +399,9 @@ $(function(){
 			{% endfor %}
 			<tr>
 				<td>
+                    {% if show_duplicates %}
+                        <input type="hidden" name="duplicate_set" value="1" />
+                    {% endif %}
 					<input type="hidden" name="action" value="change_values" />
 					<input type="submit" name="_save" class="default" value="Change" />
 				</td>

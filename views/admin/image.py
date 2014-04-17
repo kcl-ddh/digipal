@@ -183,14 +183,11 @@ def image_bulk_edit(request, url=None):
 
     #if action == 'operations':
 
-    if action == 'change_values':
+    if action == 'change_values' and context['show_duplicates']:
         # change image
-        from django.db import IntegrityError, transaction
-        
         for key, val in request.POST.iteritems():
             image_id = re.sub(ur'^replace-image-(\d+)$', ur'\1', key)
             if image_id != key:
-                context['show_duplicates'] = True
                 new_image_id = val
                 if image_id != new_image_id:
                     import digipal.images.models
@@ -236,13 +233,16 @@ def image_bulk_edit(request, url=None):
                         folio.folio_number = ''
                     modified = True
                 if str(request.POST.get('folio_side_set', '0')) == '1':
-                    if re.search('(?i)[^a-z]r$', name):
-                        folio.folio_side = recto
-                    elif re.search('(?i)[^a-z]v$', name):
-                        folio.folio_side = verso
+                    if folio.item_part and folio.item_part.pagination:
+                        folio.folio_side = ''
                     else:
-                        folio.folio_side = recto
-                        #folio.folio_side = unspecified_side
+                        if re.search('(?i)[^a-z]r([^a-z]|$)', name):
+                            folio.folio_side = recto
+                        elif re.search('(?i)[^a-z]v([^a-z]|$)', name):
+                            folio.folio_side = verso
+                        else:
+                            folio.folio_side = recto
+                            #folio.folio_side = unspecified_side
                     modified = True
                 if str(request.POST.get('page_number_set', '0')) == '1':
                     if len(number) > 0:
@@ -279,14 +279,14 @@ def image_bulk_edit(request, url=None):
                         <input type="checkbox" name="arch-{{folio.id}}" {% if folio.archived %}checked="checked"{% endif %} />
                         <textarea class="txta-folio-note" name="inotes-{{folio.id}}">{{ folio.internal_notes }}</textarea>
                 '''
-                
-                folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
-                #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
-                folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()
-                #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
-                #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
-                #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
-                modified = True
+                if not context['show_duplicates']:
+                    folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
+                    #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
+                    folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()
+                    #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
+                    #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
+                    #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
+                    modified = True
 
             if modified:
                 folio.locus = folio.get_locus_label(True)

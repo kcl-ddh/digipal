@@ -71,7 +71,7 @@ function Collections() {
 		var check_collections = $('#check_collections');
 		check_collections.on('change', function() {
 			methods.check_collections($(this));
-		});
+		}).prop('checked', false);
 
 		var copy_collection = $('#copy_collection');
 		copy_collection.on('click', function() {

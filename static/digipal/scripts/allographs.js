@@ -262,7 +262,7 @@ function Allographs(dialog, cache) {
 		} else {
 			self.dialog_instance.set_label(annotation.feature);
 		}
-
+		var switcher = $('#toggle-annotations-mode');
 		var graphs = [];
 		var checkboxes;
 		for (var g = 0; g < selectedAnnotations.annotations.length; g++) {
@@ -274,7 +274,9 @@ function Allographs(dialog, cache) {
 			$('.select_annotation_checkbox').attr('checked', false);
 			panel.find('.to_lightbox').attr('disabled', true);
 		} else {
-			self.dialog_instance.show();
+			if (switcher.bootstrapSwitch('state')) {
+				self.dialog_instance.show();
+			}
 			panel.find('.to_lightbox').attr('disabled', false);
 		}
 

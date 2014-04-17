@@ -6,22 +6,24 @@
 
 
 function update_collection_counter() {
-
+	var basket_elements;
 	var collections;
 	if (localStorage.getItem('collections')) {
 		collections = localStorage.getItem('collections');
+		basket_elements = JSON.parse(collections);
 	} else {
 		collections = {
 			'Collection': {
 				'id': "1"
 			}
 		};
+		basket_elements = collections;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		localStorage.setItem('selectedCollection', '1');
 	}
 
 
-	var basket_elements = JSON.parse(collections);
+
 	var menu_links = $('.navLink');
 	var basket_element;
 	var current_collection = {

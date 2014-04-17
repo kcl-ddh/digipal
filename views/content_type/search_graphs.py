@@ -8,8 +8,9 @@ from django.utils.datastructures import SortedDict
 
 class SearchGraphs(SearchContentType):
 
-    def __init__(self):
+    def __init__(self, search_hands=None):
         super(SearchGraphs, self).__init__()
+        self.search_hands = search_hands
         self.graphs_count = 0
 
     def get_fields_info(self):
@@ -56,13 +57,15 @@ class SearchGraphs(SearchContentType):
         
         undefined = u''
         
-        scribe = request.GET.get('scribes', undefined)
+        scribe = request.GET.get('scribe', undefined)
         # alternative names are for backward compatibility with old-style graph search page  
         script = request.GET.get('script', undefined)
         character = request.GET.get('character', undefined)
         allograph = request.GET.get('allograph', undefined)
         component = request.GET.get('component', undefined)
         feature = request.GET.get('feature', undefined)
+        repository = request.GET.get('repository', undefined)
+        index = request.GET.get('index', undefined)
         none = u'-1'
         one_or_more = u'-2'
         
@@ -71,45 +74,56 @@ class SearchGraphs(SearchContentType):
         t0 = datetime.now()
         t4 = datetime.now()
         
-        # .order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
-        # Although we are listing hands on the front-end, we search for graphs and not for hand.
-        # Two reasons: 
-        #    searching for character and allograh at the same time through a Hand model would generate two separate joins to graph
-        #        this would bring potentially invalid results and it is also much slower
-        #    it is faster than excluding all the hands without a graph (yet another expensive join)
-        #
-        if term:
-            term = term.replace('"', '')
-            graphs = Graph.objects.filter(
-                    Q(hand__descriptions__description__icontains=term) | \
-                    Q(hand__scribe__name__icontains=term) | \
-                    Q(hand__assigned_place__name__icontains=term) | \
-                    Q(hand__assigned_date__date__icontains=term) | \
-                    Q(hand__item_part__current_item__shelfmark__icontains=term) | \
-                    Q(hand__item_part__current_item__repository__name__icontains=term) | \
-                    Q(hand__item_part__historical_items__catalogue_number__icontains=term) | \
-                    # JIRA 423
-                    Q(hand__item_part__historical_items__name__icontains=term) | \
-                    Q(hand__item_part__group__historical_items__name__icontains=term) | \
-                    Q(hand__item_part__display_label__icontains=term) | \
-                    Q(hand__item_part__group__display_label__icontains=term)
-                    )
-        else:
-            graphs = Graph.objects.all()
-            
-        t1 = datetime.now()
-        
         wheres = []
-        if scribe:
-            graphs = graphs.filter(hand__scribe__name__icontains=scribe)
-        if script:
-            graphs = graphs.filter(hand__script__name=script)
+
+        if self.search_hands:
+            graphs = Graph.objects.filter(hand__id__in=self.search_hands.queryset)
+        else:
+        
+            # .order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+            # Although we are listing hands on the front-end, we search for graphs and not for hand.
+            # Two reasons: 
+            #    searching for character and allograh at the same time through a Hand model would generate two separate joins to graph
+            #        this would bring potentially invalid results and it is also much slower
+            #    it is faster than excluding all the hands without a graph (yet another expensive join)
+            #
+            if term:
+                term = term.replace('"', '')
+                graphs = Graph.objects.filter(
+                        Q(hand__descriptions__description__icontains=term) | \
+                        Q(hand__scribe__name__icontains=term) | \
+                        Q(hand__assigned_place__name__icontains=term) | \
+                        Q(hand__assigned_date__date__icontains=term) | \
+                        Q(hand__item_part__current_item__shelfmark__icontains=term) | \
+                        Q(hand__item_part__current_item__repository__name__icontains=term) | \
+                        Q(hand__item_part__current_item__repository__place__name__icontains=term) | \
+                        Q(hand__item_part__historical_items__catalogue_number__icontains=term) | \
+                        # JIRA 423
+                        Q(hand__item_part__historical_items__name__icontains=term) | \
+                        Q(hand__item_part__group__historical_items__name__icontains=term) | \
+                        Q(hand__item_part__display_label__icontains=term) | \
+                        Q(hand__item_part__group__display_label__icontains=term)
+                        )
+            else:
+                graphs = Graph.objects.all()
+                
+            t1 = datetime.now()
+            
+            if index:
+                graphs = graphs.filter(hand__item_part__historical_items__catalogue_number__iexact=index)
+            if repository:
+                matches = re.match(ur'^([^,]+?),([^,]+)$', repository)
+                if matches:
+                    graphs = graphs.filter(Q(hand__item_part__current_item__repository__place__name__iexact=matches.group(1).strip()) & Q(hand__item_part__current_item__repository__name__iexact=matches.group(2).strip()))
+            if scribe:
+                graphs = graphs.filter(hand__scribe__name__icontains=scribe)
+            if script:
+                graphs = graphs.filter(hand__script__name=script)
+        
         if character:
-            graphs = graphs.filter(
-                idiograph__allograph__character__name=character)
+            graphs = graphs.filter(idiograph__allograph__character__name=character)
         if allograph:
-            graphs = graphs.filter(
-                idiograph__allograph__name=allograph)
+            graphs = graphs.filter(idiograph__allograph__name=allograph)
         
         # condition on component
         if component:

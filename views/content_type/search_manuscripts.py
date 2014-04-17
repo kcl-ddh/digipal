@@ -18,7 +18,9 @@ class SearchManuscripts(SearchContentType):
         ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
         # Boosting set to 0.3 so a 'Vespasian' will rank record with Vespasian shelfmark higher than those that have it in the description.
         ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.2}, 'long_text': True}
-        ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}
+
+        ret['hands__scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
         
         ret['group__historical_items__name, historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
         
@@ -250,4 +252,4 @@ class FilterManuscripts(forms.Form):
                             '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
                         ), 'Catalogue Number')
     repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
-    date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')
+    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')

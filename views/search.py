@@ -16,10 +16,9 @@ def get_search_types():
     from content_type.search_hands import SearchHands
     from content_type.search_manuscripts import SearchManuscripts
     from content_type.search_scribes import SearchScribes
-    ret = [SearchManuscripts(), SearchHands(), SearchScribes()]
-
     from content_type.search_graphs import SearchGraphs
-    ret.append(SearchGraphs())
+    search_hands = SearchHands()
+    ret = [SearchManuscripts(), search_hands, SearchScribes(), SearchGraphs(search_hands)]
     
     return ret
 
@@ -124,14 +123,7 @@ def search_ms_image_view(request):
     return render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
 
 def search_record_view(request):
-    # Backward compatibility.
-    #
-    # Previously all the record pages would go through this search URL and view
-    # and their URL was: 
-    #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
-    # Now we redirect those requests to the record page
-    #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
-    
+    # Rerouting to the blog/news search result page 
     scope =  request.GET.get('scp', '')
     if scope == 'st':
         from django.shortcuts import redirect
@@ -141,6 +133,12 @@ def search_record_view(request):
     hand_filters.chrono('SEARCH VIEW:')
     hand_filters.chrono('SEARCH LOGIC:')
     
+    # Backward compatibility.
+    # Previously all the record pages would go through this search URL and view
+    # and their URL was: 
+    #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
+    # Now we redirect those requests to the record page
+    #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
     qs_id = request.GET.get('id', '')
     qs_result_type = request.GET.get('result_type', '')
     if qs_id and qs_result_type:
@@ -148,6 +146,18 @@ def search_record_view(request):
         # TODO: get digipal from current project name or current URL
         redirect_url = '/%s/%s/%s/?%s' % ('digipal', qs_result_type, qs_id, request.META['QUERY_STRING'])
         return redirect(redirect_url)
+
+    # backward compatibility:
+    # query string param 'name' and 'scribes' have ben renamed to 'scribe' 
+    request.GET = request.GET.copy()
+    request.GET['scribe'] = request.REQUEST.get('scribe', '') or request.REQUEST.get('scribes', '') or request.REQUEST.get('name', '')
+
+    request.GET['ms_date'] = request.REQUEST.get('ms_date', '')  or request.REQUEST.get('date', '')
+    request.GET['hand_date'] = request.REQUEST.get('hand_date', '')  or request.REQUEST.get('date', '')
+    request.GET['scribe_date'] = request.REQUEST.get('scribe_date', '')  or request.REQUEST.get('date', '')
+
+    request.GET['hand_place'] = request.REQUEST.get('hand_place', '')  or request.REQUEST.get('place', '')
+    request.GET['scriptorium'] = request.REQUEST.get('scriptorium', '')  or request.REQUEST.get('place', '')
     
     # Actually run the searches
     context = {}

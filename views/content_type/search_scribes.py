@@ -10,12 +10,12 @@ class SearchScribes(SearchContentType):
         ''' See SearchContentType.get_fields_info() for a description of the field structure '''
         
         ret = super(SearchScribes, self).get_fields_info()
-        ret['name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'name', 'boost': 3.0}, 'advanced': True}
-        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
-        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date', 'boost': 1.0}, 'advanced': True}
+        ret['name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 3.0}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}
+        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
         ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 0.3}}
         ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository', 'boost': 0.3}, 'advanced': True}
-        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 0.3}}
+        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 0.3}, 'advanced': True}
         # TODO: display this field on the front-end
         #ret['historical_items__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
 
@@ -107,11 +107,11 @@ class SearchScribes(SearchContentType):
 
 from digipal.utils import sorted_natural
 class FilterScribes(forms.Form):
-    name = get_form_field_from_queryset(Scribe.objects.values_list('name', flat=True).order_by('name').distinct(), 'Name')
+    scribe = get_form_field_from_queryset(Scribe.objects.values_list('name', flat=True).order_by('name').distinct(), 'Scribe')
     # Was previously called 'scriptorium'
-    place = get_form_field_from_queryset(Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(), 'Place')
+    scriptorium = get_form_field_from_queryset(Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(), 'Place')
     # TODO: order the dates
-    date = get_form_field_from_queryset(sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct())), 'Date')
+    scribe_date = get_form_field_from_queryset(sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct())), 'Date')
     character = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(), 'Character')
     component = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(), 'Component')
     feature = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(), 'Feature')

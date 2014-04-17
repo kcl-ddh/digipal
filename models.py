@@ -1762,7 +1762,10 @@ class Graph(models.Model):
         return u'%s' % (self.display_label)
 
     def get_short_label(self):
-        ret = '%s, %s' % (self.idiograph.allograph, self.annotation.image.locus)
+        locus = ''
+        if self.annotation and self.annotation.image:
+            locus = self.annotation.image.locus
+        ret = '%s, %s' % (self.idiograph.allograph, locus)
         return ret
     
     def save(self, *args, **kwargs):

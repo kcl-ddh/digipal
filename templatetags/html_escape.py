@@ -169,7 +169,10 @@ def annotation_img(annotation, *args, **kwargs):
 
         See iip_img() for more information
     '''
-    return img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+    ret = u''
+    if annotation:
+        ret = img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+    return ret
 
 @register.simple_tag
 def img(src, *args, **kwargs):

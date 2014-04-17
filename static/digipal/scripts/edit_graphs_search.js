@@ -44,12 +44,12 @@ function EditGraphsSearch() {
 
 		var switcher = $('#toggle-annotations-mode');
 		switcher.bootstrapSwitch();
-		$('[data-toggle=tooltip]').tooltip('disable'); // Disable tooltips
+		$('[data-graph]').tooltip('disable'); // Disable tooltips
 		switcher.on('switch-change', function(e, data) {
 			if ($(this).bootstrapSwitch('state')) {
-				$('[data-toggle=tooltip]').tooltip('disable'); // Disable tooltips
+				$('[data-graph]').tooltip('disable'); // Disable tooltips
 			} else {
-				$('[data-toggle=tooltip]').tooltip('enable'); // (Re-)enable tooltips
+				$('[data-graph]').tooltip('enable'); // (Re-)enable tooltips
 			}
 		});
 

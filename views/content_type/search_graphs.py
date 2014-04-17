@@ -192,7 +192,7 @@ class SearchGraphs(SearchContentType):
         self._queryset = context['hand_ids']
         
         return self._queryset
-
+    
     def results_are_recordids(self):
         # build_query_set does not return a list of record ids
         # so the standard processing will be bypassed

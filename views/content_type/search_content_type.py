@@ -723,8 +723,9 @@ class SearchContentType(object):
             # filter the content type (e.g. manuscripts) and other whoosh fields
             query = ur''
             if term or query_advanced:
-                query = (ur'%s %s type:%s' % (term, query_advanced, self.key)).strip()
+                query = (ur'%s %s' % (term, query_advanced)).strip()
             query = (query + ur' type:%s' % self.key).strip()
+            print query
 
             # Run the search
             results = self.search_whoosh(query)

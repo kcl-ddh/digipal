@@ -151,7 +151,7 @@ def load_hands(context, var_name):
         graph_ids_current_page.extend(ids[1:])
     
     # get all the graphs on this page
-    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'annotation').order_by('hand__scribe__name', 'hand__id', 'id')
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'hand__scribe', 'hand__item_part', 'hand__item_part__current_item__repository', 'annotation', 'annotation__image', 'idiograph', 'idiograph__allograph').prefetch_related('hand__item_part__historical_items__catalogue_numbers').order_by('hand__scribe__name', 'hand__id', 'id')
     
     # now organise the output by hand and attach their graphs to it
     # tbhis assumes that graphs are sorted by hand id

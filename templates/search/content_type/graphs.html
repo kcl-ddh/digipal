@@ -33,11 +33,13 @@
                     <tr>
                         <td data-group='true'>
                             {% for graph in hand.graphs_template %}
-                                <a data-checked='false' data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body'
+                                <a data-checked='false' 
+                                    data-image-id='{{ graph.annotation.image.id }}'
+                                    href="{{ graph.annotation.image.get_absolute_url }}?vector_id={{ graph.annotation.vector_id }}"
                                     data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
                                     data-id='{{ graph.id }}' class='droppable_image graph_img'
-                                    data-toggle="tooltip" title="{{ graph.get_short_label }}"
-                                    href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                    title="{{ graph.get_short_label }}" data-toggle="tooltip" data-placement='bottom' data-container='body' 
+                                    >
                                     {% annotation_img graph.annotation lazy=1 %}
                                 </a>
                             {% endfor %}
@@ -55,6 +57,7 @@
 
         </div>
 
+        {% chrono ":table tab" %}
         {% chrono "grid tab:" %}
 
         <div class="tab-pane fade {% if type.views.1.active %}active in{% endif %}" id="{{ type.key }}-images">
@@ -101,6 +104,6 @@
 
     </div>
     {% include "digipal/add_to_collection.html" %}
-    {% chrono ":table tab" %}
+    {% chrono ":grid tab" %}
 
 </div>

@@ -67,7 +67,9 @@
                         <div class='col-md-3 centered col-xs-12'>
 
                             <dl class="imageDatabase panel" data-group='true'>
+                                {% if can_edit %}
                                 <button style='margin:0.5em;' class="btn btn-default btn-sm toggle-all">Toggle All</button>
+                                {% endif %}
                                 <dt>
                                     {% for graph in hand.graphs_template %}
                                         {% if forloop.counter < 10 %}

@@ -94,7 +94,7 @@ function save_collection(collection) {
     }
 }
 
-function delete_collections(selectedCollections, collection_page) {
+function delete_collections(selectedCollections, delete_function, collection_page) {
     var collections = JSON.parse(localStorage.getItem('collections'));
     var background_div = $('<div class="dialog-background">');
     var window_save_collection = $('<div>');
@@ -124,7 +124,11 @@ function delete_collections(selectedCollections, collection_page) {
     });
 
     $('#delete').unbind().click(function(event) {
-        _delete(selectedCollections);
+        if (collection_page) {
+            _delete(selectedCollections);
+        } else {
+            delete_function();
+        }
         event.stopPropagation();
         event.preventDefault();
         if (collection_page) {

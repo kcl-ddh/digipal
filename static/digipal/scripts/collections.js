@@ -44,11 +44,7 @@ function Collections() {
 
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {
-			methods.delete_collections(selectedCollections);
-			selectedCollections = [];
-			if (update_toolbar) {
-				update_toolbar();
-			}
+			methods.delete_collections(selectedCollections, methods.delete, false);
 		});
 
 		var filter_input = $('#filter');
@@ -209,7 +205,31 @@ function Collections() {
 
 		delete_collections: delete_collections,
 
-		delete: _delete,
+		delete: function() {
+			var collections = JSON.parse(localStorage.getItem('collections'));
+
+			for (var i = 0; i < selectedCollections.length; i++) {
+				$.each(collections, function(index, value) {
+					if (value.id == selectedCollections[i]) {
+						delete collections[index];
+						$('#' + value.id).fadeOut().remove();
+					}
+				});
+			}
+
+			localStorage.setItem('collections', JSON.stringify(collections));
+			localStorage.removeItem('selectedCollection');
+			$('#delete-collection-div').parent().fadeOut().remove();
+
+			if ($.isEmptyObject(collections)) {
+				var s = '<div class="container alert alert-warning">No collections</div>';
+				container_basket.append(s);
+			}
+
+			selectedCollections = [];
+			update_toolbar();
+
+		},
 
 		save: function(collections, lightbox_basket) {
 			var collection_name = $('#name_collection').val();

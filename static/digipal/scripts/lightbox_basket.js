@@ -369,7 +369,7 @@ function main() {
 	});
 
 	$('#delete-collection').on('click', function() {
-		delete_collections([collection['id']], true);
+		delete_collections([collection['id']], false, true);
 	});
 
 }

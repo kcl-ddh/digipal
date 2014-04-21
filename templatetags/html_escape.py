@@ -185,6 +185,10 @@ def img(src, *args, **kwargs):
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
 
+    for k, v in kwargs.iteritems():
+        if k.startswith('a_'):
+            more += ur' %s="%s" ' % (k[2:].replace('_', '-'), escape(v))
+
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
 

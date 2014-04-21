@@ -4,6 +4,14 @@ from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
 
+from digipal.utils import sorted_natural
+class FilterHands(forms.Form):
+    scribe = get_form_field_from_queryset(Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(), 'Scribe')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    hand_place = get_form_field_from_queryset(Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(), 'Place')
+    # renamed from date
+    hand_date = get_form_field_from_queryset(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct(), 'Date')
+
 class SearchHands(SearchContentType):
 
     def get_fields_info(self):
@@ -24,6 +32,13 @@ class SearchHands(SearchContentType):
         ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
         # renamed from date
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
+
+        ret['item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
+
+        # Scribe
+        ret['scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}        
+        ret['scribe__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
+        
         return ret
 
     def get_headings(self):
@@ -101,11 +116,3 @@ class SearchHands(SearchContentType):
     def bulk_load_records(self, recordids):
         return (self.get_model()).objects.select_related('item_part__current_item__repository__place', 'assigned_place', 'assigned_date').prefetch_related('images', 'item_part__historical_items__catalogue_numbers').in_bulk(recordids)
 
-from digipal.utils import sorted_natural
-class FilterHands(forms.Form):
-    scribe = get_form_field_from_queryset(Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(), 'Scribe')
-    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
-    hand_place = get_form_field_from_queryset(Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(), 'Place')
-    # renamed from date
-    hand_date = get_form_field_from_queryset(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct(), 'Date')
-    

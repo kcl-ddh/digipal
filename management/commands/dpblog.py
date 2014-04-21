@@ -117,11 +117,6 @@ Commands:
 					self.rename_keyword(kw, kw_target.title, kw_target) 
 				else:
 					self.rename_keyword(kw, kw.title.title())
-				
-		# 2. convert them into upper case
-		# 3. find existing upper case keyword
-		# 4. exist so we merge
-		
 		
 	def getDQComments(self):
 		# http://disqus.com/api/docs/posts/list/

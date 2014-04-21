@@ -142,7 +142,7 @@ def load_hands(context, var_name):
     
     hands_ids = context[var_name]
 
-    from digipal.models import Graph
+    from digipal.models import Graph, Hand
     # get all the graphs
     #.prefetch_related('graphs', 'graphs__annotation')
     # get all the graphs
@@ -151,15 +151,21 @@ def load_hands(context, var_name):
         graph_ids_current_page.extend(ids[1:])
     
     # get all the graphs on this page
-    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('hand', 'hand__scribe', 'hand__item_part', 'hand__item_part__current_item__repository', 'annotation', 'annotation__image', 'idiograph', 'idiograph__allograph').prefetch_related('hand__item_part__historical_items__catalogue_numbers').order_by('hand__scribe__name', 'hand__id', 'id')
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image', 
+        'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by('hand__scribe__name', 'hand__id', 'id')
+    
+    hands = Hand.objects.in_bulk([g.hand_id for g in graphs])
+#     .select_related('scribe', 
+#         'item_part', 'item_part__current_item', 'item_part__current_item__repository',
+#         'assigned_place', 'assigned_date').prefetch_related('item_part__historical_items', 'item_part__historical_items__catalogue_numbers')
     
     # now organise the output by hand and attach their graphs to it
-    # tbhis assumes that graphs are sorted by hand id
+    # this assumes that graphs are sorted by hand id
     ret = []
     hand = None
     for graph in graphs:
         if not hand or graph.hand_id != hand.id:
-            hand = graph.hand
+            hand = hands[graph.hand_id]
             ret.append(hand)
             hand.graphs_template = []
         hand.graphs_template.append(graph)

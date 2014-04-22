@@ -33,3 +33,18 @@ register_setting(
     editable=True,
     default='',
 )
+
+# Prevent TinyMCE from stripping the tags and attributes necessary to
+# embed video in the blog posts.
+
+register_setting(
+    name="RICHTEXT_ALLOWED_TAGS",
+    append=True,
+    default=("object", "embed", "iframe"), #etc
+)
+
+register_setting(
+    name="RICHTEXT_ALLOWED_ATTRIBUTES",
+    append=True,
+    default=("frameborder", "webkitAllowFullScreen", "mozallowfullscreen", "allowFullScreen"), #etc
+)

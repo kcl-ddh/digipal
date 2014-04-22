@@ -6,6 +6,21 @@ from django.db.models import Q
 from digipal.templatetags.hand_filters import chrono
 from django.utils.datastructures import SortedDict
 
+class FilterGraphs(forms.Form):
+    """ Represents the Hand drill-down form on the search results page """
+    script = get_form_field_from_queryset(Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(), 'Script', aid='script')
+    character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
+    allograph = forms.ChoiceField(
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
+        #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
+        widget=Select(attrs={'id':'allograph', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
+        label='',
+        initial='Allograph',
+        required=False
+    )
+    component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
+    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature', other_choices=[(-1, 'No Features'), (-2, 'One of more features')])
+
 class SearchGraphs(SearchContentType):
 
     def __init__(self, search_hands=None):
@@ -221,18 +236,3 @@ class SearchGraphs(SearchContentType):
                {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
                ]
         return ret
-
-class FilterGraphs(forms.Form):
-    """ Represents the Hand drill-down form on the search results page """
-    script = get_form_field_from_queryset(Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(), 'Script', aid='script')
-    character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
-    allograph = forms.ChoiceField(
-        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
-        #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
-        widget=Select(attrs={'id':'allograph', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
-        label='',
-        initial='Allograph',
-        required=False
-    )
-    component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
-    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature', other_choices=[(-1, 'No Features'), (-2, 'One of more features')])

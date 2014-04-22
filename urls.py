@@ -2,6 +2,9 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from mezzanine.core.views import direct_to_template
 from views.facet import facet_search
+from patches import mezzanine_patches
+# apply mezzanine patches at this stage. Before that would be troublesome (importing mezzanine would reimport digipal, etc)
+mezzanine_patches()
 
 urlpatterns = patterns('digipal.views.annotation',
                        #(r'^page/$', ListView.as_view(

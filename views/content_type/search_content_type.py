@@ -725,7 +725,6 @@ class SearchContentType(object):
             if term or query_advanced:
                 query = (ur'%s %s' % (term, query_advanced)).strip()
             query = (query + ur' type:%s' % self.key).strip()
-            print query
 
             # Run the search
             results = self.search_whoosh(query)

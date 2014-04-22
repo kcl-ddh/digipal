@@ -1765,7 +1765,7 @@ class Graph(models.Model):
         locus = ''
         if self.annotation and self.annotation.image:
             locus = self.annotation.image.locus
-        ret = '%s, %s' % (self.idiograph.allograph, locus)
+        ret = u'%s, %s' % (self.idiograph.allograph, locus)
         return ret
     
     def save(self, *args, **kwargs):

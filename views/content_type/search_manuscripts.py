@@ -5,6 +5,14 @@ from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, Selec
 from django.db.models import Q
 from django.conf import settings
 
+from digipal.utils import sorted_natural
+class FilterManuscripts(forms.Form):
+    index = get_form_field_from_queryset(sorted_natural(
+                            '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
+                        ), 'Catalogue Number')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')
+
 class SearchManuscripts(SearchContentType):
 
     def get_fields_info(self):
@@ -13,6 +21,7 @@ class SearchManuscripts(SearchContentType):
         ret = super(SearchManuscripts, self).get_fields_info()
         ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
         ret['subdivisions__current_item__shelfmark current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
+        
         ret['subdivisions__current_item__repository__place__name subdivisions__current_item__repository__name current_item__repository__place__name current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['historical_items__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
@@ -22,7 +31,14 @@ class SearchManuscripts(SearchContentType):
 
         ret['hands__scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
         
+        # MS
         ret['group__historical_items__name, historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+        # Hand
+        ret['hands__assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
+        ret['hands__assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
+        # Scribe
+        ret['hands__scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}
+        ret['hands__scribe__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
         
         return ret
 
@@ -246,10 +262,3 @@ class SearchManuscripts(SearchContentType):
         
         return ret
 
-from digipal.utils import sorted_natural
-class FilterManuscripts(forms.Form):
-    index = get_form_field_from_queryset(sorted_natural(
-                            '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
-                        ), 'Catalogue Number')
-    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
-    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')

@@ -90,4 +90,4 @@ In your Digipal root folder, run:
 
 	python manage.py runserver
 
-Run you browser at the address localhost:8000
+Run you browser at the address http://localhost:8000

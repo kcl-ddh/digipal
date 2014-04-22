@@ -16,7 +16,7 @@ Using GIT:
 	git clone https://github.com/kcl.ddh/digipal
 
 ### Create log folder
-	In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
+In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
 
 ### Installing Requirements
 Using PIP:
@@ -85,5 +85,4 @@ In your Digipal root folder, run:
 
 	python manage.py runserver
 
-T
 Run you browser at the address localhost:8000

@@ -11,21 +11,30 @@ See further http://digipal.eu/
 ----
 ## How to set up Digipal
 
+### Download Digipal
+Using GIT:
+	git clone https://github.com/kcl.ddh/digipal
+
+### Create log folder
+	In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
+
 ### Installing Requirements
 Using PIP:
 
-	pip install -r requirements.txt
+    pip install -r requirements.txt
 
 To see or manually install all the requirements consult the requirements.txt file provided.    
 
 ### Image uploads
 	UPLOAD_IMAGES_URL = 'uploads/images/'
-	UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'), UPLOAD_IMAGES_URL.strip('/'))
+	UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
+	        UPLOAD_IMAGES_URL.strip('/'))
+
 	MAX_THUMB_LENGTH = 50
 
 ### Haystack
 	HAYSTACK_CONNECTIONS = {
-		'default': {
+	    'default': {
 	        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
 	        'URL': 'http://localhost:9200/',
 	        'INDEX_NAME': 'haystack',
@@ -35,13 +44,46 @@ To see or manually install all the requirements consult the requirements.txt fil
 	ITEM_PART_DEFAULT_LOCUS = 'face'
 
 ### IIP Image Server
-	IMAGE_SERVER_ROOT = 'jp2'
+	IMAGE_SERVER_WEB_ROOT = 'jp2'
 	IMAGE_SERVER_HOST = 'digipal.cch.kcl.ac.uk'
 	IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
-	IMAGE_SERVER_METADATA = '%s?FIF=%s&OBJ=Max-size'
-	IMAGE_SERVER_METADATA_REGEX = r'^.*?Max-size:(\d+)\s+(\d+).*?$'
 	IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
-	IMAGE_SERVER_FULL = 'http://%s%s?FIF=%s&RST=*&QLT=100&CVT=JPG'
-	IMAGE_SERVER_THUMBNAIL = 'http://%s%s?FIF=%s&RST=*&HEI=35&CVT=JPG'
-	IMAGE_SERVER_RGN = 'http://%s%s?FIF=%s&RST=*&%s&RGN=%f,%f,%f,%f&CVT=JPG'
+	IMAGE_SERVER_FULL = 'http://%s%s?FIF=%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG'
+	IMAGE_SERVER_THUMBNAIL = 'http://%s%s?FIF=%s&amp;RST=*&amp;HEI=35&amp;CVT=JPG'
+	IMAGE_SERVER_THUMBNAIL_HEIGHT = 35
+	IMAGE_SERVER_RGN = 'http://%s%s?FIF=%s&%s&RGN=%f,%f,%f,%f&CVT=JPG'
 	IMAGE_SERVER_EXT = 'jp2'
+
+#### DJANGO-IIPIMAGE
+	IMAGE_SERVER_URL  = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
+	IMAGE_SERVER_ROOT = '/vol/digipal2/images'
+	IMAGE_SERVER_UPLOAD_ROOT = 'jp2'
+	IMAGE_SERVER_ORIGINALS_ROOT = 'originals'
+	IMAGE_SERVER_UPLOAD_EXTENSIONS = ('.jp2', '.jpg', '.tif', '.bmp', '.jpeg')
+	IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
+
+### Mezzanine
+	SITE_TITLE = 'ProjectName'
+
+### Social
+	TWITTER = 'TwitterUsername'
+	GITHUB = 'GithubUsername/ProjectName'
+	COMMENTS_DEFAULT_APPROVED = True
+	COMMENTS_DISQUS_SHORTNAME = "yourdisquusname"
+
+### Lightbox
+If set to True, links to the Lightbox will be available in Collections' page, and the Lightbox will not redirect to the home page.
+
+	LIGHTBOX = False
+
+### Annotator Settings
+	ANNOTATOR_ZOOM_LEVELS = 7
+	REJECT_HTTP_API_REQUESTS = False # if True, prevents any change to the DB
+
+## Run Digipal
+In your Digipal root folder, run:
+
+	python manage.py runserver
+
+T
+Run you browser at the address localhost:8000

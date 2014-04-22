@@ -77,6 +77,9 @@ function main() {
 	$('#breadcrumb-current-collection').html(collection_name);
 	var length_basket = length_basket_elements(collection) || 0;
 
+	$('#delete-collection').attr('data-original-title', 'Delete ' + collection_name);
+	$('#share-collection').attr('data-original-title', 'Share ' + collection_name);
+
 	if (!$.isEmptyObject(data)) {
 
 		var request = $.ajax({
@@ -304,6 +307,8 @@ function main() {
 			loading_div.fadeOut().remove();
 		}
 	}
+
+	$('#delete-collection').add($('#share-collection')).tooltip();
 
 	header.find('.collection-title').on('blur', function() {
 		if (!$(this).data('active')) {

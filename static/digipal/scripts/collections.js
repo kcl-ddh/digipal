@@ -133,6 +133,8 @@ function Collections() {
 			$('#delete_collection').add('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', false);
 			if (n !== 1) {
 				$('#check_collections').prop('indeterminate', true);
+			} else {
+				$('#check_collections').prop('indeterminate', false).prop('checked', true);
 			}
 		} else if (selectedCollections.length > 1) {
 			$('#copy_collection').add('#to_lightbox').add('#share_collection').attr('disabled', true);

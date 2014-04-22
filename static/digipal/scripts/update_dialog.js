@@ -106,6 +106,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 		}
 	});
 	reload_cache(graphs_list, cache, only_features, callback);
+	$("#allographs_loader_gif").remove();
 
 };
 
@@ -122,7 +123,6 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 		request = $.getJSON(url);
 		request.done(function(data) {
 
-			$("#allographs_loader_gif").remove();
 			for (var i = 0; i < data.length; i++) {
 				var graph = graphs[i];
 				var allograph = data[i]['allograph_id'];

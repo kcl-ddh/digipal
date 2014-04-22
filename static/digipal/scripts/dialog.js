@@ -272,7 +272,6 @@ function Dialog() {
         var request = $.getJSON(url);
 
         request.done(function(allographs) {
-
             update(PREFIX, allographs[0], [], function(s) {
                 selector.find('#features_container').html(s);
                 events_postLoading(selector);

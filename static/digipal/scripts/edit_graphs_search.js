@@ -112,7 +112,7 @@ function EditGraphsSearch() {
 	*/
 	var load_graph = function(element) {
 		var graph = element.data('graph');
-		var allograph = element.data('allograph');
+		var allograph = self.cache.search("graph", graph);
 		var elements = $("[data-graph='" + graph + "']");
 		var image_id = element.data('image-id');
 		var data, url, request, content_type = 'graph';
@@ -123,7 +123,7 @@ function EditGraphsSearch() {
 			self.selectedAllograph = null;
 
 			// if there's no allograph cached, I make a full AJAX call
-			if (!self.cache.search("allograph", allograph)) {
+			if (!self.cache.search("allograph", allograph) || !allograph) {
 
 				load_group(element.closest('[data-group="true"]'), self.cache, false, function(data) {
 					var output = get_graph(graph, data, cache);
@@ -353,7 +353,6 @@ function EditGraphsSearch() {
 				vector['image'] = image_id;
 				vector['vector_id'] = vector_id;
 				graphs.push(vector);
-
 			}
 
 			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';

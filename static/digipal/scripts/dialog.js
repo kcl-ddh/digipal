@@ -110,7 +110,9 @@ function Dialog() {
 
         /* making box draggable */
         if (defaultOptions.draggable) {
-            selector.draggable();
+            selector.draggable({
+                handle: '.myModalLabel'
+            });
         }
 
         var maximized = false;

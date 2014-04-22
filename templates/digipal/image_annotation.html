@@ -12,18 +12,14 @@
 {% endblock %}
 
 {% block main %}
-    <h2 class='header1'>
-        {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
-        <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
-        {% include "digipal/admin_edit.html" with instance=image %}
-        <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
-    </h2>
-
-    {% if no_image_reason %}
-        {{ no_image_reason|richfield }}
-    {% endif %}
-    {% if not no_image_reason or can_edit %}
-
+            <h2 class='header1'>
+                {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+                <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
+                {% include "digipal/admin_edit.html" with instance=image %}
+                {% if not no_image_reason or can_edit %}
+                <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
+                {% endif %}
+            </h2>
             <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
 
             <div class='row'>
@@ -57,12 +53,17 @@
                 <div class="tabbable">
                     <div class="tab-content">
                         <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
-                            {% include "digipal/image_annotation_control_bar.html" %}
-                            <div id="map" class='panel'></div>
-                            <div id="toolbar"></div>
-                            {% include "digipal/image_annotation_settings.html" %}
-                            <div id='annotations'></div>
-                            <div class='row' id='allographs_filtersBox'></div>
+                            {% if no_image_reason %}
+                            {{ no_image_reason|richfield }}
+                            {% endif %}
+                            {% if not no_image_reason or can_edit %}
+                                {% include "digipal/image_annotation_control_bar.html" %}
+                                <div id="map" class='panel'></div>
+                                <div id="toolbar"></div>
+                                {% include "digipal/image_annotation_settings.html" %}
+                                <div id='annotations'></div>
+                                <div class='row' id='allographs_filtersBox'></div>
+                            {% endif %}
                         </div>
 
                         <div class="tab-pane fade" id='allographs'>
@@ -91,11 +92,10 @@
             </div>
 
             <p id='status'></p>
-
-    {% endif %}
 {% endblock %}
 
 {% block extra_js %}
+    {% if not no_image_reason or can_edit %}
     <script>var annotator_zoom_levels = {{ zoom_levels }};</script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
@@ -172,13 +172,13 @@
                 $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
                 if(annotator.isAdmin == 'True'){
                     $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
-                } else {
-                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-public-user.js');
                 }
             }
         }
 
     </script>
+    {% endif %}
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
 {% endblock %}

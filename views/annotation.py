@@ -13,6 +13,8 @@ import sys, re
 from django import template
 from django.template import Context
 from django.utils.safestring import mark_safe
+from django.views.decorators.csrf import csrf_protect
+
 
 
 from digipal.forms import ImageAnnotationForm
@@ -402,6 +404,7 @@ def image_copyright(request, image_id):
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
+@csrf_protect
 def images_lightbox(request, collection_name):
     data = {}
     if 'data' in request.POST and request.POST.get('data', ''):

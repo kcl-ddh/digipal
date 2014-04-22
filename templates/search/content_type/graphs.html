@@ -44,7 +44,7 @@
                             {% endfor %}
                         </td>
                         <td>{{ hand }}</td>
-                        <td>{{ hand.scribe }}</td>
+                        <td>{% if hand.scribe %}{{ hand.scribe }}{% else %}Unspecified{% endif %}</td>
                         <td>{{ hand.assigned_place }}</td>
                         <td>{{ hand.assigned_date }}</td>
                         <td>{{ hand.item_part.current_item.repository.name }}</td>
@@ -85,7 +85,7 @@
                                     {% endfor %}
                                 </dt>
                                 {# see JIRA DIGIPAL-422 for spec about graph tooltips #}
-                                <dd title="{{ hand }} in {{ hand.item_part }} by {{ hand.scribe }}" data-toggle="tooltip" data-placement="bottom">
+                                <dd title="{{ hand }} in {{ hand.item_part }} {% if hand.scribe %}by {{ hand.scribe }}{% else %}(Unspecified scribe){% endif %}" data-toggle="tooltip" data-placement="bottom">
                                     <a href="{{ hand.get_absolute_url }}">
                                         <strong>{{ hand.get_short_label }}</strong>
                                     </a>

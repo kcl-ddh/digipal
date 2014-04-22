@@ -14,7 +14,7 @@ See further http://digipal.eu/
 ### Download Digipal
 Using GIT:
 
-	git clone https://github.com/kcl.ddh/digipal
+	git clone https://github.com/kcl-ddh/digipal
 
 ### Create log folder
 In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.

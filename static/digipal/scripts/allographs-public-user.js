@@ -93,7 +93,7 @@ function PublicAllograhs() {
 			var panel = $(this).parent().parent();
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
-				annotation = $(checkboxes[i]).data('annotation');
+				annotation = $(checkboxes[i]).data('graph');
 				_self.selectedAnnotations.push(annotation);
 			}
 			checkboxes.data('selected', true);
@@ -108,7 +108,6 @@ function PublicAllograhs() {
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
 				graphs.push(_self.selectedAnnotations[i]);
 			}
-
 			add_to_lightbox($(this), 'annotation', graphs, true);
 
 		});

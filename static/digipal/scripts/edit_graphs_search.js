@@ -253,14 +253,6 @@ function EditGraphsSearch() {
 						methods.save();
 					});
 
-					var set_by_default = self.dialog.selector.find('.set_by_default');
-					set_by_default.on('click', function(event) {
-						var component_id = $(this).data('component');
-						var allograph = self.dialog.selector.find('.allograph_form').val();
-						check_features_by_default(component_id, allograph, cache);
-						event.stopPropagation();
-					});
-
 					var set_all_by_default = self.dialog.selector.find('.set_all_by_default');
 					set_all_by_default.on('click', function(event) {
 						var components = [];

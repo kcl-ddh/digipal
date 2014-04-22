@@ -206,6 +206,16 @@ function Dialog() {
                 $(this).find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
             }
         });
+
+        var set_by_default = selector.find('.set_by_default');
+        set_by_default.on('click', function(event) {
+            var component_id = $(this).data('component');
+            var allograph = selector.find('.allograph_form').val();
+            check_features_by_default(component_id, allograph, editGraphsSearch.cache);
+            event.stopPropagation();
+        });
+
+        $('[data-tooltip]').tooltip();
     };
 
     var show_summary = function(button, summary_element) {

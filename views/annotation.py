@@ -10,6 +10,8 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys, re
+from django import template
+from django.template import Context
 from django.utils.safestring import mark_safe
 
 
@@ -401,41 +403,39 @@ def image_copyright(request, image_id):
     #page -> currentitem -> itempart -> repository.copyright_notice
 
 def images_lightbox(request, collection_name):
-
-    if request.is_ajax():
-        if 'data' in request.POST and request.POST.get('data', ''):
-            graphs = simplejson.loads(request.POST.get('data', ''))
-            data = {}
-
-            if 'annotations' in graphs:
-                annotations = []
-                for graph in graphs['annotations']:
+    data = {}
+    if 'data' in request.POST and request.POST.get('data', ''):
+        graphs = simplejson.loads(request.POST.get('data', ''))
+        if 'annotations' in graphs:
+            annotations = []
+            for graph in graphs['annotations']:
+                try:
+                    annotation = Annotation.objects.get(graph=graph)
+                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:
-                        annotation = Annotation.objects.get(graph=graph)
-                        #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
-                        try:
-                            scribe = annotation.graph.hand.scribe.name
-                            scribe_id = annotation.graph.hand.scribe.id
-                            place_name = annotation.graph.hand.assigned_place.name
-                            date = annotation.graph.hand.assigned_date.date
-                        except:
-                            scribe = 'Unknown'
-                            scribe_id = 'Unknown'
-                            place_name = 'Unknown'
-                            date = 'Unknown'
-                        annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
-
+                        scribe = annotation.graph.hand.scribe.name
+                        scribe_id = annotation.graph.hand.scribe.id
+                        place_name = annotation.graph.hand.assigned_place.name
+                        date = annotation.graph.hand.assigned_date.date
                     except:
-                        continue
+                        scribe = 'Unknown'
+                        scribe_id = 'Unknown'
+                        place_name = 'Unknown'
+                        date = 'Unknown'
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
 
-                data['annotations'] = annotations
-            if 'images' in graphs:
-                images = []
-                for img in graphs['images']:
-                    image = Image.objects.get(id=img)
-                    images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
-                data['images'] = images
-            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+                except:
+                    continue
+
+            data['annotations'] = annotations
+        if 'images' in graphs:
+            images = []
+            for img in graphs['images']:
+                image = Image.objects.get(id=img)
+                images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+            data['images'] = images
+
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):
     image = Image.objects.get(id=image_id)

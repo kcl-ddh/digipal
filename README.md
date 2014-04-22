@@ -1,24 +1,31 @@
-DigiPal
-=======
+# DigiPal
+###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
+----
 
-Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
-
-About
-=====
+## About
 
 The Digital Resource for Palaeography (DigiPal) is a project funded by the European Research Council that brings digital technology to bear on scholarly discussion of medieval handwriting. At its heart will be hundreds of newly-commissioned photographs of eleventh-century Anglo-Saxon script from the major manuscript collections in the world, with detailed descriptions of the handwriting, the textual content, and the wider manuscript or documentary context.
 
-Required settings
-=================
+See further http://digipal.eu/
 
-# Image uploads
+----
+## How to set up Digipal
+
+Using PIP:
+
+### Installing Requirements
+    pip install -r requirements.txt
+
+To see or manually install all the requirements consult the requirements.txt file provided.    
+
+### Image uploads
 UPLOAD_IMAGES_URL = 'uploads/images/'
 UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
         UPLOAD_IMAGES_URL.strip('/'))
 
 MAX_THUMB_LENGTH = 50
 
-# Haystack
+### Haystack
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
@@ -29,7 +36,7 @@ HAYSTACK_CONNECTIONS = {
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
 
-# IIP Image Server
+### IIP Image Server
 IMAGE_SERVER_ROOT = 'jp2'
 IMAGE_SERVER_HOST = 'digipal.cch.kcl.ac.uk'
 IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'

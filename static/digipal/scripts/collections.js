@@ -441,19 +441,26 @@ function Collections() {
 		update_toolbar();
 	};
 
+	var deselect_all = function() {
+		selectedCollections = [];
+		$('.selected-collection').removeClass('selected-collection').find('input').prop('checked', false);
+		update_toolbar();
+	};
+
 	var filter = function(pattern) {
 		var re = new RegExp('^' + $.trim(pattern), "mi");
 		var element, test;
 		$.each(this.collections, function(index, value) {
 			element = $('#' + value.id);
 			test = re.test($.trim(index));
-			console.log(test, element);
 			if (!test && pattern) {
 				element.fadeOut();
 			} else {
 				element.fadeIn();
 			}
 		});
+
+		deselect_all();
 	};
 
 	return {

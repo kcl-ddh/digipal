@@ -9,26 +9,31 @@ The Digital Resource for Palaeography (DigiPal) is a project funded by the Europ
 See further http://digipal.eu/
 
 ----
+
+## Digipal Technologies Stack
+Digipal is built upon the Django Web Framework. The main technologies used by the project are:
+	- Mezzanine as CMS and Blog
+	- IIPImage for the image server
+	- OpenLayers for the manuscript viewer
+	- Bootstrap for the Front-end framework
+	- FontAwesome icons
+
+----
 ## How to set up Digipal
 
 ### Download Digipal
 Using GIT:
-
-	git clone https://github.com/kcl-ddh/digipal
+	git clone https://github.com/kcl.ddh/digipal
 
 ### Create log folder
-In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
-- digipal-django
-   - ...
-- logs
-   - digipal_django_debug.log
+	In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
 
 ### Installing Requirements
 Using PIP:
 
     pip install -r requirements.txt
 
-To see or manually install all the requirements consult the requirements.txt file provided.    
+To see or manually install all the requirements consult the requirements.txt file provided.
 
 ### Image uploads
 	UPLOAD_IMAGES_URL = 'uploads/images/'
@@ -74,20 +79,21 @@ To see or manually install all the requirements consult the requirements.txt fil
 	TWITTER = 'TwitterUsername'
 	GITHUB = 'GithubUsername/ProjectName'
 	COMMENTS_DEFAULT_APPROVED = True
-	COMMENTS_DISQUS_SHORTNAME = "yourdisquusname"
+	COMMENTS_DISQUS_SHORTNAME = "yourDisqusName"
 
 ### Lightbox
-If set to True, links to the Lightbox will be available in Collections' page, and the Lightbox will not redirect to the home page.
+If set to True, the links to the Lightbox will be available in Collections' page, and the Lightbox will be correctly working and accessible. The default setting value is False.
 
 	LIGHTBOX = False
 
 ### Annotator Settings
-	ANNOTATOR_ZOOM_LEVELS = 7
-	REJECT_HTTP_API_REQUESTS = False # if True, prevents any change to the DB
+	ANNOTATOR_ZOOM_LEVELS = 7	# This setting sets the number of zoom levels of OpenLayers' image map
+	REJECT_HTTP_API_REQUESTS = False	# if True, prevents any change to the DB
 
 ## Run Digipal
 In your Digipal root folder, run:
 
 	python manage.py runserver
 
-Run you browser at the address http://localhost:8000
+Run you browser at the address localhost:8000
+

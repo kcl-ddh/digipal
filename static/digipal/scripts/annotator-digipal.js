@@ -1111,7 +1111,6 @@ function create_dialog(selectedFeature, id) {
 		return p;
 	};
 
-	$('#boxes_on_click').attr('checked', true);
 	dialog.dialog({
 		draggable: true,
 		height: 340,
@@ -1448,6 +1447,13 @@ function open_allographs(allograph, show) {
 
 function refresh_letters_container(allograph, allograph_id, show) {
 	current_allograph = allograph;
+	var features = annotator.vectorLayer.features;
+	var character_id;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == allograph) {
+			character_id = features[i].character_id;
+		}
+	}
 	var container = $('.letters-allograph-container');
 	if (container.length) {
 		container.remove();
@@ -1455,8 +1461,7 @@ function refresh_letters_container(allograph, allograph_id, show) {
 	} else {
 		show = false;
 	}
-	var features = annotator.vectorLayer.features;
-	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/allographs_by_allograph/";
+	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	load_allographs_container(allograph, url, show);
 }
 
@@ -1728,16 +1733,18 @@ function showBox(selectedFeature, callback) {
 	}
 
 	if (selectedFeature === null || typeof selectedFeature == "undefined") {
-		create_dialog(null, id);
-		fill_dialog(id, null);
-		dialog = $('#dialog' + id);
-		if (annotator.editorial.active && can_edit) {
-			var s = '<label>Editorial Note</label>';
-			s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
-			s += '<label>Public Note</label>';
-			s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
-			dialog.css('margin', '3%');
-			dialog.html(s);
+		if (annotator.boxes_on_click) {
+			create_dialog(null, id);
+			fill_dialog(id, null);
+			dialog = $('#dialog' + id);
+			if (annotator.editorial.active && can_edit) {
+				var s = '<label>Editorial Note</label>';
+				s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
+				s += '<label>Public Note</label>';
+				s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
+				dialog.css('margin', '3%');
+				dialog.html(s);
+			}
 		}
 
 		if (annotator.selectedFeature) {

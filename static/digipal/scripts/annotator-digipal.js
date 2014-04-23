@@ -597,12 +597,14 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 					var allograph_id = $('#panelImageBox .allograph_form').val();
 					var al = select_allograph.find('option:selected').text();
 
-					if (typeof current_allograph === "undefined") {
-						refresh_letters_container(al, allograph_id, true);
-					}
+					if ($('.letters-allograph-container').length) {
+						if (typeof current_allograph === "undefined") {
+							refresh_letters_container(al, allograph_id, true);
+						}
 
-					if (typeof current_allograph !== "undefined" && annotation.feature !== current_allograph) {
-						refresh_letters_container(al, allograph_id, true);
+						if (typeof current_allograph !== "undefined" && annotation.feature !== current_allograph) {
+							refresh_letters_container(al, allograph_id, true);
+						}
 					}
 				}
 			}
@@ -2328,7 +2330,7 @@ function delete_annotation(layer, feature, number_annotations) {
 
 				var allograph = $('#panelImageBox .allograph_form option:selected').text();
 				var allograph_id = $('#panelImageBox .allograph_form').val();
-				if ($('.tab-pane.active').attr('id') == 'annotator') {
+				if ($('.tab-pane.active').attr('id') == 'annotator' && $('.letters-allograph-container').length) {
 					refresh_letters_container(allograph, allograph_id, true);
 				}
 				if (temp['state'] == 'Insert') {
@@ -2493,6 +2495,7 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
+			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 
@@ -2505,7 +2508,7 @@ function save(url, graphs, data, ann, features) {
 				var allograph = select_allograph.find('.allograph_form option:selected').text();
 				var allograph_id = select_allograph.find('.allograph_form').val();
 
-				if ($('.tab-pane.active').attr('id') == 'annotator') {
+				if ($('.tab-pane.active').attr('id') == 'annotator' && $('.letters-allograph-container').length) {
 					refresh_letters_container(allograph, allograph_id, true);
 				}
 

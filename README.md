@@ -40,6 +40,25 @@ Using PIP:
 
 To see or manually install all the requirements consult the requirements.txt file provided.
 
+### Database
+Set up the database in your local_settings.py file and fill the DATABASES object with your settings:
+
+	DATABASES = {
+	    'default': {
+	        'ENGINE': '',
+	        'NAME': '',
+	        'USER': '',
+	        'PASSWORD': '',
+	        'HOST': 'localhost',
+	        'PORT': '',
+	    }
+	 }
+
+After that, run in your terminal the following commands:
+	
+	python manage.py syncdb
+	python manage.py migrate
+
 ### Image uploads
 	UPLOAD_IMAGES_URL = 'uploads/images/'
 	UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),

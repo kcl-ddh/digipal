@@ -467,14 +467,12 @@ def save(request, graphs):
             graphs = simplejson.loads(graphs)
 
             for gr in graphs:
-                print gr
                 graph_object = False
 
                 if 'id' in gr:
                     graph_object = Graph.objects.get(id=gr['id'])
 
                 image = Image.objects.get(id=gr['image'])
-                print graph_object
                 if graph_object:
                     annotation = graph_object.annotation
                     graph = graph_object
@@ -491,7 +489,6 @@ def save(request, graphs):
 
 
                 form = ImageAnnotationForm(data=get_data)
-
                 if form.is_valid():
                     clean = form.cleaned_data
 
@@ -505,7 +502,6 @@ def save(request, graphs):
 
                     allograph = clean['allograph']
                     hand = clean['hand']
-
                     if hand and allograph:
                         scribe = hand.scribe
 
@@ -523,7 +519,6 @@ def save(request, graphs):
                         graph.hand = hand
 
                         graph.save() # error is here
-
                     feature_list_checked = get_data.getlist('feature')
                     feature_list_unchecked = get_data.getlist('-feature')
                     #graph.graph_components.all().delete()

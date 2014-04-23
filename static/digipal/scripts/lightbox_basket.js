@@ -1,9 +1,11 @@
-var csrftoken = getCookie('csrftoken');
-$.ajaxSetup({
-	headers: {
-		"X-CSRFToken": csrftoken
-	}
-});
+(function() {
+	var csrftoken = getCookie('csrftoken');
+	$.ajaxSetup({
+		headers: {
+			"X-CSRFToken": csrftoken
+		}
+	});
+})();
 
 var sum_images_collection = function(basket) {
 	var n = 0;
@@ -85,9 +87,9 @@ function main() {
 		var request = $.ajax({
 			type: 'POST',
 			url: '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/',
+			contentType: 'application/json',
 			data: {
-				'data': JSON.stringify(data),
-				"X-CSRFToken": csrftoken
+				'data': JSON.stringify(data)
 			},
 			success: function(data) {
 

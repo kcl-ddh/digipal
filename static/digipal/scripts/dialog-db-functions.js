@@ -89,7 +89,6 @@ function make_form() {
 
 	features.has_features = has_features;
 	features.features = array_values_checked;
-	console.log(array_values_checked);
 	obj['feature'] = array_values_checked;
 
 	var form_serialized = form.serialize();
@@ -146,6 +145,8 @@ function save(url, feature, data, callback) {
 		success: function(data) {
 			if (data['success']) {
 				updateStatus('Annotation successfully saved', 'success');
+			} else {
+				updateStatus('Error in saving annotation', 'danger');
 			}
 			if (callback) {
 				callback(data);

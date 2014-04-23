@@ -3,6 +3,7 @@
 
 {% block meta_title %}Collection{% endblock %}
 {% block main %}
+
 <div class="page-header row">
     <h1 class='pull-left' data-placement='bottom'>
         <a href="/digipal/collection/">My Collections</a> / <span title='Rename Collection' data-placement='right' data-toggle='tooltip' data-container='body' class='collection-title' contenteditable></span>
@@ -39,8 +40,9 @@
     </p>
 </div>
 
-{% endblock %}
+{% csrf_token %}
 
+{% endblock %}
 {% block extra_js %}
     <script src='https://apis.google.com/js/client.js'></script>
     <script src ='/static/digipal/scripts/collections-utils.js'></script>

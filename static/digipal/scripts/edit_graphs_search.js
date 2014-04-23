@@ -473,7 +473,7 @@ function EditGraphsSearch() {
 
 	var rewriteHands = function(select_hand, hands) {
 		/* rewriting hands select */
-		var string_hand_select = '<option value>------</option>';
+		var string_hand_select = '<option>------</option>';
 		for (var h = 0; h < hands.length; h++) {
 			string_hand_select += '<option value="' + hands[h].id + '">' +
 				hands[h].label + '</option>';

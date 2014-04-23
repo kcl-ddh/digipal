@@ -208,10 +208,10 @@ function share(selectedCollections) {
                 return false;
             } else {
 
-                $("#basket_url").attr('href', resp.id).text(resp.id).addClass('basket_url');
+                $("#basket_url").replaceWith('<input type="text" value="' + resp.id + '" />');
                 var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + resp.id + '">Tweet</a>';
                 if (!$('.twitter-hashtag-button').length) {
-                    $('#basket_url').after(linkTwitter + scriptTwitter);
+                    div.find('input').after(linkTwitter + scriptTwitter);
                 } else {
                     twttr.widgets.load();
                 }

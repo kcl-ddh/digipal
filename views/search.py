@@ -253,6 +253,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types()
     
+    context['annotation_mode'] = request.GET.get('am', '1')
+
     context['view'] = request.GET.get('view', '')
     for type in context['types']:
         type.set_desired_view(context['view'])

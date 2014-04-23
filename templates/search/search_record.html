@@ -27,7 +27,8 @@
                 {{ advanced_search_form.ordering }}
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
-                <input type='hidden' name="view" value='{{ view }}' />
+                <input class="sticky" type='hidden' name="view" value='{{ view }}' />
+                <input class="sticky" type='hidden' name="am" value='{{ annotation_mode }}' />
                 {{ advanced_search_form.pgs }}
             </div>
             <div class='col-md-6'>
@@ -92,13 +93,14 @@
                 {{ query_summary_interactive|safe }}
             </p>
         {% endif %}
+        
         {% if not is_empty %}
-
             {% if can_edit %}
-            <div id="switcher" class='pull-right'>
-                <label for="">Annotating mode</label>
-                <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" type="checkbox" checked />
-            </div>
+                <div id="switcher" class='pull-right'>
+                    <label for="toggle-annotations-mode">Annotating mode</label>
+                    <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" 
+                            type="checkbox" {% if annotation_mode == "1" %}checked="checked" {% endif %} />
+                </div>
             {% endif %}
 
             <ul class="nav nav-tabs" id='result-types-switch'>

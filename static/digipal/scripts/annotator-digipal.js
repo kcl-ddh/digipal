@@ -597,12 +597,14 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 					var allograph_id = $('#panelImageBox .allograph_form').val();
 					var al = select_allograph.find('option:selected').text();
 
-					if (typeof current_allograph === "undefined") {
-						refresh_letters_container(al, allograph_id, true);
-					}
+					if ($('.letters-allograph-container').length) {
+						if (typeof current_allograph === "undefined") {
+							refresh_letters_container(al, allograph_id, true);
+						}
 
-					if (typeof current_allograph !== "undefined" && annotation.feature !== current_allograph) {
-						refresh_letters_container(al, allograph_id, true);
+						if (typeof current_allograph !== "undefined" && annotation.feature !== current_allograph) {
+							refresh_letters_container(al, allograph_id, true);
+						}
 					}
 				}
 			}
@@ -748,8 +750,8 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			}
 			registerEvents();
 			restoreFullscreenPositions();
-			var activeControls = annotator.map.getControlsBy('active', true);
-			toggleAll(activeControls, false);
+			//var activeControls = annotator.map.getControlsBy('active', true);
+			//toggleAll(activeControls, false);
 		});
 	});
 };
@@ -1111,7 +1113,6 @@ function create_dialog(selectedFeature, id) {
 		return p;
 	};
 
-	$('#boxes_on_click').attr('checked', true);
 	dialog.dialog({
 		draggable: true,
 		height: 340,
@@ -1448,6 +1449,13 @@ function open_allographs(allograph, show) {
 
 function refresh_letters_container(allograph, allograph_id, show) {
 	current_allograph = allograph;
+	var features = annotator.vectorLayer.features;
+	var character_id;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == allograph) {
+			character_id = features[i].character_id;
+		}
+	}
 	var container = $('.letters-allograph-container');
 	if (container.length) {
 		container.remove();
@@ -1455,8 +1463,7 @@ function refresh_letters_container(allograph, allograph_id, show) {
 	} else {
 		show = false;
 	}
-	var features = annotator.vectorLayer.features;
-	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/allographs_by_allograph/";
+	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
 	load_allographs_container(allograph, url, show);
 }
 
@@ -1728,16 +1735,18 @@ function showBox(selectedFeature, callback) {
 	}
 
 	if (selectedFeature === null || typeof selectedFeature == "undefined") {
-		create_dialog(null, id);
-		fill_dialog(id, null);
-		dialog = $('#dialog' + id);
-		if (annotator.editorial.active && can_edit) {
-			var s = '<label>Editorial Note</label>';
-			s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
-			s += '<label>Public Note</label>';
-			s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
-			dialog.css('margin', '3%');
-			dialog.html(s);
+		if (annotator.boxes_on_click) {
+			create_dialog(null, id);
+			fill_dialog(id, null);
+			dialog = $('#dialog' + id);
+			if (annotator.editorial.active && can_edit) {
+				var s = '<label>Editorial Note</label>';
+				s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
+				s += '<label>Public Note</label>';
+				s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
+				dialog.css('margin', '3%');
+				dialog.html(s);
+			}
 		}
 
 		if (annotator.selectedFeature) {
@@ -1767,8 +1776,7 @@ function showBox(selectedFeature, callback) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
-
-	select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+	select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 	$('select').trigger('liszt:updated');
 
@@ -2321,7 +2329,7 @@ function delete_annotation(layer, feature, number_annotations) {
 
 				var allograph = $('#panelImageBox .allograph_form option:selected').text();
 				var allograph_id = $('#panelImageBox .allograph_form').val();
-				if ($('.tab-pane.active').attr('id') == 'annotator') {
+				if ($('.tab-pane.active').attr('id') == 'annotator' && $('.letters-allograph-container').length) {
 					refresh_letters_container(allograph, allograph_id, true);
 				}
 				if (temp['state'] == 'Insert') {
@@ -2486,6 +2494,7 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
+			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 
@@ -2498,7 +2507,7 @@ function save(url, graphs, data, ann, features) {
 				var allograph = select_allograph.find('.allograph_form option:selected').text();
 				var allograph_id = select_allograph.find('.allograph_form').val();
 
-				if ($('.tab-pane.active').attr('id') == 'annotator') {
+				if ($('.tab-pane.active').attr('id') == 'annotator' && $('.letters-allograph-container').length) {
 					refresh_letters_container(allograph, allograph_id, true);
 				}
 
@@ -2527,6 +2536,7 @@ function save(url, graphs, data, ann, features) {
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
+							feature.hand = new_graphs[i].hand_id;
 							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 
 							var color;
@@ -2589,15 +2599,13 @@ function save(url, graphs, data, ann, features) {
 					}
 				}
 
-
-
 				annotator.selectedAnnotations = [];
 
 			}
 
 		},
 		complete: function() {
-
+			annotator.transformFeature.deactivate();
 			annotator.has_changed = true;
 		}
 	});

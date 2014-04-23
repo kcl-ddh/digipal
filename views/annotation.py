@@ -521,7 +521,7 @@ def save(request, graphs):
                         graph.save() # error is here
                     feature_list_checked = get_data.getlist('feature')
                     feature_list_unchecked = get_data.getlist('-feature')
-                    #graph.graph_components.all().delete()
+                    graph.graph_components.all().delete()
 
                     if feature_list_unchecked:
 

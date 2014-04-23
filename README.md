@@ -22,6 +22,7 @@ Digipal is built upon the Django Web Framework. The main technologies used by th
 
 ### Download Digipal
 Using GIT:
+
 	git clone https://github.com/kcl.ddh/digipal
 
 ### Create log folder
@@ -95,7 +96,7 @@ If set to True, the links to the Lightbox will be available in Collections' page
 	REJECT_HTTP_API_REQUESTS = False	# if True, prevents any change to the DB
 
 ## Run Digipal
-In your Digipal root folder, run:
+By using the system terminal, go to your Digipal root folder, and then run:
 
 	python manage.py runserver
 

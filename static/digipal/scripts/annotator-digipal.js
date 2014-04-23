@@ -2057,6 +2057,7 @@ function highlight_unsaved_vectors(button) {
 	}
 	annotator.vectorLayer.redraw();
 	button.addClass('active');
+	restoreFullscreenPositions();
 }
 
 
@@ -2069,6 +2070,7 @@ function unhighlight_unsaved_vectors(button) {
 	}
 	annotator.vectorLayer.redraw();
 	button.removeClass('active');
+	restoreFullscreenPositions();
 }
 
 function trigger_highlight_unsaved_vectors() {

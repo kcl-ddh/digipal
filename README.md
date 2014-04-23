@@ -121,3 +121,12 @@ By using the system terminal, go to your Digipal root folder, and then run:
 
 Run you browser at the address localhost:8000
 
+## What to do after
+
+You should create a superuser to edit the Digipal back-end through the Mezzanine interface.
+	
+	python manage.py createsuperuser
+	
+After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin
+
+

@@ -33,6 +33,9 @@ class SearchHands(SearchContentType):
         # renamed from date
         ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
 
+        ret['script__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'script'}, 'advanced': True}
+        
+        # MS
         ret['item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
 
         # Scribe

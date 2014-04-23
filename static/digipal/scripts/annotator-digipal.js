@@ -2475,7 +2475,6 @@ function make_form() {
  */
 
 function save(url, graphs, data, ann, features) {
-	console.log(graphs)
 	var save_annotations = $.ajax({
 		url: url,
 		data: data['form_serialized'],
@@ -2487,7 +2486,6 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
-			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 

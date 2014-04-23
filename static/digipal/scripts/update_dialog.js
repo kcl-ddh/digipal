@@ -233,15 +233,17 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	}
 
 	if (!flag_allograph) {
-		select_allograph.val('------');
+		select_allograph.text('------');
+		select_allograph.val('');
 	} else {
 		select_allograph.val(graph.allograph_id);
 	}
 
 	if (!flag_hand && flag_ip) {
-		select_hand.val('------');
+		select_hand.text('------');
+		select_hand.val('');
 	} else if (!flag_hand && !flag_ip) {
-		select_hand.html('<option selected>------</option>');
+		select_hand.html('<option selected value>------</option>');
 	} else {
 		select_hand.val(graph.hand_id);
 	}

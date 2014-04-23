@@ -40,6 +40,25 @@ Using PIP:
 
 To see or manually install all the requirements consult the requirements.txt file provided.
 
+### Database
+Set up the database in your local_settings.py file and fill the DATABASES object with your settings:
+
+	DATABASES = {
+	    'default': {
+	        'ENGINE': '',
+	        'NAME': '',
+	        'USER': '',
+	        'PASSWORD': '',
+	        'HOST': 'localhost',
+	        'PORT': '',
+	    }
+	 }
+
+After that, run in your terminal the following commands:
+	
+	python manage.py syncdb
+	python manage.py migrate
+
 ### Image uploads
 	UPLOAD_IMAGES_URL = 'uploads/images/'
 	UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
@@ -101,4 +120,13 @@ By using the system terminal, go to your Digipal root folder, and then run:
 	python manage.py runserver
 
 Run you browser at the address localhost:8000
+
+## What to do after
+
+You should create a superuser to edit the Digipal back-end through the Mezzanine interface.
+	
+	python manage.py createsuperuser
+	
+After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin
+
 

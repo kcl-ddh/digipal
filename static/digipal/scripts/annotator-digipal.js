@@ -750,8 +750,8 @@ DigipalAnnotator.prototype.refresh_layer = function() {
 			}
 			registerEvents();
 			restoreFullscreenPositions();
-			var activeControls = annotator.map.getControlsBy('active', true);
-			toggleAll(activeControls, false);
+			//var activeControls = annotator.map.getControlsBy('active', true);
+			//toggleAll(activeControls, false);
 		});
 	});
 };
@@ -1776,8 +1776,7 @@ function showBox(selectedFeature, callback) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
-
-	select_allograph.find('.hand_form').val(selectedFeature.hidden_hand);
+	select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
 	$('select').trigger('liszt:updated');
 
@@ -2537,6 +2536,7 @@ function save(url, graphs, data, ann, features) {
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
+							feature.hand = new_graphs[i].hand_id;
 							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 
 							var color;
@@ -2599,15 +2599,13 @@ function save(url, graphs, data, ann, features) {
 					}
 				}
 
-
-
 				annotator.selectedAnnotations = [];
 
 			}
 
 		},
 		complete: function() {
-
+			annotator.transformFeature.deactivate();
 			annotator.has_changed = true;
 		}
 	});

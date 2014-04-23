@@ -5,6 +5,7 @@
     sometimes the most efficient way to quickly include missing features.
 '''
 
+import re
 
 def iipimage_patches():
     from django.conf import settings
@@ -233,6 +234,7 @@ def admin_patches():
     # setings.HIDDEN_ADMIN_APPS = ('APP_LABEL_1', )
     #
     
+    from django.conf import settings
     import django.contrib.auth.models 
     
     _user_has_module_perms_old = django.contrib.auth.models._user_has_module_perms

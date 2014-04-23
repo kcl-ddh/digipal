@@ -12,13 +12,12 @@ See further http://digipal.eu/
 
 ## Digipal Technologies Stack
 Digipal is built upon the Django Web Framework. The main technologies used by the project are:
-	- Mezzanine as CMS and Blog
-	- IIPImage for the image server
-	- OpenLayers for the manuscript viewer
-	- Bootstrap for the Front-end framework
-	- FontAwesome icons
+- Mezzanine as CMS and Blog
+- IIPImage for the image server
+- OpenLayers for the manuscript viewer
+- Bootstrap for the Front-end framework
+- FontAwesome icons
 
-----
 ## How to set up Digipal
 
 ### Download Digipal
@@ -26,7 +25,12 @@ Using GIT:
 	git clone https://github.com/kcl.ddh/digipal
 
 ### Create log folder
-	In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
+In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
+
+- digipal-django
+	- ...
+- logs
+	- digipal_django_debug.log
 
 ### Installing Requirements
 Using PIP:

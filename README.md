@@ -2,6 +2,8 @@
 ###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
 ----
 
+**Please note that an important part of the project is currently hosted on a private repository. The two will be soon merged into this. This means that at the current state this repository is not enough to run Digipal locally.**
+
 ## About
 
 The Digital Resource for Palaeography (DigiPal) is a project funded by the European Research Council that brings digital technology to bear on scholarly discussion of medieval handwriting. At its heart will be hundreds of newly-commissioned photographs of eleventh-century Anglo-Saxon script from the major manuscript collections in the world, with detailed descriptions of the handwriting, the textual content, and the wider manuscript or documentary context.
@@ -41,6 +43,8 @@ Using PIP:
 To see or manually install all the requirements consult the requirements.txt file provided.
 
 ### Database
+**In order to run the Digipal's Database we used a PostgresQL. Therefore, we recommend you to use PostgresQL as well since we cannot ensure that the database will work on other RDBs.**
+
 Set up the database in your local_settings.py file and fill the DATABASES object with your settings:
 
 	DATABASES = {

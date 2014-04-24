@@ -75,6 +75,17 @@ class Image(digipal.models.Image):
             if grey:
                 ret = ret.convert('L')
         
+        # We resize the image to the requested size
+        asked = []
+        import re
+        for d in [u'WID', u'HEI']:
+            l = re.sub(ur'.*' + re.escape(d) + ur'=(\d+).*', ur'\1', url)
+            if l != url:
+                asked.append(int(l))
+        if len(asked) == 2:
+            import PIL
+            ret = ret.resize(asked, PIL.Image.ANTIALIAS) 
+        
         return ret
     
     def get_relative_coordinates(self, region_search):
@@ -201,7 +212,7 @@ class Image(digipal.models.Image):
         return ret
         
                     
-    def find_image_offset(self, image2, downsample_ratio = 40.0):
+    def find_image_offset(self, image2, downsample_ratio = 35.0):
         '''    
             Find and returns the crop offset and two sample annotations.
             
@@ -226,7 +237,8 @@ class Image(digipal.models.Image):
                 search region in this step. 
                 
             downsample_ratio specifies how small the thumbnail is compared
-            to the original.
+            to the original. Value above 35 may cause problems with our 
+            images as the approximation in the first stage will be excessive.
         '''
         
         ret = {'offsets': [0,0], 'annotations': []}
@@ -256,7 +268,6 @@ class Image(digipal.models.Image):
         if best is None:
             return ret
 
-        
         # -------------------
         # Step 2: Compare an annotation from one image with the containing region in the other image
         # -------------------

@@ -25,7 +25,7 @@ Digipal is built upon the Django Web Framework. The main technologies used by th
 ### Download Digipal
 Using GIT:
 
-	git clone https://github.com/kcl.ddh/digipal
+	git clone https://github.com/kcl-ddh/digipal
 
 ### Create log folder
 In the same folder of that created by the previous command, create a folder and call it "logs", and a file "digipal_django_debug.log" in it.
@@ -131,6 +131,6 @@ You should create a superuser to edit the Digipal back-end through the Mezzanine
 	
 	python manage.py createsuperuser
 	
-After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin
+After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin and log in.
 
 

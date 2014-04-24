@@ -503,7 +503,11 @@ def save(request, graphs):
                     allograph = clean['allograph']
                     hand = clean['hand']
                     if hand and allograph:
+
                         scribe = hand.scribe
+
+                        if allograph != graph.idiograph.allograph.id:
+                            graph.graph_components.all().delete()
 
                         idiograph_list = Idiograph.objects.filter(allograph=allograph,
                                 scribe=scribe)
@@ -521,7 +525,7 @@ def save(request, graphs):
                         graph.save() # error is here
                     feature_list_checked = get_data.getlist('feature')
                     feature_list_unchecked = get_data.getlist('-feature')
-                    graph.graph_components.all().delete()
+
 
                     if feature_list_unchecked:
 

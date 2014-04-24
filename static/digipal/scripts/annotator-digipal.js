@@ -2207,7 +2207,6 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 				vector['geoJson'] = geoJson;
 				vector['vector_id'] = feature.id;
 				graphs.push(vector);
-				console.log(vector);
 			}
 
 			url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
@@ -2430,7 +2429,7 @@ function make_form() {
 			$.each(features_input, function() {
 				f_id = $(this).attr('id');
 				f_value = $(this).val();
-				label_element = $('label[for="' + f_id + '"');
+				label_element = $('label[for="' + f_id + '"]');
 				features_labels_array.push(label_element.text());
 			});
 

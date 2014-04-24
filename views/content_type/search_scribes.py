@@ -42,7 +42,8 @@ class SearchScribes(SearchContentType):
 
         # MS
         ret['hands__item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
-
+        ret['hands__item_part__group__historical_items__name, hands__item_part__historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+        
         # Hands
         ret['hands__assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
         ret['hands__assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}

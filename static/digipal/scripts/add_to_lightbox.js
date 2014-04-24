@@ -8,7 +8,7 @@
 function update_collection_counter() {
 	var basket_elements;
 	var collections;
-	if (localStorage.getItem('collections')) {
+	if (localStorage.getItem('collections') && !$.isEmptyObject(JSON.parse(localStorage.getItem('collections')))) {
 		collections = localStorage.getItem('collections');
 		basket_elements = JSON.parse(collections);
 	} else {
@@ -21,8 +21,6 @@ function update_collection_counter() {
 		localStorage.setItem('collections', JSON.stringify(collections));
 		localStorage.setItem('selectedCollection', '1');
 	}
-
-
 
 	var menu_links = $('.navLink');
 	var basket_element;

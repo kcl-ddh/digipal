@@ -43,7 +43,7 @@ Using PIP:
 To see or manually install all the requirements consult the requirements.txt file provided.
 
 ### Database
-**In order to run the Digipal's Database we used a PostgresQL. Therefore, we recommend you to use PostgresQL as well since we cannot ensure that the database will work on other RDBs.**
+**In order to run the Digipal's Database we used a PostgresQL database server. Therefore, we recommend you to use PostgresQL as well since we cannot ensure that the database will work on other RDBs.**
 
 Set up the database in your local_settings.py file and fill the DATABASES object with your settings:
 

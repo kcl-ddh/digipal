@@ -14,7 +14,7 @@ function delete_annotation(image_id, feature_id, callback) {
 			if (callback) {
 				callback();
 			}
-			updateStatus('Annotation succesfully deleted', 'success');
+			updateStatus('Annotation successfully deleted', 'success');
 		}
 	});
 }

@@ -272,7 +272,7 @@ function main() {
 				$('#save-collection').click(function() {
 					save_collection(collection);
 					$('#alert-save-collection').fadeOut().remove();
-					notify('Collection succesfully saved', 'success');
+					notify('Collection successfully saved', 'success');
 				});
 
 				$('[data-toggle="tooltip"]').tooltip();

@@ -127,7 +127,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
-					notify('Annotation succesfully added to collection', 'success');
+					notify('Annotation successfully added to collection', 'success');
 				} else {
 					notify('Annotation has already been added to Collection', 'danger');
 					continue;
@@ -144,9 +144,9 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		collections[collection_name].annotations = current_basket.annotations;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		if (annotations.length > 1) {
-			notify('Annotations succesfully added to collection', 'success');
+			notify('Annotations successfully added to collection', 'success');
 		} else {
-			notify('Annotation succesfully added to collection', 'success');
+			notify('Annotation successfully added to collection', 'success');
 		}
 	} else {
 		var graph;
@@ -194,7 +194,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						return false;
 					}
 					elements.push(annotations);
-					notify('Annotation succesfully added to collection', 'success');
+					notify('Annotation successfully added to collection', 'success');
 				} else {
 					if (typeof annotator != 'undefined') {
 						image_id = annotator.image_id;
@@ -202,7 +202,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						image_id = graph;
 					}
 					elements.push(image_id);
-					notify('Image succesfully added to collection', 'success');
+					notify('Image successfully added to collection', 'success');
 				}
 			} else {
 				if (type == 'annotation') {
@@ -228,7 +228,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket['id'] = collection_id;
 					collections[collection_name] = current_basket;
 				}
-				notify('Annotation succesfully added to collection', 'success');
+				notify('Annotation successfully added to collection', 'success');
 			} else {
 
 				if (typeof annotator != 'undefined') {
@@ -247,7 +247,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket['id'] = collection_id;
 					collections[collection_name] = current_basket;
 				}
-				notify('Image succesfully added to collection', 'success');
+				notify('Image successfully added to collection', 'success');
 			}
 			localStorage.setItem('collections', JSON.stringify(collections));
 		}

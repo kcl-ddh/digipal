@@ -96,16 +96,34 @@ function save_collection(collection) {
 
 function delete_collections(selectedCollections, delete_function, collection_page) {
     var collections = JSON.parse(localStorage.getItem('collections'));
+    var current_collection = localStorage.getItem('selectedCollection');
+    var selectedCollection;
+
+    $.each(collections, function(index, value) {
+        if (this.id == current_collection) {
+            selectedCollection = index;
+            return false;
+        }
+    });
+
     var background_div = $('<div class="dialog-background">');
     var window_save_collection = $('<div>');
     var s = '';
 
     window_save_collection.attr('class', 'loading-div').attr('id', 'delete-collection-div');
-    s += '<h3>Delete Collections?</h3>';
-    if (selectedCollections.length == 1) {
-        s += '<p>You are about to delete 1 collection</p>';
+
+    if (!collection_page) {
+
+        if (selectedCollections.length == 1) {
+            s += '<h3>Delete Collection?</h3>';
+            s += '<p>You are about to delete 1 collection</p>';
+        } else {
+            s += '<h3>Delete Collections?</h3>';
+            s += '<p>You are about to delete ' + selectedCollections.length + ' collections</p>';
+        }
     } else {
-        s += '<p>You are about to delete ' + selectedCollections.length + ' collections</p>';
+        s += '<h3>Delete ' + selectedCollection + '?</h3>';
+        s += '<p>You are about to delete the collection <i>' + selectedCollection + '</i></p>';
     }
 
     s += '<div style="margin-top:2em"><input type = "button" class="btn btn-sm btn-success" id="delete" type="button" value="Delete" /> ';
@@ -129,6 +147,7 @@ function delete_collections(selectedCollections, delete_function, collection_pag
         } else {
             delete_function();
         }
+        update_collection_counter();
         event.stopPropagation();
         event.preventDefault();
         if (collection_page) {

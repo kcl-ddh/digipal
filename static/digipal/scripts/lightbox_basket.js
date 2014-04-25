@@ -48,7 +48,7 @@ function main() {
 			images = [];
 
 		if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
-			s += "<h3 id='header_annotations'>Annotations (" + collection.annotations.length + ")</h3>";
+			s += "<h3 id='header_annotations'>Graphs (" + collection.annotations.length + ")</h3>";
 			for (var i = 0; i < collection.annotations.length; i++) {
 				graphs.push(collection.annotations[i]);
 			}
@@ -95,7 +95,7 @@ function main() {
 
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
-					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Annotation</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Remove</th>';
+					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Remove</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 

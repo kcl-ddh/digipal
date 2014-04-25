@@ -67,11 +67,30 @@ function main() {
 		}
 
 	} else {
+	    /*
 		var external_collection = JSON.parse(getParameter('collection'));
 		data = external_collection;
 		collection_name = data['name'];
 		collection = data;
 		isExternal = true;
+		*/
+
+	    // GN: hack here to unescape the param, although it should already have been unescaped in GetParam
+        // so I imagine the param has been escaped twice before...
+        var collection_param = getParameter('collection');
+        if (collection_param.length) {
+            collection_param = collection_param[0];
+            if (collection_param.lastIndexOf('%', 0) === 0) {
+                collection_param = unescape(collection_param);
+            }
+            var external_collection = JSON.parse(collection_param);
+            
+            data = external_collection;
+            collection_name = data['name'];
+            collection = data;
+            isExternal = true;
+        }
+	    
 	}
 
 	var header = $('.page-header');

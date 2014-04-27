@@ -1608,7 +1608,7 @@ function showBox(selectedFeature, callback) {
 		highlight_vectors();
 	}
 
-	if (selectedFeature === null || typeof selectedFeature == "undefined") {
+	if (!selectedFeature || typeof selectedFeature == "undefined") {
 		if (annotator.boxes_on_click) {
 			create_dialog(null, id);
 			fill_dialog(id, null);
@@ -1627,6 +1627,7 @@ function showBox(selectedFeature, callback) {
 			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 			$('select').trigger('liszt:updated');
 		}
+		updateFeatureSelect(null, id);
 		return false;
 	}
 
@@ -1649,18 +1650,24 @@ function showBox(selectedFeature, callback) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
+	var allograph, graph;
+
+	allograph = selectedFeature.hidden_allograph.split(':')[0];
+	graph = selectedFeature.graph;
 	select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+
 	$('select').trigger('liszt:updated');
 
-	var url, request;
-	var cache = annotator.cacheAnnotations;
+	load_data(selectedFeature, id, allograph, graph, callback);
 
-	var allograph = selectedFeature.hidden_allograph.split(':')[0];
-	var graph = selectedFeature.graph;
+}
 
+function load_data(selectedFeature, id, allograph, graph, callback) {
 	var content_type = 'graph';
 	var prefix = 'annotator_';
+	var url, request;
+	var cache = annotator.cacheAnnotations;
 
 	// if there's no allograph cached, I make a full AJAX call
 	if (!cache.search("allograph", allograph)) {
@@ -1701,7 +1708,6 @@ function showBox(selectedFeature, callback) {
 		}
 	}
 }
-
 
 function refresh_features_dialog(features, dialog) {
 	var s = '<ul>';
@@ -2052,6 +2058,14 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 
 	if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
 		updateStatus('Select annotations to proceed', 'danger');
+		return false;
+	}
+
+	var allograph_form = $('#panelImageBox .allograph_form');
+	var hand_form = $('#panelImageBox .hand_form');
+
+	if (!allograph_form.val() || !hand_form.val()) {
+		updateStatus('Hand and Allograph are required', 'danger');
 		return false;
 	}
 
@@ -2429,12 +2443,26 @@ function save(url, graphs, data, ann, features) {
 								}
 							}
 
-							for (var ann in annotator.annotations) {
+							element.html(unsaved_annotations.length);
+
+							var flag = 0,
+								ann;
+							for (ann in annotator.annotations) {
 								if (annotator.annotations[ann].vector_id == feature.id) {
 									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
 									annotator.annotations[ann].feature = allograph;
 									annotator.annotations[ann].graph = new_graph;
+									flag = 1;
 								}
+							}
+
+							if (!flag) {
+								ann = parseInt(ann) + 1;
+								annotator.annotations[ann] = {};
+								annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
+								annotator.annotations[ann].feature = allograph;
+								annotator.annotations[ann].graph = new_graph;
+								annotator.annotations[ann].vector_id = feature.id;
 							}
 
 							if (num_features > 0) {

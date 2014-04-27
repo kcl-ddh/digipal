@@ -491,7 +491,6 @@ def save(request, graphs):
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
                     clean = form.cleaned_data
-
                     if geo_json:
                         annotation.geo_json = geo_json
                     annotation.display_note = clean['display_note']

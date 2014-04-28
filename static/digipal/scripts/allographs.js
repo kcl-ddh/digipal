@@ -133,6 +133,10 @@ function Allographs(dialog, cache) {
 		},
 
 		save: function() {
+			if (!selectedAnnotations.annotations.length) {
+				updateStatus('Select annotations to proceed', 'danger');
+				return false;
+			}
 			var features = annotator.vectorLayer.features;
 			var features_length = features.length;
 			var selected_features = [];
@@ -647,7 +651,7 @@ function Allographs(dialog, cache) {
 				});
 
 				self.dialog_instance.selector = $(".myModal#modal_features");
-
+				selectedAnnotations.annotations = [];
 				init();
 
 			}

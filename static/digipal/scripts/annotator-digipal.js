@@ -2046,21 +2046,28 @@ DigipalAnnotator.prototype.saveAnnotation = function(ann, allographs_page) {
 		allographs_page = false;
 	}
 
-	if (this.selectedAnnotations.length) {
-		this.selectedAnnotations.reverse();
+	if ($('.tab-pane.active').attr('id') == 'annotator') {
+		select_allograph = $('#panelImageBox');
+		modal = $('.dialog_annotations');
+		if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
+			updateStatus('Select annotations to proceed', 'danger');
+			return false;
+		}
+	} else {
+		select_allograph = $('.myModal');
+		modal = select_allograph;
 	}
 
-	if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
-		updateStatus('Select annotations to proceed', 'danger');
-		return false;
-	}
-
-	var allograph_form = $('#panelImageBox .allograph_form');
-	var hand_form = $('#panelImageBox .hand_form');
+	var allograph_form = select_allograph.find('.allograph_form');
+	var hand_form = select_allograph.find('.hand_form');
 
 	if (!allograph_form.val() || !hand_form.val()) {
 		updateStatus('Hand and Allograph are required', 'danger');
 		return false;
+	}
+
+	if (this.selectedAnnotations.length) {
+		this.selectedAnnotations.reverse();
 	}
 
 	updateStatus('Saving Annotation...', 'warning');
@@ -2273,9 +2280,21 @@ function make_form() {
 	if ($('.tab-pane.active').attr('id') == 'annotator') {
 		select_allograph = $('#panelImageBox');
 		modal = $('.dialog_annotations');
+		if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
+			updateStatus('Select annotations to proceed', 'danger');
+			return false;
+		}
 	} else {
 		select_allograph = $('.myModal');
 		modal = select_allograph;
+	}
+
+	var allograph_form = select_allograph.find('.allograph_form');
+	var hand_form = select_allograph.find('.hand_form');
+
+	if (!allograph_form.val() || !hand_form.val()) {
+		updateStatus('Hand and Allograph are required', 'danger');
+		return false;
 	}
 
 	var form = select_allograph.find('.frmAnnotation');

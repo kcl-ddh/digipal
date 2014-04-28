@@ -93,6 +93,8 @@ function Allographs(dialog, cache) {
 				var id = $(this).parent('.annotation_li').data('annotation');
 				methods.to_annotator(id);
 
+
+
 				/*
 				var panel = $('#panelImageBox');
 				$('body').animate({
@@ -231,17 +233,15 @@ function Allographs(dialog, cache) {
 			tab.tab('show');
 			$('html').animate({
 				scrollTop: $('#map').position().top + 'px'
-			}, 150, function() {
+}, 150,			function() {
 				annotator.selectFeatureByIdAndZoom(annotation_id);
 				var select_allograph = $('#panelImageBox');
-				var features = annotator.vectorLayer.features;
 				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 				var annotation_graph;
-				for (var i = 0; i < features.length; i++) {
-					for (var j in annotator.annotations) {
-						if (annotator.annotations[j].graph == features[i].graph) {
-							annotation_graph = annotator.annotations[j];
-						}
+				for (var j in annotator.annotations) {
+					if (annotator.annotations[j].vector_id == annotation_id) {
+						annotation_graph = annotator.annotations[j];
+						break;
 					}
 				}
 				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));

@@ -2243,7 +2243,7 @@ function delete_annotation(layer, feature, number_annotations) {
 				var tab_link = $('a[data-target="#allographs"]');
 				var f = annotator.vectorLayer.features;
 				var y = 0;
-				while (y < f.length && f[y].attributes.saved === 1) {
+				while (y < f.length && f[y].stored) {
 					y++;
 				}
 

@@ -20,8 +20,14 @@ function PublicAllograhs() {
 			tab.tab('show');
 			annotator.selectFeatureByIdAndZoom(annotation_id);
 			var select_allograph = $('#panelImageBox');
+			var annotation_graph;
 			select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-			var annotation_graph = annotator.annotations[annotator.selectedFeature.graph];
+			for (var i in annotator.annotations) {
+				if (annotator.annotations[i].graph == annotator.selectedFeature.graph) {
+					annotation_graph = annotator.annotations[i];
+					break;
+				}
+			}
 			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 			$('select').trigger('liszt:updated');
 		}
@@ -57,7 +63,7 @@ function PublicAllograhs() {
 		});
 
 		annotation_li.find('a').click(function(event) {
-			var id = $(this).parent('.annotation_li').data('graph');
+			var id = $(this).parent('.annotation_li').data('annotation');
 			_self.to_annotator(id);
 
 			/*

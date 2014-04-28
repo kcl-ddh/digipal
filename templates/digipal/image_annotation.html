@@ -109,6 +109,8 @@
     <script src="{{ STATIC_URL }}digipal/scripts/annotations-cache.js"></script>
     {% if can_edit %}
     <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+    {% else %}
+    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
     {% endif %}
     <script>
         $(document).ready(function() {
@@ -180,5 +182,5 @@
     {% endif %}
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+
 {% endblock %}

@@ -430,19 +430,19 @@ DigipalAnnotator.prototype.showAnnotation = function(feature) {
 		select_allograph = $('.modal-body .allograph_form');
 	}
 
-	if (feature.state == 'Insert') {
-		var allograph;
-		var allograph_list = select_allograph.find('option');
-		$.each(allograph_list, function() {
-			if ($(this).text() == feature.feature) {
-				allograph = $(this).val();
-			}
-		});
-		if (allograph) {
-			select_allograph.val(allograph);
+	/*
+	var allograph;
+	var allograph_list = select_allograph.find('option');
+	$.each(allograph_list, function() {
+		if ($(this).text() == feature.feature) {
+			allograph = $(this).val();
 		}
-		$('select').trigger('liszt:updated');
+	});
+	if (allograph) {
+		select_allograph.val(allograph);
 	}
+	select_allograph.trigger('liszt:updated');
+	*/
 
 	if (feature) {
 		if (feature.style) {
@@ -777,6 +777,7 @@ function updateFeatureSelect(currentFeatures, id) {
 			dialog = $('.modal-body');
 			prefix = 'allographs_';
 		}
+		console.log(dialog);
 
 		if (typeof allograph_selected !== 'undefined' && allograph_selected) {
 			var request = $.getJSON(url);
@@ -784,7 +785,7 @@ function updateFeatureSelect(currentFeatures, id) {
 				var allographs = data[0];
 				update_dialog(prefix, allographs, annotator.selectedAnnotations, function(s) {
 
-					dialog.find('#box_features_container').html(s);
+					dialog.html(s);
 					dialog.find('.check_all').click(function(event) {
 						var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
 						checkboxes.attr('checked', true);
@@ -1003,21 +1004,15 @@ function create_dialog(selectedFeature, id) {
 		resizable: false,
 		close: function(event, ui) {
 			$(this).dialog('destroy').empty().remove();
-			if (!$('.dialog_annotations').length) {
-				annotator.pinned = undefined;
-			}
+
 		},
 		title: function() {
 			var title;
 			if (annotator.isAdmin == "True") {
-				/*
 
-				var button = <span class='btn btn-sm btn-primary number_annotated_allographs' data-feature = '" + selectedFeature.feature + "' title='Show all the images of this allograph'><i class= 'icon-eye-open'></i> <span class='number-allographs'></span></span>
-
-				*/
 				if (selectedFeature && !annotator.editorial.active) {
 					title = "<span class='allograph_label'>" + selectedFeature.feature +
-						"</span> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i  class='fa fa-link' ></i></button> <button title='Add graph to collection' data-toggle='tooltip' data-container='body' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
+						"</span> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button title='Add graph to collection' data-toggle='tooltip' data-container='body' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 						title += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
 					} else {
@@ -1025,7 +1020,6 @@ function create_dialog(selectedFeature, id) {
 					}
 				} else if (!annotator.annotating) {
 					title = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' /> <span style='margin-left: 8%;'><button data-toggle='tooltip' data-container='body' title='Share URL' style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs btn-default pull-right'><i class='fa fa-link'></i></button> ";
-
 				} else {
 					if (annotator.editorial.active) {
 						title = "<span class='allograph_label'>Annotation</span>" +
@@ -1036,9 +1030,11 @@ function create_dialog(selectedFeature, id) {
 							title += " <button data-toggle='tooltip' data-container='body' title='Group Annotations' class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button>";
 						}
 					} else {
-						title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 						if (annotator.selectedFeature) {
+							title = "<span class='allograph_label'>" + annotator.selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							title += "<button class='to_lightbox btn btn-default btn-xs' data-graph = '" + annotator.selectedFeature.graph + "' data-toggle='tooltip' data-container='body' title='Add graph to collection'><i class='fa fa-folder-open'></i></button>";
+						} else {
+							title = "<span class='allograph_label'>Annotation</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 						}
 						if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
 							title += " <button data-toggle='tooltip' data-container='body' title='Group Annotations' class='btn btn-default btn-xs link_graphs'>Group</button>";
@@ -1352,30 +1348,29 @@ function fill_dialog(id, annotation) {
 	var dialog = $('#dialog' + id);
 	var s = '';
 	var panel = $('#panelImageBox');
-	if (typeof annotation != 'null') {
-		if (can_edit) {
-			s += "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
-			s += "<div id='box_features_container'></div>";
 
-			panel.find('.allograph_form').on('change', function() {
-				var n = 0;
-				var features = annotator.vectorLayer.features;
-				var allograph = $('#panelImageBox .allograph_form option:selected').text();
-				var allograph_id = $(this).val();
+	if (can_edit) {
+		s += "<input type='hidden' name='allograph' id='hidden_allograph' /> <input type='hidden' id='hidden_hand' name='hand' />";
+		s += "<div id='box_features_container'></div>";
 
-				for (var i = 0; i < features.length; i++) {
-					if (features[i].feature == allograph && features[i].stored) {
-						n++;
-					}
+		panel.find('.allograph_form').on('change', function() {
+			var features = annotator.vectorLayer.features;
+			var allograph = $('#panelImageBox .allograph_form option:selected').text();
+			var allograph_id = $(this).val();
+			var n = 0;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].feature == allograph && features[i].stored) {
+					n++;
 				}
-
-				$(".number_annotated_allographs .number-allographs").html(n);
-				updateFeatureSelect(annotation, id);
-			});
-		}
+			}
+			updateFeatureSelect(annotation, id);
+			$(".number_annotated_allographs .number-allographs").html(n);
+			$('.allograph_label').html(allograph);
+		});
 	} else {
 		s += "<textarea style='height:95%;' class='textarea_temporary_annotation form-control' placeholder='Type description here...'></textarea>";
 	}
+
 
 	dialog.html(s);
 
@@ -1608,7 +1603,7 @@ function showBox(selectedFeature, callback) {
 		highlight_vectors();
 	}
 
-	if (!selectedFeature || typeof selectedFeature == "undefined") {
+	if (selectedFeature === null) {
 		if (annotator.boxes_on_click) {
 			create_dialog(null, id);
 			fill_dialog(id, null);
@@ -1639,7 +1634,6 @@ function showBox(selectedFeature, callback) {
 	var n = 0;
 	var annotations = annotator.annotations;
 
-
 	for (var i = 0; i < features.length; i++) {
 		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
 			n++;
@@ -1655,7 +1649,7 @@ function showBox(selectedFeature, callback) {
 	allograph = selectedFeature.hidden_allograph.split(':')[0];
 	graph = selectedFeature.graph;
 	select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
-	select_allograph.find('.allograph_form').val(getKeyFromObjField(selectedFeature, 'hidden_allograph'));
+	select_allograph.find('.allograph_form').val(allograph);
 
 	$('select').trigger('liszt:updated');
 

@@ -3,7 +3,7 @@
  * will become draggable to a basket. The element must have an data-id attribute
  * which contains the ID of the digipal image record to add to the basket.
  *
- * Requires a <div id="basket_collector"> that will serves as a drop target
+ * Requires a <div id="basket_collector"> that will serve as a drop target
  * which is made visible as soon as we start dragging an item.
  *
  * Dependency: add_to_lightbox.js

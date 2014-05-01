@@ -8,47 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'CharacterForm'
-        db.create_table('digipal_characterform', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-        ))
-        db.send_create_signal('digipal', ['CharacterForm'])
 
-        # add foreign key digipal_character.form_id -> digipal_characterform.id
-        db.add_column('digipal_character', 'form',
-                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, null=True, to=orm['digipal.CharacterForm']), keep_default=False)
-        
-        # copy digipal_character.form to digipal_characterform.name
-        db.execute('insert into digipal_characterform (name) select distinct form as name from digipal_character order by form desc')
-        # link up digipal_character.form_id -> digipal_characterform.id
-        db.execute('update digipal_character c set form_id = cf.id from digipal_characterform cf where c.form = cf.name')
-        
-        # remove character.form
-        #db.delete_column('digipal_character', 'form')
-        
-        #rows = db.execute('select c.id, c.name, cf.name from digipal_character c join digipal_characterform cf on c.form_id =  cf.id')
-        
-        # Renaming column for 'Character.form' to match new field type.
-        #db.rename_column('digipal_character', 'form', 'form_id')
         # Changing field 'Character.form'
-        #db.alter_column('digipal_character', 'form_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.CharacterForm'], null=True))
-        # Adding index on 'Character', fields ['form']
-        #db.create_index('digipal_character', ['form_id'])
-        
+        db.alter_column('digipal_character', 'form_id', self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['digipal.CharacterForm']))
 
     def backwards(self, orm):
-        # Removing index on 'Character', fields ['form']
-        db.delete_index('digipal_character', ['form_id'])
 
-        # Deleting model 'CharacterForm'
-        db.delete_table('digipal_characterform')
-
-
-        # Renaming column for 'Character.form' to match new field type.
-        db.rename_column('digipal_character', 'form_id', 'form')
         # Changing field 'Character.form'
-        db.alter_column('digipal_character', 'form', self.gf('django.db.models.fields.CharField')(default=None, max_length=128))
+        db.alter_column('digipal_character', 'form_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.CharacterForm'], null=True))
 
     models = {
         'auth.group': {
@@ -195,7 +162,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['ontograph__sort_order', 'ontograph__ontograph_type__name', 'name']", 'object_name': 'Character'},
             'components': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Component']", 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.CharacterForm']", 'null': 'True', 'blank': 'True'}),
+            'form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.CharacterForm']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
@@ -203,7 +170,7 @@ class Migration(SchemaMigration):
             'unicode_point': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'})
         },
         'digipal.characterform': {
-            'Meta': {'object_name': 'CharacterForm'},
+            'Meta': {'ordering': "['name']", 'object_name': 'CharacterForm'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
         },

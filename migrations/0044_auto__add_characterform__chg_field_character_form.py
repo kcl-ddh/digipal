@@ -8,6 +8,8 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        
+        db.start_transaction()
         # Adding model 'CharacterForm'
         db.create_table('digipal_characterform', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -19,6 +21,8 @@ class Migration(SchemaMigration):
         db.add_column('digipal_character', 'form',
                       self.gf('django.db.models.fields.related.ForeignKey')(blank=True, null=True, to=orm['digipal.CharacterForm']), keep_default=False)
         
+        db.commit_transaction()
+
         # copy digipal_character.form to digipal_characterform.name
         db.execute('insert into digipal_characterform (name) select distinct form as name from digipal_character order by form desc')
         # link up digipal_character.form_id -> digipal_characterform.id

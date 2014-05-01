@@ -6,7 +6,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
-        CatalogueNumber, Category, Character, Collation, Component, County, \
+        CatalogueNumber, Category, Character, CharacterForm, Collation, Component, County, \
         ComponentFeature, CurrentItem, \
         Date, DateEvidence, Decoration, Description, \
         Feature, Format, \
@@ -538,6 +538,14 @@ class AllographInline(admin.StackedInline):
 
     filter_horizontal = ['aspects']
 
+
+class CharacterFormAdmin(reversion.VersionAdmin):
+    model = CharacterForm
+
+    list_display = ['id', 'name']
+    list_display_links = list_display
+
+    search_fields = ['name', 'id']
 
 class CharacterAdmin(reversion.VersionAdmin):
     model = Character
@@ -1424,6 +1432,7 @@ admin.site.register(Aspect, AspectAdmin)
 admin.site.register(CatalogueNumber, CatalogueNumberAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Character, CharacterAdmin)
+admin.site.register(CharacterForm, CharacterFormAdmin)
 admin.site.register(Collation, CollationAdmin)
 admin.site.register(Component, ComponentAdmin)
 admin.site.register(ComponentFeature, ComponentFeatureAdmin)

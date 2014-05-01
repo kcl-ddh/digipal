@@ -23,14 +23,16 @@ class Migration(SchemaMigration):
         
         db.commit_transaction()
 
+        db.start_transaction()
         # copy digipal_character.form to digipal_characterform.name
         db.execute('insert into digipal_characterform (name) select distinct form as name from digipal_character order by form desc')
         # link up digipal_character.form_id -> digipal_characterform.id
         db.execute('update digipal_character c set form_id = cf.id from digipal_characterform cf where c.form = cf.name')
         
         # remove character.form
-        #db.delete_column('digipal_character', 'form')
-        
+        db.delete_column('digipal_character', 'form')
+        db.commit_transaction()        
+
         #rows = db.execute('select c.id, c.name, cf.name from digipal_character c join digipal_characterform cf on c.form_id =  cf.id')
         
         # Renaming column for 'Character.form' to match new field type.

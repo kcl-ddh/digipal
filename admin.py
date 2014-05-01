@@ -555,7 +555,7 @@ class CharacterAdmin(reversion.VersionAdmin):
     list_display = ['name', 'unicode_point', 'form', 'created', 'modified']
     list_display_links = ['name', 'unicode_point', 'form', 'created',
             'modified']
-    search_fields = ['name', 'form']
+    search_fields = ['name', 'form__name']
 
 
 class CollationAdmin(reversion.VersionAdmin):

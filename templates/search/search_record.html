@@ -12,22 +12,24 @@
     {% if not submitted or is_empty %}
         <h1 class='header1'>Search</h1>
         <p>
-            Please use the form below to search for {{ search_types_display }}. 
+            Please use the form below to search for {{ search_types_display }}.
             You can type in keywords for broad searches or use the filters for better precision. You can also use keywords and filters together.
             See '<a href="{{ search_help_url }}">How to Use Digipal</a>' for more help.
         </p>
     {% endif %}
-    
+
     <form id='searchform' class="panel" method="GET" action="/digipal/search/">
         <div class='row'>
             {# {% csrf_token %} #}
             <div class='col-md-6'>
                 {{ advanced_search_form.terms }}
-                
+
                 {{ advanced_search_form.ordering }}
                 {{ advanced_search_form.years }}
                 {{ advanced_search_form.result_type }}
-                <input type='hidden' name="view" value='{{ view }}' />
+                <input class="sticky" type='hidden' name="view" value='{{ view }}' />
+                <input class="sticky" type='hidden' name="am" value='{{ annotation_mode }}' />
+                {{ advanced_search_form.pgs }}
             </div>
             <div class='col-md-6'>
                 {{ advanced_search_form.from_link }}
@@ -35,13 +37,13 @@
                         disabled boostrap collapse as it behave weirdly. During the animation to
                         expand the panel, it goes far too low.
                     {% endcomment %}
-                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse-disabled" 
+                    <a id="filter-toggler" data-target="#advancedSearch" data-toggle="collapse-disabled"
                         {% if expanded_custom_filters %}
-                            data-alt-label="Show filters" 
+                            data-alt-label="Show filters"
                             href="?from_link=false&amp;basic_search_type={{ search_type }}">
                             Hide filters
                         {% else %}
-                            data-alt-label="Hide filters" 
+                            data-alt-label="Hide filters"
                             href="?from_link=true&amp;basic_search_type={{ search_type }}">
                             Show filters
                         {% endif %}
@@ -50,9 +52,9 @@
         </div>
 
         <div id='advancedSearch' class="panel collapse {% if expanded_custom_filters %}in{%endif%}">
-            
+
             {{ advanced_search_form.basic_search_type }}
-            
+
             <ul class="nav nav-tabs">
                 {% for type in types %}
                     <li class="{% if search_type_defaulted = type.key %}active{% endif %}">
@@ -63,7 +65,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            
+
             <div class="tab-content">
                 <div id="filter-tab" class="tab-pane active">
                     <div id='containerFilters' class='form-inline'>
@@ -83,47 +85,40 @@
 
     </form>
 
-    {% comment %}
-    <div class="panel" id='filtersform'>
-        <h5 class='header5'>Show Graphs filtered by:</h5>
-        <form class="form-inline"  method="GET" action="/digipal/search/graph">
-            <ul>{{ drilldownform.as_ul }}</ul>
-
-            <div>
-                <input type="submit" value="Show Graphs" class='btn btn-primary' />
-                <input type='reset' class='btn btn-default' />
-            </div>
-        </form>
-    </div>
-    {% endcomment %}
-
     {% if submitted %}
-        {% if query_summary %}
+        {% if query_summary_interactive %}
             <p class='breadcrumb' id="search-breadcrumb">
                 <span id="auto-scroll"></span>
                 You are searching for:
-                {{ query_summary|truncatechars:200 }}
+                {{ query_summary_interactive|safe }}
             </p>
         {% endif %}
-
+        
         {% if not is_empty %}
+            {% if can_edit %}
+                <div id="switcher" class='pull-right'>
+                    <label for="toggle-annotations-mode">Annotating mode</label>
+                    <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" 
+                            type="checkbox" {% if annotation_mode == "1" %}checked="checked" {% endif %} />
+                </div>
+            {% endif %}
+
             <ul class="nav nav-tabs" id='result-types-switch'>
                 {% for type in types %}
                     <li class="{% if result_type == type.key %}active{% else %}{% if type.count == 0 %}disabled{% endif %}{% endif %}">
-                        <a 
-                            href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}' 
-                            data-toggle="tab" 
+                        <a
+                            href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}'
+                            data-toggle="tab"
                             {% if type.count > -1 %}data-target="#{{ type.key }}"{% endif %}
                         >
                             {{ type.label }}
-                            {% if type.count > -1 %} 
+                            {% if type.count > -1 %}
                                 ({{type.count|default:'0'}})
                             {% endif %}
                         </a>
                     </li>
                 {% endfor %}
             </ul>
-
             <div class='tabbable'>
                 <div id='result-tab-content' class='tab-content'>
                     {% for type in types %}
@@ -134,17 +129,21 @@
                                 <div class="row">
 
                                     <div class="col-md-10">
+                                        {% chrono "pagination:" %}
+                                    
                                         {% reset_recordids as recordids %}
                                         {% if type.results_are_recordids %}
                                             {% autopaginate type.queryset type.get_page_size as recordids %}
                                             {% get_records_from_ids type recordids as records %}
                                         {% else %}
                                             {% reset_recordids as records %}
-                                            {% autopaginate type.queryset type.get_page_size as records %}                                    
+                                            {% autopaginate type.queryset type.get_page_size as records %}
                                         {% endif %}
-        
+
+                                        {% chrono ":pagination" %}
+
                                         {% filter update_query_params:type.result_type_qs %}
-                                            {% paginate %}
+                                            {% include "pagination/pagination_with_size.html" %}
                                         {% endfilter %}
                                     </div>
 
@@ -152,10 +151,10 @@
                                         <div class='col-md-2' id="view-switch">
                                             <ul class="nav nav-pills">
                                                 {% for tview in type.views %}
-                                                    <li class="{% if tview.active %}active{% endif %}" 
+                                                    <li class="{% if tview.active %}active{% endif %}"
                                                         {% if tview.title %}title="{{ tview.title }}" data-toggle="tooltip"{% endif %}
                                                         >
-                                                        <a data-target="#{{ type.key }}-{{ tview.key }}" data-toggle="pill"  
+                                                        <a data-target="#{{ type.key }}-{{ tview.key }}" data-toggle="pill"
                                                             href="{% filter add_query_params:request.META.QUERY_STRING %}?view={{ tview.key }}{% endfilter %}">
                                                             {{ tview.label }}
                                                         </a>
@@ -167,7 +166,9 @@
 
                                 </div>
 
+                                {% chrono type.key %}
                                 {% include type.template_path with template_type=type.key %}
+                                {% chrono type.key %}
 
                                 {% filter update_query_params:type.result_type_qs %}
                                     {% paginate %}
@@ -186,7 +187,6 @@
         {% endif %}
 
     {% endif %}
-
 {% endblock main %}
 {% block extra_js %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -196,4 +196,14 @@
     <script type="text/javascript">
 		init_search_page({{ search_page_options_json|safe }});
     </script>
+
+    {% if can_edit %}
+        <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
+        <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+        <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+        <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
+    {% endif %}
 {% endblock %}

@@ -87,38 +87,19 @@ def plural(value, count=2):
 @register.filter
 def tag_phrase_terms(value, phrase=''):
     '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
-    import re
+    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase
 
-    # remove punctuation characters (but keep spaces and alphanums)
-    phrase = re.sub(ur'[^\w\s]+', u' ', phrase)
-
-    if len(phrase.strip()):
-
-        # get terms from the phrase
-        terms = re.split(ur'\s+', phrase.lower().strip())
-
+    terms = get_tokens_from_phrase(phrase)
+    
+    if terms:
         # Surround the occurrences of those terms in the value with a span (class="found-term")
         # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
         # e.g. 'G*' should highlight g and the rest of the word
         # Here we have a simple implementation that look for exact and complete matches only.
         # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
         #         or headings.
-        from digipal.utils import get_regexp_from_terms
-        re_terms = get_regexp_from_terms(terms)
-        if re_terms:
-            # a trick to prevent recursive substitution
-            stop_keyword = 'AAAA'
-            # The loop here is necessary because the matches overlap therefore only the last occurence is found each time
-            while True:
-                l = len(value)
-                value = re.sub(ur'(?iu)(>[^<]*)('+re_terms+ur')', ur'\1<span class="found-term">\2' + stop_keyword + ur'</span>', u'>'+value)
-                value = value[1:]
-                if len(value) == l: break
-            value = value.replace(stop_keyword, '')
-
-        #for term in terms:
-        #    value = re.sub(ur'(?iu)(>[^<]*)\b('+re.escape(term)+ur')\b', ur'\1<span class="found-term">\2</span>', u'>'+value)
-        #    value = value[1:]
+        for re_term in get_regexp_from_terms(terms, True):
+            value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
 
     return value
 
@@ -188,7 +169,10 @@ def annotation_img(annotation, *args, **kwargs):
 
         See iip_img() for more information
     '''
-    return img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+    ret = u''
+    if annotation:
+        ret = img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+    return ret
 
 @register.simple_tag
 def img(src, *args, **kwargs):
@@ -200,6 +184,10 @@ def img(src, *args, **kwargs):
 
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
+
+    for k, v in kwargs.iteritems():
+        if k.startswith('a_'):
+            more += ur' %s="%s" ' % (k[2:].replace('_', '-'), escape(v))
 
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
@@ -258,3 +246,23 @@ def dp_pagination_for(context, current_page):
     ret = paginate(context)
       
     return ret
+
+@register.simple_tag
+def render_mezzanine_page(page_title, *args, **kwargs):
+    '''
+        Usage: {% render_mezzanine_page 'TITLE' %}
+        
+        Returns the content of the Mezzanine page with title TITLE.
+        The output is a string already marked as safe.
+    '''
+    ret = ''
+    from mezzanine.pages.models import Page
+    pages = Page.objects.filter(title=page_title)
+    if pages.count():
+        page = pages[0]
+        rtp = page.get_content_model()
+        if rtp:
+            ret = rtp.content
+    return ret
+
+    

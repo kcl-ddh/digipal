@@ -3,7 +3,7 @@
  * will become draggable to a basket. The element must have an data-id attribute
  * which contains the ID of the digipal image record to add to the basket.
  *
- * Requires a <div id="basket_collector"> that will serves as a drop target
+ * Requires a <div id="basket_collector"> that will serve as a drop target
  * which is made visible as soon as we start dragging an item.
  *
  * Dependency: add_to_lightbox.js
@@ -34,8 +34,6 @@ $(document).ready(function() {
 
 			}, 3000);
 
-			$('html, body').css('cursor', 'initial');
-
 		},
 
 		out: function() {
@@ -47,6 +45,7 @@ $(document).ready(function() {
 		}
 	});
 
+	var switcher = $('#toggle-annotations-mode');
 	var images = $('a.droppable_image');
 	images.draggable({
 		containment: false,
@@ -55,9 +54,15 @@ $(document).ready(function() {
 		scroll: false,
 		zIndex: 1001,
 		start: function(event) {
+			if (switcher.length && switcher.bootstrapSwitch('state')) {
+				$('html, body').css('cursor', 'initial');
+				return false;
+			}
 			basket_collector.animate({
 				bottom: '0'
 			}, 350);
+
+			$(event.target).find('.drag_caption').hide();
 			//event.stopPropagation();
 		},
 
@@ -67,6 +72,8 @@ $(document).ready(function() {
 					bottom: '-28%'
 				}, 350);
 			}, 500);
+
+			$(event.target).find('.drag_caption').show();
 			//event.stopPropagation();
 		}
 	});

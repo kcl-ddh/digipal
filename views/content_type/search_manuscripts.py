@@ -1,8 +1,17 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
+from django.conf import settings
+
+from digipal.utils import sorted_natural
+class FilterManuscripts(forms.Form):
+    index = get_form_field_from_queryset(sorted_natural(
+                            '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
+                        ), 'Catalogue Number')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')
 
 class SearchManuscripts(SearchContentType):
 
@@ -11,15 +20,44 @@ class SearchManuscripts(SearchContentType):
 
         ret = super(SearchManuscripts, self).get_fields_info()
         ret['locus'] = {'whoosh': {'type': self.FT_CODE, 'name': 'locus'}}
-        ret['current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
-        ret['current_item__repository__place__name, current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
+        ret['subdivisions__current_item__shelfmark current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
+        
+        ret['subdivisions__current_item__repository__place__name subdivisions__current_item__repository__name current_item__repository__place__name current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
         ret['historical_items__itemorigin__place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
         ret['historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
         # Boosting set to 0.3 so a 'Vespasian' will rank record with Vespasian shelfmark higher than those that have it in the description.
         ret['historical_items__description__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.2}, 'long_text': True}
-        ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}
+
+        ret['hands__scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
+        
+        # MS
+        ret['group__historical_items__name, historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+        
+        # Hand
+        ret['hands__assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
+        ret['hands__assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
+        ret['hands__script__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'script'}, 'advanced': True}
+        
+        # Scribe
+        ret['hands__scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}
+        ret['hands__scribe__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
+        
         return ret
 
+    def get_headings(self):
+        ret = [
+                    {'label': 'Index', 'key': 'index', 'is_sortable': False},
+                    {'label': 'Repository', 'key': 'repository', 'is_sortable': True, 'title': 'Repository and Shelfmark'},
+                    {'label': 'Shelfmark', 'key': 'shelfmark', 'is_sortable': False},
+                    {'label': 'Folio(s)', 'key': 'folio', 'is_sortable': False},
+                    {'label': 'Description', 'key': 'description', 'is_sortable': False},
+                ]
+        return getattr(settings, 'SEARCH_ITEM_PART_HEADINGS', ret)
+    
+    def get_default_ordering(self):
+        return 'repository'
+    
     def get_sort_fields(self):
         ''' returns a list of django field names necessary to sort the results '''
         return ['current_item__repository__place__name', 'current_item__repository__name', 'current_item__shelfmark', 'locus']
@@ -88,9 +126,11 @@ class SearchManuscripts(SearchContentType):
         ret = 'List of manuscripts with images'
         return ret
 
-    @property
-    def form(self):
-        return FilterManuscripts()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterManuscripts(initials)
 
     @property
     def key(self):
@@ -135,6 +175,9 @@ class SearchManuscripts(SearchContentType):
         self._queryset = query_manuscripts.distinct().order_by('folio_number', 'historical_items__catalogue_number', 'id')
 
         return self._queryset
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('current_item').prefetch_related('historical_items__catalogue_numbers', 'historical_items__description_set', 'images', 'current_item__repository').in_bulk(recordids)
 
     def get_records_from_ids(self, recordids):
         ret = super(SearchManuscripts, self).get_records_from_ids(recordids)
@@ -145,7 +188,7 @@ class SearchManuscripts(SearchContentType):
         # If no match at all, we use the normal description selection.
         whoosh_dict = self.get_whoosh_dict()
         for record in ret:
-            # Shoosh snippets temporary disabled, see reason below
+            # Whoosh snippets temporary disabled, see reason below
             if 0:
                 description = record.historical_item.get_display_description().description
                 if whoosh_dict:
@@ -167,7 +210,7 @@ class SearchManuscripts(SearchContentType):
                         description, location = historical_item.get_display_description(), 0
                     # get the description text
                     if description:
-                        text = description.description
+                        text = description.get_description_plain_text()
                         # truncate around the location
                         record.description_snippet = self._truncate_text(text, location, snippet_length)
                         # add the description author (e.g. ' (G.)' for Gneuss)
@@ -184,14 +227,16 @@ class SearchManuscripts(SearchContentType):
         '''
         desc = None
         location = 0
-        terms = [t.lower() for t in self._get_query_terms() if t not in [u'or', u'and', u'not']]
+        #terms = [t.lower() for t in self._get_query_terms() if t not in [u'or', u'and', u'not']]
         from digipal.utils import get_regexp_from_terms
+        #terms = get_tokens_from_phrase(descriptions)
+        terms = self._get_query_terms(True)
         re_terms = get_regexp_from_terms(terms)
 
         if re_terms:
             # search the descriptions
             for adesc in descriptions:
-                m = re.search(ur'(?ui)' + re_terms, adesc.description)
+                m = re.search(ur'(?ui)' + re_terms, adesc.get_description_plain_text())
                 if m:
                     location = m.start()
                     desc = adesc
@@ -212,34 +257,11 @@ class SearchManuscripts(SearchContentType):
             start -= 1
         while end < len(text) and re.match(ur'\w', text[end]):
             end += 1
-        return text[start:end]
-
-from digipal.utils import sorted_natural
-class FilterManuscripts(forms.Form):
-
-    index = forms.ChoiceField(
-        choices = [("", "Catalogue Number")] + 
-                    [(cn, cn) for cn in sorted_natural(
-                            '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
-                        )
-                    ],
-        widget = Select(attrs={'id':'index-select', 'class':'chzn-select', 'data-placeholder':"Choose an Index"}),
-        label = "",
-        initial = "Catalogue Number",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()],
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        label = "",
-        initial = "Repository",
-        required = False)
-
-    date = forms.ChoiceField(
-        # TODO: order the dates
-        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct()))],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)
+            
+        ret = text[start:end].strip()
+        
+        if start > 0: ret = u'\u2026' + ret
+        if end < len(text): ret += u'\u2026'
+        
+        return ret
 

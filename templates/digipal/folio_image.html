@@ -19,7 +19,7 @@
             {% if image.annotation_set.all.count %}
                 </a>
             {% endif %}
-    
+
             {% if image.hands.all.count %}
                 <a href='{{image.get_absolute_url }}hands'>
             {% endif %}
@@ -28,11 +28,11 @@
                 </a>
             {% endif %}
         </p>
-        
+
         {% spaceless %}
             <span class="folio-image-wrapper">
                 <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
-                        <span class='drag_caption'>Drag image to collection</span>
+                         <span class='drag_caption'>Drag image to collection</span>
                         {% iip_img image width=width lazy=1 %}
                 </a>
                 <span class="button-bar">
@@ -42,7 +42,7 @@
                 </span>
             </span>
         {% endspaceless %}
-                
+
         <a href="{{ image.get_absolute_url }}">
             <span class='imageDatabase_label'>
                 {% if full_label %}

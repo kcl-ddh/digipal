@@ -1,4 +1,6 @@
 from django.conf import settings
+from django import forms
+from digipal.templatetags.hand_filters import chrono
 
 class SearchContentType(object):
     
@@ -8,6 +10,8 @@ class SearchContentType(object):
         self._queryset = None
         self._init_field_types()
         self.desired_view = ''
+        self.ordering = None
+        self.set_page_size()
         
     def is_slow(self):
         # return True if this search is noticeably slower than the other
@@ -36,9 +40,29 @@ class SearchContentType(object):
         # A title (e.g. British Library)
         self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None))
         # A code (e.g. K. 402, Royal 7.C.xii)
-        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))
+        # See JIRA 358
+        self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True))
         # An ID (e.g. 708-AB)
         self.FT_ID = ID()
+    
+    def get_headings(self):
+        return []
+
+    def get_default_ordering(self):
+        return 'relevance'
+    
+    def set_ordering(self, requested_ordering=None):
+        self.ordering = self.get_default_ordering()
+        if requested_ordering == 'relevance':
+            self.ordering = requested_ordering
+        else:
+            for heading in self.get_headings():
+                if heading['key'] == requested_ordering and heading['is_sortable']:
+                    self.ordering = requested_ordering
+                    break
+
+    def get_ordering(self):
+        return self.ordering
     
     def get_model(self):
         import digipal.models
@@ -282,8 +306,9 @@ class SearchContentType(object):
             
         return records
     
-    def write_index(self, writer, verbose=False):
+    def write_index(self, writer, verbose=False, aci={}):
         import re 
+        from django.utils.html import (conditional_escape, escapejs, fix_ampersands, escape, urlize as urlize_impl, linebreaks, strip_tags)
 
         fields = self.get_fields_info()
 
@@ -312,7 +337,17 @@ class SearchContentType(object):
                         if v is None: v = ''
                         val = val.replace(field_name, u'%s' % v)
                     if len(val):
+                        val = strip_tags(val)
+                        format = fields[k]['whoosh'].get('format', '')
+                        if format:
+                            val = format % val
                         document[fields[k]['whoosh']['name']] = val
+                        val2 = val
+                        if id(fields[k]['whoosh']['type']) not in [id(self.FT_LONG_FIELD)]:
+                            val2 += '|'
+                        #print fields[k]['whoosh']['type'].analyzer
+                        #print dir(fields[k]['whoosh']['type'].analyzer)
+                        aci[val2] = 1
                     
             if document:
                 if verbose:
@@ -384,6 +419,7 @@ class SearchContentType(object):
         return parser
     
     def get_suggestions(self, query, limit=8):
+        chrono('suggestions:')
         ret = []
         #query = query.lower()
         query_parts = query.split()
@@ -398,12 +434,70 @@ class SearchContentType(object):
         prefix = u''
         while query_parts and len(ret) < limit:
             query = u' '.join(query_parts).lower()
-            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix))
+            ret.extend(self.get_suggestions_single_query(query, limit - len(ret), prefix, ret))
             if query_parts: 
                 prefix += query_parts.pop(0) + u' '
+        chrono(':suggestions')
+        return ret
+    
+    def get_suggestions_single_query(self, query, limit=8, prefix=u'', exclude_list=[]):
+        ret = []
+
+        settings.suggestions_index = None
+        
+        if not getattr(settings, 'suggestions_index', None):
+            chrono('load:')
+            path = self.get_autocomplete_path()
+            if path:
+                import os
+                if os.path.exists(path):
+                    from digipal.management.commands.utils import readFile
+                    settings.suggestions_index = readFile(path)
+            chrono(':load')
+            
+        if not settings.suggestions_index:
+            return ret
+            
+        if query and limit > 0:
+            import re
+            from django.utils.html import strip_tags
+            phrase = query
+    
+            chrono('regexp:')
+            ret = {}
+            exclude_list_lower = [strip_tags(s.lower()) for s in exclude_list]
+            for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
+                m = m.strip('|')
+                if m[-1] == ')' and '(' not in m: m = m[:-1]
+                if m[-1] == ']' and '[' not in m: m = m[:-1]
+                if ur'%s%s' % (prefix, m.lower()) not in exclude_list_lower:
+                    ret[m.lower()] = m
+            ret = ret.values()
+            chrono(':regexp')
+
+            # sort the results by length then by character
+            chrono('sort:')
+            def comp(a,b):
+                d1 = len(a) - len(b)
+                if d1 < 0:
+                    return -1
+                if d1 > 0:
+                    return 1
+                return cmp(a, b)
+                
+            ret.sort(comp)
+            chrono(':sort')
+
+            #print ret
+            if len(ret) > limit:
+                ret = ret[0:limit]
+            
+            # Add the prefix to all the results
+            ret = [(ur'%s<strong>%s</strong>' % (prefix, r)) for r in ret]
+            
         return ret
 
-    def get_suggestions_single_query(self, query, limit=8, prefix=u''):
+    def get_suggestions_single_query_old(self, query, limit=8, prefix=u''):
         ret = []
         # TODO: set a time limit on the search.
         # See http://pythonhosted.org/Whoosh/searching.html#time-limited-searches
@@ -419,7 +513,8 @@ class SearchContentType(object):
                 # 'hand'), ('name', 'hand'), ('description', 'handsom'), 
                 # ('label', 'hand')])
                 for term_info in results.matched_terms():
-                    terms[term_info[1].title()] = 1
+                    t = term_info[1].decode('utf-8')
+                    terms[t] = 1
             self.close_whoosh_searcher()
             ret = terms.keys()
             
@@ -437,10 +532,33 @@ class SearchContentType(object):
                 ret = ret[0:limit]
             
             # Add the prefix to all the results
-            ret = [ur'%s%s' % (prefix, r.decode('utf8')) for r in ret]
+            #ret = [ur'%s%s' % (prefix, r.decode('utf8')) for r in ret]
+            ret = [(ur'%s%s' % (prefix, r)).title() for r in ret]
 
         return ret
     
+    def get_autocomplete_path(self, can_create_path=False):
+        ''' returns the path of the autocomplete index on the filesystem'''
+        ret = None
+        index_name = 'autocomplete'
+        import os.path
+        path = settings.SEARCH_INDEX_PATH
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+        path = os.path.join(path, index_name)
+        if not os.path.exists(path):
+            if can_create_path:
+                os.mkdir(path)
+            else:
+                return ret
+            
+        path = os.path.join(path, index_name + '.idx')
+
+        return path
+
     def get_whoosh_index(self, index_name='unified'):
         from whoosh.index import open_dir
         import os
@@ -459,8 +577,9 @@ class SearchContentType(object):
         
         # See http://pythonhosted.org/Whoosh/facets.html
         from whoosh import sorting
-        sortedby = [sorting.ScoreFacet(), sorting.FieldFacet("sort_order")]
-        #print query
+        sortedby = [sorting.FieldFacet("sort_order")]
+        if self.get_ordering() == 'relevance':
+            sortedby.insert(0, sorting.ScoreFacet())
         ret = self.searcher.search(query, limit=None, terms=matched_terms, sortedby=sortedby)
         
         return ret
@@ -508,13 +627,43 @@ class SearchContentType(object):
         '''
         self.desired_view = view_key
     
-    def build_queryset(self, request, term):
+    def build_queryset(self, request, term, force_search=False):
         ret = []
-        # only run slow searches if that tab is selected; always run other searches
-        if not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
+        self.set_ordering(request.GET.get('ordering'))
+        term = SearchContentType.expand_query(term)
+        # only run slow searches if that tab is selected or forced search; always run other searches
+        if force_search or not(self.is_slow()) or (request.GET.get('result_type', '') == self.key) or (request.GET.get('basic_search_type', '') == self.key):
             ret = self._build_queryset(request, term)
         return ret
+    
+    @classmethod
+    def get_term_expansions(cls):
+        # load expansions and cache them
+        expansions = getattr(cls, 'expansions', {})
+        if not expansions:
+            # load from DB
+            from digipal.models import Repository
+            for repo in Repository.objects.all():
+                if repo.short_name and (repo.short_name == repo.short_name.upper()):
+                    expansions[repo.short_name] = repo.human_readable()
+            cls.expansions = expansions
         
+        return expansions
+        
+    @classmethod
+    def expand_query(cls, query):
+        ''' Expand terms in the query. E.g. BL => British Library'''
+        # TODO: don't expand if surrounded by quotes
+        # TODO: expand place name? otherwise it may be ambiguous (e.g. CCCC == OCCC)
+        
+        expansions = cls.get_term_expansions()
+        
+        # expand
+        import re
+        for k in expansions:
+            query = re.sub(ur'\b(%s)\b' % re.escape(k), ur'(\1 OR "%s")' % expansions[k], query)
+        
+        return query
 
     def _build_queryset(self, request, term):
         '''
@@ -574,7 +723,7 @@ class SearchContentType(object):
             # filter the content type (e.g. manuscripts) and other whoosh fields
             query = ur''
             if term or query_advanced:
-                query = (ur'%s %s type:%s' % (term, query_advanced, self.key)).strip()
+                query = (ur'%s %s' % (term, query_advanced)).strip()
             query = (query + ur' type:%s' % self.key).strip()
 
             # Run the search
@@ -631,17 +780,29 @@ class SearchContentType(object):
     def results_are_recordids(self):
         return True
     
+    def set_page_size(self, page_size=10):
+        self.page_size = page_size
+    
     def get_page_size(self):
-        return 10
+        return self.page_size
+    
+    def bulk_load_records(self, recordids):
+        '''Read all the records from the database
+            This can be overridden to significantly optimise the template 
+            rendering by pre-fetching the related records.  
+        '''
+        return (self.get_model()).objects.in_bulk(recordids)
 
     def get_records_from_ids(self, recordids):
         # TODO: preload related objects?
         # Fetch all the records from the DB
-        records = (self.get_model()).objects.in_bulk(recordids)
+        records = self.bulk_load_records(recordids)
         # Make sure they are in the desired order
         # 'if id in records' is important because of ghost recordids 
         # returned by a stale whoosh index.
+        chrono('group:')
         ret = [records[id] for id in recordids if id in records]
+        chrono(':group')
         return ret
     
     def get_whoosh_dict(self):
@@ -651,17 +812,53 @@ class SearchContentType(object):
         '''
         return getattr(self, 'whoosh_dict', None)
 
-    def _get_query_terms(self):
-        phrase = self.query_phrase
-        # remove punctuation characters (but keep spaces and alphanums)
-        import re
-        phrase = re.sub(ur'[^\w\s]', u'', phrase)
-    
-        # get terms from the phrase
-        terms = re.split(ur'\s+', phrase.lower().strip())
-        return terms
+    def _get_query_terms(self, lowercase=False):
+        '''
+            Returns a list of tokens found in the search query. 
+        '''
+        from digipal.utils import get_tokens_from_phrase
+        ret = get_tokens_from_phrase(self.query_phrase, lowercase)
+        return ret        
     
 class QuerySetAsList(list):
     def count(self):
         return len(self) 
 
+from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
+from django.template.defaultfilters import slugify
+def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid=None, other_choices=[]):
+    ''' Returns a choice field from a set of values
+        If is_model_choice_field is True a forms.ModelChoiceField is returned, 
+        otherwise a forms.ChoiceField is returned.
+        Note that forms.ModelChoiceField will run the query each time the form is rendered.
+        Whereas forms.ChoiceField will have its choices effectively cached for the whole 
+        duration of the web application lifetime. Which is more efficient but might be
+        an issue if the applicaiton is not restarted after a database update.
+    '''
+    label_prefix = 'a'
+    if label[0] in ['a', 'e', 'i', 'o', 'u', 'y']:
+        label_prefix = 'an'
+        
+    if not aid:
+        aid = '%s-select' % slugify(label)
+        
+    options = {
+                'widget': Select(attrs={'id': aid, 'class':'chzn-select', 'data-placeholder': 'Choose %s %s' % (label_prefix, label)}),
+                'label': '',
+                'required': False,                                
+               }
+    if is_model_choice_field:
+        ret = forms.ModelChoiceField(
+            #queryset = Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(),
+            queryset = values,
+            empty_label = label,
+            **options
+        )
+    else:
+        ret = forms.ChoiceField(
+            #choices = [('', 'Date')] + [(d, d) for d in list(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct())],
+            choices = [('', label)] + other_choices + [(d, d) for d in values],
+            initial = label,
+            **options
+        )
+    return ret

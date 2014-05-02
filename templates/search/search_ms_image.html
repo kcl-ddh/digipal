@@ -34,7 +34,7 @@
         <p class='breadcrumb' id="search-breadcrumb">
             <span id="auto-scroll"></span>
             You are searching for:
-            {{ query_summary|truncatechars:200 }}
+            {{ query_summary_interactive|safe }}
         </p>
     {% endif %}
 

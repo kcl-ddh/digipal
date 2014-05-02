@@ -2,6 +2,9 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from mezzanine.core.views import direct_to_template
 from views.facet import facet_search
+from patches import mezzanine_patches
+# apply mezzanine patches at this stage. Before that would be troublesome (importing mezzanine would reimport digipal, etc)
+mezzanine_patches()
 
 urlpatterns = patterns('digipal.views.annotation',
                        #(r'^page/$', ListView.as_view(
@@ -13,22 +16,40 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<image_id>\d+)/vectors/$', 'image_vectors'),
                        (r'^page/(?P<image_id>\d+)/annotations/$', 'image_annotations'),
                        (r'^page/(?P<image_id>\d+)/image_allographs/$', 'image_allographs'),
-                       (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/(?P<character_id>\d+)/allographs_by_graph/$', 'get_allographs_by_graph'),
+                       (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/allographs_by_graph/$', 'get_allographs_by_graph'),
                        (r'^page/(?P<image_id>\d+)/allographs/(?P<allograph_id>\d+)/(?P<character_id>\d+)/allographs_by_allograph/$', 'get_allographs_by_allograph'),
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
                        (r'^page/(?P<image_id>\d+)/hands_list/$', 'hands_list'),
-                       (r'^page/(?P<image_id>\d+)/allograph/(?P<allograph_id>\d+)/features/$',
-                        'allograph_features'),
-                       (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/features/$', 'get_features'),
 
-                       (r'^page/(?P<image_id>\d+)/save/(?P<vector_id>[a-zA-Z\._0-9]+)/',
+                       (r'^api/(?P<content_type>[a-zA-Z]+)/(?P<id>([0-9])+((,)*([0-9])*)*)/(?P<only_features>(features)*)$', 'get_content_type_data'),
+
+                       (r'^api/graph/save/(?P<graphs>.+)/',
                         'save'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
-                       url(r'^collection/$', direct_to_template, {
-                          'template': 'digipal/lightbox_basket.html'
+                       (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$',
+                        'form_dialog'),
+                       (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$',
+                        'get_vector'),
+                        (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/$', direct_to_template, {
+                          'template': 'digipal/collection.html',
+                          'extra_context': {
+                                'LIGHTBOX': settings.LIGHTBOX,
+                          }
                         }),
-                       (r'^collection/images/$',
+                       (r'^collection/shared/1/$', direct_to_template, {
+                          'template': 'digipal/collection.html',
+                          'extra_context': {
+                                'LIGHTBOX': settings.LIGHTBOX,
+                          }
+                        }),
+                       (r'^collection/$', direct_to_template, {
+                          'template': 'digipal/lightbox_basket.html',
+                           'extra_context': {
+                                'LIGHTBOX': settings.LIGHTBOX,
+                            }
+                        }),
+                       (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/images/$',
                         'images_lightbox'),
                        )
 
@@ -53,8 +74,6 @@ urlpatterns += patterns('digipal.views.admin.image',
                        (r'admin/newscriptentry/save_idiograph', 'save_idiograph'),
                        (r'admin/newscriptentry/update_idiograph', 'update_idiograph'),
                        (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
-
-
                        )
 
 urlpatterns += patterns('digipal.views.admin.stewart',
@@ -66,6 +85,9 @@ if settings.DEBUG:
     urlpatterns += patterns('digipal.views.test',
                            (r'test/cookied_inputs/$', 'cookied_inputs'),
                            (r'test/iipimage/$', 'iipimage'),
+                           (r'test/similar_graph/$', 'similar_graph_view'),
+                           (r'test/map/$', 'map_view'),
+                           (r'test/autocomplete/$', 'autocomplete_view'),
                            )
 
 urlpatterns += patterns('haystack.views',

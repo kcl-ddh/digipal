@@ -36,6 +36,9 @@ def show_help():
          
      cs
          Collectstatic
+        
+     st
+         status
          
 Options:
 
@@ -89,6 +92,43 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         dir = os.getcwd()
+        
+        if command == 'st':
+            known_command = True
+            
+            try:
+                out = {}
+
+                # GIT
+                os.chdir('digipal')
+                system('git status', '', False, '', out)
+                
+                branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
+                has_local_change = (out['output'].find('modified:') > -1)
+                
+                status = branch
+                if has_local_change:
+                    status += ' (%s)' % 'LOCAL CHANGES'
+                
+                print 'digipal: %s ' % (status,)
+                
+                os.chdir(dir)
+                
+                # HG          
+                system('hg sum', '', False, '', out)
+                
+                branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
+                parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
+                modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
+                has_local_change = (len(modified) != len(out['output']))                  
+
+                status = '%s, %s' % (branch, parent)
+                if has_local_change:
+                    status += ' (%s)' % 'LOCAL CHANGES'
+                
+                print 'digipal_django: %s ' % (status,)
+            finally:
+                os.chdir(dir)          
         
         if command == 'hgsub':
             known_command = True
@@ -151,7 +191,10 @@ def process_commands_main_dir():
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
                 os.chdir('digipal')
-                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
+                git_status_info = {}
+                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.', git_status_info)
+                branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])
+                
                 system('git pull', validation_git)
                 os.chdir(dir)
                 
@@ -192,6 +235,9 @@ def process_commands_main_dir():
                 print '> Validate'
                 system('python manage.py validate', r'0 errors found', True)
                                             
+                print '> Update build info'
+                system('python manage.py dpdb setbuild --branch "%s"' % branch_name)
+
                 if os.name != 'nt':
                     print '> Touch WSGI'
                     run_shell_command(['touch', '%s/wsgi.py' % get_hg_folder_name()])

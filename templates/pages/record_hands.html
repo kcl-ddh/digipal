@@ -1,6 +1,6 @@
 {% extends "pages/record.html" %}
 {% load pages_tags mezzanine_tags i18n %}
-{% load mezzanine_tags pagination_tags hand_filters %}
+{% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
 {% block meta_title %}Hand: {{ result }}{% endblock %}
 {% block record_title %}
@@ -58,13 +58,16 @@
             </div>
 
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
-                {% if result.description %}
-                    <div>
-                        {{ result.description|tei }}
-                    </div>
-                {% else %}
+                {% for description in result.descriptions.all %}
+                    <p>
+                        {% filter tag_phrase_terms:terms %}
+                            {{ description.description|tei }}
+                        {% endfilter %}
+                        ({{ description.source.get_display_reference }})
+                    </p>
+                {% empty %}
                     {% include "digipal/empty_tab.html" with type="description" %}
-                {% endif %}
+                {% endfor %}
             </div>
 
             {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
@@ -82,5 +85,16 @@
 
 {% block extra_js %}
 <script src='{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js'></script>
-<script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+{% if can_edit %}
+    <script src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
+    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+    <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+    <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
+{% else %}
+    <script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>
+{% endif %}
 {% endblock %}

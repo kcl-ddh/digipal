@@ -3,14 +3,17 @@
 from django.contrib.auth.decorators import login_required
 from django.core import urlresolvers
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-import sys
+import sys, re
+from django import template
+from django.template import Context
 from django.utils.safestring import mark_safe
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 from digipal.forms import ImageAnnotationForm
@@ -19,49 +22,112 @@ from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         has_edit_permission
 import ast
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
 
+def get_content_type_data(request, content_type, id, only_features=False):
 
-def get_features(request, image_id, graph_id, return_request=True):
-    dict_features = []
-    graph_components = GraphComponent.objects.filter(graph_id = graph_id)
-    for component in graph_components.values_list('id', flat=True):
-        name_component = Component.objects.filter(graphcomponent=component)
-        dict_features.append({'id': component, 'name': name_component.values('name')[0]['name'], 'feature': []})
-    for feature in dict_features:
-        features = Feature.objects.filter(graphcomponent = feature['id']).values_list('name',  flat=True)
-        feature['feature'].append(features)
-        for f in feature['feature']:
-            feature['feature'] = list(f)
-    if return_request:
-        return HttpResponse(simplejson.dumps(dict_features), mimetype='application/json')
-    else:
-        return dict_features
+    ids = str(id)
+    if content_type == 'graph':
+        data = get_features(ids, only_features)
+    elif content_type == 'allograph':
+        data = allograph_features(request, ids)
+    elif content_type == 'hand':
+        data = get_hands(ids)
+    return HttpResponse(data, mimetype='application/json')
 
-def allograph_features(request, image_id, allograph_id):
+def get_features(graph_id, only_features=False):
+    data = []
+    graphs = str(graph_id).split(',')
+    allographs_cache = []
+    for graph in graphs:
+        obj = {}
+        dict_features = list([])
+        g = Graph.objects.get(id=graph)
+        a = g.idiograph.allograph.id
+        graph_components = g.graph_components
+
+        if not only_features and not a in allographs_cache:
+            allograph = allograph_features(False, a)
+            obj['allographs'] = allograph
+            allographs_cache.append(a)
+
+        vector_id = g.annotation.vector_id
+        hand_id = g.hand.id
+        allograph_id = g.idiograph.allograph.id
+        image_id = g.annotation.image.id
+        hands_list = []
+        item_part = g.annotation.image.item_part.id
+        hands = g.annotation.image.hands.all()
+
+        for hand in hands:
+            h = {
+                'id': hand.id,
+                'label': hand.label
+            }
+            hands_list.append(h)
+
+        for component in graph_components.values_list('id', flat=True):
+            name_component = Component.objects.filter(graphcomponent=component)
+            dict_features.append({"graph_component_id": component, 'component_id': name_component.values('id')[0]['id'], 'name': name_component.values('name')[0]['name'], 'feature': []})
+
+        for feature in dict_features:
+            features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
+            if len(features) > 0:
+                feature['feature'].append(features)
+                for f in feature['feature']:
+                    feature['feature'] = list(f)
+
+
+        obj['features'] = dict_features
+        obj['vector_id'] = vector_id
+        obj['image_id'] = image_id
+        obj['hand_id'] = hand_id
+        obj['allograph_id'] = allograph_id
+        obj['hands'] = hands_list
+        obj['graph'] = g.id
+        obj['item_part'] = item_part
+        data.append(obj)
+
+    return simplejson.dumps(data)
+
+
+def allograph_features(request, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
     by component."""
-    allograph = Allograph.objects.get(id=allograph_id)
-    allograph_components = \
-            AllographComponent.objects.filter(allograph=allograph)
-
+    allographs = str(allograph_id).split(',')
+    obj = {}
     data = []
 
-    if allograph_components:
-        for ac in allograph_components:
-            ac_dict = {}
-            ac_dict['id'] = ac.component.id
-            ac_dict['name'] = ac.component.name
-            ac_dict['features'] = []
+    for allograph in allographs:
+        allog = Allograph.objects.get(id=allograph)
+        allograph_components = \
+            AllographComponent.objects.filter(allograph=allog)
 
-            for f in ac.component.features.all():
-                ac_dict['features'].append({'id': f.id, 'name': f.name})
+        allographs_list = []
 
-            data.append(ac_dict)
+        if allograph_components:
+            for ac in allograph_components:
+                ac_dict = {}
+                ac_dict['id'] = ac.component.id
+                ac_dict['name'] = ac.component.name
+                ac_dict['features'] = []
+                ac_dict['default'] = []
+                for f in ac.component.features.all():
+                    ac_dict['features'].append({'id': f.id, 'name': f.name})
+                    if f.componentfeature_set.all()[0].set_by_default:
+                        ac_dict['default'].append({'component': f.componentfeature_set.all()[0].component.id, 'feature': f.componentfeature_set.all()[0].feature.id})
+                allographs_list.append(ac_dict)
+        obj['features'] = []
+        obj['allographs'] = allographs_list
+        data.append(obj)
 
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    if request:
+        return simplejson.dumps(data)
+    else:
+        return allographs_list
 
 def image(request, image_id):
     """Returns a image annotation form."""
@@ -119,7 +185,7 @@ def image(request, image_id):
 
     width, height = image.dimensions()
     image_server_url = image.zoomify
-
+    zoom_levels = settings.ANNOTATOR_ZOOM_LEVELS
     is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
@@ -133,6 +199,7 @@ def image(request, image_id):
                'no_image_reason': image.get_media_unavailability_reason(request.user),
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
+               'zoom_levels': zoom_levels,
                'repositories': Repository.objects.filter(currentitem__itempart__images=image_id)
                }
 
@@ -142,7 +209,7 @@ def image(request, image_id):
     return render_to_response('digipal/image_annotation.html', context,
                               context_instance=RequestContext(request))
 
-def get_allograph(request, graph_id, image_id):
+def get_allograph(request, graph_id):
     """Returns the allograph id of a given graph"""
     g = Graph.objects.get(id=graph_id)
     allograph_id = g.idiograph.allograph_id
@@ -168,6 +235,13 @@ def image_vectors(request, image_id):
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
+def get_vector(request, image_id, graph):
+    annotation = Annotation.objects.get(graph=graph)
+    data = {}
+    data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
+    data['id'] = annotation.vector_id
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
 
@@ -187,8 +261,8 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
-        features_list = get_features(request, a.image.id, a.graph_id, False)
-        data[a.id]['num_features'] = len(features_list)
+        features_list = simplejson.loads(get_features(a.graph.id, True))
+        data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
         #hands.append(data[a.id]['hand'])
 
@@ -226,9 +300,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     else:
         return data
 
-def get_allographs_by_graph(request, image_id, character_id, graph_id):
+def get_allographs_by_graph(request, image_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
+        character_id = graph.idiograph.allograph.character.id
         annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__id=character_id, image=image_id)
         annotations_list = []
         if annotations:
@@ -298,6 +373,14 @@ def hands_list(request, image_id):
         hands.append(h.display_label)
     return HttpResponse(simplejson.dumps(hands), mimetype='application/json')
 
+def get_hands(hands):
+    hands_list = []
+    hands = str(hands).split(',')
+    for h in hands:
+        hand = Hand.objects.filter(id=h)
+        hands_list.append(hand.values())
+    return hands_list
+
 def image_metadata(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
@@ -311,7 +394,7 @@ def image_metadata(request, image_id):
 
 def image_copyright(request, image_id):
     context = {}
-    image = Image.objects.get(id=image_id)
+    #image = Image.objects.get(id=image_id)
     #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
     #context['copyright'] = repository.values_list('copyright_notice', flat = True)
     # TODO: check this path
@@ -320,135 +403,190 @@ def image_copyright(request, image_id):
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-def images_lightbox(request):
-    if request.is_ajax():
-        if 'data' in request.POST and request.POST.get('data', ''):
-            graphs = simplejson.loads(request.POST.get('data', ''))
-            data = {}
-
-            if 'annotations' in graphs:
-                annotations = []
-                for graph in graphs['annotations']:
+@ensure_csrf_cookie
+def images_lightbox(request, collection_name):
+    data = {}
+    if 'data' in request.POST and request.POST.get('data', ''):
+        graphs = simplejson.loads(request.POST.get('data', ''))
+        if 'annotations' in graphs:
+            annotations = []
+            for graph in graphs['annotations']:
+                try:
+                    annotation = Annotation.objects.get(graph=graph)
+                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:
-                        annotation = Annotation.objects.get(graph=graph)
-                        #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
-                        try:
-                            scribe = annotation.graph.hand.scribe.name
-                            scribe_id = annotation.graph.hand.scribe.id
-                            place_name = annotation.graph.hand.assigned_place.name
-                            date = annotation.graph.hand.assigned_date.date
-                        except:
-                            scribe = 'Unknown'
-                            scribe_id = 'Unknown'
-                            place_name = 'Unknown'
-                            date = 'Unknown'
-                        annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
-
+                        scribe = annotation.graph.hand.scribe.name
+                        scribe_id = annotation.graph.hand.scribe.id
+                        place_name = annotation.graph.hand.assigned_place.name
+                        date = annotation.graph.hand.assigned_date.date
                     except:
-                        continue
+                        scribe = 'Unknown'
+                        scribe_id = 'Unknown'
+                        place_name = 'Unknown'
+                        date = 'Unknown'
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
 
-                data['annotations'] = annotations
-            if 'images' in graphs:
-                images = []
-                for img in graphs['images']:
-                    image = Image.objects.get(id=img)
-                    images.append([image.thumbnail(), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
-                data['images'] = images
-            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+                except:
+                    continue
+
+            data['annotations'] = annotations
+        if 'images' in graphs:
+            images = []
+            for img in graphs['images']:
+                image = Image.objects.get(id=img)
+                images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+            data['images'] = images
+
+    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+
+def form_dialog(request, image_id):
+    image = Image.objects.get(id=image_id)
+    form = ImageAnnotationForm(auto_id=False)
+    form.fields['hand'].queryset = image.hands.all()
+    return render_to_response('digipal/dialog.html', {'form': form}, context_instance=RequestContext(request))
 
 @login_required
 @transaction.commit_manually
-def save(request, image_id, vector_id):
+def save(request, graphs):
+
     """Saves an annotation and creates a cutout of the annotation."""
-    try:
-        data = {'success': False}
 
-        image = Image.objects.get(id=image_id)
-
-        get_data = request.GET.copy()
-        geo_json = get_data['geo_json']
-
-        annotation_list = Annotation.objects.filter(image=image,
-                vector_id=vector_id)
-
-        if annotation_list:
-            annotation = annotation_list[0]
-            graph = annotation.graph
-        else:
-            annotation = Annotation(image=image, vector_id=vector_id)
-            graph = Graph()
-
-        form = ImageAnnotationForm(data=get_data)
-
-        if form.is_valid():
-            clean = form.cleaned_data
-
-            annotation.geo_json = geo_json
-            annotation.display_note = clean['display_note']
-            annotation.internal_note = clean['internal_note']
-            annotation.author = request.user
-            #annotation.before = clean['before']
-            #annotation.after = clean['after']
-
-            allograph = clean['allograph']
-            hand = clean['hand']
-            scribe = hand.scribe
-
-            idiograph_list = Idiograph.objects.filter(allograph=allograph,
-                    scribe=scribe)
-
-            if idiograph_list:
-                idiograph = idiograph_list[0]
-                idiograph.id
-            else:
-                idiograph = Idiograph(allograph=allograph, scribe=scribe)
-                idiograph.save()
-
-            graph.idiograph = idiograph
-            graph.hand = hand
-
-            graph.save() # error is here
-
-            feature_list = get_data.getlist('feature')
-            graph.graph_components.all().delete()
-
-            if feature_list:
-
-                for value in feature_list:
-                    cid, fid = value.split('::')
-
-                    component = Component.objects.get(id=cid)
-                    feature = Feature.objects.get(id=fid)
-                    gc_list = GraphComponent.objects.filter(graph=graph,
-                            component=component)
-
-                    if gc_list:
-                        gc = gc_list[0]
-                    else:
-                        gc = GraphComponent(graph=graph, component=component)
-
-                    gc.save()
-                    gc.features.add(feature)
-                    gc.save()
-
-            annotation.graph = graph
-
-            # attach the graph to a containing one
-            annotation.set_graph_group()
-
-            annotation.save()
-
-            transaction.commit()
-            data['success'] = True
-        else:
-            transaction.rollback()
-            data['errors'] = get_json_error_from_form_errors(form)
-    except Exception as e:
+    if settings.REJECT_HTTP_API_REQUESTS:
         transaction.rollback()
-        data['errors'] = ['Internal error: %s' % e.message]
-        #tb = sys.exc_info()[2]
+        raise Http404
+    else:
 
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        data = {
+            'success': False,
+            'graphs': []
+        }
+
+        try:
+
+            graphs = graphs.replace('/"', "'")
+            graphs = simplejson.loads(graphs)
+
+            for gr in graphs:
+                graph_object = False
+
+                if 'id' in gr:
+                    graph_object = Graph.objects.get(id=gr['id'])
+
+                image = Image.objects.get(id=gr['image'])
+                if graph_object:
+                    annotation = graph_object.annotation
+                    graph = graph_object
+                else:
+                    graph = Graph()
+                    annotation = Annotation(image=image, vector_id=gr['vector_id'])
+
+                get_data = request.GET.copy()
+
+                if 'geoJson' in gr:
+                    geo_json = str(gr['geoJson'])
+                else:
+                    geo_json = False
+
+
+                form = ImageAnnotationForm(data=get_data)
+                if form.is_valid():
+                    clean = form.cleaned_data
+                    if geo_json:
+                        annotation.geo_json = geo_json
+                    annotation.display_note = clean['display_note']
+                    annotation.internal_note = clean['internal_note']
+                    annotation.author = request.user
+                    #annotation.before = clean['before']
+                    #annotation.after = clean['after']
+
+                    allograph = clean['allograph']
+                    hand = clean['hand']
+                    if hand and allograph:
+
+                        scribe = hand.scribe
+
+                        # GN: if this is a new Graph, it has no idiograph yet, so we test this first
+                        if graph.id and (allograph != graph.idiograph.allograph.id):
+                            graph.graph_components.all().delete()
+
+                        idiograph_list = Idiograph.objects.filter(allograph=allograph,
+                                scribe=scribe)
+
+                        if idiograph_list:
+                            idiograph = idiograph_list[0]
+                            idiograph.id
+                        else:
+                            idiograph = Idiograph(allograph=allograph, scribe=scribe)
+                            idiograph.save()
+
+                        graph.idiograph = idiograph
+                        graph.hand = hand
+
+                        graph.save() # error is here
+                    feature_list_checked = get_data.getlist('feature')
+                    feature_list_unchecked = get_data.getlist('-feature')
+
+
+                    if feature_list_unchecked:
+
+                        for value in feature_list_unchecked:
+
+                            cid, fid = value.split('::')
+
+                            component = Component.objects.get(id=cid)
+                            feature = Feature.objects.get(id=fid)
+                            gc_list = GraphComponent.objects.filter(graph=graph,
+                                    component=component)
+
+                            if gc_list:
+                                gc = gc_list[0]
+                                gc.features.remove(feature)
+                                gc.save()
+
+                                if not gc.features.all():
+                                    gc.delete()
+
+                    if feature_list_checked:
+
+                        for value in feature_list_checked:
+
+                            cid, fid = value.split('::')
+
+                            component = Component.objects.get(id=cid)
+                            feature = Feature.objects.get(id=fid)
+                            gc_list = GraphComponent.objects.filter(graph=graph,
+                                    component=component)
+
+                            if gc_list:
+                                gc = gc_list[0]
+                            else:
+                                gc = GraphComponent(graph=graph, component=component)
+                                gc.save()
+
+                            gc.features.add(feature)
+                            gc.save()
+
+                    # attach the graph to a containing one
+                    annotation.set_graph_group()
+                    annotation.graph = graph
+                    annotation.save()
+                    new_graph = simplejson.loads(get_features(annotation.graph.id))
+                    data['graphs'].append(new_graph[0])
+
+                    transaction.commit()
+                    data['success'] = True
+                else:
+                    transaction.rollback()
+                    data['success'] = False
+                    data['errors'] = get_json_error_from_form_errors(form)
+
+        except Exception as e:
+            transaction.rollback()
+            data['success'] = False
+            data['errors'] = ['Internal error: %s' % e.message]
+            #tb = sys.exc_info()[2]
+
+        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 
 def get_json_error_from_form_errors(form):
@@ -464,6 +602,11 @@ def get_json_error_from_form_errors(form):
 @transaction.commit_manually
 def delete(request, image_id, vector_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
+
+    if settings.REJECT_HTTP_API_REQUESTS:
+        transaction.rollback()
+        raise Http404
+
     data = {}
 
     try:

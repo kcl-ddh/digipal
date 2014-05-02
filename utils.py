@@ -151,24 +151,75 @@ def get_json_response(data):
     from django.http import HttpResponse 
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
-def get_regexp_from_terms(terms):
-    ret = ''
+def get_tokens_from_phrase(phrase, lowercase=False):
+    ''' Returns a list of tokens from a query phrase.
+    
+        Discard stop words (NOT, OR, AND)
+        Detect quoted pieces ("two glosses")
+        Remove field scopes. E.g. repository:London => London
+    
+        e.g. "ab cd" ef-yo NOT (gh)
+        => ['ab cd', 'ef', 'yo', 'gh']
+    '''
+    ret = []
+    
+    if lowercase:
+        phrase = phrase.lower()
+        
+    # Remove field scopes. E.g. repository:London => London
+    phrase = re.sub(ur'(?u)\w+:', ur'', phrase)
+    
+    phrase = phrase.strip()
+    
+    # extract the quoted pieces
+    for part in re.findall(ur'"([^"]+)"', phrase):
+        ret.append(part)
+    
+    # remove them from the phrase
+    phrase = re.sub(ur'"[^"]+"', '', phrase)
+    
+    # JIRA 358: search for 8558-8563 => no highlight if we don't remove non-characters before tokenising
+    # * is for searches like 'digi*'
+    phrase = re.sub(ur'(?u)[^\w*]', ' ', phrase)
+    
+    # add the remaining tokens
+    if phrase:
+        ret.extend([t for t in re.split(ur'\s+', phrase.lower().strip()) if t.lower() not in ['and', 'or', 'not']])
+    
+    return ret
+
+def get_regexp_from_terms(terms, as_list=False):
+    ''' input: list of query terms, e.g. ['ab', cd ef', 'gh']
+        output: a regexp, e.g. '\bab\b|\bcd\b...
+                if as_list is True: ['\bab\b', '\bcd\b']
+    '''
+    ret = []
     if terms:
-        import re
         # create a regexp
-        ret = []
         for t in terms:
             t = re.escape(t)
-            if len(t) > 1:
-                t += ur'?'
-            t = ur'\b%ss?\b' % t
+
+            if t[-1] == u's':
+                t += u'?'
+            else:
+                t += u's?'
+#             if len(t) > 1:
+#                 t += ur'?'
+#             t = ur'\b%ss?\b' % t
+            t = ur'\b%s\b' % t
+            
+            # convert all \* into \W*
+            # * is for searches like 'digi*'
+            t = t.replace(ur'\*', ur'\w*')
+            
             ret.append(t)
+
+    if not as_list:
         ret = ur'|'.join(ret)
-        
+    
     return ret
 
 def find_first(pattern, text, default=''):
-    import re
     ret = default
     matches = re.findall(pattern, text)
     if matches: ret = matches[0]
@@ -229,4 +280,26 @@ def get_int_from_roman_number(input):
     sum = 0
     for n in places: sum += n
     return sum
+
+def get_plain_text_from_html(html):
+    '''Returns the unencoded text from a HTML fragment. No tags, no entities, just plain utf-8 text.'''
+    ret = html
+    if ret:
+        from django.utils.html import strip_tags
+        import HTMLParser
+        html_parser = HTMLParser.HTMLParser()
+        ret = strip_tags(html_parser.unescape(ret))        
+    else:
+        ret = u''
+    return ret
+
+def set_left_joins_in_queryset(qs):
+    for alias in qs.query.alias_map:
+        qs.query.promote_alias(alias, True)
+
+def get_str_from_queryset(queryset):
+    ret = unicode(queryset.query)
+    ret = re.sub(ur'(INNER|FROM|AND|OR|WHERE|GROUP|ORDER|LEFT|RIGHT|HAVING)', ur'\n\1', ret)
+    ret = re.sub(ur'(INNER|AND|OR|LEFT|RIGHT)', ur'\t\1', ret)
+    return ret.encode('ascii', 'ignore')
 

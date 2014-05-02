@@ -1,8 +1,16 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
+
+from digipal.utils import sorted_natural
+class FilterHands(forms.Form):
+    scribe = get_form_field_from_queryset(Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(), 'Scribe')
+    repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
+    hand_place = get_form_field_from_queryset(Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(), 'Place')
+    # renamed from date
+    hand_date = get_form_field_from_queryset(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct(), 'Date')
 
 class SearchHands(SearchContentType):
 
@@ -13,13 +21,43 @@ class SearchHands(SearchContentType):
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
         ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.3}, 'long_text': True}
-        ret['scribe__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scribes', 'boost': 0.3}, 'advanced': True}
-        ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
+        # Use FT_CODE instead of FT_TITLE because we have numbers in the field e.g. "Digipal Hand 1" woudln't return anything with FT_TITLE 
+        ret['scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
+        # JIRA 358: we need to search by the hand name
+        ret['pk'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand', 'format': 'DigiPal Hand %s'}}
+        
+        ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}
         ret['item_part__current_item__repository__place__name, item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository'}, 'advanced': True}
-        ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}}
-        ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date'}, 'advanced': True}
+        ret['item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 2.0}, 'advanced': True}
+        # renamed from date
+        ret['assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
+
+        ret['script__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'script'}, 'advanced': True}
+        
+        # MS
+        ret['item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
+        ret['item_part__group__historical_items__name, item_part__historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+
+        # Scribe
+        ret['scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}        
+        ret['scribe__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
+        
         return ret
+
+    def get_headings(self):
+        return [
+                    {'label': 'Hand', 'key': 'hand', 'is_sortable': False},
+                    {'label': 'Repository', 'key': 'repository', 'is_sortable': True, 'title': 'Repository and Shelfmark'},
+                    {'label': 'Shelfmark', 'key': 'shelfmark', 'is_sortable': False},
+                    {'label': 'Description', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Place', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Date', 'key': 'description', 'is_sortable': False},
+                    {'label': 'Catalogue Number', 'key': 'description', 'is_sortable': False},
+                ]
+    
+    def get_default_ordering(self):
+        return 'repository'
 
     def get_sort_fields(self):
         ''' returns a list of django field names necessary to sort the results '''
@@ -61,9 +99,11 @@ class SearchHands(SearchContentType):
         context['hands_page'] = True
         context['result'] = current_hand
 
-    @property
-    def form(self):
-        return FilterHands()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterHands(initials)
 
     @property
     def key(self):
@@ -76,70 +116,7 @@ class SearchHands(SearchContentType):
     @property
     def label_singular(self):
         return 'Hand'
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('item_part__current_item__repository__place', 'assigned_place', 'assigned_date').prefetch_related('images', 'item_part__historical_items__catalogue_numbers').in_bulk(recordids)
 
-    def _build_queryset_django(self, request, term):
-        type = self.key
-        query_hands = Hand.objects.filter(
-                    Q(descriptions__description__icontains=term) | \
-                    Q(scribe__name__icontains=term) | \
-                    Q(assigned_place__name__icontains=term) | \
-                    Q(assigned_date__date__icontains=term) | \
-                    Q(item_part__current_item__shelfmark__icontains=term) | \
-                    Q(item_part__current_item__repository__name__icontains=term) | \
-                    Q(item_part__historical_items__catalogue_number__icontains=term))
-
-        scribes = request.GET.get('scribes', '')
-        repository = request.GET.get('repository', '')
-        place = request.GET.get('place', '')
-        date = request.GET.get('date', '')
-
-        self.is_advanced = repository or scribes or place or date
-        if scribes:
-            query_hands = query_hands.filter(scribe__name=scribes)
-        if repository:
-            query_hands = query_hands.filter(item_part__current_item__repository__name=repository)
-        if place:
-            query_hands = query_hands.filter(assigned_place__name=place)
-        if date:
-            query_hands = query_hands.filter(assigned_date__date=date)
-
-        #context['hands'] = query_hands.distinct().order_by('scribe__name','id')
-        query_hands = query_hands.distinct()
-        if repository or scribes or place or date:
-            query_hands = query_hands.order_by('scribe__name','id')
-        else:
-            query_hands = query_hands.order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
-
-        self._queryset = query_hands
-
-        return self._queryset
-
-from digipal.utils import sorted_natural
-class FilterHands(forms.Form):
-    scribes = forms.ModelChoiceField(
-        queryset = Hand.objects.values_list('scribe__name', flat=True).order_by('scribe__name').distinct(),
-        widget = Select(attrs={'id':'scribes-select', 'class':'chzn-select', 'data-placeholder':'Choose a Scribe'}),
-        label = "",
-        empty_label = "Scribe",
-        required = False)
-
-    repository = forms.ChoiceField(
-        choices = [("", "Repository")] + [(m.human_readable(), m.human_readable()) for m in Repository.objects.filter(currentitem__itempart__hands__isnull=False).order_by('place__name', 'name').distinct()],
-        widget = Select(attrs={'id':'repository-select', 'class':'chzn-select', 'data-placeholder':"Choose a Repository"}),
-        label = "",
-        initial = "Repository",
-        required = False)
-
-    place = forms.ModelChoiceField(
-        queryset = Hand.objects.values_list('assigned_place__name', flat=True).order_by('assigned_place__name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Place"}),
-        label = "",
-        empty_label = "Place",
-        required = False)
-
-    date = forms.ChoiceField(
-        choices = [('', 'Date')] + [(d, d) for d in list(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct())],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)

@@ -1,8 +1,19 @@
 from django import forms
-from search_content_type import SearchContentType
+from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
+
+from digipal.utils import sorted_natural
+class FilterScribes(forms.Form):
+    scribe = get_form_field_from_queryset(Scribe.objects.values_list('name', flat=True).order_by('name').distinct(), 'Scribe')
+    # Was previously called 'scriptorium'
+    scriptorium = get_form_field_from_queryset(Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(), 'Place')
+    # TODO: order the dates
+    scribe_date = get_form_field_from_queryset(sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct())), 'Date')
+    character = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(), 'Character')
+    component = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(), 'Component')
+    feature = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(), 'Feature')
 
 class SearchScribes(SearchContentType):
 
@@ -10,12 +21,14 @@ class SearchScribes(SearchContentType):
         ''' See SearchContentType.get_fields_info() for a description of the field structure '''
         
         ret = super(SearchScribes, self).get_fields_info()
-        ret['name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'name', 'boost': 3.0}, 'advanced': True}
-        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'place'}, 'advanced': True}
-        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'date', 'boost': 1.0}, 'advanced': True}
+        ret['name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 3.0}, 'advanced': True}
+        ret['scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}
+        ret['date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
+        
         ret['hands__item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 0.3}}
-        ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository', 'boost': 0.3}}
-        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 0.3}}
+        
+        ret['hands__item_part__current_item__repository__place__name, hands__item_part__current_item__repository__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'repository', 'boost': 0.3}, 'advanced': True}
+        ret['hands__item_part__historical_items__catalogue_number'] = {'whoosh': {'type': self.FT_CODE, 'name': 'index', 'boost': 0.3}, 'advanced': True}
         # TODO: display this field on the front-end
         #ret['historical_items__description__description'] = {'whoosh': {'type': TEXT(analyzer=stem_ana, stored=True), 'name': 'description'}, 'long_text': True}
 
@@ -26,6 +39,16 @@ class SearchScribes(SearchContentType):
         #ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
         ret['idiographs__idiographcomponent__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
         ret['idiographs__idiographcomponent__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
+
+        # MS
+        ret['hands__item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
+        ret['hands__item_part__group__historical_items__name, hands__item_part__historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
+        
+        # Hands
+        ret['hands__assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
+        ret['hands__assigned_date__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand_date'}, 'advanced': True}
+        ret['hands__script__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'script'}, 'advanced': True}
+        
         return ret
 
     def get_sort_fields(self):
@@ -47,9 +70,11 @@ class SearchScribes(SearchContentType):
     def get_model(self):
         return Scribe
 
-    @property
-    def form(self):
-        return FilterScribes()
+    def get_form(self, request=None):
+        initials = None
+        if request:
+            initials = request.GET
+        return FilterScribes(initials)
     
     @property
     def key(self):
@@ -61,7 +86,10 @@ class SearchScribes(SearchContentType):
     
     @property
     def label_singular(self):
-        return 'Scribe'    
+        return 'Scribe'
+    
+    def bulk_load_records(self, recordids):
+        return (self.get_model()).objects.select_related('scriptorium').prefetch_related('hands__images').in_bulk(recordids)
     
     def _build_queryset_django(self, request, term):
         type = self.key
@@ -99,52 +127,6 @@ class SearchScribes(SearchContentType):
         self._queryset = query_scribes.distinct().order_by('name')
         
         return self._queryset
-
-from digipal.utils import sorted_natural
-class FilterScribes(forms.Form):
-    name = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('name', flat=True).order_by('name').distinct(),
-        widget = Select(attrs={'id':'name-select', 'class':'chzn-select', 'data-placeholder':"Choose a Name"}),
-        label = "",
-        empty_label = "Name",
-        required = False)
-
-    # Was previously called 'scriptorium'
-    place = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(),
-        widget = Select(attrs={'id':'place-select', 'class':'chzn-select', 'data-placeholder':"Choose a Scriptorium"}),
-        empty_label = "Scriptorium",
-        label = "",
-        required = False)
-
-    date = forms.ChoiceField(
-        # TODO: order the dates
-        choices = [('', 'Date')] + [(d, d) for d in sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct()))],
-        widget = Select(attrs={'id':'date-select', 'class':'chzn-select', 'data-placeholder':"Choose a Date"}),
-        label = "",
-        initial = "Date",
-        required = False)
-
-    character = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(),
-        widget = Select(attrs={'id':'character-select', 'class':'chzn-select', 'data-placeholder':"Choose a Character"}),
-        label = "",
-        empty_label = "Character",
-        required = False)
-
-    component = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(),
-        widget = Select(attrs={'id':'component-select', 'class':'chzn-select', 'data-placeholder':"Choose a Component"}),
-        label = "",
-        empty_label = "Component",
-        required = False)
-
-    feature = forms.ModelChoiceField(
-        queryset = Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(),
-        widget = Select(attrs={'id':'feature-select', 'class':'chzn-select', 'data-placeholder':"Choose a Feature"}),
-        label = "",
-        empty_label = "Feature",
-        required = False)
 
 def scribe_details(request):
     """

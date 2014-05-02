@@ -30,6 +30,42 @@
     #itempart_locus_text_id {display: none;}
     
     span.legend {color:grey;}
+    
+    .folio-duplicate {background-color: #E0E0E0;}
+    
+    .show-duplicates tr.row td {border-top: 2px solid black; }
+    
+    .show-duplicates tr.row:first-child td {border-top: 0px solid black; }
+
+    tr td:first-child {font-weight: bold; font-size: larger;}
+    
+    /*
+    .discard-image td {background-color: #FF9999; color: white;}
+    .preserve-image td {background-color: #CCFF99; color: black;}
+    */
+    select.replace-image.changed {
+        background-color: #FFFFC0;
+    }
+    
+    tr.replace-image {
+        display: none;
+    }
+
+    tr.replace-image td {
+        background-color: #FFFFC0;
+    }
+
+    tr.replace-image td p {
+        font-weight: normal;
+        font-size: 10pt;
+    }
+    
+    .samples span.img {
+        float: left;
+        margin: 1em;
+        border: 1px solid black;
+    }
+
 </style>
 
 <script src="{{ STATIC_URL }}digipal/scripts/utils.js" type="text/javascript"></script>
@@ -85,6 +121,43 @@ $(function(){
 	}
 	
 	$('select[name=manuscript], select[name=hand]').change(refresh_links);
+	
+	function show_image_replace_info(data) {
+	    var image_id = data['image1'];
+    	$replace_row = $('tr.replace-image-' + image_id);
+    	
+    	if (data['annotations'] && data['annotations'].length) {
+        	$replace_row.find('.message').html('Below you can see an annotation from this image and the same annotation after replacing with the new image. If they don\'t match revert to the original image by undoing your change in the drop down. <a class="try-another-graph" href="#">Try another graph</a>');
+        	$replace_row.find('.samples img.first').attr('src', data['annotations'][0]);
+        	$replace_row.find('.samples img.second').attr('src', data['annotations'][1]);
+        	$replace_row.find('.samples').show();
+        	$replace_row.find('.try-another-graph').click(function() { 
+        	   $('select[name=replace-image-' + image_id + ']').change(); 
+        	   return false;
+        	});
+    	} else {
+        	$replace_row.find('.message').html('This image record has no annotation. Only the image file will be replaced.');
+    	}
+	}
+	
+	$('select.replace-image').change(function () {
+	    var $select = $(this);
+	    var image_id = $select.attr('name').match(/\d+/)[0];
+	    var new_image_id = $select.val();
+	    
+	    var different_image = (image_id != new_image_id);
+	    $select.toggleClass('changed', different_image);
+	    
+    	$replace_row = $('tr.replace-image-' + image_id);
+    	$replace_row.toggle(different_image);
+    	$replace_row.find('.message').html('Please wait while the crop offsets are being calculated...');
+    	$replace_row.find('.samples').hide();
+    	$replace_row.find('.samples img').attr('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+	    if (different_image) {
+	    	$.getJSON('', {action: 'test_replace_image', image1: image_id, image2: new_image_id}, show_image_replace_info);
+	    }
+    	
+	});
 	
 	refresh_links();	
 });
@@ -208,7 +281,7 @@ $(function(){
 		    				The folio number will be set from the number found in the file name. e.g. ff.49v => folio 49
 		    			</td>
 		    		</tr>
-		    		<tr class="section_last">
+		    		<tr>
 		    			<td>
 		    				<input type="checkbox" name="folio_side_set" id="folio_side_set_id" value="1" />
 		    				<label for="folio_side_set_id">Set folio side from file name</label>
@@ -260,11 +333,11 @@ $(function(){
                     {% endif %}
 		    		<tr  class="section_last">
 		    			<td>
-		    				<input type="checkbox" name="thumbnails_set" id="thumbnails_id" value="1" {% if show_thumbnails %}checked="checked"{% endif %} />
-		    				<label for="thumbnails_id">Show thumbnails</label>
+		    				<input type="checkbox" name="duplicate_set" id="duplicate_id" value="1" {% if show_duplicates %}checked="checked"{% endif %} />
+		    				<label for="duplicate_id">Show duplicates images</label>
 		    			</td>
 		    			<td>
-		    				Tick this box and click 'Change' to display all the image thumbnails.
+		    				Show possible duplicates of the selected images and record merging tool
 		    			</td>
 		    		</tr>
 					<tr>
@@ -285,6 +358,18 @@ $(function(){
     <form action="" method="post">
     {% csrf_token %}
     
+    {% if show_duplicates %}
+        <p>
+            The list below contains groups of duplicate folios/pages based on your original selection. Each group of duplicates is separated by a black horizontal line. 
+            Move your mouse over the thumbnails to compare duplicates. To replace an image in a record, select an option in the drop down in the last column, next to the original image.
+        </p>
+        <p>
+            When you click Change, your changes to the image records will be applied. The image file will be subsituted and the location of the annotations automatically corrected.
+        </p>
+    {% endif %}
+    
+    <br/>
+    
     <h2>Selected images ({{ folios.count }})</h2>
 	<table id="tbl-selected-folios" cellspacing="0">
 		<thead>
@@ -296,51 +381,27 @@ $(function(){
 		    	<th>Side</th>
                 <th>Locus</th>
                 <th>Hands</th>
+                <th># ann.</th>
 		    	<th>View</th>
+                {% if show_duplicates %}
+                    <th style="color:black">Change image file to...</th>
+                {% endif %}
 		    </tr>
 		</thead>
-		<tbody>
+		<tbody class="{% if show_duplicates %}show-duplicates{% endif %}">
 		    {% for folio in folios %}
-			    <tr class="{% cycle 'row1' 'row2' %}">
-			    	<td><a href="/admin/digipal/image/{{folio.id}}/">{{folio.id}}</a></td>
-			    	<td>{{folio.iipimage.name}}</td>
-			    	<td>
-                        {% if folio.item_part %}
-                            {{folio.item_part.display_label}}
-                        {% else %}
-                            <span style="color:red">no item part</span>
-                        {% endif %}
-                    </td>
-			    	<td>
-			    		<input class="txt-folio-number" type="text" name="fn-{{folio.id}}" value="{{folio.folio_number|default:''}}" />
-			    	</td>
-			    	<td>
-                        <input class="txt-folio-number" type="text" name="fs-{{folio.id}}" value="{{folio.folio_side|default:''}}" />
-			    	</td>
-                    <td>
-                        {{ folio.get_locus_label }}
-                    </td>
-                    <td>
-                        {% for hand in folio.hands.all %}
-                            {% if not forloop.first %}, {% endif %}
-                            {{ hand }}
-                        {% empty %}
-                            <span style="color:red">no hand</span>
-                        {% endfor %}
-                    </td>
-			    	<td>
-			    		<a class="img-prv" href="{{ folio.full|safe }}">
-			    			{% if show_thumbnails %}
-			    				{% iip_img_a folio.iipimage width=70 cls="img-expand" %}
-			    			{% else %}
-			    				view
-			    			{% endif %}
-			    		</a>
-			    	</td>
-			    </tr>
+                {% include "admin/page/bulk_edit_row.html" %}
+                {% if show_duplicates %}
+                    {% for duplicate in folio.get_duplicates %}
+                        {% include "admin/page/bulk_edit_row.html" with folio=duplicate main_folio=folio %}
+                    {% endfor %}
+                {% endif %}
 			{% endfor %}
 			<tr>
 				<td>
+                    {% if show_duplicates %}
+                        <input type="hidden" name="duplicate_set" value="1" />
+                    {% endif %}
 					<input type="hidden" name="action" value="change_values" />
 					<input type="submit" name="_save" class="default" value="Change" />
 				</td>

@@ -24,6 +24,9 @@ Commands:
                         Fix the Disqus comment paths from the old WP site to 
                         the new one  
 
+  fix_keywords
+  						Fix the blog keywords.
+  						Convert lower case to upper case. Merge if necessary.
 """
 	
 	args = 'reformat|importtags'
@@ -57,7 +60,7 @@ Commands:
 		self.options = options
 		
 		if len(args) < 1:
-			raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
+			raise CommandError('Please provide a command. Try "python manage.py help dpblog" for help.')
 		command = args[0]
 		
 		known_command = False
@@ -74,9 +77,47 @@ Commands:
 			known_command = True
 			self.getUrlMapping(args, options)
 
+		if command == 'fix_keywords':
+			known_command = True
+			self.fix_keywords(args, options)
+
 		if self.is_dry_run():
 			self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+			
+		if not known_command:
+			print self.help
 	
+	def rename_keyword(self, keyword, new_name, new_keyword=None):
+		from mezzanine.generic.models import Keyword, AssignedKeyword
+		for ak in AssignedKeyword.objects.filter(keyword=keyword):
+			post = ak.content_object
+			print u'\tused in #%s %s (%s)' % (post.id, unicode(post)[0:15], post.keywords_string)
+			post.keywords_string = post.keywords_string.replace(keyword.title, new_name)
+			if new_keyword:
+				ak.keyword = new_keyword
+				ak.save()
+		if new_keyword:
+			print u'\tmerge with %s' % new_keyword.title
+			keyword.delete()				
+		else:
+			keyword.title = new_name
+			print '\trename into %s' % keyword.title
+			keyword.save()
+			
+	def fix_keywords(self, args, options):
+		# JIRA 338
+		# 1. find all keywords
+		from mezzanine.generic.models import Keyword, AssignedKeyword
+		for kw in Keyword.objects.all():
+			if kw.title[0].islower():
+				print kw.title
+				kw_target = Keyword.objects.filter(title__iexact=kw.title).exclude(id=kw.id)
+				if kw_target:
+					kw_target = kw_target[0]
+					self.rename_keyword(kw, kw_target.title, kw_target) 
+				else:
+					self.rename_keyword(kw, kw.title.title())
+		
 	def getDQComments(self):
 		# http://disqus.com/api/docs/posts/list/
 		# https://github.com/disqus/disqus-python

@@ -176,7 +176,12 @@ def web_fetch(url):
     
     import httplib
     try:
-        conn = httplib.HTTPConnection(parts.hostname, parts.port)
+        port = parts.port
+        if parts.scheme == 'https':
+            port = 443
+            conn = httplib.HTTPSConnection(parts.hostname, port)
+        else:
+            conn = httplib.HTTPConnection(parts.hostname, port)
         conn.request('GET', parts.path+'?'+parts.query)
         ret['response'] = conn.getresponse()
         headers = dict(ret['response'].getheaders()) 
@@ -189,5 +194,5 @@ def web_fetch(url):
         conn.close()
     except StandardError, e:
         ret['error'] = e
-    
+
     return ret

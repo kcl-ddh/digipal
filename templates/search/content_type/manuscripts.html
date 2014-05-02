@@ -2,12 +2,7 @@
 
 <table class="table table-condensed">
     <tr>
-        <th>&nbsp;</th>
-        <th>Index</th>
-        <th>Repository</th>
-        <th>Shelfmark</th>
-        <th>Folio(s)</th>
-        <th>Description</th>
+        {% include "search/search_headings.html" %}
     </tr>
 
     {% filter tag_phrase_terms:terms %}
@@ -25,7 +20,7 @@
                         {{ item.catalogue_number }}
                     {% endfor %}
 
-                    {% if manuscript.images.all %}
+                    {% if manuscript.images.count %}
                         {% spaceless %}
                         (<a class='imageIcon' data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' 
                             href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'

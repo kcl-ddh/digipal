@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load html_escape %}
+
+{% block meta_title %}Collection{% endblock %}
+{% block main %}
+
+<div class="page-header row">
+    <h1 class='pull-left' data-placement='bottom'>
+        <a href="/digipal/collection/"><span class='fa fa-folder-open small'></span> Manage My Collections</a> / <span title='Rename Collection' data-placement='right' data-toggle='tooltip' data-container='body' class='collection-title' contenteditable></span>
+    </h1>
+
+        <div class='col-md-2 pull-right'>
+            <div class="btn-group">
+                <button id='delete-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span> Delete</button>
+
+                <button id='share-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share"></span> Share</button>
+            </div>
+        </div>
+
+</div>
+
+<div class="row">
+    <div class="container">
+        {% if LIGHTBOX %}
+        <div class='col-md-2 pull-right'>
+            <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Send selected Images to Lightbox' id='to_lightbox' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-picture"></span> Lightbox</button>
+        </div>
+        {% endif %}
+        <div id='container_basket' class='col-md-12'>
+
+        </div>
+
+    </div>
+</div>
+
+<div class='loading-div'>
+    <p>Loading Data. Please wait...</p>
+    <p>
+      <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
+    </p>
+</div>
+
+{% csrf_token %}
+
+{% endblock %}
+{% block extra_js %}
+    <script src='https://apis.google.com/js/client.js'></script>
+    <script src ='/static/digipal/scripts/collections-utils.js'></script>
+    <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
+{% endblock %}

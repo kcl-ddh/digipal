@@ -14,9 +14,10 @@ import cgi
 import iipimage.fields
 import iipimage.storage
 from django.utils.html import conditional_escape, escape
+from tinymce.models import HTMLField
 
 import logging
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 def has_edit_permission(request, model):
     '''Returns True if the user of the current HTTP request
@@ -68,7 +69,7 @@ class MediaPermission(models.Model):
         help_text='''An short label describing the type of permission. For internal use only.''')
     is_private = models.BooleanField(null=False, default=False,
         help_text='''If ticked the image the following message will be displayed instead of the image.''')
-    display_message = models.TextField(blank=True, null=False, default='',
+    display_message = HTMLField(blank=True, null=False, default='',
         help_text='''If Private is ticked the image the message will be displayed instead of the image.''')
 
     class Meta:
@@ -114,7 +115,7 @@ class Feature(models.Model):
 
 class Component(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    features = models.ManyToManyField(Feature, related_name='components')
+    features = models.ManyToManyField(Feature, related_name='components', through='ComponentFeature')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -125,6 +126,26 @@ class Component(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class ComponentFeature(models.Model):
+    component = models.ForeignKey('Component', blank=False, null=False)
+    feature = models.ForeignKey('Feature', blank=False, null=False)
+    set_by_default = models.BooleanField(null=False, default=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['component', 'feature']
+        db_table = 'digipal_component_features'
+        ordering = ['component__name', 'feature__name']
+
+    def __unicode__(self):
+        ret = u''
+        if self.component:
+            ret += self.component.name
+        ret += u' - '
+        if self.feature:
+            ret += self.feature.name
+        return ret
 
 class Aspect(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -288,7 +309,7 @@ class Reference(models.Model):
     name = models.CharField(max_length=128)
     name_index = models.CharField(max_length=1, blank=True, null=True)
     legacy_reference = models.CharField(max_length=128, blank=True, null=True, default='')
-    full_reference = models.TextField()
+    full_reference = HTMLField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -510,16 +531,19 @@ class HistoricalItem(models.Model):
         is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
         # See JIRA 95
         for desc in  self.get_descriptions():
-            if desc.source.name == 'digipal':
+            if desc.source.id == settings.SOURCE_PROJECT_ID:
                 ret = desc
                 break
-            if is_charter and desc.source.name in ['sawyer'] and ret_priority > 1:
+            # esawyer
+            if is_charter and (desc.source.id == 5) and ret_priority > 1:
                 ret = desc
                 ret_priority = 1
-            if is_charter and desc.source.name in ['pelteret'] and ret_priority > 2:
+            # pelteret
+            if is_charter and (desc.source.id == 6) and ret_priority > 2:
                 ret = desc
                 ret_priority = 2
-            if not is_charter and desc.source.name in ['gneuss'] and ret_priority > 3:
+            # gneuss
+            if not is_charter and (desc.source.id == 2) and ret_priority > 3:
                 ret = desc
                 ret_priority = 3
             if ret_priority == 10:
@@ -625,7 +649,7 @@ class Description(models.Model):
 
     source = models.ForeignKey(Source)
 
-    description = models.TextField(blank=True, null=True)
+    description = HTMLField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     summary = models.CharField(max_length=256, blank=True, null=True)
 
@@ -647,6 +671,11 @@ class Description(models.Model):
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source)
+    
+    def get_description_plain_text(self):
+        '''Returns the description in plain text, no html tag or any encoding, just utf-8'''
+        from utils import get_plain_text_from_html
+        return get_plain_text_from_html(self.description)
 
 # Manuscripts in legacy db
 class Layout(models.Model):
@@ -796,7 +825,7 @@ class Repository(models.Model):
     comma = models.NullBooleanField(null=True)
     british_isles = models.NullBooleanField(null=True)
     digital_project = models.NullBooleanField(null=True)
-    copyright_notice = models.TextField(blank=True, null=True)
+    copyright_notice = HTMLField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True,
             blank=True, default=None,
             help_text='''The default permission scheme for images originating
@@ -935,6 +964,8 @@ class Scribe(models.Model):
         #return u'%s. %s' % (self.name, self.date or '')
         return get_list_as_string(self.name, '. ', self.date)
 
+    def get_image_count(self):
+        return sum([im.images.count() for im in self.hands.all()])
 
 class Idiograph(models.Model):
     allograph = models.ForeignKey(Allograph)
@@ -1045,15 +1076,24 @@ class ItemPart(models.Model):
         return self.subdivisions.all().count()
     get_part_count.short_description = 'Parts'
     get_part_count.allow_tags = False
+    
+    def _update_display_label_and_save(self):
+        ''' only save if the display label has changed '''
+        if self._update_display_label():
+            self.save()
 
-    def save(self, *args, **kwargs):
-        #self.display_label = u'%s, %s' % (self.current_item, self.locus or '')
+    def _update_display_label(self):
+        old_label = self.display_label
         if self.current_item:
             self.display_label = get_list_as_string(self.current_item, ', ', self.locus)
         else:
             label = self.historical_label
             if label:
                 self.display_label = label
+        return old_label != self.display_label
+    
+    def save(self, *args, **kwargs):
+        self._update_display_label()
         super(ItemPart, self).save(*args, **kwargs)
 
     @property
@@ -1077,6 +1117,17 @@ class ItemPart(models.Model):
         except IndexError:
             pass
         return ret
+
+    def get_current_items(self):
+         # this function will return all related current items.
+         # by looking at this CI and also the subdivisions CI.
+         ret = {}
+         if self.current_item:
+             ret[self.current_item.id] = self.current_item
+         for subdivision in self.subdivisions.all().order_by('id'):
+             if subdivision.current_item:
+                 ret[subdivision.current_item.id] = subdivision.current_item
+         return ret.values()
 
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
@@ -1273,6 +1324,9 @@ class Image(models.Model):
             cls.public_images = Image.filter_public_permissions(Image.objects.all())
         return cls.public_images
 
+    def get_locus_label_without_type(self, hide_type=False):
+        return self.get_locus_label(True)
+    
     def get_locus_label(self, hide_type=False):
         ''' Returns a label for the locus from the side and number fields.
             If hide_type is False, don't include p. or f. in the output.
@@ -1414,6 +1468,53 @@ class Image(models.Model):
 
 
         return zoomify
+    
+    def get_duplicates(self):
+        '''Returns a list of Images with the same locus and shelfmark.'''
+        return Image.objects.filter(id__in=Image.get_duplicates_from_ids([self.id]).get(self.id, []))
+
+    def get_img_size(self):
+        '''Returns (w, h), the width and height of the image
+            WARNING: this function is SLOW because it makes a HTTP request to the image server.
+            Only call if absolutely necessary. 
+        '''
+        return self.iipimage._get_image_dimensions()
+
+    @classmethod
+    def get_duplicates_from_ids(cls, ids=None):
+        ''' Returns a dictionary of duplicate images
+            e.g. {1: (3,), 2: (8,), 3: (1,), 8: (2,)}
+            Images are considered as duplicates if they have the same CI.id and the same locus.
+            Means that 1 and 3 are duplicates and 2 and 8 are duplicates
+            If ids is none, all possible duplicates are returned.
+            Otherwise only duplicates for the given list of ids are returned.
+        '''
+        ret = {}
+        from django.db import connection
+        cursor = connection.cursor()
+        selection_condition = u''
+        if ids is not None:
+            selection_condition = 'and i1.id in (%s)' % ', '.join([unicode(item) for item in ids])
+        select = u'''
+            select distinct i1.id, i2.id
+            from digipal_image i1 join digipal_itempart ip1 on i1.item_part_id = ip1.id,
+            digipal_image i2 join digipal_itempart ip2 on i2.item_part_id = ip2.id
+            where i1.id <> i2.id
+            and regexp_replace(replace(replace(lower(i1.locus), 'recto', 'r'), 'verso', 'v'), '^(p|f|pp)(\.|\s)|\s+', '', 'g') = 
+                regexp_replace(replace(replace(lower(i2.locus), 'recto', 'r'), 'verso', 'v'), '^(p|f|pp)(\.|\s)|\s+', '', 'g')
+            and ip1.current_item_id = ip2.current_item_id
+            %s
+            order by i1.id, i2.id''' % selection_condition
+        cursor.execute(select)
+
+        for (id1, id2) in list(cursor.fetchall()):
+            ret[id1] = ret.get(id1, [])
+            ret[id1].append(id2)
+        cursor.close()
+        
+        return ret
+
+    
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()
 '''
@@ -1516,6 +1617,11 @@ class Hand(models.Model):
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
+    def get_short_label(self):
+        ret = unicode(self)
+        ret = re.sub(ur'\([^)]*\)', ur'', ret)
+        return ret
+
     def __unicode__(self):
         #return u'%s' % (self.description or '')
         # GN: See Jira ticket DIGIPAL-76,
@@ -1528,7 +1634,7 @@ class Hand(models.Model):
     def __getattr__(self, name):
         if name == 'description':
             ret = ''
-            for description in self.descriptions.filter(source__name='digipal'):
+            for description in self.descriptions.filter(source__id=settings.SOURCE_PROJECT_ID):
                 ret = description.description
         else:
             ret = super(Hand, self).__getattr__(name)
@@ -1536,7 +1642,7 @@ class Hand(models.Model):
 
     def __setattr__(self, name, value):
         if name == 'description':
-            self.set_description('digipal', value, True)
+            self.set_description(settings.SOURCE_PROJECT_NAME, value, True)
         else:
             super(Hand, self).__setattr__(name, value)
             
@@ -1591,7 +1697,7 @@ Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, s
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
     source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
-    description = models.TextField()
+    description = models.TextField(help_text='''This field accepts TEI elements.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -1655,11 +1761,34 @@ class Graph(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
+    def get_short_label(self):
+        locus = ''
+        if self.annotation and self.annotation.image:
+            locus = self.annotation.image.locus
+        ret = u'%s, %s' % (self.idiograph.allograph, locus)
+        return ret
+    
     def save(self, *args, **kwargs):
         #self.display_label = u'%s. %s' % (self.idiograph, self.hand)
         self.display_label = get_list_as_string(self.idiograph, '. ', self.hand)
         super(Graph, self).save(*args, **kwargs)
+        
+    def get_description_as_array_str(self):
+        ret = []
+        for c in self.graph_components.all().order_by('component__name'):
+            for f in c.features.all().order_by('name'):
+                ret.append(u'%s: %s' % (c.component.name, f.name))
+        return ret
 
+    def get_description_as_str(self):
+        return u', '.join(self.get_description_as_array_str())
+
+    def get_serialised_description(self):
+        ret = []
+        for c in self.graph_components.all():
+            for f in c.features.all():
+                ret.append(u'%s_%s' % (c.component.id, f.id))
+        return u' '.join(ret)
 
 class GraphComponent(models.Model):
     graph = models.ForeignKey(Graph, related_name='graph_components')
@@ -1695,6 +1824,8 @@ class Annotation(models.Model):
     # TODO: to remove
     #page = models.ForeignKey(Image, related_name='to_be_removed')
     image = models.ForeignKey(Image, null=True, blank=False)
+    # WARNING: this value is derived from geo_json on save()
+    # No need to change it directly
     cutout = models.CharField(max_length=256)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
@@ -1714,10 +1845,12 @@ class Annotation(models.Model):
     class Meta:
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
-
+        
     def get_coordinates(self, geo_json=None):
         ''' Returns the coordinates of the graph rectangle
             E.g. ((602, 56), (998, 184))
+            
+            WARNING: the y coordinates are relative to the BOTTOM of the image!
         '''
         import json
         if geo_json is None: geo_json = self.geo_json
@@ -1734,12 +1867,12 @@ class Annotation(models.Model):
         ret = json.loads(geo_json)
         # TODO: test if this exists!
         ret = ret['geometry']['coordinates'][0]
-        ret = (
-                (min([c[0] for c in ret]),
-                min([c[1] for c in ret])),
-                (max([c[0] for c in ret]),
-                max([c[1] for c in ret]))
-            )
+        ret = [
+                [min([c[0] for c in ret]),
+                min([c[1] for c in ret])],
+                [max([c[0] for c in ret]),
+                max([c[1] for c in ret])]
+            ]
         return ret
 
     def set_graph_group(self):
@@ -1839,7 +1972,7 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url(self, esc=False):
+    def get_cutout_url(self, esc=False, full_size=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
             If esc is True, special chars are turned into entities (e.g. & -> &amp;) 
@@ -1854,6 +1987,13 @@ class Annotation(models.Model):
         # Just concatenate things together instead
         image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
         ret = u'%s?%s' % (image_url, cutout_qs)
+        ret = re.sub(ur'FIF=[^&]+', 'FIF='+unicode(self.image.iipimage), ret)
+        if full_size:
+            # for some resson a HEI value is included within the cutout_url
+            # we remove this and ask for full quality for the full_size version
+            ret = re.sub(ur'HEI=[^&]+', ur'', ret)
+            ret = re.sub(ur'WID=[^&]+', ur'', ret)
+            ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
         if esc: ret = escape(ret)
         return ret
 
@@ -1919,6 +2059,42 @@ class Proportion(models.Model):
     def __unicode__(self):
         #return u'%s. %s' % (self.hand, self.measurement)
         return get_list_as_string(self.hand, '. ', self.measurement)
+    
+class CarouselItem(models.Model):
+    link = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the page this item links to. E.g. /digipal/page/80/')
+    image = models.CharField(max_length=200, blank=False, null=False, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg')
+    image_alt = models.CharField(max_length=300, blank=True, null=True, help_text='a few words describing the image content.')
+    image_title = models.CharField(max_length=300, blank=True, null=True, help_text='the piece of text that appears when the user moved the mouse over the image (optional).')
+    sort_order = models.IntegerField(help_text='The order of this item in the carousel. 1 appears first, 2 second, etc. 0 is hidden.')
+    title = models.CharField(max_length=300, help_text='The caption under the image of this item. This can contain some inline HTML. You can surround some text with just <a>...</a>.')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+
+    class Meta:
+        ordering = ['sort_order', 'title']
+
+    def __unicode__(self):
+        return u'%s' % (self.title)
+    
+    @staticmethod
+    def get_visible_items():
+        '''Returns the visible carousel slides/items in the correct display order'''
+        ret = CarouselItem.objects.filter(sort_order__gt=0).order_by('sort_order')
+        return ret
+    
+    def title_with_link(self):
+        '''Returns the item title with a correct hyperlink
+            The HTML is marked safe and the links are properly escaped (e.g. &amp;)
+            so no further trasnform is needed in the template.
+        '''
+        from django.utils.html import escape
+        ret = self.title
+        if ret.find('<a>') == -1:
+            ret = '<a href="%s">%s</a>' % (escape(self.link), ret)
+        else:
+            ret = ret.replace('<a>', '<a href="%s">' % escape(self.link))
+        return mark_safe(ret)
 
 # Import of Stewart's database
 class StewartRecord(models.Model):
@@ -2109,9 +2285,12 @@ class StewartRecord(models.Model):
 
             # 2. Description fields
 
-            hand.set_description('scragg', self.contents)
+            # scragg
+            hand.set_description('Scragg, Conspectus of Scribal Hands', self.contents)
+            # eel
             hand.set_description('eel', self.eel)
-            hand.set_description('em1060-1220', self.em)
+            # em1060-1220
+            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
 
             # 3. Related objects
 

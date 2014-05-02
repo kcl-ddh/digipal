@@ -37,12 +37,6 @@ function AnnotatorLoader() {
 		reload_described_annotations();
 		trigger_highlight_unsaved_vectors();
 
-
-		// loading annotations through URL (if there are)
-		self.load_temporary_vector();
-		self.load_stored_vector();
-
-
 		// activating event on filter button
 		var filter_allographs_button = $('#filterAllographs');
 		filter_allographs_button.click(function() {
@@ -168,6 +162,10 @@ function AnnotatorLoader() {
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 		self.toolbar_position();
+
+		// loading annotations through URL (if there are)
+		self.load_temporary_vector();
+		self.load_stored_vector();
 
 		$('#toolbar div').tooltip({
 			container: 'body',
@@ -310,13 +308,17 @@ function AnnotatorLoader() {
 				map.addControl(navigation);
 
 				if (!annotator.events) {
+					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
 					map.events.register("moveend", map, function() {
 						registerEvents();
+						restoreFullscreenPositions();
 					});
 
 					map.events.register("zoomend", map, function() {
 						registerEvents();
+						restoreFullscreenPositions();
 					});
+
 				}
 
 				callback(); // calling all events on elements after all annotations get loaded
@@ -332,6 +334,12 @@ function AnnotatorLoader() {
 	this.load_temporary_vector = function() {
 		var temporary_vectors = getParameter('temporary_vector');
 		if (temporary_vectors.length && !no_image_reason) {
+
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 0);
+
+
 			var geoJSON = new OpenLayers.Format.GeoJSON();
 			var geo_json, extent, extent_parsed;
 
@@ -393,9 +401,6 @@ function AnnotatorLoader() {
 				'left': geo_json.dialogPosition.left
 			});
 
-			$('html').animate({
-				scrollTop: $('#map').position().top + 'px'
-			}, 150);
 
 		} else {
 			return false;
@@ -409,6 +414,9 @@ function AnnotatorLoader() {
 
 	this.load_stored_vector = function() {
 		if (typeof vector_id != "undefined" && vector_id && !no_image_reason) {
+			$('html').animate({
+				scrollTop: $('#map').position().top + 'px'
+			}, 0);
 			// vectorLayer event moveend is triggered on first load so flag this
 
 			// tries to centre the map every 1/2 second
@@ -447,10 +455,6 @@ function AnnotatorLoader() {
 					annotator.selectFeatureById(vector_id_value[i]);
 				}
 			}
-
-			$('html').animate({
-				scrollTop: $('#map').position().top + 'px'
-			}, 150);
 
 		} else {
 			return false;
@@ -595,9 +599,15 @@ function AnnotatorLoader() {
 				} else {
 					container = $('#map');
 				}
-				var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
-				annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
+				restoreFullscreenPositions();
 			});
+
+			if (!$('.toggle-state-switch').bootstrapSwitch('state')) {
+				allographs_filter_box.find('input').attr('disabled', true);
+				$('#checkAll').add('#checkAll_hands').attr('disabled', true);
+				var switcher_alert = $('#annotations-switcher-alert');
+				switcher_alert.removeClass('hidden');
+			}
 
 		} else {
 			allographs_filter_box.dialog('open');
@@ -646,8 +656,7 @@ function AnnotatorLoader() {
 			} else {
 				container = $('#map');
 			}
-			var annotations_layer = document.getElementById('OpenLayers_Layer_Vector_27_svgRoot');
-			annotations_layer.setAttribute('viewBox', "0 0 " + container.width() + " " + container.height());
+			restoreFullscreenPositions();
 		});
 
 		if (typeof get_annotations != "undefined" && get_annotations == "false") {
@@ -841,12 +850,13 @@ function AnnotatorLoader() {
 		feature.feature.stored = false;
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 10 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 15) {
+		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
 			feature.feature.destroy();
 			$('circle').remove();
 			$('polyline').remove();
 			return false;
 		}
+
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
 		}
@@ -937,6 +947,16 @@ function AnnotatorLoader() {
 
 		function set_map() {
 			var input_toolbar_position = $("input[name='toolbar_position']:checked");
+
+			toolbar.css({
+				'position': 'fixed',
+				"width": "60px",
+				'border-left': '1px solid #ccc',
+				'border-top-left-radius': '4px',
+				'border-bottom-left-radius': '4px',
+				"z-index": 1000
+			});
+
 			if (input_toolbar_position.val() == 'Vertical') {
 
 
@@ -951,11 +971,14 @@ function AnnotatorLoader() {
 						left: map.position().left - 60
 					});
 				}
+
 			} else {
+
 				toolbar.css({
 					top: map.position().top,
 					left: map.width() + map.position().left - toolbar.width()
 				});
+
 			}
 		}
 

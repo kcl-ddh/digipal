@@ -3,28 +3,51 @@
    -- Digipal Project --> digipal.eu
  */
 
-function length_basket_elements(elements) {
-	var n = 0;
-	if (elements) {
-		$.each(elements, function() {
-			n += this.length;
-		});
-	}
-	return n;
-}
+
 
 function update_collection_counter() {
-
-	var basket;
-	if (localStorage.getItem('lightbox_basket')) {
-		basket = localStorage.getItem('lightbox_basket');
+	var basket_elements;
+	var collections;
+	if (localStorage.getItem('collections') && !$.isEmptyObject(JSON.parse(localStorage.getItem('collections')))) {
+		collections = localStorage.getItem('collections');
+		basket_elements = JSON.parse(collections);
 	} else {
-		return false;
+		collections = {
+			'Collection': {
+				'id': "1"
+			}
+		};
+		basket_elements = collections;
+		localStorage.setItem('collections', JSON.stringify(collections));
+		localStorage.setItem('selectedCollection', '1');
 	}
 
-	var basket_elements = JSON.parse(basket);
 	var menu_links = $('.navLink');
 	var basket_element;
+	var current_collection = {
+		"id": localStorage.getItem('selectedCollection')
+	};
+
+	if (!current_collection.id) {
+		$.each(basket_elements, function(index, value) {
+			current_collection.id = value.id;
+		});
+		localStorage.setItem('selectedCollection', current_collection.id);
+	}
+
+	var current_collection_id = current_collection.id;
+	var children = 0;
+	for (var col in basket_elements) {
+		children++;
+		if (basket_elements[col].id == current_collection_id) {
+			current_collection['name'] = col;
+			break;
+		} else {
+			current_collection['name'] = col;
+			current_collection['id'] = basket_elements[col].id;
+		}
+	}
+
 
 	for (var ind = 0; ind < menu_links.length; ind++) {
 		if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
@@ -37,27 +60,63 @@ function update_collection_counter() {
 		basket_element = $('#collection_link');
 	}
 
-	var length_basket = length_basket_elements(basket_elements);
-	basket_element.html("Collection (" + length_basket + " <i class='fa fa-picture-o'> </i> )");
+	var i = 0;
 
+	if (basket_elements[current_collection['name']]['images']) {
+		i += basket_elements[current_collection['name']]['images'].length;
+	}
+	if (basket_elements[current_collection['name']]['annotations']) {
+		i += basket_elements[current_collection['name']]['annotations'].length;
+	}
+
+	var link_label = current_collection['name'];
+
+	if (link_label.length > 20) {
+		link_label = link_label.substr(0, 17) + '...';
+	}
+
+	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
+	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
+
+	/*
+	if (children > 1) {
+		var ul = $('<ul class="dropdown-menu">');
+		var caret = '<span class="caret"></span>';
+		$.each(basket_elements, function(index, value) {
+			var li = "<li><a href='/digipal/collection/" + index + "'>" + index + "</a></li>";
+			ul.append(li);
+		});
+		basket_element.data('toggle', 'dropdown');
+		basket_element.append(caret);
+		basket_element.after(ul);
+	}
+	*/
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
-	var current_basket = JSON.parse(localStorage.getItem('lightbox_basket'));
-	if (!current_basket) {
-		current_basket = {};
-	}
+	var selectedCollection = localStorage.getItem('selectedCollection');
+	var collections = JSON.parse(localStorage.getItem('collections'));
+	var collection_name;
+	var collection_id;
+	$.each(collections, function(index, value) {
+		if (value.id == selectedCollection) {
+			current_basket = value;
+			collection_name = index;
+			collection_id = value.id;
+		}
+	});
+
 	if (annotations === null) {
-		notify('Error. Try again');
+		notify('Error. Try again', 'danger');
 		return false;
 	}
+
 	var flag, i, j, elements, image_id;
 	if (multiple) {
 		if (current_basket && current_basket.annotations) {
 			for (i = 0; i < annotations.length; i++) {
 				flag = true;
 				for (j = 0; j < current_basket.annotations.length; j++) {
-					//console.log(current_basket.annotations[j].graph + " == " + annotations[i].graph)
 					if (!annotations[i]) {
 						notify('Annotation has not been saved yet. Otherwise, refresh the layer', 'danger');
 						return false;
@@ -68,7 +127,9 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
+					notify('Annotation successfully added to collection', 'success');
 				} else {
+					notify('Annotation has already been added to Collection', 'danger');
 					continue;
 				}
 			}
@@ -80,7 +141,13 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.annotations.push(parseInt(annotations[i], 10));
 			}
 		}
-		localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+		collections[collection_name].annotations = current_basket.annotations;
+		localStorage.setItem('collections', JSON.stringify(collections));
+		if (annotations.length > 1) {
+			notify('Annotations successfully added to collection', 'success');
+		} else {
+			notify('Annotation successfully added to collection', 'success');
+		}
 	} else {
 		var graph;
 		if (type == 'annotation') {
@@ -110,10 +177,11 @@ function add_to_lightbox(button, type, annotations, multiple) {
 
 					if (elements[j] == graph) {
 						flag = false;
+						break;
 					}
 
 				} else {
-					if (elements[j].id == graph) {
+					if (elements[j] == graph) {
 						flag = false;
 						break;
 					}
@@ -126,15 +194,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						return false;
 					}
 					elements.push(annotations);
+					notify('Annotation successfully added to collection', 'success');
 				} else {
 					if (typeof annotator != 'undefined') {
 						image_id = annotator.image_id;
 					} else {
 						image_id = graph;
 					}
-					elements.push({
-						'id': image_id
-					});
+					elements.push(image_id);
+					notify('Image successfully added to collection', 'success');
 				}
 			} else {
 				if (type == 'annotation') {
@@ -145,9 +213,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				return false;
 			}
 
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+			localStorage.setItem('collections', JSON.stringify(collections));
 
 		} else {
+
 			if (type == 'annotation') {
 				if (current_basket.hasOwnProperty('images')) {
 					current_basket.annotations = [];
@@ -156,8 +225,10 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket = {};
 					current_basket.annotations = [];
 					current_basket.annotations.push(annotations);
+					current_basket['id'] = collection_id;
+					collections[collection_name] = current_basket;
 				}
-
+				notify('Annotation successfully added to collection', 'success');
 			} else {
 
 				if (typeof annotator != 'undefined') {
@@ -168,23 +239,21 @@ function add_to_lightbox(button, type, annotations, multiple) {
 
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];
-					current_basket.images.push({
-						id: image_id
-					});
+					current_basket.images.push(image_id);
 				} else {
 					current_basket = {};
 					current_basket.images = [];
-					current_basket.images.push({
-						id: image_id
-					});
+					current_basket.images.push(image_id);
+					current_basket['id'] = collection_id;
+					collections[collection_name] = current_basket;
 				}
+				notify('Image successfully added to collection', 'success');
 			}
-			localStorage.setItem('lightbox_basket', JSON.stringify(current_basket));
+			localStorage.setItem('collections', JSON.stringify(collections));
 		}
 	}
 
 	update_collection_counter();
-	notify('Image succesfully added to collection', 'success');
 	return true;
 }
 
@@ -221,6 +290,6 @@ function notify(msg, status) {
 		}, 5000);
 }
 
-(function() {
+$(document).ready(function() {
 	update_collection_counter();
-})();
+});

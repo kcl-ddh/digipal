@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
         CatalogueNumber, Category, Character, Collation, Component, County, \
-        CurrentItem, \
+        ComponentFeature, CurrentItem, \
         Date, DateEvidence, Decoration, Description, \
         Feature, Format, \
         Graph, GraphComponent, \
@@ -21,7 +21,8 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord, HandDescription, RequestLog, Text, TextItemPart
+        StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
+        CarouselItem
 import reversion
 import django_admin_customisations
 from mezzanine.core.admin import StackedDynamicInlineAdmin
@@ -76,6 +77,46 @@ class ImageFilterNoItemPart(SimpleListFilter):
             return queryset.filter(item_part_id__gt = 0).distinct()
         if self.value() == 'without':
             return queryset.exclude(item_part_id__gt = 0).distinct()
+
+class ImageFilterDuplicateShelfmark(SimpleListFilter):
+    title = 'Duplicate Shelfmark'
+
+    parameter_name = ('dup')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', ('has duplicate shelfmark')),
+            ('-1', ('has unique shelfmark')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() in ['1', '-1']:
+            all_duplicates_ids = Image.get_duplicates_from_ids().keys()
+        
+        if self.value() == '1':
+            return queryset.filter(id__in = all_duplicates_ids).distinct()
+        if self.value() == '-1':
+            return queryset.exclude(id__in = all_duplicates_ids).distinct()
+
+class ImageFilterDuplicateFilename(SimpleListFilter):
+    title = 'Duplicate Image File'
+
+    parameter_name = ('dupfn')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', ('has duplicate filename')),
+            ('-1', ('has unique filename')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() in ['-1', '1']:
+            duplicate_iipimages = Image.objects.all().values_list('iipimage').annotate(dcount=Count('iipimage')).filter(dcount__gt=1).values_list('iipimage', flat=True)
+        
+        if self.value() == '1':
+            return queryset.filter(iipimage__in = duplicate_iipimages).distinct()
+        if self.value() == '-1':
+            return queryset.exclude(iipimage__in = duplicate_iipimages).distinct()
 
 class ImageWithFeature(SimpleListFilter):
     title = ('Associated Features')
@@ -527,6 +568,13 @@ class ComponentAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
+class ComponentFeatureAdmin(reversion.VersionAdmin):
+    model = ComponentFeature
+    
+    list_display = ['id', 'component', 'feature', 'set_by_default', 'created', 'modified']
+    list_display_links = ['id', 'component', 'feature', 'created', 'modified']
+    list_editable = ['set_by_default']
+    search_fields = ['component__name', 'feature__name']
 
 class CountyAdmin(reversion.VersionAdmin):
     model = County
@@ -888,6 +936,17 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ) 
     filter_horizontal = ['owners']
     inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    
+    # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
+    # to update this field and resave the IP *after* the related models have been saved!
+    # See https://code.djangoproject.com/ticket/13950 
+    def response_add(self, request, obj, *args, **kwargs):
+        obj._update_display_label_and_save()
+        return super(ItemPartAdmin, self).response_add(request, obj, *args, **kwargs)
+    
+    def response_change(self, request, obj, *args, **kwargs):
+        obj._update_display_label_and_save()
+        return super(ItemPartAdmin, self).response_change(request, obj, *args, **kwargs)
 
 class ItemPartTypeAdmin(reversion.VersionAdmin):
     model = ItemPartType
@@ -998,7 +1057,7 @@ class ImageAdmin(reversion.VersionAdmin):
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 
-            'get_status_label', 'annotation_status', 'media_permission', 'created', 'modified',
+            'get_status_label', 'annotation_status', 'get_annotations_count', 'media_permission', 'created', 'modified',
             'iipimage']
     list_display_links = ['id', 'display_label', 
             'annotation_status', 'media_permission', 'created', 'modified',
@@ -1008,7 +1067,7 @@ class ImageAdmin(reversion.VersionAdmin):
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
     
-    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart]
+    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
     readonly_fields = ('display_label', 'folio_number', 'folio_side')
     
@@ -1027,12 +1086,17 @@ class ImageAdmin(reversion.VersionAdmin):
         class SortedChangeList(ChangeList):
             def get_query_set(self, *args, **kwargs):
                 qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
-                return Image.sort_query_set_by_locus(qs)
+                return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands')
                  
         if request.GET.get('o'):
             return ChangeList
              
         return SortedChangeList        
+    
+    def get_annotations_count(self, image):
+        return image.annotation_set.count()
+        #return ''
+    get_annotations_count.short_description = '#ann.'
     
     def get_thumbnail(self, image):
         from digipal.templatetags.html_escape import iip_img_a
@@ -1224,6 +1288,15 @@ class TextAdmin(reversion.VersionAdmin):
     
     inlines = [TextItemPartInline, CatalogueNumberInline, DescriptionInline]
 
+class CarouselItemAdmin(reversion.VersionAdmin):
+    model = CarouselItem
+    
+    list_display = ['title', 'sort_order', 'created', 'modified']
+    list_display_link = ['title', 'created', 'modified']
+    list_editable = ['sort_order']
+    search_fields = ['title']
+    ordering = ['sort_order']
+
 class StewartRecordFilterMatched(admin.SimpleListFilter):
     title = 'Match'
     parameter_name = 'matched'
@@ -1353,6 +1426,7 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Character, CharacterAdmin)
 admin.site.register(Collation, CollationAdmin)
 admin.site.register(Component, ComponentAdmin)
+admin.site.register(ComponentFeature, ComponentFeatureAdmin)
 admin.site.register(County, CountyAdmin)
 admin.site.register(CurrentItem, CurrentItemAdmin)
 admin.site.register(Date, DateAdmin)
@@ -1396,6 +1470,7 @@ admin.site.register(Script, ScriptAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Status, StatusAdmin)
 admin.site.register(MediaPermission, MediaPermissionAdmin)
+admin.site.register(CarouselItem, CarouselItemAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(Text, TextAdmin)

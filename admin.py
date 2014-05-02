@@ -365,6 +365,16 @@ class HandGlossTextFilter(SimpleListFilter):
         if self.value() == 'no':
             return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True) 
 
+class HandImageNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of images')
+
+    parameter_name = ('ni')
+
+    related_table = 'digipal_hand_images'
+    foreign_key = 'hand_id'
+    this_table = 'digipal_hand'
+    
+
 #########################
 #                       #
 #        Forms          #
@@ -756,7 +766,7 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter, HandImageNumberFilter]
     
     fieldsets = fieldsets_hand
 

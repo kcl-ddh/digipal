@@ -183,11 +183,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					elements.push(annotations);
 					notify('Annotation successfully added to collection', 'success');
 				} else {
-					if (typeof annotator != 'undefined') {
-						image_id = annotator.image_id;
-					} else {
-						image_id = graph;
-					}
+					image_id = graph;
 					elements.push(image_id);
 					notify('Image successfully added to collection', 'success');
 				}
@@ -217,13 +213,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				notify('Annotation successfully added to collection', 'success');
 			} else {
-
-				if (typeof annotator != 'undefined') {
-					image_id = annotator.image_id;
-				} else {
-					image_id = graph;
-				}
-
+				image_id = graph;
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];
 					current_basket.images.push(image_id);

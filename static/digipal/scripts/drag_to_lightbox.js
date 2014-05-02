@@ -62,7 +62,6 @@ var Star = function(options) {
 		fill: function(image, element) {
 			var data = getData(image);
 			var star = $('<span data-toggle="tooltip" data-container="body" title="Add image to collection" class="glyphicon glyphicon-star unstarred">');
-			data.type += 's';
 			var selectedCollection = getCurrentCollection();
 			if (isInCollection(selectedCollection, data.id, data.type)) {
 				star.addClass('starred').removeClass("unstarred");
@@ -103,16 +102,14 @@ var Star = function(options) {
 	};
 
 	var getData = function(image) {
-		var type, id;
+		var id;
 		if (image.data('type') == 'image') {
-			type = 'image';
 			id = image.data('id');
 		} else {
-			type = 'annotation';
 			id = image.data('graph');
 		}
 		return {
-			'type': type,
+			'type': image.data('type'),
 			'id': id
 		};
 	};
@@ -174,6 +171,7 @@ var Star = function(options) {
 	var isInCollection = function(collection_id, id, type) {
 		var collection = getCollection(collection_id);
 		var found = false;
+		type += 's';
 		if (collection.hasOwnProperty(type)) {
 			for (var i = 0; i < collection[type].length; i++) {
 				if (collection[type][i] == id) {

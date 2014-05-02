@@ -13,7 +13,7 @@
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 	var s = '<div id="box_features_container">';
-	var array_features_owned = features_saved(null, data['features']);
+	var array_features_owned = features_saved(data['features']);
 	var allographs = data.allographs;
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
@@ -74,7 +74,7 @@ Function to get the features of a described allograph
 @params feature selected, url
 */
 
-function features_saved(selectedFeature, features) {
+function features_saved(features) {
 	var array_features_owned = [];
 	if (features && features.length) {
 		for (var i = 0; i < features.length; i++) {

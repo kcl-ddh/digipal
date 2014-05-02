@@ -78,19 +78,6 @@ function update_collection_counter() {
 	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
 
-	/*
-	if (children > 1) {
-		var ul = $('<ul class="dropdown-menu">');
-		var caret = '<span class="caret"></span>';
-		$.each(basket_elements, function(index, value) {
-			var li = "<li><a href='/digipal/collection/" + index + "'>" + index + "</a></li>";
-			ul.append(li);
-		});
-		basket_element.data('toggle', 'dropdown');
-		basket_element.append(caret);
-		basket_element.after(ul);
-	}
-	*/
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {

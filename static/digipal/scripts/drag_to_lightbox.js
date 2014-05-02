@@ -104,7 +104,7 @@ var Star = function(options) {
 
 	var getData = function(image) {
 		var type, id;
-		if (image.data('id')) {
+		if (image.data('type') == 'image') {
 			type = 'image';
 			id = image.data('id');
 		} else {
@@ -119,7 +119,6 @@ var Star = function(options) {
 
 	var addToCollection = function(image) {
 		var data = getData(image);
-		data.type += 's';
 		add_to_lightbox(image, data.type, data.id, false);
 	};
 

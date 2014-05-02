@@ -506,7 +506,7 @@ def save(request, graphs):
                         scribe = hand.scribe
 
                         # GN: if this is a new Graph, it has no idiograph yet, so we test this first
-                        if graph.id and (allograph != graph.idiograph.allograph.id):
+                        if graph.id and (allograph.id != graph.idiograph.allograph.id):
                             graph.graph_components.all().delete()
 
                         idiograph_list = Idiograph.objects.filter(allograph=allograph,

@@ -18,15 +18,7 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
                 <td>{{ scribe.name }}
-                    {% if scribe.get_image_count %}
-                        {% spaceless %}
-                        (<a class='imageIcon' data-toggle="tooltip" alt='manuscript' title='This record contains {{scribe.hands.count}} images' 
-                            href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'
-                            >{{scribe.get_image_count}}
-                                <i class="fa fa-picture-o"></i>
-                            </a> )
-                        {% endspaceless %}
-                    {% endif %}
+                    {% image_icon scribe.get_image_count "COUNT images for this scribe" scribe.get_absolute_url|add:"pages" template_type request %}
                 </td>
                 <td>{{ scribe.date }}</td>
                 <td>{{ scribe.scriptorium.name }}</td>

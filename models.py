@@ -193,10 +193,20 @@ class Ontograph(models.Model):
         #return u'%s: %s' % (self.name, self.ontograph_type)
         return get_list_as_string(self.name, ': ', self.ontograph_type)
 
+
+class CharacterForm(models.Model):
+    name =  models.CharField(max_length=128, unique=True)
+    
+    class Meta:
+        ordering = ['name']
+    
+    def __unicode__(self):
+        return self.name
+     
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
     unicode_point = models.CharField(max_length=32, unique=False, blank=True, null=True)
-    form = models.CharField(max_length=128)
+    form = models.ForeignKey(CharacterForm, blank=False, null=False)
     ontograph = models.ForeignKey(Ontograph)
     components = models.ManyToManyField(Component, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)

@@ -265,4 +265,27 @@ def render_mezzanine_page(page_title, *args, **kwargs):
             ret = rtp.content
     return ret
 
+@register.simple_tag
+def image_icon(count, message, url, template_type=None, request=None):
+    '''Return the HTML for showing an image icon with a count as a link to another page
+        count is the number of images
+        message is the message to show in the tooltip (e.g. 'COUNT image')
+
+        e.g.
+        {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
+        
+        TODO: deal with no request, template type and url
+    '''
+    
+    ret = u''
+    
+    if count:
+        m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
+        if m:
+            message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(3), plural(m.group(4), count), m.group(5))
+        ret = u'''<span class="result-image-count">
+                    (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
+                  </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
+        
+    return mark_safe(ret)
     

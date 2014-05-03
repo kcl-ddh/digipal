@@ -1473,6 +1473,34 @@ class Image(models.Model):
         if self.iipimage:
             ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
         return ret
+    
+    def get_region_dimensions(self, region_url):
+        ''' returns the dimension (width, height) of an IIPImage server 
+            region (e.g. ...WID=500&RGN=0.1,0.1,0.2,0.2&CVT=JPG) of this image
+            returns -1 for unknown dimensions'''
+        ret = [-1, -1]
+        dims = [float(v) for v in self.dimensions()]
+        #print dims
+        matches = re.search(ur'(WID|HEI)=(\d*)', region_url)
+        if matches:
+            d = 0
+            if matches.group(1) == 'HEI': d = 1
+            requested_dim = float(matches.group(2))
+            dims[1-d] = dims[1-d] / dims[d] * requested_dim
+            dims[d] = requested_dim
+            print dims
+        matches = re.search(ur'RGN=([^&]*)', region_url)
+        if matches:
+            parts = [float(part) for part in matches.group(1).split(',')]
+            print parts
+            parts[2]
+            # don't ask... it sees like iip image server returns the double of the requested size!!
+            factor = 2
+            ret = [int(parts[2]*dims[0]) * factor, int(parts[3]*dims[1]) * factor]
+        #print ret
+        #print dims
+        #exit()
+        return ret
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
@@ -2043,7 +2071,7 @@ class Annotation(models.Model):
             ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
         if esc: ret = escape(ret)
         return ret
-
+    
     def thumbnail(self):
         return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
 

@@ -171,7 +171,10 @@ def annotation_img(annotation, *args, **kwargs):
     '''
     ret = u''
     if annotation:
-        ret = img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+        url = annotation.get_cutout_url()
+        #dims = width=annotation.image.get_region_dimensions(url)
+        #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
+        ret = img(url, alt=annotation.graph, *args, **kwargs)
     return ret
 
 @register.simple_tag

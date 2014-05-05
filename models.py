@@ -1999,6 +1999,7 @@ class Annotation(models.Model):
         max_y = float(max(yy))
 
         if self.image.path():
+            # self.cutout = path to a cropped image request to the image server
             img_width, img_height = self.image.dimensions()
             if img_width > 0 and img_height > 0:
                 img_width = float(img_width)
@@ -2031,6 +2032,7 @@ class Annotation(models.Model):
                                 settings.IMAGE_SERVER_PATH, self.image.path(),
                                 size, left, top, width, height)
         elif self.image.image:
+            # self.cutout = path to a cropped image made with PIL and saved on the file system
             img = pil.open(self.image.image.path)
             cropped = img.crop((int(min_x),
                 self.image.image.height - int(max_y), int(max_x),

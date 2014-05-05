@@ -10,7 +10,7 @@ function AnnotatorLoader() {
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
 
-		var csrftoken = getCookie('csrftoken');
+		var csrftoken = annotator.utils.getCookie('csrftoken');
 		$.ajaxSetup({
 			headers: {
 				"X-CSRFToken": csrftoken
@@ -26,7 +26,7 @@ function AnnotatorLoader() {
 		var select_elements = $('select');
 		select_elements.chosen();
 		self.switch_annotations();
-		self.load_annotations(function() { // once annotations get loaded ...
+		annotator.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
 			self.set_settings(self.digipal_settings); // setting settings
 		});
@@ -236,103 +236,12 @@ function AnnotatorLoader() {
 	};
 
 	/*
-		* function load_annotations
-		@parameter callback
-			- actions to be done after all the annotations get loaded
-	*/
-
-	this.load_annotations = function(callback) {
-		var request = $.getJSON(annotator.url_annotations, function(data) {
-			annotator.annotations = data;
-		});
-
-		var chained = request.then(function(data) {
-
-			var map = annotator.map;
-			// zooms to the max extent of the map area
-			map.zoomToMaxExtent();
-
-			var layer = annotator.vectorLayer;
-			var format = annotator.format;
-			var annotations = data;
-
-			// Loading vectors
-
-			var features_request = $.getJSON(annotator.absolute_image_url + 'vectors/');
-			features_request.done(function(data) {
-
-				$('#loading_allographs_image').remove();
-				var features = [];
-				for (var j in data) {
-					var f = format.read(data[j])[0];
-					f.id = j;
-					for (var i in annotations) {
-						var allograph = annotations[i]['feature'];
-						var character_id = annotations[i]['character_id'];
-						var graph = annotations[i]['graph'];
-						var character = annotations[i]['character'];
-						var hand = annotations[i]['hand'];
-						var image_id = annotations[i]['image_id'];
-						var num_features = annotations[i]['num_features'];
-						var display_note = annotations[i]['display_note'];
-						if (f.id == annotations[i]['vector_id']) {
-							f.feature = allograph;
-							f.character_id = character_id;
-							f.graph = graph;
-							f.character = character;
-							f.hand = hand;
-							f.image_id = image_id;
-							f.num_features = num_features;
-							f.display_note = display_note;
-
-							// it serves to differentiate stored and temporary annotations
-							f.stored = true;
-						}
-					}
-					f.linked_to = [];
-					/* annotator.vectorLayer.features is the array to access to all the features */
-
-					features.push(f);
-				}
-				// adds all the vectors to the vector layer
-				layer.addFeatures(features);
-				var vectors = annotator.vectorLayer.features;
-
-				var navigation = new OpenLayers.Control.Navigation({
-					'zoomBoxEnabled': false,
-					defaultDblClick: function(event) {
-						return;
-					}
-				});
-
-				map.addControl(navigation);
-
-				if (!annotator.events) {
-					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
-					map.events.register("moveend", map, function() {
-						registerEvents();
-						restoreFullscreenPositions();
-					});
-
-					map.events.register("zoomend", map, function() {
-						registerEvents();
-						restoreFullscreenPositions();
-					});
-
-				}
-
-				callback(); // calling all events on elements after all annotations get loaded
-			});
-		});
-	};
-
-	/*
 		* function load_temporary_vector
 			- loads temporary vectors through URL
 	*/
 
 	this.load_temporary_vector = function() {
-		var temporary_vectors = getParameter('temporary_vector');
+		var temporary_vectors = annotator.utils.getParameter('temporary_vector');
 		if (temporary_vectors.length && !no_image_reason) {
 
 			$('html').animate({
@@ -366,12 +275,11 @@ function AnnotatorLoader() {
 				objectGeometry.stored = false;
 				objectGeometry.contentAnnotation = geo_json.desc;
 				objectGeometry.contentTitle = geo_json.title;
-
+				objectGeometry.state = 'Insert';
 				annotator.vectorLayer.features.push(object[0]);
 
 				// select feature
 				annotator.selectFeatureById(objectGeometry.id);
-
 				//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 				// zoom map to extent
@@ -400,7 +308,6 @@ function AnnotatorLoader() {
 				'top': geo_json.dialogPosition.top,
 				'left': geo_json.dialogPosition.left
 			});
-
 
 		} else {
 			return false;
@@ -436,8 +343,8 @@ function AnnotatorLoader() {
 			//annotator.selectFeatureByIdAndCentre(vector_id_value);
 			// zoom map to extent
 
-			if (getParameter('map_extent').length) {
-				var extent_parsed = JSON.parse(decodeURI(getParameter('map_extent')[0]));
+			if (annotator.utils.getParameter('map_extent').length) {
+				var extent_parsed = JSON.parse(decodeURI(annotator.utils.getParameter('map_extent')[0]));
 				var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
 
 				annotator.map.zoomToExtent(extent);
@@ -518,29 +425,29 @@ function AnnotatorLoader() {
 
 			});
 
-			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
 
-			annotator.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
 			/* launching events */
 			var check_vectors = $('.checkVectors');
 			check_vectors.change(function() {
-				annotator.filterAnnotation($(this), 'feature');
+				annotator.filters.filterAnnotation($(this), 'feature');
 			});
 
 			var check_vectors_hands = $('.checkVectors_hands');
 			check_vectors_hands.change(function() {
-				annotator.filterAnnotation($(this), 'hand');
+				annotator.filters.filterAnnotation($(this), 'hand');
 			});
 
 			var CheckAll = $('#checkAll');
 			CheckAll.click(function() {
 				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filterCheckboxes('.checkVectors', 'uncheck');
+					annotator.filters.filterCheckboxes('.checkVectors', 'uncheck');
 					$(this).data('toggle', 'check');
 				} else {
-					annotator.filterCheckboxes('.checkVectors', 'check');
+					annotator.filters.filterCheckboxes('.checkVectors', 'check');
 					$(this).data('toggle', 'uncheck');
 				}
 			});
@@ -548,10 +455,10 @@ function AnnotatorLoader() {
 			var checkAll_hands = $('#checkAll_hands');
 			checkAll_hands.click(function() {
 				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filterCheckboxes('.checkVectors_hands', 'uncheck');
+					annotator.filters.filterCheckboxes('.checkVectors_hands', 'uncheck');
 					$(this).data('toggle', 'check');
 				} else {
-					annotator.filterCheckboxes('.checkVectors_hands', 'check');
+					annotator.filters.filterCheckboxes('.checkVectors_hands', 'check');
 					$(this).data('toggle', 'uncheck');
 				}
 			});
@@ -808,14 +715,14 @@ function AnnotatorLoader() {
 			annotator.annotating = true;
 			self.digipal_settings.annotating = true;
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-			enable_annotation_tools();
+			annotator.toolbar.enable_annotation_tools();
 		} else {
 			multiple_boxes.attr('disabled', false);
 			boxes_on_click.attr('checked', true).trigger('change');
 			annotator.annotating = false;
 			self.digipal_settings.annotating = false;
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-			disable_annotation_tools();
+			annotator.toolbar.disable_annotation_tools();
 		}
 
 	};

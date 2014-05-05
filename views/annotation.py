@@ -261,6 +261,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
+        data[a.id]['allograph_id'] = a.graph.idiograph.allograph.id
         features_list = simplejson.loads(get_features(a.graph.id, True))
         data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
@@ -498,7 +499,6 @@ def save(request, graphs):
                     annotation.author = request.user
                     #annotation.before = clean['before']
                     #annotation.after = clean['after']
-
                     allograph = clean['allograph']
                     hand = clean['hand']
                     if hand and allograph:

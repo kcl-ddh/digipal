@@ -188,7 +188,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
 		renderIntent: 'transform',
 		irregular: true,
-		rotate: false,
+		rotate: true,
 		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
 	});
@@ -224,7 +224,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			var hand = $('#panelImageBox .allograph_form').val();
 			var allograph = $('#panelImageBox .allograph_form').val();
 			e.feature.hand = hand;
-			e.feature.allograph = allograph;
+			e.feature.allograph_id = allograph;
 			e.feature.feature = $('#panelImageBox .allograph_form option:selected').text();
 
 			if (annotator.isAdmin == 'False') {

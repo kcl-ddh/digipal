@@ -40,6 +40,7 @@ var Star = function(options) {
 			event.stopPropagation();
 		}).on('mouseleave', function(event) {
 			dialog.hide();
+			$('#dialog-star').fadeOut().remove();
 			event.stopPropagation();
 		});
 	};
@@ -48,8 +49,8 @@ var Star = function(options) {
 
 		init: function(image) {
 			var _self = this;
-			_self.element = _self.create(image);
-			if (!image.find(_self.element).length) {
+			if (!image.find("#dialog-star").length) {
+				_self.element = _self.create(image);
 				_self.show(image);
 			}
 		},

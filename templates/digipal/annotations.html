@@ -70,8 +70,8 @@
             </h5>
 
             <div class='btn-group pull-right buttons_annotations_list'>
-                <button data-container='body' data-toggle='tooltip' title='Add graphs to collection' class='btn btn-default btn-small to_lightbox' disabled>
-                  <i class='fa fa-folder-open'></i>
+                <button data-container='body' data-toggle='tooltip' title='Add selected graphs to collection' class='btn btn-default btn-small to_lightbox' disabled>
+                  <i class='glyphicon glyphicon-star unstarred'></i>
                 </button>
 
                 <button data-container='body' data-toggle='tooltip' title='Select all the annotations' data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class='btn btn-default btn-small select_all'>
@@ -84,40 +84,41 @@
             </div>
 
             <!-- ul hand -->
-            <ul data-group='true' data-allograph='{{allograph}}' class="list-allographs" data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
+            <div data-group='true' data-allograph='{{allograph}}' class="list-allographs" data-key = '{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
 
             {% for graph in graphs %}
 
               {% if forloop.counter0|divisibleby:6 and forloop.counter > 5 %}
 
               {% endif %}
-
+              <div class="folio-image-wrapper">
                 <!-- graph -->
-                <li data-container='body' class='annotation_li' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image-id="{{ graph.image_id }}" data-allograph="{{ graph.graph.idiograph.allograph.id }}" title='Click here to select this graph' data-toggle='tooltip'>
+                <div data-container='body' class='annotation_li droppable_image' data-graph = "{{ graph.graph.id }}" data-annotation = "{{ graph.vector_id }}" data-image-id="{{ graph.image_id }}" data-allograph="{{ graph.graph.idiograph.allograph.id }}" data-type ='annotation'>
 
-            <p>
+                  <p>
 
-              {% if not can_edit %}
+                    {% if not can_edit %}
 
-              <a data-container='body' data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
+                    <a data-container='body' data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
 
-              {% endif %}
+                    {% endif %}
 
-              {% if can_edit %}
-               <!-- graph number -->
-              <span id='label_{{ graph.graph.id }}' data-graph-id = "{{ graph.graph.id }}" class='label label-default'>{{forloop.counter}}</span>
+                    {% if can_edit %}
+                     <!-- graph number -->
+                    <span id='label_{{ graph.graph.id }}' data-graph-id = "{{ graph.graph.id }}" class='label label-default'>{{forloop.counter}}</span>
 
-              {% endif %}
+                    {% endif %}
 
-            </p>
+                  </p>
 
               <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
                 {% annotation_img graph lazy=1 %}
               </a>
 
-            </li>
+            </div>
+            </div>
           {% endfor %}
-        </ul>
+        </div>
         </div>
         {% endfor %}
     </div>

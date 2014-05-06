@@ -190,11 +190,11 @@ function Allographs(dialog, cache) {
 
 		deselect_all: function(button) {
 			var key = button.data('key');
-			var ul = $('ul[data-key="' + key + '"]');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', true);
 			var inputs = $('input[data-key="' + key + '"]');
-			var checkboxes = ul.find('li.selected');
+			var checkboxes = ul.find('.annotation_li.selected');
 
 			//selectedAnnotations.annotations = [];
 			temporary_vectors = [];
@@ -215,10 +215,10 @@ function Allographs(dialog, cache) {
 
 		select_all: function(button) {
 			var key = button.data('key');
-			var ul = $('ul[data-key="' + key + '"]');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', false);
-			var checkboxes = ul.find('li').not('.selected');
+			var checkboxes = ul.find('.annotation_li').not('.selected');
 			for (var i = 0; i < checkboxes.length; i++) {
 				methods.select_annotation($(checkboxes[i]));
 			}
@@ -284,7 +284,7 @@ function Allographs(dialog, cache) {
 		}
 
 		var graph;
-		var panel = $('ul[data-allograph="' + selectedAnnotations.allograph + '"]').parent();
+		var panel = $('.list-allographs[data-allograph="' + selectedAnnotations.allograph + '"]').parent();
 		var temp = annotation;
 
 		if (selectedAnnotations.annotations.length > 1) {
@@ -504,7 +504,7 @@ function Allographs(dialog, cache) {
 			var allograph = parseInt(annotation.hidden_allograph.split(':')[0], 10);
 			var graph = annotation.graph;
 			var image_id = annotator.image_id;
-			var element = $('li[data-graph="' + graph + '"]');
+			var element = $('.annotation_li[data-graph="' + graph + '"]');
 
 			// if there's no allograph cached, I make a full AJAX call
 			if (!cache.search("allograph", allograph)) {

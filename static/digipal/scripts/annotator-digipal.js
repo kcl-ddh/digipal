@@ -1634,7 +1634,9 @@ function detect_common_features_init() {
 	var graphs = [];
 
 	for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
-		graphs.push(annotator.selectedAnnotations[g].graph);
+		if (annotator.selectedAnnotations[g].hasOwnProperty('graph') && annotator.selectedAnnotations[g].graph) {
+			graphs.push(annotator.selectedAnnotations[g].graph);
+		}
 	}
 
 	var cache = $.extend({}, annotator.cacheAnnotations.cache);
@@ -1982,7 +1984,9 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var selected = [];
 
 			for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
-				selected.push(annotator.selectedAnnotations[g].graph);
+				if (annotator.selectedAnnotations[g].hasOwnProperty('graph') && annotator.selectedAnnotations[g].graph) {
+					selected.push(annotator.selectedAnnotations[g].graph);
+				}
 			}
 
 			data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);

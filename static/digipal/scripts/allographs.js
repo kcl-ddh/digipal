@@ -42,7 +42,7 @@ function Allographs(dialog, cache) {
 				methods.save();
 			});
 
-			var tabs = $('a[data-toggle="tab"]');
+			var tabs = $('.myModal a[data-toggle="tab"]');
 			tabs.on('shown.bs.tab', function(e) {
 				if (e.target.getAttribute('data-target') == '#edit') {
 					self.dialog_instance.edit_letter.init(annotation.graph);

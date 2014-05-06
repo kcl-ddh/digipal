@@ -1,17 +1,15 @@
 /**
- * Every element that match the css selector '.imageDatabase a.droppable_image'
- * will become draggable to a basket. The element must have an data-id attribute
- * which contains the ID of the digipal image record to add to the basket.
- *
- * Requires a <div id="basket_collector"> that will serve as a drop target
- * which is made visible as soon as we start dragging an item.
+ * Every element that match the css selector 'a.droppable_image'
+ * will be detected by the script to be "starrable". The element must have an data-id attribute
+ * which contains the ID of the digipal image record to add to the basket, or
+ * data graph if this is an annotation
  *
  * Dependency: add_to_lightbox.js
  */
-
 /*
 
- add_to_lightbox(element, type, element.data('id'), false)
+ from add_to_lightbox.js:
+ add_to_lightbox(element, type, id, multiple)
 
  */
 

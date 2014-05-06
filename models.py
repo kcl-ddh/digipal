@@ -1922,7 +1922,8 @@ class Annotation(models.Model):
         unique_together = ('image', 'vector_id')
         
     def get_coordinates(self, geo_json=None):
-        ''' Returns the coordinates of the graph rectangle
+        ''' Returns the coordinates of the smallest rectangle 
+            that contain the path around the annotation shape.
             E.g. ((602, 56), (998, 184))
             
             WARNING: the y coordinates are relative to the BOTTOM of the image!

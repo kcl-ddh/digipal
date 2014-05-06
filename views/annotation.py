@@ -27,16 +27,59 @@ from django.conf import settings
 register = template.Library()
 
 
-def get_content_type_data(request, content_type, id, only_features=False):
+def get_content_type_data(request, content_type, ids=None, only_features=False):
 
-    ids = str(id)
-    if content_type == 'graph':
+    if ids: ids = str(ids)
+    if content_type == 'annotation':
+        data = get_annotations(request, ids)
+    elif content_type == 'graph':
         data = get_features(ids, only_features)
     elif content_type == 'allograph':
         data = allograph_features(request, ids)
     elif content_type == 'hand':
         data = get_hands(ids)
     return HttpResponse(data, mimetype='application/json')
+
+def get_list_from_csv(csv):
+    '''Returns a list of numbers from a comma separated string.
+        Empty values are ignored.
+        E.g. get_list_from_csv('1,2') => [1, 2]
+            get_list_from_csv('') => []
+    '''
+    ret = []
+    
+    if csv:
+        ret = [int(v) for v in csv.split(',') if v]
+    
+    return ret
+
+def get_annotations(request, ids=''):
+    ret = {'success': True, 'errors': {}, 'html': ''}
+    
+    annotation = None
+    
+    from digipal.models import Annotation
+    
+    annotations = Annotation.objects.filter()
+    
+    # get the annotation ids from the webpath 
+    ids = get_list_from_csv(ids)
+    if ids:
+        annotations = annotations.filter(id__in=ids)
+    
+    # get annotation from graph id passed in the GET
+    # graphids=1,2,3
+    graphids = get_list_from_csv(request.GET.get('graphids', ''))
+    if graphids:
+        annotations = Annotation.objects.filter(graph__id__in=graphids)
+    
+    # TODO: deal with multiple annotations
+    if annotations and annotations.count():
+        rotation = request.GET.get('rotation', annotations[0].rotation)
+    
+        ret['html'] = 'rotation = %s' % rotation
+    
+    return HttpResponse(simplejson.dumps(ret), mimetype='application/json')
 
 def get_features(graph_id, only_features=False):
     data = []
@@ -631,3 +674,4 @@ def delete(request, image_id, vector_id):
         data.update({'success': True})
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+

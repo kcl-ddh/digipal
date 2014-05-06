@@ -188,7 +188,10 @@ var Star = function(options) {
 	};
 
 	return {
-		'init': init
+		'init': init,
+		"removeFromCollection": removeFromCollection,
+		"getCurrentCollection": getCurrentCollection,
+		"isInCollection": isInCollection
 	};
 };
 

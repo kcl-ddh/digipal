@@ -1267,10 +1267,22 @@ class Image(models.Model):
     internal_notes = models.TextField(blank=True, null=True)
     
     annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True, blank=True, default=None)
+    
+    # THESE FIELDS SHOULD NOT BE READ DIRECTLY, 
+    # please call self.dimension instead.
+    # They are used internally as a cache for the dimensions.
+    width = models.IntegerField(blank=False, null=False, default=0)
+    height = models.IntegerField(blank=False, null=False, default=0)
+    
+    __original_iipimage = None
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']
 
+    def __init__(self, *args, **kwargs):
+        super(Image, self).__init__(*args, **kwargs)
+        self.__original_iipimage = self.iipimage
+    
     def __unicode__(self):
         ret = u''
         if self.display_label:
@@ -1372,7 +1384,14 @@ class Image(models.Model):
             else:
                 self.display_label = u''
         self.update_number_and_side_from_locus()
+        
+        # update the height amd width if the image path has changed
+        if self.iipimage != self.__original_iipimage:
+            self.height = 0
+            self.width = 0
+        
         super(Image, self).save(*args, **kwargs)
+        self.__original_iipimage = self.iipimage
 
     def update_number_and_side_from_locus(self):
         ''' sets self.folio_number and self.folio_side from self.locus
@@ -1401,17 +1420,30 @@ class Image(models.Model):
         return self.iipimage.name
 
     def dimensions(self):
-        """Returns a tuple with the image width and height."""
-        # TODO: review the performances of this:
-        # a http request for each image seems prohibitive.
-        width = 0
-        height = 0
+        """Returns a tuple with the image width and height.
+            This function can SAVE the current model if the 
+            cache dimensions were 0 (or the image has changed).
+        """
+        ret = (self.width, self.height)
+        
+        # image has changed, we reset the dims
+        if (self.iipimage != self.__original_iipimage):
+            ret = (0, 0)
+        
+        if ret == (0, 0):
+            if self.iipimage:
+                # obtain the new dims from the image server
+                ret = self.iipimage._get_image_dimensions()
 
-        if self.iipimage:
-            width, height = self.iipimage._get_image_dimensions()
+        if ret != (self.width, self.height):
+            (self.width, self.height) = ret
+            if self.pk:
+                # need to do this otherwise the dims will be reset in save
+                self.__original_iipimage = self.iipimage
+                self.save()
 
-        return int(width), int(height)
-
+        return ret
+    
     def full(self):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&amp;RST=*&amp;QLT=100&amp;CVT=JPG
@@ -1440,6 +1472,34 @@ class Image(models.Model):
         ret = ''
         if self.iipimage:
             ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
+        return ret
+    
+    def get_region_dimensions(self, region_url):
+        ''' returns the dimension (width, height) of an IIPImage server 
+            region (e.g. ...WID=500&RGN=0.1,0.1,0.2,0.2&CVT=JPG) of this image
+            returns -1 for unknown dimensions'''
+        ret = [-1, -1]
+        dims = [float(v) for v in self.dimensions()]
+        #print dims
+        matches = re.search(ur'(WID|HEI)=(\d*)', region_url)
+        if matches:
+            d = 0
+            if matches.group(1) == 'HEI': d = 1
+            requested_dim = float(matches.group(2))
+            dims[1-d] = dims[1-d] / dims[d] * requested_dim
+            dims[d] = requested_dim
+            print dims
+        matches = re.search(ur'RGN=([^&]*)', region_url)
+        if matches:
+            parts = [float(part) for part in matches.group(1).split(',')]
+            print parts
+            parts[2]
+            # don't ask... it sees like iip image server returns the double of the requested size!!
+            factor = 2
+            ret = [int(parts[2]*dims[0]) * factor, int(parts[3]*dims[1]) * factor]
+        #print ret
+        #print dims
+        #exit()
         return ret
 
     thumbnail.short_description = 'Thumbnail'
@@ -1837,12 +1897,17 @@ class Annotation(models.Model):
     # WARNING: this value is derived from geo_json on save()
     # No need to change it directly
     cutout = models.CharField(max_length=256)
+    # This is the rotation in degree applied to the cut-out to show it in the right orientation.
+    # Note that it does not affect the shape of the annotation box, only the rendering of the cut out. 
+    rotation = models.FloatField(blank=False, null=False, default=0.0)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
             related_name='allograph_before')
     graph = models.OneToOneField(Graph, blank=True, null=True)
     after = models.ForeignKey(Allograph, blank=True, null=True,
             related_name='allograph_after')
+    # GN: try avoid using this field as it may not be useful anymore
+    # Use the record id instead
     vector_id = models.TextField()
     geo_json = models.TextField()
     display_note = models.TextField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
@@ -1857,7 +1922,8 @@ class Annotation(models.Model):
         unique_together = ('image', 'vector_id')
         
     def get_coordinates(self, geo_json=None):
-        ''' Returns the coordinates of the graph rectangle
+        ''' Returns the coordinates of the smallest rectangle 
+            that contain the path around the annotation shape.
             E.g. ((602, 56), (998, 184))
             
             WARNING: the y coordinates are relative to the BOTTOM of the image!
@@ -1934,6 +2000,7 @@ class Annotation(models.Model):
         max_y = float(max(yy))
 
         if self.image.path():
+            # self.cutout = path to a cropped image request to the image server
             img_width, img_height = self.image.dimensions()
             if img_width > 0 and img_height > 0:
                 img_width = float(img_width)
@@ -1966,6 +2033,7 @@ class Annotation(models.Model):
                                 settings.IMAGE_SERVER_PATH, self.image.path(),
                                 size, left, top, width, height)
         elif self.image.image:
+            # self.cutout = path to a cropped image made with PIL and saved on the file system
             img = pil.open(self.image.image.path)
             cropped = img.crop((int(min_x),
                 self.image.image.height - int(max_y), int(max_x),
@@ -2006,7 +2074,7 @@ class Annotation(models.Model):
             ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
         if esc: ret = escape(ret)
         return ret
-
+    
     def thumbnail(self):
         return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
 

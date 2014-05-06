@@ -1087,12 +1087,12 @@ class ImageAdmin(reversion.VersionAdmin):
     
     list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
-    readonly_fields = ('display_label', 'folio_number', 'folio_side')
+    readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height')
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
-                ('Image file', {'fields': ('iipimage', 'media_permission')}),
+                ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height')}),
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]

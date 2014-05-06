@@ -21,11 +21,14 @@
 
 <div class="row">
     <div class="container">
-        {% if LIGHTBOX %}
-        <div class='col-md-2 pull-right'>
+
+        <div class='col-md-{% if LIGHTBOX %}3{% else %}1{% endif %} pull-right'>
+            <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Send selected Images to Lightbox' id='remove_from_collection' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-picture"></span> Remove</button>
+            {% if LIGHTBOX %}
             <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Send selected Images to Lightbox' id='to_lightbox' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-picture"></span> Lightbox</button>
+            {% endif %}
         </div>
-        {% endif %}
+
         <div id='container_basket' class='col-md-12'>
 
         </div>

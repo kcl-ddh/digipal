@@ -1639,8 +1639,10 @@ function detect_common_features_init() {
 		}
 	}
 
-	var cache = $.extend({}, annotator.cacheAnnotations.cache);
-	detect_common_features(graphs, checkboxes, cache);
+	if (graphs.length > 1) {
+		var cache = $.extend({}, annotator.cacheAnnotations.cache);
+		detect_common_features(graphs, checkboxes, cache);
+	}
 }
 
 function refresh_letters_container_init(annotation, allograph, allograph_id, show) {
@@ -1989,7 +1991,9 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 				}
 			}
 
-			data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
+			if (selected.length > 1) {
+				data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
+			}
 		}
 
 		update_dialog('annotator_', data, annotator.selectedAnnotations, function(s) {

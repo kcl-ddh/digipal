@@ -149,10 +149,26 @@ function AnnotatorLoader() {
 			localStorage.setItem('self.digipal_settings', JSON.stringify(self.digipal_settings));
 		}
 
+		var star = new Star();
+		var selectedCollection = star.getCurrentCollection();
 		var image_to_lightbox = $("#image_to_lightbox");
+
+		if (star.isInCollection(selectedCollection, annotator.image_id, 'image')) {
+			image_to_lightbox.children().addClass('starred').removeClass('unstarred');
+			image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+		}
+
 		image_to_lightbox.click(function() {
-			add_to_lightbox($(this), 'image', annotator.image_id, false);
-		});
+			if ($(this).children().hasClass('starred')) {
+				star.removeFromCollection(image_to_lightbox, 'image');
+				$(this).children().removeClass('starred').addClass('unstarred');
+				image_to_lightbox.attr('data-original-title', 'Add image to collection');
+			} else {
+				add_to_lightbox($(this), 'image', annotator.image_id, false);
+				$(this).children().removeClass('unstarred').addClass('starred');
+				image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+			}
+		}).tooltip();
 
 		var multiple_annotations = $('#multiple_annotations');
 		multiple_annotations.on('change', function() {

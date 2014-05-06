@@ -115,10 +115,13 @@ var Star = function(options) {
 
 	var addToCollection = function(image) {
 		var data = getData(image);
-		add_to_lightbox(image, data.type, data.id, false);
+		if (add_to_lightbox(image, data.type, data.id, false)) {
+			dialog.element.find('span').addClass('starred').removeClass('unstarred');
+		}
 	};
 
 	var removeFromCollection = function(image, type) {
+		var _self = this;
 		var collections = JSON.parse(localStorage.getItem('collections'));
 		var collection_id = getCurrentCollection();
 		var collection = getCollection(collection_id);
@@ -132,6 +135,7 @@ var Star = function(options) {
 				break;
 			}
 		}
+		dialog.element.find('span').addClass('unstarred').removeClass('starred');
 		collections[collection.name] = collection;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		update_collection_counter();

@@ -50,14 +50,13 @@
         self.save = function() {
             if (!self.is_enabled()) return null;
             
-           // TODO: convert to POST and pass csrf in the data
+           // TODO: convert to PUT
             var ret = $.ajax({
                 url: self.settings.api_root + 'annotation/'+self.annotationid+'/',
-                type: 'GET',
+                type: 'PUT',
                 dataType: 'json',
                 data: {
                     rotation: self.get_rotation(),
-                    method: 'PUT'
                 },
             });
             
@@ -103,7 +102,8 @@
             // get cutout html from server
             if (self.is_enabled()) {
                 var data = {
-                    graphids: self.graphids[0], 
+                    '_graph__id': self.graphids[0],
+                    '@select': 'rotation,html',
                 };
                 if (!get_rotation_from_database) { data.rotation = self.get_rotation() };
                 

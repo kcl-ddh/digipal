@@ -28,18 +28,23 @@ from digipal.templatetags.hand_filters import chrono
 
 register = template.Library()
 
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def get_content_type_data(request, content_type, ids=None, only_features=False):
 
     if ids: ids = str(ids)
-    if content_type == 'annotation':
-        data = process_api_annotation_call(request, ids)
-    elif content_type == 'graph':
+#     if content_type == 'annotation':
+#         data = process_api_annotation_call(request, ids)
+    if content_type == 'graph':
         data = get_features(ids, only_features)
     elif content_type == 'allograph':
         data = allograph_features(request, ids)
     elif content_type == 'hand':
         data = get_hands(ids)
+    else:
+        from digipal.api.generic import API
+        data = API.process_request(request, content_type, ids)
 
     return HttpResponse(data, mimetype='application/json')
 
@@ -70,11 +75,9 @@ def process_api_annotation_call(request, ids=''):
     ret = {'success': True, 'errors': {}, 'results': []}
     
     method = request.REQUEST.get('method', request.META['REQUEST_METHOD'])
-    change = (request.META['REQUEST_METHOD'] in ['POST', 'PUT', 'DELETE'])
+    change = (method in ['POST', 'PUT', 'DELETE'])
     
     # find the annotations
-    annotation = None
-    
     from digipal.models import Annotation
     
     annotations = Annotation.objects.filter()
@@ -110,7 +113,6 @@ def process_api_annotation_call(request, ids=''):
             if method == 'PUT':
                 a.save()
                     
-            rotation = request.REQUEST.get('rotation', annotations[0].rotation)
             from digipal.templatetags.html_escape import annotation_img
             ret['results'].append({
                 'id': a.id, 
@@ -118,7 +120,7 @@ def process_api_annotation_call(request, ids=''):
                 'html': annotation_img(annotations[0])
                 })
         
-    return HttpResponse(simplejson.dumps(ret), mimetype='application/json')
+    return simplejson.dumps(ret)
 
 def get_features(graph_id, only_features=False):
     data = []

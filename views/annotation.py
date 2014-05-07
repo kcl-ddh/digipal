@@ -47,63 +47,63 @@ def get_list_from_csv(csv):
             get_list_from_csv('') => []
     '''
     ret = []
-    
+
     if csv:
         ret = [int(v) for v in csv.split(',') if v]
-    
+
     return ret
 
 def get_annotations(request, ids=''):
     ret = {'success': True, 'errors': {}, 'html': ''}
-    
+
     annotation = None
-    
+
     from digipal.models import Annotation
-    
+
     annotations = Annotation.objects.filter()
-    
-    # get the annotation ids from the webpath 
+
+    # get the annotation ids from the webpath
     ids = get_list_from_csv(ids)
     if ids:
         annotations = annotations.filter(id__in=ids)
-    
+
     # get annotation from graph id passed in the GET
     # graphids=1,2,3
     graphids = get_list_from_csv(request.GET.get('graphids', ''))
     if graphids:
         annotations = Annotation.objects.filter(graph__id__in=graphids)
-    
+
     # TODO: deal with multiple annotations
     if annotations and annotations.count():
         rotation = request.GET.get('rotation', annotations[0].rotation)
-    
+
         ret['html'] = 'rotation = %s' % rotation
-    
+
     return HttpResponse(simplejson.dumps(ret), mimetype='application/json')
 
 def get_features(graph_id, only_features=False):
     data = []
-    graphs = str(graph_id).split(',')
     allographs_cache = []
+    graphs_ids = str(graph_id).split(',')
+    graphs = Graph.objects.filter(id__in=graphs_ids).select_related('graph_components', 'hand', 'idiograph', 'image')
     for graph in graphs:
         obj = {}
         dict_features = list([])
-        g = Graph.objects.get(id=graph)
-        a = g.idiograph.allograph.id
-        graph_components = g.graph_components
+        a = graph.idiograph.allograph.id
+        graph_components = graph.graph_components
 
         if not only_features and not a in allographs_cache:
             allograph = allograph_features(False, a)
             obj['allographs'] = allograph
             allographs_cache.append(a)
 
-        vector_id = g.annotation.vector_id
-        hand_id = g.hand.id
-        allograph_id = g.idiograph.allograph.id
-        image_id = g.annotation.image.id
+        vector_id = graph.annotation.vector_id
+        hand_id = graph.hand.id
+        allograph_id = graph.idiograph.allograph.id
+        image_id = graph.annotation.image.id
         hands_list = []
-        item_part = g.annotation.image.item_part.id
-        hands = g.annotation.image.hands.all()
+        item_part = graph.annotation.image.item_part.id
+        hands = graph.annotation.image.hands.all()
 
         for hand in hands:
             h = {
@@ -112,17 +112,11 @@ def get_features(graph_id, only_features=False):
             }
             hands_list.append(h)
 
-        for component in graph_components.values_list('id', flat=True):
-            name_component = Component.objects.filter(graphcomponent=component)
-            dict_features.append({"graph_component_id": component, 'component_id': name_component.values('id')[0]['id'], 'name': name_component.values('name')[0]['name'], 'feature': []})
-
-        for feature in dict_features:
-            features = Feature.objects.filter(graphcomponent = feature['graph_component_id']).values_list('name',  flat=True)
-            if len(features) > 0:
-                feature['feature'].append(features)
-                for f in feature['feature']:
-                    feature['feature'] = list(f)
-
+        for component in graph_components.all():
+            name_component = component.component.name
+            if component.features.count > 0:
+                for feature in component.features.all():
+                    dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
 
         obj['features'] = dict_features
         obj['vector_id'] = vector_id
@@ -130,7 +124,7 @@ def get_features(graph_id, only_features=False):
         obj['hand_id'] = hand_id
         obj['allograph_id'] = allograph_id
         obj['hands'] = hands_list
-        obj['graph'] = g.id
+        obj['graph'] = graph.id
         obj['item_part'] = item_part
         data.append(obj)
 
@@ -140,17 +134,13 @@ def get_features(graph_id, only_features=False):
 def allograph_features(request, allograph_id):
     """Returns a JSON of all the features for the requested allograph, grouped
     by component."""
-    allographs = str(allograph_id).split(',')
+    allographs_ids = str(allograph_id).split(',')
     obj = {}
     data = []
-
+    allographs = Allograph.objects.filter(id__in=allographs_ids).select_related('allograph_components__component')
     for allograph in allographs:
-        allog = Allograph.objects.get(id=allograph)
-        allograph_components = \
-            AllographComponent.objects.filter(allograph=allog)
-
+        allograph_components = allograph.allograph_components.all()
         allographs_list = []
-
         if allograph_components:
             for ac in allograph_components:
                 ac_dict = {}
@@ -289,7 +279,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
 
     if annotations_page:
-        annotation_list = Annotation.objects.filter(image=image_id)
+        annotation_list = Annotation.objects.filter(image=image_id).select_related('image', 'graph')
     else:
         annotation_list = Annotation.objects.filter(graph__hand=hand)
 
@@ -348,14 +338,13 @@ def get_allographs_by_graph(request, image_id, graph_id):
         graph = Graph.objects.get(id=graph_id)
         feature = graph.idiograph.allograph.name
         character_id = graph.idiograph.allograph.character.id
-        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__id=character_id, image=image_id)
+        annotations = Annotation.objects.filter(graph__idiograph__allograph__name=feature, graph__idiograph__allograph__character__id=character_id, image=image_id).select_related('graph', 'graph__hand').order_by('id')
         annotations_list = []
         if annotations:
             for i in annotations:
-                hand = Hand.objects.filter(graphs__annotation=i.id)
                 annotation = {
-                    'hand': hand[0].id,
-                    'hand_name': hand[0].label,
+                    'hand': i.graph.hand.id,
+                    'hand_name': i.graph.hand.label,
                     'image': i.thumbnail(),
                     'vector_id': i.vector_id
                 }
@@ -365,14 +354,13 @@ def get_allographs_by_graph(request, image_id, graph_id):
             return HttpResponse(False)
 
 def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
-    annotations = Annotation.objects.filter(graph__idiograph__allograph__id=allograph_id,graph__idiograph__allograph__character__id=character_id, image=image_id)
+    annotations = Annotation.objects.filter(graph__idiograph__allograph__id=allograph_id, graph__idiograph__allograph__character__id=character_id, image=image_id).select_related('graph', 'graph__hand').order_by('id')
     annotations_list = []
     if annotations:
         for i in annotations:
-            hand = Hand.objects.filter(graphs__annotation=i.id)
             annotation = {
-                'hand': hand[0].id,
-                'hand_name': hand[0].label,
+                'hand': i.graph.hand.id,
+                'hand_name': i.graph.hand.label,
                 'image': i.thumbnail(),
                 'image_id': i.image.id,
                 'graph' : i.graph.id,
@@ -387,7 +375,7 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
-    annotations = Annotation.objects.filter(image=image_id)
+    annotations = Annotation.objects.filter(image=image_id).select_related('graph')
 
     data_allographs = SortedDict()
     for a in annotations:
@@ -410,19 +398,19 @@ def image_allographs(request, image_id):
     return render_to_response('digipal/annotations.html', context, context_instance=RequestContext(request))
 
 def hands_list(request, image_id):
-    hands_list = simplejson.loads(request.GET.get('hands', ''))
+    hands_ids = simplejson.loads(request.GET.get('hands', ''))
+    hands_list = Hand.objects.filter(id__in=hands_ids)
     hands = []
-    for i in hands_list:
-        h = Hand.objects.get(id=i)
+    for h in hands_list:
         hands.append(h.display_label)
     return HttpResponse(simplejson.dumps(hands), mimetype='application/json')
 
 def get_hands(hands):
     hands_list = []
-    hands = str(hands).split(',')
+    hands_ids = str(hands).split(',')
+    hands = Hand.objects.filter(id__in=hands_ids)
     for h in hands:
-        hand = Hand.objects.filter(id=h)
-        hands_list.append(hand.values())
+        hands_list.append(h.values())
     return hands_list
 
 def image_metadata(request, image_id):
@@ -450,13 +438,14 @@ def image_copyright(request, image_id):
 @ensure_csrf_cookie
 def images_lightbox(request, collection_name):
     data = {}
+    print request.POST
     if 'data' in request.POST and request.POST.get('data', ''):
         graphs = simplejson.loads(request.POST.get('data', ''))
         if 'annotations' in graphs:
             annotations = []
-            for graph in graphs['annotations']:
+            annotations_list = Annotation.objects.filter(graph__in=graphs['annotations'])
+            for annotation in annotations_list:
                 try:
-                    annotation = Annotation.objects.get(graph=graph)
                     #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:
                         scribe = annotation.graph.hand.scribe.name
@@ -469,18 +458,16 @@ def images_lightbox(request, collection_name):
                         place_name = 'Unknown'
                         date = 'Unknown'
                     annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
-
                 except:
                     continue
-
             data['annotations'] = annotations
         if 'images' in graphs:
             images = []
-            for img in graphs['images']:
-                image = Image.objects.get(id=img)
+            images_list = Image.objects.filter(id__in=graphs['images'])
+            for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
-
+    print data
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):

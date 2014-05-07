@@ -475,7 +475,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			for (var i in features) {
 				if (formal_attribute == 'hand') {
 					attribute = features[i].hand;
-					attribute2 = features[i].feature.replace(/[\.;,\s]/, '');
+					attribute2 = features[i].feature.replace(/[\.;,\s]/gi, '');
 					hand = $('#hand_input_' + attribute);
 					allograph = $('#allograph_' + attribute2);
 					var allographs = $('.checkVectors');
@@ -488,7 +488,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						var max = allographs.length;
 						for (var h = 0; h < max; h++) {
 							var a = $(allographs[h]);
-							if (a.is(':checked') && a.val().replace(/[\.;,\s]/, '') == attribute2) {
+							if (a.is(':checked') && a.val().replace(/[\.;,\s]/gi, '') == attribute2) {
 								if ($(checkboxes).val() == attribute) {
 									features[i].style.fillOpacity = 0.4;
 									features[i].style.strokeOpacity = 1;
@@ -497,17 +497,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						}
 					}
 				} else {
-					attribute = features[i].feature.replace(/[\.;,\s]/, '_');
+					attribute = features[i].feature.replace(/[\.;,\s]/gi, '_');
 					attribute2 = features[i].hand;
 					hand = $('#hand_input_' + attribute2);
 					allograph = $('#hand_input_' + attribute2);
 					if (!($(checkboxes).is(':checked'))) {
-						if ($(checkboxes).val().replace(/[\.;,\s]/, '_') == attribute && features[i].hand == hand.val()) {
+						if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val()) {
 							features[i].style.fillOpacity = 0;
 							features[i].style.strokeOpacity = 0;
 						}
 					} else {
-						if ($(checkboxes).val().replace(/[\.;,\s]/, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+						if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
 							features[i].style.fillOpacity = 0.4;
 							features[i].style.strokeOpacity = 1;
 						}
@@ -806,7 +806,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				}
 			}
 
-			refresh_letters_container_init(selectedFeature, selectedFeature.feature, allograph_id, true);
+			refresh_letters_container_init(selectedFeature, selectedFeature.feature, selectedFeature.allograph_id, true);
 
 		},
 
@@ -1647,13 +1647,7 @@ function detect_common_features_init() {
 
 function refresh_letters_container_init(annotation, allograph, allograph_id, show) {
 	if ($('.letters-allograph-container').length && annotation && $('.tab-pane.active').attr('id') == 'annotator') {
-		if (typeof current_allograph === "undefined") {
-			refresh_letters_container(allograph, allograph_id, true);
-		}
-
-		if (typeof current_allograph !== "undefined" && annotation.feature !== current_allograph) {
-			refresh_letters_container(allograph, allograph_id, true);
-		}
+		refresh_letters_container(allograph, allograph_id, true);
 	}
 }
 

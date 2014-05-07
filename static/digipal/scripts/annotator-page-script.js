@@ -121,6 +121,10 @@ function AnnotatorLoader() {
 		var allograph_form = $('#panelImageBox .allograph_form');
 		allograph_form.on('change', function() {
 			self.update_allographs_counter($(this).val());
+			if (annotator.selectedFeature && annotator.selectedFeature.state === "Insert") {
+				annotator.selectedFeature.allograph_id = $(this).val();
+				annotator.selectedFeature.feature = $(this).find('option:selected').text();
+			}
 		});
 
 		var hand_form = $('#panelImageBox .hand_form');

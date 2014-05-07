@@ -56,29 +56,23 @@ def get_list_from_csv(csv):
 
     return ret
 
-<<<<<<< HEAD
-def get_annotations(request, ids=''):
-    ret = {'success': True, 'errors': {}, 'html': ''}
-
-=======
 def process_api_annotation_call(request, ids=''):
     '''
         Retrieve annotations.
         It has also limited support for updating annotations (using HTTP POST method).
             In that case the fields passed in the POST should match the field in the model.
-    
+
         optional parameters:
             graphids = list of graph ids to retrieve the annotations
             rotation = a rotation to apply to the html rendering
             method = supersedes the HTTP method (GET, POST, ...)
     '''
     ret = {'success': True, 'errors': {}, 'results': []}
-    
+
     method = request.REQUEST.get('method', request.META['REQUEST_METHOD'])
     change = (request.META['REQUEST_METHOD'] in ['POST', 'PUT', 'DELETE'])
-    
+
     # find the annotations
->>>>>>> f4cb018d11ac0f58499782fd4ff41a98c1702a41
     annotation = None
 
     from digipal.models import Annotation
@@ -89,40 +83,25 @@ def process_api_annotation_call(request, ids=''):
     ids = get_list_from_csv(ids)
     if ids:
         annotations = annotations.filter(id__in=ids)
-<<<<<<< HEAD
 
-    # get annotation from graph id passed in the GET
-    # graphids=1,2,3
-    graphids = get_list_from_csv(request.GET.get('graphids', ''))
-    if graphids:
-        annotations = Annotation.objects.filter(graph__id__in=graphids)
-
-    # TODO: deal with multiple annotations
-    if annotations and annotations.count():
-        rotation = request.GET.get('rotation', annotations[0].rotation)
-
-        ret['html'] = 'rotation = %s' % rotation
-
-=======
-    
     # we refuse change over the whole data set!
     if ids or not change:
         if not change:
             # further filtering
-            
+
             # get annotation from graph id passed in the GET
             # graphids=1,2,3
             graphids = get_list_from_csv(request.GET.get('graphids', ''))
             if graphids:
                 annotations = Annotation.objects.filter(graph__id__in=graphids)
-        
+
         for a in annotations:
             html_rotation = request.REQUEST.get('rotation', '-1')
-            if re.match(ur'[\d.]+', html_rotation): 
+            if re.match(ur'[\d.]+', html_rotation):
                 html_rotation = float(html_rotation)
             else:
                 html_rotation = a.rotation
-                
+
             # update the record
             for field in Annotation._meta.get_all_field_names():
                 value = request.REQUEST.get(field, None)
@@ -130,16 +109,15 @@ def process_api_annotation_call(request, ids=''):
                     setattr(a, field, value)
             if method == 'PUT':
                 a.save()
-                    
+
             rotation = request.REQUEST.get('rotation', annotations[0].rotation)
             from digipal.templatetags.html_escape import annotation_img
             ret['results'].append({
-                'id': a.id, 
+                'id': a.id,
                 'rotation': a.rotation,
                 'html': annotation_img(annotations[0])
                 })
-        
->>>>>>> f4cb018d11ac0f58499782fd4ff41a98c1702a41
+
     return HttpResponse(simplejson.dumps(ret), mimetype='application/json')
 
 def get_features(graph_id, only_features=False):

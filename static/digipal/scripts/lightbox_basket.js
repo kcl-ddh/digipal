@@ -19,6 +19,57 @@ var sum_images_collection = function(basket) {
 	return n;
 };
 
+var selectedAnnotations = function() {
+	var checkboxes = $('.checkbox_image');
+	var graphs = {};
+	var n = 0;
+	$.each(checkboxes, function() {
+		if ($(this).is(':checked')) {
+			graphs[$(this).data('graph')] = $(this).data('type');
+			n++;
+		}
+	});
+	return {
+		'graphs': graphs,
+		'graphs_number': n
+	};
+};
+
+function update_counter() {
+	var checkboxes = $('.checkbox_image');
+	var check_annotations_all = $('#check_annotations_all');
+	var check_images_all = $('#check_images_all');
+	var annotations = 0;
+	var images = 0;
+	$.each(checkboxes, function() {
+		if ($(this).is(':checked')) {
+			if ($(this).data('type') == 'image') {
+				images++;
+			} else {
+				annotations++;
+			}
+		}
+	});
+	$('#counter-annotations').html(annotations);
+	$('#counter-images').html(images);
+
+	if (!annotations) {
+		check_annotations_all.prop('checked', false).prop('indeterminate', false);
+	} else if ($('#table-annotations .table-row').length == annotations) {
+		check_annotations_all.prop('checked', true).prop('indeterminate', false);
+	} else {
+		check_annotations_all.prop('indeterminate', true);
+	}
+
+	if (!images) {
+		check_images_all.prop('checked', false).prop('indeterminate', false);
+	} else if ($('#table-images .table-row').length == images) {
+		check_images_all.prop('checked', true).prop('indeterminate', false);
+	} else {
+		check_images_all.prop('indeterminate', true);
+	}
+}
+
 function main() {
 
 	var s = '';
@@ -67,7 +118,7 @@ function main() {
 		}
 
 	} else {
-	    /*
+		/*
 		var external_collection = JSON.parse(getParameter('collection'));
 		data = external_collection;
 		collection_name = data['name'];
@@ -75,22 +126,22 @@ function main() {
 		isExternal = true;
 		*/
 
-	    // GN: hack here to unescape the param, although it should already have been unescaped in GetParam
-        // so I imagine the param has been escaped twice before...
-        var collection_param = getParameter('collection');
-        if (collection_param.length) {
-            collection_param = collection_param[0];
-            if (collection_param.lastIndexOf('%', 0) === 0) {
-                collection_param = unescape(collection_param);
-            }
-            var external_collection = JSON.parse(collection_param);
-            
-            data = external_collection;
-            collection_name = data['name'];
-            collection = data;
-            isExternal = true;
-        }
-	    
+		// GN: hack here to unescape the param, although it should already have been unescaped in GetParam
+		// so I imagine the param has been escaped twice before...
+		var collection_param = getParameter('collection');
+		if (collection_param.length) {
+			collection_param = collection_param[0];
+			if (collection_param.lastIndexOf('%', 0) === 0) {
+				collection_param = unescape(collection_param);
+			}
+			var external_collection = JSON.parse(collection_param);
+
+			data = external_collection;
+			collection_name = data['name'];
+			collection = data;
+			isExternal = true;
+		}
+
 	}
 
 	var header = $('.page-header');
@@ -114,11 +165,11 @@ function main() {
 
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
-					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th><th>Remove</th>';
+					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr class='selected table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -151,8 +202,6 @@ function main() {
 							s += "<td>Unknown</td>";
 						}*/
 
-
-						s += "<td><button data-toggle='tooltip' title = 'Remove from collection' data-type='annotation' data-graph = '" + annotation[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 				}
 
@@ -161,13 +210,12 @@ function main() {
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table id='table-images' class='table'>";
-					s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th><th>Remove</th>';
+					s += '<th><span id="counter-images"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<tr class='selected table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
-						s += "<td><button data-toggle='tooltip' title ='Remove from collection' data-type='image' data-graph = '" + image[1] + "' class='remove_graph btn btn-xs btn-danger'><i class='glyphicon glyphicon-remove'></i></button></td></tr>";
 					}
 					s += "</table>";
 				}
@@ -178,8 +226,31 @@ function main() {
 				}
 
 				container_basket.html(s);
+				update_counter();
+				$('#check_images_all').on('change', function() {
+					if ($(this).is(':checked')) {
+						$('#table-images').find('input[type="checkbox"]').prop('checked', true);
+						$('#table-images').find('tr').addClass('selected');
+					} else {
+						$('#table-images').find('input[type="checkbox"]').prop('checked', false);
+						$('#table-images').find('tr').removeClass('selected');
+					}
+					update_counter();
+				});
 
-				$('.remove_graph').click(function() {
+				$('#check_annotations_all').on('change', function() {
+					if ($(this).is(':checked')) {
+						$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
+						$('#table-annotations').find('tr').addClass('selected');
+					} else {
+						$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
+						$('#table-annotations').find('tr').removeClass('selected');
+					}
+					update_counter();
+				});
+
+				$('#remove_from_collection').on('click', function() {
+
 					var basket;
 					$.each(collections, function(index, value) {
 						if (value.id == selectedCollection) {
@@ -188,65 +259,77 @@ function main() {
 						}
 					});
 
-					var graph = $(this).data('graph');
-					var type = $(this).data('type');
+					var graph, type;
 					var element;
-					if (type == 'annotation') {
-						for (i = 0; i < basket.annotations.length; i++) {
-							element = basket.annotations[i];
-							var element_graph;
-							if (element.hasOwnProperty('graph')) {
-								element_graph = element.graph;
+					var selectedannotations = selectedAnnotations();
+					var graphs = selectedannotations.graphs;
+					var graphs_number = selectedannotations.graphs_number;
+
+					if (!$(".loading-div").length) {
+						var loading_div = $("<div class='loading-div'>");
+						var background = $("<div class='dialog-background'>");
+						loading_div.html('<h2>Removing images</h2>');
+						loading_div.append("<p>You are about to remove " + graphs_number + " images. Continue?");
+						loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
+						background.append(loading_div);
+						$('body').append(background);
+					}
+					$('#remove_images_from_collection').on('click', function() {
+						$.each(graphs, function(index, value) {
+							graph = index;
+							type = value;
+							if (type == 'annotation') {
+								if (basket.annotations && basket.annotations.length) {
+									for (i = 0; i < basket.annotations.length; i++) {
+										element = basket.annotations[i];
+										var element_graph;
+										if (element.hasOwnProperty('graph')) {
+											element_graph = element.graph;
+										} else {
+											element_graph = element;
+										}
+										if (graph == element_graph) {
+											basket.annotations.splice(i, 1);
+											break;
+										}
+									}
+								}
+								$('#header_annotations').html("Annotations (" + basket.annotations.length + ")");
 							} else {
-								element_graph = element;
+								if (basket.images && basket.images.length) {
+									for (i = 0; i < basket.images.length; i++) {
+										image_id = basket.images[i];
+										if (graph == image_id) {
+											basket.images.splice(i, 1);
+											break;
+										}
+									}
+								}
+								$('#header_images').html("Images (" + basket.images.length + ")");
 							}
-							if (graph == element_graph) {
-								basket.annotations.splice(i, 1);
-								break;
-							}
+
+							$('tr[data-graph="' + graph + '"]').fadeOut().remove();
+							update_counter();
+						});
+
+						if (!sum_images_collection(basket)) {
+							var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
+							s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the Digipal <a href="/digipal/search/?from_link=true">search engine</a></div>';
+							container_basket.html(s);
 						}
-						$('#header_annotations').html("Annotations (" + basket.annotations.length + ")");
-					} else {
-						for (i = 0; i < basket.images.length; i++) {
-							image_id = basket.images[i];
-							if (graph == image_id) {
-								basket.images.splice(i, 1);
-								break;
-							}
-						}
-						$('#header_images').html("Images (" + basket.images.length + ")");
-					}
 
-					$('tr[data-graph="' + graph + '"]').fadeOut().remove();
-					element_basket.html(basket['name'] + ' (' + sum_images_collection(basket) + ' <i class="fa fa-picture-o"></i> )');
+						localStorage.setItem('collections', JSON.stringify(collections));
+						background.fadeOut().remove();
+					});
 
-					if (!sum_images_collection(basket)) {
-						var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
-						s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the Digipal <a href="http://127.0.0.1:8000/digipal/search/?from_link=true">search engine</a></div>';
-						container_basket.html(s);
-					}
+					$('#cancel').on('click', function() {
+						background.fadeOut().remove();
+					});
 
-					localStorage.setItem('collections', JSON.stringify(collections));
 
 				});
 
-				$('#check_images_all').on('change', function() {
-					if ($(this).is(':checked')) {
-						$('#table-images').find('input[type="checkbox"]').prop('checked', true);
-					} else {
-						$('#table-images').find('input[type="checkbox"]').prop('checked', false);
-					}
-				});
-
-				$('#check_annotations_all').on('change', function() {
-					if ($(this).is(':checked')) {
-						$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
-					} else {
-						$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
-					}
-				});
-
-				$('#to_lightbox').click(function() {
+				$('#to_lightbox').on('click', function() {
 					var graphs = [],
 						images = [],
 						element,
@@ -282,6 +365,22 @@ function main() {
 						}
 					}
 					location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
+				});
+
+				$('tr.table-row').on('click', function(event) {
+
+					var checkbox = $(this).find('.checkbox_image');
+
+					if ($(this).hasClass('selected')) {
+						$(this).removeClass('selected');
+						checkbox.prop('checked', false);
+					} else {
+						$(this).addClass('selected');
+						checkbox.prop('checked', true);
+					}
+					update_counter();
+					event.stopPropagation();
+					event.stopImmediatePropagation();
 				});
 
 				$('#close-alert').click(function() {

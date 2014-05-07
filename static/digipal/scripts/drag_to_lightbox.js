@@ -135,7 +135,9 @@ var Star = function(options) {
 				break;
 			}
 		}
-		dialog.element.find('span').addClass('unstarred').removeClass('starred');
+		if (dialog.element) {
+			dialog.element.find('span').addClass('unstarred').removeClass('starred');
+		}
 		collections[collection.name] = collection;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		update_collection_counter();

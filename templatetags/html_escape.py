@@ -174,7 +174,7 @@ def annotation_img(annotation, *args, **kwargs):
         url = annotation.get_cutout_url()
         #dims = width=annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
-        ret = img(url, alt=annotation.graph, *args, **kwargs)
+        ret = img(url, alt=annotation.graph, rotation=annotation.rotation, *args, **kwargs)
     return ret
 
 @register.simple_tag
@@ -182,6 +182,13 @@ def img(src, *args, **kwargs):
     '''
         Returns a <img src="" alt=""> element.
         XML special chars in the attributes are encoded with &. 
+        
+        recognised arguments:
+            alt => alt
+            cls => class
+            lazy = 0|1 to load the image lazily
+            a_X => converted into attribute X
+            rotation=float => converted to a CSS rotation in the inline style
     '''
     more = ''
 
@@ -194,6 +201,11 @@ def img(src, *args, **kwargs):
 
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
+        
+    if 'rotation' in kwargs:
+        rotation = float(kwargs['rotation'])
+        if rotation > 0.0:
+            more += ur' style="transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);" ' % {'r': rotation}
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)

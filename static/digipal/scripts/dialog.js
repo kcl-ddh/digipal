@@ -46,7 +46,6 @@ function Dialog() {
         }
 
         modal_features = $('.myModal');
-
         temp.image_id = image_id;
 
         var url;
@@ -59,6 +58,7 @@ function Dialog() {
                 success: function(data) {
                     if (!element_cache) {
                         modal_features.html(data);
+                        modal_features.append("<div id='summary'>");
                         element_cache = data;
                     }
                     selector = modal_features;
@@ -71,7 +71,6 @@ function Dialog() {
             });
 
         } else {
-
             modal_features.html(element_cache);
             selector = modal_features;
             if (callback) {

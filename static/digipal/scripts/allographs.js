@@ -582,7 +582,7 @@ function Allographs(dialog, cache) {
 							var features_graph = graph.features;
 							for (var j = 0; j < features_graph.length; j++) {
 								if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
-									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label');
+									ann = $('div[data-annotation="' + f[k].vector_id + '"]').find('.label');
 									if (ann) {
 										al += '<a href="#label_' + ann.data('graph-id') + '" data-graph-id="' + ann.data('graph-id') + '" class="label label-default label-summary">' + ann.text() + '</a> ';
 										title += ann.text() + ' ';

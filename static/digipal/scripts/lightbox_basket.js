@@ -68,6 +68,12 @@ function update_counter() {
 	} else {
 		check_images_all.prop('indeterminate', true);
 	}
+
+	if (!images && !annotations) {
+		$('#remove_from_collection').attr('disabled', true);
+	} else {
+		$('#remove_from_collection').attr('disabled', false);
+	}
 }
 
 function main() {
@@ -165,11 +171,11 @@ function main() {
 
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
-					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" checked /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
+					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr class='selected table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' checked /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -210,10 +216,10 @@ function main() {
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table id='table-images' class='table'>";
-					s += '<th><span id="counter-images"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" checked /></th><th>Page</th><th>Label</td><th>Hand</th>';
+					s += '<th><span id="counter-images"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr class='selected table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' checked /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
 					}

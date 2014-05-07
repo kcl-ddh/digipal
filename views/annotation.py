@@ -23,6 +23,8 @@ from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
 import ast
 from django import template
 from django.conf import settings
+from digipal.templatetags.hand_filters import chrono
+
 
 register = template.Library()
 
@@ -31,13 +33,14 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
 
     if ids: ids = str(ids)
     if content_type == 'annotation':
-        data = get_annotations(request, ids)
+        data = process_api_annotation_call(request, ids)
     elif content_type == 'graph':
         data = get_features(ids, only_features)
     elif content_type == 'allograph':
         data = allograph_features(request, ids)
     elif content_type == 'hand':
         data = get_hands(ids)
+
     return HttpResponse(data, mimetype='application/json')
 
 def get_list_from_csv(csv):
@@ -53,9 +56,29 @@ def get_list_from_csv(csv):
 
     return ret
 
+<<<<<<< HEAD
 def get_annotations(request, ids=''):
     ret = {'success': True, 'errors': {}, 'html': ''}
 
+=======
+def process_api_annotation_call(request, ids=''):
+    '''
+        Retrieve annotations.
+        It has also limited support for updating annotations (using HTTP POST method).
+            In that case the fields passed in the POST should match the field in the model.
+    
+        optional parameters:
+            graphids = list of graph ids to retrieve the annotations
+            rotation = a rotation to apply to the html rendering
+            method = supersedes the HTTP method (GET, POST, ...)
+    '''
+    ret = {'success': True, 'errors': {}, 'results': []}
+    
+    method = request.REQUEST.get('method', request.META['REQUEST_METHOD'])
+    change = (request.META['REQUEST_METHOD'] in ['POST', 'PUT', 'DELETE'])
+    
+    # find the annotations
+>>>>>>> f4cb018d11ac0f58499782fd4ff41a98c1702a41
     annotation = None
 
     from digipal.models import Annotation
@@ -66,6 +89,7 @@ def get_annotations(request, ids=''):
     ids = get_list_from_csv(ids)
     if ids:
         annotations = annotations.filter(id__in=ids)
+<<<<<<< HEAD
 
     # get annotation from graph id passed in the GET
     # graphids=1,2,3
@@ -79,6 +103,43 @@ def get_annotations(request, ids=''):
 
         ret['html'] = 'rotation = %s' % rotation
 
+=======
+    
+    # we refuse change over the whole data set!
+    if ids or not change:
+        if not change:
+            # further filtering
+            
+            # get annotation from graph id passed in the GET
+            # graphids=1,2,3
+            graphids = get_list_from_csv(request.GET.get('graphids', ''))
+            if graphids:
+                annotations = Annotation.objects.filter(graph__id__in=graphids)
+        
+        for a in annotations:
+            html_rotation = request.REQUEST.get('rotation', '-1')
+            if re.match(ur'[\d.]+', html_rotation): 
+                html_rotation = float(html_rotation)
+            else:
+                html_rotation = a.rotation
+                
+            # update the record
+            for field in Annotation._meta.get_all_field_names():
+                value = request.REQUEST.get(field, None)
+                if value is not None:
+                    setattr(a, field, value)
+            if method == 'PUT':
+                a.save()
+                    
+            rotation = request.REQUEST.get('rotation', annotations[0].rotation)
+            from digipal.templatetags.html_escape import annotation_img
+            ret['results'].append({
+                'id': a.id, 
+                'rotation': a.rotation,
+                'html': annotation_img(annotations[0])
+                })
+        
+>>>>>>> f4cb018d11ac0f58499782fd4ff41a98c1702a41
     return HttpResponse(simplejson.dumps(ret), mimetype='application/json')
 
 def get_features(graph_id, only_features=False):

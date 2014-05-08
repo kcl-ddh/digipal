@@ -236,10 +236,10 @@ function main() {
 				$('#check_images_all').on('change', function() {
 					if ($(this).is(':checked')) {
 						$('#table-images').find('input[type="checkbox"]').prop('checked', true);
-						$('#table-images').find('tr').addClass('selected');
+						$('#table-images').find('.table-row').addClass('selected');
 					} else {
 						$('#table-images').find('input[type="checkbox"]').prop('checked', false);
-						$('#table-images').find('tr').removeClass('selected');
+						$('#table-images').find('.table-row').removeClass('selected');
 					}
 					update_counter();
 				});
@@ -247,10 +247,10 @@ function main() {
 				$('#check_annotations_all').on('change', function() {
 					if ($(this).is(':checked')) {
 						$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
-						$('#table-annotations').find('tr').addClass('selected');
+						$('#table-annotations').find('.table-row').addClass('selected');
 					} else {
 						$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
-						$('#table-annotations').find('tr').removeClass('selected');
+						$('#table-annotations').find('.table-row').removeClass('selected');
 					}
 					update_counter();
 				});

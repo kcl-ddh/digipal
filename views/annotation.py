@@ -639,4 +639,3 @@ def delete(request, image_id, vector_id):
         data.update({'success': True})
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
-

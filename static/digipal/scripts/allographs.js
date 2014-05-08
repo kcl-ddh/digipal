@@ -231,19 +231,19 @@ function Allographs(dialog, cache) {
 		to_annotator: function(annotation_id) {
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
-			$('html').animate({
+			$('html, body').animate({
 				scrollTop: $('#map').position().top + 'px'
-			}, 150, function() {
-				annotator.selectFeatureByIdAndZoom(annotation_id);
-				var select_allograph = $('#panelImageBox');
-				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+			}, 10, function() {
 				var annotation_graph;
+				var select_allograph = $('#panelImageBox');
 				for (var j in annotator.annotations) {
 					if (annotator.annotations[j].vector_id == annotation_id) {
 						annotation_graph = annotator.annotations[j];
 						break;
 					}
 				}
+				annotator.selectFeatureByIdAndZoom(annotation_id);
+				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 				$('select').trigger('liszt:updated');
 			});

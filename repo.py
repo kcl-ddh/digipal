@@ -228,6 +228,9 @@ def process_commands_main_dir():
                     system('%schmod 570 -R .' % sudo)
                     dirs = [d for d in 'digipal_django/static/CACHE;digipal_django/search;digipal_django/media/uploads;.hg'.split(';') if os.path.exists(d)]
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+                    # we do this because the cron job to reindex the content 
+                    # recreate the dirs with owner = gnoel:ddh-research
+                    system('%schmod o+r -R digipal_django/search' % sudo)
                 
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')

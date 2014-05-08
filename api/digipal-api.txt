@@ -5,9 +5,9 @@ Expose the DigiPal Django Models as a Restful web API.
 
 It handles CRUD requests from HTTP and returns JSON responses.
 
-General forms for the requests:
+General form for the requests:
 
-    (HTTP-METHOD) http://.../digipal/api/:content_type/[:selector/]?[_:filter=:value1]&[@select=:fieldset1,:fieldset2,...]&[:field=:value2]&@limit=:limit
+    (HTTP-METHOD) http://.../digipal/api/:content_type/[:selector/]?[_:filter=:value1]&[@select=[*]:fieldset1,[*]:fieldset2,...]&[:field=:value2]&@limit=:limit
     
 Parts:
     

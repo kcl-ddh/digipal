@@ -51,7 +51,7 @@
             if (!self.is_enabled()) return null;
             
             var ret = $.ajax({
-                url: self.settings.api_root + 'annotation/'+self.annotationid+'/@select=id',
+                url: self.settings.api_root + 'annotation/'+self.annotationid+'/?@select=id',
                 type: 'PUT',
                 dataType: 'json',
                 data: {

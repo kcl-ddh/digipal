@@ -1,7 +1,7 @@
 function DigipalAPI(options) {
 
     var self = this;
-    var domain = 'http://127.0.0.1:8000/digipal/api';
+    var domain = 'http://localhost:8000/digipal/api';
 
     var default_options = {};
 
@@ -70,7 +70,7 @@ function DigipalAPI(options) {
         url += '?callback=' + cb;
         var script = makeRequestScript(url);
         window[cb] = function(data) {
-            callback(data);
+            callback(success, message, data);
             window[cb] = null;
             delete window[cb];
             script.parentNode.removeChild(script);

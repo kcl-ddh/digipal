@@ -3,11 +3,8 @@ function DigipalAPI(options) {
     var self = this;
     var domain = 'http://localhost:8000/digipal/api';
 
-    var default_options = {};
-
-    var constants = {
-        DOMAIN: domain,
-        DATATYPES: ['graph', 'allograph', 'hand', 'scribe', 'allograph', 'idiograph', 'annotation', 'component', 'feature', 'image']
+    var default_options = {
+        crossDomain: true
     };
 
     var utils = {
@@ -23,11 +20,34 @@ function DigipalAPI(options) {
                 }
             }
             return out;
-        }
+        },
+        getCookie: function(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        },
     };
 
-    // extend
-    utils.extend({}, default_options, options);
+    default_options = utils.extend(default_options, options);
+
+    if (!default_options.crossDomain) {
+        domain = '/digipal/api';
+    }
+
+    var constants = {
+        DOMAIN: domain,
+        DATATYPES: ['graph', 'allograph', 'hand', 'scribe', 'allograph', 'idiograph', 'annotation', 'component', 'feature', 'image']
+    };
 
     var init = function() {
         var functions = generateFunctions();
@@ -61,6 +81,30 @@ function DigipalAPI(options) {
         return script;
     };
 
+    var Ajax = function(url, callback) {
+        var xmlhttp;
+        var csrftoken = utils.getCookie('csrftoken');
+
+        if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                callback(xmlhttp.responseText);
+            }
+        };
+
+        xmlhttp.open("GET", url, true);
+        xmlhttp.setRequestHeader("Content-type", "application/json");
+        xmlhttp.send('csrftoken=' + csrftoken);
+
+    };
+
     /*
         Call function
     */
@@ -71,13 +115,18 @@ function DigipalAPI(options) {
         if (url instanceof Array) {
             url = url.toString();
         }
-        var script = makeRequestScript(url);
-        window[cb] = function(data) {
-            callback(success, message, data);
-            window[cb] = null;
-            delete window[cb];
-            script.parentNode.removeChild(script);
-        };
+        if (default_options.crossDomain) {
+            var script = makeRequestScript(url);
+            window[cb] = function(data) {
+                callback(success, message, data);
+                window[cb] = null;
+                delete window[cb];
+                script.parentNode.removeChild(script);
+            };
+        } else {
+            Ajax(url, callback);
+        }
+
     };
 
     /*

@@ -68,6 +68,9 @@ function DigipalAPI(options) {
     var call = function(url, callback, options) {
         var cb = '_callback';
         url += '?callback=' + cb;
+        if (url instanceof Array) {
+            url = url.toString();
+        }
         var script = makeRequestScript(url);
         window[cb] = function(data) {
             callback(success, message, data);

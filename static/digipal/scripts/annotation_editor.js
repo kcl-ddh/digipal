@@ -50,7 +50,6 @@
         self.save = function() {
             if (!self.is_enabled()) return null;
             
-           // TODO: convert to PUT
             var ret = $.ajax({
                 url: self.settings.api_root + 'annotation/'+self.annotationid+'/',
                 type: 'PUT',

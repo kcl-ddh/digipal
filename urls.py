@@ -89,6 +89,7 @@ if settings.DEBUG:
                            (r'test/similar_graph/$', 'similar_graph_view'),
                            (r'test/map/$', 'map_view'),
                            (r'test/autocomplete/$', 'autocomplete_view'),
+                           (r'test/api/$', 'api_view'),
                            )
 
 urlpatterns += patterns('haystack.views',

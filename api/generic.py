@@ -15,7 +15,7 @@ class API(object):
     @classmethod
     def process_request(cls, request, content_type, selector):
         ret = {'success': True, 'errors': [], 'results': []}
-        
+
         method = request.REQUEST.get('@method', request.META['REQUEST_METHOD'])
         is_get = method in ['GET']
         
@@ -67,9 +67,11 @@ class API(object):
                 # generate the results
                 for record in records:
                     ret['results'].append(cls.get_data_from_record(record, request, fieldsets, method))
-                
+        
         import json
-        return json.dumps(ret)
+        ret = json.dumps(ret)
+        
+        return ret
     
     @classmethod
     def get_data_from_record(cls, *args, **kwargs):

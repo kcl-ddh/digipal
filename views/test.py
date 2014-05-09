@@ -17,6 +17,13 @@ def iipimage(request):
     return render_to_response('test/iipimage.html', context,
             context_instance=RequestContext(request))
 
+def api_view(request):
+    context = {'test': 'Yo!'}
+
+    return render_to_response('test/api.html', context,
+            context_instance=RequestContext(request))
+    
+
 def autocomplete_view(request):
     context = {}
 

@@ -32,19 +32,41 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def get_content_type_data(request, content_type, ids=None, only_features=False):
-
-    if ids: ids = str(ids)
-    if content_type == 'graph':
-        data = get_features(ids, only_features)
-    elif content_type == 'allograph':
-        data = allograph_features(request, ids)
-    elif content_type == 'hand':
-        data = get_hands(ids)
-    else:
-        from digipal.api.generic import API
-        data = API.process_request(request, content_type, ids)
-
-    return HttpResponse(data, mimetype='application/json')
+    ''' General handler for API requests.
+        if @callback=X in the query string a JSONP response is returned
+    '''
+    mimetype = 'application/json'
+    
+    data = None
+    
+    # Support for JSONP responses
+    jsonpcallback = request.REQUEST.get('@callback', None)
+    if jsonpcallback is not None:
+        if not re.match(ur'(?i)^\w+$', jsonpcallback):
+            # invalid name format for the callback
+            data = {'success': False, 'errors': ['Invalid JSONP callback name format.'], 'results': []}
+            import json
+            data = json.dumps(data)
+            jsonpcallback = None
+    
+    if not data:
+        if ids: ids = str(ids)
+        if content_type == 'graph':
+            data = get_features(ids, only_features)
+        elif content_type == 'allograph':
+            data = allograph_features(request, ids)
+        elif content_type == 'hand':
+            data = get_hands(ids)
+        else:
+            from digipal.api.generic import API
+            data = API.process_request(request, content_type, ids)
+    
+    # JSON -> JSONP
+    if jsonpcallback:
+        data = u';%s(%s);' % (jsonpcallback, data)
+        mimetype = 'text/javascript'
+    
+    return HttpResponse(data, mimetype=mimetype)
 
 def get_list_from_csv(csv):
     '''Returns a list of numbers from a comma separated string.

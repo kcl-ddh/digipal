@@ -38,9 +38,9 @@ function PublicAllograhs() {
 		var _self = this;
 		var annotation_li = $('.annotation_li');
 
-		annotation_li.click(function(event) {
+		annotation_li.on('click', function(event) {
 			var annotation_li = $(this);
-			var panel = annotation_li.parent().parent();
+			var panel = annotation_li.closest('.allograph-item');
 			var annotation = $(annotation_li).data('graph');
 
 			if (annotation_li.data('selected')) {

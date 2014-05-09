@@ -142,7 +142,11 @@ function DigipalAPI(options) {
                 };
             })(datatype);
         }
-
+        (function() {
+            functions['request'] = function(_url, _callback, _select, _limit) {
+                return request(constants.ROOT + '/' + _url, _callback, _select);
+            };
+        })();
         return functions;
     };
 

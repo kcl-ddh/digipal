@@ -164,17 +164,28 @@ function DigipalAPI(options) {
 
         if (url instanceof Array) {
             url = url.toString();
-        } else if (url instanceof Object) {
+        } else if (url && url instanceof Object) {
             url = '?' + utils.serializeObject(url);
         }
 
+        if (!(url instanceof Object && url) && ((select && select.length) || (limit && limit > 0))) {
+            url += '?';
+        }
+
         if (typeof select !== 'undefined' && select.length) {
-            url += "&@select=" + select.toString();
+            if (url instanceof Object && url) {
+                url += '&';
+            }
+            url += "@select=" + select.toString();
         }
 
         if (typeof limit !== 'undefined' && limit) {
-            url += '&@limit=' + limit;
+            if ((url instanceof Object && url) || (select && select.length)) {
+                url += '&';
+            }
+            url += '@limit=' + limit;
         }
+
         return url;
     };
 

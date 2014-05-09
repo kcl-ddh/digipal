@@ -5,7 +5,7 @@
 {% block head %}
     <h1>Web API Tester</h1>
 
-    <div>
+    <div id='result'>
     </div>
 
 {% endblock %}
@@ -14,6 +14,9 @@
     {{ block.super  }}
     <script src="{{ STATIC_URL }}digipal/scripts/api.digipal.js" type="text/javascript" ></script>
     <script type="text/javascript" >
-        dpapi = DigipalAPI();
+        dpapi = new DigipalAPI({
+            crossDomain: false,
+            url: '/digipal/api'
+        });
     </script>
 {% endblock %}

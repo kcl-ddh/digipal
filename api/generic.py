@@ -1,3 +1,5 @@
+import json
+
 #
 # See digipal-api.txt for the documentation about the request and response.
 #
@@ -13,9 +15,20 @@ class API(object):
     DEFAULT_LIMIT = 100    
     
     @classmethod
+    def get_all_content_types(cls):
+        ret = {'success': True, 'errors': [], 'results': []}
+        from digipal import models
+        ret['results'].append([member.lower() for member in dir(models) if hasattr(getattr(models, member), '_meta')])
+        ret = json.dumps(ret)
+        return ret
+
+    @classmethod
     def process_request(cls, request, content_type, selector):
         ret = {'success': True, 'errors': [], 'results': []}
-
+        
+        if content_type == 'content_type':
+            return cls.get_all_content_types()
+        
         method = request.REQUEST.get('@method', request.META['REQUEST_METHOD'])
         is_get = method in ['GET']
         
@@ -68,7 +81,6 @@ class API(object):
                 for record in records:
                     ret['results'].append(cls.get_data_from_record(record, request, fieldsets, method))
         
-        import json
         ret = json.dumps(ret)
         
         return ret

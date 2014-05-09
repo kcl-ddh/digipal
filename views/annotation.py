@@ -32,6 +32,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def get_content_type_data(request, content_type, ids=None, only_features=False):
+    ''' General handler for API requests.
+        if @callback=X in the query string a JSONP response is returned
+    '''
     mimetype = 'application/json'
     
     data = None
@@ -60,7 +63,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     
     # JSON -> JSONP
     if jsonpcallback:
-        data = ';%s(%s);' % (jsonpcallback, data)
+        data = u';%s(%s);' % (jsonpcallback, data)
         mimetype = 'text/javascript'
     
     return HttpResponse(data, mimetype=mimetype)

@@ -63,15 +63,60 @@ function DigipalAPI(options) {
     };
 
     /*
+     ** AJAX call if calls get done on the same domain
+     ** for parameters see @request
+     */
+
+    var Ajax = function(url, callback, async) {
+        var xmlhttp;
+        var csrftoken = utils.getCookie('csrftoken');
+
+        if (typeof async == 'undefined') {
+            async = true;
+        }
+
+        if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                callback(xmlhttp.responseText);
+            }
+        };
+
+        xmlhttp.open("GET", url, async);
+        xmlhttp.setRequestHeader("Content-type", "application/json");
+        xmlhttp.send('csrftoken=' + csrftoken);
+
+    };
+
+    /*
      ** the default options get extended with those selected at initialization
      */
 
     default_options = utils.extend({}, default_options, options);
 
     var constants = {
-        ROOT: default_options.root,
-        DATATYPES: ['graph', 'allograph', 'hand', 'scribe', 'allograph', 'idiograph', 'annotation', 'component', 'feature', 'image']
+        ROOT: default_options.root
     };
+
+    var get_datatypes = function() {
+        var url = constants.ROOT + '/content_type/';
+        var datatypes;
+        Ajax(url, function(data) {
+            data = JSON.parse(data);
+            datatypes = (data['results'][0]);
+        }, false);
+        return datatypes;
+    };
+
+    var datatypes = get_datatypes();
+    constants.DATATYPES = datatypes;
 
     /*
      ** function to return public methods
@@ -113,35 +158,6 @@ function DigipalAPI(options) {
         script.setAttribute("async", true);
         head.appendChild(script);
         return script;
-    };
-
-    /*
-     ** AJAX call if calls get done on the same domain
-     ** for parameters see @request
-     */
-
-    var Ajax = function(url, callback) {
-        var xmlhttp;
-        var csrftoken = utils.getCookie('csrftoken');
-
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                callback(xmlhttp.responseText);
-            }
-        };
-
-        xmlhttp.open("GET", url, true);
-        xmlhttp.setRequestHeader("Content-type", "application/json");
-        xmlhttp.send('csrftoken=' + csrftoken);
-
     };
 
     var process_url = function(url, select, limit) {

@@ -1,13 +1,14 @@
 function DigipalAPI(options) {
 
     var self = this;
-    var domain = 'http://localhost:8000/digipal/api';
 
     var default_options = {
-        crossDomain: true
+        crossDomain: true,
+        root: 'http://localhost:8000/digipal/api'
     };
 
     var utils = {
+
         extend: function() {
             var out = out || {};
             for (var i = 1; i < arguments.length; i++) {
@@ -21,6 +22,7 @@ function DigipalAPI(options) {
             }
             return out;
         },
+
         getCookie: function(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -38,14 +40,14 @@ function DigipalAPI(options) {
         },
     };
 
-    default_options = utils.extend(default_options, options);
-
     if (!default_options.crossDomain) {
-        domain = '/digipal/api';
+        default_options.root = '/digipal/api';
     }
 
+    default_options = utils.extend(default_options, options);
+    console.log(default_options);
     var constants = {
-        DOMAIN: domain,
+        ROOT: default_options.root,
         DATATYPES: ['graph', 'allograph', 'hand', 'scribe', 'allograph', 'idiograph', 'annotation', 'component', 'feature', 'image']
     };
 
@@ -57,14 +59,14 @@ function DigipalAPI(options) {
     var generateFunctions = function() {
 
         var functions = {
-            'call': call
+            'request': request
         };
 
         for (var i = 0; i < constants.DATATYPES.length; i++) {
             var datatype = constants.DATATYPES[i];
             (function(datatype) {
                 functions[datatype] = function(url, callback) {
-                    return functions.call(constants.DOMAIN + '/' + datatype + '/' + url, callback);
+                    return functions.request(constants.ROOT + '/' + datatype + '/' + url, callback);
                 };
             })(datatype);
         }
@@ -106,10 +108,10 @@ function DigipalAPI(options) {
     };
 
     /*
-        Call function
+        Request function
     */
 
-    var call = function(url, callback, options) {
+    var request = function(url, callback, options) {
         var cb = '_callback';
         url += '?callback=' + cb;
         if (url instanceof Array) {

@@ -172,9 +172,9 @@ def annotation_img(annotation, *args, **kwargs):
     ret = u''
     if annotation:
         url = annotation.get_cutout_url()
-        #dims = width=annotation.image.get_region_dimensions(url)
+        dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
-        ret = img(url, alt=annotation.graph, rotation=annotation.rotation, *args, **kwargs)
+        ret = img(url, alt=annotation.graph, rotation=annotation.rotation, width=dims[0], height=dims[1], *args, **kwargs)
     return ret
 
 @register.simple_tag
@@ -191,6 +191,8 @@ def img(src, *args, **kwargs):
             rotation=float => converted to a CSS rotation in the inline style
     '''
     more = ''
+    
+    #print kwargs 
 
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
@@ -213,16 +215,27 @@ def img(src, *args, **kwargs):
         src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
         # default dimensions
-        size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
-        for d in size:
-            s = size[d]
-            if s == -1:
-                s = max(size.values())
-            if s == -1:
-                s = 1
-            more += ' %s="%s" ' % (d, s)
+        if 0:
+            size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
+            for d in size:
+                s = size[d]
+                if s == -1:
+                    s = max(size.values())
+                if s == -1:
+                    s = 1
+                more += ' %s="%s" ' % (d, s)
+
+    dims_css = u''
+    for a in ['height', 'width']:
+        if a in kwargs:
+            more += ur' %s="%s" ' % (a, kwargs.get(a))
+            dims_css += u';%s=%spx;' % (a, kwargs.get(a))
 
     ret = ur'<img src="%s" %s/>' % (escape(src), more)
+    
+    
+    ret = ur'<span style="display: inline-block; %s; overflow: hidden; border: 0px solid black;">%s</span>' % (dims_css, ret)
+    
     return mark_safe(ret)
 
 @register.simple_tag

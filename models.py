@@ -1488,11 +1488,11 @@ class Image(models.Model):
             requested_dim = float(matches.group(2))
             dims[1-d] = dims[1-d] / dims[d] * requested_dim
             dims[d] = requested_dim
-            print dims
+            #print dims
         matches = re.search(ur'RGN=([^&]*)', region_url)
         if matches:
             parts = [float(part) for part in matches.group(1).split(',')]
-            print parts
+            #print parts
             parts[2]
             # don't ask... it sees like iip image server returns the double of the requested size!!
             factor = 2

@@ -47,17 +47,26 @@ function DigipalAPI(options) {
             }
             return cookieValue;
         },
-    };
 
-    if (!default_options.crossDomain) {
-        default_options.root = '/digipal/api';
-    }
+        serializeObject: function(_object) {
+            var s = '';
+            var n = 0;
+            for (var i in _object) {
+                if (n >= 1) {
+                    s += '&';
+                }
+                s += '_' + i + '=' + _object[i];
+                n++;
+            }
+            return s;
+        }
+    };
 
     /*
      ** the default options get extended with those selected at initialization
      */
 
-    default_options = utils.extend(default_options, options);
+    default_options = utils.extend({}, default_options, options);
 
     var constants = {
         ROOT: default_options.root,
@@ -78,16 +87,13 @@ function DigipalAPI(options) {
      */
 
     var generateFunctions = function() {
-
-        var functions = {
-            'request': request
-        };
-
+        var functions = {};
         for (var i = 0; i < constants.DATATYPES.length; i++) {
             var datatype = constants.DATATYPES[i];
             (function(datatype) {
-                functions[datatype] = function(url, callback) {
-                    return functions.request(constants.ROOT + '/' + datatype + '/' + url, callback);
+                functions[datatype] = function(url, callback, select, limit) {
+                    url = process_url(url, select, limit);
+                    return request(constants.ROOT + '/' + datatype + '/' + url, callback, select);
                 };
             })(datatype);
         }
@@ -138,6 +144,24 @@ function DigipalAPI(options) {
 
     };
 
+    var process_url = function(url, select, limit) {
+
+        if (url instanceof Array) {
+            url = url.toString();
+        } else if (url instanceof Object) {
+            url = '?' + utils.serializeObject(url);
+        }
+
+        if (typeof select !== 'undefined' && select.length) {
+            url += "&@select=" + select.toString();
+        }
+
+        if (typeof limit !== 'undefined' && limit) {
+            url += '&@limit=' + limit;
+        }
+        return url;
+    };
+
     /*
      ** Request function
      ** @url = {Number} : id of the resource,
@@ -147,13 +171,15 @@ function DigipalAPI(options) {
      ** @select: {Array} : array of fields (see @constants.DATATYPES) to be pulled. If undefined, all fields get called
      */
 
-    var request = function(url, callback, select) {
-        var cb = '_callback';
-        url += '?callback=' + cb;
-        if (url instanceof Array) {
-            url = url.toString();
-        }
+    var request = function(url, callback) {
+
+        /*
+         ** JSONP request
+         */
+
         if (default_options.crossDomain) {
+            var cb = '_callback';
+            url += '?callback=' + cb;
             var script = makeRequestScript(url);
             window[cb] = function(data) {
                 callback(success, message, data);

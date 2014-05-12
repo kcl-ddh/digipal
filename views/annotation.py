@@ -266,7 +266,10 @@ def image_vectors(request, image_id):
         data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
         data[a.vector_id]['graph'] = a.graph_id
 
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    if request:
+        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    else:
+        return simplejson.dumps(data)
 
 def get_vector(request, image_id, graph):
     annotation = Annotation.objects.get(graph=graph)
@@ -283,6 +286,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     else:
         annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
 
+    vectors = simplejson.loads(image_vectors(False, image_id))
     data = {}
     hands = []
     for a in annotation_list:
@@ -298,11 +302,13 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         features_list = simplejson.loads(get_features(a.graph.id, True))
         data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
+        if vectors[a.vector_id]:
+            data[a.id]['geo_json'] = vectors[a.vector_id]['geometry']
+
         #hands.append(data[a.id]['hand'])
 
         hand = a.graph.hand.label
         hands.append(a.graph.hand.id)
-        allograph_name = a.graph.idiograph.allograph.name
 
         if a.before:
             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)

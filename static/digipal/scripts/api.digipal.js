@@ -166,21 +166,24 @@ function DigipalAPI(options) {
 
     var process_url = function(url, select, limit) {
 
+        var isObject = false;
+
         if (url instanceof Array) {
             url = url.toString();
         } else if (url && url instanceof Object) {
             url = '?' + utils.serializeObject(url);
+            isObject = true;
         }
 
-        if (!(url instanceof Object && url) && ((select && select.length) || (limit && limit > 0))) {
+        if (!isObject && ((select && select.length))) {
             url += '?';
         }
 
         if (typeof select !== 'undefined' && select.length) {
-            if (url instanceof Object && url) {
+            if (isObject) {
                 url += '&';
             }
-            url += "@select=" + select.toString();
+            url += '@select=' + select.toString();
         }
 
         if (typeof limit !== 'undefined' && limit) {

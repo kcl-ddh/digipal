@@ -81,7 +81,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 		if (self.annotations) {
 			var annotation = self.vectorLayer.getFeatureById(feature.graph);
-			if (!annotation.hasOwnProperty('id')) {
+			if (!annotation || !annotation.hasOwnProperty('id')) {
 				annotation = {};
 			}
 			showBox(annotation, function() {

@@ -149,7 +149,8 @@ It is possible to explore Digipal's content thanks to a RESTFUL API, which can b
 To use the API, read Digipal's API [Documentation](https://github.com/kcl-ddh/digipal/blob/master/api/digipal-api.txt)
 
 ### Import Digipal API script
-You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/api.digipal.js)
+You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/api.digipal.js). Then, you can include it on your web page.
+	
 	<script src='api.digipal.js'></script>
 
 ### How To Use The API
@@ -169,7 +170,7 @@ If you are running the script into a Digipal instance:
 #### Making requests
 It is possible to use the API in various ways:
 
-1. Specifying the datatype into the URL path through the method *request*
+1. Specifying the datatype into the URL path through the method **request**
 2. By using the datatype as method name
 
 **Note that the first two parameters of the methods are required**
@@ -193,7 +194,7 @@ Instead, in the second case, we can have:
 		/* ... data ... */ 
 	});
 
-It is possible to use the first paramter in various ways:
+It is possible to use the first parameter in various ways:
 1. A single id, like in the examples. Ex. 12453
 2. An array of ids. Ex. [134, 553, 356]
 3. An object representing the fields and chosen values to match the record. Ex. {id: 10, image:61}
@@ -204,7 +205,8 @@ There are two further but optional paramaters.
 	/* Note the paramters select and limit	*/
 	dapi.request(url, callback, select, limit)
 
-The parameter **select** allows to specify the wished fields to be pulled by the request (the field id is always returned). Ex select = ['image'] will return only two fields: id and image.
+The parameter **select** allows to specify the wished fields to be pulled by the request (the field id is always returned).
+Ex select = ['image'] will return only two fields: id and image.
 
 The parameter **limit** allows to limit the number of records returned by the request. The default value is 100.
 
@@ -217,6 +219,8 @@ Another example:
 	}, ['item_part', 'image'));
 	
 	// or
+	// note that if select is empty, it will get all the fields to the response
+	// here we are limiting the number of record returned down to 1
 	
 	dapi.image({
 		hands: 35

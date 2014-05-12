@@ -352,7 +352,7 @@ def get_allographs_by_graph(request, image_id, graph_id):
                     'hand': i.graph.hand.id,
                     'hand_name': i.graph.hand.label,
                     'image': i.thumbnail(),
-                    'vector_id': i.vector_id
+                    'graph': i.graph.id
                 }
                 annotations_list.append(annotation)
             return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')

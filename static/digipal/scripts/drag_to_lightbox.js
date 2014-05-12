@@ -177,7 +177,7 @@ var Star = function(options) {
 		var collection = getCollection(collection_id);
 		var found = false;
 		type += 's';
-		if (collection.hasOwnProperty(type)) {
+		if (collection && collection.hasOwnProperty(type)) {
 			for (var i = 0; i < collection[type].length; i++) {
 				if (collection[type][i] == id) {
 					found = true;

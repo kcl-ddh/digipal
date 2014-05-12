@@ -48,6 +48,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 	var self = this;
 
+	self.api = new DigipalAPI({
+		crossDomain: false,
+		root: '/digipal/api'
+	});
+
 	var _Star = new Star();
 
 	/**
@@ -996,9 +1001,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -1922,10 +1927,9 @@ function load_data(selectedFeature, dialog, callback) {
 				dialog.html('<p class="component_labels">Choice an allograph from the dropdown</p>');
 				return false;
 			}
-			content_type = 'allograph';
-			url = '/digipal/api/' + content_type + '/' + allograph + '/';
-			request = $.getJSON(url);
-			request.done(function(data) {
+			url = content_type + '/' + allograph + '/';
+			annotator.api.request(url, function(data) {
+				data = JSON.parse(data);
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				if (annotator.boxes_on_click) {
 					refresh_dialog(dialog, data[0], selectedFeature, callback);
@@ -1942,9 +1946,9 @@ function load_data(selectedFeature, dialog, callback) {
 		// if there's no allograph cached, I make a full AJAX call
 		if (!cache.search("allograph", allograph)) {
 
-			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/';
-			request = $.getJSON(url);
-			request.done(function(data) {
+			url = content_type + '/' + selectedFeature.graph + '/';
+			annotator.api.request(url, function(data) {
+				data = JSON.parse(data);
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
 				if (annotator.boxes_on_click) {
@@ -1955,9 +1959,9 @@ function load_data(selectedFeature, dialog, callback) {
 			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
 		} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
 
-			url = '/digipal/api/' + content_type + '/' + selectedFeature.graph + '/features';
-			request = $.getJSON(url);
-			request.done(function(data) {
+			url = content_type + '/' + selectedFeature.graph + '/features';
+			annotator.api.request(url, function(data) {
+				data = JSON.parse(data);
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
 				if (annotator.boxes_on_click) {

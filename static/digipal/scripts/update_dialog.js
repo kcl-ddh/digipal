@@ -111,18 +111,21 @@ var load_group = function(group_element, cache, only_features, callback) {
 };
 
 var reload_cache = function(graphs, cache, only_features, callback) {
-	var request, url, content_type = 'graph';
+	var api = new DigipalAPI({
+		crossDomain: false,
+		root: '/digipal/api'
+	});
+	var url, content_type = 'graph';
 	$('#features_container').html('<img style="position:absolute;top:40%;left:40%;" src="/static/digipal/images/ajax-loader4.gif" />');
 	if (graphs.length) {
-		url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
+		url = content_type + '/' + graphs.toString() + '/';
 
 		if (only_features) {
 			url += 'features';
 		}
 
-		request = $.getJSON(url);
-		request.done(function(data) {
-
+		api.request(url, function(data) {
+			data = JSON.parse(data);
 			for (var i = 0; i < data.length; i++) {
 				var graph = graphs[i];
 				var allograph = data[i]['allograph_id'];

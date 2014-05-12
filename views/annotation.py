@@ -36,9 +36,9 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         if @callback=X in the query string a JSONP response is returned
     '''
     mimetype = 'application/json'
-    
+
     data = None
-    
+
     # Support for JSONP responses
     jsonpcallback = request.REQUEST.get('@callback', None)
     if jsonpcallback is not None:
@@ -48,7 +48,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
             import json
             data = json.dumps(data)
             jsonpcallback = None
-    
+
     if not data:
         if ids: ids = str(ids)
         if content_type == 'graph':
@@ -60,12 +60,12 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         else:
             from digipal.api.generic import API
             data = API.process_request(request, content_type, ids)
-    
+
     # JSON -> JSONP
     if jsonpcallback:
         data = u';%s(%s);' % (jsonpcallback, data)
         mimetype = 'text/javascript'
-    
+
     return HttpResponse(data, mimetype=mimetype)
 
 def get_list_from_csv(csv):
@@ -281,7 +281,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     if annotations_page:
         annotation_list = Annotation.objects.filter(image=image_id).select_related('image', 'graph')
     else:
-        annotation_list = Annotation.objects.filter(graph__hand=hand)
+        annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
 
     data = {}
     hands = []

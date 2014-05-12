@@ -88,12 +88,10 @@ function Allographs(dialog, cache) {
 
 		/* event to redirect from letters to annotator */
 		var a_images = $('.annotation_li a');
-		a_images.click(function(event) {
+		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
-				var id = $(this).parent('.annotation_li').data('annotation');
+				var id = $(this).parent('.annotation_li').data('graph');
 				methods.to_annotator(id);
-
-
 
 				/*
 				var panel = $('#panelImageBox');
@@ -228,21 +226,21 @@ function Allographs(dialog, cache) {
 			add_to_lightbox(button, 'annotation', annotations, multiple);
 		},
 
-		to_annotator: function(annotation_id) {
+		to_annotator: function(annotation_graph_id) {
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
 			$('html, body').animate({
 				scrollTop: $('#map').position().top + 'px'
-			}, 10, function() {
+			}, 150, function() {
 				var annotation_graph;
 				var select_allograph = $('#panelImageBox');
 				for (var j in annotator.annotations) {
-					if (annotator.annotations[j].vector_id == annotation_id) {
+					if (annotator.annotations[j].graph == annotation_graph_id) {
 						annotation_graph = annotator.annotations[j];
 						break;
 					}
 				}
-				annotator.selectFeatureByIdAndZoom(annotation_id);
+				annotator.selectFeatureByIdAndZoom(annotation_graph_id);
 				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 				$('select').trigger('liszt:updated');

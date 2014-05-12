@@ -998,9 +998,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {
@@ -1109,7 +1109,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							j = 1;
 							s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
 							data_hand = data[0].hand;
-							s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[0].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
+							s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[0].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
 						} else {
 							for (var i = 0; i < data.length; i++) {
 								j++;
@@ -1127,7 +1127,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 									data_hand = data[i].hand;
 									s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
 								}
-								s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-vector-id='" + data[i].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
+								s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[i].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
 							}
 						}
 					} else {
@@ -1172,11 +1172,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			images_link.on('click', function() {
 				var vector = $(this);
-				annotator.centreById(vector.data('vector-id'));
+				annotator.centreById(vector.data('graph'));
 			}).on("mouseover", function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('vector-id')) {
+					if (features[i].id == vector.data('graph')) {
 						features[i].originalColor = features[i].style.fillColor;
 						features[i].style.strokeColor = 'red';
 						features[i].style.strokeWidth = 6;
@@ -1188,7 +1188,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}).on('mouseout', function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('vector-id')) {
+					if (features[i].id == vector.data('graph')) {
 						features[i].style.strokeColor = features[i].originalColor;
 						features[i].style.strokeWidth = 2;
 						break;
@@ -1198,7 +1198,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				restoreFullscreenPositions();
 			}).on('dblclick', function() {
 				var vector = $(this);
-				annotator.selectFeatureByIdAndCentre(vector.data('vector-id'));
+				annotator.selectFeatureByIdAndCentre(vector.data('graph'));
 			}).fadeIn();
 
 			if (img.length) {

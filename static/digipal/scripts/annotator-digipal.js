@@ -80,8 +80,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		$(".number_annotated_allographs .number-allographs").html(i);
 
 		if (self.annotations) {
-			var annotation = self.vectorLayer.getFeatureById(feature.id);
-			if (!annotation.hasOwnProperty('graph')) {
+			var annotation = self.vectorLayer.getFeatureById(feature.graph);
+			if (!annotation.hasOwnProperty('id')) {
 				annotation = {};
 			}
 			showBox(annotation, function() {
@@ -121,39 +121,39 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			$('#loading_allographs_image').remove();
 			var features = [];
-			for (var j in data) {
-				var f = format.read(data[j].geo_json)[0];
-				f.id = j;
-				for (var i in annotations) {
-					var allograph = annotations[i]['feature'];
-					var character_id = annotations[i]['character_id'];
-					var graph = annotations[i]['graph'];
-					var character = annotations[i]['character'];
-					var hand = annotations[i]['hand'];
-					var image_id = annotations[i]['image_id'];
-					var num_features = annotations[i]['num_features'];
-					var display_note = annotations[i]['display_note'];
-					var allograph_id = annotations[i]['allograph_id'];
-					if (f.id == annotations[i]['graph']) {
-						f.feature = allograph;
-						f.character_id = character_id;
-						f.graph = graph;
-						f.character = character;
-						f.hand = hand;
-						f.image_id = image_id;
-						f.num_features = num_features;
-						f.display_note = display_note;
-						f.allograph_id = allograph_id;
+			var f;
+			for (var i in annotations) {
 
-						// it serves to differentiate stored and temporary annotations
-						f.stored = true;
-					}
-				}
+				f = format.read(annotations[i].geo_json)[0];
+				var allograph = annotations[i]['feature'];
+				var character_id = annotations[i]['character_id'];
+				var graph = annotations[i]['graph'];
+				var character = annotations[i]['character'];
+				var hand = annotations[i]['hand'];
+				var image_id = annotations[i]['image_id'];
+				var num_features = annotations[i]['num_features'];
+				var display_note = annotations[i]['display_note'];
+				var allograph_id = annotations[i]['allograph_id'];
+				var vector_id = annotations[i]['vector_id'];
+				f.feature = allograph;
+				f.character_id = character_id;
+				f.graph = graph;
+				f.character = character;
+				f.hand = hand;
+				f.image_id = image_id;
+				f.num_features = num_features;
+				f.display_note = display_note;
+				f.allograph_id = allograph_id;
+				f.vector_id = vector_id;
+				f.id = graph;
+				// it serves to differentiate stored and temporary annotations
+				f.stored = true;
 				f.linked_to = [];
 				/* annotator.vectorLayer.features is the array to access to all the features */
-
+				console.log(i, graph)
 				features.push(f);
 			}
+
 			// adds all the vectors to the vector layer
 			layer.addFeatures(features);
 			var vectors = annotator.vectorLayer.features;
@@ -998,9 +998,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -1327,7 +1327,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					vector['vector_id'] = feature.id;
+					vector['vector_id'] = feature.vector_id;
 					graphs.push(vector);
 				}
 
@@ -1346,7 +1346,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						'id': ann[ind2].graph,
 						'image': image_id,
 						'geoJson': geoJson,
-						'vector_id': ann[ind2].id
+						'vector_id': ann[ind2].vector_id
 					});
 				}
 
@@ -1362,7 +1362,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					vector['vector_id'] = feature.id;
+					vector['vector_id'] = feature.vector_id;
 
 					graphs.push(vector);
 					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
@@ -1762,7 +1762,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
 
-					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].id;
+					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].vector_id;
 
 					allograph_url.push(url_temp);
 
@@ -1772,7 +1772,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 			} else {
 
-				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
+				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.vector_id;
 
 			}
 
@@ -2528,7 +2528,7 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].id == new_graphs[i].vector_id) {
+						if (f[feature_ind].vector_id == new_graphs[i].vector_id) {
 							feature = f[feature_ind];
 							id = feature.id;
 							feature.feature = allograph;
@@ -2559,7 +2559,7 @@ function save(url, graphs, data, ann, features) {
 							var flag = 0,
 								ann;
 							for (ann in annotator.annotations) {
-								if (annotator.annotations[ann].vector_id == feature.id) {
+								if (annotator.annotations[ann].vector_id == feature.vector_id) {
 									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
 									annotator.annotations[ann].feature = allograph;
 									annotator.annotations[ann].graph = new_graph;
@@ -2573,7 +2573,7 @@ function save(url, graphs, data, ann, features) {
 								annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
 								annotator.annotations[ann].feature = allograph;
 								annotator.annotations[ann].graph = new_graph;
-								annotator.annotations[ann].vector_id = feature.id;
+								annotator.annotations[ann].vector_id = feature.vector_id;
 							}
 
 							if (new_graphs[i].features.length) {

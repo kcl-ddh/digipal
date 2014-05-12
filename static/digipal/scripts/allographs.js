@@ -116,7 +116,7 @@ function Allographs(dialog, cache) {
 	var methods = {
 
 		select_annotation: function(this_annotation) {
-			var annotation = this.getFeatureById(this_annotation.data('annotation'));
+			var annotation = this.getFeatureById(this_annotation.data('graph'));
 			var current_basket;
 			var annotation_li = this_annotation;
 			var a = selectedAnnotations.allograph;
@@ -266,7 +266,7 @@ function Allographs(dialog, cache) {
 
 			for (var idx in annotator.annotations) {
 				annotation = annotator.annotations[idx];
-				if (annotation.vector_id == feature.id) {
+				if (annotation.graph == feature.id) {
 					break;
 				} else {
 					annotation = null;

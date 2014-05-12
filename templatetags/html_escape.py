@@ -251,7 +251,7 @@ def img(src, *args, **kwargs):
 
     ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
     
-    ret = ur'<span style="display: inline-block; %s; overflow: hidden; border: 1px solid black;">%s</span>' % (dims_css, ret)
+    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden; border: 0px solid black;">%s</span>' % (dims_css, ret)
     
     return mark_safe(ret)
 

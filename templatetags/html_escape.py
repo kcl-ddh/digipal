@@ -169,12 +169,16 @@ def annotation_img(annotation, *args, **kwargs):
 
         See iip_img() for more information
     '''
+    
     ret = u''
     if annotation:
-        url = annotation.get_cutout_url()
-        dims = annotation.image.get_region_dimensions(url)
+        info = annotation.get_cutout_url_info()
+        #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
-        ret = img(url, alt=annotation.graph, rotation=annotation.rotation, width=dims[0], height=dims[1], *args, **kwargs)
+        if info['url']:
+            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, 
+                        width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0], 
+                        frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret
 
 @register.simple_tag
@@ -191,6 +195,7 @@ def img(src, *args, **kwargs):
             rotation=float => converted to a CSS rotation in the inline style
     '''
     more = ''
+    style = ''
     
     #print kwargs 
 
@@ -203,11 +208,12 @@ def img(src, *args, **kwargs):
 
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
-        
+    
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
         if rotation > 0.0:
-            more += ur' style="transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);" ' % {'r': rotation}
+            style += ';position:relative;max-width:none;'
+            style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
@@ -227,14 +233,25 @@ def img(src, *args, **kwargs):
 
     dims_css = u''
     for a in ['height', 'width']:
+        vs = []
         if a in kwargs:
-            more += ur' %s="%s" ' % (a, kwargs.get(a))
-            dims_css += u';%s=%spx;' % (a, kwargs.get(a))
+            vs.append(int(kwargs.get(a)))
+            #more += ur' %s="%s" ' % (a, vs[-1])
+            style += ';%s:%dpx;' % (a, vs[-1])
+        if 'frame_'+a in kwargs:
+            vs.append(int(kwargs.get('frame_'+a)))
+            dims_css += u';%s:%spx;' % (a, vs[-1])
+        if len(vs) == 2:
+            p = 'top'
+            if a == 'width':
+                p = 'left'
+            style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
+    #print style
+            
 
-    ret = ur'<img src="%s" %s/>' % (escape(src), more)
+    ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
     
-    
-    ret = ur'<span style="display: inline-block; %s; overflow: hidden; border: 0px solid black;">%s</span>' % (dims_css, ret)
+    ret = ur'<span style="display: inline-block; %s; overflow: hidden; border: 1px solid black;">%s</span>' % (dims_css, ret)
     
     return mark_safe(ret)
 

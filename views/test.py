@@ -13,6 +13,9 @@ def cookied_inputs(request):
 
 def iipimage(request):
     context = {'iiphost': settings.IMAGE_SERVER_URL}
+    
+    from digipal.models import Annotation
+    context['annotation'] = Annotation.objects.get(id=11827)
 
     return render_to_response('test/iipimage.html', context,
             context_instance=RequestContext(request))

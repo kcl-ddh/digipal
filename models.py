@@ -1480,6 +1480,7 @@ class Image(models.Model):
             returns -1 for unknown dimensions'''
         ret = [-1, -1]
         dims = [float(v) for v in self.dimensions()]
+        if max(dims) == 0: return (0, 0)
         #print dims
         matches = re.search(ur'(WID|HEI)=(\d*)', region_url)
         if matches:
@@ -1921,16 +1922,25 @@ class Annotation(models.Model):
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
         
-    def get_coordinates(self, geo_json=None):
+    def get_coordinates(self, geo_json=None, y_from_top=False, rotated=False):
         ''' Returns the coordinates of the smallest rectangle 
             that contain the path around the annotation shape.
             E.g. ((602, 56), (998, 184))
             
             WARNING: the y coordinates are relative to the BOTTOM of the image!
         '''
-        import json
+        import json, math
         if geo_json is None: geo_json = self.geo_json
 
+        def get_surrounding_rectangle(cs):
+            ret = [
+                    [min([c[0] for c in cs]),
+                    min([c[1] for c in cs])],
+                    [max([c[0] for c in cs]),
+                    max([c[1] for c in cs])]
+                ]
+            return ret
+    
         # See JIRA-229, some old geo_json format are not standard JSON
         # and cause trouble with the deserialiser (json.loads()).
         # The property names are surrounded by single quotes
@@ -1940,15 +1950,36 @@ class Annotation(models.Model):
         #     Returns {"geometry": {"type": "Polygon", "coordinates":
         geo_json = geo_json.replace('\'', '"')
 
-        ret = json.loads(geo_json)
+        cs = json.loads(geo_json)
         # TODO: test if this exists!
-        ret = ret['geometry']['coordinates'][0]
-        ret = [
-                [min([c[0] for c in ret]),
-                min([c[1] for c in ret])],
-                [max([c[0] for c in ret]),
-                max([c[1] for c in ret])]
-            ]
+        cs = cs['geometry']['coordinates'][0][:]
+        
+        # change the y coordinates (from the top rather than the bottom)
+        if y_from_top:
+            width, height = self.image.dimensions()
+            for i in range(0, len(cs)):
+                cs[i][1] = height - cs[i][1]
+        
+        # rotate the shape
+        if rotated:
+            angle = math.radians(float(self.rotation))
+            rect = get_surrounding_rectangle(cs)
+            #print 'rect', rect
+            #print 'angle', angle
+            centre = [((rect[0][d] + rect[1][d]) / 2) for d in [0, 1]]
+            #print 'centre', centre
+            #print 'cs', cs
+            for i in range(0, len(cs)):
+                c = cs[i]
+                c = [c[0] - centre[0], c[1] - centre[1]]
+                c = (c[0] * math.cos(angle) - c[1] * math.sin(angle), c[0] * math.sin(angle) + c[1] * math.cos(angle))
+                c = [c[0] + centre[0], c[1] + centre[1]]
+                cs[i] = c
+            #print 'cs', cs
+        
+        # get the surrounding rectangle
+        ret = get_surrounding_rectangle(cs)
+        
         return ret
 
     def set_graph_group(self):
@@ -2050,6 +2081,61 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
+    def get_cutout_url_info(self, esc=False, rotated=False):
+        ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
+
+        #print '-' * 80
+        #print self.vector_id, self.id
+
+        # get the rectangle surrounding the shape
+        psr = ps = self.get_coordinates(y_from_top=True, rotated=False)
+        if self.rotation:
+            psr = self.get_coordinates(y_from_top=True, rotated=True)
+        dims = [float(v) for v in self.image.dimensions()]
+        
+        for d in [0, 1]:
+            ret['frame_dims'][d] = psr[1][d] - psr[0][d]
+            
+        if min(dims) <= 0 or min(ret['frame_dims']) <= 0:
+            return ret
+
+        if 0 or self.rotation:
+            # get the dimension of the region to retrieve
+            # extend it by 50%
+            extension = 0.5
+            centre = [0, 0]
+            for d in [0, 1]:
+                ret['dims'][d] = (ps[1][d] - ps[0][d]) * (1 + extension * 2)
+                centre[d] = (ps[0][d] + ps[1][d]) / 2
+            
+            # make it square
+            ret['dims'] = [max(ret['dims']), max(ret['dims'])]
+            ps[0] = [(centre[d] - ret['dims'][d]/2) for d in [0, 1]]
+        else:
+            ret['dims'] = ret['frame_dims'][:]
+        
+        #print ps
+        #print ret['dims']
+        
+        # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
+        factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        
+        ret['url'] = settings.IMAGE_SERVER_RGN % \
+            (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH, self.image.path(), 
+            'WID=%d' % (int(factor * dims[0]),), 
+            ps[0][0] / dims[0], 
+            ps[0][1] / dims[1],
+            ret['dims'][0] / dims[0],
+            ret['dims'][1] / dims[1])
+        
+        for d in [0, 1]:
+            ret['dims'][d] *= factor
+            ret['frame_dims'][d] *= factor
+            
+        if esc: ret['url'] = escape(ret['url'])
+        
+        return ret
+        
     def get_cutout_url(self, esc=False, full_size=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.

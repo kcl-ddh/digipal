@@ -119,75 +119,72 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			// Loading vectors
 
-			var features_request = $.getJSON(annotator.absolute_image_url + 'vectors/');
-			features_request.done(function(data) {
+			$('#loading_allographs_image').remove();
+			var features = [];
+			for (var j in data) {
+				var f = format.read(data[j].geo_json)[0];
+				f.id = j;
+				for (var i in annotations) {
+					var allograph = annotations[i]['feature'];
+					var character_id = annotations[i]['character_id'];
+					var graph = annotations[i]['graph'];
+					var character = annotations[i]['character'];
+					var hand = annotations[i]['hand'];
+					var image_id = annotations[i]['image_id'];
+					var num_features = annotations[i]['num_features'];
+					var display_note = annotations[i]['display_note'];
+					var allograph_id = annotations[i]['allograph_id'];
+					if (f.id == annotations[i]['graph']) {
+						f.feature = allograph;
+						f.character_id = character_id;
+						f.graph = graph;
+						f.character = character;
+						f.hand = hand;
+						f.image_id = image_id;
+						f.num_features = num_features;
+						f.display_note = display_note;
+						f.allograph_id = allograph_id;
 
-				$('#loading_allographs_image').remove();
-				var features = [];
-				for (var j in data) {
-					var f = format.read(data[j])[0];
-					f.id = j;
-					for (var i in annotations) {
-						var allograph = annotations[i]['feature'];
-						var character_id = annotations[i]['character_id'];
-						var graph = annotations[i]['graph'];
-						var character = annotations[i]['character'];
-						var hand = annotations[i]['hand'];
-						var image_id = annotations[i]['image_id'];
-						var num_features = annotations[i]['num_features'];
-						var display_note = annotations[i]['display_note'];
-						var allograph_id = annotations[i]['allograph_id'];
-						if (f.id == annotations[i]['vector_id']) {
-							f.feature = allograph;
-							f.character_id = character_id;
-							f.graph = graph;
-							f.character = character;
-							f.hand = hand;
-							f.image_id = image_id;
-							f.num_features = num_features;
-							f.display_note = display_note;
-							f.allograph_id = allograph_id;
-
-							// it serves to differentiate stored and temporary annotations
-							f.stored = true;
-						}
+						// it serves to differentiate stored and temporary annotations
+						f.stored = true;
 					}
-					f.linked_to = [];
-					/* annotator.vectorLayer.features is the array to access to all the features */
-
-					features.push(f);
 				}
-				// adds all the vectors to the vector layer
-				layer.addFeatures(features);
-				var vectors = annotator.vectorLayer.features;
+				f.linked_to = [];
+				/* annotator.vectorLayer.features is the array to access to all the features */
 
-				var navigation = new OpenLayers.Control.Navigation({
-					'zoomBoxEnabled': false,
-					defaultDblClick: function(event) {
-						return;
-					}
-				});
+				features.push(f);
+			}
+			// adds all the vectors to the vector layer
+			layer.addFeatures(features);
+			var vectors = annotator.vectorLayer.features;
 
-				map.addControl(navigation);
-
-				if (!annotator.events) {
-					var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
-					map.events.register("moveend", map, function() {
-						registerEvents();
-						restoreFullscreenPositions();
-					});
-
-					map.events.register("zoomend", map, function() {
-						registerEvents();
-						restoreFullscreenPositions();
-					});
-
-				}
-
-				if (callback) {
-					callback(data); // calling all events on elements after all annotations get loaded
+			var navigation = new OpenLayers.Control.Navigation({
+				'zoomBoxEnabled': false,
+				defaultDblClick: function(event) {
+					return;
 				}
 			});
+
+			map.addControl(navigation);
+
+			if (!annotator.events) {
+				var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+				map.events.register("moveend", map, function() {
+					registerEvents();
+					restoreFullscreenPositions();
+				});
+
+				map.events.register("zoomend", map, function() {
+					registerEvents();
+					restoreFullscreenPositions();
+				});
+
+			}
+
+			if (callback) {
+				callback(data); // calling all events on elements after all annotations get loaded
+			}
+
 		});
 	};
 
@@ -856,7 +853,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				} else {
 					if (!$.isEmptyObject(selectedFeature)) {
 						html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
-						html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button> <button data-toggle='tooltip' title='Add graph to collection' class='to_lightbox btn btn-default btn-xs' data-graph = '" + selectedFeature.graph + "'><i class='fa fa-folder-open'></i></button>";
+						html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 					} else {
 						html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
 						html_string_buttons = "<span class='pull-right' style='margin-right: 0.5em;''><button data-hidden='true' class='url_allograph btn btn-default btn-xs ' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
@@ -1001,9 +998,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {

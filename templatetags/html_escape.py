@@ -245,13 +245,15 @@ def img(src, *args, **kwargs):
             p = 'top'
             if a == 'width':
                 p = 'left'
-            style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
+            v = (vs[0]-vs[1])/2
+            if v:
+                style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
     #print style
             
 
     ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
     
-    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden; border: 0px solid black;">%s</span>' % (dims_css, ret)
+    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden;">%s</span>' % (dims_css, ret)
     
     return mark_safe(ret)
 

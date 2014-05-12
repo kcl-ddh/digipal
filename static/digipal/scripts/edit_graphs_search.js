@@ -116,10 +116,10 @@ function EditGraphsSearch() {
         var elements = $("[data-graph='" + graph + "']");
         var image_id = element.data('image-id');
         var data, url, request, content_type = 'graph';
-        if (!element.find('img').hasClass('graph_active')) {
+        if (!element.find('.img-frame').hasClass('graph_active')) {
 
             self.selectedAnnotations.push(graph);
-            elements.find('img').addClass('graph_active');
+            elements.find('.img-frame').addClass('graph_active');
             self.selectedAllograph = null;
 
             // if there's no allograph cached, I make a full AJAX call
@@ -274,7 +274,7 @@ function EditGraphsSearch() {
 
                     var deselect_all_graphs = $('.deselect_all_graphs');
                     deselect_all_graphs.click(function() {
-                        $('img.graph_active').removeClass('graph_active');
+                        $('.img-frame.graph_active').removeClass('graph_active');
                         self.selectedAnnotations = [];
                         self.dialog.hide();
                     });
@@ -431,7 +431,7 @@ function EditGraphsSearch() {
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', true);
             var inputs = $('input[data-key="' + key + '"]');
-            var annotations = ul.find('[data-graph] img.graph_active').parent().parent();
+            var annotations = ul.find('[data-graph] .img-frame.graph_active').parent().parent();
 
             $.each(annotations, function() {
                 load_graph($(this));
@@ -447,7 +447,7 @@ function EditGraphsSearch() {
             var ul = $('ul[data-key="' + key + '"]');
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', false);
-            var annotations = ul.find('[data-graph]').find('img').not('.graph_active').parent().parent();
+            var annotations = ul.find('[data-graph]').find('.img-frame').not('.graph_active').parent().parent();
             for (var i = 0; i < annotations.length; i++) {
                 load_graph($(annotations[i]));
             }
@@ -467,7 +467,7 @@ function EditGraphsSearch() {
 
                 for (var i = 0; i < self.selectedAnnotations.length; i++) {
                     if (graphs.indexOf(self.selectedAnnotations[i]) >= 0) {
-                        $('a[data-graph="' + self.selectedAnnotations[i] + '"]').find('img').removeClass('graph_active');
+                        $('a[data-graph="' + self.selectedAnnotations[i] + '"]').find('.img-frame').removeClass('graph_active');
                         self.selectedAnnotations.splice(i, 1);
                         i--;
                     }
@@ -498,7 +498,7 @@ function EditGraphsSearch() {
     };
 
     var removeSelected = function(elements, graph) {
-        elements.find('img').removeClass("graph_active");
+        elements.find('.img-frame').removeClass("graph_active");
         for (var j = 0; j < self.selectedAnnotations.length; j++) {
             if (self.selectedAnnotations[j] == graph) {
                 self.selectedAnnotations.splice(j, 1);

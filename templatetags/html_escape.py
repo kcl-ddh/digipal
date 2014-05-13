@@ -130,16 +130,16 @@ def reset_recordids():
     return []
 
 @register.simple_tag
-def iip_img_a(iipfield, *args, **kwargs):
+def iip_img_a(image, *args, **kwargs):
     '''
-        Usage {% iip_img_a IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
 
         Render a <a href=""><img src="" /></a> element with the url referenced
         by the iipimage field.
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG">%s</a>' % (escape(iipfield.full_base_url), iip_img(iipfield, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url), iip_img(image, *args, **kwargs)))
 
 @register.simple_tag
 def iip_img(image_or_iipfield, *args, **kwargs):
@@ -153,14 +153,31 @@ def iip_img(image_or_iipfield, *args, **kwargs):
         If lazy is True the image will be loaded only when visible in
         the browser.
     '''
-    iipfield = image_or_iipfield        
-    if image_or_iipfield and hasattr(image_or_iipfield, 'iipimage'):
-        # it's an instance of the Image model
-        image = iipfield
+    ret = u''
+    if image_or_iipfield is None:
+        return ret
+
+    image = None
+    iipfield = image_or_iipfield
+    if hasattr(image_or_iipfield, 'iipimage'):
+        image = image_or_iipfield
         iipfield = image.iipimage
-        kwargs['alt'] = u'%s' % image
     
-    return img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+    if image:
+        kwargs['alt'] = u'%s' % image
+        # When we get height = 100 we calculate the width.
+        # And vice-versa
+        ds = ['width', 'height']
+        vs = [kwargs.get(d, None) for d in ds]
+        if any(vs):
+            dims = image.dimensions()
+            for i in [0, 1]:
+                if vs[i] is None:
+                    kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
+    
+        ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+            
+    return ret
 
 @register.simple_tag
 def annotation_img(annotation, *args, **kwargs):
@@ -193,6 +210,7 @@ def img(src, *args, **kwargs):
             lazy = 0|1 to load the image lazily
             a_X => converted into attribute X
             rotation=float => converted to a CSS rotation in the inline style
+            width, height
     '''
     more = ''
     style = ''
@@ -212,13 +230,16 @@ def img(src, *args, **kwargs):
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
         style += ';position:relative;max-width:none;'
-        if rotation > 0.0:
+        if rotation > 0.0 or kwargs.get('force_rotation', False):
             style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
+        
         # a serialised white dot GIF image 
-        src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        #src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        # TODO: don't hard-code the path!
+        src = ur'/static/digipal/images/blank.gif'
 
         # default dimensions
         if 0:

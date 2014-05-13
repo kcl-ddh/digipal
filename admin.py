@@ -1118,7 +1118,7 @@ class ImageAdmin(reversion.VersionAdmin):
     
     def get_thumbnail(self, image):
         from digipal.templatetags.html_escape import iip_img_a
-        return iip_img_a(image.iipimage, width=70, cls='img-expand', lazy=True)
+        return iip_img_a(image, width=70, cls='img-expand', lazy=True)
     get_thumbnail.short_description = 'Thumbnail'
     get_thumbnail.allow_tags = True 
 

@@ -150,7 +150,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				f.stored = true;
 				f.linked_to = [];
 				/* annotator.vectorLayer.features is the array to access to all the features */
-				console.log(i, graph)
 				features.push(f);
 			}
 

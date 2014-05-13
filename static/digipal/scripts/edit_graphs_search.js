@@ -281,7 +281,7 @@ function EditGraphsSearch() {
 
                     // GN - rotation prototype - to be reviewed
                     self.annotation_editor = $(self.dialog.selector.find('#annotation-editor-tab')).annotation_editor().data('annotation_editor');
-                    
+
                     var tabs = $('a[data-toggle="tab"]');
                     tabs.on('shown.bs.tab', function(e) {
                         if (e.target.getAttribute('data-target') == '#edit') {
@@ -306,7 +306,7 @@ function EditGraphsSearch() {
                 });
             });
         } else {
-            
+
             // GN - rotation prototype - to be reviewed
             self.annotation_editor.set_graphids(self.selectedAnnotations);
 
@@ -364,7 +364,7 @@ function EditGraphsSearch() {
                 vector['vector_id'] = vector_id;
                 graphs.push(vector);
             }
-            
+
             // GN - rotation prototype - to be reviewed
             if (self.annotation_editor) {
                 self.annotation_editor.save();
@@ -427,7 +427,7 @@ function EditGraphsSearch() {
 
         deselect_all: function(button) {
             var key = button.data('key');
-            var ul = $('ul[data-key="' + key + '"]');
+            var ul = $('div[data-key="' + key + '"]');
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', true);
             var inputs = $('input[data-key="' + key + '"]');
@@ -444,7 +444,7 @@ function EditGraphsSearch() {
 
         select_all: function(button) {
             var key = button.data('key');
-            var ul = $('ul[data-key="' + key + '"]');
+            var ul = $('div[data-key="' + key + '"]');
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', false);
             var annotations = ul.find('[data-graph]').find('.img-frame').not('.graph_active').parent().parent();

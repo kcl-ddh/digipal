@@ -37,17 +37,18 @@
 
 {% block extra_js %}
     {{ block.super  }}
+    <script src='{{ STATIC_URL }}digipal/scripts/api.digipal.js'></script>
     <script type="text/javascript">
-    
+
         $(function() {
-            $( ".resizable" ).resizable();            
+            $( ".resizable" ).resizable();
         });
 
         dpapi = new DigipalAPI({
-            crossDomain: true,
+            crossDomain: false,
             root: '/digipal/api'
         });
-        
+
         function runQuery() {
             var url = $('#input_url').val();
             $('#result').html('<img style="position:absolute;left:50%;" src="/static/digipal/images/ajax-loader4.gif"/>');

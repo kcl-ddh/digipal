@@ -221,9 +221,6 @@ function DigipalAPI(options) {
                 window[cb] = null;
                 delete window[cb];
                 script.parentNode.removeChild(script);
-                try {
-                    delete window[cb];
-                } catch (e) {}
             };
             window[cb].timer = window.setTimeout(function() {
                 window[cb] = undefined;

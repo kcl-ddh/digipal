@@ -1925,7 +1925,6 @@ function load_data(selectedFeature, dialog, callback) {
 			}
 			url = content_type + '/' + allograph + '/';
 			annotator.api.request(url, function(data) {
-				data = JSON.parse(data);
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				if (annotator.boxes_on_click) {
 					refresh_dialog(dialog, data[0], selectedFeature, callback);
@@ -1944,7 +1943,6 @@ function load_data(selectedFeature, dialog, callback) {
 
 			url = content_type + '/' + selectedFeature.graph + '/';
 			annotator.api.request(url, function(data) {
-				data = JSON.parse(data);
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
 				if (annotator.boxes_on_click) {
@@ -1957,7 +1955,6 @@ function load_data(selectedFeature, dialog, callback) {
 
 			url = content_type + '/' + selectedFeature.graph + '/features';
 			annotator.api.request(url, function(data) {
-				data = JSON.parse(data);
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
 				if (annotator.boxes_on_click) {

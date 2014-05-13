@@ -1,43 +1,57 @@
 {% extends "base.html" %}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags html_escape %}
-
+{% block meta_title %}Web API Tester{% endblock %}
 {% block head %}
     <style>
-        pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+        pre {border: 1px solid #ccc; outline:none; padding: 5px; margin: 0; }
         .string { color: green; }
         .number { color: blue; }
         .boolean { color: red; }
         .null { color: red; }
         .key { color: #444; }
+        .error { color: red; }
     </style>
 {% endblock %}
 
 {% block main %}
-    <h1>Web API Tester</h1>
-    <hr>
+    <div class="row">
+        <h1 class='header1'>Web API Tester</h1>
+    </div>
+
     <div class="row">
         <div class="container">
-            <div class="col-md-12">
+            <div class="col-md-4">
+                <h3>Settings</h3>
+                <div class="panel">
+                    <label for="">Cross Domain Request</label>
+                    <p>
+                        <input type='radio' name='crossDomain' value='true' /> True
+                    </p>
+                    <p>
+                        <input type='radio' name='crossDomain' value='false' checked /> False
+                    </p>
+                    </div>
+            </div>
+            <div class="col-md-8">
                 <div class="input-group">
                     <input placeholder='Run query URL Ex. graph/12342' class='form-control' type="text" id='input_url' />
                     <div class="input-group-btn">
                         <button class='btn btn-default' id='run-query'>Run Query</button>
                     </div>
                 </div>
+
+                <div style='margin-top:1em;font-family: Monospace;'>
+                    <pre id='result' class="resizable" style='min-height:250px;max-height:500px;'></pre>
+                </div>
+
             </div>
-        </div>
-    </div>
-    <div class="row" style='margin-top:1em;font-family: Monospace;'>
-        <div class="container">
-            <pre id='result' class="resizable" style='min-height:250px;max-height:500px;'></pre>
         </div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super  }}
-    <script src='{{ STATIC_URL }}digipal/scripts/api.digipal.js'></script>
     <script type="text/javascript">
 
         $(function() {
@@ -49,11 +63,26 @@
             root: '/digipal/api'
         });
 
+        $('input[name="crossDomain"]').on('change', function(){
+            dpapi.crossDomain($(this).val());
+        });
+
         function runQuery() {
             var url = $('#input_url').val();
             $('#result').html('<img style="position:absolute;left:50%;" src="/static/digipal/images/ajax-loader4.gif"/>');
-            dpapi.request(url, function(data){
-                $('#result').html(syntaxHighlight(JSON.stringify(JSON.parse(data), null, 4)));
+            dpapi.request(url, function(data, success){
+                if(success){
+                    $('#result').html(syntaxHighlight(data));
+                } else {
+                    data = $.parseHTML(data['errors'][1]);
+                    var summary;
+                    for(var i = 0; i < data.length; i++){
+                        if (data[i].id == 'summary'){
+                            summary = data[i];
+                        }
+                    }
+                    $('#result').html("<span class='error'>" + summary.innerHTML + "</span>");
+                }
             });
             $('#input_url').focus();
         }
@@ -66,6 +95,7 @@
         });
 
         function syntaxHighlight(json) {
+            console.log(typeof json)
             if (typeof json != 'string') {
                  json = JSON.stringify(json, undefined, 2);
             }

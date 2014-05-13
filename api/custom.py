@@ -86,4 +86,8 @@ class APIAnnotation(APICustom):
         ret = super(APIAnnotation, cls).get_data_from_record(record, request, fieldsets, method)
         if 'html' in fieldsets:
             ret['html'] = annotation_img(record)
+        if 'htmlr' in fieldsets:
+            # This forces the inclusion of the css transform in the output even if rotation = 0.
+            # This is useful for the quick preview mode in the edit annotation tab.
+            ret['htmlr'] = annotation_img(record, force_rotation=True)
         return ret

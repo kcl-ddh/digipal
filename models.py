@@ -2089,7 +2089,8 @@ class Annotation(models.Model):
 
         # get the rectangle surrounding the shape
         psr = ps = self.get_coordinates(y_from_top=True, rotated=False)
-        if self.rotation:
+        rotation = float(self.rotation)
+        if rotation > 0.0:
             psr = self.get_coordinates(y_from_top=True, rotated=True)
         dims = [float(v) for v in self.image.dimensions()]
         
@@ -2099,7 +2100,7 @@ class Annotation(models.Model):
         if min(dims) <= 0 or min(ret['frame_dims']) <= 0:
             return ret
 
-        if 0 or self.rotation:
+        if rotation > 0.0:
             # get the dimension of the region to retrieve
             # extend it by 50%
             extension = 0.5
@@ -2113,9 +2114,6 @@ class Annotation(models.Model):
             ps[0] = [(centre[d] - ret['dims'][d]/2) for d in [0, 1]]
         else:
             ret['dims'] = ret['frame_dims'][:]
-        
-        #print ps
-        #print ret['dims']
         
         # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
         factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))

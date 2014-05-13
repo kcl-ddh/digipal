@@ -3,54 +3,65 @@
 {% load mezzanine_tags html_escape %}
 
 {% block head %}
-<style>
-    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
-    .string { color: green; }
-    .number { color: blue; }
-    .boolean { color: red; }
-    .null { color: red; }
-    .key { color: #444; }
-</style>
+    <style>
+        pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+        .string { color: green; }
+        .number { color: blue; }
+        .boolean { color: red; }
+        .null { color: red; }
+        .key { color: #444; }
+    </style>
 {% endblock %}
 
 {% block main %}
-<h1>Web API Tester</h1>
-<hr>
-<div class="row">
-    <div class="container">
-        <div class="col-md-12">
-            <div class="input-group">
-                <input placeholder='Run query URL Ex. graph/12342' class='form-control' type="text" id='input_url' />
-                <div class="input-group-btn">
-                    <button class='btn btn-default' id='run-query'>Run Query</button>
+    <h1>Web API Tester</h1>
+    <hr>
+    <div class="row">
+        <div class="container">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <input placeholder='Run query URL Ex. graph/12342' class='form-control' type="text" id='input_url' />
+                    <div class="input-group-btn">
+                        <button class='btn btn-default' id='run-query'>Run Query</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="row" style='margin-top:1em;font-family: Monospace;'>
-    <div class="container">
-        <pre id='result' style='min-height:350px'></pre>
+    <div class="row" style='margin-top:1em;font-family: Monospace;'>
+        <div class="container">
+            <pre id='result' class="resizable" style='min-height:250px;max-height:500px;'></pre>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super  }}
-    <script src="{{ STATIC_URL }}digipal/scripts/api.digipal.js" type="text/javascript" ></script>
     <script type="text/javascript">
+    
+        $(function() {
+            $( ".resizable" ).resizable();            
+        });
 
         dpapi = new DigipalAPI({
             crossDomain: true,
             root: '/digipal/api'
         });
-
-        $('#run-query').on('click', function(){
+        
+        function runQuery() {
             var url = $('#input_url').val();
             $('#result').html('<img style="position:absolute;left:50%;" src="/static/digipal/images/ajax-loader4.gif"/>');
             dpapi.request(url, function(data){
                 $('#result').html(syntaxHighlight(JSON.stringify(JSON.parse(data), null, 4)));
             });
+            $('#input_url').focus();
+        }
+
+        $('#run-query').on('click', function(){runQuery();});
+        $('#input_url').on('keydown', function(event){
+            if (event.which == 13) {
+                runQuery();
+            }
         });
 
         function syntaxHighlight(json) {

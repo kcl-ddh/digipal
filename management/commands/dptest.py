@@ -237,7 +237,7 @@ Commands:
                 'digipal/scribes/96/',
                 'digipal/manuscripts/715/',
                 # collection
-                'digipal/page/lightbox/basket/',
+                'digipal/lightbox/',
                 ]
         
         #pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
@@ -276,7 +276,7 @@ Commands:
                     ln += 1
                     lines.append('%6s %s' % (ln, line))
                 sp['body'] = '\n'.join(lines)
-            print '\n'.join(sp['msgs'])
+            print '\n'.join([str(m) for m in sp['msgs']])
 
     def get_opening_tag(self, bs_element):
         ret = ''

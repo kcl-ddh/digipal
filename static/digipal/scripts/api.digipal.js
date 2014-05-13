@@ -123,6 +123,11 @@ function DigipalAPI(options) {
 
     var crossDomain = function(isCrossDomain) {
         if (typeof isCrossDomain !== 'undefined') {
+            if (isCrossDomain.toLowerCase() == "false") {
+                isCrossDomain = false;
+            } else {
+                isCrossDomain = true;
+            }
             default_options.crossDomain = isCrossDomain;
         }
         return default_options.crossDomain;

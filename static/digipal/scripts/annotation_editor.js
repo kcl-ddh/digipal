@@ -121,6 +121,7 @@
                             self.annotationid = data.results[0].id;
                         }
                         set_preview_html(html);
+                        set_needs_refresh(false);
                     }
                 });
             } else {
@@ -132,6 +133,20 @@
         
         var on_rotating = function(event, ui) {
             set_rotation_label(ui.value);
+            // quick preview
+            var $img = self.$preview_div.find('img');
+            if ($img.length) {
+                var style = $img.attr('style');
+                if (style) {
+                    $img.attr('style', style.replace(/\d+(\.\d+)?deg/g, ''+self.get_rotation()+'deg'));
+                }
+                console.log(style);
+            }
+            set_needs_refresh(true);
+        }
+        
+        var set_needs_refresh = function(need_refresh) {
+            self.$preview_div.attr('style', 'opacity:'+(need_refresh ? '0.5' : '1'));
         }
         
         var set_rotation_label = function(rotation) {

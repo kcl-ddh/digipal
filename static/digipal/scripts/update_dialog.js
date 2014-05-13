@@ -125,7 +125,6 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 		}
 
 		api.request(url, function(data) {
-			data = JSON.parse(data);
 			for (var i = 0; i < data.length; i++) {
 				var graph = graphs[i];
 				var allograph = data[i]['allograph_id'];

@@ -74,6 +74,7 @@ function update_counter() {
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
 	}
+
 }
 
 function main() {
@@ -326,12 +327,12 @@ function main() {
 
 						localStorage.setItem('collections', JSON.stringify(collections));
 						background.fadeOut().remove();
+						update_collection_counter();
 					});
 
 					$('#cancel').on('click', function() {
 						background.fadeOut().remove();
 					});
-
 
 				});
 

@@ -211,8 +211,8 @@ def img(src, *args, **kwargs):
     
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
+        style += ';position:relative;max-width:none;'
         if rotation > 0.0:
-            style += ';position:relative;max-width:none;'
             style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
 
     if kwargs.get('lazy', False):

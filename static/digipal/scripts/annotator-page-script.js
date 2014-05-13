@@ -268,7 +268,6 @@ function AnnotatorLoader() {
 				scrollTop: $('#map').position().top + 'px'
 			}, 0);
 
-
 			var geoJSON = new OpenLayers.Format.GeoJSON();
 			var geo_json, extent, extent_parsed;
 
@@ -299,7 +298,7 @@ function AnnotatorLoader() {
 				annotator.vectorLayer.features.push(object[0]);
 
 				// select feature
-				annotator.selectFeatureById(objectGeometry.id);
+				annotator.selectFeatureById(getGraphByVectorId(objectGeometry.id).graph);
 				//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 				// zoom map to extent
@@ -371,7 +370,7 @@ function AnnotatorLoader() {
 			}
 
 			if (vector_id_value.length == 1) {
-				annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
+				annotator.selectFeatureByIdAndZoom(getGraphByVectorId(vector_id_value[0]).graph);
 
 			} else {
 
@@ -916,6 +915,19 @@ function AnnotatorLoader() {
 		set_map();
 
 	};
+
+
+	var getGraphByVectorId = function(vector_id) {
+		var annotation;
+		$.each(annotator.vectorLayer.features, function() {
+			if (this.vector_id == vector_id) {
+				annotation = this;
+				return false;
+			}
+		});
+		return annotation;
+	};
+
 }
 
 var loader = new AnnotatorLoader();

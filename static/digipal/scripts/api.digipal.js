@@ -155,11 +155,11 @@ function DigipalAPI(options) {
      ** for @url parameter see @request
      */
 
-    var makeRequestScript = function(url) {
+    var makeRequestScript = function(url, async) {
         var script = document.createElement('script');
         var head = document.head;
         script.setAttribute("src", url);
-        script.setAttribute("async", true);
+        script.setAttribute("async", async);
         head.appendChild(script);
         return script;
     };
@@ -216,11 +216,22 @@ function DigipalAPI(options) {
             url += '?callback=' + cb;
             var script = makeRequestScript(url);
             window[cb] = function(data) {
+                window.clearInterval(window[cb].timer);
                 callback(success, message, data);
                 window[cb] = null;
                 delete window[cb];
                 script.parentNode.removeChild(script);
+                try {
+                    delete window[cb];
+                } catch (e) {}
             };
+            window[cb].timer = window.setTimeout(function() {
+                window[cb] = undefined;
+                try {
+                    delete window[cb];
+                    console.warn('error');
+                } catch (e) {}
+            }, 5000);
         } else {
 
             /*

@@ -94,7 +94,7 @@ function Allographs(dialog, cache) {
 		var a_images = $('.annotation_li a');
 		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
-				var id = $(this).parent('.annotation_li').data('graph');
+				var id = $(this).parent('.annotation_li').data('annotation');
 				methods.to_annotator(id);
 
 				/*
@@ -249,7 +249,7 @@ function Allographs(dialog, cache) {
 				var annotation_graph;
 				var select_allograph = $('#panelImageBox');
 				for (var j in annotator.annotations) {
-					if (annotator.annotations[j].graph == annotation_graph_id) {
+					if (annotator.annotations[j].vector_id == annotation_graph_id) {
 						annotation_graph = annotator.annotations[j];
 						break;
 					}
@@ -265,23 +265,19 @@ function Allographs(dialog, cache) {
 			var selectedFeature = id;
 			var features = annotator.vectorLayer.features;
 			var features_length = features.length;
-			var feature;
+			var feature, annotation;
 			for (i = 0; i < features_length; i++) {
 				feature = features[i];
-				if (selectedFeature == feature.id) {
+				if (selectedFeature == feature.graph) {
 					annotator.selectedFeature = feature;
 					break;
-				} else {
-					feature = null;
 				}
 			}
 
 			for (var idx in annotator.annotations) {
 				annotation = annotator.annotations[idx];
-				if (annotation.graph == feature.id) {
+				if (annotation.graph == feature.graph) {
 					break;
-				} else {
-					annotation = null;
 				}
 			}
 			return annotation;

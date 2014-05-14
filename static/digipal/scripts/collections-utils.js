@@ -160,7 +160,7 @@ function delete_collections(selectedCollections, delete_function, collection_pag
 
 function _delete(selectedCollections) {
     var collections = JSON.parse(localStorage.getItem('collections'));
-
+    var container_basket = $("#container_basket");
     for (var i = 0; i < selectedCollections.length; i++) {
         $.each(collections, function(index, value) {
             if (value.id == selectedCollections[i]) {

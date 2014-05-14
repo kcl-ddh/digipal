@@ -93,6 +93,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 	});
 
+	if (!selectedCollection || !selectedCollection.id) {
+		selectedCollection = {};
+		$.each(collections, function(index, value) {
+			selectedCollection.id = value.id;
+			current_basket = value;
+		});
+		localStorage.setItem('selectedCollection', selectedCollection.id);
+	}
+
 	if (annotations === null) {
 		notify('Error. Try again', 'danger');
 		return false;

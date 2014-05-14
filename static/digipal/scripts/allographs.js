@@ -46,8 +46,12 @@ function Allographs(dialog, cache) {
 			tabs.on('shown.bs.tab', function(e) {
 				if (e.target.getAttribute('data-target') == '#edit') {
 					self.dialog_instance.edit_letter.init(annotation.graph);
+				} else if (e.target.getAttribute('data-target') == '#annotation-editor-tab') {
+					self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 				}
 			});
+
+			self.annotation_editor = $(self.dialog_instance.selector.find('#annotation-editor-tab')).annotation_editor().data('annotation_editor');
 
 		});
 
@@ -111,6 +115,15 @@ function Allographs(dialog, cache) {
 
 	};
 
+
+	var get_graphs_from_annotations = function(annotations) {
+		var graphs = [];
+		for (var i = 0; i < annotations.length; i++) {
+			graphs.push(annotations[i].graph);
+		}
+		return graphs;
+	};
+
 	var methods = {
 
 		select_annotation: function(this_annotation) {
@@ -130,6 +143,7 @@ function Allographs(dialog, cache) {
 				modal = true;
 				select_annotation(annotation, true);
 			}
+
 		},
 
 		save: function() {
@@ -317,7 +331,7 @@ function Allographs(dialog, cache) {
 				update_summary();
 				events_on_labels();
 			});
-
+			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 			return false;
 		} else {
 			annotation = selectedAnnotations.annotations[selectedAnnotations.annotations.length - 1];
@@ -339,6 +353,7 @@ function Allographs(dialog, cache) {
 				update_summary();
 				events_on_labels();
 			}
+			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 		}
 
 	};

@@ -217,7 +217,7 @@ var Star = function(options) {
 			var id;
 			if ($(this).data('graph')) {
 				id = $(this).data('graph');
-				type = 'graph';
+				type = 'annotation';
 			} else {
 				id = $(this).data('id');
 				type = 'image';

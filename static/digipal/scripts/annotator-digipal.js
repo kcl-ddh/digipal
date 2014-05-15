@@ -80,7 +80,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		$(".number_annotated_allographs .number-allographs").html(i);
 
 		if (self.annotations) {
-			var annotation = self.vectorLayer.getFeatureById(feature.graph);
+			var annotation = self.vectorLayer.getFeatureById(feature.id);
 			if (!annotation || !annotation.hasOwnProperty('id')) {
 				annotation = {};
 			}
@@ -145,7 +145,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				f.display_note = display_note;
 				f.allograph_id = allograph_id;
 				f.vector_id = vector_id;
-				f.id = graph;
+				f.id = vector_id;
 				// it serves to differentiate stored and temporary annotations
 				f.stored = true;
 				f.linked_to = [];
@@ -1108,7 +1108,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							j = 1;
 							s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
 							data_hand = data[0].hand;
-							s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[0].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
+							s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-annotation='" + data[0].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
 						} else {
 							for (var i = 0; i < data.length; i++) {
 								j++;
@@ -1126,7 +1126,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 									data_hand = data[i].hand;
 									s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
 								}
-								s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[i].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
+								s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-annotation='" + data[i].vector_id + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
 							}
 						}
 					} else {
@@ -1171,11 +1171,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			images_link.on('click', function() {
 				var vector = $(this);
-				annotator.centreById(vector.data('graph'));
+				annotator.centreById(vector.data('annotation'));
 			}).on("mouseover", function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('graph')) {
+					if (features[i].id == vector.data('annotation')) {
 						features[i].originalColor = features[i].style.fillColor;
 						features[i].style.strokeColor = 'red';
 						features[i].style.strokeWidth = 6;
@@ -1187,7 +1187,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}).on('mouseout', function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('graph')) {
+					if (features[i].id == vector.data('annotation')) {
 						features[i].style.strokeColor = features[i].originalColor;
 						features[i].style.strokeWidth = 2;
 						break;
@@ -1197,7 +1197,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				restoreFullscreenPositions();
 			}).on('dblclick', function() {
 				var vector = $(this);
-				annotator.selectFeatureByIdAndCentre(vector.data('graph'));
+				annotator.selectFeatureByIdAndCentre(vector.data('annotation'));
 			}).fadeIn();
 
 			if (img.length) {
@@ -1307,7 +1307,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 		var image_id = annotator.image_id;
 		var graphs = [],
-			vector = {}, geoJson;
+			vector = {},
+			geoJson;
 		var feature;
 		var data = make_form();
 		var url = annotator.absolute_image_url + 'save';
@@ -1326,7 +1327,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					vector['vector_id'] = feature.vector_id;
+					vector['vector_id'] = feature.id;
 					graphs.push(vector);
 				}
 
@@ -1345,7 +1346,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						'id': ann[ind2].graph,
 						'image': image_id,
 						'geoJson': geoJson,
-						'vector_id': ann[ind2].vector_id
+						'vector_id': ann[ind2].id
 					});
 				}
 
@@ -1361,7 +1362,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					vector['vector_id'] = feature.vector_id;
+					vector['vector_id'] = feature.id;
 
 					graphs.push(vector);
 					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
@@ -1916,13 +1917,14 @@ function load_data(selectedFeature, dialog, callback) {
 		allograph = select_allograph.val();
 	}
 
-	if (typeof selectedFeature == "null" || $.isEmptyObject(selectedFeature)) {
+	if (typeof selectedFeature == "null" || $.isEmptyObject(selectedFeature) || !selectedFeature.hasOwnProperty('graph')) {
 
 		if (can_edit) {
 			if (!allograph) {
 				dialog.html('<p class="component_labels">Choice an allograph from the dropdown</p>');
 				return false;
 			}
+			content_type = 'allograph';
 			url = content_type + '/' + allograph + '/';
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
@@ -2524,7 +2526,7 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].vector_id == new_graphs[i].vector_id) {
+						if (f[feature_ind].id == new_graphs[i].vector_id) {
 							feature = f[feature_ind];
 							id = feature.id;
 							feature.feature = allograph;
@@ -2555,7 +2557,7 @@ function save(url, graphs, data, ann, features) {
 							var flag = 0,
 								ann;
 							for (ann in annotator.annotations) {
-								if (annotator.annotations[ann].vector_id == feature.vector_id) {
+								if (annotator.annotations[ann].vector_id == feature.id) {
 									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
 									annotator.annotations[ann].feature = allograph;
 									annotator.annotations[ann].graph = new_graph;

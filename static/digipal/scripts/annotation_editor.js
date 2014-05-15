@@ -36,15 +36,15 @@
       $.annotation_editor = function(element, options) {
 
         var defaults = {
-            api_root : '/digipal/api/',
+            api_root: '/digipal/api/',
             id_prefix: 'annotation-editor-'
-        }
+        };
 
         var self = this;
 
         self.settings = {};
 
-        var $element = $(element), element = element;
+        var $element = $(element);
         var $e = $element;
 
         // save the rotation to the DB
@@ -52,7 +52,7 @@
             if (!self.is_enabled()) return null;
             
             var ret = $.ajax({
-                url: self.settings.api_root + 'annotation/'+self.annotationid+'/?@select=id',
+                url: self.settings.api_root + 'annotation/' + self.annotationid + '/?@select=id',
                 type: 'PUT',
                 dataType: 'json',
                 data: {
@@ -65,7 +65,7 @@
             });
             
             return ret;
-        }
+        };
         
         // reset the graph to edit.
         // this will trigger a call to the server to obtain the current rotation and shape.
@@ -80,35 +80,35 @@
                 self.sliders[i].slider('option', 'disabled', !self.is_enabled());
             }
             self.preview(true);
-        }
+        };
 
         // returns the rotation set by the user.
         // return -1 if the tool is disabled.
         self.get_rotation = function() {
             return self.is_enabled() ? self.get_slider_value('rotation') : -1;
-        }
+        };
 
         self.get_slider_value = function(slider_key) {
             return self.sliders[slider_key].slider('value');
-        }
+        };
         
         // returns the rotation set by the user.
         // this will trigger a preview unless skip_preview = true
         self.set_rotation = function(rotation, skip_preview) {
             self.set_slider_value('rotation', rotation);
             // TODO: implement skip_preview to avoid double request during the first preview.
-        }
+        };
 
         self.set_slider_value = function(slider_key, value) {
             self.sliders[slider_key].slider('value', value);
             set_slider_label(slider_key, value);
-        }
+        };
 
         // returns true if the UI is enabled.
         // it is enabled only if it has been assigned to a single graph.
         self.is_enabled = function() {
-            return (self.graphids && (self.graphids.length == 1) && self.$preview_div.is(':visible'))
-        }
+            return (self.graphids && (self.graphids.length == 1) && self.$preview_div.is(':visible'));
+        };
         
         // render the cutout of the annotation.
         // get_rotation_from_database = true to set the rotation slider from the value stored in the DB
@@ -151,7 +151,7 @@
             } else {
                 set_preview_html('<p>This tool works with only one selected graph.</p>');
             }
-        }
+        };
         
         // Private methods
         
@@ -161,28 +161,28 @@
             if ($img.length) {
                 var style = $img.attr('style');
                 if (style) {
-                    $img.attr('style', style.replace(/\d+(\.\d+)?deg/g, ''+self.get_rotation()+'deg'));
+                    $img.attr('style', style.replace(/\d+(\.\d+)?deg/g, '' + self.get_rotation() + 'deg'));
                 }
             }
             set_needs_refresh(true);
-        }
+        };
         
         var on_changing_slider = function(event, ui) {
-            set_slider_label(ui.handle.parentElement.id.replace(self.settings.id_prefix, ''), ui.value)
+            set_slider_label(ui.handle.parentElement.id.replace(self.settings.id_prefix, ''), ui.value);
             quick_preview();
-        }
+        };
         
         var set_needs_refresh = function(need_refresh) {
-            self.$preview_div.attr('style', 'opacity:'+(need_refresh ? '0.5' : '1'));
-        }
+            self.$preview_div.attr('style', 'opacity:' + (need_refresh ? '0.5' : '1'));
+        };
         
         var set_slider_label = function(slider_key, value) {
             $e.find('label[for='+self.settings.id_prefix+slider_key+'] span').html(value);
-        }
+        };
 
         var set_preview_html = function(html) {
             self.$preview_div.html(html);
-        }
+        };
 
         // constructor
         // initialise the member variables, the UI and events
@@ -198,13 +198,13 @@
                     min: $this.data('min'),
                     max: $this.data('max'),
                     slide: on_changing_slider,
-                    stop: function() {self.preview();},
+                    stop: function() {self.preview();}
                 });
             });
-            self.$preview_div = $e.find('#'+self.settings.id_prefix+'preview');
+            self.$preview_div = $e.find('#' + self.settings.id_prefix + 'preview');
             
             self.set_graphids();
-        }
+        };
 
         self.init();
     };
@@ -213,12 +213,12 @@
     $.fn.annotation_editor = function(options) {
 
         return this.each(function() {
-            if (undefined == $(this).data('annotation_editor')) {
+            if (undefined === $(this).data('annotation_editor')) {
                 var self = new $.annotation_editor(this, options);
                 $(this).data('annotation_editor', self);
             }
         });
 
-    }
+    };
 
 }(jQuery));

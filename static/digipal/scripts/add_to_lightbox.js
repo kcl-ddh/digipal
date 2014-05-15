@@ -93,7 +93,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 	});
 
-	if (!selectedCollection || !selectedCollection.id) {
+	if (!selectedCollection) {
 		selectedCollection = {};
 		$.each(collections, function(index, value) {
 			selectedCollection.id = value.id;

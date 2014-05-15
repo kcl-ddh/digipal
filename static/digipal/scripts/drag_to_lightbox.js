@@ -33,6 +33,9 @@ var Star = function(options) {
 	};
 
 	var events = function() {
+		findStarredInPage();
+
+
 		elements.closest(defaults.parentName).on('mouseenter', function(event) {
 			dialog.init($(this).find(defaults.className));
 			event.stopPropagation();
@@ -41,6 +44,7 @@ var Star = function(options) {
 			$('#dialog-star').fadeOut().remove();
 			event.stopPropagation();
 		});
+
 	};
 
 	var dialog = {
@@ -117,6 +121,14 @@ var Star = function(options) {
 		var data = getData(image);
 		if (add_to_lightbox(image, data.type, data.id, false)) {
 			dialog.element.find('span').addClass('starred').removeClass('unstarred');
+			var _type;
+			if (data.type == 'image') {
+				_type = 'id';
+			} else {
+				_type = 'graph';
+			}
+			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+			$('[data-' + _type + '=' + data.id + ']').append(star);
 		}
 	};
 
@@ -138,6 +150,13 @@ var Star = function(options) {
 		if (dialog.element) {
 			dialog.element.find('span').addClass('unstarred').removeClass('starred');
 		}
+		var _type;
+		if (data.type == 'images') {
+			_type = 'id';
+		} else {
+			_type = 'graph';
+		}
+		$('[data-' + _type + '=' + data.id + ']').find('.starred-image').remove();
 		collections[collection.name] = collection;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		update_collection_counter();
@@ -190,6 +209,25 @@ var Star = function(options) {
 
 	var getCurrentCollection = function() {
 		return localStorage.getItem('selectedCollection');
+	};
+
+	var findStarredInPage = function() {
+		var collection_id = getCurrentCollection();
+		var graphs = $('[data-graph]').add($('[data-id]'));
+		$.each(graphs, function() {
+			var id;
+			if ($(this).data('graph')) {
+				id = $(this).data('graph');
+				type = 'annotation';
+			} else {
+				id = $(this).data('id');
+				type = 'image';
+			}
+			if (isInCollection(collection_id, id, type)) {
+				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+				$(this).append(star);
+			}
+		});
 	};
 
 	return {

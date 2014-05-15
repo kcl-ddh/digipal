@@ -9,6 +9,7 @@ function DigipalAPI(options) {
 
     var default_options = {
         crossDomain: true,
+        timeout: 5000,
         root: 'http://localhost:8000/digipal/api' // will be http://www.digipal.eu/digipal/api
     };
 
@@ -257,7 +258,7 @@ function DigipalAPI(options) {
                 };
                 callback(error, false);
                 delete window[cb];
-            }, 5000);
+            }, default_options.timeout);
         } else {
 
             /*

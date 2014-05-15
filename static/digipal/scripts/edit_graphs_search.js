@@ -307,9 +307,6 @@ function EditGraphsSearch() {
             });
         } else {
 
-            // GN - rotation prototype - to be reviewed
-            self.annotation_editor.set_graphids(self.selectedAnnotations);
-
             self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
 
                 /* fill container content */
@@ -336,6 +333,9 @@ function EditGraphsSearch() {
                 }
 
                 self.dialog.events_postLoading(self.dialog.selector);
+
+                // GN - rotation prototype - to be reviewed
+                self.annotation_editor.set_graphids(self.selectedAnnotations);
 
             });
         }

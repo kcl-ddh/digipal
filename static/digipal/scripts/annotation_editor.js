@@ -36,7 +36,8 @@
       $.annotation_editor = function(element, options) {
 
         var defaults = {
-            api_root : '/digipal/api/'
+            api_root : '/digipal/api/',
+            id_prefix: 'annotation-editor-'
         }
 
         var self = this;
@@ -56,6 +57,10 @@
                 dataType: 'json',
                 data: {
                     rotation: self.get_rotation(),
+                    shape_x_diff: self.get_slider_value('right'),
+                    shape_y_diff: self.get_slider_value('down'),
+                    shape_width_diff: self.get_slider_value('width'),
+                    shape_height_diff: self.get_slider_value('height')
                 },
             });
             
@@ -71,22 +76,32 @@
             if (self.graphids && !(self.graphids instanceof Array)) { 
                 self.graphids = [self.graphids] 
             }
-            self.$rotation_slider.slider('option', 'disabled', !self.is_enabled());
+            for (i in self.sliders) { 
+                self.sliders[i].slider('option', 'disabled', !self.is_enabled());
+            }
             self.preview(true);
         }
 
         // returns the rotation set by the user.
         // return -1 if the tool is disabled.
         self.get_rotation = function() {
-            return self.is_enabled() ? self.$rotation_slider.slider('value') : -1;
+            return self.is_enabled() ? self.get_slider_value('rotation') : -1;
+        }
+
+        self.get_slider_value = function(slider_key) {
+            return self.sliders[slider_key].slider('value');
         }
         
         // returns the rotation set by the user.
         // this will trigger a preview unless skip_preview = true
         self.set_rotation = function(rotation, skip_preview) {
-            self.$rotation_slider.slider('value', rotation);
-            set_rotation_label(rotation);
+            self.set_slider_value('rotation', rotation);
             // TODO: implement skip_preview to avoid double request during the first preview.
+        }
+
+        self.set_slider_value = function(slider_key, value) {
+            self.sliders[slider_key].slider('value', value);
+            set_slider_label(slider_key, value);
         }
 
         // returns true if the UI is enabled.
@@ -97,14 +112,20 @@
         
         // render the cutout of the annotation.
         // get_rotation_from_database = true to set the rotation slider from the value stored in the DB
-        self.preview = function(get_rotation_from_database) {
+        self.preview = function(get_parameters_from_database) {
             // get cutout html from server
             if (self.is_enabled()) {
                 var data = {
                     '_graph__id': self.graphids[0],
-                    '@select': 'rotation,html',
+                    '@select': 'rotation,htmlr',
                 };
-                if (!get_rotation_from_database) { data.rotation = self.get_rotation() };
+                if (!get_parameters_from_database) { 
+                    data.rotation = self.get_rotation(),
+                    data.shape_x_diff = self.get_slider_value('right'),
+                    data.shape_y_diff = self.get_slider_value('down'),
+                    data.shape_width_diff = self.get_slider_value('width'),
+                    data.shape_height_diff = self.get_slider_value('height')
+                };
                 
                 $.ajax({
                     url: self.settings.api_root + 'annotation/',
@@ -114,8 +135,11 @@
                     success: function(data, status, jqXHR) {
                         var html = '<p>Server error.</p>';
                         if (data && data.success && data.results) {
-                            html = data.results[0].html;
-                            if (get_rotation_from_database) {
+                            html = data.results[0].htmlr;
+                            if (get_parameters_from_database) {
+                                for (i in self.sliders) {
+                                    self.set_slider_value(i, 0);
+                                }
                                 self.set_rotation(data.results[0].rotation, true);
                             }
                             self.annotationid = data.results[0].id;
@@ -131,8 +155,7 @@
         
         // Private methods
         
-        var on_rotating = function(event, ui) {
-            set_rotation_label(ui.value);
+        var quick_preview = function() {
             // quick preview
             var $img = self.$preview_div.find('img');
             if ($img.length) {
@@ -140,17 +163,21 @@
                 if (style) {
                     $img.attr('style', style.replace(/\d+(\.\d+)?deg/g, ''+self.get_rotation()+'deg'));
                 }
-                console.log(style);
             }
             set_needs_refresh(true);
+        }
+        
+        var on_changing_slider = function(event, ui) {
+            set_slider_label(ui.handle.parentElement.id.replace(self.settings.id_prefix, ''), ui.value)
+            quick_preview();
         }
         
         var set_needs_refresh = function(need_refresh) {
             self.$preview_div.attr('style', 'opacity:'+(need_refresh ? '0.5' : '1'));
         }
         
-        var set_rotation_label = function(rotation) {
-            $e.find('label[for=annotation-editor-rotation] span').html(rotation);
+        var set_slider_label = function(slider_key, value) {
+            $e.find('label[for='+self.settings.id_prefix+slider_key+'] span').html(value);
         }
 
         var set_preview_html = function(html) {
@@ -162,12 +189,19 @@
         // it also generates an initial preview
         self.init = function() {
             self.settings = $.extend({}, defaults, options);
-            self.$rotation_slider = $e.find('#annotation-editor-rotation').slider({
-                max : 360,
-                slide : on_rotating,
-                stop : function() {self.preview();},
+            self.sliders = {};
+            $e.find('.slider').each(function() {
+                //self.$rotation_slider = $e.find('#annotation-editor-rotation').slider({
+                var key = this.id.replace(self.settings.id_prefix, '');
+                $this = $(this);
+                self.sliders[key] = $(this).slider({
+                    min: $this.data('min'),
+                    max: $this.data('max'),
+                    slide: on_changing_slider,
+                    stop: function() {self.preview();},
+                });
             });
-            self.$preview_div = $e.find('#annotation-editor-preview');
+            self.$preview_div = $e.find('#'+self.settings.id_prefix+'preview');
             
             self.set_graphids();
         }

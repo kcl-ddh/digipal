@@ -1481,7 +1481,6 @@ class Image(models.Model):
         ret = [-1, -1]
         dims = [float(v) for v in self.dimensions()]
         if max(dims) == 0: return (0, 0)
-        #print dims
         matches = re.search(ur'(WID|HEI)=(\d*)', region_url)
         if matches:
             d = 0
@@ -1489,18 +1488,13 @@ class Image(models.Model):
             requested_dim = float(matches.group(2))
             dims[1-d] = dims[1-d] / dims[d] * requested_dim
             dims[d] = requested_dim
-            #print dims
         matches = re.search(ur'RGN=([^&]*)', region_url)
         if matches:
             parts = [float(part) for part in matches.group(1).split(',')]
-            #print parts
             parts[2]
             # don't ask... it sees like iip image server returns the double of the requested size!!
             factor = 2
             ret = [int(parts[2]*dims[0]) * factor, int(parts[3]*dims[1]) * factor]
-        #print ret
-        #print dims
-        #exit()
         return ret
 
     thumbnail.short_description = 'Thumbnail'
@@ -1921,16 +1915,46 @@ class Annotation(models.Model):
     class Meta:
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
-        
-    def get_coordinates(self, geo_json=None, y_from_top=False, rotated=False):
+    
+    def get_geo_json_as_dict(self, geo_json_str=None):
+        import json
+        # See JIRA-229, some old geo_json format are not standard JSON
+        # and cause trouble with the deserialiser (json.loads()).
+        # The property names are surrounded by single quotes
+        # instead of double quotes.
+        # simplistic conversion but in our case it works well
+        # e.g. {'geometry': {'type': 'Polygon', 'coordinates':
+        #     Returns {"geometry": {"type": "Polygon", "coordinates":
+        ret = {}
+        if not geo_json_str:
+            geo_json_str = self.geo_json
+        if geo_json_str:
+            geo_json_str = geo_json_str.replace('\'', '"')
+            ret = json.loads(geo_json_str)
+        return ret
+
+    def set_geo_json_from_dict(self, geo_json):
+        import json
+        self.geo_json = json.dumps(geo_json)
+    
+    def get_shape_path(self, geo_json_str=None):
+        geo_json = self.get_geo_json_as_dict(geo_json_str)
+        ret = geo_json['geometry']['coordinates'][0][:]
+        return ret
+
+    def set_shape_path(self, path=[]):
+        geo_json = self.get_geo_json_as_dict()
+        # TODO: test if this exists!
+        geo_json['geometry']['coordinates'][0] = path
+        self.set_geo_json_from_dict(geo_json)
+    
+    def get_coordinates(self, geo_json_str=None, y_from_top=False, rotated=False):
         ''' Returns the coordinates of the smallest rectangle 
             that contain the path around the annotation shape.
             E.g. ((602, 56), (998, 184))
             
             WARNING: the y coordinates are relative to the BOTTOM of the image!
         '''
-        import json, math
-        if geo_json is None: geo_json = self.geo_json
 
         def get_surrounding_rectangle(cs):
             ret = [
@@ -1941,18 +1965,7 @@ class Annotation(models.Model):
                 ]
             return ret
     
-        # See JIRA-229, some old geo_json format are not standard JSON
-        # and cause trouble with the deserialiser (json.loads()).
-        # The property names are surrounded by single quotes
-        # instead of double quotes.
-        # simplistic conversion but in our case it works well
-        # e.g. {'geometry': {'type': 'Polygon', 'coordinates':
-        #     Returns {"geometry": {"type": "Polygon", "coordinates":
-        geo_json = geo_json.replace('\'', '"')
-
-        cs = json.loads(geo_json)
-        # TODO: test if this exists!
-        cs = cs['geometry']['coordinates'][0][:]
+        cs = self.get_shape_path(geo_json_str)
         
         # change the y coordinates (from the top rather than the bottom)
         if y_from_top:
@@ -1962,20 +1975,16 @@ class Annotation(models.Model):
         
         # rotate the shape
         if rotated:
+            import math
             angle = math.radians(float(self.rotation))
             rect = get_surrounding_rectangle(cs)
-            #print 'rect', rect
-            #print 'angle', angle
             centre = [((rect[0][d] + rect[1][d]) / 2) for d in [0, 1]]
-            #print 'centre', centre
-            #print 'cs', cs
             for i in range(0, len(cs)):
                 c = cs[i]
                 c = [c[0] - centre[0], c[1] - centre[1]]
                 c = (c[0] * math.cos(angle) - c[1] * math.sin(angle), c[0] * math.sin(angle) + c[1] * math.cos(angle))
                 c = [c[0] + centre[0], c[1] + centre[1]]
                 cs[i] = c
-            #print 'cs', cs
         
         # get the surrounding rectangle
         ret = get_surrounding_rectangle(cs)
@@ -2083,9 +2092,6 @@ class Annotation(models.Model):
 
     def get_cutout_url_info(self, esc=False, rotated=False):
         ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
-
-        #print '-' * 80
-        #print self.vector_id, self.id
 
         # get the rectangle surrounding the shape
         psr = ps = self.get_coordinates(y_from_top=True, rotated=False)

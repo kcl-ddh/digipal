@@ -25,12 +25,10 @@
                 <h3>Settings</h3>
                 <div class="panel">
                     <label for="">Cross Domain Request</label>
-                    <p>
-                        <input type='radio' name='crossDomain' value='true' /> True
-                    </p>
-                    <p>
-                        <input type='radio' name='crossDomain' value='false' checked /> False
-                    </p>
+                    <select name="" id="crossDomain">
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
                     </div>
             </div>
             <div class="col-md-8">
@@ -63,9 +61,13 @@
             root: '/digipal/api'
         });
 
-        $('input[name="crossDomain"]').on('change', function(){
+        var crossSelect = $('#crossDomain');
+
+        crossSelect.on('change', function(){
             dpapi.crossDomain($(this).val());
-        });
+        }).bootstrapSelect();
+
+        dpapi.crossDomain(crossSelect.val());
 
         function runQuery() {
             var url = $('#input_url').val();

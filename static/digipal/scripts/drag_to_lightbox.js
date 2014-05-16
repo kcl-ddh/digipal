@@ -127,8 +127,12 @@ var Star = function(options) {
 			} else {
 				_type = 'graph';
 			}
+			var element = $('[data-' + _type + '=' + data.id + ']');
+			if (typeof element.data('add-star') !== 'undefined' && !element.data('add-star')) {
+				return false;
+			}
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-			$('[data-' + _type + '=' + data.id + ']').append(star);
+			element.append(star);
 		}
 	};
 
@@ -156,6 +160,7 @@ var Star = function(options) {
 		} else {
 			_type = 'graph';
 		}
+
 		$('[data-' + _type + '=' + data.id + ']').find('.starred-image').remove();
 		collections[collection.name] = collection;
 		localStorage.setItem('collections', JSON.stringify(collections));
@@ -223,7 +228,11 @@ var Star = function(options) {
 				id = $(this).data('id');
 				type = 'image';
 			}
+
 			if (isInCollection(collection_id, id, type)) {
+				if (typeof $(this).data('add-star') !== 'undefined' && !$(this).data('add-star')) {
+					return false;
+				}
 				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
 				$(this).append(star);
 			}

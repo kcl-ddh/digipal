@@ -127,7 +127,7 @@
             }
         });
 
-        function main(){
+        function main(from_tab){
 
             if($('#loading_allographs_image').hasClass("hidden")){
                 $('#loading_allographs_image').removeClass("hidden");
@@ -175,6 +175,12 @@
                 if(annotator.isAdmin == 'True'){
                     $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
                 }
+            }
+
+            if(from_tab){
+                annotator.vectorLayer.events.register("loadend", annotator.vectorLayer, function() {
+                    restoreFullscreenPositions();
+                });
             }
         }
 

@@ -114,8 +114,12 @@ function PublicAllograhs() {
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
 				graphs.push(_self.selectedAnnotations[i]);
 			}
-			add_to_lightbox($(this), 'annotation', graphs, true);
-
+			if (add_to_lightbox($(this), 'annotation', graphs, true)) {
+				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+				for (var d in graphs) {
+					$('[data-graph="' + graphs[d] + '"]').append(star);
+				}
+			}
 		});
 
 	};

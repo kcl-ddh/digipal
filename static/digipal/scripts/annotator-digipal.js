@@ -395,7 +395,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						});
 					}
 				} else {
-					dialog.parent().find('.allograph_label').html($('#panelImageBox .allograph_form option:selected').text());
+					if (annotator.annotating) {
+						dialog.parent().find('.allograph_label').html($('#panelImageBox .allograph_form option:selected').text());
+					}
 				}
 				restoreFullscreenPositions();
 			}
@@ -830,12 +832,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var _self = this;
 				var html_string_label, html_string_buttons;
 				if (annotator.isAdmin == "True") {
-					if (selectedFeature && !annotator.editorial.active) {
+					if (selectedFeature && annotator.annotating && !annotator.editorial.active) {
 						html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
 						html_string_buttons = "<button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 					} else if (!annotator.annotating) {
-						html_string_label = "<input type='text' placeholder = 'Type name' class='name_temporary_annotation' />";
-						html_string_buttons = "<span style='margin-left: 8%;'><button data-toggle='tooltip' data-container='body' title='Share URL' style='margin-right: 3%;' data-hidden='true' class='url_allograph btn btn-xs btn-default pull-right'><i class='fa fa-link'></i></button> ";
+						html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
+						html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
 					} else {
 						if (annotator.editorial.active) {
 							html_string_label = "<span class='allograph_label'>Annotation</span>";
@@ -850,12 +852,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						}
 					}
 				} else {
-					if (!$.isEmptyObject(selectedFeature)) {
+					if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 						html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
 						html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 					} else {
 						html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
-						html_string_buttons = "<span class='pull-right' style='margin-right: 0.5em;''><button data-hidden='true' class='url_allograph btn btn-default btn-xs ' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+						html_string_buttons = "<span class='pull-right' style='margin-right: 0.5em;''><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
 					}
 				}
 
@@ -1762,7 +1764,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
 
-					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].vector_id;
+					url_temp = 'vector_id=' + annotator.selectedAnnotations[i].id;
 
 					allograph_url.push(url_temp);
 
@@ -1772,7 +1774,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 			} else {
 
-				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.vector_id;
+				allograph_url = window.location.hostname + document.location.pathname + '?vector_id=' + annotator.selectedFeature.id;
 
 			}
 

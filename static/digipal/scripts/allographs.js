@@ -23,6 +23,15 @@ function Allographs(dialog, cache) {
 		var switcher = $('#toggle-annotations-mode');
 		switcher.bootstrapSwitch();
 
+		switcher.on('switch-change', function(e, data) {
+			var graphs = $('a[data-graph]');
+			if ($(this).bootstrapSwitch('state')) {
+				graphs.attr('data-original-title', 'Edit Graph');
+			} else {
+				graphs.attr('data-original-title', 'View Graph in Manuscript Viewer');
+			}
+		});
+
 		/* creating dialog */
 		dialog(annotator.image_id, {
 			'container': '#allographs'
@@ -142,6 +151,9 @@ function Allographs(dialog, cache) {
 				annotation_li.data('selected', true).addClass('selected');
 				modal = true;
 				select_annotation(annotation, true);
+				if (!self.dialog_instance.open) {
+					self.dialog_instance.show();
+				}
 			}
 
 		},
@@ -237,7 +249,12 @@ function Allographs(dialog, cache) {
 		},
 
 		to_lightbox: function(button, annotations, multiple) {
-			add_to_lightbox(button, 'annotation', annotations, multiple);
+			if (add_to_lightbox(button, 'annotation', annotations, multiple)) {
+				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+				for (var d in annotations) {
+					$('[data-graph="' + annotations[d] + '"]').append(star);
+				}
+			}
 		},
 
 		to_annotator: function(annotation_graph_id) {

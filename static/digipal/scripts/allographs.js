@@ -23,6 +23,15 @@ function Allographs(dialog, cache) {
 		var switcher = $('#toggle-annotations-mode');
 		switcher.bootstrapSwitch();
 
+		switcher.on('switch-change', function(e, data) {
+			var graphs = $('a[data-graph]');
+			if ($(this).bootstrapSwitch('state')) {
+				graphs.attr('data-original-title', 'Edit Graph');
+			} else {
+				graphs.attr('data-original-title', 'View Graph in Manuscript Viewer');
+			}
+		});
+
 		/* creating dialog */
 		dialog(annotator.image_id, {
 			'container': '#allographs'

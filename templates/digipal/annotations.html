@@ -111,7 +111,7 @@
 
                   </p>
 
-              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
+              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' {% if not can_edit %}title="View graph in the manuscript viewer"{%else%}title="Edit graph"{% endif %}>
                 {% annotation_img graph lazy=1 %}
               </a>
 

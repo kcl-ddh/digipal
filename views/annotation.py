@@ -445,7 +445,6 @@ def image_copyright(request, image_id):
 @ensure_csrf_cookie
 def images_lightbox(request, collection_name):
     data = {}
-    print request.POST
     if 'data' in request.POST and request.POST.get('data', ''):
         graphs = simplejson.loads(request.POST.get('data', ''))
         if 'annotations' in graphs:
@@ -474,14 +473,13 @@ def images_lightbox(request, collection_name):
             for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
-    print data
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):
     image = Image.objects.get(id=image_id)
     form = ImageAnnotationForm(auto_id=False)
     form.fields['hand'].queryset = image.hands.all()
-    return render_to_response('digipal/dialog.html', {'form': form}, context_instance=RequestContext(request))
+    return render_to_response('digipal/dialog.html', {'form': form, 'edit_annotation_shape': getattr(settings, 'EDIT_ANNOTATION_SHAPE', False)}, context_instance=RequestContext(request))
 
 @login_required
 @transaction.commit_manually
@@ -511,6 +509,7 @@ def save(request, graphs):
                     graph_object = Graph.objects.get(id=gr['id'])
 
                 image = Image.objects.get(id=gr['image'])
+                annotation_is_modified = False
                 if graph_object:
                     annotation = graph_object.annotation
                     graph = graph_object
@@ -531,9 +530,15 @@ def save(request, graphs):
                     clean = form.cleaned_data
                     if geo_json:
                         annotation.geo_json = geo_json
-                    annotation.display_note = clean['display_note']
-                    annotation.internal_note = clean['internal_note']
-                    annotation.author = request.user
+                        annotation_is_modified = True
+                    # set the note (only if different) - see JIRA DIGIPAL-477
+                    for f in ['display_note', 'internal_note']:
+                        if getattr(annotation, f) != clean[f]:
+                            setattr(annotation, f, clean[f])
+                            annotation_is_modified = True
+                    if not annotation.id:
+                        # set the author only when the annotation is created
+                        annotation.author = request.user
                     #annotation.before = clean['before']
                     #annotation.after = clean['after']
                     allograph = clean['allograph']
@@ -604,10 +609,14 @@ def save(request, graphs):
                             gc.save()
 
                     # attach the graph to a containing one
-                    annotation.set_graph_group()
-                    annotation.graph = graph
-                    annotation.save()
-                    new_graph = simplejson.loads(get_features(annotation.graph.id))
+                    if geo_json:
+                        annotation.set_graph_group()
+                    # Only save the annotation if it has been modified (or new one)
+                    # see JIRA DIGIPAL-477
+                    if annotation_is_modified or not annotation.id:
+                        annotation.graph = graph
+                        annotation.save()
+                    new_graph = simplejson.loads(get_features(graph.id))
                     data['graphs'].append(new_graph[0])
 
                     transaction.commit()

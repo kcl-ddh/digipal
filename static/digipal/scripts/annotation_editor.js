@@ -55,13 +55,7 @@
                 url: self.settings.api_root + 'annotation/' + self.annotationid + '/?@select=id',
                 type: 'PUT',
                 dataType: 'json',
-                data: {
-                    rotation: self.get_rotation(),
-                    shape_x_diff: self.get_slider_value('right'),
-                    shape_y_diff: self.get_slider_value('down'),
-                    shape_width_diff: self.get_slider_value('width'),
-                    shape_height_diff: self.get_slider_value('height')
-                },
+                data: update_request_data_with_sliders(),
             });
             
             return ret;
@@ -89,6 +83,7 @@
         };
 
         self.get_slider_value = function(slider_key) {
+            if (!(slider_key in self.sliders)) return false;
             return self.sliders[slider_key].slider('value');
         };
         
@@ -119,12 +114,8 @@
                     '_graph__id': self.graphids[0],
                     '@select': 'rotation,htmlr',
                 };
-                if (!get_parameters_from_database) { 
-                    data.rotation = self.get_rotation(),
-                    data.shape_x_diff = self.get_slider_value('right'),
-                    data.shape_y_diff = self.get_slider_value('down'),
-                    data.shape_width_diff = self.get_slider_value('width'),
-                    data.shape_height_diff = self.get_slider_value('height')
+                if (!get_parameters_from_database) {
+                    update_request_data_with_sliders(data);
                 };
                 
                 $.ajax({
@@ -167,6 +158,20 @@
             set_needs_refresh(true);
         };
         
+        var update_request_data_with_sliders = function(data) {
+            if (!data) data = {};
+            data.rotation = self.get_slider_value('rotation');
+            param_sliders = {'shape_x_diff': 'right', 'shape_y_diff': 'down', 'shape_width_diff': 'width', 'shape_height_diff': 'height'};
+            for (param in param_sliders) {
+                slider_key = param_sliders[param];
+                val = self.get_slider_value(slider_key);
+                if (val !== false) {
+                    data[param] = val;
+                } 
+            }
+            return data;
+        };
+
         var on_changing_slider = function(event, ui) {
             set_slider_label(ui.handle.parentElement.id.replace(self.settings.id_prefix, ''), ui.value);
             quick_preview();

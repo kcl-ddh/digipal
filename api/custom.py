@@ -33,7 +33,6 @@ class APICustom(object):
             
             expanded = u'*'+field_name in fieldsets
 
-            #print field, repr(value), type(value)
             if (field_name in ['id']) or \
                 len(fieldsets) == 0 or\
                 (field_name in fieldsets) or \

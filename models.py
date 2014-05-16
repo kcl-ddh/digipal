@@ -2021,6 +2021,9 @@ class Annotation(models.Model):
             self.graph.save()
 
     def save(self, *args, **kwargs):
+        # GN: why do we need this call BEFORE changing the cutout?
+        # That's two DB save operation each time!
+        
         super(Annotation, self).save(*args, **kwargs)
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN

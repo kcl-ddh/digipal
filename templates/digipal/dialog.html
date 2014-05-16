@@ -71,41 +71,43 @@
                       </div>
                   </div>
                   
-                  <div class="row">
-                      <div class="col-xs-3">
-                          <label for="annotation-editor-right" class="small">&#177; X (<span>0</span> px)</label>
+                  {% if edit_annotation_shape %}
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-right" class="small">&#177; X (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                              <div id="annotation-editor-right" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
                       </div>
-                      <div class="col-xs-9">
-                          <div id="annotation-editor-right" class="slider" data-min="-40" data-max="40"></div>
+    
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-down" class="small">&#177; Y (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                              <div id="annotation-editor-down" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
                       </div>
-                  </div>
-
-                  <div class="row">
-                      <div class="col-xs-3">
-                          <label for="annotation-editor-down" class="small">&#177; Y (<span>0</span> px)</label>
+    
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-width" class="small">&#177; width (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                            <div id="annotation-editor-width" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
                       </div>
-                      <div class="col-xs-9">
-                          <div id="annotation-editor-down" class="slider" data-min="-40" data-max="40"></div>
+                      
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-height" class="small">&#177; height (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                            <div id="annotation-editor-height" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
                       </div>
-                  </div>
-
-                  <div class="row">
-                      <div class="col-xs-3">
-                          <label for="annotation-editor-width" class="small">&#177; width (<span>0</span> px)</label>
-                      </div>
-                      <div class="col-xs-9">
-                        <div id="annotation-editor-width" class="slider" data-min="-40" data-max="40"></div>
-                      </div>
-                  </div>
-                  
-                  <div class="row">
-                      <div class="col-xs-3">
-                          <label for="annotation-editor-height" class="small">&#177; height (<span>0</span> px)</label>
-                      </div>
-                      <div class="col-xs-9">
-                        <div id="annotation-editor-height" class="slider" data-min="-40" data-max="40"></div>
-                      </div>
-                  </div>
+                  {% endif %}
                   
               </div>
               <div id="" class="col-xs-12">

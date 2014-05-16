@@ -324,11 +324,13 @@ function preprocess_features(graphs, cache) {
 
 		for (var d = 0; d < features.length; d++) {
 			component_id = features[d].component_id;
-			obj[component_id] = {};
-			obj[component_id]['features'] = [];
-			for (var j = 0; j < features[d].feature.length; j++) {
-				obj[component_id].features.push(features[d].feature[j]);
+			if (!obj.hasOwnProperty(component_id)) {
+				obj[component_id] = {};
+				obj[component_id]['features'] = [];
 			}
+			var f = features[d].feature[0];
+			obj[component_id].features.push(f);
+			console.log(f, obj[component_id].features);
 		}
 		all.push(obj);
 	}
@@ -431,13 +433,11 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
 	for (var component in allograph) {
-		if (allograph[component].
-			default.length) {
-			for (var i = 0; i < allograph[component].
-				default.length; i++) {
+		if (allograph[component].default.length) {
+			for (var i = 0; i < allograph[component].default.length; i++) {
 				var default_feature = allograph[component].
-				default [i].component + '::' + allograph[component].
-				default [i].feature;
+				default[i].component + '::' + allograph[component].
+				default[i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
 					checkbox_val.prop('checked', true);

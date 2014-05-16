@@ -298,7 +298,7 @@ function AnnotatorLoader() {
 				annotator.vectorLayer.features.push(object[0]);
 
 				// select feature
-				annotator.selectFeatureById(getGraphByVectorId(objectGeometry.id).graph);
+				annotator.selectFeatureById(objectGeometry.id);
 				//annotator.map.setCenter(objectGeometry.geometry.getBounds().getCenterLonLat());
 
 				// zoom map to extent
@@ -370,7 +370,7 @@ function AnnotatorLoader() {
 			}
 
 			if (vector_id_value.length == 1) {
-				annotator.selectFeatureByIdAndZoom(getGraphByVectorId(vector_id_value[0]).graph);
+				annotator.selectFeatureByIdAndZoom(getGraphByVectorId(vector_id_value[0]).id);
 
 			} else {
 

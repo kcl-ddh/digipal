@@ -26,6 +26,8 @@ def api_view(request):
     return render_to_response('test/api.html', context,
             context_instance=RequestContext(request))
     
+def server_error_view(request):
+    raise Exception('Test error')
 
 def autocomplete_view(request):
     context = {}

@@ -235,8 +235,7 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	}
 
 	if (!flag_allograph) {
-		select_allograph.text('------');
-		select_allograph.val('');
+		select_allograph.val('------');
 	} else {
 		select_allograph.val(graph.allograph_id);
 	}
@@ -306,7 +305,6 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 		}
 	}
 
-	//console.log('common componensts: ', temp2);
 	return copy_data;
 }
 
@@ -330,7 +328,6 @@ function preprocess_features(graphs, cache) {
 			}
 			var f = features[d].feature[0];
 			obj[component_id].features.push(f);
-			console.log(f, obj[component_id].features);
 		}
 		all.push(obj);
 	}

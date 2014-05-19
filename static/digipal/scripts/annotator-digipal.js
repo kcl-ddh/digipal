@@ -1448,6 +1448,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		var panel = $('#panelImageBox');
 		var toolbar = $('#toolbar');
 		var map_size;
+		var input_toolbar_position = $("input[name='toolbar_position']:checked");
 		if (!(this.fullScreen.active)) {
 			$('html, body').animate({
 				scrollTop: map.position().top
@@ -1469,8 +1470,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
 			panel.addClass('fullScreenPanel');
 
-
-			var input_toolbar_position = $("input[name='toolbar_position']:checked");
 			if (input_toolbar_position.val() != 'Vertical') {
 				toolbar.addClass('mapHorizontalFullscreen');
 				toolbar.removeClass('fullScreenToolbarVertical');
@@ -1491,9 +1490,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				scrollTop: map.position().top
 			}, 0);
 
+			if (input_toolbar_position.val() == 'Vertical') {
+				loader.toolbar_position();
+			}
 		}
 		restoreFullscreenPositions();
-		loader.toolbar_position();
+
 	};
 }
 
@@ -2454,7 +2456,9 @@ function make_form() {
 
 	obj['feature'] = array_values_checked;
 
-	var form_serialized = form.serialize();
+	var form_serialized = form.find(":input").filter(function() {
+		return $.trim(this.value).length > 0;
+	}).serialize();
 	var s = '';
 
 	for (i = 0; i < array_values_checked.length; i++) {

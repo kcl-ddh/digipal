@@ -509,7 +509,7 @@ function Allographs(dialog, cache) {
 						selectedAnnotations.allograph = null;
 						selectedAnnotations.annotations = [];
 						$('.to_lightbox').attr('disabled', true);
-						$('.annotation_li').removeClass('selected');
+						$('.annotation_li').removeClass('selected').data('selected', false);
 						$('.select_annotation_checkbox').attr('checked', false);
 					});
 

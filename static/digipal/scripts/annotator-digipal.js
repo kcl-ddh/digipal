@@ -1987,12 +1987,17 @@ function load_data(selectedFeature, dialog, callback) {
 function refresh_features_dialog(features, dialog) {
 	var s = '<ul>';
 	if (!$.isEmptyObject(features)) {
+		var components = [];
 		for (i = 0; i < features.length; i++) {
 			var component = features[i]['name'];
-			s += "<li class='component'><b>" + component + "</b></li>";
-			for (j = 0; j < features[i]['feature'].length; j++) {
-				s += "<li class='feature'>" + (features[i]['feature'][j]) + "</li>";
+			if (components.indexOf(component) < 0) {
+				s += "<li class='component'><b>" + component + "</b></li>";
 			}
+			for (j = 0; j < features[i]['feature'].length; j++) {
+				var feature = features[i]['feature'][j];
+				s += "<li class='feature'>" + feature + "</li>";
+			}
+			components.push(component);
 		}
 	} else {
 		s += "<li class='component'>This graph has not yet been described.</li>";

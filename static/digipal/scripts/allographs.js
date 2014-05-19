@@ -45,12 +45,6 @@ function Allographs(dialog, cache) {
 				methods.delete();
 			});
 
-			/* applying delete event to selected feature */
-			var save_button = dialog_instance.selector.find('#save');
-			save_button.click(function(event) {
-				methods.save();
-			});
-
 			var tabs = $('.myModal a[data-toggle="tab"]');
 			tabs.on('shown.bs.tab', function(e) {
 				if (e.target.getAttribute('data-target') == '#edit') {
@@ -61,6 +55,13 @@ function Allographs(dialog, cache) {
 			});
 
 			self.annotation_editor = $(self.dialog_instance.selector.find('#annotation-editor-tab')).annotation_editor().data('annotation_editor');
+
+			/* applying delete event to selected feature */
+			var save_button = dialog_instance.selector.find('#save');
+			save_button.click(function(event) {
+				methods.save();
+				self.annotation_editor.save();
+			});
 
 		});
 

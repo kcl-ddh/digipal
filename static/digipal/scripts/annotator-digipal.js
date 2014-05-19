@@ -1493,6 +1493,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 		}
 		restoreFullscreenPositions();
+		loader.toolbar_position();
 	};
 }
 

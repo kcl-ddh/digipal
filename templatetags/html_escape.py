@@ -171,9 +171,10 @@ def iip_img(image_or_iipfield, *args, **kwargs):
         vs = [kwargs.get(d, None) for d in ds]
         if any(vs):
             dims = image.dimensions()
-            for i in [0, 1]:
-                if vs[i] is None:
-                    kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
+            if min(dims) > 0:
+                for i in [0, 1]:
+                    if vs[i] is None:
+                        kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
     
         ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
             

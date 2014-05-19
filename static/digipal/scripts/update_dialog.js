@@ -11,6 +11,13 @@
  *		from the function get_features() in annotation.py
  */
 
+
+
+var api = new DigipalAPI({
+	crossDomain: false,
+	root: '/digipal/api'
+});
+
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(data['features']);
@@ -111,10 +118,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 };
 
 var reload_cache = function(graphs, cache, only_features, callback) {
-	var api = new DigipalAPI({
-		crossDomain: false,
-		root: '/digipal/api'
-	});
+
 	var url, content_type = 'graph';
 	$('#features_container').html('<img style="position:absolute;top:40%;left:40%;" src="/static/digipal/images/ajax-loader4.gif" />');
 	if (graphs.length) {

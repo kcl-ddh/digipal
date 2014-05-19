@@ -105,9 +105,14 @@ def search_ms_image_view(request):
     if town_or_city:
         images = images.filter(item_part__current_item__repository__place__name = town_or_city)
     if repository:
-        repository_place = repository.split(',')[0]
-        repository_name = repository.split(', ')[1]
-        images = images.filter(item_part__current_item__repository__name=repository_name,item_part__current_item__repository__place__name=repository_place)
+        # repo is in two parts: repo place, repo name (e.g. cambridge, corpus christi college)
+        # but we also support old style URL which have only the name of the repo
+        # if we don't, crawlers like Googlebot could receive a 500 error (see JIRA DIGIPAL-483)
+        repo_parts = [p.strip() for p in repository.split(',')]
+        if repo_parts:
+            images = images.filter(item_part__current_item__repository__name = repo_parts[-1])
+        if len(repo_parts) > 1:
+            images = images.filter(item_part__current_item__repository__place__name = repo_parts[0])
     if date:
         images = images.filter(hands__assigned_date__date = date)
 

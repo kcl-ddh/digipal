@@ -110,11 +110,6 @@ function AnnotatorLoader() {
 			$(this).focus();
 		});
 
-		var save = $('#save');
-		save.click(function() {
-			annotator.saveAnnotation();
-		});
-
 		annotator.rectangleFeature.events.register('featureadded', annotator.rectangleFeature,
 			self.findRectangleFeatureAdded);
 

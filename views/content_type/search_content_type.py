@@ -193,22 +193,26 @@ class SearchContentType(object):
         query_string = '?' + request.META['QUERY_STRING']
         ret['total'] = self.count
         
-        # index
-        index = context['results'].index(int(context['id']))
-        
-        # prev
-        if index > 0:
-            ret['previous_url'] = re.sub(ur'\d+', '%s' % context['results'][index - 1], web_path) + query_string
-        
-        # next
-        if index < (ret['total'] - 1):
-            ret['next_url'] = re.sub(ur'\d+', '%s' % context['results'][index + 1], web_path) + query_string
-        
-        # TODO: the URL of the search page shoudn't be hard-coded here
-        ret['no_record_url'] = u'/digipal/search/' + query_string
-        ret['index1'] = index + 1
-        
-        context['pagination'] = ret 
+        # index (of the requested record in the full result)
+        if int(context['id']) in context['results']:
+            index = context['results'].index(int(context['id']))
+            
+            # prev
+            if index > 0:
+                ret['previous_url'] = re.sub(ur'\d+', '%s' % context['results'][index - 1], web_path) + query_string
+            
+            # next
+            if index < (ret['total'] - 1):
+                ret['next_url'] = re.sub(ur'\d+', '%s' % context['results'][index + 1], web_path) + query_string
+            
+            # TODO: the URL of the search page shoudn't be hard-coded here
+            ret['index1'] = index + 1
+            ret['no_record_url'] = u'/digipal/search/' + query_string
+            
+        else:
+            ret = {}
+
+        context['pagination'] = ret
 
     def get_fields_info(self):
         '''

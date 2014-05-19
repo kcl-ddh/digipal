@@ -1347,7 +1347,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					graphs.push({
 						'id': ann[ind2].graph,
 						'image': image_id,
-						'geoJson': geoJson,
+						// GN: commented out to avoid clashes with the annotation editor
+						// modifying the shape. See JIRA DIGIPAL-479 and DIGIPAL-477
+						//'geoJson': geoJson,
 						'vector_id': ann[ind2].id
 					});
 				}

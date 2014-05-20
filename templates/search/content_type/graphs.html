@@ -82,7 +82,7 @@
                                                 data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
                                                 data-id='{{ graph.id }}' class='droppable_image'
                                                 href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
-                                                {% annotation_img graph.annotation lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
+                                                {% annotation_img graph.annotation padding=5 lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
                                             </a>
                                         </span>
                                         {% endif %}

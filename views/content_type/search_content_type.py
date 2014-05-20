@@ -575,6 +575,10 @@ class SearchContentType(object):
         self.close_whoosh_searcher()
         index = self.get_whoosh_index(index_name=index_name)
         self.searcher = index.searcher()
+
+        #import logging
+        #dplog = logging.getLogger('digipal_debugger')
+        #dplog.debug('SEARCHER\t%s\t%s' % (repr(self), id(self.searcher)))
         
         parser = self.get_parser(index)
         query = parser.parse(query)

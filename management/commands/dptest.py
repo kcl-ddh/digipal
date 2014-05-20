@@ -112,7 +112,7 @@ Commands:
         if command == 'find_offset':
             known_command = True
             self.find_image_offset(*args[1:])
-            
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -141,7 +141,61 @@ Commands:
             print '8'
             print im.dimensions()
             
+        if command == 'stress_search':
+            known_command = True
+            self.stress_search(*args[1:])
             
+    def stress_search(self, count=1):
+        ret = True
+        from utils import web_fetch
+        from datetime import datetime
+        import time
+        import threading
+    
+        url = 'http://www.digipal.eu/digipal/search/?from_link=true&s=1'
+        #url = 'http://localhost/digipal/search/?from_link=true&s=1'
+
+        print 'Stress test for the search page.'
+        
+        class FetchingThread(threading.Thread):
+            def __init__(self, index):
+                super(FetchingThread, self).__init__()
+                self.index = index
+                self.status = ''
+                
+            def run(self):
+                now = datetime.now()
+                #print '#%d %s Request' % (self.index, str(now))
+                info = web_fetch(url)
+                now = datetime.now()
+                warning = ('OK' if info['status'] == '200' else 'ERROR!!!!!!!!!!')
+                self.status = info['status'] 
+                #print info['status']
+                #print '#%d %s %s %s' % (self.index, str(now), info['status'], warning)
+        
+        test_count = int(count)
+        ts = []
+        # start the threads
+        for i in range(1, test_count + 1):
+            t = FetchingThread(i)
+            t.start()
+            ts.append(t)
+        
+        # wait...
+        alive_count = alive_count_old = test_count
+        while alive_count:
+            alive_count = sum([1 for t in ts if t.isAlive()])
+            error_count = sum([1 for t in ts if t.status == '500'])
+            if alive_count != alive_count_old:
+                alive_count_old = alive_count
+                print 'waiting (%d died, %d left, %d errors)' % (test_count- alive_count, alive_count, error_count)
+#                 if error_count > 0:
+#                     exit()
+            if alive_count:            
+                time.sleep(0.5)
+            
+        return ret
+    
     def find_dup_im(self, **kwargs):
         print 'duplicates'
         from digipal.models import Image

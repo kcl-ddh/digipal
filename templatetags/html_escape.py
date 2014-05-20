@@ -132,7 +132,7 @@ def reset_recordids():
 @register.simple_tag
 def iip_img_a(image, *args, **kwargs):
     '''
-        Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <a href=""><img src="" /></a> element with the url referenced
         by the iipimage field.
@@ -144,7 +144,7 @@ def iip_img_a(image, *args, **kwargs):
 @register.simple_tag
 def iip_img(image_or_iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <img src="" /> element with the url referenced by the
         iipimage field.
@@ -183,7 +183,7 @@ def iip_img(image_or_iipfield, *args, **kwargs):
 @register.simple_tag
 def annotation_img(annotation, *args, **kwargs):
     '''
-        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         See iip_img() for more information
     '''
@@ -202,16 +202,22 @@ def annotation_img(annotation, *args, **kwargs):
 @register.simple_tag
 def img(src, *args, **kwargs):
     '''
-        Returns a <img src="" alt=""> element.
+        Returns <span class="img-frame"><img src="" alt=""></span>.
+        The span is a bounding frame around the image. It also serves as 
+        mask as the <img> can be bigger than the frame.
+        
         XML special chars in the attributes are encoded with &. 
         
-        recognised arguments:
+        src is the URL of the image to display.
+        
+        recognised arguments (kwargs):
             alt => alt
             cls => class
             lazy = 0|1 to load the image lazily
             a_X => converted into attribute X
             rotation=float => converted to a CSS rotation in the inline style
             width, height
+            padding: nb of pixels between the frame and the image on each side (default = 0)
     '''
     more = ''
     style = ''
@@ -253,7 +259,8 @@ def img(src, *args, **kwargs):
                     s = 1
                 more += ' %s="%s" ' % (d, s)
 
-    dims_css = u''
+    frame_css = u''
+    padding = int(kwargs.get('padding', '0'))
     for a in ['height', 'width']:
         vs = []
         if a in kwargs:
@@ -262,7 +269,7 @@ def img(src, *args, **kwargs):
             style += ';%s:%dpx;' % (a, vs[-1])
         if 'frame_'+a in kwargs:
             vs.append(int(kwargs.get('frame_'+a)))
-            dims_css += u';%s:%spx;' % (a, vs[-1])
+            frame_css += u';%s:%spx;' % (a, vs[-1] + padding * 2)
         if len(vs) == 2:
             p = 'top'
             if a == 'width':
@@ -271,11 +278,10 @@ def img(src, *args, **kwargs):
             if v:
                 style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
     #print style
-            
-
+    
     ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
     
-    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden;">%s</span>' % (dims_css, ret)
+    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden;">%s</span>' % (frame_css, ret)
     
     return mark_safe(ret)
 

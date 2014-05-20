@@ -152,8 +152,8 @@ Commands:
         import time
         import threading
     
-        url = 'http://www.digipal.eu/digipal/search/?from_link=true&s=1'
-        #url = 'http://localhost/digipal/search/?from_link=true&s=1'
+        #url = 'http://www.digipal.eu/digipal/search/?from_link=true&s=1'
+        url = 'http://localhost/digipal/search/?from_link=true&s=1'
 
         print 'Stress test for the search page.'
         

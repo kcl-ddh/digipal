@@ -256,4 +256,73 @@ def admin_patches():
         return _user_has_perm_old(user, perm, obj)
     
     django.contrib.auth.models._user_has_perm = _user_has_perm
-        
+    
+# Whoosh 2.6 patch for the race condition during clearing of the cache
+# See JIRA DIGIPAL-480
+def whoosh_patches():
+    
+    import functools
+    from heapq import nsmallest
+    from whoosh.compat import iteritems, xrange
+    from operator import itemgetter
+    from time import time
+    from threading import Lock
+    
+    def lru_cache(maxsize=100):
+        """A simple cache that, when the cache is full, deletes the least recently
+        used 10% of the cached values.
+    
+        This function duplicates (more-or-less) the protocol of the
+        ``functools.lru_cache`` decorator in the Python 3.2 standard library.
+    
+        Arguments to the cached function must be hashable.
+    
+        View the cache statistics tuple ``(hits, misses, maxsize, currsize)``
+        with f.cache_info().  Clear the cache and statistics with f.cache_clear().
+        Access the underlying function with f.__wrapped__.
+        """
+    
+        def decorating_function(user_function):
+            stats = [0, 0]  # Hits, misses
+            data = {}
+            lastused = {}
+            lock = Lock()
+    
+            @functools.wraps(user_function)
+            def wrapper(*args):
+                with lock:
+                    try:
+                        result = data[args]
+                        stats[0] += 1  # Hit
+                    except KeyError:
+                        stats[1] += 1  # Miss
+                        if len(data) == maxsize:
+                            for k, _ in nsmallest(maxsize // 10 or 1,
+                                                  iteritems(lastused),
+                                                  key=itemgetter(1)):
+                                del data[k]
+                                del lastused[k]
+                        data[args] = user_function(*args)
+                        result = data[args]
+                    finally:
+                        lastused[args] = time()
+                    return result
+    
+            def cache_info():
+                with lock:
+                    return stats[0], stats[1], maxsize, len(data)
+    
+            def cache_clear():
+                with lock:
+                    data.clear()
+                    lastused.clear()
+                    stats[0] = stats[1] = 0
+    
+            wrapper.cache_info = cache_info
+            wrapper.cache_clear = cache_clear
+            return wrapper
+        return decorating_function
+    
+    from whoosh.util import cache 
+    cache.lru_cache = lru_cache
+    

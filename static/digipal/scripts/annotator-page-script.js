@@ -801,8 +801,6 @@ function AnnotatorLoader() {
 			$(".number_annotated_allographs .number-allographs").html(n);
 		}
 
-		highlight_vectors();
-
 		var path = $('#' + feature.feature.geometry.id);
 		path.dblclick(function(event) {
 			var id = $(this).attr('id');

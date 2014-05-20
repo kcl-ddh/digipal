@@ -92,6 +92,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (annotator.selectedAnnotations.length > 1) {
 					detect_common_features_init();
 				}
+				highlight_vectors();
 			});
 		}
 	};
@@ -214,7 +215,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		}
 
 		restoreFullscreenPositions();
-		highlight_vectors();
 	};
 
 	/**
@@ -1880,10 +1880,6 @@ function showBox(selectedFeature, callback) {
 	var id = Math.random().toString(36).substring(7);
 	var can_edit = $('#development_annotation').is(':checked');
 
-	if (annotator.isAdmin == "True") {
-		highlight_vectors();
-	}
-
 	var n = 0;
 	for (var i = 0; i < features.length; i++) {
 		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
@@ -2197,7 +2193,7 @@ function highlight_vectors() {
 	var allograph_form_id = get_forms().allograph_form.attr('id');
 	var features = annotator.vectorLayer.features;
 
-	$('#' + allograph_form_id + '_chzn').find('.active-result').on('mouseover', function() {
+	$('#' + allograph_form_id + '_chzn').find('li').on('mouseover', function() {
 		var text = $(this).text();
 
 		for (i = 0; i < features.length; i++) {
@@ -2212,7 +2208,7 @@ function highlight_vectors() {
 		restoreFullscreenPositions();
 	});
 
-	$('#' + allograph_form_id + '_chzn').find('.active-result').on('mouseout', function() {
+	$('#' + allograph_form_id + '_chzn').find('li').on('mouseout', function() {
 		var text = $(this).text();
 		for (i = 0; i < features.length; i++) {
 			if (features[i].feature == text) {
@@ -2689,6 +2685,7 @@ function registerEvents() {
 						annotator.boxes_on_click = false;
 						boxes_on_click_element.prop('checked', false);
 						restoreFullscreenPositions();
+						highlight_vectors();
 					}
 				});
 

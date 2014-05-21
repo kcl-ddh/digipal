@@ -363,4 +363,24 @@ def image_icon(count, message, url, template_type=None, request=None):
                   </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
         
     return mark_safe(ret)
+
+@register.simple_tag
+def mezzanine_page_active(request, page):
+    '''
+        Returns 'active' if the provided Mezzanine <page> 
+        is one of its children is in the current path.
+        
+        This can be used in a template to set active in the class attribute. 
+    '''
+    ret = False
     
+    cs = list(page.children.all())
+    cs.append(page)
+    path = request.path.strip('/')
+    
+    for p in cs:
+        page_path = re.sub(ur'\?.*$', ur'', p.get_absolute_url()).strip('/')
+        if page_path in path:
+            ret = True
+    
+    return 'active' if ret else ''

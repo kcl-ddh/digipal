@@ -51,11 +51,14 @@
         self.save = function() {
             if (!self.is_enabled()) return null;
             
+            set_needs_refresh(true);
+
             var ret = $.ajax({
-                url: self.settings.api_root + 'annotation/' + self.annotationid + '/?@select=id',
+                url: self.settings.api_root + 'annotation/' + self.annotationid + '/?@select=id,rotation,htmlr',
                 type: 'PUT',
                 dataType: 'json',
                 data: update_request_data_with_sliders(),
+                success: function(data, status, jqXHR) { refresh_ui_from_response(data, status, jqXHR, true); }
             });
             
             return ret;
@@ -123,21 +126,7 @@
                     type: 'GET',
                     dataType: 'json',
                     data: data,
-                    success: function(data, status, jqXHR) {
-                        var html = '<p>Server error.</p>';
-                        if (data && data.success && data.results) {
-                            html = data.results[0].htmlr;
-                            if (get_parameters_from_database) {
-                                for (i in self.sliders) {
-                                    self.set_slider_value(i, 0);
-                                }
-                                self.set_rotation(data.results[0].rotation, true);
-                            }
-                            self.annotationid = data.results[0].id;
-                        }
-                        set_preview_html(html);
-                        set_needs_refresh(false);
-                    }
+                    success: function(data, status, jqXHR) { refresh_ui_from_response(data, status, jqXHR, get_parameters_from_database); }
                 });
             } else {
                 set_preview_html('<p>This tool works with only one selected graph.</p>');
@@ -145,6 +134,22 @@
         };
         
         // Private methods
+        
+        var refresh_ui_from_response = function(data, status, jqXHR, refresh_sliders) {
+            var html = '<p>Server error.</p>';
+            if (data && data.success && data.results) {
+                html = data.results[0].htmlr;
+                if (refresh_sliders) {
+                    for (i in self.sliders) {
+                        self.set_slider_value(i, 0);
+                    }
+                    self.set_rotation(data.results[0].rotation, true);
+                }
+                self.annotationid = data.results[0].id;
+            }
+            set_preview_html(html);
+            set_needs_refresh(false);
+        };
         
         var quick_preview = function() {
             // quick preview

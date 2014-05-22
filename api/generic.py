@@ -36,10 +36,10 @@ class API(object):
             cts = [ct.lower() for ct in cts.split(',')]
             if 'all' in cts or content_type.lower() in cts:
                 op_found = operation in perm
-                if perm[0] == '-':
+                if perm.startswith('-'):
                     if op_found:
                         ret = False
-                elif perm[0] == '+':
+                elif perm.startswith('+'):
                     if op_found:
                         ret = True
                 else:

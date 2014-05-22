@@ -136,7 +136,7 @@ function Allographs(dialog, cache) {
 
 	var methods = {
 
-		select_annotation: function(this_annotation) {
+		select_annotation: function(this_annotation, callback) {
 			var annotation = this.getFeatureById(this_annotation.data('graph'));
 			var current_basket;
 			var annotation_li = this_annotation;
@@ -145,13 +145,13 @@ function Allographs(dialog, cache) {
 			if (annotation_li.data('selected')) {
 				utils.clean_annotations(annotation, selectedAnnotations.annotations);
 				annotation_li.data('selected', false).removeClass('selected');
-				select_annotation(annotation, false);
+				select_annotation(annotation, false, callback);
 			} else {
 				selectedAnnotations.allograph = annotation.feature;
 				selectedAnnotations.annotations.push(annotation);
 				annotation_li.data('selected', true).addClass('selected');
 				modal = true;
-				select_annotation(annotation, true);
+				select_annotation(annotation, true, callback);
 				if (!self.dialog_instance.open) {
 					self.dialog_instance.show();
 				}
@@ -225,9 +225,9 @@ function Allographs(dialog, cache) {
 			temporary_vectors = [];
 			//selectedAnnotations.allograph = null;
 
-			$.each(checkboxes, function() {
-				methods.select_annotation($(this));
-			});
+			for (var i = 0; i < checkboxes.length; i++) {
+				methods.select_annotation($(checkboxes[i]));
+			}
 
 			$.each($('input'), function() {
 				$(this).attr('checked', false);
@@ -244,6 +244,7 @@ function Allographs(dialog, cache) {
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', false);
 			var checkboxes = ul.find('.annotation_li').not('.selected');
+			var i = 0;
 			for (var i = 0; i < checkboxes.length; i++) {
 				methods.select_annotation($(checkboxes[i]));
 			}
@@ -303,7 +304,7 @@ function Allographs(dialog, cache) {
 	};
 
 
-	var select_annotation = function(annotation, select) {
+	var select_annotation = function(annotation, select, callback) {
 
 		if (typeof annotation === 'undefined') {
 			return false;
@@ -344,6 +345,9 @@ function Allographs(dialog, cache) {
 				common_allographs(graphs, allographs_cache, graph);
 				update_summary();
 				events_on_labels();
+				if (callback) {
+					callback();
+				}
 			});
 			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 			return false;
@@ -357,6 +361,9 @@ function Allographs(dialog, cache) {
 					common_allographs(graphs, allographs_cache, graph);
 					update_summary();
 					events_on_labels();
+					if (callback) {
+						callback();
+					}
 				});
 			} else {
 				graphs_annotation = temp.graph;
@@ -366,6 +373,9 @@ function Allographs(dialog, cache) {
 				common_allographs(graphs, allographs_cache, graph);
 				update_summary();
 				events_on_labels();
+				if (callback) {
+					callback();
+				}
 			}
 			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 		}
@@ -535,7 +545,6 @@ function Allographs(dialog, cache) {
 
 			// if there's no allograph cached, I make a full AJAX call
 			if (!cache.search("allograph", allograph)) {
-
 				load_group(element.closest('[data-group="true"]'), cache, false, function(data) {
 					var output = get_graph(graph, data, allographs_cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
@@ -582,7 +591,6 @@ function Allographs(dialog, cache) {
 				string_summary = "<span class='component_summary'>No componensts</span>";
 			} else {
 				$.each(allographs, function(idx) {
-
 					var component = allographs[idx].name;
 					var component_id = allographs[idx].id;
 					var is_empty;

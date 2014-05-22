@@ -17,7 +17,7 @@ function AnnotationsCache() {
 			obj = this.cache.graphs;
 		}
 
-		if (obj[id]) {
+		if (obj.hasOwnProperty(id)) {
 			return true;
 		}
 

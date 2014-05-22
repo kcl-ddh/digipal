@@ -108,7 +108,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 	graphs = group_element.find('a[data-graph]');
 	$.each(graphs, function() {
 		graph = $(this).data('graph');
-		if (!cache.search('graph', graph)) {
+		if (cache.search('graph', graph) === false) {
 			graphs_list.push(graph);
 		}
 	});
@@ -132,6 +132,7 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 			for (var i = 0; i < data.length; i++) {
 				var graph = graphs[i];
 				var allograph = data[i]['allograph_id'];
+
 				if (!cache.search("allograph", allograph) && !only_features) {
 					cache.update('allograph', allograph, data[i]);
 				}

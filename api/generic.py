@@ -28,23 +28,40 @@ class API(object):
         crud_from_http_method = {'post': 'c', 'get': 'r', 'put': 'u', 'delete': 'd'}
         operation = operation.lower()
         operation = crud_from_http_method.get(operation, operation)
+
+        # TODO: think about caching this         
+        from django.conf import settings
+        permissions = getattr(settings, 'API_PERMISSIONS', [['crud', 'ALL']])
+        for perm, cts in permissions:
+            cts = [ct.lower() for ct in cts.split(',')]
+            if 'all' in cts or content_type.lower() in cts:
+                op_found = operation in perm
+                if perm[0] == '-':
+                    if op_found:
+                        ret = False
+                elif perm[0] == '+':
+                    if op_found:
+                        ret = True
+                else:
+                    ret = op_found
         
-        # Current implementation allows read to everyone on everything
-        # CUD operations are rejected only if REJECT_HTTP_API_REQUESTS is True
-        if operation == 'r':
-            ret = True            
-        if operation in ['c', 'u', 'd']:
-            from django.conf import settings
-            reject_request = getattr(settings, 'REJECT_HTTP_API_REQUESTS', False)
-            ret = not reject_request
-            
         return ret    
     
     @classmethod
-    def get_all_content_types(cls):
+    def get_all_content_types(cls, content_type):
         ret = {'success': True, 'errors': [], 'results': []}
         from digipal import models
+        
+        # problem with this format... [[ct1, ct2]]. Should be a simple list, not a nested one.
         ret['results'].append([member.lower() for member in dir(models) if hasattr(getattr(models, member), '_meta')])
+        ret['count'] = len(ret['results'][0])
+        
+        # new version, same output format as other responses
+        if content_type == 'content_type2':
+            for ct in ret['results'][0]:
+                ret['results'].append({'str': ct, 'permissions': ''.join([op for op in 'crud' if cls.has_permission(ct, op)])})
+            del ret['results'][0]
+        
         ret = json.dumps(ret)
         return ret
 
@@ -62,8 +79,8 @@ class API(object):
         is_get = method in ['GET']
 
         # special case for content_type='content_type'        
-        if content_type == 'content_type':
-            return cls.get_all_content_types()
+        if content_type in ['content_type', 'content_type2']:
+            return cls.get_all_content_types(content_type)
 
         # refusal if there is no permission for that operation        
         if not cls.has_permission(content_type, method):

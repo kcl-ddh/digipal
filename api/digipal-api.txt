@@ -79,5 +79,35 @@ Response format:
         ]
     }
 
+Permissions:
+	
+	Each DigiPal instance can set its own permission for each operation on each content type.
+	If you try an operation that is not permitted you will received an error.
+	
+	To set the permissions in your own DigiPal instance you can change 
+	API_PERMISSIONS in your local_settings.py.
+	
+	API_PERMISSIONS is a list of permission instructions. Each instruction is a list made of
+	two elements: the crud operation to (dis)allow and a comma separated list of content types
+	affected by this instruction.
+	
+	To determine the permission on a content type, the API will execute the instructions one
+	by one following their order of definition in API_PERMISSIONS.
+	
+	Example:
+	
+	# No permission at all
+	API_PERMISSIONS = []
 
+	# All content types can be created and read
+	API_PERMISSIONS = [['cr', 'ALL']]
+
+	# All content types can be created and read
+	# graph and annotation can also be updated
+	API_PERMISSIONS = [['cr', 'ALL'], ['+u', 'graph,annotation']]
+
+	# All content types can be created and read
+	# annotation can only be deleted
+	# graph can only be created
+	API_PERMISSIONS = [['cr', 'ALL'], ['+u', 'annotation'], ['d', 'annotation'], ['-r', 'graph']]
 

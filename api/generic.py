@@ -12,7 +12,33 @@ class API(object):
     # We put a limit by default as accidental queries for all records can easily happen
     # and that's too long to process.
     # TODO: possibility to override it using a special query string param (@limit=).
-    DEFAULT_LIMIT = 100    
+    DEFAULT_LIMIT = 100
+    
+    @classmethod
+    def has_permission(cls, content_type, operation='r', user=None):
+        '''
+            Return True if a user has permission for a CRUD operation on a content_type
+            operation = c|r|u|d OR post|get|put|delete
+            content_type = one DigiPal model name (lower case), e.g. 'annotation'
+            user = Currently unused
+        '''
+        ret = False
+        
+        # convert HTTP method to CRUD operation 
+        crud_from_http_method = {'post': 'c', 'get': 'r', 'put': 'u', 'delete': 'd'}
+        operation = operation.lower()
+        operation = crud_from_http_method.get(operation, operation)
+        
+        # Current implementation allows read to everyone on everything
+        # CUD operations are rejected only if REJECT_HTTP_API_REQUESTS is True
+        if operation == 'r':
+            ret = True            
+        if operation in ['c', 'u', 'd']:
+            from django.conf import settings
+            reject_request = getattr(settings, 'REJECT_HTTP_API_REQUESTS', False)
+            ret = not reject_request
+            
+        return ret    
     
     @classmethod
     def get_all_content_types(cls):
@@ -24,13 +50,25 @@ class API(object):
 
     @classmethod
     def process_request(cls, request, content_type, selector):
+        '''
+            Process ALL requests on the API.
+            request = a Django request object
+            content_type = lower case version of a DigiPal model
+            selector = a string that specify which records to work on
+        '''
         ret = {'success': True, 'errors': [], 'results': []}
-        
-        if content_type == 'content_type':
-            return cls.get_all_content_types()
         
         method = request.REQUEST.get('@method', request.META['REQUEST_METHOD'])
         is_get = method in ['GET']
+
+        # special case for content_type='content_type'        
+        if content_type == 'content_type':
+            return cls.get_all_content_types()
+
+        # refusal if there is no permission for that operation        
+        if not cls.has_permission(content_type, method):
+            ret = {'success': False, 'errors': ['%s method not permitted on %s' % (method.upper(), content_type)], 'results': []}
+            return json.dumps(ret)
         
         # find the model
         model = None

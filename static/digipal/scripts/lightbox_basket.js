@@ -450,8 +450,9 @@ function main() {
 					return false;
 				} else {
 					if (value.id == selectedCollection) {
-						//var re = /^\w*$/;
-						if (name && name.length <= 30) {
+						var re = /^(\w|\s|[@$&])*$/;
+						//name = name.replace(/\s+/gi, '');
+						if (name && re.test(name) && name.length <= 30) {
 							collections[name] = collections[index];
 							delete collections[index];
 							basket = value;

@@ -1926,7 +1926,7 @@ function load_data(selectedFeature, dialog, callback) {
 
 		if (can_edit) {
 			if (!allograph) {
-				dialog.html('<p class="component_labels">Choice an allograph from the dropdown</p>');
+				dialog.html('<p class="component_labels">Choose an allograph from the dropdown</p>');
 				return false;
 			}
 			content_type = 'allograph';

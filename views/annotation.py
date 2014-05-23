@@ -104,7 +104,8 @@ def get_features(graph_id, only_features=False):
         hands_list = []
         item_part = graph.annotation.image.item_part.id
         hands = graph.annotation.image.hands.all()
-
+        display_note = graph.annotation.display_note
+        internal_note = graph.annotation.internal_note
         for hand in hands:
             h = {
                 'id': hand.id,
@@ -126,6 +127,13 @@ def get_features(graph_id, only_features=False):
         obj['hands'] = hands_list
         obj['graph'] = graph.id
         obj['item_part'] = item_part
+
+        if display_note:
+            obj['display_note'] = display_note
+
+        if display_note:
+            obj['internal_note'] = internal_note
+
         data.append(obj)
 
     return simplejson.dumps(data)

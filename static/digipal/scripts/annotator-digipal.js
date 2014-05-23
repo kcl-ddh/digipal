@@ -134,6 +134,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var image_id = annotations[i]['image_id'];
 				var num_features = annotations[i]['num_features'];
 				var display_note = annotations[i]['display_note'];
+				var internal_note = annotations[i]['internal_note'];
 				var allograph_id = annotations[i]['allograph_id'];
 				var vector_id = annotations[i]['vector_id'];
 				f.feature = allograph;
@@ -144,6 +145,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				f.image_id = image_id;
 				f.num_features = num_features;
 				f.display_note = display_note;
+				f.internal_note = internal_note;
 				f.allograph_id = allograph_id;
 				f.vector_id = vector_id;
 				f.id = vector_id;
@@ -2543,6 +2545,12 @@ function save(url, graphs, data, ann, features) {
 							feature.graph = new_graph;
 							feature.state = null;
 							feature.hand = new_graphs[i].hand_id;
+							if (new_graphs[i].hasOwnProperty('internal_note')) {
+								feature.internal_note = new_graphs[i].internal_note;
+							}
+							if (new_graphs[i].hasOwnProperty('display_note')) {
+								feature.display_note = new_graphs[i].display_note;
+							}
 							feature.allograph_id = new_graphs[i].allograph_id;
 							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 

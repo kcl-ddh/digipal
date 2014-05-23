@@ -43,7 +43,7 @@
         </li>
 
         <li>
-          <a data-toggle="tab" data-target="#edit" href='#'>Edit Graph</a>
+          <a data-toggle="tab" data-target="#annotation-editor-tab" href='#'>Edit Annotation</a>
         </li>
       </ul>
 
@@ -60,7 +60,64 @@
               </form>
           </div>
 
-          <div id="edit" class="tab tab-pane fade">
+          <div id="annotation-editor-tab" class="tab tab-pane fade">
+              <div id="annotation-editor-toolbar" class="panel panel-default">
+                  <div class="row">
+                      <div class="col-xs-3">
+                        <label for="annotation-editor-rotation" class="smaller">rotate (<span>0</span>&#176;)</label>
+                      </div>
+                      <div class="col-xs-9">
+                          <div id="annotation-editor-rotation" class="slider" data-min="0" data-max="360"></div>
+                      </div>
+                  </div>
+                  
+                  {% if edit_annotation_shape %}
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-right" class="smaller">&#177; X (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                              <div id="annotation-editor-right" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
+                      </div>
+    
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-down" class="smaller">&#177; Y (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                              <div id="annotation-editor-down" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
+                      </div>
+    
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-width" class="smaller">&#177; width (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                            <div id="annotation-editor-width" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
+                      </div>
+                      
+                      <div class="row">
+                          <div class="col-xs-3">
+                              <label for="annotation-editor-height" class="smaller">&#177; height (<span>0</span> px)</label>
+                          </div>
+                          <div class="col-xs-9">
+                            <div id="annotation-editor-height" class="slider" data-min="-40" data-max="40"></div>
+                          </div>
+                      </div>
+                  {% endif %}
+                  
+              </div>
+              <div id="" class="col-xs-12">
+                  <div id="annotation-editor-preview">
+
+                  </div>
+              </div>
+          <div>
+
+          <div id="edit" class="tab tab-pane fade hidden">
             <div id="image-editor-space" class='col-md-6'></div>
             <img id='editor-space-image' src="{{STATIC_URL}}digipal/images/ajax-loader3.gif" alt="">
 
@@ -110,5 +167,4 @@
         </div>
       </div>
     </div>
-    <!-- features summary -->
-    <div id='summary'></div>
+

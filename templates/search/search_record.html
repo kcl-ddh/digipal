@@ -93,12 +93,12 @@
                 {{ query_summary_interactive|safe }}
             </p>
         {% endif %}
-        
+
         {% if not is_empty %}
             {% if can_edit %}
                 <div id="switcher" class='pull-right'>
                     <label for="toggle-annotations-mode">Annotating mode</label>
-                    <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode" 
+                    <input data-toggle="tooltip" title='Annotating Mode' id="toggle-annotations-mode"
                             type="checkbox" {% if annotation_mode == "1" %}checked="checked" {% endif %} />
                 </div>
             {% endif %}
@@ -130,7 +130,7 @@
 
                                     <div class="col-md-10">
                                         {% chrono "pagination:" %}
-                                    
+
                                         {% reset_recordids as recordids %}
                                         {% if type.results_are_recordids %}
                                             {% autopaginate type.queryset type.get_page_size as recordids %}
@@ -202,8 +202,10 @@
         <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
         <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
         <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
         <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
     {% endif %}
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css">
 {% endblock %}

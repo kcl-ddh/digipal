@@ -38,9 +38,9 @@ function PublicAllograhs() {
 		var _self = this;
 		var annotation_li = $('.annotation_li');
 
-		annotation_li.click(function(event) {
+		annotation_li.on('click', function(event) {
 			var annotation_li = $(this);
-			var panel = annotation_li.parent().parent();
+			var panel = annotation_li.closest('.allograph-item');
 			var annotation = $(annotation_li).data('graph');
 
 			if (annotation_li.data('selected')) {
@@ -81,8 +81,8 @@ function PublicAllograhs() {
 		var deselect_all = $('.deselect_all');
 		deselect_all.click(function() {
 			var key = $(this).data('key');
-			var ul = $('ul[data-key="' + key + '"]');
-			var checkboxes = ul.find('li');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
+			var checkboxes = ul.find('.annotation_li');
 			var panel = $(this).parent().parent();
 			_self.selectedAnnotations = [];
 			temporary_vectors = [];
@@ -94,8 +94,8 @@ function PublicAllograhs() {
 		var select_all = $('.select_all');
 		select_all.click(function() {
 			var key = $(this).data('key');
-			var ul = $('ul[data-key="' + key + '"]');
-			var checkboxes = ul.find('li');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
+			var checkboxes = ul.find('.annotation_li');
 			var panel = $(this).parent().parent();
 			var annotation;
 			for (var i = 0; i < checkboxes.length; i++) {
@@ -114,8 +114,12 @@ function PublicAllograhs() {
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
 				graphs.push(_self.selectedAnnotations[i]);
 			}
-			add_to_lightbox($(this), 'annotation', graphs, true);
-
+			if (add_to_lightbox($(this), 'annotation', graphs, true)) {
+				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+				for (var d in graphs) {
+					$('[data-graph="' + graphs[d] + '"]').append(star);
+				}
+			}
 		});
 
 	};

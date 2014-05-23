@@ -9,9 +9,9 @@ register = Library()
 @stringfilter
 def spacify(value, autoescape=None):
     if autoescape:
-	esc = conditional_escape
+        esc = conditional_escape
     else:
-	esc = lambda x: x
+        esc = lambda x: x
     return mark_safe(re.sub('\s', '%20', esc(value)))
 spacify.needs_autoescape = True
 register.filter(spacify)
@@ -130,21 +130,21 @@ def reset_recordids():
     return []
 
 @register.simple_tag
-def iip_img_a(iipfield, *args, **kwargs):
+def iip_img_a(image, *args, **kwargs):
     '''
-        Usage {% iip_img_a IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <a href=""><img src="" /></a> element with the url referenced
         by the iipimage field.
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG">%s</a>' % (escape(iipfield.full_base_url), iip_img(iipfield, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url), iip_img(image, *args, **kwargs)))
 
 @register.simple_tag
 def iip_img(image_or_iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <img src="" /> element with the url referenced by the
         iipimage field.
@@ -153,34 +153,76 @@ def iip_img(image_or_iipfield, *args, **kwargs):
         If lazy is True the image will be loaded only when visible in
         the browser.
     '''
-    iipfield = image_or_iipfield        
-    if image_or_iipfield and hasattr(image_or_iipfield, 'iipimage'):
-        # it's an instance of the Image model
-        image = iipfield
+    ret = u''
+    if image_or_iipfield is None:
+        return ret
+
+    image = None
+    iipfield = image_or_iipfield
+    if hasattr(image_or_iipfield, 'iipimage'):
+        image = image_or_iipfield
         iipfield = image.iipimage
-        kwargs['alt'] = u'%s' % image
     
-    return img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+    if image:
+        kwargs['alt'] = u'%s' % image
+        # When we get height = 100 we calculate the width.
+        # And vice-versa
+        ds = ['width', 'height']
+        vs = [kwargs.get(d, None) for d in ds]
+        if any(vs):
+            dims = image.dimensions()
+            if min(dims) > 0:
+                for i in [0, 1]:
+                    if vs[i] is None:
+                        kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
+    
+        ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+            
+    return ret
 
 @register.simple_tag
 def annotation_img(annotation, *args, **kwargs):
     '''
-        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] %}
+        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         See iip_img() for more information
     '''
+    
     ret = u''
     if annotation:
-        ret = img(annotation.get_cutout_url(), alt=annotation.graph, *args, **kwargs)
+        info = annotation.get_cutout_url_info()
+        #dims = annotation.image.get_region_dimensions(url)
+        #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
+        if info['url']:
+            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, 
+                        width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0], 
+                        frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret
 
 @register.simple_tag
 def img(src, *args, **kwargs):
     '''
-        Returns a <img src="" alt=""> element.
+        Returns <span class="img-frame"><img src="" alt=""></span>.
+        The span is a bounding frame around the image. It also serves as 
+        mask as the <img> can be bigger than the frame.
+        
         XML special chars in the attributes are encoded with &. 
+        
+        src is the URL of the image to display.
+        
+        recognised arguments (kwargs):
+            alt => alt
+            cls => class
+            lazy = 0|1 to load the image lazily
+            a_X => converted into attribute X
+            rotation=float => converted to a CSS rotation in the inline style
+            width, height
+            padding: nb of pixels between the frame and the image on each side (default = 0)
     '''
     more = ''
+    style = ''
+    
+    #print kwargs 
 
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
@@ -191,23 +233,56 @@ def img(src, *args, **kwargs):
 
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
+    
+    if 'rotation' in kwargs:
+        rotation = float(kwargs['rotation'])
+        style += ';position:relative;max-width:none;'
+        if rotation > 0.0 or kwargs.get('force_rotation', False):
+            style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
+        
         # a serialised white dot GIF image 
-        src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        #src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        # TODO: don't hard-code the path!
+        src = ur'/static/digipal/images/blank.gif'
 
         # default dimensions
-        size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
-        for d in size:
-            s = size[d]
-            if s == -1:
-                s = max(size.values())
-            if s == -1:
-                s = 1
-            more += ' %s="%s" ' % (d, s)
+        if 0:
+            size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
+            for d in size:
+                s = size[d]
+                if s == -1:
+                    s = max(size.values())
+                if s == -1:
+                    s = 1
+                more += ' %s="%s" ' % (d, s)
 
-    ret = ur'<img src="%s" %s/>' % (escape(src), more)
+    frame_css = u''
+    padding = int(kwargs.get('padding', '0'))
+    for a in ['height', 'width']:
+        vs = []
+        if a in kwargs:
+            vs.append(int(kwargs.get(a)))
+            #more += ur' %s="%s" ' % (a, vs[-1])
+            style += ';%s:%dpx;' % (a, vs[-1])
+        if 'frame_'+a in kwargs:
+            vs.append(int(kwargs.get('frame_'+a)))
+            frame_css += u';%s:%spx;' % (a, vs[-1] + padding * 2)
+        if len(vs) == 2:
+            p = 'top'
+            if a == 'width':
+                p = 'left'
+            v = (vs[0]-vs[1])/2
+            if v:
+                style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
+    #print style
+    
+    ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
+    
+    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden;">%s</span>' % (frame_css, ret)
+    
     return mark_safe(ret)
 
 @register.simple_tag
@@ -265,4 +340,47 @@ def render_mezzanine_page(page_title, *args, **kwargs):
             ret = rtp.content
     return ret
 
+@register.simple_tag
+def image_icon(count, message, url, template_type=None, request=None):
+    '''Return the HTML for showing an image icon with a count as a link to another page
+        count is the number of images
+        message is the message to show in the tooltip (e.g. 'COUNT image')
+
+        e.g.
+        {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
+        
+        TODO: deal with no request, template type and url
+    '''
     
+    ret = u''
+    
+    if count:
+        m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
+        if m:
+            message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(3), plural(m.group(4), count), m.group(5))
+        ret = u'''<span class="result-image-count">
+                    (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
+                  </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
+        
+    return mark_safe(ret)
+
+@register.simple_tag
+def mezzanine_page_active(request, page):
+    '''
+        Returns 'active' if the provided Mezzanine <page> 
+        is one of its children is in the current path.
+        
+        This can be used in a template to set active in the class attribute. 
+    '''
+    ret = False
+    
+    cs = list(page.children.all())
+    cs.append(page)
+    path = request.path.strip('/')
+    
+    for p in cs:
+        page_path = re.sub(ur'\?.*$', ur'', p.get_absolute_url()).strip('/')
+        if page_path in path:
+            ret = True
+    
+    return 'active' if ret else ''

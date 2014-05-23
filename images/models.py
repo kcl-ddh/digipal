@@ -14,6 +14,9 @@ class Image(digipal.models.Image):
 
     def get_img_size(self):
         ''' Returns the size of the full res. image as a list: [width, height] '''
+        return self.dimensions()
+        
+        
         cached_sizes = getattr(self, 'cached_sizes', {})
 
         url = self.iipimage.full_base_url+'&OBJ=Max-size'

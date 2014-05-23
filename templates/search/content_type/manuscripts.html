@@ -20,15 +20,7 @@
                         {{ item.catalogue_number }}
                     {% endfor %}
 
-                    {% if manuscript.images.count %}
-                        {% spaceless %}
-                        (<a class='imageIcon' data-toggle="tooltip" alt='manuscript' title='This record contains {{manuscript.images.count}} images' 
-                            href="{% filter add_query_params:request.META.QUERY_STRING %}{{ manuscript.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'
-                            >{{manuscript.images.count}}
-                                <i class="fa fa-picture-o"> </i>
-                            </a> )
-                        {% endspaceless %}
-                    {% endif %}
+                    {% image_icon manuscript.images.count "COUNT images of this manuscript" manuscript.get_absolute_url|add:"pages" template_type request %}
                 </td>
 
                 <td>{{ manuscript.current_item.repository.place.name }}, {{ manuscript.current_item.repository.name }}</td>

@@ -23,6 +23,15 @@ function Allographs(dialog, cache) {
 		var switcher = $('#toggle-annotations-mode');
 		switcher.bootstrapSwitch();
 
+		switcher.on('switch-change', function(e, data) {
+			var graphs = $('a[data-graph]');
+			if ($(this).bootstrapSwitch('state')) {
+				graphs.attr('data-original-title', 'Edit Graph');
+			} else {
+				graphs.attr('data-original-title', 'View Graph in Manuscript Viewer');
+			}
+		});
+
 		/* creating dialog */
 		dialog(annotator.image_id, {
 			'container': '#allographs'
@@ -36,17 +45,22 @@ function Allographs(dialog, cache) {
 				methods.delete();
 			});
 
+			var tabs = $('.myModal a[data-toggle="tab"]');
+			tabs.on('shown.bs.tab', function(e) {
+				if (e.target.getAttribute('data-target') == '#edit') {
+					self.dialog_instance.edit_letter.init(annotation.graph);
+				} else if (e.target.getAttribute('data-target') == '#annotation-editor-tab') {
+					self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
+				}
+			});
+
+			self.annotation_editor = $(self.dialog_instance.selector.find('#annotation-editor-tab')).annotation_editor().data('annotation_editor');
+
 			/* applying delete event to selected feature */
 			var save_button = dialog_instance.selector.find('#save');
 			save_button.click(function(event) {
 				methods.save();
-			});
-
-			var tabs = $('a[data-toggle="tab"]');
-			tabs.on('shown.bs.tab', function(e) {
-				if (e.target.getAttribute('data-target') == '#edit') {
-					self.dialog_instance.edit_letter.init(annotation.graph);
-				}
+				self.annotation_editor.save();
 			});
 
 		});
@@ -88,12 +102,10 @@ function Allographs(dialog, cache) {
 
 		/* event to redirect from letters to annotator */
 		var a_images = $('.annotation_li a');
-		a_images.click(function(event) {
+		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
 				var id = $(this).parent('.annotation_li').data('annotation');
 				methods.to_annotator(id);
-
-
 
 				/*
 				var panel = $('#panelImageBox');
@@ -113,10 +125,19 @@ function Allographs(dialog, cache) {
 
 	};
 
+
+	var get_graphs_from_annotations = function(annotations) {
+		var graphs = [];
+		for (var i = 0; i < annotations.length; i++) {
+			graphs.push(annotations[i].graph);
+		}
+		return graphs;
+	};
+
 	var methods = {
 
-		select_annotation: function(this_annotation) {
-			var annotation = getFeatureById(this_annotation.data('annotation'));
+		select_annotation: function(this_annotation, callback) {
+			var annotation = this.getFeatureById(this_annotation.data('graph'));
 			var current_basket;
 			var annotation_li = this_annotation;
 			var a = selectedAnnotations.allograph;
@@ -124,14 +145,18 @@ function Allographs(dialog, cache) {
 			if (annotation_li.data('selected')) {
 				utils.clean_annotations(annotation, selectedAnnotations.annotations);
 				annotation_li.data('selected', false).removeClass('selected');
-				select_annotation(annotation, false);
+				select_annotation(annotation, false, callback);
 			} else {
 				selectedAnnotations.allograph = annotation.feature;
 				selectedAnnotations.annotations.push(annotation);
 				annotation_li.data('selected', true).addClass('selected');
 				modal = true;
-				select_annotation(annotation, true);
+				select_annotation(annotation, true, callback);
+				if (!self.dialog_instance.open) {
+					self.dialog_instance.show();
+				}
 			}
+
 		},
 
 		save: function() {
@@ -190,19 +215,19 @@ function Allographs(dialog, cache) {
 
 		deselect_all: function(button) {
 			var key = button.data('key');
-			var ul = $('ul[data-key="' + key + '"]');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', true);
 			var inputs = $('input[data-key="' + key + '"]');
-			var checkboxes = ul.find('li.selected');
+			var checkboxes = ul.find('.annotation_li.selected');
 
 			//selectedAnnotations.annotations = [];
 			temporary_vectors = [];
 			//selectedAnnotations.allograph = null;
 
-			$.each(checkboxes, function() {
-				methods.select_annotation($(this));
-			});
+			for (var i = 0; i < checkboxes.length; i++) {
+				methods.select_annotation($(checkboxes[i]));
+			}
 
 			$.each($('input'), function() {
 				$(this).attr('checked', false);
@@ -215,50 +240,78 @@ function Allographs(dialog, cache) {
 
 		select_all: function(button) {
 			var key = button.data('key');
-			var ul = $('ul[data-key="' + key + '"]');
+			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var panel = ul.parent();
 			panel.find('.to_lightbox').attr('disabled', false);
-			var checkboxes = ul.find('li').not('.selected');
+			var checkboxes = ul.find('.annotation_li').not('.selected');
+			var i = 0;
 			for (var i = 0; i < checkboxes.length; i++) {
 				methods.select_annotation($(checkboxes[i]));
 			}
 		},
 
 		to_lightbox: function(button, annotations, multiple) {
-			add_to_lightbox(button, 'annotation', annotations, multiple);
+			if (add_to_lightbox(button, 'annotation', annotations, multiple)) {
+				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+				for (var d in annotations) {
+					$('[data-graph="' + annotations[d] + '"]').append(star);
+				}
+			}
 		},
 
-		to_annotator: function(annotation_id) {
+		to_annotator: function(annotation_graph_id) {
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
-			$('html').animate({
+			$('html, body').animate({
 				scrollTop: $('#map').position().top + 'px'
-}, 150,			function() {
-				annotator.selectFeatureByIdAndZoom(annotation_id);
-				var select_allograph = $('#panelImageBox');
-				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
+			}, 150, function() {
 				var annotation_graph;
+				var select_allograph = $('#panelImageBox');
 				for (var j in annotator.annotations) {
-					if (annotator.annotations[j].vector_id == annotation_id) {
+					if (annotator.annotations[j].vector_id == annotation_graph_id) {
 						annotation_graph = annotator.annotations[j];
 						break;
 					}
 				}
+				annotator.selectFeatureByIdAndZoom(annotation_graph_id);
+				select_allograph.find('.hand_form').val(annotator.selectedFeature.hand);
 				select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 				$('select').trigger('liszt:updated');
 			});
+		},
+
+		getFeatureById: function(id) {
+			var selectedFeature = id;
+			var features = annotator.vectorLayer.features;
+			var features_length = features.length;
+			var feature, annotation;
+			for (i = 0; i < features_length; i++) {
+				feature = features[i];
+				if (selectedFeature == feature.graph) {
+					annotator.selectedFeature = feature;
+					break;
+				}
+			}
+
+			for (var idx in annotator.annotations) {
+				annotation = annotator.annotations[idx];
+				if (annotation.graph == feature.graph) {
+					break;
+				}
+			}
+			return annotation;
 		}
 	};
 
 
-	var select_annotation = function(annotation, select) {
+	var select_annotation = function(annotation, select, callback) {
 
 		if (typeof annotation === 'undefined') {
 			return false;
 		}
 
 		var graph;
-		var panel = $('ul[data-allograph="' + selectedAnnotations.allograph + '"]').parent();
+		var panel = $('.list-allographs[data-allograph="' + selectedAnnotations.allograph + '"]').parent();
 		var temp = annotation;
 
 		if (selectedAnnotations.annotations.length > 1) {
@@ -292,8 +345,11 @@ function Allographs(dialog, cache) {
 				common_allographs(graphs, allographs_cache, graph);
 				update_summary();
 				events_on_labels();
+				if (callback) {
+					callback();
+				}
 			});
-
+			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 			return false;
 		} else {
 			annotation = selectedAnnotations.annotations[selectedAnnotations.annotations.length - 1];
@@ -305,6 +361,9 @@ function Allographs(dialog, cache) {
 					common_allographs(graphs, allographs_cache, graph);
 					update_summary();
 					events_on_labels();
+					if (callback) {
+						callback();
+					}
 				});
 			} else {
 				graphs_annotation = temp.graph;
@@ -314,7 +373,11 @@ function Allographs(dialog, cache) {
 				common_allographs(graphs, allographs_cache, graph);
 				update_summary();
 				events_on_labels();
+				if (callback) {
+					callback();
+				}
 			}
+			self.annotation_editor.set_graphids(get_graphs_from_annotations(selectedAnnotations.annotations));
 		}
 
 	};
@@ -426,25 +489,6 @@ function Allographs(dialog, cache) {
 						event.stopPropagation();
 					});
 
-					var set_all_by_default = $('.set_all_by_default');
-					set_all_by_default.on('click', function(event) {
-						var components = [];
-						var allograph = $('.mymodal .allograph_form').val();
-
-						for (var i in cache.allographs) {
-							for (var j = 0; j < cache.allographs[i].length; j++) {
-								var component = cache.allographs[i][j].id;
-								components.push(component);
-							}
-						}
-
-						for (var c in components) {
-							check_features_by_default(components[c], allograph, annotator.cacheAnnotations.cache);
-						}
-
-						event.stopPropagation();
-					});
-
 					var deselect_all_graphs = $('.deselect_all_graphs');
 					deselect_all_graphs.click(function() {
 						$('.annotation_li.selected').removeClass('selected').data('selected', false);
@@ -475,7 +519,7 @@ function Allographs(dialog, cache) {
 						selectedAnnotations.allograph = null;
 						selectedAnnotations.annotations = [];
 						$('.to_lightbox').attr('disabled', true);
-						$('.annotation_li').removeClass('selected');
+						$('.annotation_li').removeClass('selected').data('selected', false);
 						$('.select_annotation_checkbox').attr('checked', false);
 					});
 
@@ -497,11 +541,10 @@ function Allographs(dialog, cache) {
 			var allograph = parseInt(annotation.hidden_allograph.split(':')[0], 10);
 			var graph = annotation.graph;
 			var image_id = annotator.image_id;
-			var element = $('li[data-graph="' + graph + '"]');
+			var element = $('.annotation_li[data-graph="' + graph + '"]');
 
 			// if there's no allograph cached, I make a full AJAX call
 			if (!cache.search("allograph", allograph)) {
-
 				load_group(element.closest('[data-group="true"]'), cache, false, function(data) {
 					var output = get_graph(graph, data, allographs_cache);
 					load_annotations_allographs.refresh(output, image_id, callback);
@@ -533,7 +576,7 @@ function Allographs(dialog, cache) {
 			var s = "<div id='box_features_container'>";
 			var string_summary = '';
 			var prefix = 'allographs_';
-			var array_features_owned = features_saved(annotation, data['features']);
+			var array_features_owned = features_saved(data['features']);
 			var allographs = data['allographs'];
 			if (selectedAnnotations.annotations.length > 1) {
 				var selected = [];
@@ -548,7 +591,6 @@ function Allographs(dialog, cache) {
 				string_summary = "<span class='component_summary'>No componensts</span>";
 			} else {
 				$.each(allographs, function(idx) {
-
 					var component = allographs[idx].name;
 					var component_id = allographs[idx].id;
 					var is_empty;
@@ -575,7 +617,7 @@ function Allographs(dialog, cache) {
 							var features_graph = graph.features;
 							for (var j = 0; j < features_graph.length; j++) {
 								if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
-									ann = $('li[data-annotation="' + f[k].vector_id + '"]').find('.label');
+									ann = $('div[data-annotation="' + f[k].vector_id + '"]').find('.label');
 									if (ann) {
 										al += '<a href="#label_' + ann.data('graph-id') + '" data-graph-id="' + ann.data('graph-id') + '" class="label label-default label-summary">' + ann.text() + '</a> ';
 										title += ann.text() + ' ';

@@ -17,7 +17,7 @@ function AnnotationsCache() {
 			obj = this.cache.graphs;
 		}
 
-		if (obj[id]) {
+		if (obj.hasOwnProperty(id)) {
 			return true;
 		}
 
@@ -41,6 +41,12 @@ function AnnotationsCache() {
 			obj[id]['image_id'] = object['image_id'];
 			obj[id]['hands'] = object['hands'];
 			obj[id]['item_part'] = object['item_part'];
+			if (object.hasOwnProperty('internal_note')) {
+				obj[id]['internal_note'] = object['internal_note'];
+			}
+			if (object.hasOwnProperty('display_note')) {
+				obj[id]['display_note'] = object['display_note'];
+			}
 		}
 
 		return obj;

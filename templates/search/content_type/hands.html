@@ -16,19 +16,14 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
 
-                <td>DigiPal Hand {{ hand.id }}</td>
+                <td>DigiPal Hand {{ hand.id }}
+                    {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
+                </td>
 
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>
 
                 <td>{{ hand.item_part.current_item.shelfmark }}</td>
-                <td>{{ hand.label }}
-                    {% if hand.images.all %}
-                        <a class="imageIcon" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}pages?result_type={{template_type}}{% endfilter %}" title='{{page}}'>
-                            <img src="{{ STATIC_URL }}digipal/images/manuscript.jpg" alt='manuscript' data-toggle="tooltip" title='This record contains {{hand.images.count}} images' />
-                        </a>
-                        ({{hand.images.count}})
-                    {% endif %}
-                </td>
+                <td>{{ hand.label }}</td>
                 <td>{{ hand.assigned_place.name }}</td>
                 <td>{{ hand.assigned_date.date }}</td>
                 <td>

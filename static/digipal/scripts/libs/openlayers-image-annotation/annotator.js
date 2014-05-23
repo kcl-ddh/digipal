@@ -97,6 +97,13 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.vectorLayer.events.on({
 		'featureselected': function(e) {
 			_self.onFeatureSelect(e);
+			var hand = $('#panelImageBox .hand_form').val();
+			var allograph = $('#panelImageBox .allograph_form').val();
+			if (e.feature.state == 'Insert') {
+				e.feature.hand = parseInt(hand, 10);
+				e.feature.allograph_id = parseInt(allograph, 10);
+				e.feature.feature = $('#panelImageBox .allograph_form option:selected').text();
+			}
 		},
 		'featureunselected': function(e) {
 			// function to check if an object is empty, boolean returned
@@ -188,7 +195,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
 		renderIntent: 'transform',
 		irregular: true,
-		rotate: false,
+		rotate: true,
 		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
 	});
@@ -221,12 +228,13 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 		},
 		'setfeature': function(e) {
-			var hand = $('#panelImageBox .allograph_form').val();
+			var hand = $('#panelImageBox .hand_form').val();
 			var allograph = $('#panelImageBox .allograph_form').val();
-			e.feature.hand = hand;
-			e.feature.allograph = allograph;
-			e.feature.feature = $('#panelImageBox .allograph_form option:selected').text();
-
+			if (e.feature.state == 'Insert') {
+				e.feature.hand = parseInt(hand, 10);
+				e.feature.allograph_id = parseInt(allograph, 10);
+				e.feature.feature = $('#panelImageBox .allograph_form option:selected').text();
+			}
 			if (annotator.isAdmin == 'False') {
 				if (e.feature.stored !== undefined && e.feature.stored !== null && e.feature.stored) {
 					annotator.transformFeature.unsetFeature();

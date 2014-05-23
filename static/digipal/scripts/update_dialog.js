@@ -11,9 +11,16 @@
  *		from the function get_features() in annotation.py
  */
 
+
+
+var api = new DigipalAPI({
+	crossDomain: false,
+	root: '/digipal/api'
+});
+
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 	var s = '<div id="box_features_container">';
-	var array_features_owned = features_saved(null, data['features']);
+	var array_features_owned = features_saved(data['features']);
 	var allographs = data.allographs;
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
@@ -74,7 +81,7 @@ Function to get the features of a described allograph
 @params feature selected, url
 */
 
-function features_saved(selectedFeature, features) {
+function features_saved(features) {
 	var array_features_owned = [];
 	if (features && features.length) {
 		for (var i = 0; i < features.length; i++) {
@@ -101,7 +108,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 	graphs = group_element.find('a[data-graph]');
 	$.each(graphs, function() {
 		graph = $(this).data('graph');
-		if (!cache.search('graph', graph)) {
+		if (cache.search('graph', graph) === false) {
 			graphs_list.push(graph);
 		}
 	});
@@ -111,21 +118,21 @@ var load_group = function(group_element, cache, only_features, callback) {
 };
 
 var reload_cache = function(graphs, cache, only_features, callback) {
-	var request, url, content_type = 'graph';
+
+	var url, content_type = 'graph';
 	$('#features_container').html('<img style="position:absolute;top:40%;left:40%;" src="/static/digipal/images/ajax-loader4.gif" />');
 	if (graphs.length) {
-		url = "/digipal/api/" + content_type + '/' + graphs.toString() + '/';
+		url = content_type + '/' + graphs.toString() + '/';
 
 		if (only_features) {
 			url += 'features';
 		}
 
-		request = $.getJSON(url);
-		request.done(function(data) {
-
+		api.request(url, function(data) {
 			for (var i = 0; i < data.length; i++) {
 				var graph = graphs[i];
 				var allograph = data[i]['allograph_id'];
+
 				if (!cache.search("allograph", allograph) && !only_features) {
 					cache.update('allograph', allograph, data[i]);
 				}
@@ -233,8 +240,7 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	}
 
 	if (!flag_allograph) {
-		select_allograph.text('------');
-		select_allograph.val('');
+		select_allograph.val('------');
 	} else {
 		select_allograph.val(graph.allograph_id);
 	}
@@ -304,7 +310,6 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 		}
 	}
 
-	//console.log('common componensts: ', temp2);
 	return copy_data;
 }
 
@@ -322,11 +327,12 @@ function preprocess_features(graphs, cache) {
 
 		for (var d = 0; d < features.length; d++) {
 			component_id = features[d].component_id;
-			obj[component_id] = {};
-			obj[component_id]['features'] = [];
-			for (var j = 0; j < features[d].feature.length; j++) {
-				obj[component_id].features.push(features[d].feature[j]);
+			if (!obj.hasOwnProperty(component_id)) {
+				obj[component_id] = {};
+				obj[component_id]['features'] = [];
 			}
+			var f = features[d].feature[0];
+			obj[component_id].features.push(f);
 		}
 		all.push(obj);
 	}
@@ -429,13 +435,11 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
 	for (var component in allograph) {
-		if (allograph[component].
-			default.length) {
-			for (var i = 0; i < allograph[component].
-				default.length; i++) {
+		if (allograph[component].default.length) {
+			for (var i = 0; i < allograph[component].default.length; i++) {
 				var default_feature = allograph[component].
-				default [i].component + '::' + allograph[component].
-				default [i].feature;
+				default[i].component + '::' + allograph[component].
+				default[i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
 					checkbox_val.prop('checked', true);

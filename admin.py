@@ -6,7 +6,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
-        CatalogueNumber, Category, Character, Collation, Component, County, \
+        CatalogueNumber, Category, Character, CharacterForm, Collation, Component, County, \
         ComponentFeature, CurrentItem, \
         Date, DateEvidence, Decoration, Description, \
         Feature, Format, \
@@ -365,6 +365,16 @@ class HandGlossTextFilter(SimpleListFilter):
         if self.value() == 'no':
             return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True) 
 
+class HandImageNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of images')
+
+    parameter_name = ('ni')
+
+    related_table = 'digipal_hand_images'
+    foreign_key = 'hand_id'
+    this_table = 'digipal_hand'
+    
+
 #########################
 #                       #
 #        Forms          #
@@ -539,6 +549,14 @@ class AllographInline(admin.StackedInline):
     filter_horizontal = ['aspects']
 
 
+class CharacterFormAdmin(reversion.VersionAdmin):
+    model = CharacterForm
+
+    list_display = ['id', 'name']
+    list_display_links = list_display
+
+    search_fields = ['name', 'id']
+
 class CharacterAdmin(reversion.VersionAdmin):
     model = Character
 
@@ -547,7 +565,7 @@ class CharacterAdmin(reversion.VersionAdmin):
     list_display = ['name', 'unicode_point', 'form', 'created', 'modified']
     list_display_links = ['name', 'unicode_point', 'form', 'created',
             'modified']
-    search_fields = ['name', 'form']
+    search_fields = ['name', 'form__name']
 
 
 class CollationAdmin(reversion.VersionAdmin):
@@ -748,7 +766,7 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter]
+    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter, HandImageNumberFilter]
     
     fieldsets = fieldsets_hand
 
@@ -1069,12 +1087,12 @@ class ImageAdmin(reversion.VersionAdmin):
     
     list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
-    readonly_fields = ('display_label', 'folio_number', 'folio_side')
+    readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height')
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
-                ('Image file', {'fields': ('iipimage', 'media_permission')}),
+                ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height')}),
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
@@ -1100,7 +1118,7 @@ class ImageAdmin(reversion.VersionAdmin):
     
     def get_thumbnail(self, image):
         from digipal.templatetags.html_escape import iip_img_a
-        return iip_img_a(image.iipimage, width=70, cls='img-expand', lazy=True)
+        return iip_img_a(image, width=70, cls='img-expand', lazy=True)
     get_thumbnail.short_description = 'Thumbnail'
     get_thumbnail.allow_tags = True 
 
@@ -1424,6 +1442,7 @@ admin.site.register(Aspect, AspectAdmin)
 admin.site.register(CatalogueNumber, CatalogueNumberAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Character, CharacterAdmin)
+admin.site.register(CharacterForm, CharacterFormAdmin)
 admin.site.register(Collation, CollationAdmin)
 admin.site.register(Component, ComponentAdmin)
 admin.site.register(ComponentFeature, ComponentFeatureAdmin)

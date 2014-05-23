@@ -193,10 +193,20 @@ class Ontograph(models.Model):
         #return u'%s: %s' % (self.name, self.ontograph_type)
         return get_list_as_string(self.name, ': ', self.ontograph_type)
 
+
+class CharacterForm(models.Model):
+    name =  models.CharField(max_length=128, unique=True)
+    
+    class Meta:
+        ordering = ['name']
+    
+    def __unicode__(self):
+        return self.name
+     
 class Character(models.Model):
     name =  models.CharField(max_length=128, unique=True)
     unicode_point = models.CharField(max_length=32, unique=False, blank=True, null=True)
-    form = models.CharField(max_length=128)
+    form = models.ForeignKey(CharacterForm, blank=False, null=False)
     ontograph = models.ForeignKey(Ontograph)
     components = models.ManyToManyField(Component, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -1257,10 +1267,22 @@ class Image(models.Model):
     internal_notes = models.TextField(blank=True, null=True)
     
     annotation_status = models.ForeignKey(ImageAnnotationStatus, related_name='images', null=True, blank=True, default=None)
+    
+    # THESE FIELDS SHOULD NOT BE READ DIRECTLY, 
+    # please call self.dimension instead.
+    # They are used internally as a cache for the dimensions.
+    width = models.IntegerField(blank=False, null=False, default=0)
+    height = models.IntegerField(blank=False, null=False, default=0)
+    
+    __original_iipimage = None
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']
 
+    def __init__(self, *args, **kwargs):
+        super(Image, self).__init__(*args, **kwargs)
+        self.__original_iipimage = self.iipimage
+    
     def __unicode__(self):
         ret = u''
         if self.display_label:
@@ -1362,7 +1384,14 @@ class Image(models.Model):
             else:
                 self.display_label = u''
         self.update_number_and_side_from_locus()
+        
+        # update the height amd width if the image path has changed
+        if self.iipimage != self.__original_iipimage:
+            self.height = 0
+            self.width = 0
+        
         super(Image, self).save(*args, **kwargs)
+        self.__original_iipimage = self.iipimage
 
     def update_number_and_side_from_locus(self):
         ''' sets self.folio_number and self.folio_side from self.locus
@@ -1391,17 +1420,30 @@ class Image(models.Model):
         return self.iipimage.name
 
     def dimensions(self):
-        """Returns a tuple with the image width and height."""
-        # TODO: review the performances of this:
-        # a http request for each image seems prohibitive.
-        width = 0
-        height = 0
+        """Returns a tuple with the image width and height.
+            This function can SAVE the current model if the 
+            cache dimensions were 0 (or the image has changed).
+        """
+        ret = (self.width, self.height)
+        
+        # image has changed, we reset the dims
+        if (self.iipimage != self.__original_iipimage):
+            ret = (0, 0)
+        
+        if ret == (0, 0):
+            if self.iipimage:
+                # obtain the new dims from the image server
+                ret = self.iipimage._get_image_dimensions()
 
-        if self.iipimage:
-            width, height = self.iipimage._get_image_dimensions()
+        if ret != (self.width, self.height):
+            (self.width, self.height) = ret
+            if self.pk:
+                # need to do this otherwise the dims will be reset in save
+                self.__original_iipimage = self.iipimage
+                self.save()
 
-        return int(width), int(height)
-
+        return ret
+    
     def full(self):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&amp;RST=*&amp;QLT=100&amp;CVT=JPG
@@ -1430,6 +1472,29 @@ class Image(models.Model):
         ret = ''
         if self.iipimage:
             ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
+        return ret
+    
+    def get_region_dimensions(self, region_url):
+        ''' returns the dimension (width, height) of an IIPImage server 
+            region (e.g. ...WID=500&RGN=0.1,0.1,0.2,0.2&CVT=JPG) of this image
+            returns -1 for unknown dimensions'''
+        ret = [-1, -1]
+        dims = [float(v) for v in self.dimensions()]
+        if max(dims) == 0: return (0, 0)
+        matches = re.search(ur'(WID|HEI)=(\d*)', region_url)
+        if matches:
+            d = 0
+            if matches.group(1) == 'HEI': d = 1
+            requested_dim = float(matches.group(2))
+            dims[1-d] = dims[1-d] / dims[d] * requested_dim
+            dims[d] = requested_dim
+        matches = re.search(ur'RGN=([^&]*)', region_url)
+        if matches:
+            parts = [float(part) for part in matches.group(1).split(',')]
+            parts[2]
+            # don't ask... it sees like iip image server returns the double of the requested size!!
+            factor = 2
+            ret = [int(parts[2]*dims[0]) * factor, int(parts[3]*dims[1]) * factor]
         return ret
 
     thumbnail.short_description = 'Thumbnail'
@@ -1827,12 +1892,17 @@ class Annotation(models.Model):
     # WARNING: this value is derived from geo_json on save()
     # No need to change it directly
     cutout = models.CharField(max_length=256)
+    # This is the rotation in degree applied to the cut-out to show it in the right orientation.
+    # Note that it does not affect the shape of the annotation box, only the rendering of the cut out. 
+    rotation = models.FloatField(blank=False, null=False, default=0.0)
     status = models.ForeignKey(Status, blank=True, null=True)
     before = models.ForeignKey(Allograph, blank=True, null=True,
             related_name='allograph_before')
     graph = models.OneToOneField(Graph, blank=True, null=True)
     after = models.ForeignKey(Allograph, blank=True, null=True,
             related_name='allograph_after')
+    # GN: try avoid using this field as it may not be useful anymore
+    # Use the record id instead
     vector_id = models.TextField()
     geo_json = models.TextField()
     display_note = models.TextField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
@@ -1845,16 +1915,9 @@ class Annotation(models.Model):
     class Meta:
         ordering = ['graph', 'modified']
         unique_together = ('image', 'vector_id')
-        
-    def get_coordinates(self, geo_json=None):
-        ''' Returns the coordinates of the graph rectangle
-            E.g. ((602, 56), (998, 184))
-            
-            WARNING: the y coordinates are relative to the BOTTOM of the image!
-        '''
+    
+    def get_geo_json_as_dict(self, geo_json_str=None):
         import json
-        if geo_json is None: geo_json = self.geo_json
-
         # See JIRA-229, some old geo_json format are not standard JSON
         # and cause trouble with the deserialiser (json.loads()).
         # The property names are surrounded by single quotes
@@ -1862,17 +1925,70 @@ class Annotation(models.Model):
         # simplistic conversion but in our case it works well
         # e.g. {'geometry': {'type': 'Polygon', 'coordinates':
         #     Returns {"geometry": {"type": "Polygon", "coordinates":
-        geo_json = geo_json.replace('\'', '"')
+        ret = {}
+        if not geo_json_str:
+            geo_json_str = self.geo_json
+        if geo_json_str:
+            geo_json_str = geo_json_str.replace('\'', '"')
+            ret = json.loads(geo_json_str)
+        return ret
 
-        ret = json.loads(geo_json)
+    def set_geo_json_from_dict(self, geo_json):
+        import json
+        self.geo_json = json.dumps(geo_json)
+    
+    def get_shape_path(self, geo_json_str=None):
+        geo_json = self.get_geo_json_as_dict(geo_json_str)
+        ret = geo_json['geometry']['coordinates'][0][:]
+        return ret
+
+    def set_shape_path(self, path=[]):
+        geo_json = self.get_geo_json_as_dict()
         # TODO: test if this exists!
-        ret = ret['geometry']['coordinates'][0]
-        ret = [
-                [min([c[0] for c in ret]),
-                min([c[1] for c in ret])],
-                [max([c[0] for c in ret]),
-                max([c[1] for c in ret])]
-            ]
+        geo_json['geometry']['coordinates'][0] = path
+        self.set_geo_json_from_dict(geo_json)
+    
+    def get_coordinates(self, geo_json_str=None, y_from_top=False, rotated=False):
+        ''' Returns the coordinates of the smallest rectangle 
+            that contain the path around the annotation shape.
+            E.g. ((602, 56), (998, 184))
+            
+            WARNING: the y coordinates are relative to the BOTTOM of the image!
+        '''
+
+        def get_surrounding_rectangle(cs):
+            ret = [
+                    [min([c[0] for c in cs]),
+                    min([c[1] for c in cs])],
+                    [max([c[0] for c in cs]),
+                    max([c[1] for c in cs])]
+                ]
+            return ret
+    
+        cs = self.get_shape_path(geo_json_str)
+        
+        # change the y coordinates (from the top rather than the bottom)
+        if y_from_top:
+            width, height = self.image.dimensions()
+            for i in range(0, len(cs)):
+                cs[i][1] = height - cs[i][1]
+        
+        # rotate the shape
+        if rotated:
+            import math
+            angle = math.radians(float(self.rotation))
+            rect = get_surrounding_rectangle(cs)
+            centre = [((rect[0][d] + rect[1][d]) / 2) for d in [0, 1]]
+            for i in range(0, len(cs)):
+                c = cs[i]
+                c = [c[0] - centre[0], c[1] - centre[1]]
+                c = (c[0] * math.cos(angle) - c[1] * math.sin(angle), c[0] * math.sin(angle) + c[1] * math.cos(angle))
+                c = [c[0] + centre[0], c[1] + centre[1]]
+                cs[i] = c
+        
+        # get the surrounding rectangle
+        ret = get_surrounding_rectangle(cs)
+        
         return ret
 
     def set_graph_group(self):
@@ -1905,6 +2021,9 @@ class Annotation(models.Model):
             self.graph.save()
 
     def save(self, *args, **kwargs):
+        # GN: why do we need this call BEFORE changing the cutout?
+        # That's two DB save operation each time!
+        
         super(Annotation, self).save(*args, **kwargs)
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
@@ -1924,6 +2043,7 @@ class Annotation(models.Model):
         max_y = float(max(yy))
 
         if self.image.path():
+            # self.cutout = path to a cropped image request to the image server
             img_width, img_height = self.image.dimensions()
             if img_width > 0 and img_height > 0:
                 img_width = float(img_width)
@@ -1956,6 +2076,7 @@ class Annotation(models.Model):
                                 settings.IMAGE_SERVER_PATH, self.image.path(),
                                 size, left, top, width, height)
         elif self.image.image:
+            # self.cutout = path to a cropped image made with PIL and saved on the file system
             img = pil.open(self.image.image.path)
             cropped = img.crop((int(min_x),
                 self.image.image.height - int(max_y), int(max_x),
@@ -1972,6 +2093,56 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
+    def get_cutout_url_info(self, esc=False, rotated=False):
+        ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
+
+        # get the rectangle surrounding the shape
+        psr = ps = self.get_coordinates(y_from_top=True, rotated=False)
+        rotation = float(self.rotation)
+        if rotation > 0.0:
+            psr = self.get_coordinates(y_from_top=True, rotated=True)
+        dims = [float(v) for v in self.image.dimensions()]
+        
+        for d in [0, 1]:
+            ret['frame_dims'][d] = psr[1][d] - psr[0][d]
+            
+        if min(dims) <= 0 or min(ret['frame_dims']) <= 0:
+            return ret
+
+        if rotation > 0.0:
+            # get the dimension of the region to retrieve
+            # extend it by 50%
+            extension = 0.5
+            centre = [0, 0]
+            for d in [0, 1]:
+                ret['dims'][d] = (ps[1][d] - ps[0][d]) * (1 + extension * 2)
+                centre[d] = (ps[0][d] + ps[1][d]) / 2
+            
+            # make it square
+            ret['dims'] = [max(ret['dims']), max(ret['dims'])]
+            ps[0] = [(centre[d] - ret['dims'][d]/2) for d in [0, 1]]
+        else:
+            ret['dims'] = ret['frame_dims'][:]
+        
+        # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
+        factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        
+        ret['url'] = settings.IMAGE_SERVER_RGN % \
+            (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH, self.image.path(), 
+            'WID=%d' % (int(factor * dims[0]),), 
+            ps[0][0] / dims[0], 
+            ps[0][1] / dims[1],
+            ret['dims'][0] / dims[0],
+            ret['dims'][1] / dims[1])
+        
+        for d in [0, 1]:
+            ret['dims'][d] *= factor
+            ret['frame_dims'][d] *= factor
+            
+        if esc: ret['url'] = escape(ret['url'])
+        
+        return ret
+        
     def get_cutout_url(self, esc=False, full_size=False):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
@@ -1996,7 +2167,7 @@ class Annotation(models.Model):
             ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
         if esc: ret = escape(ret)
         return ret
-
+    
     def thumbnail(self):
         return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
 

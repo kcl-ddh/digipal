@@ -1,3 +1,4 @@
+{% load html_escape %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,6 +32,10 @@
     </p>
     <p>
     	<img id="iip-img" src="{{ iiphost }}?FIF=jp2/bl/additional_ch_19795/face.jp2&RST=*&HEI=1878&RGN=0.577265,0.611552,0.008289,0.026614&CVT=JPG" >
+    </p>
+    
+    <p>
+        {% annotation_img annotation %}
     </p>
     
 </body>

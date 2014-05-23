@@ -21,10 +21,11 @@ urlpatterns = patterns('digipal.views.annotation',
                        (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
                        (r'^page/(?P<image_id>\d+)/hands_list/$', 'hands_list'),
 
-                       (r'^api/(?P<content_type>[a-zA-Z]+)/(?P<id>([0-9])+((,)*([0-9])*)*)/(?P<only_features>(features)*)$', 'get_content_type_data'),
-
-                       (r'^api/graph/save/(?P<graphs>.+)/',
-                        'save'),
+                       #(r'^api/(?P<content_type>[a-zA-Z]+)/(?P<id>([0-9])+((,)*([0-9])*)*)/(?P<only_features>(features)*)$', 'get_content_type_data'),
+                       (r'^api/(?P<content_type>[0-9a-zA-Z_]+)/(?P<ids>[^/]*)/?(?P<only_features>(features)*)/?$', 'get_content_type_data'),
+                        
+                       (r'^api/graph/save/(?P<graphs>.+)/', 'save'),
+                       #(r'^api/annotation/(?P<selector>.*)', 'api_get_annotation'),
                        (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/',
                         'delete'),
                        (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$',
@@ -88,7 +89,11 @@ if settings.DEBUG:
                            (r'test/similar_graph/$', 'similar_graph_view'),
                            (r'test/map/$', 'map_view'),
                            (r'test/autocomplete/$', 'autocomplete_view'),
+                           (r'test/api/$', 'api_view'),
                            )
+urlpatterns += patterns('digipal.views.test',
+                       (r'test/error/?$', 'server_error_view'),
+                       )
 
 urlpatterns += patterns('haystack.views',
                         url(

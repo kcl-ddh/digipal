@@ -2,9 +2,18 @@
 ###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
 ----
 
+## Content
+
+1. About
+2. Digipal Technologies Stack
+3. How To Set Up Digipal
+4. Run Digipal
+5. What To Do After
+6. API
+
 **Please note that an important part of the project is currently hosted on a private repository. The two will be soon merged into this. This means that at the current state this repository is not enough to run Digipal locally.**
 
-## About
+## 1. About
 
 The Digital Resource for Palaeography (DigiPal) is a project funded by the European Research Council that brings digital technology to bear on scholarly discussion of medieval handwriting. At its heart will be hundreds of newly-commissioned photographs of eleventh-century Anglo-Saxon script from the major manuscript collections in the world, with detailed descriptions of the handwriting, the textual content, and the wider manuscript or documentary context.
 
@@ -12,7 +21,7 @@ See further http://digipal.eu/
 
 ----
 
-## Digipal Technologies Stack
+## 2. Digipal Technologies Stack
 Digipal is built upon the Django Web Framework. The main technologies used by the project are:
 - Mezzanine as CMS and Blog
 - IIPImage for the image server
@@ -20,7 +29,7 @@ Digipal is built upon the Django Web Framework. The main technologies used by th
 - Bootstrap for the Front-end framework
 - FontAwesome icons
 
-## How to set up Digipal
+## 3. How to set up Digipal
 
 ### Download Digipal
 Using GIT:
@@ -118,14 +127,14 @@ If set to True, the links to the Lightbox will be available in Collections' page
 	ANNOTATOR_ZOOM_LEVELS = 7	# This setting sets the number of zoom levels of OpenLayers' image map
 	REJECT_HTTP_API_REQUESTS = False	# if True, prevents any change to the DB
 
-## Run Digipal
+## 4. Run Digipal
 By using the system terminal, go to your Digipal root folder, and then run:
 
 	python manage.py runserver
 
 Run you browser at the address localhost:8000
 
-## What to do after
+## 5. What to do after
 
 You should create a superuser to edit the Digipal back-end through the Mezzanine interface.
 	
@@ -133,4 +142,88 @@ You should create a superuser to edit the Digipal back-end through the Mezzanine
 	
 After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin and log in.
 
+## 6. API
+It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.
 
+### Documentation
+To use the API, read Digipal's API [Documentation](https://github.com/kcl-ddh/digipal/blob/master/api/digipal-api.txt)
+
+### Import Digipal API script
+You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/api.digipal.js). Then, you can include it on your web page.
+	
+	<script src='api.digipal.js'></script>
+
+### How To Use The API
+
+#### Calling the API class
+If you are running the script into a Digipal instance:
+
+	var dapi = new DigipalAPI({
+		crossDomain: false,
+		root: '/digipal/api
+	});
+	
+... otherwise just call it without any options:
+
+	var dapi = new DigipalAPI();
+
+#### Making requests
+It is possible to use the API in various ways:
+
+1. Specifying the datatype into the URL path through the method **request**
+2. By using the datatype as method name
+
+**Note that the first two parameters of the methods are required**
+
+In the first case, we would have:
+	
+	var url = 'graph/12453';
+	dapi.request(url, function(data){
+		console.log(data);
+	});
+	
+Instead, in the second case, we can have:
+	
+	dapi.graph(12453, function(data){
+		console.log(data);
+	});
+	
+	// or
+	
+	dapi.image(61, function(data){
+		/* ... data ... */ 
+	});
+
+It is possible to use the first parameter in various ways:
+1. A single id, like in the examples. Ex. 12453
+2. An array of ids. Ex. [134, 553, 356]
+3. An object representing the fields and chosen values to match the record. Ex. {id: 10, image:61}
+
+#### Optional Parameters
+There are two further but optional paramaters.
+	
+	/* Note the paramters select and limit	*/
+	dapi.request(url, callback, select, limit)
+
+The parameter **select** allows to specify the wished fields to be pulled by the request (the field id is always returned).
+Ex select = ['image'] will return only two fields: id and image.
+
+The parameter **limit** allows to limit the number of records returned by the request. The default value is 100.
+
+Another example:
+	
+	dapi.image({
+		id: 18
+	}, function(data){
+		/* ... your data ... */
+	}, ['item_part', 'image'));
+	
+	// or
+	// note that if select is empty, it will get all the fields to the response
+	// here we are limiting the number of record returned down to 1
+	
+	dapi.image({
+		hands: 35
+	}, function(data){
+		/* ... your data ... */
+	}, [], 1);

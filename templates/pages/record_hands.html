@@ -59,11 +59,13 @@
 
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% for description in result.descriptions.all %}
+                    <h3>
+                        {{ description.source.get_display_reference }}
+                    </h3>
                     <p>
                         {% filter tag_phrase_terms:terms %}
                             {{ description.description|tei }}
                         {% endfilter %}
-                        ({{ description.source.get_display_reference }})
                     </p>
                 {% empty %}
                     {% include "digipal/empty_tab.html" with type="description" %}
@@ -87,6 +89,7 @@
 <script src='{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js'></script>
 {% if can_edit %}
     <script src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script src="{{ STATIC_URL }}digipal/scripts/api.digipal.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>

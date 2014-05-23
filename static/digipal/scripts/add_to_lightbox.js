@@ -78,19 +78,6 @@ function update_collection_counter() {
 	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
 
-	/*
-	if (children > 1) {
-		var ul = $('<ul class="dropdown-menu">');
-		var caret = '<span class="caret"></span>';
-		$.each(basket_elements, function(index, value) {
-			var li = "<li><a href='/digipal/collection/" + index + "'>" + index + "</a></li>";
-			ul.append(li);
-		});
-		basket_element.data('toggle', 'dropdown');
-		basket_element.append(caret);
-		basket_element.after(ul);
-	}
-	*/
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
@@ -105,6 +92,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			collection_id = value.id;
 		}
 	});
+
+	if (!selectedCollection) {
+		selectedCollection = {};
+		$.each(collections, function(index, value) {
+			selectedCollection.id = value.id;
+			current_basket = value;
+		});
+		localStorage.setItem('selectedCollection', selectedCollection.id);
+	}
 
 	if (annotations === null) {
 		notify('Error. Try again', 'danger');
@@ -196,11 +192,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					elements.push(annotations);
 					notify('Annotation successfully added to collection', 'success');
 				} else {
-					if (typeof annotator != 'undefined') {
-						image_id = annotator.image_id;
-					} else {
-						image_id = graph;
-					}
+					image_id = graph;
 					elements.push(image_id);
 					notify('Image successfully added to collection', 'success');
 				}
@@ -230,13 +222,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				notify('Annotation successfully added to collection', 'success');
 			} else {
-
-				if (typeof annotator != 'undefined') {
-					image_id = annotator.image_id;
-				} else {
-					image_id = graph;
-				}
-
+				image_id = graph;
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];
 					current_basket.images.push(image_id);

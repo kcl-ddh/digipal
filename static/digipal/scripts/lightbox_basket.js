@@ -176,7 +176,7 @@ function main() {
 					for (i = 0; i < data['annotations'].length; i++) {
 						var annotation = data['annotations'][i];
 
-						s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /></td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
+						s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?vector_id=" + annotation[7] + "'>" + annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + annotation[1] + "'><a title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -220,7 +220,7 @@ function main() {
 					s += '<th><span id="counter-images"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
-						s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /><td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+						s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
 					}
@@ -321,7 +321,7 @@ function main() {
 
 						if (!sum_images_collection(basket)) {
 							var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
-							s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the Digipal <a href="/digipal/search/?from_link=true">search engine</a></div>';
+							s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the DigiPal <a href="/digipal/search/?from_link=true">search engine</a></div>';
 							container_basket.html(s);
 						}
 
@@ -390,6 +390,27 @@ function main() {
 					event.stopImmediatePropagation();
 				});
 
+				var changeNumbers = function(first, second) {
+					var num_first = first.find('.num_row');
+					var temp_num_first = num_first.text();
+					var num_second = second.find('.num_row');
+					var temp_num_second = num_second.text();
+					num_second.text(temp_num_first);
+					num_first.text(temp_num_second);
+				};
+
+				/*
+				var makeSortable = function() {
+					$("tbody").sortable({
+						items: "tr[data-graph]",
+						change: function(event, ui) {
+							console.log($('tr[data-graph]:hover'));
+						}
+					});
+				};
+
+				makeSortable();
+				*/
 				$('#close-alert').click(function() {
 					$('#alert-save-collection').fadeOut().remove();
 				});
@@ -425,7 +446,7 @@ function main() {
 
 	} else {
 		s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
-		s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the Digipal <a href="http://127.0.0.1:8000/digipal/search/?from_link=true">search engine</a></div>';
+		s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the DigiPal <a href="/digipal/search/?from_link=true">search engine</a></div>';
 
 		container_basket.html(s);
 

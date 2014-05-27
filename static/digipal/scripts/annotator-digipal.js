@@ -103,7 +103,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			- actions to be done after all the annotations get loaded
 	*/
 
-	this.load_annotations = function(callback) {
+	this.load_annotations = function(callback, isRefresh) {
 		var request = $.getJSON(annotator.url_annotations, function(data) {
 			annotator.annotations = data;
 		});
@@ -111,8 +111,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		var chained = request.then(function(data) {
 
 			var map = annotator.map;
-			// zooms to the max extent of the map area
-			map.zoomToMaxExtent();
+
+			if (!isRefresh) {
+				// zooms to the max extent of the map area
+				map.zoomToMaxExtent();
+			}
 
 			var layer = annotator.vectorLayer;
 			var format = annotator.format;
@@ -1001,9 +1004,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -1173,7 +1176,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
 			});
 
-			images_link.on('click', function() {
+			/*images_link.on('click', function() {
 				var vector = $(this);
 				annotator.centreById(vector.data('annotation'));
 			}).on("mouseover", function() {
@@ -1203,7 +1206,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var vector = $(this);
 				annotator.selectFeatureByIdAndCentre(vector.data('annotation'));
 			}).fadeIn();
-
+			*/
+			images_link.fadeIn();
 			if (img.length) {
 				img.remove();
 			}
@@ -1435,11 +1439,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		div.attr('class', 'loading-div');
 		div.html('<p>Reloading annotations. Please wait...</p><img src="/static/digipal/images/ajax-loader3.gif" />');
 		$('#annotator').append(div.fadeIn());
-
+		$('.number_unsaved_allographs').html(0);
+		this.unsaved_annotations = [];
 		this.load_annotations(function(data) {
 			reload_described_annotations(div);
 			restoreFullscreenPositions();
-		});
+		}, true);
 	};
 
 
@@ -2632,7 +2637,7 @@ function save(url, graphs, data, ann, features) {
 
 		},
 		complete: function() {
-			annotator.transformFeature.deactivate();
+			//annotator.transformFeature.deactivate();
 			annotator.has_changed = true;
 		}
 	});

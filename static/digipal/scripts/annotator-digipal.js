@@ -716,7 +716,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.allow_multiple_dialogs = false;
 			}
 
-			if (!annotator.allow_multiple_dialogs) {
+			if (!annotator.allow_multiple_dialogs || !annotator.boxes_on_click) {
 				var dialog_annotations = $('.dialog_annotations');
 				dialog_annotations.parent('.ui-dialog').remove();
 				dialog_annotations.remove();
@@ -772,6 +772,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						'left': '68%'
 					});
 				}
+			} else {
+				$('#annotations').html('');
 			}
 			callback(dialog);
 		},

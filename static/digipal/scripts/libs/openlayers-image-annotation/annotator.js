@@ -178,7 +178,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a delete feature
 	this.deleteFeature = new DeleteFeature(this.vectorLayer, {
-		displayClass: 'olControlDeleteFeature glyphicon glyphicon-remove ',
+		displayClass: 'olControlDeleteFeature glyphicon glyphicon-remove btn-danger ',
 		title: 'Delete'
 	});
 
@@ -315,7 +315,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			_self.saveAnnotation();
 		},
-		displayClass: 'olControlSaveFeatures glyphicon glyphicon-ok '
+		displayClass: 'olControlSaveFeatures glyphicon glyphicon-ok btn-success '
 	});
 
 	/* FullScreen Mode */

@@ -1898,14 +1898,13 @@ function showBox(selectedFeature, callback) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
-	if (annotator.boxes_on_click) {
 		annotator.dialog.init(selectedFeature, id, function() {
 			if (callback) {
 				callback();
 			}
 		});
 		return false;
-	}
+
 
 	if (callback) {
 		callback();
@@ -1938,9 +1937,8 @@ function load_data(selectedFeature, dialog, callback) {
 			url = content_type + '/' + allograph + '/';
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
-				if (annotator.boxes_on_click) {
 					refresh_dialog(dialog, data[0], selectedFeature, callback);
-				}
+
 			});
 		} else {
 			callback();
@@ -1957,9 +1955,8 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
-				if (annotator.boxes_on_click) {
 					refresh_dialog(dialog, data[0], selectedFeature, callback);
-				}
+
 			});
 
 			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
@@ -1969,9 +1966,8 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
-				if (annotator.boxes_on_click) {
 					refresh_dialog(dialog, data[0], selectedFeature, callback);
-				}
+
 			});
 
 			// otherwise I have both cached, I can get them from the cache object
@@ -1982,9 +1978,8 @@ function load_data(selectedFeature, dialog, callback) {
 			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
 			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
 			data['hands'] = cache.cache.graphs[graph]['hands'];
-			if (annotator.boxes_on_click) {
 				refresh_dialog(dialog, data, selectedFeature, callback);
-			}
+
 		}
 	}
 }

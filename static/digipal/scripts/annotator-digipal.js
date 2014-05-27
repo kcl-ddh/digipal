@@ -1006,9 +1006,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -1734,7 +1734,7 @@ function show_url_allograph(dialog, annotation, button) {
 		$('.link_graphs').after(' <img src="/static/digipal/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div' data-url-type='short'>");
 		var allograph_url, stored = false;
-		var a = $('<a target="_tab">');
+		var a = $('<input type="text">');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').val();
 
@@ -1854,9 +1854,8 @@ function show_url_allograph(dialog, annotation, button) {
 					throw new Error('Got error in requesting short url');
 				} else {
 					$('#url_allograph_gif').fadeOut().remove();
-					a.attr('href', resp.id);
+					a.attr('value', resp.id);
 					a.attr('title', 'Copy link to annotation and share it');
-					a.text(resp.id);
 					button.data('url', resp.id);
 					url.append(a);
 					url.append("<button style='font-size: 12px;' class='btn btn-default btn-xs pull-right' id='long_url'>Long URL?</button>");
@@ -1865,9 +1864,8 @@ function show_url_allograph(dialog, annotation, button) {
 					var long_url_button = $('#long_url');
 					long_url_button.on('click', function() {
 						if (url.data('url-type') == 'short') {
-							a.text(allograph_url);
+							a.attr('value', allograph_url);
 							button.data('url', allograph_url);
-							url.html("<a title='Copy link to annotation and share it' href='http://" + allograph_url + "'>" + allograph_url.substring(0, 60) + "...</a>");
 							url.data('url-type', 'long');
 						}
 					});

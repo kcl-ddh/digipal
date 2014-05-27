@@ -725,8 +725,9 @@ function AnnotatorLoader() {
 
 	var toggle_fixed_toolbar = function() {
 		var toolbar = $('#panelImageBox');
-		var toolbar_position = toolbar.position().top;
+		var toolbar_position = toolbar.offset().top;
 		$(document).on('scroll', function() {
+
 			if ($(this).scrollTop() >= toolbar_position) {
 				toolbar.addClass('fixed_toolbar');
 			} else {

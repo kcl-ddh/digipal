@@ -178,7 +178,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a delete feature
 	this.deleteFeature = new DeleteFeature(this.vectorLayer, {
-		displayClass: 'olControlDeleteFeature fa fa-times ',
+		displayClass: 'olControlDeleteFeature glyphicon glyphicon-remove ',
 		title: 'Delete'
 	});
 
@@ -195,7 +195,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
 		renderIntent: 'transform',
 		irregular: true,
-		rotate: true,
+		rotate: false,
 		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
 	});
@@ -315,7 +315,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			_self.saveAnnotation();
 		},
-		displayClass: 'olControlSaveFeatures fa fa-save '
+		displayClass: 'olControlSaveFeatures glyphicon glyphicon-ok '
 	});
 
 	/* FullScreen Mode */

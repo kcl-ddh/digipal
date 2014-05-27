@@ -108,7 +108,7 @@ function main() {
 		if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
 			s += "<h3 id='header_annotations'>Graphs (" + collection.annotations.length + ")</h3>";
 			for (var i = 0; i < collection.annotations.length; i++) {
-				graphs.push(collection.annotations[i]);
+				graphs.push(parseInt(collection.annotations[i], 10));
 			}
 			data.annotations = graphs;
 		}
@@ -116,9 +116,9 @@ function main() {
 		if (typeof collection.images !== 'undefined' && collection.images.length) {
 			for (d = 0; d < collection.images.length; d++) {
 				if (typeof collection.images[d] != 'number') {
-					images.push(collection.images[d].id);
+					images.push(parseInt(collection.images[d].id, 10));
 				} else {
-					images.push(collection.images[d]);
+					images.push(parseInt(collection.images[d], 10));
 				}
 			}
 			data.images = images;
@@ -390,27 +390,54 @@ function main() {
 					event.stopImmediatePropagation();
 				});
 
-				var changeNumbers = function(first, second) {
-					var num_first = first.find('.num_row');
-					var temp_num_first = num_first.text();
-					var num_second = second.find('.num_row');
-					var temp_num_second = num_second.text();
-					num_second.text(temp_num_first);
-					num_first.text(temp_num_second);
+				var changeNumbers = function() {
+					var tbody = $("tbody");
+					tbody.find('tr').each(function() {
+						$(this).find('.num_row').text('#' + $(this).index());
+					});
 				};
 
-				/*
+				var editCollection = function(el) {
+					var _collections = JSON.parse(localStorage.getItem('collections')),
+						_basket;
+
+					var list, type, new_list = [];
+
+					$.each(_collections, function(index, value) {
+						if (value.id == selectedCollection) {
+							_basket = value;
+							_basket['name'] = index;
+						}
+					});
+
+					if (el.closest('table').attr('id') == 'table-annotations') {
+						$.each($('tr[data-graph]'), function() {
+							new_list.push($(this).data('graph'));
+						});
+						_basket['annotations'] = new_list;
+					} else {
+						$.each($('tr[data-graph]'), function() {
+							new_list.push($(this).data('graph'));
+						});
+						_basket['images'] = new_list;
+					}
+
+					localStorage.setItem('collections', JSON.stringify(_collections));
+				};
+
 				var makeSortable = function() {
+					var item_index, target_index;
 					$("tbody").sortable({
 						items: "tr[data-graph]",
-						change: function(event, ui) {
-							console.log($('tr[data-graph]:hover'));
+						update: function(event, ui) {
+							changeNumbers();
+							editCollection(ui.item);
 						}
 					});
 				};
 
 				makeSortable();
-				*/
+
 				$('#close-alert').click(function() {
 					$('#alert-save-collection').fadeOut().remove();
 				});

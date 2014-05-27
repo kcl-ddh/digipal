@@ -745,32 +745,33 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var position = _self.position(path);
 			var absolute_position = position.absolute_position;
 
+			if (annotator.boxes_on_click) {
+				dialog.dialog({
+					draggable: true,
+					height: 340,
+					minHeight: 340,
+					minWidth: 335,
+					resizable: false,
 
-			dialog.dialog({
-				draggable: true,
-				height: 340,
-				minHeight: 340,
-				minWidth: 335,
-				resizable: false,
+					close: function(event, ui) {
+						$(this).dialog('destroy').empty().remove();
+					},
 
-				close: function(event, ui) {
-					$(this).dialog('destroy').empty().remove();
-				},
+					title: _self.label.init(selectedFeature),
 
-				title: _self.label.init(selectedFeature),
+					position: position.p
 
-				position: position.p
+				}).addClass('dialog_annotations');
 
-			}).addClass('dialog_annotations');
-
-			if (absolute_position) {
-				var top_page_position = $(window).scrollTop();
-				var window_height = ($(window).height() / 100) * 25;
-				dialog.parent().css({
-					'position': 'absolute',
-					'top': top_page_position + window_height,
-					'left': '68%'
-				});
+				if (absolute_position) {
+					var top_page_position = $(window).scrollTop();
+					var window_height = ($(window).height() / 100) * 25;
+					dialog.parent().css({
+						'position': 'absolute',
+						'top': top_page_position + window_height,
+						'left': '68%'
+					});
+				}
 			}
 			callback(dialog);
 		},
@@ -795,10 +796,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						dialog.css("margin", "3%");
 						dialog.html(s);
 						callback();
-					} else {
-						self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 					}
 				}
+				self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
 
 				panel.find('.allograph_form').on('change', function() {
@@ -1004,9 +1004,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {
@@ -1898,17 +1898,12 @@ function showBox(selectedFeature, callback) {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	}
 
-		annotator.dialog.init(selectedFeature, id, function() {
-			if (callback) {
-				callback();
-			}
-		});
-		return false;
+	annotator.dialog.init(selectedFeature, id, function() {
+		if (callback) {
+			callback();
+		}
+	});
 
-
-	if (callback) {
-		callback();
-	}
 }
 
 function load_data(selectedFeature, dialog, callback) {
@@ -1937,7 +1932,7 @@ function load_data(selectedFeature, dialog, callback) {
 			url = content_type + '/' + allograph + '/';
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
-					refresh_dialog(dialog, data[0], selectedFeature, callback);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 
 			});
 		} else {
@@ -1955,7 +1950,7 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
-					refresh_dialog(dialog, data[0], selectedFeature, callback);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 
 			});
 
@@ -1966,7 +1961,7 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
-					refresh_dialog(dialog, data[0], selectedFeature, callback);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
 
 			});
 
@@ -1978,7 +1973,7 @@ function load_data(selectedFeature, dialog, callback) {
 			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
 			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
 			data['hands'] = cache.cache.graphs[graph]['hands'];
-				refresh_dialog(dialog, data, selectedFeature, callback);
+			refresh_dialog(dialog, data, selectedFeature, callback);
 
 		}
 	}

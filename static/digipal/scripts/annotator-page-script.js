@@ -717,6 +717,22 @@ function AnnotatorLoader() {
 		}
 
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
+		if (annotator.isAdmin) {
+			toggle_fixed_toolbar();
+		}
+	};
+
+
+	var toggle_fixed_toolbar = function() {
+		var toolbar = $('#panelImageBox');
+		var toolbar_position = toolbar.position().top;
+		$(document).on('scroll', function() {
+			if ($(this).scrollTop() >= toolbar_position) {
+				toolbar.addClass('fixed_toolbar');
+			} else {
+				toolbar.removeClass('fixed_toolbar');
+			}
+		});
 	};
 
 	// switches mode annotating or not annotating

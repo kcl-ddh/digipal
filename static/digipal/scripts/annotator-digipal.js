@@ -702,6 +702,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.selectedFeature.isTemporary = true;
 			}
 
+			$('.save_trigger').on('click', function() {
+				annotator.saveButton.trigger();
+			});
+
+			$('.delete_trigger').on('click', function() {
+				annotator.deleteFeature.clickFeature();
+			});
+
 			$('*[data-toggle="tooltip"]').tooltip({
 				container: 'body',
 				placement: 'bottom'
@@ -841,7 +849,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (annotator.isAdmin == "True") {
 					if (selectedFeature && annotator.annotating && !annotator.editorial.active) {
 						html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
-						html_string_buttons = "<button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
+						html_string_buttons = "<button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 					} else if (!annotator.annotating) {
 						html_string_label = "<span class='allograph_label'><span class='allograph_label'>" + selectedFeature.feature + "</span></span>";
 						html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
@@ -901,9 +909,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 				if (annotator.isAdmin == 'True') {
 					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
-						html_string += " <button class='btn btn-default btn-xs link_graphs'>Group</button>";
+						html_string += " <button class='btn btn-default btn-xs link_graphs'><i class='fa fa-users'></i></button>";
 					} else {
-						html_string += " <button class='btn btn-default btn-xs link_graphs disabled' disabled>Group</button>";
+						html_string += " <button class='btn btn-default btn-xs link_graphs disabled' disabled><i class='fa fa-users'></i></button>";
 					}
 				}
 				return html_string;
@@ -1006,9 +1014,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {
@@ -1929,7 +1937,7 @@ function load_data(selectedFeature, dialog, callback) {
 				return false;
 			}
 			content_type = 'allograph';
-			url = content_type + '/' + allograph + '/';
+			url = 'old/' + content_type + '/' + allograph + '/';
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
@@ -1946,7 +1954,7 @@ function load_data(selectedFeature, dialog, callback) {
 		// if there's no allograph cached, I make a full AJAX call
 		if (!cache.search("allograph", allograph)) {
 
-			url = content_type + '/' + selectedFeature.graph + '/';
+			url = 'old/' + content_type + '/' + selectedFeature.graph + '/';
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
@@ -1957,7 +1965,7 @@ function load_data(selectedFeature, dialog, callback) {
 			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
 		} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
 
-			url = content_type + '/' + selectedFeature.graph + '/features';
+			url = 'old/' + content_type + '/' + selectedFeature.graph + '/features';
 			annotator.api.request(url, function(data) {
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);

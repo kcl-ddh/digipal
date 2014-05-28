@@ -31,7 +31,7 @@ function EditGraphsSearch() {
 
     // constants to be used troughout the script
     self.constants = {
-        'ABSOLUTE_URL': '/digipal/api/',
+        'ABSOLUTE_URL': '/digipal/api/old/',
         'PREFIX': 'search_'
     };
 

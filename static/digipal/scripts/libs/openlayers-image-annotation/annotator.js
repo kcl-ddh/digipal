@@ -149,6 +149,11 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		},
 		clickFeature: function(feature) {
 			var msg, doDelete;
+
+			if (!annotator.selectedAnnotations.length && !annotator.selectedFeature) {
+				notify('Select Annotations to proceed', 'danger');
+				return false;
+			}
 			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
 
 				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + ' annotations. They cannot be restored at a later time! Continue?';
@@ -178,7 +183,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	// creates a delete feature
 	this.deleteFeature = new DeleteFeature(this.vectorLayer, {
-		displayClass: 'olControlDeleteFeature glyphicon glyphicon-remove btn-danger ',
+		displayClass: 'olControlDeleteFeature fa fa-times ',
 		title: 'Delete'
 	});
 
@@ -315,7 +320,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			_self.saveAnnotation();
 		},
-		displayClass: 'olControlSaveFeatures glyphicon glyphicon-ok btn-success '
+		displayClass: 'olControlSaveFeatures fa fa-save '
 	});
 
 	/* FullScreen Mode */

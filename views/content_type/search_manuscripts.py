@@ -204,7 +204,7 @@ class SearchManuscripts(SearchContentType):
                 snippet_length = 50
                 historical_item = record.historical_item
                 if historical_item:
-                    description, location = self._get_best_description_location(historical_item.get_descriptions().all())
+                    description, location = self._get_best_description_location(historical_item.get_descriptions())
                     if description is None:
                         # no match in any description, so we select the beginning of the most important description
                         description, location = historical_item.get_display_description(), 0

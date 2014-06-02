@@ -478,7 +478,8 @@ def images_lightbox(request, collection_name):
             data['annotations'] = annotations
         if 'images' in graphs:
             images = []
-            images_list = Image.objects.filter(id__in=graphs['images'])
+            images_list = list(Image.objects.filter(id__in=graphs['images']))
+            images_list.sort(key=lambda t: graphs['images'].index(t.id))
             for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images

@@ -410,15 +410,13 @@ function main() {
 						}
 					});
 
+					$.each($('tr[data-graph]'), function() {
+						new_list.push($(this).data('graph'));
+					});
+
 					if (el.closest('table').attr('id') == 'table-annotations') {
-						$.each($('tr[data-graph]'), function() {
-							new_list.push($(this).data('graph'));
-						});
 						_basket['annotations'] = new_list;
 					} else {
-						$.each($('tr[data-graph]'), function() {
-							new_list.push($(this).data('graph'));
-						});
 						_basket['images'] = new_list;
 					}
 

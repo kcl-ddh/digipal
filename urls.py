@@ -82,9 +82,6 @@ urlpatterns += patterns('digipal.views.admin.stewart',
                        (r'admin/digipal/stewartrecord/import', 'stewart_import'),
                        )
 
-urlpatterns += patterns('digipal.views.sitemap',
-                       (r'^(?P<sitemap>[a-zA-Z-_0-9]+).xml$', 'sitemap'),
-                       )
 
 if settings.DEBUG:
     urlpatterns += patterns('digipal.views.test',
@@ -95,6 +92,7 @@ if settings.DEBUG:
                            (r'test/autocomplete/$', 'autocomplete_view'),
                            (r'test/api/$', 'api_view'),
                            )
+
 urlpatterns += patterns('digipal.views.test',
                        (r'test/error/?$', 'server_error_view'),
                        )

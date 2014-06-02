@@ -14,8 +14,6 @@ Note that the parameter test is needed to make casperJS work in a test environme
 ## Configuration (temporary)
 Options to configure the tests:
 
-    "root": "http://localhost:8000",
-    "tests": ['titles', 'annotator'],
-    "deepScan": false,
-    "username": "gbuomprisco",
-    "password": "DelPiero91"
+    -  root: website root
+    -  tests: array of tests to be performed
+    -  deepScan: deep scan of the website (all links will be followed by the script)

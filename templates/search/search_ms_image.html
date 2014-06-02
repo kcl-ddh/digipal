@@ -8,7 +8,9 @@
 
 {% block main %}
     <div class="page-header">
-        <h1>Manuscript Images</h1>
+        <h1>Manuscript Images 
+            ({{ images.count }})
+        </h1>
     </div>
 
     <form id='searchform' class="form-inline panel" action='.'>
@@ -22,10 +24,8 @@
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-2">
-                <input type='hidden' name="view" value='{{ view }}' />
-
+                <input class="sticky" type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn btn-primary'/>
-
             </div>
         </div>
     </form>
@@ -53,8 +53,9 @@
         </div>
 
         <div class="col-xs-12 col-sm-8">
-            {% autopaginate images 12 as images_on_this_page %}
-            {% paginate %}
+            {% autopaginate images page_size as images_on_this_page %}
+            
+            {% include "pagination/pagination_with_size.html" %}
         </div>
 
     </div>
@@ -112,7 +113,7 @@
         </div>
     {% endif %}
 
-    {% paginate %}
+    {% include "pagination/pagination_with_size.html" %}
 
     {% include "digipal/add_to_collection.html" %}
 

@@ -149,6 +149,14 @@ class FilterManuscriptsImages(forms.Form):
         empty_label = "Date",
         required = False)
 
+    # page size
+    pgs = forms.CharField(
+        initial=10,
+        required=False,
+        label='',
+        widget=HiddenInput())
+
+
 class SearchPageForm(forms.Form):
     """ Represents the input form on the search page """
 

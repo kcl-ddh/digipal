@@ -101,6 +101,8 @@ def search_ms_image_view(request):
     repository = request.GET.get('repository', '')
     date = request.GET.get('date', '')
 
+    set_page_sizes_to_context(request, context, [12, 20, 40, 100])
+
     # Applying filters
     if town_or_city:
         images = images.filter(item_part__current_item__repository__place__name = town_or_city)
@@ -223,6 +225,14 @@ def search_record_view(request):
 
     return ret
 
+def set_page_sizes_to_context(request, context, options=[10, 20, 50, 100]):
+    context['page_sizes'] = options
+    context['page_size'] = request.GET.get('pgs', '')
+    if context['page_size'] and context['page_size'].isdigit():
+        context['page_size'] = int(context['page_size'])
+    if context['page_size'] not in context['page_sizes']:
+        context['page_size'] = context['page_sizes'][0]  
+    
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
         for each relevant type of content (e.g. MS, Hand) => context['results']
@@ -241,12 +251,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     context['terms'] = ''
 
     # pagination sizes
-    context['page_sizes'] = [10, 20, 50, 100]
-    context['page_size'] = request.GET.get('pgs', '')
-    if context['page_size'] and context['page_size'].isdigit():
-        context['page_size'] = int(context['page_size'])
-    if context['page_size'] not in context['page_sizes']:
-        context['page_size'] = context['page_sizes'][0]  
+    set_page_sizes_to_context(request, context)
         
     # list of query parameter/form fields which can be changed without triggering a search 
     context['submitted'] = False
@@ -306,7 +311,7 @@ def get_query_summary(request, term, submitted, forms):
     # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
     ret = u''
     
-    from django.utils.html import conditional_escape, escape, strip_tags
+    from django.utils.html import strip_tags
     
     def get_filter_html(val, param, label=''):
         ret = u''
@@ -329,13 +334,14 @@ def get_query_summary(request, term, submitted, forms):
                     field_label = getattr(boundfield, 'label', '') or getattr(boundfield.field, 'empty_label', '') or (boundfield.field.initial) or field_name.title()
                     value = boundfield.value()
                     if value:
-                        for choice_value, choice_label in boundfield.field.choices:
-                            if unicode(value) == unicode(choice_value):
-                                if ret:
-                                    ret += ', '
-                                ret += get_filter_html(choice_label, field_name, field_label)
-                                found_params.append(field_name)
-                                break
+                        if hasattr(boundfield.field, 'choices'):
+                            for choice_value, choice_label in boundfield.field.choices:
+                                if unicode(value) == unicode(choice_value):
+                                    if ret:
+                                        ret += ', '
+                                    ret += get_filter_html(choice_label, field_name, field_label)
+                                    found_params.append(field_name)
+                                    break
                 
         
         if not ret.strip():

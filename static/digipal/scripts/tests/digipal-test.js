@@ -4,53 +4,55 @@
  **/
 
 
-function DigipalTest() {
+function DigipalTest(_options) {
 
     phantom.page.injectJs('config.js');
 
+    var self = this;
     var domain = config.root;
-    var http = require('http');
-    var system = require('system');
-    var casperUtils = require("utils");
-
-    /*
-     **Extracting arguments
-     */
+    var http = require('http'),
+        system = require('system');
 
     if (casper.cli.get('deep')) {
         config.deepScan = true;
     }
 
-    var init = function(page, _options) {
+    var _local_options = {
+        'deepScan': config.deepScan,
+        "page": domain
+    };
 
+    var init = function() {
+
+        // errors: 404, 500 and js
         var errors = [];
-
         catchEvents(errors);
 
-        /*
-         ** Running Tests
-         */
+        // assert errors
+        var assert_failures = [];
 
-        domain = domain + page;
+        casper.test.on("fail", function(failure) {
+            assert_failures.push(failure);
+        });
 
-        var _local_options = {
-            'deepScan': config.deepScan
-        };
+        casper.test.begin('Digipal testing Suite', function() {
+            casper.start(_local_options.page, function() {
+                scraper(tests, _local_options);
+            }).run(function() {
 
-        _local_options = utils.extend({}, _local_options, _options);
+                if (assert_failures.length) {
+                    this.echo(assert_failures.length + ' failures', 'ERROR');
+                }
 
-        casper.start(domain, function() {
-            scraper(tests, _local_options);
-        }).run(function() {
+                if (errors.length > 0) {
+                    this.echo(errors.length + ' Javascript errors found', "WARNING");
+                } else {
+                    this.echo(errors.length + ' Javascript errors found', "INFO");
+                }
 
-            if (errors.length > 0) {
-                this.echo(errors.length + ' Javascript errors found', "WARNING");
-            } else {
-                this.echo(errors.length + ' Javascript errors found', "INFO");
-            }
-
-            this.echo('All tasks done. Digipal is OK :)', 'GREEN_BAR');
-            this.exit();
+                this.echo('All tasks done.', 'GREEN_BAR');
+                this.exit();
+            });
         });
 
     };
@@ -82,10 +84,7 @@ function DigipalTest() {
         var run = function(_links) {
 
             var testsList = SortTests(_tests);
-
-            console.log(JSON.stringify(testsList))
             if (testsList.multiple.length) {
-                casper.echo(_links)
                 casper.eachThen(_links, function(response) {
                     if (response.data !== null) {
 
@@ -96,18 +95,18 @@ function DigipalTest() {
 
                         casper.thenOpen(url, function() {
 
-                            casper.echo('\nOpened ' + url, 'INFO');
+                            casper.echo('\nOpened ' + url, 'PARAMETER');
                             for (var i = 0; i < testsList.multiple.length; i++) {
                                 tests[testsList.multiple[i]].run();
                             }
 
                             if (_local_options.deepScan) {
-                                var links = get_links(linksCache);
+                                var links = dom_utils.get_links(linksCache);
                                 run(links);
                             }
-
                         });
                     }
+
                 });
             }
 
@@ -156,25 +155,24 @@ function DigipalTest() {
         return tests;
     };
 
+    var editTest = function(test, attrs) {
+        utils.extend({}, tests[test], attrs);
+    };
+
     var tests = {
         titles: {
             multiple: true,
+            message: 'Testing titles',
             run: function() {
-                if (casper.getTitle()) {
-                    casper.echo('TITLE FOUND', 'GREEN_BAR');
-                    casper.echo('Title:' + casper.getTitle(), 'PARAMETER');
-                } else {
-                    casper.echo('Title is missing', 'WARNING');
-                }
+                casper.test.assertTruthy(casper.getTitle());
             }
         }
     };
 
     var dom_utils = {
         get_links: function(linksCache) {
-            var _links = casper.getElementsAttribute('a', 'href');
-            var link;
-
+            var _links = casper.getElementsAttribute('a', 'href'),
+                link;
             for (var i = 0; i < _links.length; i++) {
                 link = utils.removeQueryString(_links[i]);
                 if (linksCache.indexOf(link) >= 0) {
@@ -199,7 +197,7 @@ function DigipalTest() {
         },
 
         removeQueryString: function(link) {
-            var regex = /\?(.)*$/;
+            var regex = /[\?#](.)*|javascript:void\(0\)$/;
             return link.replace(regex, '');
         },
 
@@ -219,9 +217,13 @@ function DigipalTest() {
 
     };
 
+    _local_options = utils.extend({}, _local_options, _options);
+
     return {
         'tests': tests,
         'addTest': addTest,
-        'init': init
+        'editTest': editTest,
+        'init': init,
+        'options': _local_options
     };
 }

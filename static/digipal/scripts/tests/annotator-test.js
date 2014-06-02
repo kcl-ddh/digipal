@@ -2,33 +2,39 @@ phantom.page.injectJs('./digipal-test.js');
 
 AnnotatorTest.prototype = new DigipalTest();
 
-function AnnotatorTest() {
+function AnnotatorTest(options) {
 
     var tests = this.tests;
+    var domain = config.root;
 
     tests.annotator = {
         multiple: false,
         run: function() {
-            var tasks = new Tasks();
+            var tasks = new Tasks(options.page);
 
-            tasks.AnnotatorTasks.getAdminAccess('http://localhost:8000/admin', config.username, config.password).
-            then(function() {
-                var feature = tasks.AnnotatorTasks.getVectorElement();
-                var selectedFeature = casper.evaluate(function(feature) {
-                    annotator.selectFeatureById(feature.id);
-                    return annotator.selectedFeature;
-                }, feature);
-                casper.test.begin('The two ids are equal', 1, function(test) {
-                    test.assert(feature.id === selectedFeature.id);
-                    test.done();
+            if (!casper.cli.get('username') || !casper.cli.get('password')) {
+                casper.echo('This task needs username and password to the get root access', 'ERROR');
+                casper.exit();
+            }
+
+            tasks.AnnotatorTasks.getAdminAccess('http://localhost:8000/admin', casper.cli.get('username'), casper.cli.get('password'))
+                .then(function() {
+                    var feature = tasks.AnnotatorTasks.getVectorElement();
+                    var selectedFeature = casper.evaluate(function(feature) {
+                        annotator.selectFeatureById(feature.id);
+                        return annotator.selectedFeature;
+                    }, feature);
+                    casper.test.begin('The two ids are equal', 1, function(test) {
+                        test.assert(feature.id === selectedFeature.id);
+                        test.done();
+                    });
                 });
-            });
         }
     };
 }
 
 
-var Tasks = function() {
+var Tasks = function(page) {
 
     var AnnotatorTasks = {
 
@@ -51,18 +57,16 @@ var Tasks = function() {
         },
 
         getAdminAccess: function(admin_page, username, password) {
-            casper.thenOpen(admin_page, function() {
+            casper.open(admin_page, function() {
                 this.fill('form#login-form', {
                     'username': username,
                     'password': password
                 }, true);
+            }).then(function() {
+                casper.back();
             });
 
-            casper.thenOpen(page, function() {
-                casper.back().back();
-            });
-
-            return casper.then(function() {
+            return casper.thenOpen(page, function() {
                 return casper;
             });
         },
@@ -85,9 +89,10 @@ var Tasks = function() {
 
 };
 
-
-var annotatorTest = new AnnotatorTest();
-var page = '/digipal/page/81';
-annotatorTest.init(page, {
-    followLinks: false
-});
+(function() {
+    var page = config.root + '/digipal/page/81';
+    var annotatorTest = new AnnotatorTest({
+        page: page
+    });
+    annotatorTest.init();
+})();

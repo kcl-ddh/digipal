@@ -26,7 +26,15 @@ function AnnotatorTest(options) {
                 .then(function() {
 
                     var scenario = new Scenario();
-                    scenario.Scenario1();
+
+                    casper.then(function() {
+                        scenario.Scenario1();
+                    });
+
+                    casper.then(function() {
+                        scenario.Scenario2();
+                    });
+
                     /*tasks.AnnotatorTasks.do.annotate(function() {
                         console.log('I finished saving!');
                     });*/
@@ -39,7 +47,7 @@ function AnnotatorTest(options) {
 var Tasks = function(page) {
 
     var AnnotatorTasks = {
-
+        _self: this,
         get: {
 
             features: function() {
@@ -83,24 +91,40 @@ var Tasks = function(page) {
 
         do :{
 
+            _self: this,
+
             /*
-             ** Draws and describe a new annotation
+             ** Draws and describe a new or an existing annotation
              ** Shortcut for the sequence describeForms, drawFeature, describe, save
              */
 
-            annotate: function(describe, callback) {
+            annotate: function(feature, describe, callback) {
                 var self = this;
                 self.describeForms();
-                self.drawFeature();
-                casper.wait(250, function() {
-                    self.describeForms();
-                    casper.wait(250, function() {
-                        if (describe) {
-                            self.describe();
-                        }
-                        self.save(callback);
+
+                if (feature) {
+                    self.select(feature, function() {
+                        console.log('Annotating feature: ' + feature);
+                        execute();
                     });
-                });
+                } else {
+                    console.log('Drawing new feature...');
+                    self.drawFeature();
+                    execute();
+                }
+
+                var execute = function() {
+                    casper.wait(250, function() {
+                        self.describeForms();
+                        casper.wait(500, function() {
+                            if (describe) {
+                                console.log('Describing feature...');
+                                self.describe();
+                            }
+                            self.save(callback);
+                        });
+                    });
+                };
             },
 
             save: function(callback) {
@@ -109,6 +133,14 @@ var Tasks = function(page) {
                 });
                 casper.wait(500, function() {
                     if (callback) {
+
+                        if (casper.evaluate(function() {
+                            return $('#status').hasClass('alert-success');
+                        })) {
+                            casper.echo('Annotation succesfully saved', 'INFO');
+                        } else {
+                            casper.echo('Annotation not saved', 'ERROR');
+                        }
                         return callback();
                     }
                 });
@@ -167,17 +199,24 @@ var Tasks = function(page) {
 
             describe: function() {
                 casper.evaluate(function() {
-                    var features_elements = $('.features_box');
+                    var features_elements = $('.dialog_annotations .features_box');
+                    var n = 0;
                     $.each(features_elements, function() {
+                        if (n > 5) {
+                            return false;
+                        }
                         $(this).attr('checked', true);
+                        n++;
                     });
+                    console.log(n, features_elements.length);
                 });
             },
 
             describeForms: function() {
                 casper.evaluate(function() {
-                    $('#panelImageBox .allograph_form').val(11);
-                    $('#panelImageBox .hand_form').val(287);
+                    $('#panelImageBox .allograph_form').val(11).trigger('change');
+                    $('#panelImageBox .hand_form').val(332).trigger('change');
+                    return $('select').trigger('liszt:updated');
                 });
             },
 
@@ -188,11 +227,20 @@ var Tasks = function(page) {
 
                 casper.then(function() {
                     this.wait(300, function() {
+                        casper.capture('screen2.png');
                         if (callback) {
                             return callback();
                         }
                     });
                 });
+            },
+
+            /*
+             ** Simulate click on map to deselect features
+             */
+
+            unselect: function() {
+                casper.click('#OpenLayers_Layer_Zoomify_2');
             }
         },
 
@@ -259,14 +307,12 @@ var Tasks = function(page) {
                 return casper.evaluate(function() {
                     var features_selected = [];
                     var features_elements = $('.features_box');
-
                     features_elements.each(function() {
                         if ($(this).is(':checked')) {
-                            var label = $('label[for=' + $(this).attr('id') + ']').text();
+                            var label = $('.dialog_annotations').find('label[for=' + $(this).attr('id') + ']').text();
                             features_selected.push(label);
                         }
                     });
-
                     return features_selected;
                 });
             }
@@ -303,7 +349,9 @@ var Tasks = function(page) {
                     }
                     return _cachedFeatures;
                 });
-                casper.test.assert(utils.equals(cachedFeatures, featuresSelected), 'The cached features and the checkboxes checked must match');
+                casper.echo(cachedFeatures.length + ' cached features found');
+                casper.echo(featuresSelected.length + ' checkboxes checked found');
+                casper.test.assert(utils.equals(cachedFeatures, featuresSelected), 'The cached features and the checkboxes checked match');
             },
         }
     };
@@ -369,6 +417,48 @@ function Scenario() {
             AnnotatorTasks.dialog.close();
             casper.test.assertDoesntExist('.dialog_annotations', 'Dialog closed.');
         });
+    };
+
+    /*
+    - @Scenario2
+    - Select any graph.
+    - Check some features checkboxes, save the graph and close the box. Reopen it and make sure the changes are clearly visible. Refresh the page and open it again.
+    - Change hand or/and allograph, save the graph. Deselect the graph, then reselect it. Refresh the page and check that everything matches with your changes.
+    */
+
+    this.Scenario2 = function() {
+        casper.echo('Running Annotator Scenario 2', 'PARAMETER');
+
+        var actions = function(feature) {
+            AnnotatorTasks.do.select(feature.id, function() {
+                var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
+                AnnotatorTasks.tests.dialogMatchesCache(features_selected);
+            });
+        };
+
+        var feature = AnnotatorTasks.get.random_vector();
+
+        casper.wait(200, function() {
+            casper.then(function() {
+                AnnotatorTasks.do.annotate(feature.id, true, function() {
+                    AnnotatorTasks.dialog.close();
+                    AnnotatorTasks.do.unselect();
+                });
+            });
+
+            casper.wait(1000, function() {
+                casper.then(function() {
+                    actions(feature);
+                });
+            });
+
+            casper.then(function() {
+                casper.echo('Reloading page ...');
+                casper.reload(function() {
+                    actions(feature);
+                });
+            });
+        });
 
     };
 
@@ -392,7 +482,7 @@ function Scenario() {
 }
 
 (function() {
-    var page = '/digipal/page/80';
+    var page = '/digipal/page/121';
     var annotatorTest = new AnnotatorTest({
         "page": page
     });

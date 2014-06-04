@@ -81,7 +81,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 		if (self.annotations) {
 			var annotation = self.vectorLayer.getFeatureById(feature.id);
-			if (!annotation || !annotation.hasOwnProperty('id')) {
+			if (!annotation || !annotation.stored) {
 				annotation = {};
 			}
 			showBox(annotation, function() {
@@ -1291,7 +1291,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 * Saves an annotation for the currently selected feature.
 	 */
 	this.saveAnnotation = function(ann, allographs_page) {
-
 		if (!ann) {
 			ann = null;
 		}
@@ -1299,7 +1298,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		if (typeof allographs_page == 'undefined') {
 			allographs_page = false;
 		}
-
 		if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
 			updateStatus('Select annotations to proceed', 'danger');
 			return false;
@@ -1894,7 +1892,6 @@ function showBox(selectedFeature, callback) {
 	var features = annotator.vectorLayer.features;
 	var id = Math.random().toString(36).substring(7);
 	var can_edit = $('#development_annotation').is(':checked');
-
 	var n = 0;
 	for (var i = 0; i < features.length; i++) {
 		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
@@ -1923,11 +1920,13 @@ function load_data(selectedFeature, dialog, callback) {
 
 	var select_allograph = get_forms().allograph_form;
 	var allograph;
+
 	if (!$.isEmptyObject(selectedFeature)) {
 		allograph = selectedFeature.allograph_id;
 	} else {
 		allograph = select_allograph.val();
 	}
+
 
 	if (typeof selectedFeature == "null" || $.isEmptyObject(selectedFeature) || !selectedFeature.hasOwnProperty('graph')) {
 
@@ -2405,7 +2404,6 @@ function make_form() {
 	var hand_form = forms.hand_form;
 	var form = forms.frmAnnotation;
 	var panel = forms.modal;
-
 	if (!allograph_form.val() || !hand_form.val()) {
 		updateStatus('Hand and Allograph are required', 'danger');
 		return false;
@@ -2499,7 +2497,7 @@ function make_form() {
  */
 
 function save(url, graphs, data, ann, features) {
-	var save_annotations = $.ajax({
+	$.ajax({
 		url: url,
 		data: data['form_serialized'],
 		beforeSend: function() {
@@ -2510,7 +2508,6 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
-			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 
@@ -2639,6 +2636,7 @@ function save(url, graphs, data, ann, features) {
 			annotator.has_changed = true;
 		}
 	});
+
 }
 
 function registerEvents() {

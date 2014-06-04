@@ -17,29 +17,27 @@ function DigipalTest(_options) {
         config.deepScan = true;
     }
 
-    var _local_options = {
+    var options = {
         'deepScan': config.deepScan,
         "page": domain
     };
 
-    var init = function() {
+    var init = function(_options) {
+
+        options = Utils.extend({}, options, _options);
 
         // errors: 404, 500 and js
         var errors = [];
-        catchEvents(errors);
 
         // assert errors
         var assert_failures = [];
 
-        casper.test.on("fail", function(failure) {
-            assert_failures.push(failure);
-        });
+        Events(errors, assert_failures);
 
         casper.test.begin('Digipal testing Suite', function() {
-            casper.start(_local_options.page, function() {
-                scraper(tests, _local_options);
+            casper.start(options.page, function() {
+                Scraper(Tests.tests, options);
             }).run(function() {
-
                 if (assert_failures.length) {
                     this.echo(assert_failures.length + ' failures', 'ERROR');
                 }
@@ -57,14 +55,22 @@ function DigipalTest(_options) {
 
     };
 
-    var catchEvents = function(errors) {
+    var Events = function(errors, assert_failures) {
 
         casper.on('http.status.404', function(resource) {
             this.echo('This url is 404: ' + resource.url, 'ERROR');
+            errors.push({
+                "Error": 404,
+                "url": resource.url
+            });
         });
 
         casper.on('http.status.500', function(resource) {
             this.echo('Woops, 500 error: ' + resource.url, 'ERROR');
+            errors.push({
+                "Error": 404,
+                "url": resource.url
+            });
         });
 
         casper.on("page.error", function(msg, trace) {
@@ -75,34 +81,40 @@ function DigipalTest(_options) {
             errors.push(msg);
         });
 
+        casper.test.on("fail", function(failure) {
+            assert_failures.push(failure);
+        });
+
+        casper.on('remote.message', function(msg) {
+            this.echo('remote message caught: ' + msg);
+        });
     };
 
-    var scraper = function(_tests, _local_options) {
+    var Scraper = function(_tests, options) {
 
         var linksCache = [];
 
-        var run = function(_links) {
+        (function() {
 
-            var testsList = SortTests(_tests);
+            var testsList = Tests.methods.sort(_tests);
             if (testsList.multiple.length) {
-                casper.eachThen(_links, function(response) {
+                var links = Utils.dom.get_links(linksCache);
+                casper.eachThen(links, function(response) {
                     if (response.data !== null) {
 
                         var url = domain + response.data;
-                        if (utils.isExternalLink(response.data)) {
+                        if (Utils.isExternalLink(response.data)) {
                             return false;
                         }
 
                         casper.thenOpen(url, function() {
-
                             casper.echo('\nOpened ' + url, 'PARAMETER');
                             for (var i = 0; i < testsList.multiple.length; i++) {
-                                tests[testsList.multiple[i]].run();
+                                Tests.tests[testsList.multiple[i]].run();
                             }
 
-                            if (_local_options.deepScan) {
-                                var links = dom_utils.get_links(linksCache);
-                                run(links);
+                            if (options.deepScan) {
+                                run();
                             }
                         });
                     }
@@ -112,81 +124,90 @@ function DigipalTest(_options) {
 
             if (testsList.single.length) {
                 for (var i = 0; i < testsList.single.length; i++) {
-                    tests[testsList.single[i]].run();
+                    Tests.tests[testsList.single[i]].run();
                 }
             }
-        };
-
-        var links = dom_utils.get_links(linksCache);
-        run(links);
+        })();
 
     };
 
-    var SortTests = function(tests) {
+    var Tests = {
 
-        var _tests = {
-            'multiple': [],
-            'single': []
-        };
+        methods: {
 
-        var hasTestsSetting = true;
+            sort: function(tests) {
+                var _tests = {
+                    'multiple': [],
+                    'single': []
+                };
 
-        if (!config.hasOwnProperty('tests') || !config.tests.length) {
-            casper.echo('Tests not defined in settings file. All tests are being performed', 'INFO');
-            hasTestsSetting = false;
-        }
+                var hasTestsSetting = true;
 
-        for (var i in tests) {
-            if (hasTestsSetting && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
-                if (tests[i].multiple) {
-                    _tests.multiple.push(i);
-                } else {
-                    _tests.single.push(i);
+                if (!config.hasOwnProperty('tests') || !config.tests.length) {
+                    casper.echo('Tests not defined in settings file. All tests are being performed', 'INFO');
+                    hasTestsSetting = false;
+                }
+
+                for (var i in tests) {
+                    if (hasTestsSetting && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
+                        if (tests[i].multiple) {
+                            _tests.multiple.push(i);
+                        } else {
+                            _tests.single.push(i);
+                        }
+                    }
+                }
+                return _tests;
+            },
+
+            add: function(name, Test) {
+                tests[name] = Test;
+                return tests;
+            },
+
+            edit: function(test, attrs) {
+                Utils.extend({}, tests[test], attrs);
+            },
+
+            list: function() {
+                casper.echo('List of available tests\n', 'PARAMETER');
+                for (var i in Tests.tests) {
+                    casper.echo('\tTest: ' + i, 'INFO');
+                    casper.echo('\tDescription:' + Tests.tests[i].message + '\n');
+                }
+            }
+        },
+
+        tests: {
+            titles: {
+                multiple: true,
+                message: 'Checks whether the tag title is present or not',
+                run: function() {
+                    casper.test.assertTruthy(casper.getTitle());
                 }
             }
         }
-
-        return _tests;
-
     };
 
-    var addTest = function(name, Test) {
-        tests[name] = Test;
-        return tests;
-    };
 
-    var editTest = function(test, attrs) {
-        utils.extend({}, tests[test], attrs);
-    };
+    var Utils = {
 
-    var tests = {
-        titles: {
-            multiple: true,
-            message: 'Testing titles',
-            run: function() {
-                casper.test.assertTruthy(casper.getTitle());
-            }
-        }
-    };
-
-    var dom_utils = {
-        get_links: function(linksCache) {
-            var _links = casper.getElementsAttribute('a', 'href'),
-                link;
-            for (var i = 0; i < _links.length; i++) {
-                link = utils.removeQueryString(_links[i]);
-                if (linksCache.indexOf(link) >= 0) {
-                    _links.splice(i, 1);
-                    i--;
-                } else {
-                    linksCache.push(link);
+        dom: {
+            get_links: function(linksCache) {
+                var _links = casper.getElementsAttribute('a', 'href'),
+                    link;
+                for (var i = 0; i < _links.length; i++) {
+                    link = Utils.removeQueryString(_links[i]);
+                    if (linksCache.indexOf(link) >= 0) {
+                        _links.splice(i, 1);
+                        i--;
+                    } else {
+                        linksCache.push(link);
+                    }
                 }
+                return _links;
             }
-            return _links;
-        }
-    };
-
-    var utils = {
+        },
 
         isExternalLink: function(link) {
             var regex = /^http(s)?:\/\/(.)+/;
@@ -213,17 +234,78 @@ function DigipalTest(_options) {
                 }
             }
             return out;
-        }
+        },
 
+        equals: function(array1, array2) {
+
+            if (!array1 || !array2) {
+                return false;
+            }
+
+            if (array1.length != array2.length) {
+                return false;
+            }
+
+            for (var i = 0, l = array1.length; i < l; i++) {
+                if (array1[i] instanceof Array && array2[i] instanceof Array) {
+                    if (!array1[i].equals(array2[i]))
+                        return false;
+                } else if (array1[i] != array2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        },
+
+        screenshot: function() {
+            var viewportSizes = [
+                    [320, 480],
+                    [320, 568],
+                    [600, 1024],
+                    [1024, 768],
+                    [1280, 800],
+                    [1440, 900]
+                ],
+
+                url = casper.cli.args[0],
+                saveDir = url.replace(/[^a-zA-Z0-9]/gi, '-').replace(/^https?-+/, '');
+
+            casper.each(viewportSizes, function(self, viewportSize, i) {
+
+                // set two vars for the viewport height and width as we loop through each item in the viewport array
+                var width = viewportSize[0],
+                    height = viewportSize[1];
+
+                this.viewport(width, height);
+
+                //Set up two vars, one for the fullpage save, one for the actual viewport save
+                var FPfilename = saveDir + '/fullpage-' + width + ".png";
+                var ACfilename = saveDir + '/' + width + '-' + height + ".png";
+
+                //Capture selector captures the whole body
+                this.captureSelector(FPfilename, 'body');
+
+                //capture snaps a defined selection of the page
+                this.capture(FPfilename + '_selection', {
+                    top: 0,
+                    left: 0,
+                    width: width,
+                    height: height
+                });
+
+                this.echo('Snapshot taken');
+
+            });
+        }
     };
 
-    _local_options = utils.extend({}, _local_options, _options);
-
     return {
-        'tests': tests,
-        'addTest': addTest,
-        'editTest': editTest,
+        'tests': Tests.tests,
+        'addTest': Tests.methods.add,
+        'editTest': Tests.methods.edit,
+        'listTests': Tests.methods.list,
         'init': init,
-        'options': _local_options
+        'options': options,
+        'utils': Utils
     };
 }

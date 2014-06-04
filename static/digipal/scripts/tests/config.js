@@ -1,5 +1,5 @@
 var config = {
     "root": "http://localhost:8000",
-    "tests": ['titles', 'annotator'],
+    "tests": ['annotator'],
     "deepScan": false
 };

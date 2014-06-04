@@ -511,7 +511,7 @@ class HistoricalItem(models.Model):
 
     def get_descriptions(self):
         #ret = Description.objects.filter(historical_item=self).distinct()
-        ret = self.description_set.all()
+        ret = self.description_set.all().order_by('source__priority')
         return ret
 
     def set_catalogue_number(self):
@@ -537,27 +537,33 @@ class HistoricalItem(models.Model):
 
     def get_display_description(self):
         ret = None
-        ret_priority = 10
-        is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
-        # See JIRA 95
-        for desc in  self.get_descriptions():
-            if desc.source.id == settings.SOURCE_PROJECT_ID:
-                ret = desc
-                break
-            # esawyer
-            if is_charter and (desc.source.id == 5) and ret_priority > 1:
-                ret = desc
-                ret_priority = 1
-            # pelteret
-            if is_charter and (desc.source.id == 6) and ret_priority > 2:
-                ret = desc
-                ret_priority = 2
-            # gneuss
-            if not is_charter and (desc.source.id == 2) and ret_priority > 3:
-                ret = desc
-                ret_priority = 3
-            if ret_priority == 10:
-                ret = desc
+        if 0:
+            ret_priority = 10
+            is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
+            # See JIRA 95
+            for desc in  self.get_descriptions():
+                if desc.source.id == settings.SOURCE_PROJECT_ID:
+                    ret = desc
+                    break
+                # esawyer
+                if is_charter and (desc.source.id == 5) and ret_priority > 1:
+                    ret = desc
+                    ret_priority = 1
+                # pelteret
+                if is_charter and (desc.source.id == 6) and ret_priority > 2:
+                    ret = desc
+                    ret_priority = 2
+                # gneuss
+                if not is_charter and (desc.source.id == 2) and ret_priority > 3:
+                    ret = desc
+                    ret_priority = 3
+                if ret_priority == 10:
+                    ret = desc
+        
+        descs = self.get_descriptions()
+        if descs.count():
+            ret = descs[0]
+        
         return ret
 
 class Source(models.Model):

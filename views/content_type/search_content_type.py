@@ -827,11 +827,14 @@ class SearchContentType(object):
         from digipal.utils import get_tokens_from_phrase
         ret = get_tokens_from_phrase(self.query_phrase, lowercase)
         return ret        
+
+    def add_field_links(self, links):
+        pass
     
 class QuerySetAsList(list):
     def count(self):
         return len(self) 
-
+    
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.template.defaultfilters import slugify
 def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid=None, other_choices=[]):
@@ -853,7 +856,7 @@ def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid
     options = {
                 'widget': Select(attrs={'id': aid, 'class':'chzn-select', 'data-placeholder': 'Choose %s %s' % (label_prefix, label)}),
                 'label': '',
-                'required': False,                                
+                'required': False
                }
     if is_model_choice_field:
         ret = forms.ModelChoiceField(

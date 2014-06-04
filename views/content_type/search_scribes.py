@@ -11,7 +11,8 @@ class FilterScribes(forms.Form):
     scriptorium = get_form_field_from_queryset(Scribe.objects.values_list('scriptorium__name', flat=True).order_by('scriptorium__name').distinct(), 'Place')
     # TODO: order the dates
     scribe_date = get_form_field_from_queryset(sorted_natural(list(Scribe.objects.filter(date__isnull=False).values_list('date', flat=True).order_by('date').distinct())), 'Date')
-    character = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(), 'Character')
+    chartype = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__ontograph__ontograph_type__name', flat= True).order_by('idiographs__allograph__character__ontograph__ontograph_type__name').distinct(), 'Character Type', aid='chartype')
+    character = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__allograph__character__name', flat=True).order_by('idiographs__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
     component = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__component__name', flat=True).order_by('idiographs__idiographcomponent__component__name').distinct(), 'Component')
     feature = get_form_field_from_queryset(Scribe.objects.values_list('idiographs__idiographcomponent__features__name', flat=True).order_by('idiographs__idiographcomponent__features__name').distinct(), 'Feature')
 
@@ -34,6 +35,7 @@ class SearchScribes(SearchContentType):
 
         # we leave those fields out of the whoosh index otherwise the index would be far too long (> 100K)
         # filtering is done using the DB
+        ret['idiographs__allograph__character__ontograph__ontograph_type__name'] = {'whoosh': {'type': self.FT_ID, 'name': 'chartype', 'ignore': True}, 'advanced': True}
         ret['idiographs__allograph__character__name'] = {'whoosh': {'type': self.FT_ID, 'name': 'character', 'ignore': True}, 'advanced': True}
         #ret['idiographs__allograph__allograph_components__component__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'component', 'ignore': True}, 'advanced': True}
         #ret['idiographs__allograph__allograph_components__component__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}

@@ -9,6 +9,7 @@ from django.utils.datastructures import SortedDict
 class FilterGraphs(forms.Form):
     """ Represents the Hand drill-down form on the search results page """
     script = get_form_field_from_queryset(Graph.objects.values_list('hand__script__name', flat= True).order_by('hand__script__name').distinct(), 'Script', aid='script')
+    chartype = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__ontograph__ontograph_type__name', flat= True).order_by('idiograph__allograph__character__ontograph__ontograph_type__name').distinct(), 'Character Type', aid='chartype')
     character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
     allograph = forms.ChoiceField(
         choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
@@ -75,6 +76,7 @@ class SearchGraphs(SearchContentType):
         scribe = request.GET.get('scribe', undefined)
         # alternative names are for backward compatibility with old-style graph search page  
         script = request.GET.get('script', undefined)
+        chartype = request.GET.get('chartype', undefined)
         character = request.GET.get('character', undefined)
         allograph = request.GET.get('allograph', undefined)
         component = request.GET.get('component', undefined)
@@ -135,6 +137,8 @@ class SearchGraphs(SearchContentType):
             if script:
                 graphs = graphs.filter(hand__script__name=script)
         
+        if chartype:
+            graphs = graphs.filter(idiograph__allograph__character__ontograph__ontograph_type__name=chartype)
         if character:
             graphs = graphs.filter(idiograph__allograph__character__name=character)
         if allograph:
@@ -236,3 +240,16 @@ class SearchGraphs(SearchContentType):
                {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
                ]
         return ret
+    
+    def add_field_links(self, links):
+        chartype_character = {}
+        for r in Character.objects.all().values_list('name', 'ontograph__ontograph_type__name').order_by('id'):
+            chartype_character[r[1]] = chartype_character.get(r[1], [])
+            chartype_character[r[1]].append(r[0])
+        links.append(
+                      {
+                           'fields': ['chartype', 'character'],
+                           'values': chartype_character
+                       }
+                     )
+        

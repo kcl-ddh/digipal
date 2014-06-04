@@ -243,7 +243,7 @@ class SearchGraphs(SearchContentType):
     
     def add_field_links(self, links):
         chartype_character = {}
-        for r in Character.objects.all().values_list('name', 'ontograph__ontograph_type__name'):
+        for r in Character.objects.all().values_list('name', 'ontograph__ontograph_type__name').order_by('id'):
             chartype_character[r[1]] = chartype_character.get(r[1], [])
             chartype_character[r[1]].append(r[0])
         links.append(

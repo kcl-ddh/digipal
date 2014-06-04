@@ -342,6 +342,20 @@ def get_query_summary(request, term, submitted, forms):
                         if hasattr(boundfield.field, 'choices'):
                             for choice_value, choice_label in boundfield.field.choices:
                                 if unicode(value) == unicode(choice_value):
+                                    
+                                    # special case for this clunky dropdown...
+                                    # The main issue is that it has multiple options with the same value
+                                    # e.g. insular -> a,insular, insular, r, insular
+                                    # If the user selects r, insular, the page page reloads and we see 'a, insular'
+                                    # here we apply some custom logic to show the right value.
+                                    if field_name == u'allograph':
+                                        parts = choice_label.split(',')
+                                        if len(parts) == 2:
+                                            char = request.REQUEST.get('character', '')
+                                            if char:
+                                                choice_label = u'%s, %s' % (char.strip(), parts[1].strip())
+                                            
+                                    # format the field for the summary                                    
                                     if ret:
                                         ret += ', '
                                     ret += get_filter_html(choice_label, field_name, field_label)

@@ -240,3 +240,16 @@ class SearchGraphs(SearchContentType):
                {'key': 'images', 'label': 'Images', 'title': 'Change to Images view'},
                ]
         return ret
+    
+    def add_field_links(self, links):
+        chartype_character = {}
+        for r in Character.objects.all().values_list('name', 'ontograph__ontograph_type__name'):
+            chartype_character[r[1]] = chartype_character.get(r[1], [])
+            chartype_character[r[1]].append(r[0])
+        links.append(
+                      {
+                           'fields': ['chartype', 'character'],
+                           'values': chartype_character
+                       }
+                     )
+        

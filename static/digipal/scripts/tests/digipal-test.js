@@ -13,18 +13,20 @@ function DigipalTest(_options) {
     var http = require('http'),
         system = require('system');
 
-    if (casper.cli.get('deep')) {
-        config.deepScan = true;
-    }
-
     var options = {
         'deepScan': config.deepScan,
         "page": domain
     };
 
-    var init = function(_options) {
+    if (casper.cli.get('deep')) {
+        config.deepScan = true;
+    }
 
-        options = Utils.extend({}, options, _options);
+    if (casper.cli.get('root')) {
+        options.page = casper.cli.get('root');
+    }
+
+    var init = function(_options) {
 
         // errors: 404, 500 and js
         var errors = [];
@@ -102,7 +104,7 @@ function DigipalTest(_options) {
                 casper.eachThen(links, function(response) {
                     if (response.data !== null) {
 
-                        var url = domain + response.data;
+                        var url = options.page + response.data;
                         if (Utils.isExternalLink(response.data)) {
                             return false;
                         }
@@ -298,6 +300,8 @@ function DigipalTest(_options) {
             });
         }
     };
+
+    options = Utils.extend({}, options, _options);
 
     return {
         'tests': Tests.tests,

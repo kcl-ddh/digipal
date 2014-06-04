@@ -8,19 +8,20 @@ function AnnotatorTest(options) {
 
     var self = this;
     var tests = self.tests;
-    var domain = config.root;
+    var domain = self.options.page;
 
     tests.annotator = {
         multiple: false,
         run: function() {
-            var tasks = new Tasks(options.page);
+            var page = self.options.page + options.page;
+            var tasks = new Tasks(page);
             var AnnotatorTasks = tasks.AnnotatorTasks;
             if (!casper.cli.get('username') || !casper.cli.get('password')) {
                 casper.echo('This task needs username and password to the get root access', 'ERROR');
                 casper.exit();
             }
 
-            tasks.AnnotatorTasks.get.adminAccess(config.root + '/admin', casper.cli.get('username'), casper.cli.get('password'))
+            tasks.AnnotatorTasks.get.adminAccess(domain + '/admin', casper.cli.get('username'), casper.cli.get('password'))
                 .then(function() {
                     var features = tasks.AnnotatorTasks.get.features();
                     var i = 0;
@@ -331,7 +332,7 @@ var Tasks = function(page) {
 };
 
 (function() {
-    var page = config.root + '/digipal/page/80';
+    var page = '/digipal/page/80';
     var annotatorTest = new AnnotatorTest({
         "page": page
     });

@@ -238,14 +238,7 @@ class SearchGraphs(SearchContentType):
         return ret
     
     def add_field_links(self, links):
-        chartype_character = {}
-        for r in Character.objects.all().values_list('name', 'ontograph__ontograph_type__name'):
-            chartype_character[r[1]] = chartype_character.get(r[1], [])
-            chartype_character[r[1]].append(r[0])
-        links.append(
-                      {
-                           'fields': ['chartype', 'character'],
-                           'values': chartype_character
-                       }
-                     )
+        #links.append(self.get_field_link('chartype', 'character', Character.objects.all().values_list('ontograph__ontograph_type__name', 'name').order_by('id')))
+        links.append(self.get_field_link('character', 'allograph', [(a.character.name, a.human_readable()) for a in Allograph.objects.all().order_by('id')], True))
+        #links.append(self.get_field_link('component', 'feature', Feature.objects.all().values_list('componentfeature__component__name', 'name').order_by('id')))
         

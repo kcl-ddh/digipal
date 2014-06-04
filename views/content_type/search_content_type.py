@@ -829,7 +829,30 @@ class SearchContentType(object):
         return ret        
 
     def add_field_links(self, links):
+        '''Add associations between pairs of input fields to [links]'''
         pass
+
+    def get_field_link(self, source_input, target_input, queryset, update_source=False):
+        '''Returns a new association between two input fields
+            e.g.
+                {
+                    'fields': ['chartype', 'character'],
+                    'values': {'accent': ['accent'], 'letter': ['a', 'b', ...], ...}
+                }
+            if update_source is True, changing the target will also update the source
+        '''
+        ret = {}
+
+        for record in queryset:
+            ret[record[0]] = ret.get(record[0], [])
+            ret[record[0]].append(record[1])
+        
+        ret = {
+                   'fields': [source_input, target_input],
+                   'values': ret,
+                   'update_source': update_source
+               }
+        return ret
     
 class QuerySetAsList(list):
     def count(self):

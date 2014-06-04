@@ -16,6 +16,7 @@ function AnnotatorTest(options) {
             var page = self.options.page + options.page;
             var tasks = new Tasks(page);
             var AnnotatorTasks = tasks.AnnotatorTasks;
+
             if (!casper.cli.get('username') || !casper.cli.get('password')) {
                 casper.echo('This task needs username and password to the get root access', 'ERROR');
                 casper.exit();
@@ -23,15 +24,9 @@ function AnnotatorTest(options) {
 
             tasks.AnnotatorTasks.get.adminAccess(domain + '/admin', casper.cli.get('username'), casper.cli.get('password'))
                 .then(function() {
-                    var features = tasks.AnnotatorTasks.get.features();
-                    var i = 0;
-                    casper.eachThen(features, function(response) {
-                        tasks.AnnotatorTasks.get.select(response.data.id, function() {
-                            var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
-                            AnnotatorTasks.tests.dialogMatchesCache(features_selected);
-                        });
-                    });
 
+                    var scenario = new Scenario();
+                    scenario.Scenario1();
                     /*tasks.AnnotatorTasks.do.annotate(function() {
                         console.log('I finished saving!');
                     });*/
@@ -82,22 +77,9 @@ var Tasks = function(page) {
             random_vector: function() {
                 var features = this.features();
                 return features[Math.round(Math.random() * features.length)];
-            },
-
-            select: function(feature, callback) {
-                casper.evaluate(function(feature) {
-                    annotator.selectFeatureById(feature);
-                }, feature);
-
-                casper.then(function() {
-                    this.wait(300, function() {
-                        if (callback) {
-                            return callback();
-                        }
-                    });
-                });
             }
         },
+
 
         do :{
 
@@ -197,6 +179,20 @@ var Tasks = function(page) {
                     $('#panelImageBox .allograph_form').val(11);
                     $('#panelImageBox .hand_form').val(287);
                 });
+            },
+
+            select: function(feature, callback) {
+                casper.evaluate(function(feature) {
+                    annotator.selectFeatureById(feature);
+                }, feature);
+
+                casper.then(function() {
+                    this.wait(300, function() {
+                        if (callback) {
+                            return callback();
+                        }
+                    });
+                });
             }
         },
 
@@ -255,6 +251,10 @@ var Tasks = function(page) {
                 });
             },
 
+            close: function() {
+                casper.click('.ui-dialog-titlebar-close');
+            },
+
             getSelectedFeatures: function() {
                 return casper.evaluate(function() {
                     var features_selected = [];
@@ -273,11 +273,16 @@ var Tasks = function(page) {
         },
 
         filter: {
-            toggleSwitcher: function() {
+
+            getSwitcherValue: function() {
                 return casper.evaluate(function() {
-                    $('.toggle-state-switch').bootstrapSwitch('toggleState');
                     return $('.toggle-state-switch').bootstrapSwitch('state');
                 });
+            },
+
+            toggleSwitcher: function() {
+                casper.click('.toggle-state-switch');
+                return this.getSwitcherValue();
             },
 
             openWindow: function() {
@@ -298,9 +303,7 @@ var Tasks = function(page) {
                     }
                     return _cachedFeatures;
                 });
-                console.log(dump(cachedFeatures), dump(featuresSelected))
                 casper.test.assert(utils.equals(cachedFeatures, featuresSelected), 'The cached features and the checkboxes checked must match');
-
             },
         }
     };
@@ -330,6 +333,63 @@ var Tasks = function(page) {
     };
 
 };
+
+
+function Scenario() {
+
+    var tasks = new Tasks();
+    var AnnotatorTasks = tasks.AnnotatorTasks;
+
+    /*
+    - @Scenario1
+    - Select any graph. A dialog box should be opened. Make sure that:
+    - The features and the components in the dialog correspond to the relative graph and allograph selected
+    - The label corresponds to the one selected into the allographs select in the panel above the image
+    - Close the box. Reopen it.
+    */
+
+    this.Scenario1 = function() {
+
+        casper.echo('Running Annotator Scenario 1', 'PARAMETER');
+        var feature = AnnotatorTasks.get.random_vector();
+        AnnotatorTasks.do.select(feature.id, function() {
+            casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
+            casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
+            var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
+            AnnotatorTasks.tests.dialogMatchesCache(features_selected);
+            var labels = casper.evaluate(function() {
+                var dialog_label = $('.allograph_label').text();
+                var form_allograph_label = $('#panelImageBox .allograph_form option:selected').text();
+                return {
+                    'dialog_label': dialog_label,
+                    'form_allograph_label': form_allograph_label
+                };
+            });
+            casper.test.assertEquals(labels.dialog_label, labels.form_allograph_label, 'The dialog label and the allograph form label coincide');
+            AnnotatorTasks.dialog.close();
+            casper.test.assertDoesntExist('.dialog_annotations', 'Dialog closed.');
+        });
+
+    };
+
+
+    /*
+    - @ScenarioN
+    - Select all graphs in page and check they match with their local cache
+    */
+
+    this.ScenarioN = function() {
+        var features = AnnotatorTasks.get.features();
+        var i = 0;
+        casper.eachThen(features, function(response) {
+            tasks.AnnotatorTasks.get.select(response.data.id, function() {
+                var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
+                AnnotatorTasks.tests.dialogMatchesCache(features_selected);
+            });
+        });
+    };
+
+}
 
 (function() {
     var page = '/digipal/page/80';

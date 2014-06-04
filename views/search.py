@@ -202,10 +202,15 @@ def search_record_view(request):
     from django.utils import simplejson
     #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
     
-    custom_filters = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
-    context['expanded_custom_filters'] = custom_filters['advanced_search_expanded'] 
-    context['search_page_options_json'] = simplejson.dumps(custom_filters)
-    for custom_filter in custom_filters['filters']:
+    page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
+    context['expanded_custom_filters'] = page_options['advanced_search_expanded']
+    page_options['linked_fields'] = []
+    
+    for type in context['types']:
+        type.add_field_links(page_options['linked_fields'])
+
+    context['search_page_options_json'] = simplejson.dumps(page_options)
+    for custom_filter in page_options['filters']:
         if custom_filter['key'] == context['search_type_defaulted']:
             context['filters_form'] = custom_filter
     

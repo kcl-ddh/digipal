@@ -827,6 +827,9 @@ class SearchContentType(object):
         from digipal.utils import get_tokens_from_phrase
         ret = get_tokens_from_phrase(self.query_phrase, lowercase)
         return ret        
+
+    def add_field_links(self, links):
+        pass
     
 class QuerySetAsList(list):
     def count(self):

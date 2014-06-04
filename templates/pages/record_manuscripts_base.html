@@ -104,7 +104,7 @@
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% if item_part.historical_item.description_set.count %}
                     {% for historical_item in item_part.historical_items.all %}
-                        {% for desc in historical_item.description_set.all %}
+                        {% for desc in historical_item.get_descriptions %}
                             <h3>
                                 {{ desc.source.get_display_reference }}
                                 {% for catnum in historical_item.catalogue_numbers.all %}

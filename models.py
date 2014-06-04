@@ -1783,7 +1783,7 @@ class HandDescription(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['hand']
+        ordering = ['hand', 'source__priority']
 
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)

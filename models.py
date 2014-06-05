@@ -567,7 +567,6 @@ class Source(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-    priority = models.IntegerField(blank=False, null=False, default=0, help_text=u'''Lower number has a higher display priority on the web site. 0 is top, 1 second, then 2, etc.''')
 
     class Meta:
         ordering = ['name']
@@ -971,8 +970,6 @@ class Scribe(models.Model):
     class Meta:
         ordering = ['name']
 
-    has_absolute_url = True
-
     def __unicode__(self):
         #return u'%s. %s' % (self.name, self.date or '')
         return get_list_as_string(self.name, '. ', self.date)
@@ -1071,8 +1068,6 @@ class ItemPart(models.Model):
     class Meta:
         ordering = ['display_label']
         #unique_together = ['historical_item', 'current_item', 'locus']
-    
-    has_absolute_url = True
 
     def __unicode__(self):
         return u'%s' % (self.display_label)
@@ -1283,8 +1278,6 @@ class Image(models.Model):
 
     class Meta:
         ordering = ['item_part__display_label', 'folio_number', 'folio_side']
-    
-    has_absolute_url = True
 
     def __init__(self, *args, **kwargs):
         super(Image, self).__init__(*args, **kwargs)
@@ -1685,8 +1678,6 @@ class Hand(models.Model):
 
     class Meta:
         ordering = ['item_part', 'num']
-    
-    has_absolute_url = True
 
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
@@ -2538,9 +2529,6 @@ class RequestLog(models.Model):
 # Assign get_absolute_url() and get_admin_url() for all models 
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID
 # E.g. /digipal/scribes/101
-#
-# model.get_absolute_url() is created only if model.has_absolute_url = True 
-#
 def set_additional_models_methods():
     
     def model_get_absolute_url(self):
@@ -2562,8 +2550,7 @@ def set_additional_models_methods():
     for attribute in globals().values():
         # Among all the symbols accessible here, filter the Model defined in this module
         if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
-            if getattr(attribute, 'has_absolute_url', False):
-                attribute.get_absolute_url = model_get_absolute_url
+            attribute.get_absolute_url = model_get_absolute_url
             attribute.get_admin_url = model_get_admin_url
 
 

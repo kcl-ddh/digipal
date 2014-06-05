@@ -1262,12 +1262,10 @@ class ScriptAdmin(reversion.VersionAdmin):
 class SourceAdmin(reversion.VersionAdmin):
     model = Source
 
-    list_display = ['label', 'priority', 'name', 'created', 'modified']
-    list_display_links = ['label', 'name', 'created', 'modified']
-    list_editable = ['priority']
-    list_filter = ['priority']
+    list_display = ['name', 'created', 'modified', 'label']
+    list_display_links = ['name', 'created', 'modified', 'label']
+    search_fields = ['name', 'label']
 
-    search_fields = ['name', 'label', 'priority']
 
 class StatusAdmin(reversion.VersionAdmin):
     model = Status

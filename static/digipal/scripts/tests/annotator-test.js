@@ -27,6 +27,7 @@ function AnnotatorTest(options) {
 
                     var scenario = new Scenario();
 
+                    /*
                     casper.then(function() {
                         scenario.Scenario1();
                     });
@@ -35,9 +36,15 @@ function AnnotatorTest(options) {
                         scenario.Scenario2();
                     });
 
-                    /*tasks.AnnotatorTasks.do.annotate(function() {
-                        console.log('I finished saving!');
-                    });*/
+                    casper.then(function() {
+                        scenario.Scenario3();
+                    });
+                    */
+
+                    casper.then(function() {
+                        scenario.Scenario4();
+                    });
+
                 });
         }
     };
@@ -54,6 +61,23 @@ var Tasks = function(page) {
                 return casper.evaluate(function() {
                     return annotator.vectorLayer.features;
                 });
+            },
+
+            featuresByAllograph: function(allograph_id, attribute) {
+                return casper.evaluate(function(allograph_id, attribute) {
+                    var features = annotator.vectorLayer.features;
+                    var featuresByAllograph = [];
+                    for (var i = 0; i < features.length; i++) {
+                        if (features[i].allograph_id == allograph_id && features[i]) {
+                            if (attribute) {
+                                featuresByAllograph.push(features[i][attribute]);
+                            } else {
+                                featuresByAllograph.push(features[i]);
+                            }
+                        }
+                    }
+                    return featuresByAllograph;
+                }, allograph_id, attribute);
             },
 
             annotations: function() {
@@ -85,6 +109,35 @@ var Tasks = function(page) {
             random_vector: function() {
                 var features = this.features();
                 return features[Math.round(Math.random() * features.length)];
+            },
+
+            get_components: function(feature) {
+                return casper.evaluate(function(feature) {
+                    var _components = [];
+                    var cachedAllograph = annotator.cacheAnnotations.cache.allographs[feature.allograph_id];
+                    for (var i in cachedAllograph) {
+                        _components.push(cachedAllograph[i].id);
+                    }
+                    return _components;
+                }, feature);
+            },
+
+            common_components: function(feature, feature2) {
+
+                var components = this.get_components(feature);
+                var components2 = this.get_components(feature2);
+                var common_components = false;
+
+                console.log('Components for graph ' + feature.id + ': ' + components);
+                console.log('Components for graph ' + feature2.id + ': ' + components2);
+
+                for (var i = 0; i < components.length; i++) {
+                    if (components2.indexOf(components[i]) >= 0) {
+                        common_components = true;
+                    }
+                }
+
+                return common_components;
             }
         },
 
@@ -459,9 +512,83 @@ function Scenario() {
                 });
             });
         });
-
     };
 
+    /*
+    - @Scenario3
+    - Select any graph.
+    - Click the button to open the graphs of the same allograph you selected. Check they are all correct. Furthermore, they should be grouped for hand, check they are correct.
+    - Deselect the graph, now change allograph in the dropdown and re-click the button to see a popup containing all the graphs common to the selected allograph. Now the popup should show the graphs related to the selected allograph according to the dropdown.
+     */
+
+
+    this.Scenario3 = function() {
+        casper.echo('Running Annotator Scenario 3', 'PARAMETER');
+        var feature = AnnotatorTasks.get.random_vector();
+        var allograph_id = feature.allograph_id;
+        AnnotatorTasks.do.select(feature.id, function() {
+            casper.click('.number-allographs');
+            casper.test.assertExists('.letters-allograph-container', 'The Popup window exists');
+            casper.test.assertVisible('.letters-allograph-container', 'The Popup window is visible');
+
+            var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
+
+            casper.then(function() {
+                var vectors_ids = (function() {
+                    return casper.evaluate(function() {
+                        var ids = [];
+                        var vectors = $('.vector_image_link');
+                        $.each(vectors, function() {
+                            ids.push($(this).data('annotation'));
+                        });
+                        return ids;
+                    });
+                })();
+
+
+                for (var i = 0; i < featuresByAllograph.length; i++) {
+                    casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
+                }
+            });
+        });
+    };
+
+    /*
+    - @Scenario4
+    - Select two graphs, with different allograph, which have no common components
+    - The popup should clearly state there are no common components
+     */
+    this.Scenario4 = function() {
+        var feature = AnnotatorTasks.get.random_vector();
+        var feature2 = AnnotatorTasks.get.random_vector();
+
+        console.log('Enabling multiple annotations option');
+        AnnotatorTasks.options.clickOption('multiple_annotations');
+
+        while (feature.allograph_id === feature2.allograph_id) {
+            feature2 = AnnotatorTasks.get.random_vector();
+        }
+
+        casper.then(function() {
+            AnnotatorTasks.do.select(feature.id);
+        });
+
+        casper.then(function() {
+            AnnotatorTasks.do.select(feature2.id);
+        });
+
+        casper.then(function() {
+            casper.test.assertExists('.dialog_annotations', 'The dialog has been created');
+            if (!AnnotatorTasks.get.common_components(feature, feature2)) {
+                casper.echo('The two features have no common components');
+                casper.test.assertSelectorHasText('.dialog_annotations', 'No common components', 'The window clearly states that the two graph have no common components');
+            } else {
+                casper.echo('The two features have common components');
+                casper.test.assertExists('.features_box', 'The window clearly states that the two graph have common components and their features are visible');
+            }
+        });
+
+    };
 
     /*
     - @ScenarioN
@@ -472,7 +599,7 @@ function Scenario() {
         var features = AnnotatorTasks.get.features();
         var i = 0;
         casper.eachThen(features, function(response) {
-            tasks.AnnotatorTasks.get.select(response.data.id, function() {
+            tasks.AnnotatorTasks.do.select(response.data.id, function() {
                 var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
                 AnnotatorTasks.tests.dialogMatchesCache(features_selected);
             });

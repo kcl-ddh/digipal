@@ -22,8 +22,10 @@
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-2">
-                <input class="sticky" type='hidden' name="view" value='{{ view }}' />
+                <input type='hidden' name="view" value='{{ view }}' />
+
                 <input type='submit' value='Filter Images' class='btn btn-primary'/>
+
             </div>
         </div>
     </form>
@@ -51,9 +53,8 @@
         </div>
 
         <div class="col-xs-12 col-sm-8">
-            {% autopaginate images page_size as images_on_this_page %}
-            
-            {% include "pagination/pagination_with_size.html" %}
+            {% autopaginate images 12 as images_on_this_page %}
+            {% paginate %}
         </div>
 
     </div>
@@ -111,7 +112,7 @@
         </div>
     {% endif %}
 
-    {% include "pagination/pagination_with_size.html" %}
+    {% paginate %}
 
     {% include "digipal/add_to_collection.html" %}
 

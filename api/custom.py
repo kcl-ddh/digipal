@@ -38,7 +38,7 @@ class APICustom(object):
                 (field_name in fieldsets) or \
                 expanded:
                 
-                #if field_type_name in ['ForeignKey']:
+                # related object for a FK to another model
                 if isinstance(value, Model):
                     ret[field_name+u'__id'] = value.id if value is not None else None
                     # optional expansion of the related object (e.g. @select=*image)
@@ -46,7 +46,9 @@ class APICustom(object):
                         # TODO: call the custom processor
                         value = APICustom.get_data_from_record(value, request, fieldsets, method='GET')
                 
-                if field_type_name in ['RelatedObject']:
+                # RelatedObject for another model with a FK to this model
+                if field_type_name in ['RelatedObject', 'ManyToManyField']:
+                    #print field_name, value
                     sub_result = []
                     for related_record in value.all():
                         if expanded:

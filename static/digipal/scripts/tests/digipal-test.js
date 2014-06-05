@@ -87,9 +87,11 @@ function DigipalTest(_options) {
             assert_failures.push(failure);
         });
 
-        casper.on('remote.message', function(msg) {
-            this.echo('remote message caught: ' + msg);
-        });
+        if (casper.cli.get('debug-remote')) {
+            casper.on('remote.message', function(msg) {
+                this.echo('remote message caught: ' + msg);
+            });
+        }
     };
 
     var Scraper = function(_tests, options) {

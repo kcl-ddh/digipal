@@ -32,18 +32,22 @@ function AnnotatorTest(options) {
                     });
 
                     casper.then(function() {
+                        AnnotatorTasks.do.unselect();
                         scenario.Scenario2();
                     });
 
                     casper.then(function() {
+                        AnnotatorTasks.do.unselect();
                         scenario.Scenario3();
                     });
 
                     casper.then(function() {
+                        AnnotatorTasks.do.unselect();
                         scenario.Scenario4();
                     });
 
                     casper.then(function() {
+                        AnnotatorTasks.do.unselect();
                         scenario.Scenario5();
                     });
 
@@ -66,11 +70,12 @@ var Tasks = function(page) {
             },
 
             featuresByAllograph: function(allograph_id, attribute) {
+                console.log(allograph_id);
                 return casper.evaluate(function(allograph_id, attribute) {
                     var features = annotator.vectorLayer.features;
                     var featuresByAllograph = [];
                     for (var i = 0; i < features.length; i++) {
-                        if (features[i].allograph_id == allograph_id && features[i]) {
+                        if (features[i].allograph_id == allograph_id) {
                             if (attribute) {
                                 featuresByAllograph.push(features[i][attribute]);
                             } else {
@@ -299,7 +304,7 @@ var Tasks = function(page) {
 
             describeForms: function() {
                 casper.evaluate(function() {
-                    $('#panelImageBox .allograph_form').val(11).trigger('change');
+                    $('#panelImageBox .allograph_form').val(13).trigger('change');
                     $('#panelImageBox .hand_form').val(332).trigger('change');
                     return $('select').trigger('liszt:updated');
                 });
@@ -334,14 +339,16 @@ var Tasks = function(page) {
                 var i = 0;
                 casper.echo('Caching all graphs', 'INFO');
                 casper.eachThen(features, function(response) {
-                    var id = response.data.id;
-                    AnnotatorTasks.do.select(id, function() {
-                        if (casper.evaluate(function(id) {
-                            return annotator.cacheAnnotations.cache.graphs.hasOwnProperty(id);
-                        }), id) {
-                            console.log(id + ' loaded in cache');
-                        }
-                    });
+                    if (response && typeof response.hasOwnProperty('data') && response.data && response.data.hasOwnProperty('id')) {
+                        var id = response.data.id;
+                        AnnotatorTasks.do.select(id, function() {
+                            if (casper.evaluate(function(id) {
+                                return annotator.cacheAnnotations.cache.graphs.hasOwnProperty(id);
+                            }), id) {
+                                console.log(id + ' loaded in cache');
+                            }
+                        });
+                    }
                 });
             }
         },
@@ -501,6 +508,8 @@ function Scenario() {
     var AnnotatorTasks = tasks.AnnotatorTasks;
     var features = AnnotatorTasks.get.features();
 
+    AnnotatorTasks.options.multiple_annotations(false);
+
     /*
     - @Scenario1
     - Select any graph. A dialog box should be opened. Make sure that:
@@ -587,29 +596,29 @@ function Scenario() {
         var feature = AnnotatorTasks.get.random_vector(features);
         var allograph_id = feature.allograph_id;
         AnnotatorTasks.do.select(feature.id, function() {
-            casper.click('.number-allographs');
-            casper.test.assertExists('.letters-allograph-container', 'The Popup window exists');
-            casper.test.assertVisible('.letters-allograph-container', 'The Popup window is visible');
 
-            casper.then(function() {
-                var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
-                casper.wait(1000, function() {
-                    var vectors_ids = (function() {
-                        return casper.evaluate(function() {
-                            var ids = [];
-                            var vectors = $('.vector_image_link');
-                            $.each(vectors, function() {
-                                ids.push($(this).data('annotation'));
-                            });
-                            return ids;
-                        });
-                    })();
-
-                    for (var i = 0; i < featuresByAllograph.length; i++) {
-                        casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
-                    }
-                });
+            casper.wait(500, function() {
+                casper.click('.number-allographs');
+                casper.test.assertExists('.letters-allograph-container', 'The Popup window exists');
+                casper.test.assertVisible('.letters-allograph-container', 'The Popup window is visible');
             });
+
+            casper.wait(500, function() {
+                casper.capture('screen.png');
+                var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
+                var vectors_ids = casper.evaluate(function() {
+                    var ids = [];
+                    var vectors = $('.vector_image_link');
+                    $.each(vectors, function() {
+                        ids.push($(this).data('annotation'));
+                    });
+                    return ids;
+                });
+                for (var i = 0; i < featuresByAllograph.length; i++) {
+                    casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
+                }
+            });
+
         });
     };
 
@@ -620,6 +629,7 @@ function Scenario() {
      */
 
     this.Scenario4 = function() {
+        casper.echo('Running Annotator Scenario 4', 'PARAMETER');
         console.log('Enabling multiple annotations option');
         AnnotatorTasks.options.clickOption('multiple_annotations');
 
@@ -638,7 +648,7 @@ function Scenario() {
             AnnotatorTasks.do.select(feature2.id);
         });
 
-        casper.then(function() {
+        casper.wait(500, function() {
             casper.test.assertExists('.dialog_annotations', 'The dialog has been created');
             if (!AnnotatorTasks.get.common_components(feature, feature2).length) {
                 casper.echo('The two features have no common components');
@@ -664,7 +674,7 @@ function Scenario() {
      */
 
     this.Scenario5 = function() {
-
+        casper.echo('Running Annotator Scenario 5', 'PARAMETER');
         var feature, feature2;
         AnnotatorTasks.options.multiple_annotations(false);
         AnnotatorTasks.do.loadCache();

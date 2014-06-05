@@ -2505,6 +2505,7 @@ function save(url, graphs, data, ann, features) {
 		},
 		error: function(xhr, textStatus, errorThrown) {
 			updateStatus(textStatus, 'danger');
+			console.log(textStatus);
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {

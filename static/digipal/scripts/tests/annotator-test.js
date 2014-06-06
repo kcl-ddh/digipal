@@ -52,10 +52,14 @@ function AnnotatorTest(options) {
                         scenario.Scenario5();
                     });
 
-                    */
 
                     casper.then(function() {
                         scenario.Scenario6();
+                    });
+                    */
+
+                    casper.then(function() {
+                        scenario.Scenario7();
                     });
 
                 });
@@ -237,13 +241,13 @@ var Tasks = function(page) {
             },
 
             save: function(callback) {
+                casper.echo('Saving Annotations...');
                 casper.evaluate(function() {
                     annotator.saveButton.trigger();
                 });
                 casper.wait(1500, function() {
                     if (callback) {
                         if (casper.evaluate(function() {
-                            console.log($('#status').text())
                             return $('#status').hasClass('alert-success');
                         })) {
                             casper.echo('Annotation succesfully saved', 'INFO');
@@ -256,6 +260,7 @@ var Tasks = function(page) {
             },
 
             delete: function() {
+                casper.echo('Deleting Annotations...');
                 return casper.evaluate(function() {
                     return annotator.deleteFeature.clickFeature();
                 });
@@ -573,33 +578,35 @@ var Tasks = function(page) {
                 });
             },
 
-            save: function(feature, callback) {
-                casper.click('.myModal #save');
+            save: function(callback) {
+                casper.echo('Saving Annotations...');
+                casper.click('#save');
                 casper.wait(1500, function() {
+                    if (casper.evaluate(function() {
+                        return $('#status').hasClass('alert-success');
+                    })) {
+                        casper.echo('Annotation succesfully saved', 'INFO');
+                    } else {
+                        casper.echo('Annotation not saved', 'ERROR');
+                    }
                     if (callback) {
-                        if (casper.evaluate(function() {
-                            return $('#status').hasClass('alert-success');
-                        })) {
-                            casper.echo('Annotation succesfully saved', 'INFO');
-                        } else {
-                            casper.echo('Annotation not saved', 'ERROR');
-                        }
                         return callback();
                     }
                 });
             },
 
-            delete: function(feature, callback) {
-                casper.click('.myModal #delete');
+            delete: function(callback) {
+                casper.echo('Deleting Annotations...');
+                casper.click('#delete');
                 casper.wait(500, function() {
+                    if (casper.evaluate(function() {
+                        return $('#status').hasClass('alert-success');
+                    })) {
+                        casper.echo('Annotation succesfully deleted', 'INFO');
+                    } else {
+                        casper.echo('Annotation not deleted', 'ERROR');
+                    }
                     if (callback) {
-                        if (casper.evaluate(function() {
-                            return $('#status').hasClass('alert-success');
-                        })) {
-                            casper.echo('Annotation succesfully deleted', 'INFO');
-                        } else {
-                            casper.echo('Annotation not deleted', 'ERROR');
-                        }
                         return callback();
                     }
                 });
@@ -607,6 +614,7 @@ var Tasks = function(page) {
 
             selectAllGraphsInRow: function() {
 
+                casper.echo('Selecting all selected graphs in first row...');
                 casper.click(x('[@class="select_all"][1]'));
 
                 return casper.evaluate(function() {
@@ -622,8 +630,9 @@ var Tasks = function(page) {
             },
 
             deselect_all_graphs: function() {
+                casper.echo('Deselecting all selected graphs...');
                 casper.click('.deselect_all_graphs');
-                assertDoesntExist('.selected', 'No elements with class .selected should exist');
+                casper.test.assertDoesntExist('.selected', 'No elements with class .selected should exist');
             }
         },
 
@@ -702,10 +711,19 @@ var Tasks = function(page) {
 
     };
 
+    var Utils = {
+        removeElement: function(selector) {
+            return casper.evaluate(function(selector) {
+                return $(selector).remove();
+            }, selector);
+        }
+    };
+
     return {
         'AnnotatorTasks': AnnotatorTasks,
         'AllographsTasks': AllographsTasks,
-        'Tabs': Tabs
+        'Tabs': Tabs,
+        'Utils': Utils
     };
 
 };
@@ -717,6 +735,8 @@ function Scenario() {
     var AnnotatorTasks = tasks.AnnotatorTasks;
     var AllographsTasks = tasks.AllographsTasks;
     var Tabs = tasks.Tabs;
+    var Utils = tasks.Utils;
+
     var features = AnnotatorTasks.get.features();
     AnnotatorTasks.options.multiple_annotations(false);
 
@@ -951,7 +971,6 @@ function Scenario() {
     - Make sure a popup comes out, displaying correct component and features
     - Make sure the checked feature appears into the summary popup on the left side of the popup
     - Check any feature, make sure it appears in the summary popup. Then uncheck it again, and make sure it disappears from the summary popup.
-    - Replicate the same actions of the annotator tab
     */
 
     this.Scenario6 = function() {
@@ -978,7 +997,33 @@ function Scenario() {
         });
     };
 
+    /*
+        - Replicate the same actions of the annotator tab
+        - Selecting and saving annotations
+        - Deselecting all annotations
+        - Selecting and removing annotations
+     */
 
+    this.Scenario7 = function() {
+
+        Tabs.switch('allographs');
+        casper.wait(300);
+
+        var feature = AllographsTasks.get.random_vector();
+        AllographsTasks.do.select(feature, function() {
+
+            casper.then(function() {
+                AllographsTasks.do.save(function() {
+                    AllographsTasks.do.deselect_all_graphs();
+                    Utils.removeElement('#status');
+                    feature = AllographsTasks.get.random_vector();
+                    AllographsTasks.do.select(feature, function() {
+                        AllographsTasks.do.delete();
+                    });
+                });
+            });
+        });
+    };
 
 }
 

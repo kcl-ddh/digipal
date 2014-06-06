@@ -77,7 +77,6 @@ var Tasks = function(page) {
             },
 
             featuresByAllograph: function(allograph_id, attribute) {
-                console.log(allograph_id);
                 return casper.evaluate(function(allograph_id, attribute) {
                     var features = annotator.vectorLayer.features;
                     var featuresByAllograph = [];
@@ -183,6 +182,18 @@ var Tasks = function(page) {
                 }
 
                 return common_features;
+            },
+
+            getGraphByVectorId: function(vector_id) {
+                return casper.evaluate(function(vector_id) {
+                    var graph, features = annotator.vectorLayer.features;
+                    for (var i = 0; i < features.length; i++) {
+                        if (features[i].id == vector_id) {
+                            graph = features[i].graph;
+                        }
+                    }
+                    return graph;
+                }, vector_id);
             }
         },
 
@@ -298,12 +309,13 @@ var Tasks = function(page) {
             /*
                 - @reusable for AllographsTasks
                 - specify "allographs" as value of page, or leave empty if for AnnotatorTasks
-
+                - specify check = false if you want to undescribe checkboxes
              */
-            describe: function(page) {
-                casper.evaluate(function() {
-                    var features_elements;
 
+            describe: function(page, check) {
+                var checkboxes = casper.evaluate(function(page, check) {
+                    var features_elements;
+                    var _checkboxes = [];
                     if (page == 'annotator' || !page) {
                         features_elements = $('.dialog_annotations .features_box');
                     } else if (page == 'allographs') {
@@ -312,15 +324,28 @@ var Tasks = function(page) {
 
                     var n = 0;
                     $.each(features_elements, function() {
-                        if (!$(this).attr('checked')) {
+                        var condition;
+
+                        if (check === true || typeof check === 'undefined') {
+                            condition = $(this).attr('checked');
+                        } else {
+                            condition = !$(this).attr('checked');
+                        }
+
+                        if (condition) {
                             if (n > 5) {
                                 return false;
                             }
-                            $(this).attr('checked', true);
+                            _checkboxes.push($(this).attr('id').split('_')[1]);
                             n++;
                         }
                     });
-                });
+                    return _checkboxes;
+                }, page, check);
+
+                for (var i = 0; i < checkboxes.length; i++) {
+                    casper.click(x('//input[@data-feature="' + checkboxes[i] + '"]'));
+                }
             },
 
             describeForms: function() {
@@ -444,18 +469,30 @@ var Tasks = function(page) {
                 casper.click('.ui-dialog-titlebar-close');
             },
 
-            getSelectedFeatures: function() {
-                return casper.evaluate(function() {
+            /*
+            @ reusable for AllographTasks
+            - specify page = 'allographs'
+             */
+            getSelectedFeatures: function(page) {
+                return casper.evaluate(function(page) {
                     var features_selected = [];
-                    var features_elements = $('.features_box');
+                    var dialog;
+
+                    if (page == 'annotator' || !page) {
+                        dialog = $('.dialog_annotations');
+                    } else if (page == 'allographs') {
+                        dialog = $('#modal_features');
+                    }
+
+                    features_elements = dialog.find('.features_box');
                     features_elements.each(function() {
                         if ($(this).is(':checked')) {
-                            var label = $('.dialog_annotations').find('label[for=' + $(this).attr('id') + ']').text();
+                            var label = dialog.find('label[for=' + $(this).attr('id') + ']').text();
                             features_selected.push(label);
                         }
                     });
                     return features_selected;
-                });
+                }, page);
             }
         },
 
@@ -481,16 +518,27 @@ var Tasks = function(page) {
         },
 
         tests: {
-            dialogMatchesCache: function(featuresSelected) {
-                var cachedFeatures = casper.evaluate(function() {
-                    var graphCache = annotator.cacheAnnotations.cache.graphs[annotator.selectedFeature.graph];
-                    console.log(graphCache);
+            /*
+            @ reusable for AllographsTasks
+            - specify page = 'allographs' and a graph as third parameter
+             */
+            dialogMatchesCache: function(featuresSelected, page, graph) {
+                var cachedFeatures = casper.evaluate(function(page, graph) {
+                    var graphCache;
+                    if (page == 'annotator' || !page) {
+                        graphCache = annotator.cacheAnnotations.cache.graphs[annotator.selectedFeature.graph];
+                    } else {
+                        if (!graph) {
+                            throw new Error('A graph must be provided if using the function in AllographsTasks Scenarios');
+                        }
+                        graphCache = allographsPage.cache.cache.graphs[graph];
+                    }
                     var _cachedFeatures = [];
                     for (var i = 0; i < graphCache.features.length; i++) {
                         _cachedFeatures.push(graphCache.features[i].feature[0]);
                     }
                     return _cachedFeatures;
-                });
+                }, page, graph);
                 casper.echo(cachedFeatures.length + ' cached features found');
                 casper.echo(featuresSelected.length + ' checkboxes checked found');
                 casper.test.assert(utils.equals(cachedFeatures, featuresSelected), 'The cached features and the checkboxes checked match');
@@ -505,8 +553,8 @@ var Tasks = function(page) {
             random_vector: function() {
                 return casper.evaluate(function() {
                     var annotations = $('.annotation_li');
-                    var random = Math.round(Math.random() * annotation_li.length);
-                    return $(annotation_li[random]).data('annotation');
+                    var random = Math.round(Math.random() * annotations.length);
+                    return $(annotations[random]).data('annotation');
                 });
             }
         },
@@ -514,16 +562,14 @@ var Tasks = function(page) {
         do :{
 
             select: function(feature_id, callback) {
+                casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
+                casper.test.assertExists('.selected', 'Element is correctly selected. Class .selected exists.');
                 casper.then(function() {
-                    casper.evaluate(function(feature_id) {
-                        casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
-                    }, feature_id);
-                });
-
-                casper.then(function() {
-                    if (callback) {
-                        return callback();
-                    }
+                    casper.wait(500, function() {
+                        if (callback) {
+                            return callback();
+                        }
+                    });
                 });
             },
 
@@ -573,37 +619,71 @@ var Tasks = function(page) {
                         return n === selected_elements.length;
                     });
                 });
+            },
+
+            deselect_all_graphs: function() {
+                casper.click('.deselect_all_graphs');
+                assertDoesntExist('.selected', 'No elements with class .selected should exist');
             }
         },
 
         dialog: {
 
-            getDialog: function() {
-                return casper.evaluate(function() {
-                    return $('.myModal');
-                });
+            getDialog: function(attribute) {
+                return casper.evaluate(function(attribute) {
+                    if (attribute) {
+                        return $('#modal_features').attr(attribute);
+                    }
+                    return $('#modal_features');
+                }, attribute);
             },
 
             doesDialogExist: function() {
-                casper.test.assertExists('.myModal', 'The dialog is correctly loaded in page');
-                casper.test.assertVisible('.myModal', 'The dialog is correctly visible in page');
+                casper.test.assertExists('#modal_features', 'The dialog is correctly loaded in page');
+                casper.test.assertVisible('#modal_features', 'The dialog is correctly visible in page');
             },
 
             doesSummaryExist: function() {
                 casper.test.assertExists('#summary', 'The summary element is correctly loaded in page');
-                casper.test.assertVisible('#summary', 'The dialog is correctly visible in page');
+                casper.test.assertVisible('#summary', 'The summary element is correctly visible in page');
             },
 
             labelMatchesForm: function() {
-                return casper.evaluate(function() {
+                casper.test.assert(casper.evaluate(function() {
                     var label = $('.label-modal-value').text();
                     var form = $('.myModal .allograph_form option:selected').text();
                     return label === form;
-                });
+                }), 'The window label and the allograph form value should match');
             }
+        },
 
+        tests: {
+            summaryMatchesCheckboxes: function() {
+                casper.test.assert(casper.evaluate(function() {
+                    var checkboxes = $('#modal_features').find('.features_box:checked');
+                    var n = 0;
+                    var labels = (function() {
+                        var _labels = [];
+                        checkboxes.each(function() {
+                            _labels.push($('label[for="' + $(this).attr('id') + '"]').text());
+                        });
+                        return _labels;
+                    })();
+                    var summary_elements = $('#summary').find('.feature_summary');
+                    $.each(summary_elements, function() {
+                        var value = $.trim($(this).contents().filter(function() {
+                            return this.nodeType == 3;
+                        })[0].nodeValue);
+                        if (labels.indexOf(value) >= 0 && $(this).has('a').length) {
+                            n++;
+                        }
+                    });
+                    console.log('Number of checkboxes selected: ' + checkboxes.length);
+                    console.log('Number of elements in summary popup: ' + n);
+                    return n === checkboxes.length;
+                }), 'Summary labels should match with selected checkboxes');
+            }
         }
-
 
     };
 
@@ -611,6 +691,7 @@ var Tasks = function(page) {
 
         switch: function(target) {
             casper.click(x('//a[@data-target="#' + target + '"]'));
+            console.log('Switched to tab ' + target);
         },
 
         current: function() {
@@ -634,8 +715,9 @@ function Scenario() {
 
     var tasks = new Tasks();
     var AnnotatorTasks = tasks.AnnotatorTasks;
+    var AllographsTasks = tasks.AllographsTasks;
+    var Tabs = tasks.Tabs;
     var features = AnnotatorTasks.get.features();
-
     AnnotatorTasks.options.multiple_annotations(false);
 
     /*
@@ -873,10 +955,27 @@ function Scenario() {
     */
 
     this.Scenario6 = function() {
+        Tabs.switch('allographs');
+        casper.wait(300);
 
-        var feature = AnnotatorTasks.get.random_vector();
-        console.log(feature);
+        // waiting for 300 ms as the animation makes the page still invisible for
+        // a brief fraction of time
+        //
 
+        var feature = AllographsTasks.get.random_vector();
+        AllographsTasks.do.select(feature, function() {
+            AllographsTasks.dialog.doesDialogExist();
+            AllographsTasks.dialog.doesSummaryExist();
+            AllographsTasks.dialog.labelMatchesForm();
+            var graph = AnnotatorTasks.get.getGraphByVectorId(feature);
+            var features = AnnotatorTasks.dialog.getSelectedFeatures('allographs');
+            AnnotatorTasks.tests.dialogMatchesCache(features, 'allographs', graph);
+            AnnotatorTasks.do.describe('allographs');
+            AllographsTasks.tests.summaryMatchesCheckboxes();
+            console.log('Deselecting some checkboxes and repeating test ...');
+            AnnotatorTasks.do.describe('allographs', false);
+            AllographsTasks.tests.summaryMatchesCheckboxes();
+        });
     };
 
 

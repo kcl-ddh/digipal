@@ -6,12 +6,12 @@ from django.db.models.base import Model
 '''
 class APICustom(object):
     JSON_DATA_TYPES = ['NoneType', 'unicode', 'str', 'int', 'float', 'dict', 'list', 'tuple']
-    
+
     @classmethod
     def get_data_from_record(cls, record, request, fieldsets=[], method='GET'):
         # basic output, only the small literals
         ret = {}
-        
+
         # set values from the query string
         meta = record.__class__._meta
         for field_name in meta.get_all_field_names():
@@ -19,25 +19,25 @@ class APICustom(object):
             get_accessor_name = getattr(field, 'get_accessor_name', None)
             if get_accessor_name:
                 field_name = get_accessor_name()
-                
+
             value = request.REQUEST.get(field_name, QueryDict(request.body).get(field_name, None))
-            
+
             # set the field value from the request or get it from the record
             if value is not None:
                 setattr(record, field_name, value)
             else:
                 value = getattr(record, field_name)
-            
+
             # Add the basic values to the results (or the value of the fields in @select=)
             field_type_name = type(field).__name__
-            
+
             expanded = u'*'+field_name in fieldsets
 
             if (field_name in ['id']) or \
                 len(fieldsets) == 0 or\
                 (field_name in fieldsets) or \
                 expanded:
-                
+
                 # related object for a FK to another model
                 if isinstance(value, Model):
                     ret[field_name+u'__id'] = value.id if value is not None else None
@@ -45,7 +45,7 @@ class APICustom(object):
                     if expanded:
                         # TODO: call the custom processor
                         value = APICustom.get_data_from_record(value, request, fieldsets, method='GET')
-                
+
                 # RelatedObject for another model with a FK to this model
                 if field_type_name in ['RelatedObject', 'ManyToManyField']:
                     #print field_name, value
@@ -56,17 +56,17 @@ class APICustom(object):
                         else:
                             sub_result.append(related_record.id)
                     value = sub_result
-                    
+
                 # force conversion to string as this type is not JSON serialisable
                 value_type_name = type(value).__name__
                 if value_type_name not in cls.JSON_DATA_TYPES:
                     value = u'%s' % value
 
                 ret[field_name] = value
-                
+
         if method == 'PUT':
             record.save()
-            
+
         label_field_name = 'str'
         if label_field_name in fieldsets or not fieldsets:
             ret[label_field_name] = u'%s' % record
@@ -75,7 +75,7 @@ class APICustom(object):
 
 def get_param_value_from_request(request, param_name):
     return request.REQUEST.get(param_name, QueryDict(request.body).get(param_name, None))
-    
+
 ################################################################
 #
 # Write your content type specific API processors here
@@ -96,7 +96,7 @@ class APIAnnotation(APICustom):
                 p[0] += int(shape_x_diff)
             if shape_y_diff:
                 p[1] -= int(shape_y_diff)
-        
+
         centre = None
         import math
         for d in [0, 1]:
@@ -120,12 +120,12 @@ class APIAnnotation(APICustom):
                     #if i >= sample: s = -1
                     path_sorted[i][0] += int(increase_length * v[0] * s)
                     path_sorted[i][1] += int(increase_length * v[1] * s)
-        
+
         record.set_shape_path(path)
 
-        # generic processing        
+        # generic processing
         ret = super(APIAnnotation, cls).get_data_from_record(record, request, fieldsets, method)
-        
+
         # read
         if 'html' in fieldsets:
             ret['html'] = annotation_img(record)
@@ -133,5 +133,5 @@ class APIAnnotation(APICustom):
             # This forces the inclusion of the css transform in the output even if rotation = 0.
             # This is useful for the quick preview mode in the edit annotation tab.
             ret['htmlr'] = annotation_img(record, force_rotation=True)
-        
+
         return ret

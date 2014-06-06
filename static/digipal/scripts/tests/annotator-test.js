@@ -27,6 +27,7 @@ function AnnotatorTest(options) {
 
                     var scenario = new Scenario();
 
+                    /*
                     casper.then(function() {
                         scenario.Scenario1();
                     });
@@ -49,6 +50,12 @@ function AnnotatorTest(options) {
                     casper.then(function() {
                         AnnotatorTasks.do.unselect();
                         scenario.Scenario5();
+                    });
+
+                    */
+
+                    casper.then(function() {
+                        scenario.Scenario6();
                     });
 
                 });
@@ -288,16 +295,30 @@ var Tasks = function(page) {
 
             },
 
-            describe: function() {
+            /*
+                - @reusable for AllographsTasks
+                - specify "allographs" as value of page, or leave empty if for AnnotatorTasks
+
+             */
+            describe: function(page) {
                 casper.evaluate(function() {
-                    var features_elements = $('.dialog_annotations .features_box');
+                    var features_elements;
+
+                    if (page == 'annotator' || !page) {
+                        features_elements = $('.dialog_annotations .features_box');
+                    } else if (page == 'allographs') {
+                        features_elements = $('.myModal .features_box');
+                    }
+
                     var n = 0;
                     $.each(features_elements, function() {
-                        if (n > 5) {
-                            return false;
+                        if (!$(this).attr('checked')) {
+                            if (n > 5) {
+                                return false;
+                            }
+                            $(this).attr('checked', true);
+                            n++;
                         }
-                        $(this).attr('checked', true);
-                        n++;
                     });
                 });
             },
@@ -477,7 +498,112 @@ var Tasks = function(page) {
         }
     };
 
-    var AllographsTasks = function() {
+    var AllographsTasks = {
+        _self: this,
+
+        get: {
+            random_vector: function() {
+                return casper.evaluate(function() {
+                    var annotations = $('.annotation_li');
+                    var random = Math.round(Math.random() * annotation_li.length);
+                    return $(annotation_li[random]).data('annotation');
+                });
+            }
+        },
+
+        do :{
+
+            select: function(feature_id, callback) {
+                casper.then(function() {
+                    casper.evaluate(function(feature_id) {
+                        casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
+                    }, feature_id);
+                });
+
+                casper.then(function() {
+                    if (callback) {
+                        return callback();
+                    }
+                });
+            },
+
+            save: function(feature, callback) {
+                casper.click('.myModal #save');
+                casper.wait(1500, function() {
+                    if (callback) {
+                        if (casper.evaluate(function() {
+                            return $('#status').hasClass('alert-success');
+                        })) {
+                            casper.echo('Annotation succesfully saved', 'INFO');
+                        } else {
+                            casper.echo('Annotation not saved', 'ERROR');
+                        }
+                        return callback();
+                    }
+                });
+            },
+
+            delete: function(feature, callback) {
+                casper.click('.myModal #delete');
+                casper.wait(500, function() {
+                    if (callback) {
+                        if (casper.evaluate(function() {
+                            return $('#status').hasClass('alert-success');
+                        })) {
+                            casper.echo('Annotation succesfully deleted', 'INFO');
+                        } else {
+                            casper.echo('Annotation not deleted', 'ERROR');
+                        }
+                        return callback();
+                    }
+                });
+            },
+
+            selectAllGraphsInRow: function() {
+
+                casper.click(x('[@class="select_all"][1]'));
+
+                return casper.evaluate(function() {
+                    var selected_elements = $($('.allograph-item panel')[0]).find('.annotation_li');
+                    var n = 0;
+                    return selected_elements.each(function() {
+                        if ($(this).hasClass("selected")) {
+                            n++;
+                        }
+                        return n === selected_elements.length;
+                    });
+                });
+            }
+        },
+
+        dialog: {
+
+            getDialog: function() {
+                return casper.evaluate(function() {
+                    return $('.myModal');
+                });
+            },
+
+            doesDialogExist: function() {
+                casper.test.assertExists('.myModal', 'The dialog is correctly loaded in page');
+                casper.test.assertVisible('.myModal', 'The dialog is correctly visible in page');
+            },
+
+            doesSummaryExist: function() {
+                casper.test.assertExists('#summary', 'The summary element is correctly loaded in page');
+                casper.test.assertVisible('#summary', 'The dialog is correctly visible in page');
+            },
+
+            labelMatchesForm: function() {
+                return casper.evaluate(function() {
+                    var label = $('.label-modal-value').text();
+                    var form = $('.myModal .allograph_form option:selected').text();
+                    return label === form;
+                });
+            }
+
+        }
+
 
     };
 
@@ -738,20 +864,22 @@ function Scenario() {
     };
 
     /*
-    - @ScenarioN
-    - Select all graphs in page and check they match with their local cache
+    - @Scenario6
+    - Select any graph
+    - Make sure a popup comes out, displaying correct component and features
+    - Make sure the checked feature appears into the summary popup on the left side of the popup
+    - Check any feature, make sure it appears in the summary popup. Then uncheck it again, and make sure it disappears from the summary popup.
+    - Replicate the same actions of the annotator tab
     */
 
-    this.ScenarioN = function() {
-        var features = AnnotatorTasks.get.features();
-        var i = 0;
-        casper.eachThen(features, function(response) {
-            tasks.AnnotatorTasks.do.select(response.data.id, function() {
-                var features_selected = tasks.AnnotatorTasks.dialog.getSelectedFeatures();
-                AnnotatorTasks.tests.dialogMatchesCache(features_selected);
-            });
-        });
+    this.Scenario6 = function() {
+
+        var feature = AnnotatorTasks.get.random_vector();
+        console.log(feature);
+
     };
+
+
 
 }
 

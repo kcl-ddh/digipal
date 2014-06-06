@@ -1342,7 +1342,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector = {};
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
-					vector['geoJson'] = geoJson;
+					data['geoJson'] = geoJson;
 					vector['vector_id'] = feature.id;
 					graphs.push(vector);
 				}
@@ -1379,7 +1379,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector = {};
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
-					vector['geoJson'] = geoJson;
+					data['geoJson'] = geoJson;
 					vector['vector_id'] = feature.id;
 
 					graphs.push(vector);
@@ -2499,6 +2499,7 @@ function make_form() {
 function save(url, graphs, data, ann, features) {
 	$.ajax({
 		url: url,
+		type: 'POST',
 		data: data['form_serialized'],
 		beforeSend: function() {
 			updateStatus('Saving annotation ...', 'warning');

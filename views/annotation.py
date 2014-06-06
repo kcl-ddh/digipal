@@ -50,16 +50,10 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
             jsonpcallback = None
 
     if not data:
-        if ids: ids = str(ids)
-        if content_type == 'graph':
-            data = get_features(ids, only_features)
-        elif content_type == 'allograph':
-            data = allograph_features(request, ids)
-        elif content_type == 'hand':
-            data = get_hands(ids)
-        else:
-            from digipal.api.generic import API
-            data = API.process_request(request, content_type, ids)
+        if ids:
+            ids = str(ids)
+        from digipal.api.generic import API
+        data = API.process_request(request, content_type, ids)
 
     # JSON -> JSONP
     if jsonpcallback:
@@ -67,6 +61,17 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         mimetype = 'text/javascript'
 
     return HttpResponse(data, mimetype=mimetype)
+
+
+def get_old_api_request(request, content_type, ids=None, only_features=False):
+    if content_type == 'graph':
+        data = get_features(ids, only_features)
+    elif content_type == 'allograph':
+        data = allograph_features(request, ids)
+    elif content_type == 'hand':
+        data = get_hands(ids)
+    return HttpResponse(data, mimetype='application/json')
+
 
 def get_list_from_csv(csv):
     '''Returns a list of numbers from a comma separated string.
@@ -527,7 +532,7 @@ def save(request, graphs):
                     graph = Graph()
                     annotation = Annotation(image=image, vector_id=gr['vector_id'])
 
-                get_data = request.GET.copy()
+                get_data = request.POST.copy()
 
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])

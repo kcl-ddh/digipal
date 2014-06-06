@@ -122,7 +122,7 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 	var url, content_type = 'graph';
 	$('#features_container').html('<img style="position:absolute;top:40%;left:40%;" src="/static/digipal/images/ajax-loader4.gif" />');
 	if (graphs.length) {
-		url = content_type + '/' + graphs.toString() + '/';
+		url = 'old/' + content_type + '/' + graphs.toString() + '/';
 
 		if (only_features) {
 			url += 'features';

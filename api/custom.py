@@ -38,24 +38,27 @@ class APICustom(object):
                 (field_name in fieldsets) or \
                 expanded:
 
-                # related object for a FK to another model
+                #print u'%20s\t%20s\t%s' % (field_name, field_type_name, unicode(value).encode('ascii', 'ignore'))
+                
+                # related object for a FK to another model (e.g. graph.annotation)
                 if isinstance(value, Model):
+                    
                     ret[field_name+u'__id'] = value.id if value is not None else None
                     # optional expansion of the related object (e.g. @select=*image)
                     if expanded:
                         # TODO: call the custom processor
                         value = APICustom.get_data_from_record(value, request, fieldsets, method='GET')
-
-                # RelatedObject for another model with a FK to this model
-                if field_type_name in ['RelatedObject', 'ManyToManyField']:
-                    #print field_name, value
-                    sub_result = []
-                    for related_record in value.all():
-                        if expanded:
-                            sub_result.append(APICustom.get_data_from_record(related_record, request, fieldsets, method='GET'))
-                        else:
-                            sub_result.append(related_record.id)
-                    value = sub_result
+                else:
+                    # RelatedObject for another model with a FK to this model (e.g. graph.graph_components)
+                    # RelatedObject for another model with a FK to this model (e.g. graph.aspects)
+                    if field_type_name in ['RelatedObject', 'ManyToManyField']:
+                        sub_result = []
+                        for related_record in value.all():
+                            if expanded:
+                                sub_result.append(APICustom.get_data_from_record(related_record, request, fieldsets, method='GET'))
+                            else:
+                                sub_result.append(related_record.id)
+                        value = sub_result
 
                 # force conversion to string as this type is not JSON serialisable
                 value_type_name = type(value).__name__

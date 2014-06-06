@@ -56,11 +56,17 @@ function AnnotatorTest(options) {
                     casper.then(function() {
                         scenario.Scenario6();
                     });
-                    */
 
                     casper.then(function() {
                         scenario.Scenario7();
                     });
+
+                    */
+
+                    casper.then(function() {
+                        scenario.Scenario8();
+                    });
+
 
                 });
         }
@@ -974,6 +980,7 @@ function Scenario() {
     */
 
     this.Scenario6 = function() {
+        casper.echo('Running Annotator Scenario 6', 'PARAMETER');
         Tabs.switch('allographs');
         casper.wait(300);
 
@@ -1005,7 +1012,7 @@ function Scenario() {
      */
 
     this.Scenario7 = function() {
-
+        casper.echo('Running Annotator Scenario <7></7>', 'PARAMETER');
         Tabs.switch('allographs');
         casper.wait(300);
 
@@ -1021,6 +1028,33 @@ function Scenario() {
                         AllographsTasks.do.delete();
                     });
                 });
+            });
+        });
+    };
+
+    /*
+    - Select multiple graphs
+    - Try to delete them and make sure they actually disappear form the page
+     */
+    this.Scenario8 = function() {
+        casper.echo('Running Annotator Scenario 8', 'PARAMETER');
+        Tabs.switch('allographs');
+        casper.wait(300);
+        var feature = AllographsTasks.get.random_vector();
+        var feature2 = AllographsTasks.get.random_vector();
+
+        casper.then(function() {
+            AllographsTasks.do.select(feature);
+        });
+
+        casper.then(function() {
+            AllographsTasks.do.select(feature2);
+        });
+
+        casper.then(function() {
+            AllographsTasks.do.delete(function() {
+                casper.test.assertDoesntExist(x('.annotation_li[@data-annotation="' + feature + '"]'), 'Feature has been deleted');
+                casper.test.assertDoesntExist(x('.annotation_li[@data-annotation="' + feature + '"]'), 'Feature 2 has been deleted');
             });
         });
     };

@@ -626,20 +626,21 @@ function Scenario() {
                 });
 
                 casper.then(function() {
-
-                    var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
-                    var vectors_ids = casper.evaluate(function() {
-                        var ids = [];
-                        var vectors = $('.vector_image_link');
-                        $.each(vectors, function() {
-                            ids.push($(this).data('annotation'));
+                    casper.wait(1000, function() {
+                        var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
+                        var vectors_ids = casper.evaluate(function() {
+                            var ids = [];
+                            var vectors = $('.vector_image_link');
+                            $.each(vectors, function() {
+                                ids.push($(this).data('annotation'));
+                            });
+                            return ids;
                         });
-                        return ids;
+                        casper.capture('screen.png');
+                        for (var i = 0; i < featuresByAllograph.length; i++) {
+                            casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
+                        }
                     });
-                    casper.capture('screen.png');
-                    for (var i = 0; i < featuresByAllograph.length; i++) {
-                        casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
-                    }
                 });
 
             });

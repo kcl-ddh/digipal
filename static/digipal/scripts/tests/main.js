@@ -22,6 +22,14 @@ function AnnotatorTest(options) {
             self.loadScenarios(scenarios);
         }
     };
+
+    tests.collection = {
+        multiple: false,
+        run: function() {
+            var scenarios = ['collections'];
+            self.loadScenarios(scenarios);
+        }
+    };
 }
 
 

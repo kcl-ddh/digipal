@@ -42,20 +42,20 @@ function Scenario() {
                 },
 
                 adminAccess: function(admin_page, username, password) {
-                    var page = options.page + '/digipal/page/121';
+                    var page = options.page + '/digipal/page/61';
 
                     var isAdmin = casper.evaluate(function() {
                         if (typeof annotator === 'undefined') {
                             return false;
+                        } else {
+                            return annotator.isAdmin;
                         }
-                        return annotator.isAdmin;
                     });
+
                     if (isAdmin === 'True') {
                         return casper;
                     } else {
                         casper.thenOpen(admin_page, function() {
-
-
                             this.fill('form#login-form', {
                                 'username': username,
                                 'password': password
@@ -300,7 +300,7 @@ function Scenario() {
                 describeForms: function() {
                     casper.evaluate(function() {
                         $('#panelImageBox .allograph_form').val(13).trigger('change');
-                        $('#panelImageBox .hand_form').val(332).trigger('change');
+                        $('#panelImageBox .hand_form').val(278).trigger('change');
                         return $('select').trigger('liszt:updated');
                     });
                 },
@@ -314,9 +314,11 @@ function Scenario() {
                     });
 
                     casper.then(function() {
-                        if (callback) {
-                            return callback();
-                        }
+                        casper.wait(500, function() {
+                            if (callback) {
+                                return callback();
+                            }
+                        });
                     });
                 },
 
@@ -499,10 +501,26 @@ function Scenario() {
 
     this.Tasks = Tasks;
 
+    var Tabs = {
+
+        switch: function(target) {
+            casper.click(x('//a[@data-target="#' + target + '"]'));
+            console.log('Switched to tab ' + target);
+        },
+
+        current: function() {
+            return casper.evaluate(function() {
+                return $('.nav li.active.in').find('a').data('target');
+            });
+        }
+
+    };
+
     var Scenarios = function() {
         var AnnotatorTasks = new Tasks();
+
         var features = AnnotatorTasks.get.features();
-        AnnotatorTasks.options.multiple_annotations(false);
+
 
         /*
         - @Scenario1
@@ -515,24 +533,34 @@ function Scenario() {
         this.Scenario1 = function() {
 
             casper.echo('Running Annotator Scenario 1', 'PARAMETER');
+
+            if (Tabs.current() !== '#annotator') {
+                Tabs.switch('annotator');
+            }
+
+            AnnotatorTasks.options.multiple_annotations(false);
+
             var feature = AnnotatorTasks.get.random_vector(features);
-            AnnotatorTasks.do.select(feature.id, function() {
-                casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
-                casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
-                casper.wait(500, function() {
-                    var features_selected = AnnotatorTasks.dialog.getSelectedFeatures();
-                    AnnotatorTasks.tests.dialogMatchesCache(features_selected);
-                    var labels = casper.evaluate(function() {
-                        var dialog_label = $('.allograph_label').text();
-                        var form_allograph_label = $('#panelImageBox .allograph_form option:selected').text();
-                        return {
-                            'dialog_label': dialog_label,
-                            'form_allograph_label': form_allograph_label
-                        };
+
+            casper.then(function() {
+                AnnotatorTasks.do.select(feature.id, function() {
+                    casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
+                    casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
+                    casper.wait(500, function() {
+                        var features_selected = AnnotatorTasks.dialog.getSelectedFeatures();
+                        AnnotatorTasks.tests.dialogMatchesCache(features_selected);
+                        var labels = casper.evaluate(function() {
+                            var dialog_label = $('.allograph_label').text();
+                            var form_allograph_label = $('#panelImageBox .allograph_form option:selected').text();
+                            return {
+                                'dialog_label': dialog_label,
+                                'form_allograph_label': form_allograph_label
+                            };
+                        });
+                        casper.test.assertEquals(labels.dialog_label, labels.form_allograph_label, 'The dialog label and the allograph form label coincide');
+                        AnnotatorTasks.dialog.close();
+                        casper.test.assertDoesntExist('.dialog_annotations', 'Dialog closed.');
                     });
-                    casper.test.assertEquals(labels.dialog_label, labels.form_allograph_label, 'The dialog label and the allograph form label coincide');
-                    AnnotatorTasks.dialog.close();
-                    casper.test.assertDoesntExist('.dialog_annotations', 'Dialog closed.');
                 });
             });
         };
@@ -608,6 +636,7 @@ function Scenario() {
                         });
                         return ids;
                     });
+                    casper.capture('screen.png');
                     for (var i = 0; i < featuresByAllograph.length; i++) {
                         casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
                     }

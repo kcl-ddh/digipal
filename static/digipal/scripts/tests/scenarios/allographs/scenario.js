@@ -181,7 +181,9 @@ function Scenario() {
 
         this.Scenario6 = function() {
             casper.echo('Running Annotator Scenario 6', 'PARAMETER');
-            tabs.switch('allographs');
+            if (Tabs.current() !== '#allographs') {
+                Tabs.switch('allographs');
+            }
             casper.wait(300);
 
             // waiting for 300 ms as the animation makes the page still invisible for
@@ -213,8 +215,6 @@ function Scenario() {
 
         this.Scenario7 = function() {
             casper.echo('Running Annotator Scenario 7', 'PARAMETER');
-            tabs.switch('allographs');
-            casper.wait(300);
 
             var feature = tasks.get.random_vector();
             tasks.do.select(feature, function() {
@@ -241,8 +241,7 @@ function Scenario() {
 
         this.Scenario8 = function() {
             casper.echo('Running Annotator Scenario 8', 'PARAMETER');
-            tabs.switch('allographs');
-            casper.wait(300);
+
             var feature = tasks.get.random_vector();
             var feature2 = tasks.get.random_vector();
 
@@ -267,6 +266,8 @@ function Scenario() {
     this.init = function(options) {
         var tasks = new Tasks(options);
         var AnnotatorTasks = new AnnotatorScenario.AnnotatorTest.Tasks(options);
+        console.log(casper.getCurrentUrl())
+
         AnnotatorTasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
             .then(function() {
                 var scenarios = new Scenarios(AnnotatorTasks);

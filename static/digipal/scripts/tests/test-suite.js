@@ -1,17 +1,17 @@
 /*
- * * Digipal Testing using CasperJS and PhantomJS
+ * * Testing Suite using CasperJS and PhantomJS
  **
  **/
 
 
-function DigipalTest(_options) {
-
-    phantom.page.injectJs('config.js');
+function TestSuite(_options) {
 
     var self = this;
+    var config = require('./config.js').config;
     var domain = config.root;
     var http = require('http'),
-        system = require('system');
+        system = require('system'),
+        fs = require('fs');
 
     var options = {
         'deepScan': config.deepScan,
@@ -194,6 +194,47 @@ function DigipalTest(_options) {
     };
 
 
+    var loadScenarios = function(scenarios) {
+
+        var scenariosPath = config.scenarios.path;
+        var excludes = config.scenarios.excludes;
+        excludes = excludes.concat('..', '.');
+
+        if (!fs.exists(scenariosPath)) {
+            throw new Error('The folder scenarios does not exist');
+        }
+
+        fs.changeWorkingDirectory(scenariosPath);
+        var parentDirectory = fs.workingDirectory;
+
+        var lookup = function(directory) {
+            directory = fs.list(fs.workingDirectory);
+            for (var i = 0; i < directory.length; i++) {
+                var path = directory[i];
+                if (fs.isDirectory(path) && excludes.indexOf(path) < 0 && scenarios.indexOf(path) >= 0) {
+                    fs.changeWorkingDirectory(path);
+                    scenarios.push(path);
+                    lookup(path);
+                } else if (fs.isFile(path) && path.indexOf('.js') != -1) {
+                    var scenario = require(path);
+                    var scenariosList = [];
+                    for (var c in scenario) {
+                        scenariosList.push(scenario[c]);
+                    }
+                    casper.eachThen(scenariosList, function(response) {
+                        response.data.init(options);
+                    });
+
+                    fs.changeWorkingDirectory(parentDirectory);
+                }
+            }
+        };
+
+        return lookup(fs.workingDirectory);
+
+    };
+
+
     var Utils = {
 
         dom: {
@@ -303,6 +344,13 @@ function DigipalTest(_options) {
         }
     };
 
+    var CreateScenario = function() {
+        casper.echo('Creating new Scenario', 'INFO');
+        system.stdout.writeLine('Type a name for this scenario');
+        var line = system.stdin.readLine();
+        system.stdout.writeLine(JSON.stringify(line));
+    };
+
     options = Utils.extend({}, options, _options);
 
     return {
@@ -312,6 +360,7 @@ function DigipalTest(_options) {
         'listTests': Tests.methods.list,
         'init': init,
         'options': options,
-        'utils': Utils
+        'utils': Utils,
+        'loadScenarios': loadScenarios
     };
 }

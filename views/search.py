@@ -315,14 +315,17 @@ def get_query_summary(request, term, submitted, forms):
     # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"', 
     # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
     ret = u''
+
+    query_all = False
     
     from django.utils.html import strip_tags
     
     def get_filter_html(val, param, label=''):
-        ret = u''
+        ret = u'<a href="%s">' % update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param)
         if label:
             ret += u'%s: ' % label
-        ret += u'"%s" <a href="%s"><span class="glyphicon glyphicon-remove"></span></a>' % (escape(val), update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param))
+        ret += u'"%s" <span class="glyphicon glyphicon-remove"></span>' % escape(val)
+        ret += u'</a>'
         return ret
         
     if submitted:
@@ -363,10 +366,18 @@ def get_query_summary(request, term, submitted, forms):
                                     break
                 
         
-        if not ret.strip():
-            ret = 'All'
+        query_all = not ret.strip()
+        
+        if query_all:
+            ret = u'All'
             
-    return strip_tags(ret), ret
+    ret = [strip_tags(ret), ret]
+    
+    # add clear all button (see JIRA 484)
+    if not query_all:
+        ret[1] += u'<a class="clear-all" href="?s=1">Clear All <span class="glyphicon glyphicon-remove"></span></a>'
+        
+    return tuple(ret)
 
 def get_search_page_js_data(content_types, expanded_search=False, request=None):
     filters = []

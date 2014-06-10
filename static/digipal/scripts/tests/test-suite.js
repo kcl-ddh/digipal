@@ -75,6 +75,10 @@ function TestSuite(_options) {
             });
         });
 
+        casper.on('url.changed', function(url) {
+            console.log('URL has changed to ' + url);
+        });
+
         casper.on("page.error", function(msg, trace) {
             this.echo("Error:    " + msg, "ERROR");
             this.echo("file:     " + trace[0].file, "WARNING");

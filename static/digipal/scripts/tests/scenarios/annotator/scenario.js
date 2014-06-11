@@ -42,7 +42,7 @@ function Scenario() {
                 },
 
                 adminAccess: function(admin_page, username, password) {
-                    var page = options.page + '/digipal/page/61';
+                    var page = options.page + '/digipal/page/80';
 
                     var isAdmin = casper.evaluate(function() {
                         if (typeof annotator === 'undefined') {
@@ -300,7 +300,7 @@ function Scenario() {
                 describeForms: function() {
                     casper.evaluate(function() {
                         $('#panelImageBox .allograph_form').val(13).trigger('change');
-                        $('#panelImageBox .hand_form').val(278).trigger('change');
+                        $('#panelImageBox .hand_form').val(312).trigger('change');
                         return $('select').trigger('liszt:updated');
                     });
                 },

@@ -20,6 +20,7 @@ function Scenario() {
             do :{
 
                 select: function(feature_id, callback) {
+
                     casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
                     casper.test.assertExists('.selected', 'Element is correctly selected. Class .selected exists.');
                     casper.then(function() {
@@ -191,6 +192,7 @@ function Scenario() {
             //
 
             var feature = tasks.get.random_vector();
+            console.log(feature)
             tasks.do.select(feature, function() {
                 tasks.dialog.doesDialogExist();
                 tasks.dialog.doesSummaryExist();

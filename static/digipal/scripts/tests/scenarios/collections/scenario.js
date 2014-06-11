@@ -55,6 +55,17 @@ function Scenario() {
 
                 collectionDoesntExist: function(name) {
                     casper.test.assertFalsy(tasks.get.collectionByName(name), 'The collection ' + name + ' does not exist');
+                },
+
+                selectAll: function() {
+                    console.log('Selecting all collections...');
+                    var isChecked = casper.evaluate(function() {
+                        return $('#check_collections').attr('checked');
+                    });
+                    if (!isChecked) {
+                        casper.click('#check_collections');
+                        casper.test.assertExists('.selected-collection', 'All Collections are selected');
+                    }
                 }
             }
 
@@ -132,6 +143,11 @@ function Scenario() {
                     });
                 });
             });
+        };
+
+        this.Scenario5 = function() {
+            casper.echo('Running Collection Scenario 5', 'PARAMETER');
+            tasks.tests.selectAll();
         };
     };
 

@@ -18,6 +18,8 @@ function TestSuite(_options) {
         "page": domain
     };
 
+    var parentDirectory = fs.workingDirectory;
+
     if (casper.cli.get('deep')) {
         config.deepScan = true;
     }
@@ -200,24 +202,28 @@ function TestSuite(_options) {
 
     var loadScenarios = function(scenarios) {
 
-        var scenariosPath = config.scenarios.path;
+        var scenariosPath = parentDirectory + '/' + config.scenarios.path;
         var excludes = config.scenarios.excludes;
         excludes = excludes.concat('..', '.');
-
         if (!fs.exists(scenariosPath)) {
             throw new Error('The folder scenarios does not exist');
         }
 
         fs.changeWorkingDirectory(scenariosPath);
-        var parentDirectory = fs.workingDirectory;
 
         var lookup = function(directory) {
-            directory = fs.list(fs.workingDirectory);
-            for (var i = 0; i < directory.length; i++) {
-                var path = directory[i];
+            var _directory = fs.list(directory);
+            for (var i = 0; i < _directory.length; i++) {
+                var path = _directory[i];
                 if (fs.isDirectory(path) && excludes.indexOf(path) < 0 && scenarios.indexOf(path) >= 0) {
-                    fs.changeWorkingDirectory(path);
-                    scenarios.push(path);
+                    console.log(path);
+
+                    var path_children = fs.list(path);
+                    for (var j = 0; j < path_children.length; j++) {
+                        if (fs.isDirectory(path_children[j]) && excludes.indexOf(path_children[j]) < 0) {
+                            scenarios.push(path_children[j]);
+                        }
+                    }
                     lookup(path);
                 } else if (fs.isFile(path) && path.indexOf('.js') != -1) {
                     var scenario = require(path);
@@ -226,12 +232,12 @@ function TestSuite(_options) {
                         scenariosList.push(scenario[c]);
                     }
                     casper.eachThen(scenariosList, function(response) {
-                        response.data.init(options);
+                        //response.data.init(options);
                     });
-
-                    fs.changeWorkingDirectory(parentDirectory);
+                    casper.echo(path, 'INFO');
                 }
             }
+
         };
 
         return lookup(fs.workingDirectory);

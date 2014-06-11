@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
-from django.utils import simplejson
+import json
 from digipal.models import *
 from digipal.forms import SearchPageForm
 
@@ -201,7 +201,6 @@ def search_record_view(request):
     context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the advanced search forms 
-    from django.utils import simplejson
     #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
     
     page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
@@ -211,7 +210,7 @@ def search_record_view(request):
     for type in context['types']:
         type.add_field_links(page_options['linked_fields'])
 
-    context['search_page_options_json'] = simplejson.dumps(page_options)
+    context['search_page_options_json'] = json.dumps(page_options)
     for custom_filter in page_options['filters']:
         if custom_filter['key'] == context['search_type_defaulted']:
             context['filters_form'] = custom_filter

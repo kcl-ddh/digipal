@@ -1,4 +1,4 @@
-(function($) {
+jQuery(document).ready(function($) {
     function enable(jqe, enabled) {
         if (enabled) {
             jqe.removeAttr('disabled');
@@ -87,4 +87,4 @@
     });
     
     refresh_links();    
-})(jQuery);
+});

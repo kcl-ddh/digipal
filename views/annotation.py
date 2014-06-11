@@ -455,11 +455,11 @@ def image_copyright(request, image_id):
             context_instance=RequestContext(request))
     #page -> currentitem -> itempart -> repository.copyright_notice
 
-@ensure_csrf_cookie
+
 def images_lightbox(request, collection_name):
     data = {}
-    if 'data' in request.POST and request.POST.get('data', ''):
-        graphs = simplejson.loads(request.POST.get('data', ''))
+    if 'data' in request.GET and request.GET.get('data', ''):
+        graphs = simplejson.loads(request.GET.get('data', ''))
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))

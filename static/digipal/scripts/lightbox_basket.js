@@ -162,7 +162,7 @@ function main() {
 	if (!$.isEmptyObject(data)) {
 
 		var request = $.ajax({
-			type: 'POST',
+			type: 'GET',
 			url: '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/',
 			contentType: 'application/json',
 			data: {

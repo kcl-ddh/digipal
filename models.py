@@ -224,7 +224,7 @@ class Character(models.Model):
 class Allograph(models.Model):
     name = models.CharField(max_length=128)
     character = models.ForeignKey(Character)
-    default = models.BooleanField()
+    default = models.BooleanField(default=False)
     aspects = models.ManyToManyField(Aspect, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -1887,7 +1887,7 @@ class GraphComponent(models.Model):
 
 class Status(models.Model):
     name = models.CharField(max_length=32, unique=True)
-    default = models.BooleanField()
+    default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

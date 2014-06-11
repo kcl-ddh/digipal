@@ -155,7 +155,6 @@ class Image(digipal.models.Image):
         
         annotations = self.annotation_set.filter().distinct()
         if annotations.count():
-            t = t / 0
             for annotation in annotations:
                 annotation.geo_json = self.get_uncropped_geo_json(annotation, offsets, new_image_size, old_image_size)
                 annotation.save()

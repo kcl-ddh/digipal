@@ -78,7 +78,7 @@
 /**
  * Initialisation after any page load.
  */
-$(function() {
+(function($) {
     
     /* 
      *  Update the URL in the address bar when the link is clicked.
@@ -139,7 +139,7 @@ $(function() {
             interval: 8000
         })
     }
-});
+})(jQuery);
 
 /**
  * Expand thumbnails on mouse overs.
@@ -155,7 +155,7 @@ $(function() {
  *  the thumbnail when the mouse moves over it.
  *  
  */
-$(function() {
+(function($) {
     
     function show_expanded_img(event, img, hide) {
         var thumbnail_img = $(img);
@@ -229,7 +229,7 @@ $(function() {
     
     $('.img-expand').mouseenter(function(event){ show_expanded_img(event, this, false); });
     $('.img-expand').mouseleave(function(event){ show_expanded_img(event, this, true); });
-});
+})(jQuery);
 
 
 /**
@@ -245,7 +245,7 @@ $(function() {
  * the browser.
  * 
  */
-$(function() {
+(function($) {
     function load_lazy_images() {
         // load lazy images which are now visible in the browser window.
         $('img[data-lazy-img-src]').each(function() {
@@ -283,5 +283,5 @@ $(function() {
     $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', load_lazy_images);
     
     load_lazy_images();
-})
+})(jQuery);
 

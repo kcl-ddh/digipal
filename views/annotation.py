@@ -559,70 +559,70 @@ def save(request, graphs):
                         allograph = clean['allograph']
                         hand = clean['hand']
                         if hand and allograph:
-    
+
                             scribe = hand.scribe
-    
+
                             # GN: if this is a new Graph, it has no idiograph yet, so we test this first
                             if graph.id and (allograph.id != graph.idiograph.allograph.id):
                                 graph.graph_components.all().delete()
-    
+
                             idiograph_list = Idiograph.objects.filter(allograph=allograph,
                                     scribe=scribe)
-    
+
                             if idiograph_list:
                                 idiograph = idiograph_list[0]
                                 idiograph.id
                             else:
                                 idiograph = Idiograph(allograph=allograph, scribe=scribe)
                                 idiograph.save()
-    
+
                             graph.idiograph = idiograph
                             graph.hand = hand
-    
+
                             graph.save() # error is here
                         feature_list_checked = get_data.getlist('feature')
                         feature_list_unchecked = get_data.getlist('-feature')
-    
-    
+
+
                         if feature_list_unchecked:
-    
+
                             for value in feature_list_unchecked:
-    
+
                                 cid, fid = value.split('::')
-    
+
                                 component = Component.objects.get(id=cid)
                                 feature = Feature.objects.get(id=fid)
                                 gc_list = GraphComponent.objects.filter(graph=graph,
                                         component=component)
-    
+
                                 if gc_list:
                                     gc = gc_list[0]
                                     gc.features.remove(feature)
                                     gc.save()
-    
+
                                     if not gc.features.all():
                                         gc.delete()
-    
+
                         if feature_list_checked:
-    
+
                             for value in feature_list_checked:
-    
+
                                 cid, fid = value.split('::')
-    
+
                                 component = Component.objects.get(id=cid)
                                 feature = Feature.objects.get(id=fid)
                                 gc_list = GraphComponent.objects.filter(graph=graph,
                                         component=component)
-    
+
                                 if gc_list:
                                     gc = gc_list[0]
                                 else:
                                     gc = GraphComponent(graph=graph, component=component)
                                     gc.save()
-    
+
                                 gc.features.add(feature)
                                 gc.save()
-    
+
                         # attach the graph to a containing one
                         if geo_json:
                             annotation.set_graph_group()
@@ -633,8 +633,8 @@ def save(request, graphs):
                             annotation.save()
                         new_graph = simplejson.loads(get_features(graph.id))
                         data['graphs'].append(new_graph[0])
-    
-                        transaction.commit()
+
+                        #transaction.commit()
                         data['success'] = True
                 else:
                     #transaction.rollback()
@@ -660,35 +660,34 @@ def get_json_error_from_form_errors(form):
     return ret
 
 @login_required
-@transaction.commit_manually
 def delete(request, image_id, vector_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
 
     if settings.REJECT_HTTP_API_REQUESTS:
-        transaction.rollback()
         raise Http404
 
     data = {}
 
     try:
-        image = get_object_or_404(Image, pk=image_id)
+        with transaction.atomic():
+            image = get_object_or_404(Image, pk=image_id)
 
-        try:
-            annotation = Annotation.objects.get(image=image, vector_id=vector_id)
-        except Annotation.DoesNotExist:
-            pass
-        else:
-            if annotation.graph:
-                annotation.graph.delete()
-            annotation.delete()
+            try:
+                annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+            except Annotation.DoesNotExist:
+                pass
+            else:
+                if annotation.graph:
+                    annotation.graph.delete()
+                annotation.delete()
 
     except Exception as e:
-        transaction.rollback()
+        # transaction.rollback()
         data.update({'success': False})
         data.update({'errors': {}})
         data['errors'].update({'exception': e.message})
     else:
-        transaction.commit()
+        #transaction.commit()
         data.update({'success': True})
 
     return HttpResponse(simplejson.dumps(data), mimetype='application/json')

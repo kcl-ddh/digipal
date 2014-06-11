@@ -22,6 +22,7 @@ function TestSuite(_options) {
 
     if (casper.cli.get('deep')) {
         config.deepScan = true;
+        options.deepScan = config.deepScan;
     }
 
     if (casper.cli.get('root')) {
@@ -103,8 +104,7 @@ function TestSuite(_options) {
     var Scraper = function(_tests, options) {
 
         var linksCache = [];
-
-        (function() {
+        var run = function() {
 
             var testsList = Tests.methods.sort(_tests);
             if (testsList.multiple.length) {
@@ -137,7 +137,9 @@ function TestSuite(_options) {
                     Tests.tests[testsList.single[i]].run();
                 }
             }
-        })();
+        };
+
+        run();
 
     };
 
@@ -251,13 +253,14 @@ function TestSuite(_options) {
             get_links: function(linksCache) {
                 var _links = casper.getElementsAttribute('a', 'href'),
                     link;
+                var exclude_paths = ['/media/', '/feeds/'];
                 for (var i = 0; i < _links.length; i++) {
                     link = Utils.removeQueryString(_links[i]);
-                    if (linksCache.indexOf(link) >= 0) {
+                    if (linksCache.indexOf(link.replace(/\/(\d)+\//)) >= 0 || link.indexOf()) {
                         _links.splice(i, 1);
                         i--;
                     } else {
-                        linksCache.push(link);
+                        linksCache.push(link.replace(/\/(\d)+\//), '//');
                     }
                 }
                 return _links;
@@ -265,7 +268,7 @@ function TestSuite(_options) {
         },
 
         isExternalLink: function(link) {
-            var regex = /^http(s)?:\/\/(.)+/;
+            var regex = /^http|https:\/\/(.)+|mailto/;
             if (regex.test(link)) {
                 return true;
             }

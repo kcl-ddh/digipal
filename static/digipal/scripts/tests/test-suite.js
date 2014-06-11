@@ -201,52 +201,6 @@ function TestSuite(_options) {
         }
     };
 
-
-    var loadScenarios = function(scenarios) {
-
-        var scenariosPath = parentDirectory + '/' + config.scenarios.path;
-        var excludes = config.scenarios.excludes;
-        excludes = excludes.concat('..', '.');
-        if (!fs.exists(scenariosPath)) {
-            throw new Error('The folder scenarios does not exist');
-        }
-
-        fs.changeWorkingDirectory(scenariosPath);
-
-        var lookup = function(directory) {
-            var _directory = fs.list(directory);
-            for (var i = 0; i < _directory.length; i++) {
-                var path = _directory[i];
-                if (fs.isDirectory(path) && excludes.indexOf(path) < 0 && scenarios.indexOf(path) >= 0) {
-                    console.log(path);
-
-                    var path_children = fs.list(path);
-                    for (var j = 0; j < path_children.length; j++) {
-                        if (fs.isDirectory(path_children[j]) && excludes.indexOf(path_children[j]) < 0) {
-                            scenarios.push(path_children[j]);
-                        }
-                    }
-                    lookup(path);
-                } else if (fs.isFile(path) && path.indexOf('.js') != -1) {
-                    var scenario = require(path);
-                    var scenariosList = [];
-                    for (var c in scenario) {
-                        scenariosList.push(scenario[c]);
-                    }
-                    casper.eachThen(scenariosList, function(response) {
-                        //response.data.init(options);
-                    });
-                    casper.echo(path, 'INFO');
-                }
-            }
-
-        };
-
-        return lookup(fs.workingDirectory);
-
-    };
-
-
     var Utils = {
 
         dom: {
@@ -292,6 +246,19 @@ function TestSuite(_options) {
                 }
             }
             return out;
+        },
+
+        exclude_folders: function(folders, excludes) {
+            folders = JSON.parse(JSON.stringify(folders));
+            excludes = JSON.parse(JSON.stringify(excludes));
+            for (var i = 0; i < excludes.length; i++) {
+                for (var j = 0; j < folders.length; j++) {
+                    if (excludes[i] == folders[j]) {
+                        folders.splice(j, 1);
+                    }
+                }
+            }
+            return folders;
         },
 
         equals: function(array1, array2) {
@@ -356,6 +323,69 @@ function TestSuite(_options) {
             });
         }
     };
+
+    var loadScenarios = function(scenarios) {
+
+        var scenariosPath = parentDirectory + '/' + config.scenarios.path;
+        var excludes = config.scenarios.excludes;
+        if (!fs.exists(scenariosPath)) {
+            throw new Error('The folder scenarios does not exist');
+        }
+
+        fs.changeWorkingDirectory(scenariosPath);
+        var absolute_path = scenariosPath;
+        var scanned = [];
+
+        var lookup = function(directory) {
+            var _directory = fs.list(directory);
+            _directory = Utils.exclude_folders(_directory, ['.', '..']);
+            console.log(_directory);
+            for (var i = 0; i < _directory.length; i++) {
+                var path = _directory[i];
+
+                if (fs.isDirectory(path) && excludes.indexOf(path) < 0 && scenarios.indexOf(path) >= 0 && scanned.indexOf(path) < 0) {
+
+                    fs.changeWorkingDirectory(path);
+
+                    var path_children = fs.list(fs.workingDirectory);
+                    path_children = Utils.exclude_folders(path_children, ['.', '..']);
+
+                    for (var j = 0; j < path_children.length; j++) {
+                        if (fs.isDirectory(path_children[j]) && excludes.indexOf(path_children[j]) < 0) {
+                            scenarios.push(path_children[j]);
+                        }
+                    }
+
+                    lookup(fs.workingDirectory);
+
+                } else if (fs.isFile(path) && path.indexOf('.js') != -1) {
+
+                    var scenario = require(path);
+                    var scenariosList = [];
+                    for (var c in scenario) {
+                        scenariosList.push(scenario[c]);
+                    }
+
+                    casper.eachThen(scenariosList, function(response) {
+                        //response.data.init(options);
+                    });
+
+                    casper.echo(path, 'INFO');
+
+                }
+
+                if (i == _directory.length - 1) {
+                    scanned.push(directory);
+                    fs.changeWorkingDirectory('../');
+                }
+
+            }
+        };
+
+        return lookup(fs.workingDirectory);
+
+    };
+
 
     var CreateScenario = function() {
         casper.echo('Creating new Scenario', 'INFO');

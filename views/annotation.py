@@ -497,13 +497,12 @@ def form_dialog(request, image_id):
     return render_to_response('digipal/dialog.html', {'form': form, 'edit_annotation_shape': getattr(settings, 'EDIT_ANNOTATION_SHAPE', False)}, context_instance=RequestContext(request))
 
 @login_required
-@transaction.commit_manually
 def save(request, graphs):
 
     """Saves an annotation and creates a cutout of the annotation."""
 
     if settings.REJECT_HTTP_API_REQUESTS:
-        transaction.rollback()
+#        transaction.rollback()
         raise Http404
     else:
 
@@ -542,107 +541,108 @@ def save(request, graphs):
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
-                    clean = form.cleaned_data
-                    if geo_json:
-                        annotation.geo_json = geo_json
-                        annotation_is_modified = True
-                    # set the note (only if different) - see JIRA DIGIPAL-477
-                    for f in ['display_note', 'internal_note']:
-                        if getattr(annotation, f) != clean[f]:
-                            setattr(annotation, f, clean[f])
+                    with transaction.atomic():
+                        clean = form.cleaned_data
+                        if geo_json:
+                            annotation.geo_json = geo_json
                             annotation_is_modified = True
-                    if not annotation.id:
-                        # set the author only when the annotation is created
-                        annotation.author = request.user
-                    #annotation.before = clean['before']
-                    #annotation.after = clean['after']
-                    allograph = clean['allograph']
-                    hand = clean['hand']
-                    if hand and allograph:
-
-                        scribe = hand.scribe
-
-                        # GN: if this is a new Graph, it has no idiograph yet, so we test this first
-                        if graph.id and (allograph.id != graph.idiograph.allograph.id):
-                            graph.graph_components.all().delete()
-
-                        idiograph_list = Idiograph.objects.filter(allograph=allograph,
-                                scribe=scribe)
-
-                        if idiograph_list:
-                            idiograph = idiograph_list[0]
-                            idiograph.id
-                        else:
-                            idiograph = Idiograph(allograph=allograph, scribe=scribe)
-                            idiograph.save()
-
-                        graph.idiograph = idiograph
-                        graph.hand = hand
-
-                        graph.save() # error is here
-                    feature_list_checked = get_data.getlist('feature')
-                    feature_list_unchecked = get_data.getlist('-feature')
-
-
-                    if feature_list_unchecked:
-
-                        for value in feature_list_unchecked:
-
-                            cid, fid = value.split('::')
-
-                            component = Component.objects.get(id=cid)
-                            feature = Feature.objects.get(id=fid)
-                            gc_list = GraphComponent.objects.filter(graph=graph,
-                                    component=component)
-
-                            if gc_list:
-                                gc = gc_list[0]
-                                gc.features.remove(feature)
-                                gc.save()
-
-                                if not gc.features.all():
-                                    gc.delete()
-
-                    if feature_list_checked:
-
-                        for value in feature_list_checked:
-
-                            cid, fid = value.split('::')
-
-                            component = Component.objects.get(id=cid)
-                            feature = Feature.objects.get(id=fid)
-                            gc_list = GraphComponent.objects.filter(graph=graph,
-                                    component=component)
-
-                            if gc_list:
-                                gc = gc_list[0]
+                        # set the note (only if different) - see JIRA DIGIPAL-477
+                        for f in ['display_note', 'internal_note']:
+                            if getattr(annotation, f) != clean[f]:
+                                setattr(annotation, f, clean[f])
+                                annotation_is_modified = True
+                        if not annotation.id:
+                            # set the author only when the annotation is created
+                            annotation.author = request.user
+                        #annotation.before = clean['before']
+                        #annotation.after = clean['after']
+                        allograph = clean['allograph']
+                        hand = clean['hand']
+                        if hand and allograph:
+    
+                            scribe = hand.scribe
+    
+                            # GN: if this is a new Graph, it has no idiograph yet, so we test this first
+                            if graph.id and (allograph.id != graph.idiograph.allograph.id):
+                                graph.graph_components.all().delete()
+    
+                            idiograph_list = Idiograph.objects.filter(allograph=allograph,
+                                    scribe=scribe)
+    
+                            if idiograph_list:
+                                idiograph = idiograph_list[0]
+                                idiograph.id
                             else:
-                                gc = GraphComponent(graph=graph, component=component)
+                                idiograph = Idiograph(allograph=allograph, scribe=scribe)
+                                idiograph.save()
+    
+                            graph.idiograph = idiograph
+                            graph.hand = hand
+    
+                            graph.save() # error is here
+                        feature_list_checked = get_data.getlist('feature')
+                        feature_list_unchecked = get_data.getlist('-feature')
+    
+    
+                        if feature_list_unchecked:
+    
+                            for value in feature_list_unchecked:
+    
+                                cid, fid = value.split('::')
+    
+                                component = Component.objects.get(id=cid)
+                                feature = Feature.objects.get(id=fid)
+                                gc_list = GraphComponent.objects.filter(graph=graph,
+                                        component=component)
+    
+                                if gc_list:
+                                    gc = gc_list[0]
+                                    gc.features.remove(feature)
+                                    gc.save()
+    
+                                    if not gc.features.all():
+                                        gc.delete()
+    
+                        if feature_list_checked:
+    
+                            for value in feature_list_checked:
+    
+                                cid, fid = value.split('::')
+    
+                                component = Component.objects.get(id=cid)
+                                feature = Feature.objects.get(id=fid)
+                                gc_list = GraphComponent.objects.filter(graph=graph,
+                                        component=component)
+    
+                                if gc_list:
+                                    gc = gc_list[0]
+                                else:
+                                    gc = GraphComponent(graph=graph, component=component)
+                                    gc.save()
+    
+                                gc.features.add(feature)
                                 gc.save()
-
-                            gc.features.add(feature)
-                            gc.save()
-
-                    # attach the graph to a containing one
-                    if geo_json:
-                        annotation.set_graph_group()
-                    # Only save the annotation if it has been modified (or new one)
-                    # see JIRA DIGIPAL-477
-                    if annotation_is_modified or not annotation.id:
-                        annotation.graph = graph
-                        annotation.save()
-                    new_graph = simplejson.loads(get_features(graph.id))
-                    data['graphs'].append(new_graph[0])
-
-                    transaction.commit()
-                    data['success'] = True
+    
+                        # attach the graph to a containing one
+                        if geo_json:
+                            annotation.set_graph_group()
+                        # Only save the annotation if it has been modified (or new one)
+                        # see JIRA DIGIPAL-477
+                        if annotation_is_modified or not annotation.id:
+                            annotation.graph = graph
+                            annotation.save()
+                        new_graph = simplejson.loads(get_features(graph.id))
+                        data['graphs'].append(new_graph[0])
+    
+                        transaction.commit()
+                        data['success'] = True
                 else:
-                    transaction.rollback()
+                    #transaction.rollback()
                     data['success'] = False
                     data['errors'] = get_json_error_from_form_errors(form)
 
         except Exception as e:
-            transaction.rollback()
+            #transaction.rollback()
             data['success'] = False
             data['errors'] = ['Internal error: %s' % e.message]
             #tb = sys.exc_info()[2]

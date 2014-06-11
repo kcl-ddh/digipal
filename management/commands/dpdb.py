@@ -373,7 +373,7 @@ Commands:
         print '\n%s tables' % c
             
     def showTables(self, options):
-        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+        from django.db import connections
         
         table_filter = options.get('table', '')
         

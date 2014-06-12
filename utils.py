@@ -294,8 +294,10 @@ def get_plain_text_from_html(html):
     return ret
 
 def set_left_joins_in_queryset(qs):
-    for alias in qs.query.alias_map:
-        qs.query.promote_alias(alias, True)
+    qs.query.promote_joins(qs.query.alias_map.keys(), True)
+    #pass
+#     for alias in qs.query.alias_map:
+#         qs.query.promote_alias(alias, True)
 
 def get_str_from_queryset(queryset):
     ret = unicode(queryset.query)

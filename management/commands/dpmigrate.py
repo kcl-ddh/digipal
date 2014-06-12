@@ -672,7 +672,7 @@ Commands:
         return self.options.get('dry-run', False)
     
     def migrateRecords(self, options):
-        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+        from django.db import connections, transaction
         
         table_filter = options.get('table', '')
         if not table_filter:
@@ -682,27 +682,23 @@ Commands:
         con_src = connections[options.get('src')]
         con_dst = connections[options.get('db')]
         
-        con_dst.enter_transaction_management()
-        con_dst.managed()
+        with transaction.atomic(con_dst.alias):
 
-        self.log('MIGRATE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
-        
-        # 1. find all the remote tables starting with the prefix
-        src_tables = con_src.introspection.table_names()
-        dst_tables = con_dst.introspection.table_names()
-        
-        con_dst.disable_constraint_checking()
-        
-        for src_table in src_tables:
-            if re.search(r'%s' % table_filter, src_table):
-                if src_table in dst_tables:
-                    utils.sqlDeleteAll(con_dst, src_table, self.is_dry_run())
-                    self.copyTable(con_src, src_table, con_dst, src_table)
-                else:
-                    self.log('Table not found in destination (%s)' % src_table, 1)
-        
-        con_dst.commit()
-        con_dst.leave_transaction_management()
+            self.log('MIGRATE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
+            
+            # 1. find all the remote tables starting with the prefix
+            src_tables = con_src.introspection.table_names()
+            dst_tables = con_dst.introspection.table_names()
+            
+            con_dst.disable_constraint_checking()
+            
+            for src_table in src_tables:
+                if re.search(r'%s' % table_filter, src_table):
+                    if src_table in dst_tables:
+                        utils.sqlDeleteAll(con_dst, src_table, self.is_dry_run())
+                        self.copyTable(con_src, src_table, con_dst, src_table)
+                    else:
+                        self.log('Table not found in destination (%s)' % src_table, 1)
     
     def reapplyDataMigrations(self):
         '''

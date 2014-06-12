@@ -142,8 +142,7 @@ class Image(digipal.models.Image):
             return digipal_image
         return None
     
-    
-    @transaction.commit_manually
+    @transaction.atomic
     def replace_image_and_update_annotations(self, offsets, new_image):
         ret = True
         
@@ -151,20 +150,14 @@ class Image(digipal.models.Image):
         new_image = Image.from_digipal_image(new_image)
         new_image_size = new_image.get_img_size()
         
-        try:
-            self.iipimage = new_image.iipimage
-            self.save()
-            
-            annotations = self.annotation_set.filter().distinct()
-            if annotations.count():
-                for annotation in annotations:
-                    annotation.geo_json = self.get_uncropped_geo_json(annotation, offsets, new_image_size, old_image_size)
-                    annotation.save()
-        except Exception, e:
-            transaction.rollback()
-            raise e
-        else:
-            transaction.commit()
+        self.iipimage = new_image.iipimage
+        self.save()
+        
+        annotations = self.annotation_set.filter().distinct()
+        if annotations.count():
+            for annotation in annotations:
+                annotation.geo_json = self.get_uncropped_geo_json(annotation, offsets, new_image_size, old_image_size)
+                annotation.save()
         
         return ret
     

@@ -297,12 +297,20 @@ function Scenario() {
                     }
                 },
 
-                describeForms: function() {
-                    casper.evaluate(function() {
-                        $('#panelImageBox .allograph_form').val(13).trigger('change');
-                        $('#panelImageBox .hand_form').val(312).trigger('change');
+                describeForms: function(page) {
+                    var dialog;
+
+                    if (page == 'allographs') {
+                        dialog = '#modal_features';
+                    } else {
+                        dialog = '#panelImageBox';
+                    }
+                    casper.evaluate(function(dialog) {
+                        dialog = $(dialog);
+                        dialog.find('allograph_form').val(13).trigger('change');
+                        dialog.find('.hand_form').val(312).trigger('change');
                         return $('select').trigger('liszt:updated');
-                    });
+                    }, dialog);
                 },
 
                 select: function(feature, callback) {

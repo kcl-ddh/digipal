@@ -339,7 +339,7 @@ function TestSuite(_options) {
         var lookup = function(directory) {
             var _directory = fs.list(directory);
             _directory = Utils.exclude_folders(_directory, ['.', '..']);
-            console.log(_directory);
+
             for (var i = 0; i < _directory.length; i++) {
                 var path = _directory[i];
 
@@ -367,10 +367,8 @@ function TestSuite(_options) {
                     }
 
                     casper.eachThen(scenariosList, function(response) {
-                        //response.data.init(options);
+                        response.data.init(options);
                     });
-
-                    casper.echo(path, 'INFO');
 
                 }
 

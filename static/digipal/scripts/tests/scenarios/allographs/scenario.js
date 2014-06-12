@@ -181,7 +181,7 @@ function Scenario() {
         */
 
         this.Scenario6 = function() {
-            casper.echo('Running Annotator Scenario 6', 'PARAMETER');
+            casper.echo('Running Allographs Scenario 6', 'PARAMETER');
             if (Tabs.current() !== '#allographs') {
                 Tabs.switch('allographs');
             }
@@ -216,9 +216,11 @@ function Scenario() {
      */
 
         this.Scenario7 = function() {
-            casper.echo('Running Annotator Scenario 7', 'PARAMETER');
+            casper.echo('Running Allographs Scenario 7', 'PARAMETER');
 
             var feature = tasks.get.random_vector();
+            AnnotatorTasks.do.describeForms('allographs');
+            casper.wait(600);
             tasks.do.select(feature, function() {
 
                 casper.then(function() {
@@ -242,7 +244,7 @@ function Scenario() {
          */
 
         this.Scenario8 = function() {
-            casper.echo('Running Annotator Scenario 8', 'PARAMETER');
+            casper.echo('Running Allographs Scenario 8', 'PARAMETER');
 
             var feature = tasks.get.random_vector();
             var feature2 = tasks.get.random_vector();
@@ -268,7 +270,6 @@ function Scenario() {
     this.init = function(options) {
         var tasks = new Tasks(options);
         var AnnotatorTasks = new AnnotatorScenario.AnnotatorTest.Tasks(options);
-        console.log(casper.getCurrentUrl())
 
         AnnotatorTasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
             .then(function() {

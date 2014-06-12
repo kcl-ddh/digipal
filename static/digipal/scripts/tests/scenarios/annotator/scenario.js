@@ -25,7 +25,7 @@ function Scenario() {
                                 }
                             }
                         }
-                        return featuresByAllograph;
+                        return JSON.parse(JSON.stringify(featuresByAllograph));
                     }, allograph_id, attribute);
                 },
 
@@ -137,7 +137,7 @@ function Scenario() {
                     return casper.evaluate(function(vector_id) {
                         var graph, features = annotator.vectorLayer.features;
                         for (var i = 0; i < features.length; i++) {
-                            if (features[i].id == vector_id) {
+                            if (features[i].vector_id == vector_id) {
                                 graph = features[i].graph;
                             }
                         }
@@ -593,7 +593,7 @@ function Scenario() {
             };
 
             var feature = AnnotatorTasks.get.random_vector(features);
-
+            console.log(feature.id);
             casper.then(function() {
                 AnnotatorTasks.do.annotate(feature.id, true, function() {
                     AnnotatorTasks.dialog.close();
@@ -635,19 +635,27 @@ function Scenario() {
 
                 casper.then(function() {
                     casper.wait(1000, function() {
-                        var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'id');
-                        var vectors_ids = casper.evaluate(function() {
-                            var ids = [];
-                            var vectors = $('.vector_image_link');
-                            $.each(vectors, function() {
-                                ids.push($(this).data('annotation'));
+                        var featuresByAllograph = AnnotatorTasks.get.featuresByAllograph(allograph_id, 'graph');
+                        var vectors_ids = (function() {
+                            return casper.evaluate(function() {
+                                var ids = [];
+                                var vectors = $('.vector_image_link');
+                                $.each(vectors, function() {
+                                    ids.push($(this).data('graph'));
+                                });
+                                return JSON.parse(JSON.stringify(ids));
                             });
-                            return ids;
-                        });
-                        casper.capture('screen.png');
-                        for (var i = 0; i < featuresByAllograph.length; i++) {
-                            casper.test.assert(vectors_ids.indexOf(featuresByAllograph[i]) >= 0, 'The image vector is loaded');
+                        })();
+
+                        var found = 0;
+                        for (var i = 0; i < vectors_ids.length; i++) {
+                            for (var j = 0; j < featuresByAllograph.length; j++) {
+                                if (featuresByAllograph[j] == vectors_ids[i]) {
+                                    found++;
+                                }
+                            }
                         }
+                        casper.test.assert(found === vectors_ids.length, 'All images have been loaded');
                     });
                 });
 

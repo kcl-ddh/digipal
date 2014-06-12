@@ -510,8 +510,27 @@ Annotator.prototype.activateKeyboardShortcuts = function(event) {};
  *						The id of the feature to select.
  */
 Annotator.prototype.selectFeatureById = function(featureId) {
-	var feature = this.vectorLayer.getFeatureById(featureId);
+	var feature;
+	if ($.isNumeric(featureId)) {
+		feature = this.vectorLayer.getFeatureById(featureId);
+	} else {
+		feature = this.getGraphByVectorId(featureId);
+	}
 	this.selectFeature.clickFeature(feature);
+	return feature;
+};
+
+Annotator.prototype.getGraphByVectorId = function(featureId) {
+	var feature;
+	for (var i = 0; i < this.vectorLayer.features.length; i++) {
+		var vector_id = this.vectorLayer.features[i].vector_id || this.vectorLayer.features[i].id;
+		vector_id = vector_id.replace(/\./gi, '_');
+		if (featureId.replace(/\./gi, '_') == vector_id) {
+			feature = this.vectorLayer.features[i];
+			break;
+		}
+	}
+	return feature;
 };
 
 /**
@@ -533,8 +552,7 @@ Annotator.prototype.selectFeatureByIdAndCentre = function(featureId) {
  *						The id of the feature to select.
  */
 Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
-	var feature = this.vectorLayer.getFeatureById(featureId);
-	this.selectFeature.clickFeature(feature);
+	var feature = this.selectFeatureById(featureId);
 	this.map.zoomToExtent(feature.geometry.getBounds());
 };
 

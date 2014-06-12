@@ -334,7 +334,7 @@ function AnnotatorLoader() {
 	*/
 
 	this.load_stored_vector = function() {
-		if (typeof vector_id != "undefined" && vector_id && !no_image_reason) {
+		if (typeof vector_id_value != "undefined" && vector_id_value && !no_image_reason) {
 			$('html').animate({
 				scrollTop: $('#map').position().top + 'px'
 			}, 0);
@@ -365,8 +365,8 @@ function AnnotatorLoader() {
 			}
 
 			if (vector_id_value.length == 1) {
-				annotator.selectFeatureByIdAndZoom(getGraphByVectorId(vector_id_value[0]).id);
-
+				//annotator.selectFeatureByIdAndZoom(getGraphByVectorId(vector_id_value[0]).id);
+				annotator.selectFeatureByIdAndZoom(vector_id_value[0]);
 			} else {
 
 				for (var i = 0; i < vector_id_value.length; i++) {

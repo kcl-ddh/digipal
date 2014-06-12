@@ -37,7 +37,6 @@ function AnnotationsCache() {
 			obj[id]['features'] = object['features'];
 			obj[id]['allograph_id'] = object['allograph_id'];
 			obj[id]['hand_id'] = object['hand_id'];
-			obj[id]['vector_id'] = object['vector_id'];
 			obj[id]['image_id'] = object['image_id'];
 			obj[id]['hands'] = object['hands'];
 			obj[id]['item_part'] = object['item_part'];

@@ -102,7 +102,7 @@ def get_features(graph_id, only_features=False):
             obj['allographs'] = allograph
             allographs_cache.append(a)
 
-        vector_id = graph.annotation.vector_id
+        #vector_id = graph.annotation.vector_id
         hand_id = graph.hand.id
         allograph_id = graph.idiograph.allograph.id
         image_id = graph.annotation.image.id
@@ -125,7 +125,7 @@ def get_features(graph_id, only_features=False):
                     dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
 
         obj['features'] = dict_features
-        obj['vector_id'] = vector_id
+        #obj['vector_id'] = vector_id
         obj['image_id'] = image_id
         obj['hand_id'] = hand_id
         obj['allograph_id'] = allograph_id
@@ -197,7 +197,7 @@ def image(request, image_id):
     url = url[len(url) - 1]
     # Check for a vector_id in image referral, if it exists the request has
     # come via Scribe/allograph route
-    vector_id = request.GET.get('vector_id', '')
+    vector_id = request.GET.get('graph', '') or request.GET.get('vector_id', '')
     hands_list = []
     hand = {}
     hands_object = Hand.objects.filter(images=image_id)
@@ -529,7 +529,7 @@ def save(request, graphs):
                     graph = graph_object
                 else:
                     graph = Graph()
-                    annotation = Annotation(image=image, vector_id=gr['vector_id'])
+                    annotation = Annotation(image=image)
 
                 get_data = request.POST.copy()
 

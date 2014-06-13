@@ -158,6 +158,19 @@ function Scenario() {
                 annotate: function(feature, describe, callback) {
                     var self = this;
                     self.describeForms();
+                    var execute = function() {
+                        casper.then(function() {
+                            self.describeForms();
+                            casper.wait(1000, function() {
+                                if (describe) {
+                                    console.log('Describing feature...');
+                                    self.describe();
+                                }
+                                casper.capture('screen.png');
+                                self.save(callback);
+                            });
+                        });
+                    };
 
                     if (feature) {
                         self.select(feature, function() {
@@ -166,22 +179,10 @@ function Scenario() {
                         });
                     } else {
                         console.log('Drawing new feature...');
-                        self.drawFeature();
-                        execute();
-                    }
-
-                    var execute = function() {
-                        casper.wait(250, function() {
-                            self.describeForms();
-                            casper.wait(500, function() {
-                                if (describe) {
-                                    console.log('Describing feature...');
-                                    self.describe();
-                                }
-                                self.save(callback);
-                            });
+                        self.drawFeature(function() {
+                            execute();
                         });
-                    };
+                    }
                 },
 
                 save: function(callback) {
@@ -216,50 +217,45 @@ function Scenario() {
                     });
                 },
 
-                drawFeature: function() {
-                    return casper.waitFor(function() {
-                        return this.evaluate(function() {
-                            var random_number = function(m) {
-                                return Math.random() * m;
-                            };
+                drawFeature: function(callback) {
+                    casper.evaluate(function() {
+                        var random_number = function(m) {
+                            return Math.random() * m;
+                        };
 
-                            var points = [
-                                new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
-                                new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
-                                new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
-                                new OpenLayers.Geometry.Point(random_number(2000), random_number(2000))
-                            ];
+                        var points = [
+                            new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
+                            new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
+                            new OpenLayers.Geometry.Point(random_number(2000), random_number(2000)),
+                            new OpenLayers.Geometry.Point(random_number(2000), random_number(2000))
+                        ];
 
-                            var ring = new OpenLayers.Geometry.LinearRing(points);
-                            var rectangle = new OpenLayers.Geometry.Polygon([ring]);
+                        var ring = new OpenLayers.Geometry.LinearRing(points);
+                        var rectangle = new OpenLayers.Geometry.Polygon([ring]);
 
-                            var attributes = {
-                                strokeColor: "#11CDD4",
-                                strokeOpacity: 0.5,
-                                strokeWidth: 2,
-                                fillColor: "#11CDD4",
-                                fillOpacity: 0.5
-                            };
+                        var attributes = {
+                            strokeColor: "#11CDD4",
+                            strokeOpacity: 0.5,
+                            strokeWidth: 2,
+                            fillColor: "#11CDD4",
+                            fillOpacity: 0.5
+                        };
 
-                            var feature = new OpenLayers.Feature.Vector(rectangle, attributes);
-                            annotator.vectorLayer.addFeatures([feature]);
-                            annotator.selectFeatureById(feature.id);
-                            return annotator.selectedFeature;
-                        });
-
-                    }, function then() {
-                        return this.evaluate(function() {
-                            return annotator.selectedFeature;
-                        });
+                        var feature = new OpenLayers.Feature.Vector(rectangle, attributes);
+                        annotator.vectorLayer.addFeatures([feature]);
+                        annotator.selectFeatureById(feature.id);
                     });
+                    if (callback) {
+                        return callback();
+                    }
 
                 },
 
                 /*
-                        - @reusable for AllographsTasks
-                        - specify "allographs" as value of page, or leave empty if for Tasks
-                        - specify check = false if you want to undescribe checkboxes
-                     */
+                - @reusable for AllographsTasks
+                - specify "allographs" as value of page, or leave empty if for Tasks
+                - specify check = false if you want to undescribe checkboxes
+                */
 
                 describe: function(page, check) {
                     var checkboxes = casper.evaluate(function(page, check) {
@@ -307,8 +303,12 @@ function Scenario() {
                     }
                     casper.evaluate(function(dialog) {
                         dialog = $(dialog);
-                        dialog.find('allograph_form').val(13).trigger('change');
-                        dialog.find('.hand_form').val(312).trigger('change');
+                        if (!dialog.find('allograph_form').val()) {
+                            dialog.find('allograph_form').val(13).trigger('change');
+                        }
+                        if (!dialog.find('hand_form').val()) {
+                            dialog.find('.hand_form').val(312).trigger('change');
+                        }
                         return $('select').trigger('liszt:updated');
                     }, dialog);
                 },
@@ -593,7 +593,7 @@ function Scenario() {
             };
 
             var feature = AnnotatorTasks.get.random_vector(features);
-            console.log(feature.id);
+
             casper.then(function() {
                 AnnotatorTasks.do.annotate(feature.id, true, function() {
                     AnnotatorTasks.dialog.close();
@@ -609,6 +609,16 @@ function Scenario() {
                 casper.echo('Reloading page ...');
                 casper.reload(function() {
                     actions(feature);
+                });
+            });
+
+            casper.then(function() {
+                casper.echo('Reloading page ...');
+                casper.reload(function() {
+                    AnnotatorTasks.do.annotate(null, true, function() {
+                        AnnotatorTasks.dialog.close();
+                        AnnotatorTasks.do.unselect();
+                    });
                 });
             });
         };

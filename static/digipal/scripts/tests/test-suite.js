@@ -40,7 +40,7 @@ function TestSuite(_options) {
         Events(errors, assert_failures);
 
         casper.test.begin('Digipal testing Suite', function() {
-            casper.start(options.page, function() {
+            casper.start().then(function() {
                 Scraper(Tests.tests, options);
             }).run(function() {
                 if (assert_failures.length) {

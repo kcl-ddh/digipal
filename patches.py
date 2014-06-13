@@ -139,51 +139,49 @@ def mezzanine_patches():
         keyword_exists = True
         try:
             from mezzanine.generic.models import Keyword
-            # Let's add the Keywords to the admin interface
-            from django.contrib import admin
-            admin.site.register(Keyword)    
         except Exception, e:
             keyword_exists = False 
             if getattr(settings, 'DEV_SERVER', False):
                 print 'WARNING: import failed (%s) and Mezzanine Blog case-sensitive keywords patch cannot be applied.' % e 
         
         if keyword_exists:
+            # patch integrated into the latest mezzanine version
             
-            from django.contrib.admin.views.decorators import staff_member_required
-            @staff_member_required
-            def admin_keywords_submit(request):
-                """
-                Adds any new given keywords from the custom keywords field in the
-                admin, and returns their IDs for use when saving a model with a
-                keywords field.
-                """
-                ids, titles = [], []
-                for title in request.POST.get("text_keywords", "").split(","):
-                    title = "".join([c for c in title if c.isalnum() or c in "- "])
-                    title = title.strip()
-                    if title:
-                        keywords = Keyword.objects.filter(title__iexact=title)
-                        
-                        # pick a case-sensitive match if it exists.
-                        # otherwise pick any other match.
-                        for keyword in keywords:
-                            if keyword.title == title:
-                                break
-                        
-                        # no match at all, create a new keyword.
-                        if not keywords.count():
-                            keyword = Keyword(title=title)
-                            keyword.save()                
-                        
-                        id = str(keyword.id)
-                        if id not in ids:
-                            ids.append(id)
-                            titles.append(title)
-                from django.http import HttpResponse
-                return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
-            
-            import mezzanine.generic.views
-            mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
+#             from django.contrib.admin.views.decorators import staff_member_required
+#             @staff_member_required
+#             def admin_keywords_submit(request):
+#                 """
+#                 Adds any new given keywords from the custom keywords field in the
+#                 admin, and returns their IDs for use when saving a model with a
+#                 keywords field.
+#                 """
+#                 ids, titles = [], []
+#                 for title in request.POST.get("text_keywords", "").split(","):
+#                     title = "".join([c for c in title if c.isalnum() or c in "- "])
+#                     title = title.strip()
+#                     if title:
+#                         keywords = Keyword.objects.filter(title__iexact=title)
+#                         
+#                         # pick a case-sensitive match if it exists.
+#                         # otherwise pick any other match.
+#                         for keyword in keywords:
+#                             if keyword.title == title:
+#                                 break
+#                         
+#                         # no match at all, create a new keyword.
+#                         if not keywords.count():
+#                             keyword = Keyword(title=title)
+#                             keyword.save()                
+#                         
+#                         id = str(keyword.id)
+#                         if id not in ids:
+#                             ids.append(id)
+#                             titles.append(title)
+#                 from django.http import HttpResponse
+#                 return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
+#             
+#             import mezzanine.generic.views
+#             mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
             
             # TODO: move this code to a new view that extends Mezzanine blog_post_detail.
             # Not documented way of doing it so we stick with this temporary solution for the moment.

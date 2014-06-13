@@ -1495,3 +1495,10 @@ admin.site.register(CarouselItem, CarouselItemAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(Text, TextAdmin)
+
+# Let's add the Keywords to the admin interface
+try:
+    from mezzanine.generic.models import Keyword
+    admin.site.register(Keyword)
+except ImportError, e:
+    pass

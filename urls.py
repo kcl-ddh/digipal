@@ -20,8 +20,6 @@ urlpatterns = patterns('',
     
     url(r'^account/$', 'django.contrib.auth.views.login'),
 
-    url(r'^lightbox/', include('lightbox.urls', namespace='lightbox', app_name='lightbox')),
-
     # these allow us to test 404 and 500 pages in DEBUG=True mode
     url('^404/?$', direct_to_template, {'template': 'errors/404.html'}, name = '404'),
     url('^500/?$', direct_to_template, {'template': 'errors/500.html'}, name = '500'),
@@ -39,6 +37,9 @@ urlpatterns = patterns('',
 
     url(r'^blog/search/$', 'mezzanine.core.views.search'),
 )
+
+if settings.LIGHTBOX:
+    url(r'^lightbox/', include('lightbox.urls', namespace='lightbox', app_name='lightbox')),
 
 # Server media in debug mode
 if settings.DEBUG :

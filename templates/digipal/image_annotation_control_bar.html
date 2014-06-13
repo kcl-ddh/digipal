@@ -33,7 +33,7 @@
         </button>
     </div>
 
-    {% if can_edit %}
+
         <form name='frmAnnotation' method="get" class='frmAnnotation pull-right'>
             <div id='form_annotation_hand'>
                 <ul class='ul_inline_form'>
@@ -45,19 +45,6 @@
                 </span>
             </div>
         </form>
-    {% else %}
 
-        {% comment %}
-            <div style='display:inline;margin-left:1%;'>
-                <div class="btn-toolbar" style='display:inline'>
-                    <div class="btn-group" style='margin-bottom:1%'>
-                        <span style='margin-right:0' class='btn btn-small btn-primary number_annotated_allographs' data-feature = '' title='Show all the images of this allograph'> Explore allographs  ( <span style='margin-right:0' class='number-allographs'>0</span> )
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endcomment %}
-
-    {% endif %}
 
 </div> {% comment %}DIV panelImageBox{% endcomment %}

@@ -1879,7 +1879,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var a = $('<input type="text">');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').html();
-
+		desc.replace('contenteditable="true"', '');
 		// get annotations visibility status
 		var getAnnotationsVisibility = $('.toggle-state-switch').bootstrapSwitch('state');
 		var layerExtent = annotator.map.getExtent();
@@ -1946,7 +1946,7 @@ function show_url_allograph(dialog, annotation, button) {
 					geoJSONText = JSON.parse(annotator.format.write(geometryObject));
 
 					geoJSONText.title = title;
-					geoJSONText.desc = annotator.utils.Base64.encode(desc);
+					geoJSONText.desc = encodeURIComponent(desc);
 					geoJSONText.dialogPosition = dialogPosition;
 					geoJSONText.extent = layerExtent;
 					geoJSONText.visibility = getAnnotationsVisibility;
@@ -1968,7 +1968,7 @@ function show_url_allograph(dialog, annotation, button) {
 				geoJSONText = JSON.parse(annotator.format.write(geometryObject));
 
 				geoJSONText.title = title;
-				geoJSONText.desc = annotator.utils.Base64.encode(desc);
+				geoJSONText.desc = encodeURIComponent(desc);
 				geoJSONText.dialogPosition = dialogPosition;
 				geoJSONText.extent = layerExtent;
 				geoJSONText.visibility = getAnnotationsVisibility;

@@ -1,0 +1,43 @@
+{% extends "pages/page.html" %}
+
+{% load mezzanine_tags pages_tags sort %}
+
+{% block main %}
+
+    {{ block.super }}
+    
+    <div class="row">
+    
+        <div class='col-xs-12 col-sm-4 col-md-3 hidden-xs pull-right'>
+        
+            <ul id="aboutMenu" class="nav nav-tabs nav-stacked">
+                {% for pages in page_branch %}
+                    {% if pages.has_children_in_menu and pages.is_current_or_ascendant %}
+                        <li {% if pages == page %}class='active'{%endif%}><a href="{{pages.get_absolute_url}}">{{pages}}</a></li>
+                        {% for p in pages.children.values|sort %}
+                            {% if p.title == page.title %}
+                                <li class="active"><a>{{p.title}}</a></li>
+                            {% else %}
+                                <li><a href="/{{ p.slug }}">{{p.title}}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            
+        </div>
+        
+        <div class='col-xs-12 col-sm-8 justified left-panel'>
+        	<div class="page-header">
+          		<h1>{{page.title}}</h1>
+        	</div>
+            
+            {% editable page.richtextpage.content %}
+                {{ page.richtextpage.content|richtext_filter|safe }}
+            {% endeditable %}
+            
+        </div>
+
+    </div>
+    
+{% endblock %}

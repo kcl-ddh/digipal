@@ -1,23 +1,21 @@
-var AnnotatorScenario = require('../annotator/scenario.js');
-
 function Scenario() {
 
-    var Scenarios = function(AnnotatorTasks) {
+    var Scenarios = function(AnnotatorTasks, options) {
 
-        var tasks = require('actions.js').Actions;
+        var tasks = require('./actions.js').Actions(options);
 
         /*
-        - @Scenario6
+        - @Scenario1
         - Select any graph
         - Make sure a popup comes out, displaying correct component and features
         - Make sure the checked feature appears into the summary popup on the left side of the popup
         - Check any feature, make sure it appears in the summary popup. Then uncheck it again, and make sure it disappears from the summary popup.
         */
 
-        this.Scenario6 = function() {
-            casper.echo('Running Allographs Scenario 6', 'PARAMETER');
-            if (tasks.tab.current() !== '#allographs') {
-                tasks.tab.switch('allographs');
+        this.Scenario1 = function() {
+            casper.echo('Running Allographs Scenario 1', 'PARAMETER');
+            if (tasks.tabs.current() !== '#allographs') {
+                tasks.tabs.switch('allographs');
             }
             casper.wait(300);
 
@@ -48,8 +46,8 @@ function Scenario() {
         - Selecting and removing annotations
      */
 
-        this.Scenario7 = function() {
-            casper.echo('Running Allographs Scenario 7', 'PARAMETER');
+        this.Scenario2 = function() {
+            casper.echo('Running Allographs Scenario 2', 'PARAMETER');
 
             var feature = tasks.get.random_vector();
             AnnotatorTasks.do.describeForms('allographs');
@@ -76,8 +74,8 @@ function Scenario() {
         - Try to delete them and make sure they actually disappear form the page
          */
 
-        this.Scenario8 = function() {
-            casper.echo('Running Allographs Scenario 8', 'PARAMETER');
+        this.Scenario3 = function() {
+            casper.echo('Running Allographs Scenario 3', 'PARAMETER');
 
             var feature = tasks.get.random_vector();
             var feature2 = tasks.get.random_vector();
@@ -101,12 +99,10 @@ function Scenario() {
     };
 
     this.init = function(options) {
-        var tasks = new Tasks(options);
-        var AnnotatorTasks = new AnnotatorScenario.AnnotatorTest.Tasks(options);
-
-        AnnotatorTasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
+        var AnnotatorActions = require('../annotator/actions.js').Actions(options);
+        AnnotatorActions.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
             .then(function() {
-                var scenarios = new Scenarios(AnnotatorTasks);
+                var scenarios = new Scenarios(AnnotatorActions, options);
                 var scenariosList = [];
                 for (var i in scenarios) {
                     scenariosList.push(scenarios[i]);

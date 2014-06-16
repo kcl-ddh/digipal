@@ -384,14 +384,6 @@ function TestSuite(_options) {
 
     };
 
-
-    var CreateScenario = function() {
-        casper.echo('Creating new Scenario', 'INFO');
-        system.stdout.writeLine('Type a name for this scenario');
-        var line = system.stdin.readLine();
-        system.stdout.writeLine(JSON.stringify(line));
-    };
-
     options = Utils.extend({}, options, _options);
 
     return {

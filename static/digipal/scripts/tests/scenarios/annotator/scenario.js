@@ -1,7 +1,6 @@
 function Scenario() {
 
-    var Scenarios = function() {
-        var AnnotatorTasks = require('actions.js').Actions;
+    var Scenarios = function(AnnotatorTasks) {
 
         var features = AnnotatorTasks.get.features();
 
@@ -17,8 +16,8 @@ function Scenario() {
 
             casper.echo('Running Annotator Scenario 1', 'PARAMETER');
 
-            if (AnnotatorTasks.tab.current() !== '#annotator') {
-                AnnotatorTasks.tab.switch('annotator');
+            if (AnnotatorTasks.tabs.current() !== '#annotator') {
+                AnnotatorTasks.tabs.switch('annotator');
             }
 
             AnnotatorTasks.options.multiple_annotations(false);
@@ -26,7 +25,7 @@ function Scenario() {
             var feature = AnnotatorTasks.get.random_vector(features);
 
             casper.then(function() {
-                AnnotatorTasks.do.select(feature.id, function() {
+                AnnotatorTasks.do.select(feature.vector_id, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
                     casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
                     casper.wait(500, function() {
@@ -260,11 +259,11 @@ function Scenario() {
     };
 
     this.init = function(options) {
-        var tasks = new this.Tasks(options);
+        var AnnotatorTasks = require('./actions.js').Actions(options);
 
-        tasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
+        AnnotatorTasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
             .then(function() {
-                var scenarios = new Scenarios();
+                var scenarios = new Scenarios(AnnotatorTasks);
                 var scenariosList = [];
                 for (var i in scenarios) {
                     scenariosList.push(scenarios[i]);

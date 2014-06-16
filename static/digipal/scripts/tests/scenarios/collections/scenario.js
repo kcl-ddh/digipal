@@ -1,9 +1,9 @@
 function Scenario() {
 
-    this.Actions = require('actions.js').Actions;
+    var Actions = require('./actions.js').Actions();
 
     var Scenarios = function(options) {
-        var tasks = new Actions();
+        var tasks = Actions;
 
         /*
         - Create a New Collection and make sure it exists

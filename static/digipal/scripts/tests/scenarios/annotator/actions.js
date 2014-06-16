@@ -529,6 +529,6 @@ var Actions = function(options) {
     return actions;
 };
 
-exports.Actions = function() {
-    return new Actions();
+exports.Actions = function(options) {
+    return new Actions(options);
 };

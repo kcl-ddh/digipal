@@ -1,0 +1,40 @@
+/*
+Upgraded on 03/04/2014 from
+https://raw.githubusercontent.com/bassjobsen/typeahead.js-bootstrap-css/master/typeaheadjs.css
+!!!!!!!!! 
+Customisations should go into dpsearch.css
+!!!!!!!!!
+*/
+.tt-dropdown-menu {
+    background-clip: padding-box;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+    display: none;
+    float: left;
+    font-size: 14px;
+    left: 0;
+    list-style: none outside none;
+    margin: 2px 0 0;
+    min-width: 160px;
+    padding: 5px 0;
+    position: absolute;
+    top: 100%;
+    z-index: 1000;
+}
+.tt-suggestion > p {
+    clear: both;
+    color: #333333;
+    display: block;
+    font-weight: normal;
+    line-height: 1.42857;
+    padding: 3px 20px;
+    white-space: nowrap;
+}
+.tt-suggestion > p:hover, .tt-suggestion > p:focus, .tt-suggestion.tt-cursor p {
+    background-color: #428BCA;
+    color: #FFFFFF;
+    outline: 0 none;
+    text-decoration: none;
+}

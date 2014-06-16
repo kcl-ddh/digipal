@@ -1,0 +1,19 @@
+/* Scrollbars */
+
+::-webkit-scrollbar-thumb:vertical {
+    margin-top: 5px;
+    height: 60px;
+    background-color: #ccc;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 6px;
+}
+
+::-webkit-scrollbar-track-piece  {
+    background-color: #fff;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}

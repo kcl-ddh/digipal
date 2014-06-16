@@ -1,0 +1,93 @@
+/* TEI conversion 
+
+Supported elements:
+	c, foreign, div, title[@level=m], hi[@rend=sup], list[@type=ordered|bulleted|simple|], item
+
+*/
+
+.tei-c{
+    font-weight: bold;
+}
+
+.tei-foreign{
+    font-style: italic;
+}
+
+.tei-div{
+    display: block;
+    margin-top: 1em;
+}
+
+.tei-title.tei-a-level__m{
+    font-style: italic;
+}
+
+.tei-title.tei-a-level__m{
+    font-style: italic;
+}
+
+.tei-hi.tei-a-rend__sup{
+    vertical-align: super;
+    font-size: smaller;
+}
+
+.tei-list {
+    margin: 1.12em 0;
+    margin-top: 0; 
+    margin-bottom: 0;
+    margin-left: 40px;
+    display: block; 
+    unicode-bidi: embed;
+    list-style-type: none;
+}
+
+.tei-list.tei-a-type__ordered{
+    list-style-type: decimal;
+}
+
+.tei-list.tei-a-type__bulleted{
+    list-style-type: disc;
+}
+
+.tei-item {
+    display: list-item;
+}
+
+/* ? */
+
+.home-page-listings ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.home-page-listings ul li {
+    border-bottom: 1px dotted #efefef;
+    min-height: 5em;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl {
+    margin-top: 1em;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl dt {
+    min-height: 5em;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl dd {
+    border-bottom: 1px dotted #efefef;
+    margin-top: -3.5em;
+    min-height: 3.5em;
+    margin-bottom: 0;
+}
+
+.home-page-listings .legend {
+    font-size: smaller;
+}
+

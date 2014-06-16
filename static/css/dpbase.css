@@ -1,0 +1,617 @@
+/* general rules */
+
+body{
+    color: #5a5a5a;
+    padding-top: 0;
+    line-height: 1.3;
+}
+
+/*
+    restoring Mezzanine 1.5 style
+ */
+p {
+    line-height: 22px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+/*
+    restoring Mezzanine 1.5 style
+ */
+.alert{
+    padding:15px;
+}
+
+#main_body_container{
+    margin-top:1em;
+}
+
+.header5{
+    padding-bottom:0.5%;
+    border-bottom:1px dotted #f5f5f5;
+    line-height: 1.25;
+    font-weight:bold;
+    padding-top:2%;
+    margin-top: 0;
+    font-size:20px;
+}
+
+.header1 {
+    padding-bottom:0.8%;
+    border-bottom:4px solid #f5f5f5;
+    line-height: 1.25;
+    font-weight:normal;
+    margin-bottom:1%;
+}
+
+h1{
+    font-size: 28px;
+}
+
+h1, h2, h3, h4{
+    font-weight: normal;
+    margin-top: 0%;
+}
+
+.page-header{
+    margin: 10px 0 20px;
+}
+
+.header1 h1{
+    font-size: 40px;
+}
+
+.header h2{
+    font-size: 31.5px;
+}
+
+/* This dd is for standard Boostrap rendering */
+.bs dd {
+    margin-top:0;
+    font-size:14px;
+}
+
+dd{
+    margin-top:3%;
+    font-size:13px;
+}
+
+img{
+    box-shadow: none;
+    max-width:100%;
+    height:auto;
+}
+
+.block{
+    clear:both;
+}
+
+label{
+    font-weight: bold;
+}
+
+/* labels:
+	Any default label within a <a> becomes brown.
+*/
+
+a .label-default, .btn-digipal{
+    background: #a1514d;
+    color: #fff;
+}
+
+a:hover .label-default, a:focus .label-default, a:active .label-default {
+    background: #933833;
+    text-decoration: none;
+}
+
+/* END labels */
+
+.login-container{
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+}
+
+.form-signin {
+    max-width: 300px;
+    padding: 19px 29px 29px;
+    margin: 0 auto 20px;
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* footer */
+
+footer{
+    background-color: #f9f9f9;
+    border: 1px dotted rgba(0, 0, 0, 0.08);
+}
+
+footer p{
+    margin:0.2%;
+    line-height: 15px;
+    font-size:11px;
+}
+
+footer .span3, footer .span8{
+    margin:0;
+}
+
+footer .container {
+    text-align: initial;
+    display: block;
+    padding:0;
+}
+
+
+
+/* end footer */
+
+.nav-tabs.nav-stacked li, .nav-tabs.nav-stacked a {
+    line-height: 1;
+}
+
+.nav-tabs.nav-stacked .active a, .nav-tabs.nav-stacked li a:hover{
+    background: url('/static/digipal/images/nav_bg.png');
+    color: #fff;
+    line-height: 1;
+}
+
+#socialLogos li{
+    padding-right: 3%;
+    cursor: pointer;
+}
+
+.tab-content{
+    overflow: hidden;
+}
+
+blockquote{
+    font-family: Helvetica;
+    border-bottom:1px dotted #efefef;
+}
+
+/* ... except icons used as link */
+.btn-link .glyphicon {
+    color: #5e5e5e;
+}
+
+.span2 .panel .image{
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left:0;
+    padding-left:0;
+}
+
+.breadcrumb{
+    margin: 0 0 1em;
+}
+
+.breadcrumb a{
+    font-weight: normal;
+}
+
+.breadcrumb a:hover{
+    text-decoration: line-through;
+}
+
+.breadcrumb a.clear-all {
+    float: right;
+}
+
+.breadcrumb a.clear-all:hover{
+    text-decoration: underline;
+}
+
+.btn {
+    font-weight: bold;
+}
+
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+    background-color: #EEEEEE;
+    color: #555555;
+}
+
+li.active > a{
+    cursor: text;
+}
+
+
+.tab-content {
+    overflow: visible;
+}
+
+#twitter-widget-0{
+    vertical-align: bottom;
+}
+
+.view_button{
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    background: #eee;
+    padding-right: 12px;
+    padding-left: 12px;
+    margin-right: 2px;
+    line-height: 2.5;
+    border-radius: 3.5px;
+    border: 1px solid #E0C4BE;
+}
+
+.view_button:hover {
+    color: #fff !important;
+    background: url('/static/digipal/images/nav_bg.png');
+    text-decoration: none;
+}
+
+.table-condensed th, .table-condensed td {
+    padding: 1%;
+}
+
+
+#basket_collector, #basket_collector_2{
+    position: fixed;
+    left: 0;
+    bottom: -28%;
+    width: 100%;
+    height: 27%;
+    background: #fff;
+    color: #444;
+    font-size: 23px;
+    line-height: 2;
+    text-align: center;
+    font-weight: bold;
+    z-index: 1000;
+    -webkit-box-shadow: 1px 0px 8px 3px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 1px 0px 8px 3px rgba(0, 0, 0, 0.2);
+    -ms-box-shadow: 1px 0px 8px 3px rgba(0, 0, 0, 0.2);
+    -o-box-shadow: 1px 0px 8px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 0px 8px 3px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip{
+    z-index: 5000;
+}
+
+#basket_collector:hover,  #basket_collector_2:hover{
+    background: rgba(255, 255, 255, 0.8);
+}
+
+#basket_collector p {
+    margin-top: 3em;
+}
+
+.droppable_image{
+    z-index:1000;
+}
+
+.record-list li {
+    list-style: none;
+}
+
+.basket_url {
+    background: #eee;
+    border: 1px solid #ccc;
+    line-height: 2;
+    padding: 1.9%;
+    border-radius: 3px;
+}
+
+.graph_img{
+    /*
+    GN: removed as it messes up with the position of the graph thumbnails
+    line-height: 4;
+    */
+}
+
+.smaller p, .smaller ul, a.smaller, .imageDetails a.smaller {
+    font-size: 85%;
+    line-height: 18px;
+    margin-bottom: 8px;
+}
+
+.justified {
+    text-align: justify;
+}
+
+
+.centered {
+    text-align: center;
+}
+
+ul.flat-list {
+    margin-top: 0px;
+    padding-left: 0;
+    display: inline;
+}
+
+.flat-list li {
+    display: inline;
+    list-style: none outside none;
+    margin-right: 5px;
+}
+
+.flat-list select, .flat-list input {
+    width: 220px;
+}
+
+.annotations_count_images{
+    line-height:1.8em;
+}
+
+.annotations_count_images a.label-default:hover{
+    color: #fff;
+    text-decoration: none;
+}
+
+.image a {
+    font-weight:bold;
+}
+
+.visible {
+    display: block;
+}
+
+.ul_inline_form{
+    padding:0;
+    line-height: 1;
+    display: inline;
+}
+
+.ul_inline_form li {
+    list-style-type: none;
+    display:inline;
+}
+
+.modal-body .ul_inline_form {
+    margin:1.5%;
+    display: block;
+}
+
+.fa-twitter, .fa-github{
+    font-size:25px;
+    margin-left:1%;
+    -webkit-transition-property:color;
+    -moz-transition-property:color;
+    -ms-transition-property:color;
+    -o-transition-property:color;
+    -webkit-transition-duration:0.35s;
+    -moz-transition-duration:0.35s;
+    -ms-transition-duration:0.35s;
+    -o-transition-duration:0.35s;
+    color: #5a5a5a;
+}
+
+.fa-twitter:hover{
+    color: #2c77ba;
+}
+
+.fa-github:hover{
+    color: #fff;
+    background: #5a5a5a;
+    border-radius: 10px;
+}
+
+footer .row{
+    margin:0;
+}
+
+footer .span3, footer .span8{
+    margin:0;
+}
+
+.nav-stacked>li+li{
+    margin-top:0;
+}
+
+.nav-stacked>li>a{
+    border:1px solid #efefef;
+}
+
+/* pagination */
+
+.pagination {
+    margin:15px;
+    margin-left:0;
+}
+
+.pagination .ellipsis a {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.pagination > li > a:focus, .pagination > li > a:hover {
+    background-color: #a1514d;
+    color: #fff;
+}
+
+.pagination > .active > a, .pagination > .active > a:hover {
+    background-color: #eee;
+    color: #555555;
+}
+
+.pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
+    border-color: #ccc;
+}
+
+/* END pagination */
+
+.tab-content{
+    padding-top:1.5%;
+}
+
+.btn-digipal:hover, .btn-digipal:focus{
+    color: #eee;
+}
+
+#top_row{
+    margin-right: 0;
+}
+
+#footer_logos a {
+    margin-right: 0.3em;
+    margin-left: 0.3em;
+}
+
+.left-panel{
+    border-right:1px solid #f5f5f5;
+    border-top:1px solid #f5f5f5;
+    border-top-right-radius: 5px;
+    padding-right: 3%;
+}
+
+
+form.panel {
+    border-color: #E0C4BE;
+}
+
+a.link-icon, a.link-icon:hover {
+    text-decoration: none;
+}
+
+.nav-pills a:hover, .nav-tabs a:hover{
+    color: #fff;
+}
+
+.nav-tabs li.active:hover a{
+    color:#555;
+}
+
+.nav-stacked li.active:hover a{
+    color:#fff;
+}
+
+.nav-tabs li.disabled a, .nav-tabs li.disabled a:hover{
+    color: #999;
+}
+
+.nav-pills a.disabled:hover, .nav-tabs a.disabled:hover{
+    color: #ccc;
+}
+
+.dropdown-menu>li>a {
+    color:#333;
+}
+
+.has-margin-top{
+    margin-top: 0.5em;
+}
+
+.panel {
+    background: rgba(220,220,220, 0.1);
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    line-height: 170%;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.form-control:focus, .form-control:active{
+    border-color: #E0C4BE;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
+}
+
+
+.row-no-margin{
+    margin:0;
+}
+/* pager on the MS/Hand/Scribes record pages tends to break easily
+because it spreads across a column. */
+
+.pager.compact a {
+    float: none;
+}
+
+.pager.compact {
+    text-align: left;
+}
+
+@media (min-width: 992px) {
+
+    .pager.compact {
+        float: right;
+    }
+
+}
+
+/* 3D effect to the primary buttons */
+.btn-primary {
+    background-color: hsl(2, 51%, 37%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d5827f", endColorstr="#8e312e");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#d5827f), to(#8e312e));
+    background-image: -moz-linear-gradient(top, #d5827f, #8e312e);
+    background-image: -ms-linear-gradient(top, #d5827f, #8e312e);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #d5827f), color-stop(100%, #8e312e));
+    background-image: -webkit-linear-gradient(top, #d5827f, #8e312e);
+    background-image: -o-linear-gradient(top, #d5827f, #8e312e);
+    background-image: linear-gradient(#d5827f, #8e312e);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.49);
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: hsl(2, 51%, 24%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#c5514d", endColorstr="#5c201d");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#c5514d), to(#5c201d));
+    background-image: -moz-linear-gradient(top, #c5514d, #5c201d);
+    background-image: -ms-linear-gradient(top, #c5514d, #5c201d);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #c5514d), color-stop(100%, #5c201d));
+    background-image: -webkit-linear-gradient(top, #c5514d, #5c201d);
+    background-image: -o-linear-gradient(top, #c5514d, #5c201d);
+    background-image: linear-gradient(#c5514d, #5c201d);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.49);
+}
+
+/* We undo chzn bold on hover otherwise some values in the dropdown will have
+different height depending when they are selected and push the other values down */
+.chzn-results li:hover {
+    font-weight: normal;
+}
+
+#body .has-switch span.switch-left, #body .has-switch span.switch-primary {
+    background: none repeat scroll 0 0 #933833;
+}
+
+.row-min-admin{
+    width:70%;
+}
+
+.pagination-group .btn-group {
+    margin-right: -1px;
+    margin-top: 15px;
+}
+
+.pagination-group .btn-group .btn {
+    font-weight: normal;
+}
+
+.dialog-background{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* opacity: 0.5; */
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+}
+
+.annotations_count_images > a:hover {
+    text-decoration: none;
+}
+
+.nowrap {
+    white-space: nowrap;
+}

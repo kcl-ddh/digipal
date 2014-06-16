@@ -1,0 +1,136 @@
+/* blog */
+
+.meta{
+    color: #888;
+    font-size: 12px;
+    line-height: 24px;
+    margin: 1.5%;
+    margin-left:0;
+    padding-left: 0;
+    border-bottom:1px dotted #eee;
+}
+
+.meta li{
+    display: inline;
+    margin-left:2%;
+}
+
+.meta li:first-child{
+    margin-left:0;
+}
+
+.blogtitles{
+    font-size: 22px;
+}
+
+.blog-list-detail{
+    border:none;
+    margin-bottom: 5px;
+}
+
+.article {
+    border-bottom:1px dashed #efefef;
+    margin-top:2%;
+    margin-bottom: 2%;
+    padding-bottom: 1%;
+}
+
+.article h2, article h3{
+    font-size:22px;
+    padding-bottom: 2px;
+}
+
+.article p{
+    line-height: 24px;
+}
+
+.textArticle *{
+    line-height: 24px;
+}
+
+article.textArticle{
+    padding-left: 2%;
+    border-left: 6px solid #efefef;
+    padding-bottom: 0.1%;
+}
+
+.unstyled_tags {
+    border-top:1px dotted #efefef;
+    padding-top:3px;
+}
+
+.filter-form{
+    margin-top:3%;
+}
+
+.icon-grid{
+    background: url('/static/digipal/images/rec_display.png') no-repeat scroll 0 -24px transparent;
+}
+
+#comments{
+    border-top:1px dotted #eee;
+    padding-top: 2%;
+}
+
+#comments h3{
+    padding-bottom:1%;
+    border-bottom:4px solid #f5f5f5;
+    line-height: 1;
+    font-weight:normal;
+}
+
+#blogLeft{
+    border-right:1px solid #f5f5f5;
+    border-top:1px solid #f5f5f5;
+    border-top-right-radius: 5px;
+    padding-right:1.5%;
+}
+
+#blogRight h3{
+    padding-bottom:1%;
+    border-bottom:2px solid #f5f5f5;
+    line-height: 1;
+    font-weight:normal;
+    font-family: Helvetica;
+}
+
+#blogRight a{
+    padding-bottom: 2px;
+}
+
+#blogRight li{
+    padding: 2%;
+    border-radius: 3px;
+    border:1px solid transparent;
+}
+
+#blogRight li:hover{
+    border-bottom:1px dotted #efefef;
+    background-color: #fff;
+}
+
+#blogRight h6{
+    font-size: 20px;
+    border-bottom:1px dotted #efefef;
+    padding-bottom: 2px;
+}
+
+
+.recentsPosts a{
+    font-size:13px;
+    text-align: left;
+    padding: 0.5%;
+    border-bottom: 1px dotted #efefef;
+}
+
+
+.buttonMore{
+    border-bottom:1px dotted #ccc;
+    padding-bottom: 1%;
+}
+
+.ulHome li{
+    padding:3%;
+    border-bottom:1px dotted #efefef;
+    list-style: none;
+}

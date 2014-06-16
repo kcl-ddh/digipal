@@ -1,0 +1,201 @@
+/* Used to costumize the Script page on digipal/admin/newscriptentry */
+
+.column7 {
+	width: 58.3333333333333333%;
+	float: left;
+}
+
+.container{
+	width:1170px;
+	margin:0 auto;
+}
+
+.row {
+	width: 100%;
+}
+
+.column5{
+	width: 38%;
+	float: left;
+}
+
+.listElem{
+	margin-top:4%;
+	margin-bottom:4%;
+}
+
+
+.header1{
+	font-size: 18px;
+	font-weight: bold;
+	border-bottom: 1px solid #ccc;
+	padding:5px;
+	margin-top:2%;
+	margin-bottom:2.5%;
+}
+
+#scribe_header{
+	margin-bottom: 4%;
+}
+
+#current_idiographs{
+	border-left:1px solid #efefef;
+	border-top:1px solid #efefef;
+	height: 470px;
+	overflow-y:hidden;
+	overflow-x:hidden;
+	padding:0;
+	margin-left: 2%;
+}
+
+label{
+	font-weight: bold;
+	font-size: 16px;
+	margin-right:2%;
+}
+
+label[for=id_form-0-component]{
+	margin-left: 4%;
+}
+
+label[for=id_form-0-feature]{
+	display: block;
+	margin: 2%;
+}
+
+#listElems, #subButton{
+	margin-bottom:2%;
+	margin-top:2%;
+}
+
+#ajax_loader{
+	display: none;
+}
+
+.idiograph_label{
+	font-size: 13px;
+	padding:1.25%;
+	font-weight: bold;
+	border-bottom: 1px solid #efefef;
+	cursor: pointer;
+}
+
+.delete_idiograph{
+	background: black !important;
+	color: #fff !important;
+}
+
+.delete_idiograph:hover{
+	background: red !important;
+}
+
+#subButton{
+	background: green !important;
+	color: #fff !important;
+}
+
+.idiograph_label:hover{
+	background: #efefef;
+}
+
+#linesAdder{
+	padding:0;
+	margin: -3.5em 0 0 45em;
+}
+
+#features_container{
+	margin-top:1.5%;
+	-webkit-column-count:4;
+	-moz-column-count:4;
+	-o-column-count:4;
+	-ms-column-count:4;
+	column-count:4;
+}
+
+.feature{
+	padding-bottom:3px;
+	padding:2%;
+	cursor: pointer;
+	background-color: #fff;
+}
+
+.feature label:hover{
+	background-color: #efefef !important;
+}
+
+.feature input{
+	margin:0;
+}
+
+.alert{display:none;}
+
+.success, #save{
+	background: green;
+}
+
+.error{
+	background: red;
+}
+
+#ideograph_selected{
+	font-size:15px;
+}
+
+.window{
+	position: fixed;
+	width: 25%;
+	height: 15%;
+	top: 20%;
+	font-size: 15px;
+	left: 30%;
+	font-weight: bold;
+	text-align: center;
+	background: #fff;
+	box-shadow: 0px 0px 14px #ccc;
+	border-radius: 3px;
+	padding: 2%;
+	border:1px solid #ccc;
+}
+
+.window_idiographs{
+	position: fixed !important;
+	width: 35%;
+	overflow-y:auto;
+	height: 40%;
+	top: 20%;
+	font-size: 15px;
+	left: 30%;
+	background: #fff;
+	box-shadow: 0px 0px 14px #ccc;
+	border-radius: 3px;
+	padding: 2%;
+	border:1px solid #ccc;
+}
+.window_idiographs h2{
+	font-weight: bold;
+	border-bottom:1px solid #ccc;
+	padding: 1%;
+}
+.window_idiographs .close{
+	float: right;
+	font-size:14px;
+	cursor: pointer;
+	font-weight: bold;
+}
+.window_idiographs .close:hover{
+	text-shadow: 0px 0px 5px #444;
+}
+.window_idiographs .idiographs_p{
+	border-bottom:1px dotted #efefef;
+	padding: 1%;
+	padding-left: 2%;
+}
+
+#delete{
+	background: red;
+}
+
+#idiographs_container{
+	height: 90%;
+	overflow-y:auto;
+}

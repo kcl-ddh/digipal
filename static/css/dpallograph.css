@@ -1,0 +1,342 @@
+/* annotations by allograph */
+
+
+#ontop{
+    position: fixed;
+    left: 95%;
+    top: 85%;
+    clear: both;
+    cursor: pointer;
+    z-index: 15;
+    text-align: center;
+    font-size: 40px;
+    color: #5e5e5e;
+}
+
+#ontop:hover {
+    color:#7d4644;
+}
+
+
+.modal-body label{
+    font-size:17px;
+}
+
+.modal-body label.small {
+    font-size:14px;
+}
+
+.modal-body label.smaller {
+    font-size: 13px;
+    margin-left: -8px;
+}
+
+.modal-body p{
+    padding-top:8px;
+    padding-bottom:10px;
+    margin:0;
+}
+
+.myModal{
+    display: none;
+    border: 1px solid rgb(204, 204, 204);
+    background-color: #fff;
+    position: fixed;
+    top:15%;
+    left:66%;
+    z-index:1800;
+    width: 30%;
+    height:450px;
+    border-radius:4px;
+    -webkit-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    -o-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    -ms-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+#summary{
+    position: relative;
+    right: 40.3%;
+    font-size:12px;
+    z-index:500;
+    width: 40%;
+    bottom: 98%;
+    border: 1px solid #ccc;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    overflow-y:auto;
+    background: #fff;
+}
+
+.component_summary{
+    display:block;
+    font-weight:bold;
+    border-bottom:1px solid #ccc;
+    padding: 2.5%;
+    padding-left:3.5%;
+    background: #efefef;
+}
+
+.feature_summary{
+    padding: 2.5%;
+    margin-left:5%;
+    border-bottom:1px dotted #efefef;
+    display:block;
+}
+
+.allogr{
+    border: 1px solid grey;
+    padding: 10px;
+    float:left;
+    min-width: 35px;
+    min-height: 55px;
+    border: 1px solid rgb(221, 211, 195);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 2px 2px 2px rgb(221, 221, 221);
+}
+
+.annotation_li{
+    min-height: 50px;
+    min-width:70px;
+    margin:0.3em;
+    margin-left:0.5em;
+    padding:0.5em;
+    padding-top:0.1em;
+    padding-bottom: 0.2em;
+    text-align: center;
+    border: 1px solid #DDD3C3;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 2px 2px 2px #DDDDDD;
+    list-style: none;
+    display: inline-block;
+}
+
+.annotation_li:hover{
+    background-color: #ffffff;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#ededed));
+    background-image: -webkit-linear-gradient(top, #ffffff, #ededed);
+    background-image: -moz-linear-gradient(top, #ffffff, #ededed);
+    background-image: -ms-linear-gradient(top, #ffffff, #ededed);
+    background-image: -o-linear-gradient(top, #ffffff, #ededed);
+    background-image: linear-gradient(to bottom, #ffffff, #ededed);
+}
+
+.list-allographs li.selected{
+    background-color: #ffffff;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#ededed));
+    background-image: -webkit-linear-gradient(top, #ffffff, #ededed);
+    background-image: -moz-linear-gradient(top, #ffffff, #ededed);
+    background-image: -ms-linear-gradient(top, #ffffff, #ededed);
+    background-image: -o-linear-gradient(top, #ffffff, #ededed);
+    background-image: linear-gradient(to bottom, #ffffff, #ededed);
+}
+
+.annotations ul {
+    list-style-type: none;
+}
+
+.list-allographs{
+    margin:1%;
+    min-height: 100px;
+}
+
+.annotations h1, .annotations h2, .annotations ul {
+    clear: both;
+    margin: 0;
+}
+
+.annotations p {
+    margin: 5px 8px;
+}
+
+.annotations h2 {
+    margin-bottom: 8px;
+    margin-left: 5px;
+    font-size: 1.4em;
+}
+
+
+.modal_header{
+    cursor: move;
+}
+
+.annotation_li img{
+    cursor: pointer;
+}
+
+.editGraph{
+    cursor: pointer;
+}
+
+.close{
+    opacity:1;
+}
+.feature_containers{
+    -moz-column-count:2; /* Firefox */
+    -webkit-column-count:2; /* Safari and Chrome */
+    column-count:2;
+    padding-top: 0.5em;
+    padding-bottom: 0.1em;
+}
+
+.feature_containers textarea{
+    -moz-column-count:none; /* Firefox */
+    -webkit-column-count:none; /* Safari and Chrome */
+    column-count:none;
+}
+
+.feature_containers p{
+    padding-top:0;
+    padding-bottom:0;
+}
+
+.annotation_li{
+    cursor: pointer;
+}
+
+.selected{
+    -webkit-box-shadow: 0px 0px 15px yellow !important;
+    -moz-box-shadow: 0px 0px 15px yellow !important;
+    -ms-box-shadow: 0px 0px 15px yellow !important;
+    -o-box-shadow: 0px 0px 15px yellow !important;
+    box-shadow: 0px 0px 15px yellow !important;
+}
+
+.hovered_allograph{
+    -webkit-box-shadow: 0px 0px 15px red !important;
+    -moz-box-shadow: 0px 0px 15px red !important;
+    -ms-box-shadow: 0px 0px 15px red !important;
+    -o-box-shadow: 0px 0px 15px red !important;
+    box-shadow: 0px 0px 15px red !important;
+}
+
+.modal_header {
+    background: #efefef;
+    padding: 2%;
+    padding-bottom:4%;
+    margin: 0;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom: 1px solid #ccc;
+}
+
+.string_summary_label {
+    font-size:12px !important;
+    display:inline;
+    vertical-align:bottom;
+    margin-left:4%;
+}
+
+.list-allographs{
+    clear:both;
+}
+.allographs-list {
+    margin: 2%;
+    margin-left:0;
+}
+
+.allograph-list-admin{
+    width:70%;
+}
+
+.allograph-item{
+     border-bottom: 1px solid #efefef;
+     padding: 1.5em;
+     overflow: hidden;
+ }
+
+#maximize{
+    cursor:pointer;
+    margin-top: 0.1em;
+    margin-right: 5%;
+}
+
+#save {
+    margin-left:2%;
+}
+
+.myModalLabel{
+    font-size: 15px;
+    color: #222;
+    font-weight: bold;
+    margin: 1%;
+    padding:0;
+    height: 13px;
+}
+
+.modal-body{
+    background-color: #fff;
+    padding:0;
+    overflow: auto;
+    height:88%;
+    z-index: 500;
+}
+
+.modal-body .chzn-container, .modal-body.chzn-container-single {
+    float: left;
+    margin-left: 3%;
+    margin-bottom: 2%;
+    width: 175px !important;
+}
+
+.buttons_annotations_list{
+    display: none;
+    left: 10%;
+    margin-top: 1%;
+}
+
+.allograph-item:hover .buttons_annotations_list{
+    display: block;
+}
+
+.modal_header .close {
+    margin-top: 5px;
+    font-size:1.2em;
+}
+
+.letter_editor{
+    padding:1%;
+    width: 180px;
+    height:120px;
+}
+
+
+#image-editor-space {
+    margin-top: 30%;
+}
+
+.tabs-allograph{
+    margin-left: 2%;
+}
+
+#editor-space-image{
+    display: none;
+    position: relative;
+    left: 65%;
+}
+
+.label-summary{
+    font-size:9px;
+}
+
+#allographs_tab_loader {
+    padding: 6%;
+    margin-left: 40%;
+}
+
+.graph_active {
+    -webkit-box-shadow: 0px 0px 8px 4px yellow !important;
+    -moz-box-shadow: 0px 0px 8px 4px yellow !important;
+    -ms-box-shadow: 0px 0px 8px 4px yellow !important;
+    -o-box-shadow: 0px 0px 8px 4px yellow !important;
+    box-shadow: 0px 0px 8px 4px yellow !important;
+}
+
+#allographs #switcher {
+    background: #fff;
+    position: fixed;
+    right: 6%;
+    padding: 2em;
+}

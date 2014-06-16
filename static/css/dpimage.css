@@ -1,0 +1,100 @@
+/* browse images */
+
+.image{
+    text-align: center;
+    padding:1%;
+    margin-bottom:1%;
+    margin:1%;
+}
+
+.folio-image-wrapper {
+    position:relative;
+    display:inline-block;
+    max-width: 100%;
+}
+
+.folio-image-wrapper:hover .button-bar {
+    display: inline;
+}
+
+.folio-image-wrapper .button-bar {
+    bottom: 2.5em;
+    height: 1.5em;
+    position: absolute;
+    right: 10px;
+    width: 100%;
+    z-index: 1001;
+    display: none;
+}
+
+.folio-image-wrapper .btn {
+    float: right;
+    color: #A1514D;
+    border-color: #A1514D;
+}
+
+.imageDatabase {
+    text-align: center;
+    /*
+    margin: 2.5%;
+    */
+}
+
+.imageDatabase_label{
+    display: block;
+    font-weight: bold;
+    color: #7d4644;
+}
+
+.imageDatabase .img-frame {
+    padding: 4px;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+     border-radius: 4px;
+    -moz-box-shadow: 5px 5px 2px #888;
+    -webkit-box-shadow: 5px 5px 2px #888;
+    box-shadow: 5px 5px 2px #888;
+    -webkit-transition-property:opacity;
+    -webkit-transition-duration:0.5s;
+    -moz-transition-property:opacity;
+    -moz-transition-duration:0.5s;
+    -ms-transition-property:opacity;
+    -ms-transition-duration:0.5s;
+    -o-transition-property:opacity;
+    -o-transition-duration:0.5s;
+    transition-property:opacity;
+    transition-duration:0.5s;
+    margin-bottom: 1em;
+}
+
+.imageDatabase img:hover{
+    opacity:0.8;
+}
+
+.imageDatabase dd{
+    padding-top:3px;
+    font-size: 13.5px;
+}
+
+.imageDetails a{
+    font-size:12.5px;
+}
+
+.drag_caption{
+    position: absolute;
+    padding-top: 18%;
+    color: #fff;
+    left:0;
+    vertical-align: super;
+    background: rgba(0,0,0,0.5);
+    width: 100%;
+    display: none;
+    z-index: 4000;
+}
+
+/* Used by Mezzannine static pages */
+
+.img_right {
+    float: right;
+}

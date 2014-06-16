@@ -272,7 +272,8 @@ function AnnotatorLoader() {
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
 
-				var temp = decodeURI(temporary_vectors[t]);
+				var temp = annotator.utils.Base64.decode(temporary_vectors[t]);
+				console.log(temp)
 				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];
@@ -287,7 +288,7 @@ function AnnotatorLoader() {
 
 				objectGeometry.described = false;
 				objectGeometry.stored = false;
-				objectGeometry.contentAnnotation = geo_json.desc;
+				objectGeometry.contentAnnotation = unescape(geo_json.desc);
 				objectGeometry.contentTitle = geo_json.title;
 				objectGeometry.state = 'Insert';
 				annotator.vectorLayer.features.push(object[0]);
@@ -312,9 +313,18 @@ function AnnotatorLoader() {
 
 			if ($('.dialog_annotations').length) {
 				var title = geo_json.title;
-				var desc = geo_json.desc;
+				var desc = unescape(geo_json.desc);
 				$('.name_temporary_annotation').val(title);
-				$('.textarea_temporary_annotation').val(desc);
+				$('.textarea_temporary_annotation').html(desc).find('p').
+				attr('contenteditable', false).
+				addClass("noteditable").attr('title', 'Click to edit').tooltip({
+					'placement': 'bottom'
+				}).
+				on('click', function() {
+					$(this).attr('contenteditable', true).removeClass("noteditable").tooltip('disable').focus();
+					$(this).parent().removeClass("noteditable");
+				});
+
 			}
 
 			var dialogs = $('div[role=dialog]');

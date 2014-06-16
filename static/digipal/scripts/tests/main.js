@@ -18,7 +18,7 @@ function AnnotatorTest(options) {
                 casper.exit();
             }
 
-            var scenarios = ['annotator'];
+            var scenarios = ['annotator', 'allographs'];
             self.loadScenarios(scenarios);
         }
     };

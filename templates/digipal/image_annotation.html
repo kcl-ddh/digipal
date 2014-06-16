@@ -9,6 +9,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
 {% endblock %}
 
 {% block main %}
@@ -107,6 +108,7 @@
     <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
     <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
     <script src="{{ STATIC_URL }}digipal/scripts/annotations-cache.js"></script>
+    <script type="text/javascript" src='{{ STATIC_URL }}js/jquery.notebook.min.js'></script>
     {% if can_edit %}
     <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
     {% else %}

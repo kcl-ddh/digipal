@@ -358,7 +358,7 @@ function TestSuite(_options) {
 
                     lookup(fs.workingDirectory);
 
-                } else if (fs.isFile(path) && path.indexOf('.js') != -1) {
+                } else if (fs.isFile(path) && path.indexOf('.js') != -1 && path.indexOf('actions.js') == -1) {
 
                     var scenario = require(path);
                     var scenariosList = [];

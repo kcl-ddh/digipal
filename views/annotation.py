@@ -531,6 +531,7 @@ def save(request, graphs):
                     graph = Graph()
                     annotation = Annotation(image=image)
 
+                print annotation
                 get_data = request.POST.copy()
 
                 if 'geoJson' in gr:

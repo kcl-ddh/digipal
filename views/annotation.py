@@ -531,7 +531,6 @@ def save(request, graphs):
                     graph = Graph()
                     annotation = Annotation(image=image)
 
-                print annotation
                 get_data = request.POST.copy()
 
                 if 'geoJson' in gr:
@@ -584,7 +583,6 @@ def save(request, graphs):
                         feature_list_checked = get_data.getlist('feature')
                         feature_list_unchecked = get_data.getlist('-feature')
 
-
                         if feature_list_unchecked:
 
                             for value in feature_list_unchecked:
@@ -629,6 +627,7 @@ def save(request, graphs):
                             annotation.set_graph_group()
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
+
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
@@ -645,6 +644,7 @@ def save(request, graphs):
         except Exception as e:
             #transaction.rollback()
             data['success'] = False
+            print e
             data['errors'] = ['Internal error: %s' % e.message]
             #tb = sys.exc_info()[2]
 

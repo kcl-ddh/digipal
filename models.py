@@ -2039,6 +2039,10 @@ class Annotation(models.Model):
         # GN: why do we need this call BEFORE changing the cutout?
         # That's two DB save operation each time!
         
+        if not self.geo_json:
+            raise Exception('Trying to save an annotation with an empty geo_json.')
+            return
+
         super(Annotation, self).save(*args, **kwargs)
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN

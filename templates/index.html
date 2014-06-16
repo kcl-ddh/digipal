@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load blog_tags keyword_tags i18n html_escape %}
+
+{% block meta_title_site %}{{ settings.SITE_TITLE }}{% endblock %}
+
+{% block meta_title %}{% endblock %}
+
+{% block title %}
+    {% trans "Home" %}
+{% endblock %}
+
+{% block breadcrumb_menu %}
+    <li class="active">{% trans "Home" %}</li>
+{% endblock %}
+
+{% block main %}
+    {% block top %}
+        <div class='row'>
+        
+            {% block top_left %}
+                {% include "digipal/home_carousel.html" %}
+            {% endblock %}
+            
+            {% block top_middle %}
+            {% endblock %}
+            
+            {% block top_right %}
+                <div class="col-md-4 smaller justified">
+                    {% include "digipal/home_intro.html" %}
+                </div>
+            {% endblock %}
+            
+        </div>
+    {% endblock %}
+
+    {% block bottom %}
+        
+        <div id="homeSection" class="row home-page-listings">
+        
+            {% block bottom_left %}
+                <div class="col-md-4 col-sm-12 recentPosts">
+        
+                    <h2 class='header1'><a href="/blog/category/blog">Blog</a></h2>
+                    {% load blog_tags keyword_tags i18n %}
+                    {% blog_recent_posts 4 category="blog" as recent_posts %}
+                    {% if recent_posts %}
+                        <ul>
+                            {% for recent_post in recent_posts %}
+                                <li>
+                                    <a href="{{ recent_post.get_absolute_url }}">
+                                        {{ recent_post.title }}
+                                    </a>
+                                    <br/>
+                                    <span class="legend">
+                                        {{ recent_post.publish_date|timesince }}
+                                        ago, by {{ recent_post.user.first_name }} {{ recent_post.user.last_name }}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p>
+                            <a class='view_button' href="/blog/category/blog">More &raquo;</a>
+                        </p>
+                    {% endif %}
+                </div>
+            {% endblock %}
+    
+            {% block bottom_middle %}
+            
+                <div class="col-md-4 col-sm-12 recentPosts">
+        
+                    <h2 class='header1'><a href="/blog/category/news">News</a></h2>
+                    {% load blog_tags keyword_tags i18n %}
+                    {% blog_recent_posts 4 category="news" as recent_posts %}
+                    {% if recent_posts %}
+                        <ul>
+                            {% for recent_post in recent_posts %}
+                                <li>
+                                    <a href="{{ recent_post.get_absolute_url }}">
+                                        {{ recent_post.title }}
+                                    </a>
+                                    <br/>
+                                    <span class="legend">
+                                        {{ recent_post.publish_date|timesince }}
+                                        ago, by {{ recent_post.user.first_name }} {{ recent_post.user.last_name }}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p>
+                            <a class='view_button' href="/blog/category/news">More &raquo;</a>
+                        </p>
+                    {% endif %}
+                </div>
+            {% endblock %}
+            
+            {% block bottom-right %}
+                <div class="col-md-4 col-sm-12">
+                
+                    {% render_mezzanine_page 'home.glossary' %}
+        
+                </div>
+            {% endblock %}
+            
+        </div>
+        
+    {% endblock %}
+    
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block meta_title %}
+    {% if title %}
+        {{ title }}
+    {% else %}
+        The page does not exist 
+    {% endif %}
+    (404)
+{% endblock %}
+
+{% block main %}
+    
+    <h1 class='header1'>
+        {% if title %}
+            {{ title }}
+        {% else %}
+            The page does not exist 
+        {% endif %}
+        <span class="small">(404)</span>
+    </h1>
+    
+    <div>
+        <h2>This might be because:</h2>
+        <ul>
+            <li>you have typed the web address incorrectly, or</li>
+            <li>the page you were looking for may have been moved, updated or deleted.</li>
+        </ul>
+        <h2>Please try the following options instead:</h2>
+        <ul>
+            <li>use the <a href="/digipal/search/">search tool</a> above to see if it's available elsewhere</li>
+            <li>use our 
+                <a href="/">site index</a> to start browsing.
+            </li>
+        </ul>
+    </div>
+    
+{% endblock %}

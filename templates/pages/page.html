@@ -1,52 +1,28 @@
 {% extends "base.html" %}
 {% load mezzanine_tags keyword_tags %}
-{% block meta_title %}{{ page.title }}{% endblock %}
-{% block meta_keywords %}{% metablock %}
 
-{% keywords_for page as keywords %}
-{% for keyword in keywords %}
-    {% if not forloop.first %}, {% endif %}
-    {{ keyword }}
-{% endfor %}
-{% endmetablock %}{% endblock %}
+{% block meta_title %}{{ page.meta_title }}{% endblock %}
 
-{% block main %}
-            <!-- content starts -->
-         
-                <div class="unit size1of4 firstCol innerPage">
-	<h3>About</h3>
-					<div class="mod categories side">
-							<ul class="subNav">
-						<li><a class="ctrl subnav first" href="#">About the Project</a></li>
-						<li><a class="ctrl subnav" href="#">Useful Links</a></li>
-						<li><a class="ctrl subnav" href="#">Project Team</a></li>
-
-
-
-						</ul>
-						</div>
-
-	
-
-	
-	</div><!-- ends sidebar -->
-	
-	
-	<article class="unit size3of4 secondCol lastUnit">
-	
-		<h1>About</h1>
-		<p>The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) is a new resource being developed at the Department of Digital Humanities at KCL. Funded by the European Research Council (ERC), the project aims to bring new methods in Digital Humanities to the study of medieval handwriting in its diplomatic and manuscript context by combining digital catalogues, descriptions of handwriting, and images of documents and their constituent letter-forms.</p>
-		<p>The project aims to bring digital technology to bear on scholarly discussion in new and innovative ways. It will combine digital photographs of medieval handwriting with detailed descriptions and characterisations of the writing, as well as the text in which it is found, and the content and structure of the manuscript or document as a whole. It will incorporate different ways of exploring and manipulating the information, such as annotated images, dynamic maps and timelines and image-processing as well as more conventional text-based browse and search. It will therefore allow scholars to apply new developments in palaeographical method which have been discussed in theory but which have proven difficult or impossible to implement in practice.</p>
-		
-		</article>
-
-		<div class="Logos">
-			<ul class="inline">
-				<li><a class="ddhLogo" href="http://www.kcl.ac.uk/ddh"><img src="/static/assets/images/logos/ddh.png" alt="DDH logo" title="Department of Digital Humanities" /></a></li>
-				<li><a class="ercLogo" href="http://erc.europa.eu/"><img src="/static/assets/images/logos/erc-logo.gif" alt="ERC logo" title="European Research Council" /></a></li>
-				</ul>
-			</div>
-
-
+{% block meta_keywords %}
+    {% metablock %}
+        {% keywords_for page as keywords %}
+        {% for keyword in keywords %}
+            {% if not forloop.first %}, {% endif %}
+            {{ keyword }}
+        {% endfor %}
+    {% endmetablock %}
 {% endblock %}
 
+{% block meta_description %}
+    {% metablock %}
+        {{ page.description }}
+    {% endmetablock %}
+{% endblock %}
+
+{% block title %}
+    {% editable page.title %}{{ page.title }}{% endeditable %}
+{% endblock %}
+
+{% block main %}
+
+{% endblock %}

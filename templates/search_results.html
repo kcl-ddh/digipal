@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% load i18n future mezzanine_tags blog_tags keyword_tags disqus_tags pagination_tags html_escape %}
+
+{% block meta_title %}
+    {% if request.GET.q %}Search results{% else %}Search{% endif %}
+{% endblock %}
+{% block title %}
+    {% if request.GET.q %}Search results{% else %}Search{% endif %}
+{% endblock %}
+
+{% block quick_search_form %}
+{% endblock %}
+
+
+{% block breadcrumb_menu %}
+    <li>
+        <a href="{% url "home" %}">{% trans "Home" %}</a>
+        <span class="divider">/</span>
+    </li>
+    <li class="active">
+        {% trans "Search Results" %}
+    </li>
+{% endblock %}
+
+{% block main %}
+
+    <h1 class="header1">
+        {% if request.GET.q %}Search results{% else %}Search{% endif %}
+    </h1>
+    
+    <p>
+        Use the form below to search for Web pages, Blog or News items. 
+        To search for Manuscripts, Hands, Scribes or Graphs records use the <a href="/digipal/search/?s=1">database search form</a> instead.  
+    </p>
+    
+    <form class="panel" action=".">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" />
+            </div>
+        </div>
+        <p>
+            <input type="submit" value="Search" class="btn btn-primary">
+        </p>
+    </form>
+    
+    {% if request.GET.q %}
+        <p class="breadcrumb" id="search-breadcrumb">
+            <span id="auto-scroll"></span>
+            {% if results.paginator.count == 0 %}
+                {% blocktrans %}
+                    No results were found in {{ search_type }} matching your query: {{ query }}
+                {% endblocktrans %}
+            {% else %}
+                {% blocktrans with start=results.start_index end=results.end_index total=results.paginator.count %}
+                    Showing {{ start }} to {{ end }} of {{ total }} results in {{ search_type }} matching your query: {{ query }}
+                {% endblocktrans %}
+            {% endif %}
+        </p>
+    {% endif %}
+    
+    {% dp_pagination_for results %}
+    
+    <div id="search-results">
+        {% for result in results.object_list %}
+            <h4>
+                {{ forloop.counter0|add:results.start_index }}.
+                <a href="{{ result.get_absolute_url }}">{{ result }}</a>
+                <span class="small nowrap">
+                    (
+                    {% if result.categories %}
+                        {{ result.categories.all.0 }}
+                    {% else %}
+                        Page
+                    {% endif %}
+                   {% if result.publish_date %}
+                        , {{ result.publish_date|date:"d M Y" }}
+                   {% endif %}
+                    )
+                </span>
+            </h4>
+            <p>
+                {{ result.description|truncatewords_html:15|safe }}
+            </p>
+        {% endfor %}
+    </div>
+    
+    {% dp_pagination_for results %}
+    
+{% endblock %}

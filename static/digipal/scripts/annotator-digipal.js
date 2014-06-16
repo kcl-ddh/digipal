@@ -649,7 +649,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			content_temporary_annotation.on('contentChange', function(e) {
 				var content = e.originalEvent.detail.content;
-				console.log(content);
 				annotator.selectedFeature.contentAnnotation = content;
 			});
 
@@ -797,7 +796,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph = $('#panelImageBox .allograph_form option:selected');
 			var allograph_id = allograph.val();
 
-			if (can_edit) {
+			if (can_edit && annotator.annotating) {
 				s += "<div id='box_features_container'></div>";
 				if (annotator.boxes_on_click) {
 					if (annotator.editorial.active) {
@@ -810,8 +809,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						callback();
 					}
 				}
-				self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
+				self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
 				panel.find('.allograph_form').on('change', function() {
 					var features = annotator.vectorLayer.features;
@@ -833,6 +832,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
 					s += "<div style='height:95%;' class='textarea_temporary_annotation form-control'></div>";
 					dialog.html(s);
+					if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+						$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+					}
 					callback();
 				} else {
 					self.updateFeatureSelect.init(dialog, selectedFeature, callback);
@@ -853,7 +855,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
 						html_string_buttons = "<button data-toggle='tooltip' data-container='body' title = 'Save Annotation' class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Remove Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 					} else if (!annotator.annotating) {
-						html_string_label = "<span class='allograph_label'><span class='allograph_label'>" + selectedFeature.feature + "</span></span>";
+						html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
 						html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
 					} else {
 						if (annotator.editorial.active) {
@@ -1934,9 +1936,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 		} else {
 			var geometryObject, geoJSONText;
-			if (annotator.selectedAnnotations.length &&
-				annotator.selectedFeature.linked_to != 'undefined' &&
-				annotator.selectedFeature.linked_to.length && allow_multiple()) {
+			if (annotator.selectedAnnotations.length > 1 && allow_multiple()) {
 
 				allograph_url = [];
 
@@ -1946,7 +1946,7 @@ function show_url_allograph(dialog, annotation, button) {
 					geoJSONText = JSON.parse(annotator.format.write(geometryObject));
 
 					geoJSONText.title = title;
-					geoJSONText.desc = escape(desc);
+					geoJSONText.desc = annotator.utils.Base64.encode(desc);
 					geoJSONText.dialogPosition = dialogPosition;
 					geoJSONText.extent = layerExtent;
 					geoJSONText.visibility = getAnnotationsVisibility;
@@ -1955,7 +1955,7 @@ function show_url_allograph(dialog, annotation, button) {
 						geoJSONText.checkboxes = checkboxesOff;
 					}
 
-					url_temp = 'temporary_vector=' + JSON.stringify(geoJSONText);
+					url_temp = 'temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 
 					allograph_url.push(url_temp);
 
@@ -1968,7 +1968,7 @@ function show_url_allograph(dialog, annotation, button) {
 				geoJSONText = JSON.parse(annotator.format.write(geometryObject));
 
 				geoJSONText.title = title;
-				geoJSONText.desc = escape(desc);
+				geoJSONText.desc = annotator.utils.Base64.encode(desc);
 				geoJSONText.dialogPosition = dialogPosition;
 				geoJSONText.extent = layerExtent;
 				geoJSONText.visibility = getAnnotationsVisibility;
@@ -1976,7 +1976,6 @@ function show_url_allograph(dialog, annotation, button) {
 				if (checkboxesOff.length) {
 					geoJSONText.checkboxes = checkboxesOff;
 				}
-				console.log(geoJSONText.length, annotator.utils.Base64.encode(JSON.stringify(geoJSONText)).length);
 				allograph_url = window.location.hostname +
 					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 			}

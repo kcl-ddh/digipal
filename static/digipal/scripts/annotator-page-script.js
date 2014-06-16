@@ -272,8 +272,7 @@ function AnnotatorLoader() {
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
 
-				var temp = annotator.utils.Base64.decode(temporary_vectors[t]);
-				console.log(temp)
+				var temp = annotator.utils.Base64.decode(temporary_vectors[t]).normalize();
 				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];
@@ -288,7 +287,7 @@ function AnnotatorLoader() {
 
 				objectGeometry.described = false;
 				objectGeometry.stored = false;
-				objectGeometry.contentAnnotation = unescape(geo_json.desc);
+				objectGeometry.contentAnnotation = annotator.utils.Base64.decode(geo_json.desc);
 				objectGeometry.contentTitle = geo_json.title;
 				objectGeometry.state = 'Insert';
 				annotator.vectorLayer.features.push(object[0]);

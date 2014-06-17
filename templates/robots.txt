@@ -1,0 +1,10 @@
+User-agent: *
+{% if debug %}
+Disallow: /
+{% else %}
+Disallow: /admin/
+
+{% if sitemap_url %}
+Sitemap: {{ sitemap_url }}
+{% endif %}
+{% endif %}

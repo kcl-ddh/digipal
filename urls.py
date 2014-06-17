@@ -20,6 +20,8 @@ urlpatterns = patterns('',
     
     url(r'^account/$', 'django.contrib.auth.views.login'),
 
+    url(r'^robots.txt/?$', 'digipal.views.robots.robots_view'),
+
     # these allow us to test 404 and 500 pages in DEBUG=True mode
     url('^404/?$', direct_to_template, {'template': 'errors/404.html'}, name = '404'),
     url('^500/?$', direct_to_template, {'template': 'errors/500.html'}, name = '500'),

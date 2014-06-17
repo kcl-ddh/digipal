@@ -168,6 +168,8 @@ def search_record_view(request):
     
     # Actually run the searches
     context = {}
+    
+    context['nofollow'] = True
 
     set_search_results_to_context(request, context=context, show_advanced_search_form=True)
 

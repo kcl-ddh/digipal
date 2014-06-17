@@ -12,6 +12,7 @@ class Command(BaseCommand):
     commands = ['write', 'info']
     
     sitemap_folder = 'sitemaps'
+    sitemap_index = 'index.xml'
     
     help = """
 Sitemap generator script
@@ -27,6 +28,31 @@ sitemap.py <command>
                     help='Command to be executed'),
     )
 
+    @classmethod
+    def get_sitemap_path(cls, file_path=False, file_name='index', request=None):
+        ''' 
+        returns the absolute path to a sitemap file
+        if file_path is True, return a filesystem path, otherwise return a URL
+        '''
+        ret = ''
+        if file_name == 'index':
+            file_name = cls.sitemap_index
+        relative_path = [cls.sitemap_folder]
+        if file_name:
+            relative_path.append(file_name)
+            
+        if file_path:
+            ret = os.path.join(settings.STATIC_ROOT, *relative_path)
+        else:
+            if request:
+                ret = 'https://' if request.is_secure() else 'http://'
+                ret += request.get_host()
+            else:
+                ret = settings.SITEMAP_PATH_TO_RESOURCE
+            from django.templatetags.static import static
+            ret = ret.rstrip('/') + static('/'.join(relative_path))
+        return ret
+    
     def handle(self, *args, **options):
 
         if len(args) < 1:
@@ -40,7 +66,6 @@ sitemap.py <command>
                 'Unknown command "%s", allowed commands are: %s' % (self.command, ', '.join(self.commands)))
         
         self.models = [m.lower() for m in getattr(settings, 'SITEMAP_MODELS', [])]
-        #self.path = os.path.join(settings.PROJECT_ROOT, '../digipal/static')
         self.path = settings.STATIC_ROOT
         self.path_to_resource = getattr(settings, 'SITEMAP_PATH_TO_RESOURCE', '')
         self.path_to_sitemaps = os.path.join(self.path, self.sitemap_folder)
@@ -58,11 +83,12 @@ sitemap.py <command>
 
     def run_command(self):
         if self.command == 'info':
-            print 'Output directory: %s' % self.path_to_sitemaps
             print 'Models          : %s' % ', '.join(self.models)
+            print 'Output directory: %s' % self.path_to_sitemaps
+            print 'Index file      : %s' % self.get_sitemap_path(file_path=False)
             
         if self.command == 'write':
-            if not self.path_to_sitemaps:
+            if not os.path.exists(self.path_to_sitemaps):
                 os.mkdir(self.path_to_sitemaps)
     
             _models = self.get_models()
@@ -71,8 +97,7 @@ sitemap.py <command>
                 xml = self.get_sitemap_by_model(_model)
                 self.write_file(file_name, xml)
             index = self.get_index_xml(_models)
-            self.write_file('index.xml', index)
-        
+            self.write_file(self.sitemap_index, index)
 
     def get_models(self):
         model = None

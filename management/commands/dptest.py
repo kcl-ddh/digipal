@@ -148,6 +148,24 @@ Commands:
         if command == 'savean':
             known_command = True
             self.save_annotation(*args[1:])
+            
+        if command == 'adhoc':
+            known_command = True
+            self.adhoc_test()
+
+    def adhoc_test(self):
+        fields = [
+            'current_item__repository__place__name', 
+            'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number', 
+            'historical_items__itemorigin__place__name', 
+            'subdivisions__current_item__repository__place__name', 
+            'subdivisions__current_item__repository__name', 
+            'current_item__repository__place__name', 
+            'current_item__repository__name', 
+            'hands__assigned_place__name', 
+            'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
+        ips = ItemPart.objects.all().values_list(*fields)
+        ips[0]
 
     def save_annotation(self):
         a = Annotation()

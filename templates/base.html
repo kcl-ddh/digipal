@@ -7,6 +7,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
         <meta name="keywords" content="{% block meta_keywords %}{% endblock %}"/>
         <meta name="description" content="{% block meta_description %}{% endblock %}"/>
+        
+        {% if nofollow %}
+            <meta name="robots" content="nofollow" />
+        {% endif %}
+        
         <title>
             {% block meta_title %}{% endblock %}
             {% block meta_title_site %}

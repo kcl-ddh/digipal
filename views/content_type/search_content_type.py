@@ -380,6 +380,9 @@ class SearchContentType(object):
         
         # Retrieve all the records from the database
         # Values turns individual results into dictionary of requested fields names and values
+        #print str(records.query)
+        print django_fields
+        print repr(self)
         records = self.get_qs_all().values(*django_fields).distinct()
         
         # GN: 11/02/2014
@@ -397,8 +400,10 @@ class SearchContentType(object):
         # So this might be considered as a Django bug because once part of a query path is 
         # on left join longer paths based on it should de facto be also left joined.
         #
-        for alias in records.query.alias_map:
-            records.query.promote_alias(alias, True)
+        from digipal.utils import set_left_joins_in_queryset
+        set_left_joins_in_queryset(records)
+        #for alias in records.query.alias_map:
+            #records.query.promote_alias(alias, True)
         
         ret = self.get_sorted_records(records)
         return ret

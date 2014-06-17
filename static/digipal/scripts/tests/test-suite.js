@@ -362,18 +362,47 @@ function TestSuite(_options) {
 
                     var scenario = require(path);
                     var scenariosList = [];
+
                     for (var c in scenario) {
                         scenariosList.push(scenario[c]);
                     }
 
                     casper.eachThen(scenariosList, function(response) {
-                        response.data.init(options);
-                    });
+                        var Scenario = response.data;
+                        var Scenarios = Scenario.Scenarios;
+                        var dependencies = [];
+                        casper.eachThen(Scenario.dependencies, function(dependency) {
+                            dependencies.push(require(lastWorkingDirectory + '/' + dependency.data).Actions(options));
+                        });
 
+                        casper.then(function() {
+                            var scenarios = new Scenarios(dependencies, options);
+                            var scenariosList = [];
+                            for (var i in scenarios) {
+                                scenariosList.push(scenarios[i]);
+                            }
+                            if (Scenario.hasOwnProperty('middleware')) {
+                                var middleware = Scenario.middleware;
+                                casper.eachThen(middleware, function(middleware) {
+                                    var mdl = require('./middleware/' + middleware.data).Middleware();
+                                    mdl.done(options, function() {
+                                        casper.eachThen(scenariosList, function(scenario) {
+                                            scenario.data.call();
+                                        });
+                                    });
+                                });
+                            } else {
+                                casper.eachThen(scenariosList, function(scenario) {
+                                    scenario.data.call();
+                                });
+                            }
+                        });
+                    });
                 }
 
                 if (i == _directory.length - 1) {
                     scanned.push(directory);
+                    var lastWorkingDirectory = fs.workingDirectory;
                     fs.changeWorkingDirectory('../');
                 }
 

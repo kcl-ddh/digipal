@@ -1,8 +1,12 @@
 function Scenario() {
 
-    var Scenarios = function(AnnotatorTasks, options) {
+    this.dependencies = ['actions.js', '../annotator/actions.js'];
+    this.middleware = ['login.js'];
 
-        var tasks = require('./actions.js').Actions(options);
+    this.Scenarios = function(dependencies, options) {
+
+        var tasks = dependencies[0];
+        var AnnotatorTasks = dependencies[1];
 
         /*
         - @Scenario1
@@ -97,22 +101,6 @@ function Scenario() {
         };
 
     };
-
-    this.init = function(options) {
-        var AnnotatorActions = require('../annotator/actions.js').Actions(options);
-        AnnotatorActions.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
-            .then(function() {
-                var scenarios = new Scenarios(AnnotatorActions, options);
-                var scenariosList = [];
-                for (var i in scenarios) {
-                    scenariosList.push(scenarios[i]);
-                }
-                casper.eachThen(scenariosList, function(response) {
-                    response.data.call();
-                });
-            });
-    };
-
 }
 
 

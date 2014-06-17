@@ -32,5 +32,5 @@ Options to configure the tests:
 
 ## Strucutre
 
-    - Tests are performed in the file main.js. There you can choice which scenarios you want to run, and if repeat them for all the links or not.
-    - Scenarios are located in the folder scenarios. Every file in this folder will be scanned and ran as a scenario (even though, by convention it would be best the make one folder for scenario's type, and call the file scenario.js). Every scenario should need and action.js script, which should include actions to be ran in sequence inside scenarios. Actions can be shared among more scenarios and are exported as modules, as well as scenarios.
+- Tests are performed in the file main.js. There you can choice which scenarios you want to run, and if repeat them for all the links or not.
+- Scenarios are located in the folder scenarios. Every file in this folder will be scanned and ran as a scenario (even though, by convention it would be best the make one folder for scenario's type, and call the file scenario.js). Every scenario should need and action.js script, which should include actions to be ran in sequence inside scenarios. Actions can be shared among more scenarios and are exported as modules, as well as scenarios.

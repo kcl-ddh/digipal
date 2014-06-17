@@ -9,7 +9,7 @@
 
 From command line, type:
 
-    casperjs test digipal-test.js
+    casperjs test main.js
 
     Command line parameters:
     - --debug-remote: if true, also reports logs from the page being ran

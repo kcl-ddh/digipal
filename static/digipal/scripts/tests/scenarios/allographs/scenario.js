@@ -5,8 +5,8 @@ function Scenario() {
 
     this.Scenarios = function(dependencies, options) {
 
-        var tasks = dependencies[0];
-        var AnnotatorTasks = dependencies[1];
+        var tasks = dependencies.AllographsTasks;
+        var AnnotatorTasks = dependencies.AnnotatorTasks;
 
         /*
         - @Scenario1

@@ -29,6 +29,31 @@ Options to configure the tests:
     -  tests: array of tests to be performed
     -  deepScan: deep scan of the website (all links will be followed by the script)
 
+## Middleware and dependencies
+
+It is possible to declare and include dependencies and middleware in a Scenario by specifing two variables inside the Scenario() function:
+
+    function Scenario(){
+
+        this.middleware = ['mymiddleware.js'] // this will be searched inside the folder middleware
+        this.dependencies = ['./actions.js', ../anotherscenario/actions.js'] // this is relative to the current scenario
+
+        // the middleware gets executed here ...
+
+        this.Scenarios = function(dependencies, options){
+
+            var actions = dependencies[0];
+            var actions = dependencies[2];
+
+            this.Scenario1 = function(){...};
+            this.Scenario2 = function(){...};
+            this.Scenario3 = function(){...};
+        }
+    }
+
+The middleware functions work as a bridge between the scenario and the test suite. It can be useful for functions such as login, change of page, or for actions not related to the scenario to be performed prior to its initialization.
+
+Dependencies get injected in a scenario through an array and are positionally declared.
 
 ## Strucutre
 

@@ -4,7 +4,7 @@ function Scenario() {
 
     this.Scenarios = function(dependencies, options) {
 
-        var tasks = dependencies[0];
+        var tasks = dependencies.CollectionsTasks;
 
         /*
         - Create a New Collection and make sure it exists

@@ -1,5 +1,10 @@
-var Actions = function() {
-    var actions = {
+var Actions = function(options) {
+
+    var self = this;
+
+    this.name = 'CollectionsTasks';
+
+    this.actions = {
         _self: this,
         do :{
             newCollection: function(name) {
@@ -11,7 +16,7 @@ var Actions = function() {
                 }, false);
                 console.log('Saving Collection...');
                 casper.click('#save_collection');
-                actions.tests.collectionExists(name);
+                self.actions.tests.collectionExists(name);
             },
 
             deleteCollection: function(name) {
@@ -21,7 +26,7 @@ var Actions = function() {
                 casper.test.assertVisible('#delete-collection-div', 'The popup to delete a collection should be visible');
                 console.log('Deleting Collection...');
                 casper.click('#delete');
-                actions.tests.collectionDoesntExist(name);
+                self.actions.tests.collectionDoesntExist(name);
             }
         },
 
@@ -48,11 +53,11 @@ var Actions = function() {
 
         tests: {
             collectionExists: function(name) {
-                casper.test.assertTruthy(actions.get.collectionByName(name), 'The collection ' + name + ' exists');
+                casper.test.assertTruthy(self.actions.get.collectionByName(name), 'The collection ' + name + ' exists');
             },
 
             collectionDoesntExist: function(name) {
-                casper.test.assertFalsy(actions.get.collectionByName(name), 'The collection ' + name + ' does not exist');
+                casper.test.assertFalsy(self.actions.get.collectionByName(name), 'The collection ' + name + ' does not exist');
             },
 
             selectAll: function() {
@@ -68,9 +73,9 @@ var Actions = function() {
         }
 
     };
-    return actions;
+
 };
 
-exports.Actions = function() {
-    return new Actions();
+exports.Actions = function(options) {
+    return new Actions(options);
 };

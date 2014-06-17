@@ -6,7 +6,8 @@ function Scenario() {
     this.Scenarios = function(dependencies) {
 
         var self = this;
-        var AnnotatorTasks = dependencies[0];
+        var AnnotatorTasks = dependencies.AnnotatorTasks;
+
         /*
         - @Scenario1
         - Select any graph. A dialog box should be opened. Make sure that:

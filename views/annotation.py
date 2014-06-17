@@ -532,9 +532,9 @@ def save(request, graphs):
                     annotation = Annotation(image=image)
 
                 get_data = request.POST.copy()
-                
-                if 'geoJson' in gr:
-                    geo_json = str(gr['geoJson'])
+
+                if 'geoJson' in get_data:
+                    geo_json = str(get_data['geoJson'])
                 else:
                     geo_json = False
 
@@ -624,13 +624,13 @@ def save(request, graphs):
                         # attach the graph to a containing one
                         if geo_json:
                             annotation.set_graph_group()
-                        
+
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
-                        
+
                         new_graph = json.loads(get_features(graph.id))
                         data['graphs'].append(new_graph[0])
 
@@ -640,7 +640,7 @@ def save(request, graphs):
                     #transaction.rollback()
                     data['success'] = False
                     data['errors'] = get_json_error_from_form_errors(form)
-        
+
         # uncomment this to see the error call stack in the django server output
         #except ValueError as e:
         except Exception as e:

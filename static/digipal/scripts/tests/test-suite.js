@@ -360,19 +360,20 @@ function TestSuite(_options) {
 
                 } else if (fs.isFile(path) && path.indexOf('.js') != -1 && path.indexOf('actions.js') == -1) {
 
-                    var scenario = require(path);
-                    var scenariosList = [];
+                    var scenario_module = require(path);
+                    var scenariosSelected = [];
 
-                    for (var c in scenario) {
-                        scenariosList.push(scenario[c]);
+                    for (var c in scenario_module) {
+                        scenariosSelected.push(scenario_module[c]);
                     }
 
-                    casper.eachThen(scenariosList, function(response) {
+                    casper.eachThen(scenariosSelected, function(response) {
                         var Scenario = response.data;
                         var Scenarios = Scenario.Scenarios;
                         var dependencies = [];
                         casper.eachThen(Scenario.dependencies, function(dependency) {
-                            dependencies.push(require(lastWorkingDirectory + '/' + dependency.data).Actions(options));
+                            var module_dependency = require(lastWorkingDirectory + '/' + dependency.data).Actions(options);
+                            dependencies[module_dependency.name] = module_dependency.actions;
                         });
 
                         casper.then(function() {

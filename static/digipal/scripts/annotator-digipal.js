@@ -2612,6 +2612,9 @@ function make_form() {
 		form_serialized += "&internal_note=" + $('#id_internal_note').val();
 	}
 
+	var geoJSON = annotator.format.write(annotator.selectedFeature);
+	form_serialized += "&geoJson=" + geoJSON;
+
 	return {
 		'form_serialized': form_serialized,
 		'features_labels': features_labels

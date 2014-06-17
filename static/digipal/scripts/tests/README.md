@@ -9,7 +9,7 @@
 
 From command line, type:
 
-    casperjs test digipal-test.js
+    casperjs test main.js
 
     Command line parameters:
     - --debug-remote: if true, also reports logs from the page being ran
@@ -29,8 +29,75 @@ Options to configure the tests:
     -  tests: array of tests to be performed
     -  deepScan: deep scan of the website (all links will be followed by the script)
 
+## Scenarios, Middleware and dependencies
 
-## Strucutre
+Dependencies and middleware get injected in a scenario through an object used inside the list of Scenarios. This is a quick example of how to define and initialize it.
 
-    - Tests are performed in the file main.js. There you can choice which scenarios you want to run, and if repeat them for all the links or not.
-    - Scenarios are located in the folder scenarios. Every file in this folder will be scanned and ran as a scenario (even though, by convention it would be best the make one folder for scenario's type, and call the file scenario.js). Every scenario should need and action.js script, which should include actions to be ran in sequence inside scenarios. Actions can be shared among more scenarios and are exported as modules, as well as scenarios.
+A function Scenario has two properties:
+
+- dependencies: an array with the paths to the dependencies we want
+- middleware: an array with the paths to the middlewares we want
+
+Middleware will be arbitrarly executed before running the scenarios, the dependencies will be injected through the function Scenarios, so that they will be ready to be used in Scenarios.
+
+### Define a Scenario
+
+It is possible to declare and include dependencies and middleware in a Scenario by specifing two variables inside the Scenario() function:
+
+    function Scenario(){
+
+        this.middleware = ['mymiddleware.js'] // this will be searched inside the folder middleware
+        this.dependencies = ['./actions.js', ../anotherscenario/actions.js'] // this is relative to the current scenario
+
+        // the middleware gets executed here ...
+
+        this.Scenarios = function(dependencies, options){
+
+            var actions = dependencies.nameDependency;
+            var actions2 = dependencies.nameDependency2;
+
+            this.Scenario1 = function(){...};
+            this.Scenario2 = function(){...};
+            this.Scenario3 = function(){...};
+        }
+    }
+
+    exports.Scenario = new Scenario();
+
+### Define a dependency module
+
+    function Actions(options){
+
+        this.name = 'myDependencyModule';
+
+        this actions = {
+            // my actions
+        };
+
+    }
+
+    exports.Actions = function(options){
+        return new Actions(options);
+    };
+
+
+### Define a middleware
+
+    var Middleware = function(options, callback) {
+
+       function myFunction(options, callback){
+        // do something
+       };
+
+        // remember to always return the done function
+
+        return {
+            'done': myFunction
+        };
+    };
+
+    exports.Middleware = function() {
+        return new Middleware();
+    };
+
+The middleware functions work as a bridge between the scenario and the test suite. It can be useful for functions such as login, change of page, or for actions not related to the scenario to be performed prior to its initialization. The callback function makes sure that the middleware has been done before running the scenarios.

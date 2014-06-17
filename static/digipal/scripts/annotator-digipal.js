@@ -1478,7 +1478,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector = {};
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
-					data['geoJson'] = geoJson;
+					vector['geoJson'] = geoJson;
 					//vector['vector_id'] = feature.id;
 					graphs.push(vector);
 				}
@@ -1499,7 +1499,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						'image': image_id,
 						// GN: commented out to avoid clashes with the annotation editor
 						// modifying the shape. See JIRA DIGIPAL-479 and DIGIPAL-477
-						//'geoJson': geoJson,
+						'geoJson': geoJson,
 						//'vector_id': ann[ind2].id
 					});
 				}
@@ -1515,7 +1515,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector = {};
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
-					data['geoJson'] = geoJson;
+					vector['geoJson'] = geoJson;
 					//vector['vector_id'] = feature.id;
 
 					graphs.push(vector);
@@ -2644,6 +2644,7 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
+			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 
@@ -2660,7 +2661,7 @@ function save(url, graphs, data, ann, features) {
 				var feature, id, temp;
 				var form_serialized = data;
 
-				var new_graphs = data['graphs'];
+				var new_graphs = data.graphs;
 
 				for (var i = 0; i < new_graphs.length; i++) {
 
@@ -2671,6 +2672,13 @@ function save(url, graphs, data, ann, features) {
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
 					allographsPage.cache.update('graph', new_graph, new_graphs[i]);
 					allographsPage.cache.update('allograph', new_allograph, new_graphs[i]);
+					if (annotator.selectedFeature && annotator.selectedAnnotations.length <= 1) {
+						annotator.selectedFeature.graph = new_graph;
+					} else if (annotator.annotations.length > 1) {
+						for (var j = 0; j < annotator.annotations.length; j++) {
+							annotator.annotations[i].graph = new_graph;
+						}
+					}
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
@@ -2770,6 +2778,7 @@ function save(url, graphs, data, ann, features) {
 		complete: function() {
 			//annotator.transformFeature.deactivate();
 			annotator.has_changed = true;
+			updateTabCounter();
 		}
 	});
 

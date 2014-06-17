@@ -89,7 +89,7 @@
 }
 
 .collection img:hover {
-    box-shadow: 0px 0px 25px 8px yellow;
+    box-shadow: 0px 0px 25px 4px yellow;
     background: yellow;
 }
 

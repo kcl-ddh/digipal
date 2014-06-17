@@ -1,8 +1,12 @@
 function Scenario() {
 
-    var Scenarios = function(AnnotatorTasks) {
+    this.dependencies = ['actions.js'];
+    this.middleware = ['login.js'];
 
-        var features = AnnotatorTasks.get.features();
+    this.Scenarios = function(dependencies) {
+
+        var self = this;
+        var AnnotatorTasks = dependencies.AnnotatorTasks;
 
         /*
         - @Scenario1
@@ -14,6 +18,8 @@ function Scenario() {
 
         this.Scenario1 = function() {
 
+            var features = AnnotatorTasks.get.features();
+            self.features = features;
             casper.echo('Running Annotator Scenario 1', 'PARAMETER');
 
             if (AnnotatorTasks.tabs.current() !== '#annotator') {
@@ -66,7 +72,7 @@ function Scenario() {
                 });
             };
 
-            var feature = AnnotatorTasks.get.random_vector(features);
+            var feature = AnnotatorTasks.get.random_vector(self.features);
 
             casper.then(function() {
                 AnnotatorTasks.do.annotate(feature.id, true, function() {
@@ -108,7 +114,7 @@ function Scenario() {
 
         this.Scenario3 = function() {
             casper.echo('Running Annotator Scenario 3', 'PARAMETER');
-            var feature = AnnotatorTasks.get.random_vector(features);
+            var feature = AnnotatorTasks.get.random_vector(self.features);
             var allograph_id = feature.allograph_id;
             AnnotatorTasks.do.select(feature.id, function() {
 
@@ -161,12 +167,12 @@ function Scenario() {
                 AnnotatorTasks.options.clickOption('multiple_annotations');
             });
 
-            var feature = AnnotatorTasks.get.random_vector(features);
-            var feature2 = AnnotatorTasks.get.random_vector(features);
+            var feature = AnnotatorTasks.get.random_vector(self.features);
+            var feature2 = AnnotatorTasks.get.random_vector(self.features);
 
             casper.then(function() {
                 while (feature.allograph_id !== feature2.allograph_id) {
-                    feature2 = AnnotatorTasks.get.random_vector(features);
+                    feature2 = AnnotatorTasks.get.random_vector(self.features);
                 }
             });
 
@@ -218,8 +224,8 @@ function Scenario() {
 
             casper.then(function() {
 
-                feature = AnnotatorTasks.get.random_vector(features);
-                feature2 = AnnotatorTasks.get.random_vector(features);
+                feature = AnnotatorTasks.get.random_vector(self.features);
+                feature2 = AnnotatorTasks.get.random_vector(self.features);
 
                 AnnotatorTasks.do.select(feature.id);
                 AnnotatorTasks.do.select(feature2.id);
@@ -227,7 +233,7 @@ function Scenario() {
                 casper.echo('Looking for different allographs with common components...');
 
                 while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
-                    feature2 = AnnotatorTasks.get.random_vector(features);
+                    feature2 = AnnotatorTasks.get.random_vector(self.features);
                     AnnotatorTasks.do.unselect();
                     AnnotatorTasks.do.select(feature.id);
                     AnnotatorTasks.do.select(feature2.id);
@@ -258,24 +264,6 @@ function Scenario() {
 
         };
     };
-
-    this.init = function(options) {
-        var AnnotatorTasks = require('./actions.js').Actions(options);
-
-        AnnotatorTasks.get.adminAccess(options.page + '/admin', casper.cli.get('username'), casper.cli.get('password'))
-            .then(function() {
-                var scenarios = new Scenarios(AnnotatorTasks);
-                var scenariosList = [];
-                for (var i in scenarios) {
-                    scenariosList.push(scenarios[i]);
-                }
-                casper.eachThen(scenariosList, function(response) {
-                    response.data.call();
-                });
-
-            });
-    };
-
 }
 
 exports.AnnotatorTest = new Scenario();

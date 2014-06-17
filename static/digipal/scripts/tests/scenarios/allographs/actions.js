@@ -1,6 +1,8 @@
 var Actions = function(options) {
 
-    var actions = {
+    this.name = 'AllographsTasks';
+
+    this.actions = {
         _self: this,
 
         get: {
@@ -159,8 +161,6 @@ var Actions = function(options) {
 
         }
     };
-
-    return actions;
 };
 
 exports.Actions = function(options) {

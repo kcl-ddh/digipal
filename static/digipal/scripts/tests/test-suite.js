@@ -39,7 +39,7 @@ function TestSuite(_options) {
 
         Events(errors, assert_failures);
 
-        casper.test.begin('Digipal testing Suite', function() {
+        casper.test.begin('Initializing Tests', function() {
             casper.start().then(function() {
                 Scraper(Tests.tests, options);
             }).run(function() {
@@ -360,20 +360,50 @@ function TestSuite(_options) {
 
                 } else if (fs.isFile(path) && path.indexOf('.js') != -1 && path.indexOf('actions.js') == -1) {
 
-                    var scenario = require(path);
-                    var scenariosList = [];
-                    for (var c in scenario) {
-                        scenariosList.push(scenario[c]);
+                    var scenario_module = require(path);
+                    var scenariosSelected = [];
+
+                    for (var c in scenario_module) {
+                        scenariosSelected.push(scenario_module[c]);
                     }
 
-                    casper.eachThen(scenariosList, function(response) {
-                        response.data.init(options);
-                    });
+                    casper.eachThen(scenariosSelected, function(response) {
+                        var Scenario = response.data;
+                        var Scenarios = Scenario.Scenarios;
+                        var dependencies = [];
+                        casper.eachThen(Scenario.dependencies, function(dependency) {
+                            var module_dependency = require(lastWorkingDirectory + '/' + dependency.data).Actions(options);
+                            dependencies[module_dependency.name] = module_dependency.actions;
+                        });
 
+                        casper.then(function() {
+                            var scenarios = new Scenarios(dependencies, options);
+                            var scenariosList = [];
+                            for (var i in scenarios) {
+                                scenariosList.push(scenarios[i]);
+                            }
+                            if (Scenario.hasOwnProperty('middleware')) {
+                                var middleware = Scenario.middleware;
+                                casper.eachThen(middleware, function(middleware) {
+                                    var mdl = require('./middleware/' + middleware.data).Middleware();
+                                    mdl.done(options, function() {
+                                        casper.eachThen(scenariosList, function(scenario) {
+                                            scenario.data.call();
+                                        });
+                                    });
+                                });
+                            } else {
+                                casper.eachThen(scenariosList, function(scenario) {
+                                    scenario.data.call();
+                                });
+                            }
+                        });
+                    });
                 }
 
                 if (i == _directory.length - 1) {
                     scanned.push(directory);
+                    var lastWorkingDirectory = fs.workingDirectory;
                     fs.changeWorkingDirectory('../');
                 }
 

@@ -1,16 +1,22 @@
 function Scenario() {
 
-    var Actions = require('./actions.js').Actions();
+    this.dependencies = ['actions.js'];
 
-    var Scenarios = function(options) {
-        var tasks = Actions;
+    this.Scenarios = function(dependencies, options) {
+
+        var tasks = dependencies.CollectionsTasks;
 
         /*
         - Create a New Collection and make sure it exists
          */
+
         this.Scenario1 = function() {
-            casper.echo('Running Collection Scenario 1', 'PARAMETER');
-            tasks.do.newCollection('MyCollection');
+            var page = options.page + '/digipal/collection';
+
+            casper.thenOpen(page, function() {
+                casper.echo('Running Collection Scenario 1', 'PARAMETER');
+                tasks.do.newCollection('MyCollection');
+            });
         };
 
 
@@ -76,20 +82,6 @@ function Scenario() {
             casper.echo('Running Collection Scenario 5', 'PARAMETER');
             tasks.tests.selectAll();
         };
-    };
-
-    this.init = function(options) {
-        var page = options.page + '/digipal/collection';
-        casper.thenOpen(page, function() {
-            var scenarios = new Scenarios(options);
-            var scenariosList = [];
-            for (var i in scenarios) {
-                scenariosList.push(scenarios[i]);
-            }
-            casper.eachThen(scenariosList, function(response) {
-                response.data.call();
-            });
-        });
     };
 }
 

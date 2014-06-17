@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
-from django.utils import simplejson
+import json
 from django.utils.datastructures import SortedDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import sys, re
@@ -141,7 +141,7 @@ def get_features(graph_id, only_features=False):
 
         data.append(obj)
 
-    return simplejson.dumps(data)
+    return json.dumps(data)
 
 
 def allograph_features(request, allograph_id):
@@ -171,7 +171,7 @@ def allograph_features(request, allograph_id):
         data.append(obj)
 
     if request:
-        return simplejson.dumps(data)
+        return json.dumps(data)
     else:
         return allographs_list
 
@@ -260,7 +260,7 @@ def get_allograph(request, graph_id):
     g = Graph.objects.get(id=graph_id)
     allograph_id = g.idiograph.allograph_id
     data = {'id': allograph_id}
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def image_vectors(request, image_id):
     """Returns a JSON of all the vectors for the requested image."""
@@ -280,16 +280,16 @@ def image_vectors(request, image_id):
         data[a.vector_id]['graph'] = a.graph_id
 
     if request:
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), mimetype='application/json')
     else:
-        return simplejson.dumps(data)
+        return json.dumps(data)
 
 def get_vector(request, image_id, graph):
     annotation = Annotation.objects.get(graph=graph)
     data = {}
     data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
     data['id'] = annotation.vector_id
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
@@ -299,7 +299,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     else:
         annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
 
-    vectors = simplejson.loads(image_vectors(False, image_id))
+    vectors = json.loads(image_vectors(False, image_id))
     data = {}
     hands = []
     for a in annotation_list:
@@ -312,7 +312,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[a.id]['hand'] = a.graph.hand_id
         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
         data[a.id]['allograph_id'] = a.graph.idiograph.allograph.id
-        features_list = simplejson.loads(get_features(a.graph.id, True))
+        features_list = json.loads(get_features(a.graph.id, True))
         data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
         if vectors[a.vector_id]:
@@ -349,7 +349,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
                         f.id))
 
     if annotations_page:
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), mimetype='application/json')
     else:
         return data
 
@@ -369,7 +369,7 @@ def get_allographs_by_graph(request, image_id, graph_id):
                     'vector_id': i.vector_id
                 }
                 annotations_list.append(annotation)
-            return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+            return HttpResponse(json.dumps(annotations_list), mimetype='application/json')
         else:
             return HttpResponse(False)
 
@@ -387,7 +387,7 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
                 'vector_id': i.vector_id
             }
             annotations_list.append(annotation)
-        return HttpResponse(simplejson.dumps(annotations_list), mimetype='application/json')
+        return HttpResponse(json.dumps(annotations_list), mimetype='application/json')
     else:
         return HttpResponse(False)
 
@@ -418,12 +418,12 @@ def image_allographs(request, image_id):
     return render_to_response('digipal/annotations.html', context, context_instance=RequestContext(request))
 
 def hands_list(request, image_id):
-    hands_ids = simplejson.loads(request.GET.get('hands', ''))
+    hands_ids = json.loads(request.GET.get('hands', ''))
     hands_list = Hand.objects.filter(id__in=hands_ids)
     hands = []
     for h in hands_list:
         hands.append(h.display_label)
-    return HttpResponse(simplejson.dumps(hands), mimetype='application/json')
+    return HttpResponse(json.dumps(hands), mimetype='application/json')
 
 def get_hands(hands):
     hands_list = []
@@ -459,7 +459,7 @@ def image_copyright(request, image_id):
 def images_lightbox(request, collection_name):
     data = {}
     if 'data' in request.GET and request.GET.get('data', ''):
-        graphs = simplejson.loads(request.GET.get('data', ''))
+        graphs = json.loads(request.GET.get('data', ''))
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
@@ -488,7 +488,7 @@ def images_lightbox(request, collection_name):
             for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):
     image = Image.objects.get(id=image_id)
@@ -514,7 +514,7 @@ def save(request, graphs):
         try:
 
             graphs = graphs.replace('/"', "'")
-            graphs = simplejson.loads(graphs)
+            graphs = json.loads(graphs)
 
             for gr in graphs:
                 graph_object = False
@@ -532,12 +532,11 @@ def save(request, graphs):
                     annotation = Annotation(image=image)
 
                 get_data = request.POST.copy()
-
+                
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
-
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
@@ -625,13 +624,14 @@ def save(request, graphs):
                         # attach the graph to a containing one
                         if geo_json:
                             annotation.set_graph_group()
+                        
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
-
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
-                        new_graph = simplejson.loads(get_features(graph.id))
+                        
+                        new_graph = json.loads(get_features(graph.id))
                         data['graphs'].append(new_graph[0])
 
                         #transaction.commit()
@@ -640,15 +640,15 @@ def save(request, graphs):
                     #transaction.rollback()
                     data['success'] = False
                     data['errors'] = get_json_error_from_form_errors(form)
-
+        
+        # uncomment this to see the error call stack in the django server output
+        #except ValueError as e:
         except Exception as e:
-            #transaction.rollback()
             data['success'] = False
-            print e
-            data['errors'] = ['Internal error: %s' % e.message]
+            data['errors'] = [u'Internal error: %s' % e]
             #tb = sys.exc_info()[2]
 
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
 def get_json_error_from_form_errors(form):
@@ -691,4 +691,4 @@ def delete(request, image_id, vector_id):
         #transaction.commit()
         data.update({'success': True})
 
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), mimetype='application/json')

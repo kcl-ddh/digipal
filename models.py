@@ -1953,8 +1953,10 @@ class Annotation(models.Model):
         self.geo_json = json.dumps(geo_json)
     
     def get_shape_path(self, geo_json_str=None):
+        ret = [[0, 0]]
         geo_json = self.get_geo_json_as_dict(geo_json_str)
-        ret = geo_json['geometry']['coordinates'][0][:]
+        if 'geometry' in geo_json:
+            ret = geo_json['geometry']['coordinates'][0][:]
         return ret
 
     def set_shape_path(self, path=[]):
@@ -2039,6 +2041,10 @@ class Annotation(models.Model):
         # GN: why do we need this call BEFORE changing the cutout?
         # That's two DB save operation each time!
         
+        if not self.geo_json:
+            raise Exception('Trying to save an annotation with an empty geo_json.')
+            return
+
         super(Annotation, self).save(*args, **kwargs)
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
@@ -2113,6 +2119,7 @@ class Annotation(models.Model):
 
         # get the rectangle surrounding the shape
         psr = ps = self.get_coordinates(y_from_top=True, rotated=False)
+        
         rotation = float(self.rotation)
         if rotation > 0.0:
             psr = self.get_coordinates(y_from_top=True, rotated=True)

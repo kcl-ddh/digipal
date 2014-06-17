@@ -145,6 +145,17 @@ Commands:
             known_command = True
             self.stress_search(*args[1:])
             
+        if command == 'savean':
+            known_command = True
+            self.save_annotation(*args[1:])
+
+    def save_annotation(self):
+        a = Annotation()
+        a.image = Image.objects.all()[0]
+        a.author_id = 6
+        a.geo_json = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+        a.save()
+
     def stress_search(self, count=1):
         ret = True
         from utils import web_fetch

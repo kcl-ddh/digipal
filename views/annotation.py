@@ -276,8 +276,7 @@ def image_vectors(request, image_id):
 
     for a in annotation_list:
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
-        data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
-        data[a.vector_id]['graph'] = a.graph_id
+        data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
 
     if request:
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -300,6 +299,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
 
     vectors = json.loads(image_vectors(False, image_id))
+    print vectors
     data = {}
     hands = []
     for a in annotation_list:
@@ -315,8 +315,8 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         features_list = json.loads(get_features(a.graph.id, True))
         data[a.id]['num_features'] = len(features_list[0]['features'])
         data[a.id]['features'] = features_list
-        if vectors[a.vector_id]:
-            data[a.id]['geo_json'] = vectors[a.vector_id]['geometry']
+        if unicode(a.graph.id) in vectors:
+            data[a.id]['geo_json'] = vectors[unicode(a.graph.id)]['geometry']
 
         #hands.append(data[a.id]['hand'])
 
@@ -533,12 +533,14 @@ def save(request, graphs):
 
                 get_data = request.POST.copy()
 
-                if 'geoJson' in get_data:
-                    geo_json = str(get_data['geoJson'])
+                if 'geoJson' in gr:
+                    geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
+                print geo_json
                 form = ImageAnnotationForm(data=get_data)
+
                 if form.is_valid():
                     with transaction.atomic():
                         clean = form.cleaned_data
@@ -627,7 +629,8 @@ def save(request, graphs):
 
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
-                        if annotation_is_modified or not annotation.id:
+
+                        if annotation_is_modified or annotation.id == None:
                             annotation.graph = graph
                             annotation.save()
 

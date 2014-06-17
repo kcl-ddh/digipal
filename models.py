@@ -1929,7 +1929,7 @@ class Annotation(models.Model):
 
     class Meta:
         ordering = ['graph', 'modified']
-        unique_together = ('image', 'vector_id')
+        #unique_together = ('image', 'vector_id')
     
     def get_geo_json_as_dict(self, geo_json_str=None):
         import json

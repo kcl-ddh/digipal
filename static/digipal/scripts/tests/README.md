@@ -101,8 +101,3 @@ It is possible to declare and include dependencies and middleware in a Scenario 
     };
 
 The middleware functions work as a bridge between the scenario and the test suite. It can be useful for functions such as login, change of page, or for actions not related to the scenario to be performed prior to its initialization. The callback function makes sure that the middleware has been done before running the scenarios.
-
-## Strucutre
-
-- Tests are performed in the file main.js. There you can choice which scenarios you want to run, and if repeat them for all the links or not.
-- Scenarios are located in the folder scenarios. Every file in this folder will be scanned and ran as a scenario (even though, by convention it would be best the make one folder for scenario's type, and call the file scenario.js). Every scenario should need and action.js script, which should include actions to be ran in sequence inside scenarios. Actions can be shared among more scenarios and are exported as modules, as well as scenarios.

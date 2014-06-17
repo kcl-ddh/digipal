@@ -73,6 +73,9 @@ function Dialog() {
         } else {
             modal_features.html(element_cache);
             selector = modal_features;
+            if (!$('#summary').length) {
+                selector.append("<div id='summary'>");
+            }
             if (callback) {
                 callback(selector);
             }

@@ -1,5 +1,7 @@
 var Actions = function(options) {
 
+    var self = this;
+
     this.name = 'AnnotatorTasks';
 
     this.actions = {
@@ -348,14 +350,13 @@ var Actions = function(options) {
             },
 
             loadCache: function() {
-                var self = this;
-                var features = actions.get.features();
+                var features = self.actions.get.features();
                 var i = 0;
                 casper.echo('Caching all graphs', 'INFO');
                 casper.eachThen(features, function(response) {
                     if (response && typeof response.hasOwnProperty('data') && response.data && response.data.hasOwnProperty('id')) {
                         var id = response.data.id;
-                        actions.do.select(id, function() {
+                        self.actions.do.select(id, function() {
                             if (casper.evaluate(function(id) {
                                 return annotator.cacheAnnotations.cache.graphs.hasOwnProperty(id);
                             }), id) {

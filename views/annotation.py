@@ -299,7 +299,6 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
 
     vectors = json.loads(image_vectors(False, image_id))
-    print vectors
     data = {}
     hands = []
     for a in annotation_list:
@@ -538,9 +537,8 @@ def save(request, graphs):
                 else:
                     geo_json = False
 
-                print geo_json
-                form = ImageAnnotationForm(data=get_data)
 
+                form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
                     with transaction.atomic():
                         clean = form.cleaned_data
@@ -582,6 +580,7 @@ def save(request, graphs):
 
                             graph.save() # error is here
                         feature_list_checked = get_data.getlist('feature')
+
                         feature_list_unchecked = get_data.getlist('-feature')
 
                         if feature_list_unchecked:
@@ -606,7 +605,6 @@ def save(request, graphs):
                         if feature_list_checked:
 
                             for value in feature_list_checked:
-
                                 cid, fid = value.split('::')
 
                                 component = Component.objects.get(id=cid)
@@ -626,15 +624,17 @@ def save(request, graphs):
                         # attach the graph to a containing one
                         if geo_json:
                             annotation.set_graph_group()
-
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
 
-                        if annotation_is_modified or annotation.id == None:
+                        if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
 
                         new_graph = json.loads(get_features(graph.id))
+                        if 'vector_id' in gr:
+                            new_graph[0]['vector_id'] = gr['vector_id']
+
                         data['graphs'].append(new_graph[0])
 
                         #transaction.commit()

@@ -1479,7 +1479,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					//vector['vector_id'] = feature.id;
+					if (!feature.stored) {
+						vector['vector_id'] = feature.id;
+					}
 					graphs.push(vector);
 				}
 
@@ -1516,7 +1518,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					vector['id'] = feature.graph;
 					vector['image'] = image_id;
 					vector['geoJson'] = geoJson;
-					//vector['vector_id'] = feature.id;
+
+					if (!feature.stored) {
+						vector['vector_id'] = feature.id;
+					}
 
 					graphs.push(vector);
 					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
@@ -1646,7 +1651,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}
 		}
 		restoreFullscreenPositions();
-
 	};
 }
 
@@ -2672,11 +2676,13 @@ function save(url, graphs, data, ann, features) {
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
 					allographsPage.cache.update('graph', new_graph, new_graphs[i]);
 					allographsPage.cache.update('allograph', new_allograph, new_graphs[i]);
-					if (annotator.selectedFeature && annotator.selectedAnnotations.length <= 1) {
-						annotator.selectedFeature.graph = new_graph;
-					} else if (annotator.annotations.length > 1) {
-						for (var j = 0; j < annotator.annotations.length; j++) {
-							annotator.annotations[i].graph = new_graph;
+
+					for (var k = 0; k < annotator.selectedAnnotations.length; k++) {
+						var crntFt = annotator.selectedAnnotations[k];
+						if (!crntFt.hasOwnProperty('graph')) {
+							if (crntFt.id == new_graphs[i].vector_id) {
+								crntFt.graph = new_graph;
+							}
 						}
 					}
 

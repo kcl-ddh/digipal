@@ -29,6 +29,7 @@ function Scenario() {
 
             var feature = tasks.get.random_vector();
             tasks.do.select(feature, function() {
+                casper.wait(800);
                 tasks.dialog.doesDialogExist();
                 tasks.dialog.doesSummaryExist();
                 tasks.dialog.labelMatchesForm();

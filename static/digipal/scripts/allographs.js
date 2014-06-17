@@ -672,6 +672,7 @@ function Allographs(dialog, cache) {
 		var allographs_container = $('#allographs');
 		var img = $("<img id='allographs_tab_loader' src='/static/digipal/images/ajax-loader4.gif' />");
 		self.dialog_instance.hide();
+		var cached_dialog = $(".myModal#modal_features");
 		var request = $.ajax({
 			url: annotator.absolute_image_url + 'image_allographs/',
 			type: 'GET',
@@ -692,7 +693,7 @@ function Allographs(dialog, cache) {
 					container: 'body'
 				});
 
-				self.dialog_instance.selector = $(".myModal#modal_features");
+				self.dialog_instance.selector = cached_dialog;
 				selectedAnnotations.annotations = [];
 				init();
 

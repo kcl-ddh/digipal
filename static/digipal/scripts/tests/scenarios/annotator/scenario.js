@@ -31,7 +31,7 @@ function Scenario() {
             var feature = AnnotatorTasks.get.random_vector(features);
 
             casper.then(function() {
-                AnnotatorTasks.do.select(feature.vector_id, function() {
+                AnnotatorTasks.do.select(feature.graph, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
                     casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
                     casper.wait(500, function() {

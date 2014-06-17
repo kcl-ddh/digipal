@@ -40,6 +40,10 @@ var Actions = function(options) {
                         casper.echo('Annotation succesfully saved', 'INFO');
                     } else {
                         casper.echo('Annotation not saved', 'ERROR');
+                        var error = casper.evaluate(function() {
+                            return $('#status').text();
+                        });
+                        casper.echo('Error:' + error, 'ERROR');
                     }
                     if (callback) {
                         return callback();

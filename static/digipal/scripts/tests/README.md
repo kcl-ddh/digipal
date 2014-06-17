@@ -29,7 +29,18 @@ Options to configure the tests:
     -  tests: array of tests to be performed
     -  deepScan: deep scan of the website (all links will be followed by the script)
 
-## Middleware and dependencies
+## Scenarios, Middleware and dependencies
+
+Dependencies and middleware get injected in a scenario through an object used inside the list of Scenarios. This is a quick example of how to define and initialize it.
+
+A function Scenario has two properties:
+
+- dependencies: an array with the paths to the dependencies we want
+- middleware: an array with the paths to the middlewares we want
+
+Middleware will be arbitrarly executed before running the scenarios, the dependencies will be injected through the function Scenarios, so that they will be ready to be used in Scenarios.
+
+### Define a Scenario
 
 It is possible to declare and include dependencies and middleware in a Scenario by specifing two variables inside the Scenario() function:
 
@@ -42,8 +53,8 @@ It is possible to declare and include dependencies and middleware in a Scenario 
 
         this.Scenarios = function(dependencies, options){
 
-            var actions = dependencies[0];
-            var actions = dependencies[2];
+            var actions = dependencies.nameDependency;
+            var actions2 = dependencies.nameDependency2;
 
             this.Scenario1 = function(){...};
             this.Scenario2 = function(){...};
@@ -51,9 +62,45 @@ It is possible to declare and include dependencies and middleware in a Scenario 
         }
     }
 
-The middleware functions work as a bridge between the scenario and the test suite. It can be useful for functions such as login, change of page, or for actions not related to the scenario to be performed prior to its initialization.
+    exports.Scenario = new Scenario();
 
-Dependencies get injected in a scenario through an array and are positionally declared.
+### Define a dependency module
+
+    function Actions(options){
+
+        this.name = 'myDependencyModule';
+
+        this actions = {
+            // my actions
+        };
+
+    }
+
+    exports.Actions = function(options){
+        return new Actions(options);
+    };
+
+
+### Define a middleware
+
+    var Middleware = function(options, callback) {
+
+       function myFunction(options, callback){
+        // do something
+       };
+
+        // remember to always return the done function
+
+        return {
+            'done': myFunction
+        };
+    };
+
+    exports.Middleware = function() {
+        return new Middleware();
+    };
+
+The middleware functions work as a bridge between the scenario and the test suite. It can be useful for functions such as login, change of page, or for actions not related to the scenario to be performed prior to its initialization. The callback function makes sure that the middleware has been done before running the scenarios.
 
 ## Strucutre
 

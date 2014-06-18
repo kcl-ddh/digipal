@@ -157,7 +157,7 @@ var Actions = function(options) {
              ** Shortcut for the sequence describeForms, drawFeature, describe, save
              */
 
-            annotate: function(feature, describe, callback) {
+            annotate: function(feature, describe, callback, save) {
                 var self = this;
 
                 var execute = function() {
@@ -168,8 +168,13 @@ var Actions = function(options) {
                                 console.log('Describing feature...');
                                 self.describe(null, true);
                             }
-                            casper.capture('screen.png');
-                            self.save(callback);
+                            if (save || typeof save === 'undefined') {
+                                self.save(callback);
+                            } else {
+                                if (typeof callback !== 'undefined' && callback instanceof Function) {
+                                    callback();
+                                }
+                            }
                         });
                     });
                 };

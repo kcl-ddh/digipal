@@ -92,6 +92,8 @@ function Scenario() {
                 tasks.do.select(feature);
             });
 
+            casper.wait(1000);
+
             casper.then(function() {
                 tasks.do.select(feature2);
             });

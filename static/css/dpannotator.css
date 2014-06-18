@@ -653,7 +653,7 @@ path {
 }
 
 .jquery-notebook a {
-    color: #4183c4;/*{fcContent}*/ !important;
+    color: #4183c4 !important;/*{fcContent}*/;
 }
 
 .noteditable{

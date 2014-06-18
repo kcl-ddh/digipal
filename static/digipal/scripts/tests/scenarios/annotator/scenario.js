@@ -3,7 +3,7 @@ function Scenario() {
     this.dependencies = ['actions.js'];
     this.middleware = ['login.js'];
 
-    this.Scenarios = function(dependencies) {
+    this.Scenarios = function(dependencies, options) {
 
         var self = this;
         var AnnotatorTasks = dependencies.AnnotatorTasks;
@@ -26,6 +26,7 @@ function Scenario() {
                 AnnotatorTasks.tabs.switch('annotator');
             }
 
+            AnnotatorTasks.options.clickOption('development_annotation');
             AnnotatorTasks.options.multiple_annotations(false);
 
             var feature = AnnotatorTasks.get.random_vector(features);
@@ -96,7 +97,6 @@ function Scenario() {
                 casper.echo('Reloading page ...');
                 casper.reload(function() {
                     AnnotatorTasks.do.annotate(null, true, function() {
-                        casper.capture('screen.png');
                         AnnotatorTasks.dialog.close();
                         AnnotatorTasks.do.unselect();
                     });
@@ -146,6 +146,7 @@ function Scenario() {
                                 }
                             }
                         }
+                        console.log(found, vectors_ids.length);
                         casper.test.assert(found === vectors_ids.length, 'All images have been loaded');
                     });
                 });
@@ -161,6 +162,8 @@ function Scenario() {
 
         this.Scenario4 = function() {
             casper.echo('Running Annotator Scenario 4', 'PARAMETER');
+
+            AnnotatorTasks.do.unselect();
 
             casper.then(function() {
                 console.log('Enabling multiple annotations option');
@@ -185,8 +188,9 @@ function Scenario() {
             });
 
             casper.then(function() {
-                casper.wait(800, function() {
+                casper.wait(1200, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog has been created');
+                    casper.capture('screen.png');
                     if (!AnnotatorTasks.get.common_components(feature, feature2).length) {
                         casper.echo('The two features have no common components');
                         casper.test.assertSelectorHasText('.dialog_annotations', 'No common components', 'The window clearly states that the two graph have no common components');
@@ -209,7 +213,7 @@ function Scenario() {
             - Tick a feature and save the graphs.
             - Select the graphs and make sure both have the selected feature.
             - Now try to save a feature only on one graph. Then re-select both of them and make sure that the uncommon feature is indeterminate
-         */
+        */
 
         this.Scenario5 = function() {
             casper.echo('Running Annotator Scenario 5', 'PARAMETER');
@@ -261,6 +265,50 @@ function Scenario() {
                     });
                 });
             });
+
+        };
+
+
+        this.Scenario6 = function() {
+            casper.echo('Running Annotator Scenario 6', 'PARAMETER');
+            casper.echo('Unselecting all annotations...');
+            AnnotatorTasks.do.unselect();
+            feature = AnnotatorTasks.get.random_vector(self.features);
+            AnnotatorTasks.do.select(feature.id, function() {
+                casper.echo('Generating url for graph ' + feature.id + '...');
+                generateUrl(function() {
+                    AnnotatorTasks.do.unselect();
+                    AnnotatorTasks.options.clickOption('development_annotation');
+                    AnnotatorTasks.do.annotate(null, false, function() {
+                        casper.test.assertExists('.dialog_annotations', 'The dialog has been loaded');
+                        casper.test.assertExists('.name_temporary_annotation', 'Input temporary annotation loaded');
+                        casper.test.assertExists('.textarea_temporary_annotation', 'Textarea temporary annotation loaded');
+                        casper.fillSelectors('.ui-dialog', {
+                            ".name_temporary_annotation": 'Name',
+                            ".textarea_temporary_annotation": "<b>Content</b>"
+                        }, false);
+
+                    }, false);
+                });
+            });
+
+            var generateUrl = function(callback) {
+                casper.click('.url_allograph');
+                casper.wait(1000, function() {
+                    casper.test.assertExists('.allograph_url_div', 'The URL has been generated');
+                    casper.click('#long_url');
+                    var url = casper.evaluate(function() {
+                        return $('.allograph_url_div input').val();
+                    });
+                    url = url.replace(/(.)*\/digipal/, options.page + '/digipal');
+                    casper.thenOpen(url, function() {
+                        casper.test.assertExists('.dialog_annotations', 'The dialog has been correctly loaded');
+                        if (typeof callback !== 'undefined' && callback instanceof Function) {
+                            callback();
+                        }
+                    });
+                });
+            };
 
         };
     };

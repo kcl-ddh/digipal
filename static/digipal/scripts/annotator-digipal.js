@@ -1883,7 +1883,9 @@ function show_url_allograph(dialog, annotation, button) {
 		var a = $('<input type="text">');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').html();
-		desc.replace('contenteditable="true"', '');
+		if (desc) {
+			desc.replace('contenteditable="true"', '');
+		}
 		// get annotations visibility status
 		var getAnnotationsVisibility = $('.toggle-state-switch').bootstrapSwitch('state');
 		var layerExtent = annotator.map.getExtent();
@@ -2489,7 +2491,6 @@ function delete_annotation(layer, feature, number_annotations) {
 		url: url,
 		data: '',
 		error: function(xhr, textStatus, errorThrown) {
-			alert('Error: ' + textStatus);
 			throw new Error(textStatus);
 		},
 		success: function(data) {

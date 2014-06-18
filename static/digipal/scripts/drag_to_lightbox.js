@@ -34,8 +34,6 @@ var Star = function(options) {
 
 	var events = function() {
 		findStarredInPage();
-
-
 		elements.closest(defaults.parentName).on('mouseenter', function(event) {
 			dialog.init($(this).find(defaults.className));
 			event.stopPropagation();

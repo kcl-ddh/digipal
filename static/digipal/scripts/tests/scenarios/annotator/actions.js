@@ -44,7 +44,7 @@ var Actions = function(options) {
             },
 
             adminAccess: function(admin_page, username, password) {
-                var page = options.page + '/digipal/page/80';
+                var page = options.page + '/digipal/page/132';
 
                 var isAdmin = casper.evaluate(function() {
                     if (typeof annotator === 'undefined') {
@@ -157,7 +157,7 @@ var Actions = function(options) {
              ** Shortcut for the sequence describeForms, drawFeature, describe, save
              */
 
-            annotate: function(feature, describe, callback) {
+            annotate: function(feature, describe, callback, save) {
                 var self = this;
 
                 var execute = function() {
@@ -168,8 +168,13 @@ var Actions = function(options) {
                                 console.log('Describing feature...');
                                 self.describe(null, true);
                             }
-                            casper.capture('screen.png');
-                            self.save(callback);
+                            if (save || typeof save === 'undefined') {
+                                self.save(callback);
+                            } else {
+                                if (typeof callback !== 'undefined' && callback instanceof Function) {
+                                    callback();
+                                }
+                            }
                         });
                     });
                 };
@@ -282,9 +287,9 @@ var Actions = function(options) {
                         var condition;
 
                         if (check === true || typeof check === 'undefined') {
-                            condition = $(this).attr('checked');
-                        } else {
                             condition = !$(this).attr('checked');
+                        } else {
+                            condition = $(this).attr('checked');
                         }
 
                         if (condition) {
@@ -318,7 +323,7 @@ var Actions = function(options) {
                         dialog.find('.allograph_form').val(13).trigger('change');
                     }
                     if (!dialog.find('.hand_form').val()) {
-                        dialog.find('.hand_form').val(312).trigger('change');
+                        dialog.find('.hand_form').val(345).trigger('change');
                     }
                     return $('select').trigger('liszt:updated');
                 }, dialog);

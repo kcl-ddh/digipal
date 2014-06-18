@@ -120,7 +120,7 @@ function TestSuite(_options) {
                         casper.thenOpen(url, function() {
                             casper.echo('\nOpened ' + url, 'PARAMETER');
                             for (var i = 0; i < testsList.multiple.length; i++) {
-                                Tests.tests[testsList.multiple[i]].run();
+                                Tests.tests[testsList.multiple[i]].run(loadScenarios);
                             }
 
                             if (options.deepScan) {
@@ -134,7 +134,7 @@ function TestSuite(_options) {
 
             if (testsList.single.length) {
                 for (var i = 0; i < testsList.single.length; i++) {
-                    Tests.tests[testsList.single[i]].run();
+                    Tests.tests[testsList.single[i]].run(loadScenarios);
                 }
             }
         };
@@ -154,6 +154,11 @@ function TestSuite(_options) {
                 };
 
                 var hasTestsSetting = true;
+                var excludes = [];
+
+                if (casper.cli.get('exclude-test')) {
+                    excludes = casper.cli.get('exclude-test').split(',');
+                }
 
                 if (!config.hasOwnProperty('tests') || !config.tests.length) {
                     casper.echo('Tests not defined in settings file. All tests are being performed', 'INFO');
@@ -161,7 +166,7 @@ function TestSuite(_options) {
                 }
 
                 for (var i in tests) {
-                    if (hasTestsSetting && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
+                    if (hasTestsSetting && excludes.indexOf(i) < 0 && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
                         if (tests[i].multiple) {
                             _tests.multiple.push(i);
                         } else {
@@ -172,9 +177,19 @@ function TestSuite(_options) {
                 return _tests;
             },
 
-            add: function(name, Test) {
-                tests[name] = Test;
-                return tests;
+            add: function() {
+
+                var tests = Tests.tests;
+
+                if (!arguments.length) {
+                    throw new Error('At least one test must be provided');
+                }
+
+                for (var i = 0; i < arguments.length; i++) {
+                    var test = arguments[i];
+                    tests[test.name] = test;
+                }
+
             },
 
             edit: function(test, attrs) {
@@ -193,6 +208,7 @@ function TestSuite(_options) {
         tests: {
             titles: {
                 multiple: true,
+                name: 'titles',
                 message: 'Checks whether the tag title is present or not',
                 run: function() {
                     casper.test.assertTruthy(casper.getTitle());

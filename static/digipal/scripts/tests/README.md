@@ -18,6 +18,7 @@ From command line, type:
     - --password: password to access to protected pages
     - --deep: makes a full scan of the website (e.g. follows any link on the page, but same pages with different ids
         will be skipped ex. /digipal/page/61 and /digipal/page/34)
+    - --exclude-test: list of test names separated by comma to be excluded ex. --exclude-test=annotator,titles
 
 Note that the parameter test is needed to make casperJS work in a test environment (and consequently to make asserts and tests work properly)
 
@@ -28,6 +29,32 @@ Options to configure the tests:
     -  root: website root
     -  tests: array of tests to be performed
     -  deepScan: deep scan of the website (all links will be followed by the script)
+
+## Main file
+
+The main file is used to istantiate the tests and configure the tests to be executed.
+A simple snippet to run the script:
+
+    phantom.page.injectJs('./test-suite.js');
+    var Tester = new TestSuite();
+
+    var Test1 = {
+        multiple: false,
+        name: 'test1',
+        run: function(loadScenarios) {
+            var scenarios = ['myscenario', 'myscenario2'];
+            loadScenarios(scenarios);
+        }
+    };
+
+    Tester.addTest(Test1);
+    Tester.init();
+
+The function Tester.addTest accepts an undetermined number of tests to be executed. So we can have:
+
+    Tester.addTest(Test1, Test2, Test3);
+
+It is very important to be careful about the name of a test, because it must match with the list of tests we provide in the config.js file.
 
 ## Scenarios, Middleware and dependencies
 

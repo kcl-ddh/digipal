@@ -664,7 +664,7 @@ def get_json_error_from_form_errors(form):
     return ret
 
 @login_required
-def delete(request, image_id, vector_id):
+def delete(request, image_id, graph_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
 
     if settings.REJECT_HTTP_API_REQUESTS:
@@ -677,9 +677,11 @@ def delete(request, image_id, vector_id):
             image = get_object_or_404(Image, pk=image_id)
 
             try:
-                annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                annotation = Annotation.objects.get(image=image, graph=graph_id)
             except Annotation.DoesNotExist:
-                pass
+                data.update({'success': False})
+                data.update({'errors': {}})
+                data['errors'].update({'exception': 'Annotation does not exist'})
             else:
                 if annotation.graph:
                     annotation.graph.delete()

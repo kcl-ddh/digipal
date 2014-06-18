@@ -29,18 +29,22 @@ function Scenario() {
 
             var feature = tasks.get.random_vector();
             tasks.do.select(feature, function() {
-                casper.wait(800);
-                tasks.dialog.doesDialogExist();
-                tasks.dialog.doesSummaryExist();
-                tasks.dialog.labelMatchesForm();
-                var graph = AnnotatorTasks.get.getGraphByVectorId(feature);
-                var features = AnnotatorTasks.dialog.getSelectedFeatures('allographs');
-                AnnotatorTasks.tests.dialogMatchesCache(features, 'allographs', graph);
-                AnnotatorTasks.do.describe('allographs');
-                tasks.tests.summaryMatchesCheckboxes();
-                console.log('Deselecting some checkboxes and repeating test ...');
-                AnnotatorTasks.do.describe('allographs', false);
-                tasks.tests.summaryMatchesCheckboxes();
+                casper.waitForSelector('#modal_features', function() {
+                    tasks.dialog.doesDialogExist();
+                    casper.waitForSelector('#summary', function() {
+                        tasks.dialog.doesSummaryExist();
+                    });
+                    casper.capture('screen.png');
+                    tasks.dialog.labelMatchesForm();
+                    var graph = AnnotatorTasks.get.getGraphByVectorId(feature);
+                    var features = AnnotatorTasks.dialog.getSelectedFeatures('allographs');
+                    AnnotatorTasks.tests.dialogMatchesCache(features, 'allographs', graph);
+                    AnnotatorTasks.do.describe('allographs');
+                    tasks.tests.summaryMatchesCheckboxes();
+                    console.log('Deselecting some checkboxes and repeating test ...');
+                    AnnotatorTasks.do.describe('allographs', false);
+                    tasks.tests.summaryMatchesCheckboxes();
+                });
             });
         };
 
@@ -58,7 +62,6 @@ function Scenario() {
             AnnotatorTasks.do.describeForms('allographs');
             casper.wait(600);
             tasks.do.select(feature, function() {
-
                 casper.then(function() {
                     tasks.do.save(function() {
                         tasks.do.deselect_all_graphs();

@@ -13,12 +13,12 @@ urlpatterns = patterns('digipal.views.annotation',
     (r'^page/(?P<image_id>\d+)/allographs/(?P<allograph_id>\d+)/(?P<character_id>\d+)/allographs_by_allograph/$', 'get_allographs_by_allograph'),
     (r'^page/(?P<image_id>\d+)/graph/(?P<graph_id>\d+)/$', 'get_allograph'),
     (r'^page/(?P<image_id>\d+)/hands_list/$', 'hands_list'),
-    
+
     (r'^api/old/(?P<content_type>[a-zA-Z]+)/(?P<ids>([0-9])+((,)*([0-9])*)*)/(?P<only_features>(features)*)$', 'get_old_api_request'),
     (r'^api/(?P<content_type>[0-9a-zA-Z_]+)/(?P<ids>[^/]*)/?(?P<only_features>(features)*)/?$', 'get_content_type_data'),
-    
+
     (r'^api/graph/save/(?P<graphs>.+)/', 'save'),
-    (r'^page/(?P<image_id>\d+)/delete/(?P<vector_id>[a-zA-Z\._0-9]+)/', 'delete'),
+    (r'^page/(?P<image_id>\d+)/delete/(?P<graph_id>[a-zA-Z\._0-9]+)/', 'delete'),
     (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$', 'form_dialog'),
     (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$', 'get_vector'),
     (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/$', direct_to_template, {

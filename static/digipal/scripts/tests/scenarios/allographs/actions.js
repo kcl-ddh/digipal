@@ -20,9 +20,10 @@ var Actions = function(options) {
             select: function(feature_id, callback) {
 
                 casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
-                casper.test.assertExists('.selected', 'Element is correctly selected. Class .selected exists.');
+
                 casper.then(function() {
-                    casper.wait(500, function() {
+                    casper.waitForSelector('.selected', function() {
+                        casper.test.assertExists('.selected', 'Element is correctly selected. Class .selected exists.');
                         if (callback) {
                             return callback();
                         }

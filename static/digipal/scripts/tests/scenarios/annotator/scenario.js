@@ -96,7 +96,6 @@ function Scenario() {
                 casper.echo('Reloading page ...');
                 casper.reload(function() {
                     AnnotatorTasks.do.annotate(null, true, function() {
-                        casper.capture('screen.png');
                         AnnotatorTasks.dialog.close();
                         AnnotatorTasks.do.unselect();
                     });

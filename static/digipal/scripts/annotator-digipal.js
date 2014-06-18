@@ -2489,7 +2489,6 @@ function delete_annotation(layer, feature, number_annotations) {
 		url: url,
 		data: '',
 		error: function(xhr, textStatus, errorThrown) {
-			alert('Error: ' + textStatus);
 			throw new Error(textStatus);
 		},
 		success: function(data) {

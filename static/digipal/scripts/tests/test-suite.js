@@ -120,7 +120,7 @@ function TestSuite(_options) {
                         casper.thenOpen(url, function() {
                             casper.echo('\nOpened ' + url, 'PARAMETER');
                             for (var i = 0; i < testsList.multiple.length; i++) {
-                                Tests.tests[testsList.multiple[i]].run();
+                                Tests.tests[testsList.multiple[i]].run(loadScenarios);
                             }
 
                             if (options.deepScan) {
@@ -134,7 +134,7 @@ function TestSuite(_options) {
 
             if (testsList.single.length) {
                 for (var i = 0; i < testsList.single.length; i++) {
-                    Tests.tests[testsList.single[i]].run();
+                    Tests.tests[testsList.single[i]].run(loadScenarios);
                 }
             }
         };
@@ -172,9 +172,20 @@ function TestSuite(_options) {
                 return _tests;
             },
 
-            add: function(name, Test) {
-                tests[name] = Test;
-                return tests;
+            add: function() {
+
+                var tests = Tests.tests;
+
+                if (!arguments.length) {
+                    throw new Error('At least one test must be provided');
+                }
+
+                for (var i = 0; i < arguments.length; i++) {
+                    var test = arguments[i];
+                    tests[test.name] = test;
+                    return tests;
+                }
+                console.log(tests);
             },
 
             edit: function(test, attrs) {
@@ -193,6 +204,7 @@ function TestSuite(_options) {
         tests: {
             titles: {
                 multiple: true,
+                name: 'titles',
                 message: 'Checks whether the tag title is present or not',
                 run: function() {
                     casper.test.assertTruthy(casper.getTitle());
@@ -427,3 +439,7 @@ function TestSuite(_options) {
         'loadScenarios': loadScenarios
     };
 }
+
+
+
+exports.Tester = new TestSuite();

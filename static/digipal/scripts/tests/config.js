@@ -1,6 +1,6 @@
 var config = {
     root: "http://localhost:80",
-    tests: ['annotator'],
+    tests: ['annotator', 'collection'],
     deepScan: false,
     scenarios: {
         path: "scenarios",

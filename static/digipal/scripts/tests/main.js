@@ -1,39 +1,30 @@
 phantom.page.injectJs('./test-suite.js');
 var x = require('casper').selectXPath;
+var Tester = new TestSuite();
 
-AnnotatorTest.prototype = new TestSuite();
+var AnnotatorTest = {
+    multiple: false,
+    name: 'annotator',
+    run: function(loadScenarios) {
 
-function AnnotatorTest(options) {
-
-    var self = this;
-    var tests = self.tests;
-    var domain = self.options.page;
-
-    tests.annotator = {
-        multiple: false,
-        run: function() {
-
-            if (!casper.cli.get('username') || !casper.cli.get('password')) {
-                casper.echo('This task needs username and password to the get root access', 'ERROR');
-                casper.exit();
-            }
-
-            var scenarios = ['annotator'];
-            self.loadScenarios(scenarios);
+        if (!casper.cli.get('username') || !casper.cli.get('password')) {
+            casper.echo('This task needs username and password to the get root access', 'ERROR');
+            casper.exit();
         }
-    };
 
-    tests.collection = {
-        multiple: false,
-        run: function() {
-            var scenarios = ['collections'];
-            self.loadScenarios(scenarios);
-        }
-    };
-}
+        var scenarios = ['annotator', 'allographs'];
+        loadScenarios(scenarios);
+    }
+};
 
+var CollectionTest = {
+    multiple: false,
+    name: 'collections',
+    run: function(loadScenarios) {
+        var scenarios = ['collections'];
+        loadScenarios(scenarios);
+    }
+};
 
-(function() {
-    var annotatorTest = new AnnotatorTest();
-    annotatorTest.init();
-})();
+Tester.addTest(AnnotatorTest, CollectionTest);
+Tester.init();

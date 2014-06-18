@@ -32,7 +32,7 @@ Options to configure the tests:
 ## Main file
 
 The main file is used to istantiate the tests and configure the tests to be executed.
-A simple snippet to ran the library:
+A simple snippet to run the script:
 
     phantom.page.injectJs('./test-suite.js');
     var Tester = new TestSuite();

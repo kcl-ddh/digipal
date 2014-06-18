@@ -10,6 +10,7 @@
 4. Run Digipal
 5. What To Do After
 6. API
+7. Testing
 
 **Please note that an important part of the project is currently hosted on a private repository. The two will be soon merged into this. This means that at the current state this repository is not enough to run Digipal locally.**
 
@@ -227,3 +228,7 @@ Another example:
 	}, function(data){
 		/* ... your data ... */
 	}, [], 1);
+
+## 7. Testing
+
+The documentation for testing Digipal is available at [https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md)

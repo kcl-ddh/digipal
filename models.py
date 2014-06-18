@@ -725,12 +725,13 @@ class Layout(models.Model):
 # MsOrigin in legacy db
 class ItemOrigin(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
     historical_item = models.ForeignKey(HistoricalItem)
     evidence = models.TextField(blank=True, null=True, default='')
     dubitable = models.NullBooleanField()
+    
+    place = models.ForeignKey('Place', null=True, blank=True, related_name='item_origins')
+    institution = models.ForeignKey('Institution', null=True, blank=True, related_name='item_origins')
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -739,10 +740,30 @@ class ItemOrigin(models.Model):
         ordering = ['historical_item']
 
     def __unicode__(self):
-        #return u'%s: %s %s' % (self.content_type, self.content_object,
-        #        self.historical_item)
-        return get_list_as_string(self.content_type, ': ',
-                self.content_object, ' ', self.historical_item)
+        return get_list_as_string(self.content_type, ': ', self.content_object, ' ', self.historical_item)
+        
+    @property
+    def content_object(self):
+        '''Returns a Place or an Institution or None'''
+        return self.place or self.institution or None   
+ 
+    @property
+    def content_type(self):
+        '''Returns a Place or an Institution id or None'''
+        ret = None
+        obj = self.content_object
+        if obj:
+            ret = ContentType.objects.get_for_model(obj)
+        return ret
+
+    @property
+    def object_id(self):
+        '''Returns a Place or an Institution id or None'''
+        ret = None
+        obj = self.content_object
+        if obj:
+            ret = obj.id
+        return ret
 
 # MsOrigin in legacy db
 class Archive(models.Model):
@@ -819,7 +840,7 @@ class Place(models.Model):
     historical_county = models.ForeignKey(County,
             related_name='county_historical',
             blank=True, null=True)
-    origins = generic.GenericRelation(ItemOrigin)
+    #origins = generic.GenericRelation(ItemOrigin)
     type = models.ForeignKey(PlaceType, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -950,7 +971,7 @@ class Institution(models.Model):
     foundation = models.CharField(max_length=128, blank=True, null=True)
     refoundation = models.CharField(max_length=128, blank=True, null=True)
     #owners = generic.GenericRelation(Owner)
-    origins = generic.GenericRelation(ItemOrigin)
+    #origins = generic.GenericRelation(ItemOrigin)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

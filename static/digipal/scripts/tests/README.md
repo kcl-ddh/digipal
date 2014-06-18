@@ -29,6 +29,32 @@ Options to configure the tests:
     -  tests: array of tests to be performed
     -  deepScan: deep scan of the website (all links will be followed by the script)
 
+## Main file
+
+The main file is used to istantiate the tests and configure the tests to be executed.
+A simple snippet to ran the library:
+
+    phantom.page.injectJs('./test-suite.js');
+    var Tester = new TestSuite();
+
+    var Test1 = {
+        multiple: false,
+        name: 'test1',
+        run: function(loadScenarios) {
+            var scenarios = ['myscenario', 'myscenario2'];
+            loadScenarios(scenarios);
+        }
+    };
+
+    Tester.addTest(Test1);
+    Tester.init();
+
+The function Tester.addTest accepts an undetermined number of tests to be executed. So we can have:
+
+    Tester.addTest(Test1, Test2, Test3);
+
+It is very important to be careful about the name of a test, because it must match with the list of tests we provide in the config.js file.
+
 ## Scenarios, Middleware and dependencies
 
 Dependencies and middleware get injected in a scenario through an object used inside the list of Scenarios. This is a quick example of how to define and initialize it.

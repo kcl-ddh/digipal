@@ -18,6 +18,7 @@ From command line, type:
     - --password: password to access to protected pages
     - --deep: makes a full scan of the website (e.g. follows any link on the page, but same pages with different ids
         will be skipped ex. /digipal/page/61 and /digipal/page/34)
+    - --exclude-test: list of test names separated by comma to be excluded ex. --exclude-test=annotator,titles
 
 Note that the parameter test is needed to make casperJS work in a test environment (and consequently to make asserts and tests work properly)
 

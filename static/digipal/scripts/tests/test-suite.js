@@ -154,6 +154,11 @@ function TestSuite(_options) {
                 };
 
                 var hasTestsSetting = true;
+                var excludes = [];
+
+                if (casper.cli.get('exclude-test')) {
+                    excludes = casper.cli.get('exclude-test').split(',');
+                }
 
                 if (!config.hasOwnProperty('tests') || !config.tests.length) {
                     casper.echo('Tests not defined in settings file. All tests are being performed', 'INFO');
@@ -161,7 +166,7 @@ function TestSuite(_options) {
                 }
 
                 for (var i in tests) {
-                    if (hasTestsSetting && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
+                    if (hasTestsSetting && excludes.indexOf(i) < 0 && config.tests.indexOf(i) >= 0 || !hasTestsSetting) {
                         if (tests[i].multiple) {
                             _tests.multiple.push(i);
                         } else {
@@ -183,9 +188,8 @@ function TestSuite(_options) {
                 for (var i = 0; i < arguments.length; i++) {
                     var test = arguments[i];
                     tests[test.name] = test;
-                    return tests;
                 }
-                console.log(tests);
+
             },
 
             edit: function(test, attrs) {
@@ -439,7 +443,3 @@ function TestSuite(_options) {
         'loadScenarios': loadScenarios
     };
 }
-
-
-
-exports.Tester = new TestSuite();

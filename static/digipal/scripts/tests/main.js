@@ -4,6 +4,7 @@ var Tester = new TestSuite();
 
 var AnnotatorTest = {
     multiple: false,
+    message: 'Test on annotator and allographs pages',
     name: 'annotator',
     run: function(loadScenarios) {
 
@@ -19,6 +20,7 @@ var AnnotatorTest = {
 
 var CollectionTest = {
     multiple: false,
+    message: 'Test on collections pages',
     name: 'collections',
     run: function(loadScenarios) {
         var scenarios = ['collections'];
@@ -27,4 +29,5 @@ var CollectionTest = {
 };
 
 Tester.addTest(AnnotatorTest, CollectionTest);
+Tester.listTests();
 Tester.init();

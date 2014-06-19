@@ -40,7 +40,7 @@ function TestSuite(_options) {
         Events(errors, assert_failures);
 
         casper.test.begin('Initializing Tests', function() {
-            casper.start().then(function() {
+            casper.start(options.page).then(function() {
                 Scraper(Tests.tests, options);
             }).run(function() {
                 if (assert_failures.length) {
@@ -105,7 +105,6 @@ function TestSuite(_options) {
 
         var linksCache = [];
         var run = function() {
-
             var testsList = Tests.methods.sort(_tests);
             if (testsList.multiple.length) {
                 var links = Utils.dom.get_links(linksCache);
@@ -128,7 +127,6 @@ function TestSuite(_options) {
                             }
                         });
                     }
-
                 });
             }
 
@@ -223,10 +221,9 @@ function TestSuite(_options) {
             get_links: function(linksCache) {
                 var _links = casper.getElementsAttribute('a', 'href'),
                     link;
-                var exclude_paths = ['/media/', '/feeds/'];
                 for (var i = 0; i < _links.length; i++) {
                     link = Utils.removeQueryString(_links[i]);
-                    if (linksCache.indexOf(link.replace(/\/(\d)+\//)) >= 0 || link.indexOf()) {
+                    if (linksCache.indexOf(link.replace(/\/(\d)+\//)) >= 0) {
                         _links.splice(i, 1);
                         i--;
                     } else {

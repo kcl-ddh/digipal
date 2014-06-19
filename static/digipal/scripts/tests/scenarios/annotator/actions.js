@@ -361,15 +361,18 @@ var Actions = function(options) {
                 casper.eachThen(features, function(response) {
                     if (response && typeof response.hasOwnProperty('data') && response.data && response.data.hasOwnProperty('id')) {
                         var id = response.data.id;
-                        self.actions.do.select(id, function() {
-                            if (casper.evaluate(function(id) {
-                                return annotator.cacheAnnotations.cache.graphs.hasOwnProperty(id);
-                            }), id) {
-                                console.log(id + ' loaded in cache');
-                            }
-                        });
+                        if (id) {
+                            self.actions.do.select(id, function() {
+                                if (casper.evaluate(function(id) {
+                                    return annotator.cacheAnnotations.cache.graphs.hasOwnProperty(id);
+                                }), id) {
+                                    console.log(id + ' loaded in cache');
+                                }
+                            });
+                        }
                     } else {
                         casper.echo('It was not possible to cache a graph', 'ERROR');
+                        casper.echo(JSON.stringify(response.data), 'WARNING');
                     }
                 });
             }

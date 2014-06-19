@@ -71,14 +71,16 @@ Middleware will be arbitrarly executed before running the scenarios, the depende
 
 It is possible to declare and include dependencies and middleware in a Scenario by specifing two variables inside the Scenario() function:
 
-    function Scenario(){
+    var Scenario = function(){
 
-        this.middleware = ['mymiddleware.js'] // this will be searched inside the folder middleware
+        this.middleware = ['middleware.js'] // this will be searched inside the folder middleware
         this.dependencies = ['./actions.js', ../anotherscenario/actions.js'] // this is relative to the current scenario
 
         // the middleware gets executed here ...
 
         this.Scenarios = function(dependencies, options){
+
+            // the dependencies are encapsulated into the object dependencies
 
             var actions = dependencies.nameDependency;
             var actions2 = dependencies.nameDependency2;
@@ -93,7 +95,7 @@ It is possible to declare and include dependencies and middleware in a Scenario 
 
 ### Define a dependency module
 
-    function Actions(options){
+    var Actions = function(options){
 
         this.name = 'myDependencyModule';
 

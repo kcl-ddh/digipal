@@ -164,10 +164,10 @@ def process_commands_main_dir():
                 os.chdir('digipal')
                 run_shell_command(['git', 'diff'])
                 
-                print '> Diff iipimage'
-                os.chdir(dir)
-                os.chdir('iipimage')
-                run_shell_command(['git', 'diff'])
+#                 print '> Diff iipimage'
+#                 os.chdir(dir)
+#                 os.chdir('iipimage')
+#                 run_shell_command(['git', 'diff'])
                 
             finally:
                 os.chdir(dir)
@@ -182,12 +182,28 @@ def process_commands_main_dir():
             try:
                 has_sudo = get_terminal_username() == 'gnoel'
                 print '> check configuration (symlinks, repo branches, etc.)'
-                if not os.path.exists('iipimage') and os.path.exists('django-iipimage'):
-                    if os.name == 'nt':
-                        system('junction iipimage django-iipimage\iipimage')
-                    else:
-                        system('ln -s django-iipimage/iipimage iipimage')
+#                 if not os.path.exists('iipimage') and os.path.exists('django-iipimage'):
+#                     if os.name == 'nt':
+#                         system('junction iipimage django-iipimage\iipimage')
+#                     else:
+#                         system('ln -s django-iipimage/iipimage iipimage')
                 
+                if os.path.exists('iipimage'):
+                    print '> remove iipimage'
+                    if os.name == 'nt':
+                        system('del /F /S /Q iipimage')
+                        system('rmdir /S /Q iipimage')
+                    else:
+                        system('rm -r iipimage')
+                        
+                if os.path.exists('django-iipimage'):
+                    print '> remove django-iipimage'
+                    if os.name == 'nt':
+                        system('del /F /S /Q django-iipimage')
+                        system('rmdir /S /Q django-iipimage')
+                    else:
+                        system('rm -r django-iipimage')
+
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
                 os.chdir('digipal')
@@ -198,11 +214,11 @@ def process_commands_main_dir():
                 system('git pull', validation_git)
                 os.chdir(dir)
                 
-                print '> Pull iipimage'
-                os.chdir('django-iipimage')
-                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
-                system('git pull', validation_git)
-                os.chdir(dir)
+#                 print '> Pull iipimage'
+#                 os.chdir('django-iipimage')
+#                 system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
+#                 system('git pull', validation_git)
+#                 os.chdir(dir)
                 
                 print '> Pull main'
                 validation_hg = r'(?i)error:|abort:'

@@ -12,6 +12,7 @@ django-extensions==1.0.3
 django-grappelli==2.4.3
 -e git+https://github.com/toastdriven/django-haystack.git@1e087f63118aba8e212844cbd2d15caa46e71e62#egg=django_haystack-2.0.0_beta-py2.6-dev
 -e git+https://github.com/Gbuomprisco/django-pagination.git@899cc01674d28f9a625123d6a587d629cd7bdac1#egg=django_pagination-1.0.7-py2.6-dev
+git+git://github.com/geoffroy-noel-ddh/django-iipimage@0.1.0
 django-reversion==1.6.5
 django-tinymce==1.5.2
 filebrowser-safe==0.3.4

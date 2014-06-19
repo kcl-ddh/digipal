@@ -154,6 +154,10 @@ Commands:
             self.adhoc_test()
 
     def adhoc_test(self):
+        ips = ItemOrigin.objects.values_list('id', 'place__name')
+        print ips
+        return
+        
         fields = [
             'current_item__repository__place__name', 
             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number', 

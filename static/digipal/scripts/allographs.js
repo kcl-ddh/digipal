@@ -104,7 +104,7 @@ function Allographs(dialog, cache) {
 		var a_images = $('.annotation_li a');
 		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
-				var id = $(this).parent('.annotation_li').data('annotation');
+				var id = $(this).parent('.annotation_li').data('graph');
 				methods.to_annotator(id);
 
 				/*
@@ -617,7 +617,7 @@ function Allographs(dialog, cache) {
 							var features_graph = graph.features;
 							for (var j = 0; j < features_graph.length; j++) {
 								if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
-									ann = $('div[data-annotation="' + f[k].vector_id + '"]').find('.label');
+									ann = $('div[data-graph="' + f[k].graph + '"]').find('.label');
 									if (ann) {
 										al += '<a href="#label_' + ann.data('graph-id') + '" data-graph-id="' + ann.data('graph-id') + '" class="label label-default label-summary">' + ann.text() + '</a> ';
 										title += ann.text() + ' ';

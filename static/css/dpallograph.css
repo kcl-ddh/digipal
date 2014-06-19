@@ -272,6 +272,7 @@
     overflow: auto;
     height:88%;
     z-index: 500;
+    margin-top: 2px;
 }
 
 .modal-body .chzn-container, .modal-body.chzn-container-single {

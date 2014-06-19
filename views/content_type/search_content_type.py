@@ -69,6 +69,12 @@ class SearchContentType(object):
         ret = getattr(digipal.models, self.label[:-1])
         return ret
     
+    def process_record_view_request(self, context, request):
+        ret = 'pages/record_' + self.key +'.html'
+        self.set_record_view_context(context, request)
+        self.set_record_view_pagination_context(context, request)
+        return ret
+
     def set_record_view_context(self, context, request):
         context['type'] = self
         from digipal.models import has_edit_permission

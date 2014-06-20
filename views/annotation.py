@@ -499,7 +499,7 @@ def form_dialog(request, image_id):
 def save(request, graphs):
 
     """Saves an annotation and creates a cutout of the annotation."""
-
+    print request.POST
     if settings.REJECT_HTTP_API_REQUESTS:
 #        transaction.rollback()
         raise Http404

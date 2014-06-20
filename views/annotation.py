@@ -649,7 +649,8 @@ def save(request, graphs):
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
 
-                        new_graph[0]['internal_note'] = annotation.internal_note
+                        if has_edit_permission(request, Annotation):
+                            new_graph[0]['internal_note'] = annotation.internal_note
                         new_graph[0]['display_note'] = annotation.display_note
 
                         data['graphs'].append(new_graph[0])
@@ -725,7 +726,8 @@ def save_editorial(request, graphs):
                         new_graph = [{}]
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
-                            new_graph[0]['internal_note'] = annotation.internal_note
+                            if has_edit_permission(request, Annotation):
+                                new_graph[0]['internal_note'] = annotation.internal_note
                             new_graph[0]['display_note'] = annotation.display_note
 
                         data['graphs'].append(new_graph[0])

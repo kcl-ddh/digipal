@@ -802,22 +802,25 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph = $('#panelImageBox .allograph_form option:selected');
 			var allograph_id = allograph.val();
 
-			if (can_edit && annotator.annotating) {
-				s += "<div id='box_features_container'></div>";
-				if (annotator.boxes_on_click) {
-					if (annotator.editorial.active || selectedFeature.is_editorial) {
+
+			s += "<div id='box_features_container'></div>";
+			if (annotator.boxes_on_click) {
+				if (annotator.editorial.active || selectedFeature.is_editorial) {
+
+					if (can_edit) {
 						s += '<label>Internal Note</label>';
 						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
-						s += '<label>Display Note</label>';
-						s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
-						dialog.css("margin", "3%");
-						dialog.html(s);
-						dialog.find('#internal_note').val(selectedFeature.internal_note);
-						dialog.find('#display_note').val(selectedFeature.display_note);
-						annotator.editorial.activate();
-						return callback();
 					}
+					s += '<label>Display Note</label>';
+					s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
+					dialog.css("margin", "3%");
+					dialog.html(s);
+					dialog.find('#internal_note').val(selectedFeature.internal_note);
+					dialog.find('#display_note').val(selectedFeature.display_note);
+					annotator.editorial.activate();
+					return callback();
 				}
+
 
 				self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
@@ -2805,7 +2808,9 @@ function save(url, graphs, data, ann, features) {
 							feature.style.strokeWidth = 2;
 							feature.stored = true;
 							feature.display_note = new_graphs[i].display_note;
-							feature.internal_note = new_graphs[i].internal_note;
+							if (new_graphs[i].hasOwnProperty('internal_note')) {
+								feature.internal_note = new_graphs[i].internal_note;
+							}
 							feature.last_feature_selected = null;
 							element.html(annotations.length);
 

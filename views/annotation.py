@@ -666,7 +666,7 @@ def get_json_error_from_form_errors(form):
 @login_required
 def delete(request, image_id, graph_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
-
+    print graph_id
     if settings.REJECT_HTTP_API_REQUESTS:
         raise Http404
 

@@ -48,3 +48,9 @@ if settings.DEBUG :
     urlpatterns += patterns('',
         (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
     )
+
+# ADD YOUR OWN URLPATTERNS *ABOVE* THE LINE BELOW.
+# ``mezzanine.urls`` INCLUDES A *CATCH ALL* PATTERN
+# FOR PAGES, SO URLPATTERNS ADDED BELOW ``mezzanine.urls``
+# WILL NEVER BE MATCHED!
+urlpatterns += patterns('', ('^', include('mezzanine.urls')))

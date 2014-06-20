@@ -391,10 +391,9 @@ function EditGraphsSearch() {
             if (self.selectedAnnotations.length == 1) {
                 msg = 'You are about to delete 1 annotation. Continue?';
                 graph = self.selectedAnnotations[0];
-                annotation_id = cache.graphs[graph].vector_id;
                 image_id = cache.graphs[graph].image_id;
                 if (confirm(msg)) {
-                    delete_annotation(image_id, annotation_id, function() {
+                    delete_annotation(image_id, graph, function() {
                         var graph_element = $('[data-graph="' + graph + '"]');
                         graph_element.fadeOut().remove();
                         self.selectedAnnotations = [];
@@ -408,9 +407,8 @@ function EditGraphsSearch() {
                 if (confirm(msg)) {
                     for (var i = 0; i < self.selectedAnnotations.length; i++) {
                         graph = self.selectedAnnotations[i];
-                        annotation_id = cache.graphs[graph].vector_id;
                         image_id = cache.graphs[graph].image_id;
-                        delete_annotation(image_id, annotation_id);
+                        delete_annotation(image_id, graph);
                         var graph_element = $('[data-graph="' + graph + '"]');
                         graph_element.fadeOut().remove();
 

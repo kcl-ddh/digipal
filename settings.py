@@ -597,7 +597,8 @@ try:
         to_import = local_settings.__all__
     except AttributeError:
         to_import = [name for name in module_dict if not name.startswith('_')]
-    globals().update({name: module_dict[name] for name in to_import})
+    for name in to_import:
+        globals().update({name: module_dict[name]})
 except ImportError:
     # no local_settings.py
     print 'WARNING: local_settings.py not found'

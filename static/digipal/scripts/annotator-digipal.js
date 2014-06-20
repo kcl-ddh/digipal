@@ -140,6 +140,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var internal_note = annotations[i]['internal_note'];
 				var allograph_id = annotations[i]['allograph_id'];
 				var vector_id = annotations[i]['vector_id'];
+				var is_editorial = annotations[i]['is_editorial'];
 				f.feature = allograph;
 				f.character_id = character_id;
 				f.graph = graph;
@@ -151,7 +152,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				f.internal_note = internal_note;
 				f.allograph_id = allograph_id;
 				f.vector_id = vector_id;
-				f.id = graph;
+				if (graph) {
+					f.id = graph;
+				} else {
+					f.id = vector_id;
+				}
+				f.is_editorial = is_editorial;
 				// it serves to differentiate stored and temporary annotations
 				f.stored = true;
 				f.linked_to = [];
@@ -799,14 +805,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			if (can_edit && annotator.annotating) {
 				s += "<div id='box_features_container'></div>";
 				if (annotator.boxes_on_click) {
-					if (annotator.editorial.active) {
-						s += '<label>Editorial Note</label>';
-						s += '<textarea class="form-control" id="editorial_note" name="editorial_note" style="width:90%;height:40%;"></textarea>';
-						s += '<label>Public Note</label>';
-						s += '<textarea class="form-control" id="public_note" name="public_note" style="width:90%;height:40%;"></textarea>';
+					if (annotator.editorial.active || selectedFeature.is_editorial) {
+						s += '<label>Internal Note</label>';
+						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
+						s += '<label>Display Note</label>';
+						s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
 						dialog.css("margin", "3%");
 						dialog.html(s);
-						callback();
+						dialog.find('#internal_note').val(selectedFeature.internal_note);
+						dialog.find('#display_note').val(selectedFeature.display_note);
+						annotator.editorial.activate();
+						return callback();
 					}
 				}
 
@@ -1446,7 +1455,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		var allograph_form = forms.allograph_form;
 		var hand_form = forms.hand_form;
 
-		if (!allograph_form.val() || !hand_form.val()) {
+		if (!annotator.editorial.active && (!allograph_form.val() || !hand_form.val())) {
 			updateStatus('Hand and Allograph are required', 'danger');
 			return false;
 		}
@@ -1465,71 +1474,88 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		var data = make_form();
 		var url = annotator.absolute_image_url + 'save';
 		var cache = this.cacheAnnotations.cache;
-		if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
+		if (!annotator.editorial.active) {
+			if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
 
-			var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
+				var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
 
-			if (confirm(msg)) {
-				for (var i = 0; i < this.selectedAnnotations.length; i++) {
+				if (confirm(msg)) {
+					for (var i = 0; i < this.selectedAnnotations.length; i++) {
 
-					feature = this.selectedAnnotations[i];
-					geoJson = annotator.format.write(feature);
+						feature = this.selectedAnnotations[i];
+						geoJson = annotator.format.write(feature);
 
-					vector = {};
-					vector['id'] = feature.graph;
-					vector['image'] = image_id;
-					vector['geoJson'] = geoJson;
-					if (!feature.stored) {
-						vector['vector_id'] = feature.id;
-					}
-					graphs.push(vector);
-				}
-
-				url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
-				save(url, graphs, data, ann, data.features);
-
-			}
-
-		} else {
-
-			if (allographs_page) {
-
-				for (ind2 = 0; ind2 < ann.length; ind2++) {
-					geoJson = annotator.format.write(ann[ind2]);
-					graphs.push({
-						'id': ann[ind2].graph,
-						'image': image_id,
-						// GN: commented out to avoid clashes with the annotation editor
-						// modifying the shape. See JIRA DIGIPAL-479 and DIGIPAL-477
-						'geoJson': geoJson,
-						//'vector_id': ann[ind2].id
-					});
-				}
-
-				url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
-				save(url, graphs, data, ann, data.features);
-
-			} else {
-				if (this.selectedFeature) {
-					feature = this.selectedFeature;
-					geoJson = annotator.format.write(feature);
-
-					vector = {};
-					vector['id'] = feature.graph;
-					vector['image'] = image_id;
-					vector['geoJson'] = geoJson;
-
-					if (!feature.stored) {
-						vector['vector_id'] = feature.id;
+						vector = {};
+						vector['id'] = feature.graph;
+						vector['image'] = image_id;
+						vector['geoJson'] = geoJson;
+						if (!feature.stored) {
+							vector['vector_id'] = feature.id;
+						}
+						graphs.push(vector);
 					}
 
-					graphs.push(vector);
 					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
 					save(url, graphs, data, ann, data.features);
 
 				}
 
+			} else {
+
+				if (allographs_page) {
+
+					for (ind2 = 0; ind2 < ann.length; ind2++) {
+						geoJson = annotator.format.write(ann[ind2]);
+						graphs.push({
+							'id': ann[ind2].graph,
+							'image': image_id,
+							// GN: commented out to avoid clashes with the annotation editor
+							// modifying the shape. See JIRA DIGIPAL-479 and DIGIPAL-477
+							//'geoJson': geoJson,
+							//'vector_id': ann[ind2].id
+						});
+					}
+
+					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+					save(url, graphs, data, ann, data.features);
+
+				} else {
+					if (this.selectedFeature) {
+						feature = this.selectedFeature;
+						geoJson = annotator.format.write(feature);
+
+						vector = {};
+						vector['id'] = feature.graph;
+						vector['image'] = image_id;
+						vector['geoJson'] = geoJson;
+
+						if (!feature.stored) {
+							vector['vector_id'] = feature.id;
+						}
+
+						graphs.push(vector);
+						url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+						save(url, graphs, data, ann, data.features);
+
+					}
+
+				}
 			}
+		} else {
+			for (var i = 0; i < this.selectedAnnotations.length; i++) {
+				feature = this.selectedAnnotations[i];
+				if (feature.hasOwnProperty('is_editorial') && feature.is_editorial) {
+					geoJson = annotator.format.write(feature);
+					vector = {};
+					vector['image'] = image_id;
+					vector['geoJson'] = geoJson;
+					vector['vector_id'] = feature.id;
+					graphs.push(vector);
+				}
+			}
+
+			url = '/digipal/api/graph/save_editorial/' + JSON.stringify(graphs) + '/';
+			save(url, graphs, data, ann, data.features);
 		}
 
 	};
@@ -2543,7 +2569,7 @@ function make_form() {
 	var hand_form = forms.hand_form;
 	var form = forms.frmAnnotation;
 	var panel = forms.modal;
-	if (!allograph_form.val() || !hand_form.val()) {
+	if (!annotator.editorial.active && (!allograph_form.val() || !hand_form.val())) {
 		updateStatus('Hand and Allograph are required', 'danger');
 		return false;
 	}
@@ -2609,18 +2635,27 @@ function make_form() {
 
 	form_serialized += s;
 
-	if ($('#id_display_note').val()) {
-		form_serialized += "&display_note=" + $('#id_display_note').val();
+	var display_note, internal_note;
+	if (annotator.editorial.active) {
+		display_note = $('#display_note');
+		internal_note = $('#internal_note');
+	} else {
+		display_note = $('#id_display_note');
+		internal_note = $('#id_internal_note');
+	}
+	if (display_note.val()) {
+		form_serialized += "&display_note=" + display_note.val();
 	}
 
-	if ($('#id_internal_note').val()) {
-		form_serialized += "&internal_note=" + $('#id_internal_note').val();
+	if (internal_note.val()) {
+		form_serialized += "&internal_note=" + internal_note.val();
 	}
 
 	return {
 		'form_serialized': form_serialized,
 		'features_labels': features_labels
 	};
+
 }
 
 
@@ -2695,20 +2730,31 @@ function save(url, graphs, data, ann, features) {
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
-							feature.hand = new_graphs[i].hand_id;
+
+							if (new_graphs[i].hasOwnProperty('hand_id')) {
+								feature.hand = new_graphs[i].hand_id;
+							}
+
 							if (new_graphs[i].hasOwnProperty('internal_note')) {
 								feature.internal_note = new_graphs[i].internal_note;
 							}
+
 							if (new_graphs[i].hasOwnProperty('display_note')) {
 								feature.display_note = new_graphs[i].display_note;
 							}
-							feature.allograph_id = new_graphs[i].allograph_id;
+
+							if (new_graphs[i].hasOwnProperty('allograph_id')) {
+								feature.allograph_id = new_graphs[i].allograph_id;
+							}
+
 							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
 
 							var color;
 
-							feature.features = new_graphs[i].features;
-							var num_features = new_graphs[i].features.length;
+							if (new_graphs[i].hasOwnProperty('features')) {
+								feature.features = new_graphs[i].features;
+								var num_features = new_graphs[i].features.length;
+							}
 							var element = $('.number_unsaved_allographs');
 							var number_unsaved = element.html();
 							var unsaved_annotations = annotator.unsaved_annotations;
@@ -2743,7 +2789,8 @@ function save(url, graphs, data, ann, features) {
 								//annotator.annotations[ann].vector_id = feature.vector_id;
 							}
 
-							if (new_graphs[i].features.length) {
+
+							if (new_graphs[i].hasOwnProperty('features') && new_graphs[i].features.length) {
 								color = 'green';
 								feature.described = true;
 								feature.num_features = feature.features.length + 1;
@@ -2757,6 +2804,8 @@ function save(url, graphs, data, ann, features) {
 							feature.style.originalColor = color;
 							feature.style.strokeWidth = 2;
 							feature.stored = true;
+							feature.display_note = new_graphs[i].display_note;
+							feature.internal_note = new_graphs[i].internal_note;
 							feature.last_feature_selected = null;
 							element.html(annotations.length);
 

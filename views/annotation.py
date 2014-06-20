@@ -213,15 +213,15 @@ def image(request, image_id):
 
     #annotations by allograph
     for a in annotations:
-        hand_label = a.graph.hand
-        allograph_name = a.graph.idiograph.allograph
-        if hand_label in data_allographs:
-            if allograph_name not in data_allographs[hand_label]:
+        if a.graph and a.graph.hand:
+            hand_label = a.graph.hand
+            allograph_name = a.graph.idiograph.allograph
+            if hand_label in data_allographs:
+                if allograph_name not in data_allographs[hand_label]:
+                    data_allographs[hand_label][allograph_name] = []
+            else:
+                data_allographs[hand_label] = SortedDict()
                 data_allographs[hand_label][allograph_name] = []
-        else:
-            data_allographs[hand_label] = SortedDict()
-            data_allographs[hand_label][allograph_name] = []
-
         data_allographs[hand_label][allograph_name].append(a)
 
 
@@ -276,7 +276,10 @@ def image_vectors(request, image_id):
 
     for a in annotation_list:
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
-        data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
+        if a.graph:
+            data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
+        else:
+            data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
 
     if request:
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -294,14 +297,15 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
 
     if annotations_page:
-        annotation_list = Annotation.objects.filter(image=image_id).select_related('image', 'graph')
+        annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
     else:
-        annotation_list = Annotation.objects.filter(graph__hand=hand).select_related('image', 'graph')
+        annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
 
+    editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
     vectors = json.loads(image_vectors(False, image_id))
     data = {}
     hands = []
-    for a in annotation_list:
+    for a in annotation_list_with_graph:
         data[a.id] = {}
         data[a.id]['vector_id'] = a.vector_id
         data[a.id]['status_id'] = a.status_id
@@ -317,22 +321,13 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         if unicode(a.graph.id) in vectors:
             data[a.id]['geo_json'] = vectors[unicode(a.graph.id)]['geometry']
 
-        #hands.append(data[a.id]['hand'])
-
-        hand = a.graph.hand.label
-        hands.append(a.graph.hand.id)
-
-        if a.before:
-            data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
-
         data[a.id]['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
-            a.graph.idiograph.allograph.name)
+        a.graph.idiograph.allograph.name)
 
         data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
         data[a.id]['graph'] = '%s' % (a.graph.id)
-
-        if a.after:
-            data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
+        hand = a.graph.hand.label
+        hands.append(a.graph.hand.id)
 
         data[a.id]['display_note'] = a.display_note
         data[a.id]['internal_note'] = a.internal_note
@@ -346,6 +341,25 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
                 for f in gc.features.all():
                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
                         f.id))
+
+        """
+        if a.before:
+            data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
+
+        if a.after:
+            data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
+        """
+    for e in editorial_annotations:
+        data[e.id] = {}
+        if e.vector_id in vectors:
+            data[e.id]['geo_json'] = vectors[e.vector_id]['geometry']
+        data[e.id]['status_id'] = e.status_id
+        data[e.id]['image_id'] = e.image.id
+        data[e.id]['display_note'] = e.display_note
+        data[e.id]['internal_note'] = e.internal_note
+        data[e.id]['vector_id'] = e.vector_id
+        data[e.id]['id'] = e.vector_id
+        data[e.id]['is_editorial'] = True
 
     if annotations_page:
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -499,7 +513,7 @@ def form_dialog(request, image_id):
 def save(request, graphs):
 
     """Saves an annotation and creates a cutout of the annotation."""
-    print request.POST
+
     if settings.REJECT_HTTP_API_REQUESTS:
 #        transaction.rollback()
         raise Http404
@@ -635,6 +649,9 @@ def save(request, graphs):
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
 
+                        new_graph[0]['internal_note'] = annotation.internal_note
+                        new_graph[0]['display_note'] = annotation.display_note
+
                         data['graphs'].append(new_graph[0])
 
                         #transaction.commit()
@@ -653,6 +670,77 @@ def save(request, graphs):
 
         return HttpResponse(json.dumps(data), mimetype='application/json')
 
+@login_required
+def save_editorial(request, graphs):
+    if settings.REJECT_HTTP_API_REQUESTS:
+#        transaction.rollback()
+        raise Http404
+    else:
+        data = {
+            'success': False,
+            'graphs': []
+        }
+        try:
+            graphs = graphs.replace('/"', "'")
+            graphs = json.loads(graphs)
+            for gr in graphs:
+                image = Image.objects.get(id=gr['image'])
+                get_data = request.POST.copy()
+                vector_id = gr['vector_id']
+                annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+
+                if 'geoJson' in gr:
+                    geo_json = str(gr['geoJson'])
+                else:
+                    geo_json = False
+
+                if not annotation:
+                    annotation = Annotation(image=image, vector_id=vector_id)
+
+                form = ImageAnnotationForm(data=get_data)
+                if form.is_valid():
+                    with transaction.atomic():
+                        clean = form.cleaned_data
+                        if geo_json:
+                            annotation.geo_json = geo_json
+                            annotation_is_modified = True
+
+                        # set the note (only if different) - see JIRA DIGIPAL-477
+                        for f in ['display_note', 'internal_note']:
+
+                            if getattr(annotation, f) != clean[f]:
+                                setattr(annotation, f, clean[f])
+                                annotation_is_modified = True
+
+                        if not annotation.id:
+                            # set the author only when the annotation is created
+                            annotation.author = request.user
+
+
+                        if geo_json:
+                            annotation.set_graph_group()
+                        if annotation_is_modified or not annotation.id:
+                            annotation.save()
+
+                        new_graph = [{}]
+                        if 'vector_id' in gr:
+                            new_graph[0]['vector_id'] = gr['vector_id']
+                            new_graph[0]['internal_note'] = annotation.internal_note
+                            new_graph[0]['display_note'] = annotation.display_note
+
+                        data['graphs'].append(new_graph[0])
+
+                        #transaction.commit()
+                        data['success'] = True
+
+        # uncomment this to see the error call stack in the django server output
+        #except ValueError as e:
+        except Exception as e:
+            data['success'] = False
+            data['errors'] = [u'Internal error: %s' % e]
+            #tb = sys.exc_info()[2]
+
+        return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def get_json_error_from_form_errors(form):
     '''Returns a list of errors from a set of Django form errors.
@@ -666,7 +754,6 @@ def get_json_error_from_form_errors(form):
 @login_required
 def delete(request, image_id, graph_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
-    print graph_id
     if settings.REJECT_HTTP_API_REQUESTS:
         raise Http404
 

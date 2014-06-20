@@ -391,6 +391,10 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 				_self.toggleAll(activeControls, false);
 				this.activate();
 				_self.rectangleFeature.activate();
+				var forms = get_forms();
+				forms.allograph_form.val('------');
+				forms.hand_form.val('------');
+				$('select').trigger('liszt:updated');
 			}
 		}
 	});

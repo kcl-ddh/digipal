@@ -39,6 +39,8 @@ def get_search_types_display(content_types):
 def record_view(request, content_type='', objectid='', tabid=''):
     context = {'tabid': tabid}
     
+    template = 'errors/404.html'
+
     # We need to do a search to show the next and previous record
     # Only when we come from the the search image.
     set_search_results_to_context(request, allowed_type=content_type, context=context)
@@ -48,9 +50,11 @@ def record_view(request, content_type='', objectid='', tabid=''):
             context['id'] = objectid
             from django.core.exceptions import ObjectDoesNotExist
             try:
-                type.set_record_view_context(context, request)
-                type.set_record_view_pagination_context(context, request)
-                template = 'pages/record_' + content_type +'.html'
+                template = type.process_record_view_request(context, request)
+                if not template.endswith('.html'):
+                    # redirect
+                    from django.shortcuts import redirect
+                    return redirect(template)
             except ObjectDoesNotExist:
                 context['title'] = 'This %s record does not exist' % type.label_singular
                 template = 'errors/404.html'

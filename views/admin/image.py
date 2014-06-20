@@ -14,7 +14,7 @@ import htmlentitydefs
 from django.core import urlresolvers
 from digipal.forms import ScribeAdminForm, OnlyScribe
 from django.forms.formsets import formset_factory
-from django.utils import simplejson
+import json
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
 from django.utils.datastructures import SortedDict
@@ -124,7 +124,7 @@ def process_bulk_image_ajax(request):
     
     #find_image_offset
     
-    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 @staff_member_required
 def image_bulk_edit(request, url=None):
@@ -352,7 +352,7 @@ def get_idiographs(request):
             }
             idiographs.append(object_idiograph)
 
-        return HttpResponse(simplejson.dumps(idiographs), mimetype='application/json')
+        return HttpResponse(json.dumps(idiographs), mimetype='application/json')
 
 @staff_member_required
 
@@ -379,7 +379,7 @@ def get_allographs(request):
 
                 data.append(ac_dict)
 
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), mimetype='application/json')
     else:
         return HttpResponseBadRequest()
 
@@ -414,7 +414,7 @@ def get_ideograph(request):
                 }
                 components.append(c)
         ideograph['components'] = components
-        return HttpResponse(simplejson.dumps([ideograph]), mimetype='application/json')
+        return HttpResponse(json.dumps([ideograph]), mimetype='application/json')
     else:
         return HttpResponseBadRequest()
 
@@ -426,7 +426,7 @@ def save_idiograph(request):
     try:
         scribe_id = int(request.POST.get('scribe', ''))
         allograph_id = int(request.POST.get('allograph', ''))
-        data = simplejson.loads(request.POST.get('data', ''))
+        data = json.loads(request.POST.get('data', ''))
         allograph = Allograph.objects.get(id=allograph_id)
         scribe = Scribe.objects.get(id=scribe_id)
         idiograph = Idiograph(allograph=allograph, scribe=scribe)
@@ -442,7 +442,7 @@ def save_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
 
@@ -453,7 +453,7 @@ def update_idiograph(request):
     try:
         allograph_id = int(request.POST.get('allograph', ''))
         idiograph_id = int(request.POST.get('idiograph_id', ''))
-        data = simplejson.loads(request.POST.get('data', ''))
+        data = json.loads(request.POST.get('data', ''))
         allograph = Allograph.objects.get(id=allograph_id)
         idiograph = Idiograph.objects.get(id=idiograph_id)
         idiograph.allograph = allograph
@@ -474,7 +474,7 @@ def update_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @staff_member_required
 @transaction.commit_on_success
@@ -489,4 +489,4 @@ def delete_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(simplejson.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), mimetype='application/json')

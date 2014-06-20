@@ -49,6 +49,10 @@ class SearchGraphs(SearchContentType):
     def label(self):
         return 'Graphs'
 
+    @property
+    def label_singular(self):
+        return 'Graph'
+
     def is_slow(self):
         return True
     
@@ -246,3 +250,14 @@ class SearchGraphs(SearchContentType):
         links.append(self.get_field_link('character', 'allograph', [(a.character.name, a.human_readable()) for a in Allograph.objects.all().order_by('id')], True))
         #links.append(self.get_field_link('component', 'feature', Feature.objects.all().values_list('componentfeature__component__name', 'name').order_by('id')))
         
+
+    def process_record_view_request(self, context, request):
+        '''Graph records don't have their own web page, so we redirect to the cut-out in the annotation page'''
+        #
+        # TODO: remove reference to vector_id 
+        #
+        # we get the annotation from the graph, then the abs URL
+        # http://localhost/digipal/page/718/?vector_id=OpenLayers_Feature_Vector_191
+        annotation = Annotation.objects.get(graph__id=context['id'])
+        ret = u'/digipal/page/%s/?vector_id=%s' % (annotation.image.id, annotation.vector_id)
+        return ret

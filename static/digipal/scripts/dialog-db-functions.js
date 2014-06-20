@@ -1,5 +1,30 @@
 var ABSOLUTE_URL = '/digipal/page/';
 
+
+var getCookie = function(name) {
+	var cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; i++) {
+			var cookie = jQuery.trim(cookies[i]);
+			// Does this cookie string begin with the name we want?
+			if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+};
+
+
+var csrftoken = getCookie('csrftoken');
+$.ajaxSetup({
+	headers: {
+		"X-CSRFToken": csrftoken
+	}
+});
+
 function delete_annotation(image_id, feature_id, callback) {
 	var url = ABSOLUTE_URL + image_id + '/delete/' + feature_id + '/';
 	$.ajax({
@@ -136,6 +161,7 @@ function save(url, feature, data, callback) {
 	$.ajax({
 		url: url,
 		data: data,
+		type: 'POST',
 		beforeSend: function() {
 			updateStatus('Saving annotation ...', 'warning');
 		},

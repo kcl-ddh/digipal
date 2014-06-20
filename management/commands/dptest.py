@@ -154,22 +154,80 @@ Commands:
             self.adhoc_test()
 
     def adhoc_test(self):
-        ips = ItemOrigin.objects.values_list('id', 'place__name')
-        print ips
-        return
+#         ips = ItemOrigin.objects.values_list('id', 'place__name')
+#         print ips
+#         return
+#         
+#         fields = [
+#             'current_item__repository__place__name', 
+#             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number', 
+#             'historical_items__itemorigin__place__name', 
+#             'subdivisions__current_item__repository__place__name', 
+#             'subdivisions__current_item__repository__name', 
+#             'current_item__repository__place__name', 
+#             'current_item__repository__name', 
+#             'hands__assigned_place__name', 
+#             'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
+#         ips = ItemPart.objects.all().values_list(*fields)
+#         ips[0]
+        from django.contrib.auth.models import User
+
+        ans = []        
+        # create an editorial annotation with internal note        
+        gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an.internal_note = 'int note'
+        ans.append(an)
         
-        fields = [
-            'current_item__repository__place__name', 
-            'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number', 
-            'historical_items__itemorigin__place__name', 
-            'subdivisions__current_item__repository__place__name', 
-            'subdivisions__current_item__repository__name', 
-            'current_item__repository__place__name', 
-            'current_item__repository__name', 
-            'hands__assigned_place__name', 
-            'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
-        ips = ItemPart.objects.all().values_list(*fields)
-        ips[0]
+        # create an editorial annotation with display note        
+        gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an.display_note = 'disp note'
+        ans.append(an)
+
+        # create a graph annotation
+        gr = Graph()
+        gr.idiograph = Idiograph.objects.all().first()
+        gr.hand = Hand.objects.all().first()
+        gr.save()
+        gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an.graph = gr
+        ans.append(an)
+
+        for a in ans:
+            print 'save'
+            a.save()
+            
+        # run queries
+        print 'find all annotations'
+        if Annotation.objects.all().filter(id__in=[a.id for a in ans]).count() == 3:
+            print '\tok'
+        else:
+            print '\terror'
+
+        print 'find editorial annotations'
+        if Annotation.objects.all().editorial().filter(id__in=[ans[0].id, ans[1].id]).count() == 2:
+            print '\tok'
+        else:
+            print '\terror'
+            
+        print 'find publicly visible annotations'
+        if Annotation.objects.all().publicly_visible().filter(id__in=[ans[1].id, ans[2].id]).count() == 2:
+            print '\tok'
+        else:
+            print '\terror'
+
+        print 'find graph annotation'
+        if Annotation.objects.all().with_graph().filter(id=ans[2].id).count() == 1:
+            print '\tok'
+        else:
+            print '\terror'
+
+        for a in ans:
+            a.delete()
+            
+        gr.delete()
 
     def save_annotation(self):
         a = Annotation()

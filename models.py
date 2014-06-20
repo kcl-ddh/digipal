@@ -1920,6 +1920,22 @@ class Status(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class AnnotationQuerySet(models.query.QuerySet):
+    def editorial(self):
+        '''returns only annotations which don't have a graph'''
+        return self.exclude(graph_id__gt=0)
+        
+    def with_graph(self):
+        '''returns only annotations which have a graph'''
+        return self.filter(graph_id__gt=0)
+
+    def publicly_visible(self):
+        '''returns only annotations which have either a graph or a display note'''
+        return self.filter(Q(graph__isnull=False) | ~(Q(display_note__exact='') | Q(display_note__isnull=True)))
+
+class AnnotationManager(models.Manager):
+    def get_queryset(self):
+        return AnnotationQuerySet(self.model, using=self._db)
 
 class Annotation(models.Model):
     # TODO: to remove
@@ -1945,12 +1961,18 @@ class Annotation(models.Model):
     internal_note = models.TextField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+    
+    objects = AnnotationManager()
 
     class Meta:
         ordering = ['graph', 'modified']
         #unique_together = ('image', 'vector_id')
+    
+    @property
+    def is_editorial(self):
+        '''Returns True only if the annotation has no graph attached to it'''
+        return bool(self.graph)
     
     def get_geo_json_as_dict(self, geo_json_str=None):
         import json

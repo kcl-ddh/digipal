@@ -87,9 +87,14 @@ def plural(value, count=2):
 @register.filter
 def tag_phrase_terms(value, phrase=''):
     '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
-    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase
+    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
 
-    terms = get_tokens_from_phrase(phrase)
+    # not nice but we have to do this for the matching below to work
+    # we loose *some* the accents, e.g. u'r\u0305'
+    value = remove_combining_marks(value)
+    value_no_accent = remove_accents(value)
+
+    terms = get_tokens_from_phrase(remove_accents(phrase))
     
     if terms:
         # Surround the occurrences of those terms in the value with a span (class="found-term")
@@ -99,7 +104,27 @@ def tag_phrase_terms(value, phrase=''):
         # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
         #         or headings.
         for re_term in get_regexp_from_terms(terms, True):
-            value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
+            #value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
+            pos = 1
+            pattern = re.compile(ur'(?iu)(>[^<]*?)('+re_term+ur')')
+            #print re_term
+            while True:
+                #print value_no_accent, pos
+                # pos-1 because we want to include the last > we've inserted in the previous loop.
+                # without this we might miss occurrences
+                m = pattern.search(value_no_accent, pos - 1)
+                #print m
+                if m:
+                    replacement = u'%s<span class="found-term">%s</span>' % (value[m.start(1):m.end(1)], value[m.start(2):m.end(2)])
+                    
+                    value = value[:m.start(0)] + replacement + value[m.end(0):]
+
+                    replacement = u'%s<span class="found-term">%s</span>' % (value_no_accent[m.start(1):m.end(1)], value_no_accent[m.start(2):m.end(2)])
+                    value_no_accent = value_no_accent[:m.start(0)] + replacement + value_no_accent[m.end(0):]
+                    
+                    pos = m.start(0) + len(replacement)
+                else:
+                    break
 
     return value
 

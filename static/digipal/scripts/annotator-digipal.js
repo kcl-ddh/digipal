@@ -709,11 +709,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.selectedFeature.isTemporary = true;
 			}
 
-			$('.save_trigger').on('click', function() {
+			$('.save_trigger').unbind().on('click', function() {
 				annotator.saveButton.trigger();
 			});
 
-			$('.delete_trigger').on('click', function() {
+			$('.delete_trigger').unbind().on('click', function() {
 				annotator.deleteFeature.clickFeature();
 			});
 
@@ -1452,6 +1452,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 * Saves an annotation for the currently selected feature.
 	 */
 	this.saveAnnotation = function(ann, allographs_page) {
+
+		console.trace();
 		if (!ann) {
 			ann = null;
 		}
@@ -2122,6 +2124,9 @@ function load_data(selectedFeature, dialog, callback) {
 		if (can_edit) {
 			if (!allograph) {
 				dialog.html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				if (callback) {
+					callback();
+				}
 				return false;
 			}
 			content_type = 'allograph';
@@ -2129,7 +2134,6 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
-
 			});
 		} else {
 			callback();
@@ -2541,10 +2545,17 @@ function updateTabCounter() {
 }
 
 function delete_annotation(layer, feature, number_annotations) {
+	if (!feature) {
+		return false;
+	}
 	var featureId = feature.id;
 	var temp = feature;
 	updateStatus('Deleting annotations', 'warning');
 	layer.destroyFeatures([feature]);
+	if (!feature.stored) {
+		updateStatus('Annotation deleted locally', 'success');
+		return false;
+	}
 	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
 	$.ajax({
 		url: url,

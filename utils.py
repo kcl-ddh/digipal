@@ -305,3 +305,24 @@ def get_str_from_queryset(queryset):
     ret = re.sub(ur'(INNER|AND|OR|LEFT|RIGHT)', ur'\t\1', ret)
     return ret.encode('ascii', 'ignore')
 
+def remove_accents(input_str):
+    '''Returns the input string without accented character. 
+        This is useful for accent-insensitive matching (e.g. autocomplete).
+        >> remove_accents(u'c\u0327   \u00c7')
+        u'c   c'
+    '''
+    import unicodedata
+    return remove_combining_marks(unicodedata.normalize('NFKD', input_str))
+
+def remove_combining_marks(input_str):
+    '''Returns the input unicode string without the combining marks found as 'individual character'
+        >> remove_combining_marks(u'c\u0327   \u00c7')
+        u'c   \u00c7'
+    '''
+    import unicodedata
+    return u"".join([c for c in input_str if not unicodedata.combining(c)])
+
+def write_file(file_path, content):
+    f = open(file_path, 'w')
+    f.write(content.encode('utf8'))
+    f.close()

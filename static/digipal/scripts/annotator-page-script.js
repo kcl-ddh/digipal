@@ -182,9 +182,9 @@ function AnnotatorLoader() {
 			for (var i = 0; i < features.length; i++) {
 				if (features[i].is_editorial) {
 					if (is_checked) {
-						stylize(features[i], 'green', 'green', 0.4);
+						stylize(features[i], '#222', '#222', 0.4);
 					} else {
-						stylize(features[i], 'green', 'green', 0);
+						stylize(features[i], '#222', '#222', 0);
 					}
 				}
 			}
@@ -432,26 +432,29 @@ function AnnotatorLoader() {
 			var list = [];
 			var vectors = [];
 			for (var i in annotations) {
-				list.push([annotations[i]['feature']]);
+				if (annotations[i].feature) {
+					list.push([annotations[i]['feature']]);
+				}
 			}
 			list.sort();
 			for (h = 0; h < list.length; h++) {
 				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h] + "'>";
-				checkOutput += "<input checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_";
+				checkOutput += "<input data-attribute='feature' checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_";
 				checkOutput += list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 			}
+			checkOutput += "<p class='paragraph_allograph_check' data-annotation>";
+			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors' id='editorial_filter' type='checkbox' />";
+			checkOutput += "<label for='editorial_filter' style='display:inline;'>[Digipal Editor]</label></p>";
 		}
 		checkOutput += "</div>";
 		checkOutput += '<div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll_hands" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 
-
-
 		if (!$.isEmptyObject(annotations)) {
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
 				checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
-					"<input checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+					"<input data-attribute='hand' checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
 		}
 
@@ -480,12 +483,12 @@ function AnnotatorLoader() {
 			/* launching events */
 			var check_vectors = $('.checkVectors');
 			check_vectors.change(function() {
-				annotator.filters.filterAnnotation($(this), 'feature');
+				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
 			});
 
 			var check_vectors_hands = $('.checkVectors_hands');
 			check_vectors_hands.change(function() {
-				annotator.filters.filterAnnotation($(this), 'hand');
+				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
 			});
 
 			var CheckAll = $('#checkAll');

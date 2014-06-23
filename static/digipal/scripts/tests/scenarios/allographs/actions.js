@@ -10,7 +10,7 @@ var Actions = function(options) {
                 return casper.evaluate(function() {
                     var annotations = $('.annotation_li');
                     var random = Math.round(Math.random() * annotations.length);
-                    return $(annotations[random]).data('annotation');
+                    return $(annotations[random]).data('graph');
                 });
             }
         },
@@ -19,7 +19,7 @@ var Actions = function(options) {
 
             select: function(feature_id, callback) {
 
-                casper.click('.annotation_li[data-annotation="' + feature_id + '"]');
+                casper.click('.annotation_li[data-graph="' + feature_id + '"]');
 
                 casper.then(function() {
                     casper.waitForSelector('.selected', function() {

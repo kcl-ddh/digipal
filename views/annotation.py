@@ -222,7 +222,7 @@ def image(request, image_id):
             else:
                 data_allographs[hand_label] = SortedDict()
                 data_allographs[hand_label][allograph_name] = []
-        data_allographs[hand_label][allograph_name].append(a)
+            data_allographs[hand_label][allograph_name].append(a)
 
 
     image_link = urlresolvers.reverse('admin:digipal_image_change', args=(image.id,))

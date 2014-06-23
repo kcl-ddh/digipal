@@ -806,7 +806,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			s += "<div id='box_features_container'></div>";
 			if (annotator.boxes_on_click) {
 				if (annotator.isAdmin == 'True' && annotator.annotating) {
-					if (selectedFeature.is_editorial) {
+					if (selectedFeature.is_editorial || annotator.editorial.active) {
 						s += '<label>Internal Note</label>';
 						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
 						s += '<label>Display Note</label>';
@@ -817,7 +817,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						dialog.find('#display_note').val(selectedFeature.display_note);
 						annotator.editorial.activate();
 						return callback();
-					} else if (!selectedFeature.is_editorial && annotator.editorial.active) {
+					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
 						annotator.editorial.deactivate();
 					}
 
@@ -1777,6 +1777,7 @@ render the layer according to each allograph
 function reload_described_annotations(div) {
 	var check_described = null;
 	var annotations = annotator.annotations;
+	var show_editorial_annotations = $('#show_editorial_annotations');
 	$.each(annotations, function(index, annotation) {
 		var feature = annotator.vectorLayer.features;
 		var selectedFeature;
@@ -1788,26 +1789,32 @@ function reload_described_annotations(div) {
 		var path;
 		check_described = $.each(feature, function(index, data) {
 			while (h < feature.length) {
-				if (annotation.graph == feature[h].graph) {
-					if (num_features) {
-						stylize(feature[h], 'green', 'green', 0.4);
-						feature[h].described = true;
 
-						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
-							//stylize(feature[h], 'blue', 'blue', 0.4);
+				if (annotation.is_editorial && !show_editorial_annotations.is(':checked')) {
+					stylize(feature[h], 'green', 'green', 0);
+				} else {
+
+					if (annotation.graph == feature[h].graph) {
+						if (num_features) {
+							stylize(feature[h], 'green', 'green', 0.4);
 							feature[h].described = true;
-							annotator.selectFeatureById(feature[h].id);
-						}
 
-					} else {
-						stylize(feature[h], '#ee9900', '#ee9900', 0.4);
-						feature[h].described = false;
-
-						if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
-							if (feature[h].graph == selectedFeature.graph) {
+							if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
 								//stylize(feature[h], 'blue', 'blue', 0.4);
-								feature[h].described = false;
+								feature[h].described = true;
 								annotator.selectFeatureById(feature[h].id);
+							}
+
+						} else {
+							stylize(feature[h], '#ee9900', '#ee9900', 0.4);
+							feature[h].described = false;
+
+							if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
+								if (feature[h].graph == selectedFeature.graph) {
+									//stylize(feature[h], 'blue', 'blue', 0.4);
+									feature[h].described = false;
+									annotator.selectFeatureById(feature[h].id);
+								}
 							}
 						}
 					}

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django import forms
 from digipal.templatetags.hand_filters import chrono
+from digipal import utils
 
 class SearchContentType(object):
     
@@ -457,8 +458,8 @@ class SearchContentType(object):
     
     def get_suggestions_single_query(self, query, limit=8, prefix=u'', exclude_list=[]):
         ret = []
-
-        settings.suggestions_index = None
+        
+        #settings.suggestions_index = None
         
         if not getattr(settings, 'suggestions_index', None):
             chrono('load:')
@@ -467,12 +468,15 @@ class SearchContentType(object):
                 import os
                 if os.path.exists(path):
                     from digipal.management.commands.utils import readFile
-                    settings.suggestions_index = readFile(path)
+                    # we have to remove combining marks otherwise
+                    # len(settings.suggestions_index_canonical) < len(settings.suggestions_index)
+                    settings.suggestions_index = utils.remove_combining_marks(readFile(path))
+                    settings.suggestions_index_canonical = utils.remove_accents(settings.suggestions_index)
             chrono(':load')
             
         if not settings.suggestions_index:
             return ret
-            
+        
         if query and limit > 0:
             import re
             from django.utils.html import strip_tags
@@ -481,10 +485,12 @@ class SearchContentType(object):
             chrono('regexp:')
             ret = {}
             exclude_list_lower = [strip_tags(s.lower()) for s in exclude_list]
-            for m in re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(phrase), settings.suggestions_index):
+
+            for m in re.finditer(ur'(?ui)\b%s(?:[^|]{0,40}\|\||[\w-]*\b)' % re.escape(utils.remove_accents(phrase)), settings.suggestions_index_canonical):
+                m = settings.suggestions_index[m.start(0):m.end(0)]
                 m = m.strip('|')
-                if m[-1] == ')' and '(' not in m: m = m[:-1]
-                if m[-1] == ']' and '[' not in m: m = m[:-1]
+                if m.endswith(')') and '(' not in m: m = m[:-1]
+                if m.endswith(']') and '[' not in m: m = m[:-1]
                 if ur'%s%s' % (prefix, m.lower()) not in exclude_list_lower:
                     ret[m.lower()] = m
             ret = ret.values()

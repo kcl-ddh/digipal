@@ -806,7 +806,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			s += "<div id='box_features_container'></div>";
 			if (annotator.boxes_on_click) {
 				if (annotator.isAdmin == 'True' && annotator.annotating) {
-					if (selectedFeature.is_editorial || annotator.editorial.active) {
+					if (selectedFeature.is_editorial || annotator.editorial.active && !selectedFeature.stored) {
 						s += '<label>Internal Note</label>';
 						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
 						s += '<label>Display Note</label>';
@@ -2954,15 +2954,6 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	$(document).bind('keydown', function(event) {
 		activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);
-		if (code == 85) {
-			var button = $('.number_unsaved_allographs');
-			var features = annotator.unsaved_annotations;
-			if (!button.hasClass('active')) {
-				highlight_unsaved_vectors(button);
-			} else {
-				unhighlight_unsaved_vectors(button);
-			}
-		}
 
 		if (event.shiftKey && annotator.isAdmin == 'True') {
 			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');

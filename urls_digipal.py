@@ -18,6 +18,7 @@ urlpatterns = patterns('digipal.views.annotation',
     (r'^api/(?P<content_type>[0-9a-zA-Z_]+)/(?P<ids>[^/]*)/?(?P<only_features>(features)*)/?$', 'get_content_type_data'),
 
     (r'^api/graph/save/(?P<graphs>.+)/', 'save'),
+    (r'^api/graph/save_editorial/(?P<graphs>.+)/', 'save_editorial'),
     (r'^page/(?P<image_id>\d+)/delete/(?P<graph_id>[a-zA-Z\._0-9]+)/', 'delete'),
     (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$', 'form_dialog'),
     (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$', 'get_vector'),

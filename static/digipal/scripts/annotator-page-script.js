@@ -174,6 +174,23 @@ function AnnotatorLoader() {
 			self.multiple_annotations($(this).is(':checked'));
 		});
 
+		var show_editorial_annotations = $('#show_editorial_annotations');
+		show_editorial_annotations.on('change', function() {
+			var features = annotator.vectorLayer.features;
+			var is_checked = $(this).is(':checked');
+			self.digipal_settings.show_editorial_annotations = is_checked;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].is_editorial) {
+					if (is_checked) {
+						stylize(features[i], 'green', 'green', 0.4);
+					} else {
+						stylize(features[i], 'green', 'green', 0);
+					}
+				}
+			}
+			annotator.vectorLayer.redraw();
+			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
+		});
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 		self.toolbar_position();
@@ -201,6 +218,7 @@ function AnnotatorLoader() {
 				'toolbar_position': 'Vertical',
 				'boxes_on_click': false,
 				'annotating': annotator.annotating,
+				'show_editorial_annotations': true,
 				'select_multiple_annotations': false
 			};
 
@@ -248,6 +266,7 @@ function AnnotatorLoader() {
 		$('#boxes_on_click').attr('checked', self.digipal_settings.boxes_on_click).trigger('change');
 		$('#development_annotation').attr('checked', self.digipal_settings.annotating).trigger('change');
 		$('#multiple_annotations').attr('checked', self.digipal_settings.select_multiple_annotations).trigger('change');
+		$('#show_editorial_annotations').attr('checked', self.digipal_settings.show_editorial_annotations).trigger('change');
 	};
 
 	/*

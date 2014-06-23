@@ -130,21 +130,32 @@ div.olControlMousePosition {
     float:left;font-size:1.2em;
 }
 .olPopup{
-    max-width: 350px !important;
+    /* min-width: 150px !important; */
+    /* height: auto; */
+    /* max-width: 300px !important; */
+    font-size: 0.9em !important; line-height: 1.5;
     word-wrap:break-word;
-    border-radius:4px;
+    /* padding-right: 1em; */
+    /* padding: 1em; */
+    /* border-radius:4px; */
 }
 #pop_FrameDecorationDiv_3, #pop_FrameDecorationDiv_1,#pop_FrameDecorationDiv_2,#pop_FrameDecorationDiv_4, #pop_FrameDecorationDiv_0{
     display:none;
 }
 #pop_contentDiv{
-    left:8px !important;
-    width: 330px !important;
-    top:46px;
-    text-align:justify;
+    /* left: 9em !important; */
+    /* width: 100% !important; */
+    /* height: auto !important; */
+    /* padding: 2%; */
+    /* margin: 1%; */
+    /* top: 30px !important; */
+    /* top:14px; */
+    /* text-align:justify; */
     background: rgba(0,0,0,0.8);
     color: white;
     border-radius:4px;
+    /* margin-left: 3em; */
+    /* max-width: 300px !important; */
 }
 .olPopupContent {
     word-wrap:break-word;

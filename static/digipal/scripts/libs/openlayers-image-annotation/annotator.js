@@ -382,12 +382,16 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		trigger: function() {
 			var activeControls = this.map.getControlsBy('active', true);
 			if (this.active) {
+				/*
 				_self.boxes_on_click = false;
 				$('#boxes_on_click').attr('checked', false);
+				*/
 				this.deactivate();
 			} else {
+				/*
 				_self.boxes_on_click = true;
 				$('#boxes_on_click').attr('checked', true);
+				*/
 				_self.toggleAll(activeControls, false);
 				this.activate();
 				_self.rectangleFeature.activate();

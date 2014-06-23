@@ -688,14 +688,16 @@ def save_editorial(request, graphs):
                 image = Image.objects.get(id=gr['image'])
                 get_data = request.POST.copy()
                 vector_id = gr['vector_id']
-                annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                annotation = Annotation.objects.filter(image=image, vector_id=vector_id).count()
 
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
-                if not annotation:
+                if annotation > 0:
+                    annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                else:
                     annotation = Annotation(image=image, vector_id=vector_id)
 
                 form = ImageAnnotationForm(data=get_data)

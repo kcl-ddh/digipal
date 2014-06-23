@@ -805,51 +805,53 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			s += "<div id='box_features_container'></div>";
 			if (annotator.boxes_on_click) {
-				if (selectedFeature.is_editorial && annotator.isAdmin == 'True') {
-					s += '<label>Internal Note</label>';
-					s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
-					s += '<label>Display Note</label>';
-					s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
-					dialog.css("margin", "3%");
-					dialog.html(s);
-					dialog.find('#internal_note').val(selectedFeature.internal_note);
-					dialog.find('#display_note').val(selectedFeature.display_note);
-					annotator.editorial.activate();
-					return callback();
-				} else if (!selectedFeature.is_editorial && annotator.editorial.active) {
-					annotator.editorial.deactivate();
-				}
-
-				self.updateFeatureSelect.init(dialog, selectedFeature, callback);
-
-				panel.find('.allograph_form').on('change', function() {
-					var features = annotator.vectorLayer.features;
-					var allograph = $('#panelImageBox .allograph_form option:selected').text();
-					var allograph_id = $(this).val();
-					var n = 0;
-					for (var i = 0; i < features.length; i++) {
-						if (features[i].feature == allograph && features[i].stored) {
-							n++;
-						}
+				if (annotator.isAdmin == 'True' && annotator.annotating) {
+					if (selectedFeature.is_editorial) {
+						s += '<label>Internal Note</label>';
+						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
+						s += '<label>Display Note</label>';
+						s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
+						dialog.css("margin", "3%");
+						dialog.html(s);
+						dialog.find('#internal_note').val(selectedFeature.internal_note);
+						dialog.find('#display_note').val(selectedFeature.display_note);
+						annotator.editorial.activate();
+						return callback();
+					} else if (!selectedFeature.is_editorial && annotator.editorial.active) {
+						annotator.editorial.deactivate();
 					}
-					load_data({}, dialog);
-					$(".number_annotated_allographs .number-allographs").html(n);
-					self.dialog.label.set_label(allograph);
-					panel.data('event', true);
-				});
 
-			} else {
-				if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
-					s += "<div style='height:95%;' class='textarea_temporary_annotation form-control'></div>";
-					dialog.html(s);
-					if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
-						$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
-					}
-					callback();
-				} else {
 					self.updateFeatureSelect.init(dialog, selectedFeature, callback);
+
+					panel.find('.allograph_form').on('change', function() {
+						var features = annotator.vectorLayer.features;
+						var allograph = $('#panelImageBox .allograph_form option:selected').text();
+						var allograph_id = $(this).val();
+						var n = 0;
+						for (var i = 0; i < features.length; i++) {
+							if (features[i].feature == allograph && features[i].stored) {
+								n++;
+							}
+						}
+						load_data({}, dialog);
+						$(".number_annotated_allographs .number-allographs").html(n);
+						self.dialog.label.set_label(allograph);
+						panel.data('event', true);
+					});
+
+				} else {
+					if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
+						s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+						dialog.html(s);
+						if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+						}
+						callback();
+					}
 				}
 			}
+			self.updateFeatureSelect.init(dialog, selectedFeature, callback);
+
 			refresh_letters_container_init(selectedFeature, selectedFeature.feature, selectedFeature.allograph_id, true);
 		},
 
@@ -868,7 +870,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
 							html_string_buttons = "<button data-toggle='tooltip' data-container='body' title = 'Save Annotation' class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Remove Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 						} else if (!annotator.annotating) {
-							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
+							if (!selectedFeature.hasOwnProperty('graph')) {
+								html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
+							} else {
+								html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
+							}
 							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
 						} else {
 
@@ -1929,14 +1935,14 @@ function show_url_allograph(dialog, annotation, button) {
 		var checkboxesOff = [];
 		var checkboxes = $('.checkVectors');
 		var i;
-
+		var stored = false;
 		checkboxes.each(function() {
 			if (!$(this).is(':checked')) {
 				checkboxesOff.push($(this).parent('p').data('annotation'));
 			}
 		});
 
-		if (annotation !== null && annotation) {
+		if (annotation !== null && annotation && !$.isEmptyObject(annotation)) {
 			for (i = 0; i < features.length; i++) {
 				if (annotation.graph == features[i].graph && features[i].stored) {
 					stored = true;
@@ -1951,7 +1957,7 @@ function show_url_allograph(dialog, annotation, button) {
 
 		var multiple = false,
 			url_temp;
-		if (annotation !== null && typeof annotation !== "undefined" && stored) {
+		if (annotation !== null && typeof annotation !== "undefined" && !$.isEmptyObject(annotation) && stored) {
 
 			if (annotator.selectedAnnotations.length &&
 				annotator.selectedFeature.linked_to != 'undefined' &&

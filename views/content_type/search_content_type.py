@@ -30,16 +30,17 @@ class SearchContentType(object):
         
         from whoosh.fields import TEXT, ID
         # TODO: shall we use stop words? e.g. 'A and B' won't work? 
-        from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer
+        from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
+        from whoosh.support.charset import accent_map
         # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
         # minsize=1 because we want to search for 'Scribe 2'
         
         # A paragraph or more. 
-        self.FT_LONG_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1))
+        self.FT_LONG_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map))
         # A few words.
-        self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1))
+        self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map))
         # A title (e.g. British Library)
-        self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None))
+        self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map))
         # A code (e.g. K. 402, Royal 7.C.xii)
         # See JIRA 358
         self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True))
@@ -318,7 +319,7 @@ class SearchContentType(object):
         return records
     
     def write_index(self, writer, verbose=False, aci={}):
-        import re 
+        import re
         from django.utils.html import (conditional_escape, escapejs, fix_ampersands, escape, urlize as urlize_impl, linebreaks, strip_tags)
 
         fields = self.get_fields_info()
@@ -388,8 +389,6 @@ class SearchContentType(object):
         # Retrieve all the records from the database
         # Values turns individual results into dictionary of requested fields names and values
         #print str(records.query)
-        print django_fields
-        print repr(self)
         records = self.get_qs_all().values(*django_fields).distinct()
         
         # GN: 11/02/2014

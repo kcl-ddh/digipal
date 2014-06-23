@@ -189,6 +189,7 @@ function AnnotatorLoader() {
 				}
 			}
 			annotator.vectorLayer.redraw();
+			restoreFullscreenPositions();
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		});
 		annotator.activateKeyboardShortcuts(); // calling keyboard events

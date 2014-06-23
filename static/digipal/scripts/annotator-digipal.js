@@ -272,6 +272,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		}
 		if (feature.described) {
 			stylize(feature, 'green', 'green', 0.4);
+		} else if (feature.is_editorial && $('#show_editorial_annotations').is(':checked')) {
+			stylize(feature, '#222', '#222', 0.4);
 		} else {
 			var color;
 			if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
@@ -490,42 +492,57 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph;
 			for (var i in features) {
 				if (formal_attribute == 'hand') {
-					attribute = features[i].hand;
-					attribute2 = features[i].feature.replace(/[\.;,\s]/gi, '');
-					hand = $('#hand_input_' + attribute);
-					allograph = $('#allograph_' + attribute2);
-					var allographs = $('.checkVectors');
-					if (!($(checkboxes).is(':checked'))) {
-						if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
-							features[i].style.fillOpacity = 0;
-							features[i].style.strokeOpacity = 0;
-						}
-					} else {
-						var max = allographs.length;
-						for (var h = 0; h < max; h++) {
-							var a = $(allographs[h]);
-							if (a.is(':checked') && a.val().replace(/[\.;,\s]/gi, '') == attribute2) {
-								if ($(checkboxes).val() == attribute) {
-									features[i].style.fillOpacity = 0.4;
-									features[i].style.strokeOpacity = 1;
+					if (!features[i].is_editorial) {
+						attribute = features[i].hand;
+						attribute2 = features[i].feature.replace(/[\.;,\s]/gi, '');
+						hand = $('#hand_input_' + attribute);
+						allograph = $('#allograph_' + attribute2);
+						var allographs = $('.checkVectors');
+						if (!($(checkboxes).is(':checked'))) {
+							if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
+								features[i].style.fillOpacity = 0;
+								features[i].style.strokeOpacity = 0;
+							}
+						} else {
+							var max = allographs.length;
+							for (var h = 0; h < max; h++) {
+								var a = $(allographs[h]);
+								if (a.is(':checked') && a.val().replace(/[\.;,\s]/gi, '') == attribute2) {
+									if ($(checkboxes).val() == attribute) {
+										features[i].style.fillOpacity = 0.4;
+										features[i].style.strokeOpacity = 0.4;
+									}
 								}
 							}
 						}
 					}
+				} else if (formal_attribute == 'feature') {
+					if (!features[i].is_editorial) {
+						attribute = features[i].feature.replace(/[\.;,\s]/gi, '_');
+						attribute2 = features[i].hand;
+						hand = $('#hand_input_' + attribute2);
+						allograph = $('#hand_input_' + attribute2);
+						if (!($(checkboxes).is(':checked'))) {
+							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val()) {
+								features[i].style.fillOpacity = 0;
+								features[i].style.strokeOpacity = 0;
+							}
+						} else {
+							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+								features[i].style.fillOpacity = 0.4;
+								features[i].style.strokeOpacity = 0.4;
+							}
+						}
+					}
 				} else {
-					attribute = features[i].feature.replace(/[\.;,\s]/gi, '_');
-					attribute2 = features[i].hand;
-					hand = $('#hand_input_' + attribute2);
-					allograph = $('#hand_input_' + attribute2);
-					if (!($(checkboxes).is(':checked'))) {
-						if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val()) {
+					attribute = features[i].is_editorial;
+					if (attribute) {
+						if (!($(checkboxes).is(':checked'))) {
 							features[i].style.fillOpacity = 0;
 							features[i].style.strokeOpacity = 0;
-						}
-					} else {
-						if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+						} else {
 							features[i].style.fillOpacity = 0.4;
-							features[i].style.strokeOpacity = 1;
+							features[i].style.strokeOpacity = 0.4;
 						}
 					}
 				}
@@ -536,6 +553,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 		filterCheckboxes: function(checkboxes, check) {
 			var features = self.vectorLayer.features;
+			var show_editorial_annotations = $('#show_editorial_annotations').is(':checked');
 			var allographs = $('.checkVectors');
 			var hands = $('.checkVectors_hands');
 			var hand, i;
@@ -546,28 +564,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				for (i = 0; i < features_length; i++) {
 					for (var h = 0; h < hands_length; h++) {
 						hand = $(hands[h]);
-						if (features[i].hand == hand.val() && hand.is(':checked') && features[i].stored) {
+						if (features[i].hand == hand.val() && hand.is(':checked') && features[i].stored || features[i].is_editorial) {
 							if (!features[i].style) {
-								features[i].style = {
-									'fillOpacity': 0.4,
-									'strokeOpacity': 0.4
-								};
-								if (features[i].described) {
-									stylize(features[i], 'green', 'green', 0.4);
-
-								} else {
-									stylize(features[i], '#ee9900', '#ee9900', 0.4);
-								}
-
-							} else {
-								features[i].style.fillOpacity = 0.4;
-								features[i].style.strokeOpacity = 1;
-								if (features[i].described) {
-									stylize(features[i], 'green', 'green', 0.4);
-								} else {
-									stylize(features[i], '#ee9900', '#ee9900', 0.4);
-								}
+								features.style = {};
 							}
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 0.4;
 						}
 					}
 				}
@@ -576,29 +578,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				$(checkboxes).attr('checked', false);
 				var max = features.length;
 				for (i = 0; i < max; i++) {
-					if (features[i].stored) {
+					if (features[i].stored || features[i].is_editorial) {
 						if (!features[i].style) {
-							features[i].style = {
-								'fillOpacity': 0,
-								'strokeOpacity': 0
-							};
-							if (features[i].described) {
-								stylize(features[i], 'green', 'green', 0);
-							} else {
-								stylize(features[i], '#ee9900', '#ee9900', 0);
-							}
-						} else {
-							features[i].style.fillOpacity = 0;
-							features[i].style.strokeOpacity = 0;
-							if (features[i].described) {
-								stylize(features[i], 'green', 'green', 0);
-							} else {
-								stylize(features[i], '#ee9900', '#ee9900', 0);
-							}
+							features[i].style = {};
 						}
+						features[i].style.fillOpacity = 0;
+						features[i].style.strokeOpacity = 0;
+
 					}
 				}
 			}
+
 			self.vectorLayer.redraw();
 			restoreFullscreenPositions();
 		}
@@ -809,7 +799,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					if (selectedFeature.is_editorial || annotator.editorial.active && !selectedFeature.stored) {
 						s += '<label>Internal Note</label>';
 						s += '<textarea class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;"></textarea>';
-						s += '<label>Display Note</label>';
+						s += '<label>Public Note</label>';
 						s += '<textarea class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;"></textarea>';
 						dialog.css("margin", "3%");
 						dialog.html(s);
@@ -1777,62 +1767,55 @@ render the layer according to each allograph
 */
 
 function reload_described_annotations(div) {
-	var check_described = null;
-	var annotations = annotator.annotations;
-	var show_editorial_annotations = $('#show_editorial_annotations');
-	$.each(annotations, function(index, annotation) {
-		var feature = annotator.vectorLayer.features;
-		var selectedFeature;
-		if (typeof annotator.selectedFeature !== "undefined" && typeof annotator.selectedFeature != "null") {
-			selectedFeature = annotator.selectedFeature;
-		}
-		var num_features = annotation.num_features;
-		var h = 0;
-		var path;
-		check_described = $.each(feature, function(index, data) {
-			while (h < feature.length) {
+	var show_editorial_annotations = $('#show_editorial_annotations').is(':checked');
 
-				if (annotation.is_editorial && !show_editorial_annotations.is(':checked')) {
-					stylize(feature[h], 'green', 'green', 0);
-				} else {
+	var feature = annotator.vectorLayer.features;
+	var selectedFeature;
+	if (typeof annotator.selectedFeature !== "undefined" && typeof annotator.selectedFeature != "null") {
+		selectedFeature = annotator.selectedFeature;
+	}
+	var h = 0;
+	var path;
 
-					if (annotation.graph == feature[h].graph) {
-						if (num_features) {
-							stylize(feature[h], 'green', 'green', 0.4);
-							feature[h].described = true;
+	while (h < feature.length) {
+		var num_features = feature[h].num_features;
 
-							if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
-								//stylize(feature[h], 'blue', 'blue', 0.4);
-								feature[h].described = true;
-								annotator.selectFeatureById(feature[h].id);
-							}
+		if (feature[h].is_editorial && !show_editorial_annotations) {
+			stylize(feature[h], '#222', '#222', 0);
+		} else if (feature[h].is_editorial && show_editorial_annotations) {
+			stylize(feature[h], '#222', '#222', 0.4);
+		} else {
+			if (num_features) {
+				stylize(feature[h], 'green', 'green', 0.4);
+				feature[h].described = true;
 
-						} else {
-							stylize(feature[h], '#ee9900', '#ee9900', 0.4);
-							feature[h].described = false;
+				if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
+					//stylize(feature[h], 'blue', 'blue', 0.4);
+					feature[h].described = true;
+					annotator.selectFeatureById(feature[h].id);
+				}
 
-							if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
-								if (feature[h].graph == selectedFeature.graph) {
-									//stylize(feature[h], 'blue', 'blue', 0.4);
-									feature[h].described = false;
-									annotator.selectFeatureById(feature[h].id);
-								}
-							}
-						}
+			} else {
+				stylize(feature[h], '#ee9900', '#ee9900', 0.4);
+				feature[h].described = false;
+
+				if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
+					if (feature[h].graph == selectedFeature.graph) {
+						//stylize(feature[h], 'blue', 'blue', 0.4);
+						feature[h].described = false;
+						annotator.selectFeatureById(feature[h].id);
 					}
 				}
-				h++;
 			}
-		});
-
-	});
-
-	if (check_described) {
-		annotator.vectorLayer.redraw();
-		if (typeof div != "undefined") {
-			div.fadeOut().remove();
 		}
+		h++;
 	}
+
+	annotator.vectorLayer.redraw();
+	if (typeof div != "undefined") {
+		div.fadeOut().remove();
+	}
+
 }
 
 function open_allographs(allograph, show) {
@@ -2202,7 +2185,7 @@ function refresh_features_dialog(data, dialog) {
 	s += "</ul>";
 
 	if (data.hasOwnProperty('display_note')) {
-		s += "<label class='label-dialog'>Display Note</label>";
+		s += "<label class='label-dialog'>Public Note</label>";
 		s += "<p class='static_text_dialog_div'>" + data.display_note + '</p>';
 	}
 
@@ -2245,7 +2228,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var internal_note = $('<textarea>');
 			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true).val(selectedFeature.internal_note);
 
-			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Display Note</b></p>";
+			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
 			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
 
 			dialog.html(s);
@@ -2761,7 +2744,13 @@ function save(url, graphs, data, ann, features) {
 						var crntFt = annotator.selectedAnnotations[k];
 						if (!crntFt.hasOwnProperty('graph')) {
 							if (crntFt.id == new_graphs[i].vector_id) {
-								crntFt.graph = new_graph;
+								crntFt.graph = new_graphs[i].vector_id;
+								crntFt.is_editorial = true;
+								if ($('#show_editorial_annotations').is(':checked')) {
+									stylize(crntFt, '#222', '#222', 0.4);
+								} else {
+									stylize(crntFt, '#222', '#222', 0);
+								}
 							}
 						}
 					}
@@ -2799,6 +2788,7 @@ function save(url, graphs, data, ann, features) {
 								feature.features = new_graphs[i].features;
 								var num_features = new_graphs[i].features.length;
 							}
+
 							var element = $('.number_unsaved_allographs');
 							var number_unsaved = element.html();
 							var unsaved_annotations = annotator.unsaved_annotations;
@@ -2838,8 +2828,12 @@ function save(url, graphs, data, ann, features) {
 								color = 'green';
 								feature.described = true;
 								feature.num_features = feature.features.length + 1;
-							} else {
+							} else if (new_graphs[i].hasOwnProperty('features') && !new_graphs[i].features.length) {
 								color = '#ee9900';
+								feature.described = false;
+								feature.num_features = 0;
+							} else {
+								color = '#222';
 								feature.described = false;
 								feature.num_features = 0;
 							}

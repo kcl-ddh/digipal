@@ -36,9 +36,8 @@ function Scenario() {
                     });
                     casper.capture('screen.png');
                     tasks.dialog.labelMatchesForm();
-                    var graph = AnnotatorTasks.get.getGraphByVectorId(feature);
                     var features = AnnotatorTasks.dialog.getSelectedFeatures('allographs');
-                    AnnotatorTasks.tests.dialogMatchesCache(features, 'allographs', graph);
+                    AnnotatorTasks.tests.dialogMatchesCache(features, 'allographs', feature);
                     AnnotatorTasks.do.describe('allographs');
                     tasks.tests.summaryMatchesCheckboxes();
                     console.log('Deselecting some checkboxes and repeating test ...');
@@ -92,16 +91,18 @@ function Scenario() {
                 tasks.do.select(feature);
             });
 
-            casper.wait(1000);
-
             casper.then(function() {
                 tasks.do.select(feature2);
             });
 
             casper.then(function() {
+                casper.wait(1000);
+            });
+
+            casper.then(function() {
                 tasks.do.delete(function() {
-                    casper.test.assertDoesntExist(x('.annotation_li[@data-annotation="' + feature + '"]'), 'Feature has been deleted');
-                    casper.test.assertDoesntExist(x('.annotation_li[@data-annotation="' + feature + '"]'), 'Feature 2 has been deleted');
+                    casper.test.assertDoesntExist(x('.annotation_li[@data-graph="' + feature + '"]'), 'Feature has been deleted');
+                    casper.test.assertDoesntExist(x('.annotation_li[@data-graph="' + feature + '"]'), 'Feature 2 has been deleted');
                 });
             });
         };

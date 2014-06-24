@@ -853,7 +853,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 				if (annotator.editorial.active || selectedFeature.is_editorial) {
 					html_string_label = "<span class='allograph_label'>Editorial Annotation</span>";
-					html_string_buttons = " <button data-hidden='true' data-toggle='tooltip' data-container='body' title='Share URL' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button> ";
+					html_string_buttons = " <button data-toggle='tooltip' data-container='body' title = 'Save Annotation' class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Remove Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button>";
 				} else {
 					if (annotator.isAdmin == "True") {
 						if (selectedFeature && annotator.annotating) {
@@ -874,7 +874,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 								html_string_label = "<span class='allograph_label'>Annotation</span>";
 								html_string_buttons = "<button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							}
-
 						}
 					} else {
 						if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {

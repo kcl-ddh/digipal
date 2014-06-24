@@ -302,7 +302,12 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
 
     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
+
+    if not has_edit_permission(request, Annotation):
+        editorial_annotations = editorial_annotations.editorial().publicly_visible()
+
     vectors = json.loads(image_vectors(False, image_id))
+
     data = {}
     hands = []
     for a in annotation_list_with_graph:

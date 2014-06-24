@@ -268,7 +268,7 @@ function Allographs(dialog, cache) {
 				var annotation_graph;
 				var select_allograph = $('#panelImageBox');
 				for (var j in annotator.annotations) {
-					if (annotator.annotations[j].vector_id == annotation_graph_id) {
+					if (annotator.annotations[j].graph == annotation_graph_id) {
 						annotation_graph = annotator.annotations[j];
 						break;
 					}

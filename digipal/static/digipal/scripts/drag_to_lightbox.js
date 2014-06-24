@@ -36,11 +36,8 @@ var Star = function(options) {
 		findStarredInPage();
 		elements.closest(defaults.parentName).on('mouseenter', function(event) {
 			dialog.init($(this).find(defaults.className));
-			event.stopPropagation();
 		}).on('mouseleave', function(event) {
 			dialog.hide();
-			$('#dialog-star').fadeOut().remove();
-			event.stopPropagation();
 		});
 
 	};
@@ -49,7 +46,7 @@ var Star = function(options) {
 
 		init: function(image) {
 			var _self = this;
-			if (!image.find("#dialog-star").length) {
+			if (!$("#dialog-star").length) {
 				_self.element = _self.create(image);
 				_self.show(image);
 			}
@@ -80,7 +77,7 @@ var Star = function(options) {
 		},
 
 		hide: function() {
-			var element = this.element;
+			var element = $("#dialog-star");
 			element.fadeOut().remove();
 		},
 

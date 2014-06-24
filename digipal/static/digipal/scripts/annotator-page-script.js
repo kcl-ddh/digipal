@@ -442,9 +442,7 @@ function AnnotatorLoader() {
 				checkOutput += "<input data-attribute='feature' checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_";
 				checkOutput += list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
 			}
-			checkOutput += "<p class='paragraph_allograph_check' data-annotation>";
-			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors' id='editorial_filter' type='checkbox' />";
-			checkOutput += "<label for='editorial_filter' style='display:inline;'>[Digipal Editor]</label></p>";
+
 		}
 		checkOutput += "</div>";
 		checkOutput += '<div class="col-lg-6">';
@@ -453,9 +451,12 @@ function AnnotatorLoader() {
 		if (!$.isEmptyObject(annotations)) {
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
-				checkOutput += "<p style='padding:2%;' data-hand = '" + hands[h].id + "'>" +
+				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
 					"<input data-attribute='hand' checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
+			checkOutput += "<p data-annotation class='paragraph_allograph_check'>";
+			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors' id='editorial_filter' type='checkbox' />";
+			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";
 		}
 
 		checkOutput += "</div></div>";

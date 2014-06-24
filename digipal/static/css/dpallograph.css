@@ -100,8 +100,6 @@
 .annotation_li{
     min-height: 50px;
     min-width:70px;
-    margin:0.3em;
-    margin-left:0.5em;
     padding:0.5em;
     padding-top:0.1em;
     padding-bottom: 0.2em;
@@ -121,6 +119,7 @@
     background-image: -ms-linear-gradient(top, #ffffff, #ededed);
     background-image: -o-linear-gradient(top, #ffffff, #ededed);
     background-image: linear-gradient(to bottom, #ffffff, #ededed);
+    box-shadow: 0px 0px 2px 1px yellow;
 }
 
 .list-allographs li.selected{

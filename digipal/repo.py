@@ -100,7 +100,7 @@ def process_commands_main_dir():
                 out = {}
 
                 # GIT
-                os.chdir('digipal')
+                os.chdir('digipal_github/digipal')
                 system('git status', '', False, '', out)
                 
                 branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
@@ -129,30 +129,6 @@ def process_commands_main_dir():
                 print 'digipal_django: %s ' % (status,)
             finally:
                 os.chdir(dir)          
-        
-        if command == 'hgsub':
-            known_command = True
-            
-            try:
-                os.chdir('digipal')
-                output_data = {}
-                system('git log', 'Author:', True, 'Git Error', output_data)
-                commits = re.findall(ur'commit (\w+)', output_data['output'])
-                if commits:
-                    last_commit = commits[0]
-                    os.chdir(dir)
-                    f = open('.hgsubstate', 'r')
-                    content = f.read()
-                    f.close()                    
-                    # Udpate the git commit number in .hgsubstate 
-                    # a81d78f70fd36c6eeb761e877ca783d7e4aae7ac digipal
-                    # => LAST_GIT_COMMIT  digipal
-                    content = re.sub(ur'\w+(\s+digipal)', ur'%s\1' % last_commit, content)
-                    f = open('.hgsubstate', 'w')
-                    f.write(content)
-                    f.close()
-            finally:
-                os.chdir(dir)
         
         if command == 'diff':
             known_command = True
@@ -188,37 +164,24 @@ def process_commands_main_dir():
 #                     else:
 #                         system('ln -s django-iipimage/iipimage iipimage')
                 
-                if os.path.exists('iipimage'):
-                    print '> remove iipimage'
-                    if os.name == 'nt':
-                        system('del /F /S /Q iipimage')
-                        system('rmdir /S /Q iipimage')
-                    else:
-                        system('rm -r iipimage')
-                        
-                if os.path.exists('django-iipimage'):
-                    print '> remove django-iipimage'
-                    if os.name == 'nt':
-                        system('del /F /S /Q django-iipimage')
-                        system('rmdir /S /Q django-iipimage')
-                    else:
-                        system('rm -r django-iipimage')
+                for path in ('iipimage', 'django-iipimage'):
+                    if os.path.exists(path):
+                        print '> remove %s' % path
+                        if os.name == 'nt':
+                            system('del /F /S /Q %s' % path)
+                            system('rmdir /S /Q %s' % path)
+                        else:
+                            system('rm -r %s' % path)
 
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
-                os.chdir('digipal')
+                os.chdir('digipal_github/digipal')
                 git_status_info = {}
-                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.', git_status_info)
+                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
                 branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])
                 
                 system('git pull', validation_git)
                 os.chdir(dir)
-                
-#                 print '> Pull iipimage'
-#                 os.chdir('django-iipimage')
-#                 system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal; git checkout master\' to fix the issue.')
-#                 system('git pull', validation_git)
-#                 os.chdir(dir)
                 
                 print '> Pull main'
                 validation_hg = r'(?i)error:|abort:'

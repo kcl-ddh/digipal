@@ -1,4 +1,5 @@
 # DigiPal
+
 ###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
 ----
 
@@ -12,7 +13,6 @@
 6. API
 7. Testing
 
-**Please note that an important part of the project is currently hosted on a private repository. The two will be soon merged into this. This means that at the current state this repository is not enough to run Digipal locally.**
 
 ## 1. About
 
@@ -24,11 +24,11 @@ See further http://digipal.eu/
 
 ## 2. Digipal Technologies Stack
 Digipal is built upon the Django Web Framework. The main technologies used by the project are:
-- Mezzanine as CMS and Blog
+- Django as web framework and Mezzanine as CMS and Blog
 - IIPImage for the image server
-- OpenLayers for the manuscript viewer
-- Bootstrap for the Front-end framework
-- FontAwesome icons
+- OpenLayers as manuscripts viewer and annotator
+- Bootstrap and JQuery as front-end frameworks (with the addition of various plugins)
+- FontAwesome and Glyphicons icons
 
 ## 3. How to set up Digipal
 

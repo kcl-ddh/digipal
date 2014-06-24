@@ -1443,7 +1443,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 */
 	this.saveAnnotation = function(ann, allographs_page) {
 
-		console.trace();
 		if (!ann) {
 			ann = null;
 		}
@@ -2585,6 +2584,7 @@ function delete_annotation(layer, feature, number_annotations) {
 }
 
 function make_form() {
+
 	if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
 		updateStatus('Select annotations to proceed', 'danger');
 		return false;

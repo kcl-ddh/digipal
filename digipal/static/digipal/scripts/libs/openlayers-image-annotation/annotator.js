@@ -161,11 +161,6 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		},
 		clickFeature: function(feature) {
 			var msg, doDelete;
-
-			if (!annotator.selectedAnnotations.length && !annotator.selectedFeature) {
-				notify('Select Annotations to proceed', 'danger');
-				return false;
-			}
 			if (allow_multiple() && annotator.selectedAnnotations && annotator.selectedAnnotations.length) {
 
 				msg = 'You are about to delete ' + annotator.selectedAnnotations.length + ' annotations. They cannot be restored at a later time! Continue?';

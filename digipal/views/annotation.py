@@ -767,13 +767,15 @@ def delete(request, image_id, graph_id):
         raise Http404
 
     data = {}
-
     try:
         with transaction.atomic():
             image = get_object_or_404(Image, pk=image_id)
 
             try:
-                annotation = Annotation.objects.get(image=image, graph=graph_id)
+                try:
+                    annotation = Annotation.objects.get(image=image, graph=graph_id)
+                except:
+                    annotation = Annotation.objects.get(image=image, vector_id=graph_id)
             except Annotation.DoesNotExist:
                 data.update({'success': False})
                 data.update({'errors': {}})

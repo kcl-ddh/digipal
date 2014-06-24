@@ -1959,9 +1959,11 @@ function show_url_allograph(dialog, annotation, button) {
 				allograph_url = [];
 
 				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
-
-					url_temp = 'graph=' + annotator.selectedAnnotations[i].graph;
-
+					if (annotator.selectedAnnotations[i].is_editorial) {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].vector_id;
+					} else {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].graph;
+					}
 					allograph_url.push(url_temp);
 
 				}
@@ -1969,9 +1971,11 @@ function show_url_allograph(dialog, annotation, button) {
 				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
-
-				allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
-
+				if (annotator.selectedFeature.is_editorial) {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+				} else {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+				}
 			}
 
 		} else {
@@ -2889,7 +2893,7 @@ function registerEvents() {
 			Uncomment to activate mouseover and mouseout events
 			for displaying popups when a graphs has a display note field
 
-*/
+
 
 
 		paths.unbind('mouseenter').on('mouseenter', function() {
@@ -2910,7 +2914,7 @@ function registerEvents() {
 			}
 		});
 
-
+*/
 		paths.unbind('dblclick').on('dblclick', function(event) {
 
 			if (annotator.boxes_on_click) {

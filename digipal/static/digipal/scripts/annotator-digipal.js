@@ -1734,30 +1734,25 @@ function allow_multiple() {
 
 function createPopup(feature) {
 	var map = annotator.map;
-	feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+	feature.popup = new OpenLayers.Popup("pop",
 		feature.geometry.getBounds().getCenterLonLat(),
 		null,
 		'<div class="markerContent">' + feature.display_note + '</div>',
-		null,
-		null,
-		function() {
-			controls['selector'].unselectAll();
-		}
-	);
+		true);
 
+	feature.popup.backgroundColor = 'transparent';
+	feature.popup.closeDiv = false;
+	feature.popup.autoSize = true;
+	feature.popup.maxSize = new OpenLayers.Size(600, 200);
+	feature.popup.keepInMap = true;
 	//feature.popup.closeOnMove = true;
 	map.addPopup(feature.popup);
-	$('.olPopupCloseBox').click(function() {
-		feature.popup.destroy();
-		feature.popup = null;
-	});
 }
 
 function deletePopup(feature) {
 	feature.popup.destroy();
 	feature.popup = null;
 }
-
 
 /*
 

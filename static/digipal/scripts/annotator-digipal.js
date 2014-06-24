@@ -2889,7 +2889,7 @@ function registerEvents() {
 			Uncomment to activate mouseover and mouseout events
 			for displaying popups when a graphs has a display note field
 
-
+*/
 
 
 		paths.unbind('mouseenter').on('mouseenter', function() {
@@ -2909,7 +2909,7 @@ function registerEvents() {
 				}
 			}
 		});
-	*/
+
 
 		paths.unbind('dblclick').on('dblclick', function(event) {
 

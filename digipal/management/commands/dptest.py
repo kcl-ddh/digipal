@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from os.path import isdir
@@ -151,9 +152,17 @@ Commands:
             
         if command == 'adhoc':
             known_command = True
-            self.adhoc_test()
+            self.adhoc_test(*args[1:])
 
-    def adhoc_test(self):
+    def adhoc_test(self, *args):
+        from digipal.templatetags import html_escape
+        value = u'''<div>Alençon, Bibliothèque Municipale</div>'''
+        
+        ret = html_escape.tag_phrase_terms(value, unicode(args[0]))
+        print '-' * 80
+        print ret
+
+    def annotation_test(self):
 #         ips = ItemOrigin.objects.values_list('id', 'place__name')
 #         print ips
 #         return

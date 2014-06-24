@@ -312,7 +312,7 @@ def remove_accents(input_str):
         u'c   c'
     '''
     import unicodedata
-    return remove_combining_marks(unicodedata.normalize('NFKD', input_str))
+    return remove_combining_marks(unicodedata.normalize('NFKD', unicode(input_str)))
 
 def remove_combining_marks(input_str):
     '''Returns the input unicode string without the combining marks found as 'individual character'
@@ -320,7 +320,7 @@ def remove_combining_marks(input_str):
         u'c   \u00c7'
     '''
     import unicodedata
-    return u"".join([c for c in input_str if not unicodedata.combining(c)])
+    return u"".join([c for c in unicode(input_str) if not unicodedata.combining(c)])
 
 def write_file(file_path, content):
     f = open(file_path, 'w')

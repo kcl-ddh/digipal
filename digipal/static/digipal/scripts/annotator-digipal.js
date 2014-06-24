@@ -707,6 +707,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.deleteFeature.clickFeature();
 			});
 
+			$('#clear_formatting').on('click', function() {
+				var text = $('.textarea_temporary_annotation').html();
+				$('.textarea_temporary_annotation').html(text.replace(/<[^>]*>/gi, '')).focus();
+			});
+
 			$('*[data-toggle="tooltip"]').tooltip({
 				container: 'body',
 				placement: 'bottom'
@@ -881,7 +886,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 						} else {
 							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
-							html_string_buttons = "<span class='pull-right' style='margin-right: 0.5em;''><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button> <button id='clear_formatting' class='btn btn-default btn-xs' data-toggle='tooltip' title='Clear formatting'>Clear</button>";
 						}
 					}
 				}

@@ -11,6 +11,8 @@
     position:relative;
     display:inline-block;
     max-width: 100%;
+    margin: 0.3em;
+    margin-left: 0.5em;
 }
 
 .folio-image-wrapper:hover .button-bar {

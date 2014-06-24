@@ -1734,30 +1734,25 @@ function allow_multiple() {
 
 function createPopup(feature) {
 	var map = annotator.map;
-	feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+	feature.popup = new OpenLayers.Popup("pop",
 		feature.geometry.getBounds().getCenterLonLat(),
 		null,
 		'<div class="markerContent">' + feature.display_note + '</div>',
-		null,
-		null,
-		function() {
-			controls['selector'].unselectAll();
-		}
-	);
+		true);
 
+	feature.popup.backgroundColor = 'transparent';
+	feature.popup.closeDiv = false;
+	feature.popup.autoSize = true;
+	feature.popup.maxSize = new OpenLayers.Size(600, 200);
+	feature.popup.keepInMap = true;
 	//feature.popup.closeOnMove = true;
 	map.addPopup(feature.popup);
-	$('.olPopupCloseBox').click(function() {
-		feature.popup.destroy();
-		feature.popup = null;
-	});
 }
 
 function deletePopup(feature) {
 	feature.popup.destroy();
 	feature.popup = null;
 }
-
 
 /*
 
@@ -1959,9 +1954,11 @@ function show_url_allograph(dialog, annotation, button) {
 				allograph_url = [];
 
 				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
-
-					url_temp = 'graph=' + annotator.selectedAnnotations[i].graph;
-
+					if (annotator.selectedAnnotations[i].is_editorial) {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].vector_id;
+					} else {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].graph;
+					}
 					allograph_url.push(url_temp);
 
 				}
@@ -1969,9 +1966,11 @@ function show_url_allograph(dialog, annotation, button) {
 				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
-
-				allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
-
+				if (annotator.selectedFeature.is_editorial) {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+				} else {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+				}
 			}
 
 		} else {
@@ -2909,8 +2908,8 @@ function registerEvents() {
 				}
 			}
 		});
-	*/
 
+*/
 		paths.unbind('dblclick').on('dblclick', function(event) {
 
 			if (annotator.boxes_on_click) {

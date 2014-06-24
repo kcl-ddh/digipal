@@ -63,7 +63,7 @@ function PublicAllograhs() {
 		});
 
 		annotation_li.find('a').click(function(event) {
-			var id = $(this).parent('.annotation_li').data('annotation');
+			var id = $(this).parent('.annotation_li').data('graph');
 			_self.to_annotator(id);
 
 			/*

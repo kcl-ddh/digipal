@@ -56,7 +56,19 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		maxResolution: Math.pow(2, this.imageLayer.numberOfTiers - 1),
 		numZoomLevels: annotator_zoom_levels,
 		projection: 'EPSG:3785',
-		units: 'm'
+		units: 'm',
+		eventListeners: {
+			featureover: function(e) {
+				if (e.feature.display_note) {
+					createPopup(e.feature);
+				}
+			},
+			featureout: function(e) {
+				if (e.feature.popup) {
+					deletePopup(e.feature);
+				}
+			},
+		}
 	});
 
 	//// adds the image layer to the map

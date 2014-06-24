@@ -665,9 +665,9 @@ path {
 }
 
 .static_text_dialog_div{
-    padding: 0.5em;
+    padding: 1em;
+    padding-top: 0;
     text-align: justify;
-    border: 1px solid #efefef;
 }
 
 .label-dialog {
@@ -676,6 +676,6 @@ path {
     margin-bottom:0;
 }
 
-[contenteditable='true']:empty:not(:focus):before{
-    content:attr(data-ph)
+.olPopupCloseBox{
+    display: none !important;
 }

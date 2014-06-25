@@ -1975,13 +1975,13 @@ function show_url_allograph(dialog, annotation, button) {
 
 				}
 
-				allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
+				allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
 				if (annotator.selectedFeature.is_editorial) {
-					allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+					allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
 				} else {
-					allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+					allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
 				}
 			}
 
@@ -2011,7 +2011,7 @@ function show_url_allograph(dialog, annotation, button) {
 					allograph_url.push(url_temp);
 
 				}
-				allograph_url = window.location.hostname + +document.location.port + ':' +
+				allograph_url = window.location.hostname + ':' + document.location.port +
 					document.location.pathname + '?' + allograph_url.join('&');
 			} else {
 
@@ -2027,7 +2027,7 @@ function show_url_allograph(dialog, annotation, button) {
 				if (checkboxesOff.length) {
 					geoJSONText.checkboxes = checkboxesOff;
 				}
-				allograph_url = window.location.hostname + +document.location.port + ':' +
+				allograph_url = window.location.hostname + ':' + document.location.port +
 					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 			}
 		}

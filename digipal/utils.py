@@ -312,7 +312,10 @@ def remove_accents(input_str):
         u'c   c'
     '''
     import unicodedata
-    return remove_combining_marks(unicodedata.normalize('NFKD', unicode(input_str)))
+    # use 'NFD' instead of 'NFKD'
+    # Otherwise the ellipsis \u2026 is tranformed into '...' and the output string will have a different length
+    #return remove_combining_marks(unicodedata.normalize('NFKD', unicode(input_str)))
+    return remove_combining_marks(unicodedata.normalize('NFD', unicode(input_str)))
 
 def remove_combining_marks(input_str):
     '''Returns the input unicode string without the combining marks found as 'individual character'

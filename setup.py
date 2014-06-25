@@ -34,7 +34,7 @@ setup(
         'Whoosh>=2.6.0',
         'disqus-python',
         '-e git+https://github.com/toastdriven/django-haystack.git@1274a8d1bc5b34348a6dd9405284b91b1e246747#egg=django_haystack-dev',
-        'git+git://github.com/geoffroy-noel-ddh/django-iipimage@0.1.0'
+        'git+git://github.com/geoffroy-noel-ddh/django-iipimage@0.1.0',
         '-e git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev',
         'django-reversion',
         'django-tinymce',

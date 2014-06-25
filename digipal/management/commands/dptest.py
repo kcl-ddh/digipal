@@ -156,11 +156,42 @@ Commands:
 
     def adhoc_test(self, *args):
         from digipal.templatetags import html_escape
-        value = u'''<div>Alençon, Bibliothèque Municipale</div>'''
+        value = u'''<tr>
+                <td>
+                    
+                </td>
+                <td>
+                        G. 31
+                </td>
+
+                <td>Cambridge, Clare College</td>
+                <td>17</td>
+                <td></td>
+                <td>
+                    Smaragdus, Diadema monachorum : s. xi ex. or xii in… (G.)
+                </td>
+            </tr>
         
+            <tr>
+                <td>
+                        G. 32
+                </td>
+
+                <td>Cambridge, Clare College</td>
+                <td>18</td>
+                <td></td>
+                <td>
+                    Orosius, Historiae adversus paganos ; Justinus, Epitome… (G.)
+                </td>
+            </tr>
+        
+        '''
+        
+        value = u'''\u00E6<td>Cambridge, n…  cambridge</td>'''
+
         ret = html_escape.tag_phrase_terms(value, unicode(args[0]))
         print '-' * 80
-        print ret
+        print ret.encode('ascii', 'ignore')
 
     def annotation_test(self):
 #         ips = ItemOrigin.objects.values_list('id', 'place__name')

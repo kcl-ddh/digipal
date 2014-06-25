@@ -93,7 +93,7 @@ def tag_phrase_terms(value, phrase=''):
     # we loose *some* the accents, e.g. u'r\u0305'
     value = remove_combining_marks(value)
     value_no_accent = remove_accents(value)
-
+    
     terms = get_tokens_from_phrase(remove_accents(phrase))
     
     if terms:

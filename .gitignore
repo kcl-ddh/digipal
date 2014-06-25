@@ -4,3 +4,4 @@
 *.pot
 *.pyc
 local_settings.py
+digipal/search/

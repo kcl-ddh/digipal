@@ -1562,6 +1562,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				}
 			}
 		} else {
+			if (!allow_multiple() || !this.selectedAnnotations.length) {
+				this.selectedAnnotations.push(annotator.selectedFeature);
+			}
 			for (var i = 0; i < this.selectedAnnotations.length; i++) {
 				feature = this.selectedAnnotations[i];
 
@@ -2032,6 +2035,8 @@ function show_url_allograph(dialog, annotation, button) {
 			}
 		}
 
+		console.log(allograph_url)
+
 		gapi.client.load('urlshortener', 'v1', function() {
 
 			var request = gapi.client.urlshortener.url.insert({
@@ -2039,6 +2044,7 @@ function show_url_allograph(dialog, annotation, button) {
 					'longUrl': allograph_url
 				}
 			});
+
 
 			var resp = request.execute(function(resp) {
 				if (resp.error) {
@@ -2129,7 +2135,9 @@ function load_data(selectedFeature, dialog, callback) {
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 		} else {
-			callback();
+			if (callback) {
+				callback();
+			}
 			return false;
 		}
 	} else {

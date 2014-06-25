@@ -26,8 +26,23 @@ function Scenario() {
                 AnnotatorTasks.tabs.switch('annotator');
             }
 
-            AnnotatorTasks.options.clickOption('development_annotation');
-            AnnotatorTasks.options.multiple_annotations(false);
+            var isMultipleSelected = casper.evaluate(function() {
+                return annotator.multiple_annotations;
+            });
+
+            var isAnnotatingSelected = casper.evaluate(function() {
+                return annotator.annotating;
+            });
+
+            casper.then(function() {
+                if (isMultipleSelected) {
+                    AnnotatorTasks.options.clickOption('multiple_annotations');
+                }
+
+                if (!isAnnotatingSelected) {
+                    AnnotatorTasks.options.clickOption('development_annotation');
+                }
+            });
 
             var feature = AnnotatorTasks.get.random_vector(features);
 
@@ -35,7 +50,7 @@ function Scenario() {
                 AnnotatorTasks.do.select(feature.graph, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
                     casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
-                    casper.wait(500, function() {
+                    casper.wait(1000, function() {
                         var features_selected = AnnotatorTasks.dialog.getSelectedFeatures();
                         AnnotatorTasks.tests.dialogMatchesCache(features_selected);
                         var labels = casper.evaluate(function() {
@@ -82,8 +97,10 @@ function Scenario() {
                 });
             });
 
-            casper.wait(1000, function() {
-                actions(feature);
+            casper.then(function() {
+                casper.wait(1000, function() {
+                    actions(feature);
+                });
             });
 
             casper.then(function() {
@@ -165,9 +182,24 @@ function Scenario() {
 
             AnnotatorTasks.do.unselect();
 
+            var isMultipleSelected = casper.evaluate(function() {
+                return annotator.multiple_annotations;
+            });
+
+            var isAnnotatingSelected = casper.evaluate(function() {
+                return annotator.annotating;
+            });
+
             casper.then(function() {
                 console.log('Enabling multiple annotations option');
-                AnnotatorTasks.options.clickOption('multiple_annotations');
+
+                if (!isMultipleSelected) {
+                    AnnotatorTasks.options.clickOption('multiple_annotations');
+                }
+
+                if (!isAnnotatingSelected) {
+                    AnnotatorTasks.options.clickOption('development_annotation');
+                }
             });
 
             var feature = AnnotatorTasks.get.random_vector(self.features);
@@ -268,7 +300,6 @@ function Scenario() {
 
         };
 
-
         this.Scenario6 = function() {
             casper.echo('Running Annotator Scenario 6', 'PARAMETER');
             casper.echo('Unselecting all annotations...');
@@ -276,7 +307,7 @@ function Scenario() {
             feature = AnnotatorTasks.get.random_vector(self.features);
             AnnotatorTasks.do.select(feature.id, function() {
                 casper.echo('Generating url for graph ' + feature.id + '...');
-                generateUrl(function() {
+                AnnotatorTasks.do.generateUrl(function() {
                     AnnotatorTasks.do.unselect();
                     AnnotatorTasks.options.clickOption('development_annotation');
                     AnnotatorTasks.do.annotate(null, false, function() {
@@ -287,29 +318,46 @@ function Scenario() {
                             ".name_temporary_annotation": 'Name',
                             ".textarea_temporary_annotation": "<b>Content</b>"
                         }, false);
-
                     }, false);
                 });
             });
+        };
 
-            var generateUrl = function(callback) {
-                casper.click('.url_allograph');
-                casper.wait(1000, function() {
-                    casper.test.assertExists('.allograph_url_div', 'The URL has been generated');
-                    casper.click('#long_url');
-                    var url = casper.evaluate(function() {
-                        return $('.allograph_url_div input').val();
-                    });
-                    url = url.replace(/(.)*\/digipal/, options.page + '/digipal');
-                    casper.thenOpen(url, function() {
-                        casper.test.assertExists('.dialog_annotations', 'The dialog has been correctly loaded');
-                        if (typeof callback !== 'undefined' && callback instanceof Function) {
-                            callback();
-                        }
+        this.Scenario7 = function() {
+            console.log('Activating editorial annotations');
+            AnnotatorTasks.do.unselect();
+            AnnotatorTasks.options.clickOption('development_annotation');
+            casper.evaluate(function() {
+                annotator.editorial.activate();
+            });
+            AnnotatorTasks.do.annotate(null, false, function() {
+                casper.then(function() {
+                    casper.wait(800, function() {
+                        casper.test.assertExists('#internal_note', 'The internal note textarea exists');
+                        casper.test.assertExists('#display_note', 'The public note textarea exists');
+                        casper.fillSelectors('.ui-dialog', {
+                            "#internal_note": "Internal note",
+                            "#display_note": "Display note"
+                        }, false);
+                        var vector_id = casper.evaluate(function() {
+                            return annotator.selectedFeature.id;
+                        });
+                        AnnotatorTasks.do.save(function() {
+                            AnnotatorTasks.do.unselect();
+                            var feature = AnnotatorTasks.do.select(vector_id, function() {
+                                var values = casper.evaluate(function() {
+                                    return {
+                                        'internal_note': $('#internal_note').val(),
+                                        'display_note': $('#display_note').val()
+                                    };
+                                });
+                                casper.test.assertEquals(values.internal_note, 'Internal note', 'Internal note text matches');
+                                casper.test.assertEquals(values.display_note, 'Display note', 'Display note text matches');
+                            });
+                        });
                     });
                 });
-            };
-
+            }, false);
         };
     };
 }

@@ -879,7 +879,6 @@ function AnnotatorLoader() {
 			return false;
 		});
 		updateTabCounter();
-
 	};
 
 	// sets options to open or not boxes when a vector gets clicked on
@@ -902,7 +901,6 @@ function AnnotatorLoader() {
 			annotator.selectFeature.multiple = false;
 			//annotator.selectFeature.toggle = false;
 			self.digipal_settings.select_multiple_annotations = false;
-
 		} else {
 			annotator.selectFeature.multiple = true;
 			self.digipal_settings.select_multiple_annotations = true;

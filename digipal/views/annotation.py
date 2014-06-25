@@ -686,6 +686,10 @@ def save_editorial(request, graphs):
             'success': False,
             'graphs': []
         }
+
+        if not graphs or len(graphs) == 0:
+            raise Exception('No data provided')
+
         try:
             graphs = graphs.replace('/"', "'")
             graphs = json.loads(graphs)

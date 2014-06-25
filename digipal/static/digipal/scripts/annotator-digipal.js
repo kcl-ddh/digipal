@@ -141,28 +141,30 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var allograph_id = annotations[i]['allograph_id'];
 				var vector_id = annotations[i]['vector_id'];
 				var is_editorial = annotations[i]['is_editorial'];
-				f.feature = allograph;
-				f.character_id = character_id;
-				f.graph = graph;
-				f.character = character;
-				f.hand = hand;
-				f.image_id = image_id;
-				f.num_features = num_features;
-				f.display_note = display_note;
-				f.internal_note = internal_note;
-				f.allograph_id = allograph_id;
-				f.vector_id = vector_id;
-				if (graph) {
-					f.id = graph;
-				} else {
-					f.id = vector_id;
+				if (graph || is_editorial) {
+					f.feature = allograph;
+					f.character_id = character_id;
+					f.graph = graph;
+					f.character = character;
+					f.hand = hand;
+					f.image_id = image_id;
+					f.num_features = num_features;
+					f.display_note = display_note;
+					f.internal_note = internal_note;
+					f.allograph_id = allograph_id;
+					f.vector_id = vector_id;
+					if (graph) {
+						f.id = graph;
+					} else {
+						f.id = vector_id;
+					}
+					f.is_editorial = is_editorial;
+					// it serves to differentiate stored and temporary annotations
+					f.stored = true;
+					f.linked_to = [];
+					/* annotator.vectorLayer.features is the array to access to all the features */
+					features.push(f);
 				}
-				f.is_editorial = is_editorial;
-				// it serves to differentiate stored and temporary annotations
-				f.stored = true;
-				f.linked_to = [];
-				/* annotator.vectorLayer.features is the array to access to all the features */
-				features.push(f);
 			}
 
 			// adds all the vectors to the vector layer
@@ -1973,13 +1975,13 @@ function show_url_allograph(dialog, annotation, button) {
 
 				}
 
-				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
+				allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
 				if (annotator.selectedFeature.is_editorial) {
-					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+					allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
 				} else {
-					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+					allograph_url = window.location.hostname + document.location.port + ':' + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
 				}
 			}
 
@@ -2009,7 +2011,7 @@ function show_url_allograph(dialog, annotation, button) {
 					allograph_url.push(url_temp);
 
 				}
-				allograph_url = window.location.hostname +
+				allograph_url = window.location.hostname + +document.location.port + ':' +
 					document.location.pathname + '?' + allograph_url.join('&');
 			} else {
 
@@ -2025,7 +2027,7 @@ function show_url_allograph(dialog, annotation, button) {
 				if (checkboxesOff.length) {
 					geoJSONText.checkboxes = checkboxesOff;
 				}
-				allograph_url = window.location.hostname +
+				allograph_url = window.location.hostname + +document.location.port + ':' +
 					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 			}
 		}
@@ -2109,7 +2111,6 @@ function load_data(selectedFeature, dialog, callback) {
 	} else {
 		allograph = select_allograph.val();
 	}
-
 
 	if (typeof selectedFeature == "null" || $.isEmptyObject(selectedFeature) || !selectedFeature.hasOwnProperty('graph')) {
 
@@ -2528,12 +2529,22 @@ function deleteAnnotationByFeatureId(id) {
 
 function updateTabCounter() {
 	var tab_link = $('a[data-target="#allographs"]');
+	var unsaved_link = $('.number_unsaved_allographs');
 	var f = annotator.vectorLayer.features;
-	var y = 0;
-	while (y < f.length && f[y].stored) {
-		y++;
+	annotator.unsaved_annotations = [];
+	var d = 0;
+	var x = 0;
+	for (y = 0; y < f.length; y++) {
+		if (f[y].stored) {
+			d++;
+		} else if (!f[y].stored && f[y].state == 'Insert') {
+			x++;
+			annotator.unsaved_annotations.push(f[y]);
+		}
 	}
-	tab_link.html('Annotations (' + y + ')');
+
+	tab_link.html('Annotations (' + d + ')');
+	unsaved_link.html(x);
 }
 
 function delete_annotation(layer, feature, number_annotations) {
@@ -2546,6 +2557,7 @@ function delete_annotation(layer, feature, number_annotations) {
 	layer.destroyFeatures([feature]);
 	if (!feature.stored) {
 		updateStatus('Annotation deleted locally', 'success');
+		updateTabCounter();
 		return false;
 	}
 	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
@@ -2767,7 +2779,7 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].graph == new_graphs[i].graph) {
+						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].graph == new_graphs[i].graph) {
 							feature = f[feature_ind];
 							//id = feature.id;
 							feature.feature = allograph;

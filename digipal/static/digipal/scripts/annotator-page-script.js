@@ -878,7 +878,7 @@ function AnnotatorLoader() {
 			event.stopPropagation();
 			return false;
 		});
-
+		updateTabCounter();
 
 	};
 

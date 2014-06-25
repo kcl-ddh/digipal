@@ -37,12 +37,15 @@ function TestSuite(_options) {
         // assert errors
         var assert_failures = [];
 
-        Events(errors, assert_failures);
+        var successes = [];
+
+        Events(errors, assert_failures, successes);
 
         casper.test.begin('Initializing Tests', function() {
             casper.start(options.page).then(function() {
                 Scraper(Tests.tests, options);
             }).run(function() {
+
                 if (assert_failures.length) {
                     this.echo(assert_failures.length + ' failures', 'ERROR');
                 }
@@ -53,6 +56,12 @@ function TestSuite(_options) {
                     this.echo(errors.length + ' Javascript errors found', "INFO");
                 }
 
+                if (successes.length) {
+                    this.echo(successes.length + ' Tests executed succesfully', "GREEN_BAR");
+                }
+
+                casper.test.done();
+
                 this.echo('All tasks done.', 'GREEN_BAR');
                 this.exit();
             });
@@ -60,7 +69,7 @@ function TestSuite(_options) {
 
     };
 
-    var Events = function(errors, assert_failures) {
+    var Events = function(errors, assert_failures, successes) {
 
         casper.on('http.status.404', function(resource) {
             this.echo('This url is 404: ' + resource.url, 'ERROR');
@@ -91,6 +100,7 @@ function TestSuite(_options) {
         });
 
         casper.test.on("fail", function(failure) {
+            Utils.screenshot('screenshots', failure.message);
             assert_failures.push(failure);
         });
 
@@ -99,6 +109,10 @@ function TestSuite(_options) {
                 this.echo('remote message caught: ' + msg);
             });
         }
+
+        casper.test.on("success", function(success) {
+            successes.push(success);
+        });
     };
 
     var Scraper = function(_tests, options) {
@@ -295,7 +309,7 @@ function TestSuite(_options) {
             return true;
         },
 
-        screenshot: function() {
+        screenshot: function(url, name) {
             var viewportSizes = [
                     [320, 480],
                     [320, 568],
@@ -305,7 +319,6 @@ function TestSuite(_options) {
                     [1440, 900]
                 ],
 
-                url = casper.cli.args[0],
                 saveDir = url.replace(/[^a-zA-Z0-9]/gi, '-').replace(/^https?-+/, '');
 
             casper.each(viewportSizes, function(self, viewportSize, i) {
@@ -317,8 +330,8 @@ function TestSuite(_options) {
                 this.viewport(width, height);
 
                 //Set up two vars, one for the fullpage save, one for the actual viewport save
-                var FPfilename = saveDir + '/fullpage-' + width + ".png";
-                var ACfilename = saveDir + '/' + width + '-' + height + ".png";
+                var FPfilename = saveDir + '/' + name + 'fullpage-' + width + ".png";
+                var ACfilename = saveDir + '/' + name + '-' + width + '-' + height + ".png";
 
                 //Capture selector captures the whole body
                 this.captureSelector(FPfilename, 'body');

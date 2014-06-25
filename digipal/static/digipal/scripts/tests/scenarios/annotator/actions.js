@@ -161,7 +161,9 @@ var Actions = function(options) {
                 var self = this;
 
                 var execute = function() {
-                    self.describeForms();
+                    if (describe) {
+                        self.describeForms();
+                    }
                     casper.then(function() {
                         casper.wait(1000, function() {
                             if (describe) {
@@ -374,6 +376,23 @@ var Actions = function(options) {
                         casper.echo('It was not possible to cache a graph', 'ERROR');
                         casper.echo(JSON.stringify(response.data), 'WARNING');
                     }
+                });
+            },
+            generateUrl: function(callback) {
+                casper.click('.url_allograph');
+                casper.wait(1000, function() {
+                    casper.test.assertExists('.allograph_url_div', 'The URL has been generated');
+                    casper.click('#long_url');
+                    var url = casper.evaluate(function() {
+                        return $('.allograph_url_div input').val();
+                    });
+                    url = url.replace(/(.)*\/digipal/, options.page + '/digipal');
+                    casper.thenOpen(url, function() {
+                        casper.test.assertExists('.dialog_annotations', 'The dialog has been correctly loaded');
+                        if (typeof callback !== 'undefined' && callback instanceof Function) {
+                            callback();
+                        }
+                    });
                 });
             }
         },

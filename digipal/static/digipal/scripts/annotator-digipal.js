@@ -669,18 +669,26 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					if (annotator.selectedAnnotations.length > 1) {
 						var links = [];
 						for (var l in annotator.selectedAnnotations) {
-							links.push(annotator.selectedAnnotations[l].graph);
+							if (annotator.selectedAnnotations[l].is_editorial) {
+								links.push(annotator.selectedAnnotations[l].vector_id);
+							} else {
+								links.push(parseInt(annotator.selectedAnnotations[l].graph, 10));
+							}
 						}
 						if (add_to_lightbox($(this), 'annotation', links, true)) {
 							$(this).find('span').addClass('starred').removeClass('unstarred');
 						}
 					} else {
-						if (add_to_lightbox($(this), 'annotation', selectedFeature.graph, false)) {
+						var _gr = parseInt(selectedFeature.graph, 10);
+						if (selectedFeature.is_editorial) {
+							_gr = selectedFeature.vector_id;
+						}
+						if (add_to_lightbox($(this), 'annotation', _gr, false)) {
 							$(this).find('span').addClass('starred').removeClass('unstarred');
 						}
 					}
 				} else {
-					if (annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) {
+					if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial) {
 						_Star.removeFromCollection($(this), 'annotation');
 						$(this).find('span').addClass('unstarred').removeClass('starred');
 					}
@@ -707,11 +715,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			$('.delete_trigger').unbind().on('click', function() {
 				annotator.deleteFeature.clickFeature();
-			});
-
-			$('#clear_formatting').on('click', function() {
-				var text = $('.textarea_temporary_annotation').html();
-				$('.textarea_temporary_annotation').html(text.replace(/<[^>]*>/gi, '')).focus();
 			});
 
 			$('*[data-toggle="tooltip"]').tooltip({
@@ -877,9 +880,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 								html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
 							}
 							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
-							if (!selectedFeature.hasOwnProperty('graph')) {
-								html_string_buttons += " <button id='clear_formatting' class='btn btn-default btn-xs' data-toggle='tooltip' title='Clear formatting'>Clear</button>";
-							}
 						} else {
 
 							if (annotator.selectedFeature) {
@@ -895,7 +895,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 						} else {
 							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
-							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button> <button id='clear_formatting' class='btn btn-default btn-xs' data-toggle='tooltip' title='Clear formatting'>Clear</button>";
+							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
 						}
 					}
 				}
@@ -917,8 +917,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var _self = this;
 				var current_collection = _Star.getCurrentCollection();
 
-				if (annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) {
+				if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial) {
 					var graph = annotator.selectedFeature.graph;
+					if (annotator.selectedFeature.is_editorial) {
+						graph = annotator.selectedFeature.graph;
+					}
 					var button = $("<button class='to_lightbox btn btn-default btn-xs' data-graph = '" + graph + "' data-toggle='tooltip' data-container='body' title='Add to Collection' data-type='annotation'>");
 					var span = $("<span class='glyphicon glyphicon-star'>");
 					if (_Star.isInCollection(current_collection, graph, 'annotation')) {

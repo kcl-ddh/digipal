@@ -108,7 +108,7 @@ function main() {
 		if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
 			s += "<h3 id='header_annotations'>Graphs (" + collection.annotations.length + ")</h3>";
 			for (var i = 0; i < collection.annotations.length; i++) {
-				graphs.push(parseInt(collection.annotations[i], 10));
+				graphs.push(collection.annotations[i]);
 			}
 			data.annotations = graphs;
 		}

@@ -19,6 +19,11 @@ var api = new DigipalAPI({
 });
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
+
+	if (annotator.selectedFeature.isTemporary) {
+		callback('');
+	}
+
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(data['features']);
 	var allographs = data.allographs;

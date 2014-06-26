@@ -164,7 +164,7 @@ def iip_img_a(image, *args, **kwargs):
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url), iip_img(image, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url.replace('\\', '/')), iip_img(image, *args, **kwargs)))
 
 @register.simple_tag
 def iip_img(image_or_iipfield, *args, **kwargs):
@@ -319,7 +319,7 @@ def iip_url(iipfield, *args, **kwargs):
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)))
+    return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
 
 def escapenewline(value):
     """

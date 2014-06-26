@@ -320,7 +320,7 @@ INSTALLED_APPS = INSTALLED_APPS + (
         'digipal',
         'haystack',
         #'legacy',
-        'reversion',
+        #'reversion',
         'south',
         )
 

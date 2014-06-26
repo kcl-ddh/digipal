@@ -206,7 +206,7 @@ def process_commands_main_dir():
                     system('%schown www-data:digipal -R .' % sudo)
                     system('%schown gnoel:digipal -R .hg' % sudo)
                     system('%schmod 570 -R .' % sudo)
-                    dirs = [d for d in 'digipal_django/static/CACHE;digipal_django/search;digipal_django/media/uploads;.hg'.split(';') if os.path.exists(d)]
+                    dirs = [d for d in 'digipal_django/static/CACHE;digipal_django/search;digipal_django/logs;digipal_django/media/uploads;.hg'.split(';') if os.path.exists(d)]
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
                     # we do this because the cron job to reindex the content 
                     # recreate the dirs with owner = gnoel:ddh-research

@@ -2650,11 +2650,19 @@ function delete_annotation(layer, feature, number_annotations) {
 
 
 function isNodeEmpty(node) {
-	var string = $.parseHTML(node);
-	var emptyNodes = 0;
-	for (var i = 0; i < string.length; i++) {
-		if ($.trim(string[i].innerText) === '') {
-			emptyNodes++;
+	if (node) {
+		var string = $.parseHTML(node);
+		var emptyNodes = 0;
+		var value;
+		for (var i = 0; i < string.length; i++) {
+			if (string[i].nodeName == '#text') {
+				value = string[i].nodeValue;
+			} else {
+				value = string[i].innerText;
+			}
+			if ($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') {
+				emptyNodes++;
+			}
 		}
 		return emptyNodes === string.length;
 	}

@@ -189,7 +189,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 						notify('Annotation has not been saved yet', 'danger');
 						return false;
 					}
-					elements.push(parseInt(annotations, 10));
+					elements.push(annotations);
 					notify('Annotation successfully added to collection', 'success');
 				} else {
 					image_id = graph;
@@ -212,12 +212,12 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			if (type == 'annotation') {
 				if (current_basket.hasOwnProperty('images')) {
 					current_basket.annotations = [];
-					current_basket.annotations.push(parseInt(annotations, 10));
+					current_basket.annotations.push(annotations);
 				} else {
 					current_basket = {};
 					current_basket.annotations = [];
-					current_basket.annotations.push(parseInt(annotations, 10));
-					current_basket['id'] = collection_id;
+					current_basket.annotations.push(annotations);
+					current_basket.id = collection_id;
 					collections[collection_name] = current_basket;
 				}
 				notify('Annotation successfully added to collection', 'success');
@@ -230,7 +230,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket = {};
 					current_basket.images = [];
 					current_basket.images.push(parseInt(image_id, 10));
-					current_basket['id'] = collection_id;
+					current_basket.id = collection_id;
 					collections[collection_name] = current_basket;
 				}
 				notify('Image successfully added to collection', 'success');

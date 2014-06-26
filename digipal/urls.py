@@ -12,12 +12,12 @@ mezzanine_patches()
 
 statistic = count()
 
-urlpatterns = patterns('', 
+urlpatterns = patterns('',
     url(r'^admin/', include('digipal.urls_admin')),
     url(r'^admin/', include(admin.site.urls)),
-    
+
     url(r'^digipal/', include('digipal.urls_digipal')),
-    
+
     url(r'^account/$', 'django.contrib.auth.views.login'),
 
     url(r'^robots.txt/?$', 'digipal.views.robots.robots_view'),
@@ -25,7 +25,7 @@ urlpatterns = patterns('',
     # these allow us to test 404 and 500 pages in DEBUG=True mode
     url('^404/?$', direct_to_template, {'template': 'errors/404.html'}, name = '404'),
     url('^500/?$', direct_to_template, {'template': 'errors/500.html'}, name = '500'),
-    
+
     url('^$', direct_to_template, {
         'template': 'home.html',
         'extra_context': {
@@ -41,10 +41,10 @@ urlpatterns = patterns('',
 )
 
 if settings.LIGHTBOX:
-    url(r'^lightbox/', include('lightbox.urls', namespace='lightbox', app_name='lightbox')),
+    urlpatterns += patterns('', url(r'^lightbox/$', include('lightbox.urls', namespace='lightbox', app_name='lightbox')))
 
 # Server media in debug mode
-if settings.DEBUG :
+if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
     )

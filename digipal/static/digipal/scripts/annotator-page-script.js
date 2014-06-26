@@ -291,8 +291,8 @@ function AnnotatorLoader() {
 			}
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
-
-				var temp = annotator.utils.Base64.decode(temporary_vectors[t]).normalize();
+				var temp = annotator.utils.Base64.decode(temporary_vectors[t]);
+				temp = temp.replace(/\0/g, "");
 				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];

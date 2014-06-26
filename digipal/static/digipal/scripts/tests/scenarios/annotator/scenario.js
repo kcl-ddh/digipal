@@ -206,12 +206,15 @@ function Scenario() {
             var feature2 = AnnotatorTasks.get.random_vector(self.features);
 
             casper.then(function() {
+
                 while (feature.allograph_id !== feature2.allograph_id) {
                     feature2 = AnnotatorTasks.get.random_vector(self.features);
+                    AnnotatorTasks.do.select(feature2.id);
                 }
             });
 
             casper.then(function() {
+                AnnotatorTasks.do.unselect();
                 AnnotatorTasks.do.select(feature.id);
             });
 
@@ -222,7 +225,6 @@ function Scenario() {
             casper.then(function() {
                 casper.wait(1200, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog has been created');
-                    casper.capture('screen.png');
                     if (!AnnotatorTasks.get.common_components(feature, feature2).length) {
                         casper.echo('The two features have no common components');
                         casper.test.assertSelectorHasText('.dialog_annotations', 'No common components', 'The window clearly states that the two graph have no common components');
@@ -260,21 +262,25 @@ function Scenario() {
 
             casper.then(function() {
 
-                feature = AnnotatorTasks.get.random_vector(self.features);
-                feature2 = AnnotatorTasks.get.random_vector(self.features);
-
-                AnnotatorTasks.do.select(feature.id);
-                AnnotatorTasks.do.select(feature2.id);
-
-                casper.echo('Looking for different allographs with common components...');
-
-                while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
+                casper.then(function() {
+                    feature = AnnotatorTasks.get.random_vector(self.features);
                     feature2 = AnnotatorTasks.get.random_vector(self.features);
-                    AnnotatorTasks.do.unselect();
+
                     AnnotatorTasks.do.select(feature.id);
                     AnnotatorTasks.do.select(feature2.id);
-                }
 
+                    casper.echo('Looking for different allographs with common components...');
+
+                    while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
+                        feature2 = AnnotatorTasks.get.random_vector(self.features);
+                        AnnotatorTasks.do.unselect();
+                        AnnotatorTasks.do.select(feature.id);
+                        AnnotatorTasks.do.select(feature2.id);
+                    }
+                });
+                casper.then(function() {
+                    casper.wait(1000);
+                });
                 casper.then(function() {
                     var common_features = AnnotatorTasks.get.common_features(feature, feature2);
                     var areFeaturesChecked = casper.evaluate(function(common_features) {
@@ -318,6 +324,7 @@ function Scenario() {
                             ".name_temporary_annotation": 'Name',
                             ".textarea_temporary_annotation": "<b>Content</b>"
                         }, false);
+                        AnnotatorTasks.do.generateUrl();
                     }, false);
                 });
             });
@@ -335,10 +342,12 @@ function Scenario() {
                     casper.wait(800, function() {
                         casper.test.assertExists('#internal_note', 'The internal note textarea exists');
                         casper.test.assertExists('#display_note', 'The public note textarea exists');
-                        casper.fillSelectors('.ui-dialog', {
-                            "#internal_note": "Internal note",
-                            "#display_note": "Display note"
-                        }, false);
+                        casper.evaluate(function() {
+                            $('#internal_note').html('Internal Note');
+                            $('#display_note').html('Display Note');
+                            console.log($('#internal_note').html())
+                        });
+                        casper.capture('screen.png');
                         var vector_id = casper.evaluate(function() {
                             return annotator.selectedFeature.id;
                         });
@@ -347,12 +356,12 @@ function Scenario() {
                             var feature = AnnotatorTasks.do.select(vector_id, function() {
                                 var values = casper.evaluate(function() {
                                     return {
-                                        'internal_note': $('#internal_note').val(),
-                                        'display_note': $('#display_note').val()
+                                        'internal_note': $('#internal_note').html(),
+                                        'display_note': $('#display_note').html()
                                     };
                                 });
-                                casper.test.assertEquals(values.internal_note, 'Internal note', 'Internal note text matches');
-                                casper.test.assertEquals(values.display_note, 'Display note', 'Display note text matches');
+                                casper.test.assertEquals(values.internal_note, 'Internal Note', 'Internal note text matches');
+                                casper.test.assertEquals(values.display_note, 'Display Note', 'Display note text matches');
                             });
                         });
                     });

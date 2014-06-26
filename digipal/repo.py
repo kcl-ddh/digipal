@@ -68,8 +68,8 @@ def get_hg_folder_name():
 def process_commands():
     dir = os.getcwd()
     
-    parent_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
-    os.chdir(parent_dir)
+    #parent_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+    #os.chdir(parent_dir)
     
     try:
         process_commands_main_dir()
@@ -88,7 +88,7 @@ def process_commands_main_dir():
     (options, args) = parser.parse_args()
     
     known_command = False
-    
+
     if len(args):
         command = args[0]
         dir = os.getcwd()
@@ -175,7 +175,8 @@ def process_commands_main_dir():
 
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
-                os.chdir('digipal_github/digipal')
+                os.chdir('digipal_github')
+                os.chdir('digipal')
                 git_status_info = {}
                 system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
                 branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])

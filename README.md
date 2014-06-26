@@ -10,8 +10,9 @@
 3. How To Set Up Digipal
 4. Run Digipal
 5. What To Do After
-6. API
-7. Testing
+6. Lightbox
+7. API
+8. Testing
 
 
 ## 1. About
@@ -143,7 +144,20 @@ You should create a superuser to edit the Digipal back-end through the Mezzanine
 	
 After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin and log in.
 
-## 6. API
+## 6. Lightbox
+
+The Lightbox is a separate project, even though it's still tightly linked to Digipal.
+It is possible to install it through pip:
+	
+	pip install git+https://github.com/Gbuomprisco/Digital-Lightbox.git
+
+By default, it is disabled. You can enable it by setting the variable LIGHTBOX in your settings:
+
+	LIGHTBOX = True
+
+It will be available at the address /lightbox
+	
+## 7. API
 It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.
 
 ### Documentation
@@ -229,6 +243,6 @@ Another example:
 		/* ... your data ... */
 	}, [], 1);
 
-## 7. Testing
+## 8. Testing
 
 The documentation for testing Digipal is available at [https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md)

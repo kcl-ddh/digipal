@@ -206,6 +206,7 @@ function Scenario() {
             var feature2 = AnnotatorTasks.get.random_vector(self.features);
 
             casper.then(function() {
+
                 while (feature.allograph_id !== feature2.allograph_id) {
                     feature2 = AnnotatorTasks.get.random_vector(self.features);
                     AnnotatorTasks.do.select(feature2.id);
@@ -213,6 +214,7 @@ function Scenario() {
             });
 
             casper.then(function() {
+                AnnotatorTasks.do.unselect();
                 AnnotatorTasks.do.select(feature.id);
             });
 
@@ -276,7 +278,9 @@ function Scenario() {
                         AnnotatorTasks.do.select(feature2.id);
                     }
                 });
-
+                casper.then(function() {
+                    casper.wait(1000);
+                });
                 casper.then(function() {
                     var common_features = AnnotatorTasks.get.common_features(feature, feature2);
                     var areFeaturesChecked = casper.evaluate(function(common_features) {
@@ -320,6 +324,7 @@ function Scenario() {
                             ".name_temporary_annotation": 'Name',
                             ".textarea_temporary_annotation": "<b>Content</b>"
                         }, false);
+                        AnnotatorTasks.do.generateUrl();
                     }, false);
                 });
             });

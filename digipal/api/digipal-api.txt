@@ -30,8 +30,11 @@ Parts:
     :filter =
         Any Django valid QuerySet filter that can be applied to the model specified in :content_type
         Note that filters must start with an underscore. You can use more than one filter.
+        String values shouldn't be surounded by quotes and booleans can be expressed with 0 (False) or 1 (True). 
         e.g. GET /digipal/api/annotation/?_graph__id__gt=2000&_rotation=0
             retrieves annotation where annotation.graph.id > 2000 AND annotation.rotation = 0
+        e.g. GET /digipal/api/itempart/?_pagination=1&_display_label__icontains=badminton
+            retrieves itemparts where itempart.pagination = True and itempart.display_label contains 'badminton'
     
     :fieldset =
         A field name from the requested content_type or a custom-defined fieldset.

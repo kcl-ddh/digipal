@@ -478,11 +478,13 @@ def images_lightbox(request, collection_name):
     data = {}
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
+        print graphs
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
             annotations_list.sort(key=lambda t: graphs['annotations'].index(t.graph.id))
             for annotation in annotations_list:
+
                 try:
                     #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:

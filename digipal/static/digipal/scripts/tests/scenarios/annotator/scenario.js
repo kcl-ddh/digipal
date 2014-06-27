@@ -26,6 +26,12 @@ function Scenario() {
                 AnnotatorTasks.tabs.switch('annotator');
             }
 
+            var isEditorial = casper.evaluate(function() {
+                if (annotator.editorial.active) {
+                    annotator.editorial.deactivate();
+                }
+            });
+
             var isMultipleSelected = casper.evaluate(function() {
                 return annotator.multiple_annotations;
             });
@@ -165,6 +171,8 @@ function Scenario() {
                         }
                         console.log(found, vectors_ids.length);
                         casper.test.assert(found === vectors_ids.length, 'All images have been loaded');
+                        //casper.click('.close_top_div_annotated_allographs');
+                        //casper.test.assertDoesntExist('.close_top_div_annotated_allographs', 'The windows has been closed');
                     });
                 });
 

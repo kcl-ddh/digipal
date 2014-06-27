@@ -33,11 +33,9 @@ $(document).ready(function() {
 				}
 			}
 		} else {
-			if (typeof annotator == 'undefined') {
+			if (typeof annotator.annotations == 'undefined') {
 				main(true);
 			}
-
-			loader.toolbar_position();
 
 			if (dialog.length) {
 				dialog.parent().fadeIn();

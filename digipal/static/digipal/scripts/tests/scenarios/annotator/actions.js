@@ -43,8 +43,8 @@ var Actions = function(options) {
                 });
             },
 
-            adminAccess: function(admin_page, username, password) {
-                var page = options.page + '/digipal/page/132';
+            adminAccess: function(admin_page, username, password, page_id) {
+                var page = options.page + '/digipal/page/' + page_id;
 
                 var isAdmin = casper.evaluate(function() {
                     if (typeof annotator === 'undefined') {

@@ -28,6 +28,12 @@ function Scenario() {
 
             var features = AnnotatorTasks.get.features();
             casper.echo(features.length + ' features found', 'INFO');
+
+            if (!features.length) {
+                casper.echo('Hey, wait, this scenario needs an image with at least one feature', 'WARNING');
+                casper.echo('Please provide another image to continue');
+                return casper.exit();
+            }
             self.features = features;
             casper.echo('Running Annotator Scenario 1', 'PARAMETER');
 

@@ -221,6 +221,22 @@ def mezzanine_patches():
             from mezzanine.blog.models import BlogPost
             BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
 
+    # see https://github.com/stephenmcd/mezzanine/issues/1060
+    patch_thumbnail = True
+    if patch_thumbnail:
+        from mezzanine.core.templatetags import mezzanine_tags
+        
+        thumbnail = mezzanine_tags.thumbnail
+        
+        def thumbnail_2(*args, **kwargs):
+            ret = ''
+            try:
+                ret = thumbnail(*args, **kwargs)
+            except:
+                pass
+            return ret
+        mezzanine_tags.thumbnail = thumbnail_2
+
 def admin_patches():
     # Patch 5: bar permissions to some application models in the admin
     # Why not doing it with django permissions and groups?

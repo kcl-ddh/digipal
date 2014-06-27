@@ -823,9 +823,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						dialog.css("margin", "3%");
 						dialog.html(s);
 
-						dialog.find('#display_note').notebook().html(selectedFeature.display_note);
+						dialog.find('#display_note').notebook({
+							placeholder: 'Type display note here...'
+						}).html(selectedFeature.display_note);
 
-						dialog.find('#internal_note').notebook().html(selectedFeature.internal_note);
+						dialog.find('#internal_note').notebook({
+							placeholder: 'Type internal note here...'
+						}).html(selectedFeature.internal_note);
 
 						annotator.editorial.activate();
 						return callback();
@@ -2236,12 +2240,12 @@ function refresh_features_dialog(data, dialog) {
 
 	if (data.hasOwnProperty('display_note')) {
 		s += "<label class='label-dialog'>Public Note</label>";
-		s += "<p class='static_text_dialog_div'>" + data.display_note + '</p>';
+		s += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
 	}
 
 	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note')) {
 		s += "<label class='label-dialog'>Internal Note</label>";
-		s += "<p class='static_text_dialog_div'>" + data.internal_note + '</p>';
+		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
 	}
 
 	dialog.html(s);
@@ -2278,9 +2282,13 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var internal_note = $('<div>');
 			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true);
 
-			display_note.notebook().html(selectedFeature.display_note);
+			display_note.notebook({
+				placeholder: "Type display note here..."
+			}).html(selectedFeature.display_note);
 
-			internal_note.notebook().html(selectedFeature.internal_note);
+			internal_note.notebook({
+				placeholder: "Type internal note here..."
+			}).html(selectedFeature.internal_note);
 
 			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
 			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";

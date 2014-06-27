@@ -670,7 +670,7 @@ path {
 
 .static_text_dialog_div{
     padding: 1em;
-    padding-top: 0;
+    padding-top: 0.4em;
     text-align: justify;
 }
 

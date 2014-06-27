@@ -282,13 +282,17 @@ function Scenario() {
                     while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
                         feature2 = AnnotatorTasks.get.random_vector(self.features);
                         AnnotatorTasks.do.unselect();
-                        AnnotatorTasks.do.select(feature.id);
-                        AnnotatorTasks.do.select(feature2.id);
+                        casper.then(function() {
+                            AnnotatorTasks.do.select(feature.id);
+                            AnnotatorTasks.do.select(feature2.id);
+                        });
                     }
                 });
+
                 casper.then(function() {
                     casper.wait(1000);
                 });
+
                 casper.then(function() {
                     var common_features = AnnotatorTasks.get.common_features(feature, feature2);
                     var areFeaturesChecked = casper.evaluate(function(common_features) {

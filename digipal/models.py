@@ -2223,7 +2223,7 @@ class Annotation(models.Model):
         # Just concatenate things together instead
         image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
         ret = u'%s?%s' % (image_url, cutout_qs)
-        ret = re.sub(ur'FIF=[^&]+', 'FIF='+unicode(self.path()), ret)
+        ret = re.sub(ur'FIF=[^&]+', 'FIF='+unicode(self.image.path()), ret)
         if full_size:
             # for some resson a HEI value is included within the cutout_url
             # we remove this and ask for full quality for the full_size version

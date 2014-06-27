@@ -87,7 +87,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			i++;
 		}
 		*/
-		number_allographs_element.html(i);
+		//number_allographs_element.html(i);
 
 		if (self.annotations) {
 			var annotation = self.vectorLayer.getFeatureById(feature.id);

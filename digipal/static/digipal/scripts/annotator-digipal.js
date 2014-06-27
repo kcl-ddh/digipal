@@ -878,7 +878,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var html_string_label, html_string_buttons;
 
 				if (annotator.editorial.active || selectedFeature.is_editorial) {
-					html_string_label = "<span class='allograph_label'>Editorial Annotation</span>";
+					html_string_label = "<span class='allograph_label'>Editorial Ann.</span>";
 					html_string_buttons = '';
 					if (annotator.isAdmin == "True") {
 						html_string_buttons += " <button class='btn btn-xs btn-success save_trigger'><span data-toggle='tooltip' data-container='body' title='Save Annotation' class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button>";
@@ -2238,12 +2238,12 @@ function refresh_features_dialog(data, dialog) {
 
 	s += "</ul>";
 
-	if (data.hasOwnProperty('display_note')) {
+	if (data.hasOwnProperty('display_note') && data.display_note) {
 		s += "<label class='label-dialog'>Public Note</label>";
 		s += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
 	}
 
-	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note')) {
+	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note') && data.internal_note) {
 		s += "<label class='label-dialog'>Internal Note</label>";
 		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
 	}

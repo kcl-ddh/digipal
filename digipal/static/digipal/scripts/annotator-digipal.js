@@ -2204,6 +2204,8 @@ function load_data(selectedFeature, dialog, callback) {
 			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
 			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
 			data['hands'] = cache.cache.graphs[graph]['hands'];
+			data['display_note'] = cache.cache.graphs[graph]['display_note'];
+			data['internal_note'] = cache.cache.graphs[graph]['internal_note'];
 			refresh_dialog(dialog, data, selectedFeature, callback);
 
 		}

@@ -152,6 +152,10 @@
     padding:1%;
 }
 
+.olPopup a {
+    color: #fff !important;
+}
+
 .imagesBoximage{
     margin-top: 5%;
     margin-right: 7%;

@@ -71,7 +71,14 @@ var Actions = function(options) {
             },
 
             random_vector: function(features) {
-                return features[Math.round(Math.random() * features.length)];
+                /*
+                    Look for a feature that HAS a graph
+                 */
+                var feature = features[Math.round(Math.random() * features.length)];
+                while (!feature.graph) {
+                    feature = features[Math.round(Math.random() * features.length)];
+                }
+                return feature;
             },
 
             get_components: function(feature) {

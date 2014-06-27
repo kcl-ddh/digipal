@@ -43,11 +43,11 @@ function Scenario() {
 
             var isMultipleSelected = casper.evaluate(function() {
                 return annotator.multiple_annotations;
-            })();
+            });
 
             var isAnnotatingSelected = casper.evaluate(function() {
                 return annotator.annotating;
-            })();
+            });
 
             casper.then(function() {
                 if (isMultipleSelected) {

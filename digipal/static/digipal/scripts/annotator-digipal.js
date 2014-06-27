@@ -67,8 +67,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 */
 
 	var number_allographs_element = $(".number_annotated_allographs .number-allographs");
-	var dialogCache;
-
 
 	////////////////////////////////////////
 

@@ -417,16 +417,17 @@ def image_allographs(request, image_id):
 
     data_allographs = SortedDict()
     for a in annotations:
-        hand_label = a.graph.hand
-        allograph_name = a.graph.idiograph.allograph
-        if hand_label in data_allographs:
-            if allograph_name not in data_allographs[hand_label]:
+        if a.graph:
+            hand_label = a.graph.hand
+            allograph_name = a.graph.idiograph.allograph
+            if hand_label in data_allographs:
+                if allograph_name not in data_allographs[hand_label]:
+                    data_allographs[hand_label][allograph_name] = []
+            else:
+                data_allographs[hand_label] = SortedDict()
                 data_allographs[hand_label][allograph_name] = []
-        else:
-            data_allographs[hand_label] = SortedDict()
-            data_allographs[hand_label][allograph_name] = []
 
-        data_allographs[hand_label][allograph_name].append(a)
+            data_allographs[hand_label][allograph_name].append(a)
 
     context = {
         'annotations_list': data_allographs,

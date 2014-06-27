@@ -171,8 +171,8 @@ function Scenario() {
                         }
                         console.log(found, vectors_ids.length);
                         casper.test.assert(found === vectors_ids.length, 'All images have been loaded');
-                        //casper.click('.close_top_div_annotated_allographs');
-                        //casper.test.assertDoesntExist('.close_top_div_annotated_allographs', 'The windows has been closed');
+                        casper.click('.close_top_div_annotated_allographs');
+                        casper.test.assertDoesntExist('.close_top_div_annotated_allographs', 'The windows has been closed');
                     });
                 });
 

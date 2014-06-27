@@ -26,6 +26,7 @@ function AnnotatorLoader() {
 		var select_elements = $('select');
 		select_elements.chosen();
 		self.switch_annotations();
+		self.toolbar_position();
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
 			self.set_settings(self.digipal_settings); // setting settings
@@ -762,13 +763,15 @@ function AnnotatorLoader() {
 
 	var toggle_fixed_toolbar = function() {
 		var toolbar = $('#panelImageBox');
-		var toolbar_position = toolbar.offset().top;
-		$(document).on('scroll', function() {
 
-			if ($(this).scrollTop() >= toolbar_position) {
-				toolbar.addClass('fixed_toolbar');
-			} else {
-				toolbar.removeClass('fixed_toolbar');
+		$(document).on('scroll', function() {
+			var current_tab = $('.nav li.active').find('[data-toggle="tab"]').data('target');
+			if (current_tab === '#annotator') {
+				if ($(this).scrollTop() >= annotator.toolbar_position) {
+					toolbar.addClass('fixed_toolbar');
+				} else {
+					toolbar.removeClass('fixed_toolbar');
+				}
 			}
 		});
 	};

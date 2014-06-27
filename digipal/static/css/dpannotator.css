@@ -152,6 +152,10 @@
     padding:1%;
 }
 
+.olPopup a {
+    color: #fff !important;
+}
+
 .imagesBoximage{
     margin-top: 5%;
     margin-right: 7%;
@@ -666,7 +670,7 @@ path {
 
 .static_text_dialog_div{
     padding: 1em;
-    padding-top: 0;
+    padding-top: 0.4em;
     text-align: justify;
 }
 
@@ -678,4 +682,8 @@ path {
 
 .olPopupCloseBox{
     display: none !important;
+}
+
+.static_text_dialog_div a {
+    color:#a1514d !important;
 }

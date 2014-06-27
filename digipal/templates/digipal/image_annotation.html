@@ -152,7 +152,9 @@
             annotator.absolute_image_url = '{{ image.get_absolute_url }}';
             annotator.url_annotations = '{{ image.get_absolute_url }}annotations';
             no_image_reason = false;
-
+            var _toolbar = $('#panelImageBox');
+            var toolbar_position = _toolbar.offset().top;
+            annotator.toolbar_position = toolbar_position;
             {% if vector_id %}
             vector_id = true;
             vector_id_value = annotator.utils.getParameter('graph') || annotator.utils.getParameter('vector_id');

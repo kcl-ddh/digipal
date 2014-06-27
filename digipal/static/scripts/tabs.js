@@ -29,12 +29,15 @@ $(document).ready(function() {
 			if (e.target.getAttribute('data-target') == '#allographs') {
 				if (annotator.has_changed) {
 					allographsPage.refresh();
-					//annotator.refresh_layer();
 				}
 			}
 		} else {
 			if (typeof annotator.annotations == 'undefined') {
 				main(true);
+			}
+
+			if (typeof loader !== 'undefined') {
+				loader.toolbar_position();
 			}
 
 			if (dialog.length) {

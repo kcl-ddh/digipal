@@ -61,6 +61,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 * @param feature
 	 *              The feature to display the annotation.
 	 */
+
+	/*
+	 ** caching most used selectors
+	 */
+
+	var number_allographs_element = $(".number_annotated_allographs .number-allographs");
+	var dialogCache;
+
+
+	////////////////////////////////////////
+
 	this.showAnnotation = function(feature) {
 		var select_allograph = get_forms().allograph_form;
 
@@ -72,12 +83,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		var features = annotator.vectorLayer.features;
 		var features_length = features.length;
 
+		/*
 		var i = 0;
 		while (i < features_length && features[i].feature == feature.feature && features[i].stored) {
 			i++;
 		}
-
-		$(".number_annotated_allographs .number-allographs").html(i);
+		*/
+		number_allographs_element.html(i);
 
 		if (self.annotations) {
 			var annotation = self.vectorLayer.getFeatureById(feature.id);
@@ -801,7 +813,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var _self = this;
 			var allograph = $('#panelImageBox .allograph_form option:selected');
 			var allograph_id = allograph.val();
-
 
 			s += "<div id='box_features_container'></div>";
 			if (annotator.boxes_on_click) {

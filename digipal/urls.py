@@ -41,7 +41,9 @@ urlpatterns = patterns('',
 )
 
 if settings.LIGHTBOX:
-    urlpatterns += patterns('', url(r'^lightbox/$', include('lightbox.urls', namespace='lightbox', app_name='lightbox')))
+    urlpatterns += patterns('',
+        url(r'^lightbox/', include('lightbox.urls'))
+    )
 
 # Server media in debug mode
 if settings.DEBUG:

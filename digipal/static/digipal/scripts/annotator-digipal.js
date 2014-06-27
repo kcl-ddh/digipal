@@ -1948,6 +1948,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var url = $("<div class='allograph_url_div' data-url-type='short'>");
 		var allograph_url, stored = false;
 		var a = $('<input type="text">');
+		a.css('width', '100%');
 		var title = $('.name_temporary_annotation').val();
 		var desc = $('.textarea_temporary_annotation').html();
 		if (desc) {
@@ -2077,23 +2078,31 @@ function show_url_allograph(dialog, annotation, button) {
 					a.attr('value', resp.id);
 					a.attr('title', 'Copy link to annotation and share it');
 					button.data('url', resp.id);
+					var p = $('<div>');
+					p.css('text-align', 'right');
+					p.css('margin-top', '0.34em');
 					url.append(a);
-					url.append(" <button style='font-size: 12px;' class='btn btn-default btn-xs pull-right' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
-					url.append("<button style='font-size: 12px;' class='btn btn-default btn-xs pull-right' id='long_url'>Long URL?</button>");
-					dialog.prepend(url);
 
+					p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
+					p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
+
+					url.append(p);
+					dialog.prepend(url);
+					$("[data-toggle='tooltip']").tooltip();
 					var long_url_button = $('#long_url');
 					long_url_button.on('click', function() {
 						if (url.data('url-type') == 'short') {
-							a.attr('value', allograph_url);
-							button.data('url', allograph_url);
+							a.attr('value', 'http://' + allograph_url);
+							button.data('url', 'http://' + allograph_url);
 							url.data('url-type', 'long');
 							long_url_button.text('Short URL?');
+							long_url_button.data('original-title', 'Show short URL');
 						} else {
 							a.attr('value', resp.id);
 							button.data('url', resp.id);
 							url.data('url-type', 'short');
 							long_url_button.text('Long URL?');
+							long_url_button.data('original-title', 'Show long URL');
 						}
 					});
 

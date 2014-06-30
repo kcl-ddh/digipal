@@ -1,5 +1,6 @@
 from django.http import QueryDict
 from django.db.models.base import Model
+from django.core.exceptions import ObjectDoesNotExist
 
 '''
     Base class for the custom content-type API request processor
@@ -26,7 +27,11 @@ class APICustom(object):
             if value is not None:
                 setattr(record, field_name, value)
             else:
-                value = getattr(record, field_name)
+                try:
+                    value = getattr(record, field_name)
+                except ObjectDoesNotExist, e:
+                    # E.g. a graph without an annotation
+                    value = None
 
             # Add the basic values to the results (or the value of the fields in @select=)
             field_type_name = type(field).__name__
@@ -52,13 +57,17 @@ class APICustom(object):
                     # RelatedObject for another model with a FK to this model (e.g. graph.graph_components)
                     # RelatedObject for another model with a FK to this model (e.g. graph.aspects)
                     if field_type_name in ['RelatedObject', 'ManyToManyField']:
-                        sub_result = []
-                        for related_record in value.all():
-                            if expanded:
-                                sub_result.append(APICustom.get_data_from_record(related_record, request, fieldsets, method='GET'))
-                            else:
-                                sub_result.append(related_record.id)
-                        value = sub_result
+                        if value is None:
+                            # case where a graph has no annotation
+                            ret[field_name+u'__id'] = None
+                        else:
+                            sub_result = []
+                            for related_record in value.all():
+                                if expanded:
+                                    sub_result.append(APICustom.get_data_from_record(related_record, request, fieldsets, method='GET'))
+                                else:
+                                    sub_result.append(related_record.id)
+                            value = sub_result
 
                 # force conversion to string as this type is not JSON serialisable
                 value_type_name = type(value).__name__

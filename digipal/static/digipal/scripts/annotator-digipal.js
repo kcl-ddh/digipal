@@ -2819,7 +2819,6 @@ function save(url, graphs, data, ann, features) {
 		},
 		error: function(xhr, textStatus, errorThrown) {
 			updateStatus(textStatus, 'danger');
-			console.log(textStatus);
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
@@ -2845,11 +2844,18 @@ function save(url, graphs, data, ann, features) {
 				for (var i = 0; i < new_graphs.length; i++) {
 
 					/*	Updating cache	*/
+
+					var is_editorial = false;
 					var new_graph = new_graphs[i].graph,
 						new_allograph = new_graphs[i].allograph_id;
 					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[i]);
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
-					allographsPage.cache.update('graph', new_graph, new_graphs[i]);
+					if (typeof new_graph == 'undefined') {
+						allographsPage.cache.update('graph', new_graphs[i].vector_id, new_graphs[i]);
+						is_editorial = true;
+					} else {
+						allographsPage.cache.update('graph', new_graph, new_graphs[i]);
+					}
 					allographsPage.cache.update('allograph', new_allograph, new_graphs[i]);
 
 					for (var k = 0; k < annotator.selectedAnnotations.length; k++) {
@@ -2869,7 +2875,7 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].graph == new_graphs[i].graph) {
+						if ((is_editorial && f[feature_ind].id == new_graphs[i].vector_id) || (!is_editorial && f[feature_ind].graph == new_graphs[i].graph)) {
 							feature = f[feature_ind];
 							//id = feature.id;
 							feature.feature = allograph;

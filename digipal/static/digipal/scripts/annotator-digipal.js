@@ -839,7 +839,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						dialog.find('#internal_note').notebook({
 							placeholder: 'Type internal note here...'
 						}).html(selectedFeature.internal_note);
-
+						$('#panelImageBox .allograph_form').val('------');
+						$('#panelImageBox .hand_form').val('------');
+						$('select').trigger("liszt:updated");
 						annotator.editorial.activate();
 						return callback();
 					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
@@ -942,7 +944,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var _self = this;
 				var current_collection = _Star.getCurrentCollection();
 
-				if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial) {
+				if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph)) {
 					var graph = annotator.selectedFeature.graph;
 					if (annotator.selectedFeature.is_editorial) {
 						graph = annotator.selectedFeature.graph;
@@ -2011,13 +2013,13 @@ function show_url_allograph(dialog, annotation, button) {
 
 				}
 
-				allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
+				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
 
 			} else {
 				if (annotator.selectedFeature.is_editorial) {
-					allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+					allograph_url = window.location.hostname + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
 				} else {
-					allograph_url = window.location.hostname + ':' + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+					allograph_url = window.location.hostname + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
 				}
 			}
 
@@ -2047,7 +2049,7 @@ function show_url_allograph(dialog, annotation, button) {
 					allograph_url.push(url_temp);
 
 				}
-				allograph_url = window.location.hostname + ':' + document.location.port +
+				allograph_url = window.location.hostname +
 					document.location.pathname + '?' + allograph_url.join('&');
 			} else {
 
@@ -2063,12 +2065,10 @@ function show_url_allograph(dialog, annotation, button) {
 				if (checkboxesOff.length) {
 					geoJSONText.checkboxes = checkboxesOff;
 				}
-				allograph_url = window.location.hostname + ':' + document.location.port +
+				allograph_url = window.location.hostname +
 					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 			}
 		}
-
-		console.log(allograph_url)
 
 		gapi.client.load('urlshortener', 'v1', function() {
 

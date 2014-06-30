@@ -1957,8 +1957,8 @@ class Annotation(models.Model):
     # Use the record id instead
     vector_id = models.TextField()
     geo_json = models.TextField()
-    display_note = models.TextField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
-    internal_note = models.TextField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')
+    display_note = HTMLField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
+    internal_note = HTMLField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)

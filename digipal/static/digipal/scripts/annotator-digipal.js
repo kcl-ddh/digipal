@@ -824,25 +824,33 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			s += "<div id='box_features_container'></div>";
 			if (annotator.boxes_on_click) {
 				if (annotator.isAdmin == 'True' && annotator.annotating) {
-					if (selectedFeature.is_editorial || annotator.editorial.active && !selectedFeature.stored) {
-						s += '<label>Internal Note</label>';
-						s += '<div class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
-						s += '<label>Public Note</label>';
-						s += '<div class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
-						dialog.css("margin", "3%");
-						dialog.html(s);
+					if (annotator.selectedFeature.is_editorial || annotator.editorial.active && !annotator.selectedFeature.stored || annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+						if (annotator.selectedFeature.is_editorial) {
+							s += '<label>Internal Note</label>';
+							s += '<div class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
+							s += '<label>Public Note</label>';
+							s += '<div class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
+							dialog.css("margin", "3%");
+							dialog.html(s);
 
-						dialog.find('#display_note').notebook({
-							placeholder: 'Type display note here...'
-						}).html(selectedFeature.display_note);
+							dialog.find('#display_note').notebook({
+								placeholder: 'Type display note here...'
+							}).html(selectedFeature.display_note);
 
-						dialog.find('#internal_note').notebook({
-							placeholder: 'Type internal note here...'
-						}).html(selectedFeature.internal_note);
-						$('#panelImageBox .allograph_form').val('------');
-						$('#panelImageBox .hand_form').val('------');
-						$('select').trigger("liszt:updated");
-						annotator.editorial.activate();
+							dialog.find('#internal_note').notebook({
+								placeholder: 'Type internal note here...'
+							}).html(selectedFeature.internal_note);
+							$('#panelImageBox .allograph_form').val('------');
+							$('#panelImageBox .hand_form').val('------');
+							$('select').trigger("liszt:updated");
+							annotator.editorial.activate();
+						} else if (annotator.selectedFeature.contentAnnotation) {
+							s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+							dialog.html(s);
+							if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+								$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+							}
+						}
 						return callback();
 					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
 						annotator.editorial.deactivate();
@@ -2017,9 +2025,9 @@ function show_url_allograph(dialog, annotation, button) {
 
 			} else {
 				if (annotator.selectedFeature.is_editorial) {
-					allograph_url = window.location.hostname + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
 				} else {
-					allograph_url = window.location.hostname + document.location.port + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
 				}
 			}
 

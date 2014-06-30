@@ -59,12 +59,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		units: 'm',
 		eventListeners: {
 			featureover: function(e) {
-				if (e.feature.display_note) {
+				if (e.feature.display_note && $('#show_editorial_annotations').is(':checked') && (!$('#editorial_filter').length || $('#editorial_filter').is(':checked'))) {
 					createPopup(e.feature);
 				}
 			},
 			featureout: function(e) {
-				if (e.feature.popup) {
+				if (e.feature.popup && $('#show_editorial_annotations').is(':checked') && (!$('#editorial_filter').length || $('#editorial_filter').is(':checked'))) {
 					deletePopup(e.feature);
 				}
 			},

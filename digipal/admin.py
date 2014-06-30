@@ -508,6 +508,8 @@ class AnnotationAdmin(reversion.VersionAdmin):
             'graph__idiograph__allograph__character__name']
     list_filter = ['author__username', 'graph__idiograph__allograph__character__name']
 
+    readonly_fields = ('graph',)
+
 class AppearanceAdmin(reversion.VersionAdmin):
     model = Appearance
 

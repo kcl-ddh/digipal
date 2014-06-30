@@ -1197,9 +1197,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {
@@ -2661,6 +2661,8 @@ function delete_annotation(layer, feature, number_annotations) {
 					element.html(annotations.length);
 					temp = null;
 				}
+
+				annotator.selectedAnnotations = [];
 
 				var boxes = $(".dialog_annotations");
 				if (boxes.length) {

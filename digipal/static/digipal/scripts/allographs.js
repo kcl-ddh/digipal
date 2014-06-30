@@ -86,19 +86,12 @@ function Allographs(dialog, cache) {
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function(event) {
-			if (selectedAnnotations.annotations.length > 1) {
-				var annotations = [];
-				for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
-					annotations.push(selectedAnnotations.annotations[i].graph);
-				}
-
-				methods.to_lightbox($(this), annotations, true);
-			} else {
-
-				methods.to_lightbox($(this), selectedAnnotations.annotations[0].graph, false);
+			var annotations = [];
+			for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
+				methods.to_lightbox($(this), selectedAnnotations.annotations[i].graph, false);
 			}
-
 		});
+
 
 		/* event to redirect from letters to annotator */
 		var a_images = $('.annotation_li a');
@@ -245,17 +238,15 @@ function Allographs(dialog, cache) {
 			panel.find('.to_lightbox').attr('disabled', false);
 			var checkboxes = ul.find('.annotation_li').not('.selected');
 			var i = 0;
-			for (var i = 0; i < checkboxes.length; i++) {
+			for (i = 0; i < checkboxes.length; i++) {
 				methods.select_annotation($(checkboxes[i]));
 			}
 		},
 
-		to_lightbox: function(button, annotations, multiple) {
-			if (add_to_lightbox(button, 'annotation', annotations, multiple)) {
-				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-				for (var d in annotations) {
-					$('[data-graph="' + annotations[d] + '"]').append(star);
-				}
+		to_lightbox: function(button, annotation, multiple) {
+			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+			if (add_to_lightbox(button, 'annotation', annotation, multiple)) {
+				$('[data-graph="' + annotation + '"]').append(star);
 			}
 		},
 

@@ -329,3 +329,9 @@ def write_file(file_path, content):
     f = open(file_path, 'w')
     f.write(content.encode('utf8'))
     f.close()
+
+def get_bool_from_string(string):
+    ret = False
+    if string in ['1', 'True', 'true']:
+        ret = True
+    return ret

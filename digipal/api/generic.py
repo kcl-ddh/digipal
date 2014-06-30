@@ -1,4 +1,5 @@
 import json
+from digipal import utils
 
 #
 # See digipal-api.txt for the documentation about the request and response.
@@ -110,13 +111,19 @@ class API(object):
             # filters in the query string
             for filter, value in request.REQUEST.iteritems():
                 if filter.startswith('_'):
+                    # a conditional filter _FIELD__OP=VALUE
                     filter = filter[1:]
                     if value.startswith('['):
                         value = value[1:-1].split(',')
+                    if filter.endswith('__isnull'):
+                        # That's necessary otherwise '1' will be only partly
+                        # understood by django: it will do an inner join
+                        # depiste also doing a IS NULL!
+                        value = utils.get_bool_from_string(value)
                     filters[filter] = value
             
             # get the records
-            records = model.objects.filter(**filters).distinct()
+            records = model.objects.filter(**filters).distinct().order_by('id')
             
             ret['count'] = records.count()
 

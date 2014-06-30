@@ -111,13 +111,10 @@ function PublicAllograhs() {
 
 		to_lightbox.click(function() {
 			var graphs = [];
+			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
-				graphs.push(_self.selectedAnnotations[i]);
-			}
-			if (add_to_lightbox($(this), 'annotation', graphs, true)) {
-				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-				for (var d in graphs) {
-					$('[data-graph="' + graphs[d] + '"]').append(star);
+				if (add_to_lightbox($(this), 'annotation', _self.selectedAnnotations[i], false)) {
+					$('[data-graph="' + _self.selectedAnnotations[i][d] + '"]').append(star);
 				}
 			}
 		});

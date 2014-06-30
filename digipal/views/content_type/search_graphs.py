@@ -147,6 +147,9 @@ class SearchGraphs(SearchContentType):
             graphs = graphs.filter(idiograph__allograph__character__name=character)
         if allograph:
             graphs = graphs.filter(idiograph__allograph__name=allograph)
+
+        # we discard freak graph records (i.e. without annotation) to prevent errors further down the line. 
+        graphs = graphs.filter(annotation__isnull=False)
         
         # condition on component
         if component:

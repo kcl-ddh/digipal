@@ -335,3 +335,18 @@ def get_bool_from_string(string):
     if string in ['1', 'True', 'true']:
         ret = True
     return ret
+
+def get_one2one_object(model, field_name):
+    '''Returns model.field_name where field_name is a one2one relation.
+        This function till return None if there no related object.
+    '''
+    ret = None
+    
+    if model:
+        from django.core.exceptions import ObjectDoesNotExist
+        try:
+            getattr(model, field_name)
+        except ObjectDoesNotExist, e:
+            pass
+    
+    return ret

@@ -724,7 +724,16 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			});
 
 			$('.delete_trigger').unbind().on('click', function() {
-				annotator.deleteFeature.clickFeature();
+				if (annotator.selectedAnnotations.length) {
+					var features = annotator.selectedAnnotations;
+					for (var i = 0; i < features.length; i++) {
+						annotator.deleteAnnotation(annotator.vectorLayer, features[i], features.length);
+					}
+				} else {
+					if (annotator.selectedFeature) {
+						delete_annotation(annotator.vectorLayer, annotator.selectedFeature, 1);
+					}
+				}
 			});
 
 			$('*[data-toggle="tooltip"]').tooltip({
@@ -1188,9 +1197,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -2610,9 +2619,6 @@ function updateTabCounter() {
 }
 
 function delete_annotation(layer, feature, number_annotations) {
-	if (!feature) {
-		return false;
-	}
 	var featureId = feature.id;
 	var temp = feature;
 	updateStatus('Deleting annotations', 'warning');

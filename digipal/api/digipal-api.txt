@@ -31,6 +31,8 @@ Parts:
         Any Django valid QuerySet filter that can be applied to the model specified in :content_type
         Note that filters must start with an underscore. You can use more than one filter.
         String values shouldn't be surounded by quotes and booleans can be expressed with 0 (False) or 1 (True). 
+        Arrays should be surrounded by [] (e.g. ?_id__in=[1,3,5]).
+        
         e.g. GET /digipal/api/annotation/?_graph__id__gt=2000&_rotation=0
             retrieves annotation where annotation.graph.id > 2000 AND annotation.rotation = 0
         e.g. GET /digipal/api/itempart/?_pagination=1&_display_label__icontains=badminton
@@ -42,7 +44,7 @@ Parts:
         Note that the field 'id' is always returned.
         'str' is a special field that corresponds to the string representation of the record.
         For related records only the id is returned.
-        Use * to expand the information about related records.
+        Use * to expand the information about related records (see example below).
          
         e.g. GET /digipal/api/annotation/1000/
             returns all the fields of annotation 1000

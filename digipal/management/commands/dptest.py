@@ -429,6 +429,9 @@ Commands:
         #pages = ['digipal/page/362/',]
         #pages = ['',]
         
+        #pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
+        #pages = ['digipal/hands/1195/graphs/']
+        
         for page in pages:
             url = root + page
 
@@ -498,8 +501,15 @@ Commands:
             if line.find('</script') > -1 and script_open_line is not None:
                 msg = 'Inline script (%d lines, starts at %s)' % (ln - script_open_line, script_open_line)
                 script_open_line = None 
-            if re.search('style\s*=\s*"', line):
-                msg = 'Inline style'
+            styles =  re.findall(ur'''style\s*=\s*['"]([^"']*)''', line)
+            for style in styles:
+                style = re.sub(ur'(?:height|width)\s*:\s*[^;]*', ur'', style)
+                style = style.replace(' ', '')
+                style = style.replace(';', '')
+                if style:
+                    msg = 'Inline style'
+#             if re.search('style\s*=(\s*)"', line):
+#                 msg = 'Inline style'
             if re.search('class.+\Wcontainer\W', line):
                 containers += 1
             if msg:

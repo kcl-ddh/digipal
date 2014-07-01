@@ -2,43 +2,42 @@
 {% load html_escape %}
 
 <footer>
-    <div class="row">
-        <div class="container">
-            <div class='col-md-3 col-xs-12' id='logos_footer'>
+    <div class="container">
+        <div class='col-md-3 col-xs-12' id='logos_footer'>
 
-                <a class='link-icon' href="http://www.kcl.ac.uk/ddh">
-                    <img src="{{ STATIC_URL }}digipal/images/logos/ddh.png" alt="DDH logo" title="Department of Digital Humanities" />
+            <a class='link-icon' href="http://www.kcl.ac.uk/ddh">
+                <img src="{{ STATIC_URL }}digipal/images/logos/ddh.png" alt="DDH logo" title="Department of Digital Humanities" />
+            </a>
+
+            <a class='link-icon' href="http://erc.europa.eu/">
+                <img src="{{ STATIC_URL }}digipal/images/logos/erc-logo.gif" alt="ERC logo" title="European Research Council" />
+            </a>
+
+            <a class='link-icon' href="http://ec.europa.eu/">
+                <img src="{{ STATIC_URL }}digipal/images/logos/flag.jpg" alt="European Commission" title="European Commission" />
+            </a>
+
+            <a class='link-icon' href="http://ec.europa.eu/research/fp7/index_en.cfm?pg=ideas">
+                <img src="{{ STATIC_URL }}digipal/images/logos/fp7.png" alt="FP7 logo" title="FP7" />
+            </a>
+        </div>
+        
+        <div class='col-md-8 col-xs-12' id='footer'>
+            {% render_mezzanine_page 'footer' %}
+        </div>
+
+        <div class='col-md-1 col-xs-12' id='footer_logos'>
+            {% if settings.TWITTER %}
+                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
+                    <i class='fa fa-twitter'></i>
                 </a>
+            {% endif %}
 
-                <a class='link-icon' href="http://erc.europa.eu/">
-                    <img src="{{ STATIC_URL }}digipal/images/logos/erc-logo.gif" alt="ERC logo" title="European Research Council" />
+            {% if settings.GITHUB %}
+                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Explore Digipal source code on GitHub' href= 'https://github.com/{{ settings.GITHUB }}'>
+                    <i class='fa fa-github'></i>
                 </a>
-
-                <a class='link-icon' href="http://ec.europa.eu/">
-                    <img src="{{ STATIC_URL }}digipal/images/logos/flag.jpg" alt="European Commission" title="European Commission" />
-                </a>
-
-                <a class='link-icon' href="http://ec.europa.eu/research/fp7/index_en.cfm?pg=ideas">
-                    <img src="{{ STATIC_URL }}digipal/images/logos/fp7.png" alt="FP7 logo" title="FP7" />
-                </a>
-            </div>
-            <div class='col-md-8 col-xs-12' id='footer'>
-                {% render_mezzanine_page 'footer' %}
-            </div>
-
-            <div class='col-md-1 col-xs-12' id='footer_logos'>
-                {% if settings.TWITTER %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
-                        <i class='fa fa-twitter'></i>
-                    </a>
-                {% endif %}
-
-                {% if settings.GITHUB %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Explore Digipal source code on GitHub' href= 'https://github.com/{{ settings.GITHUB }}'>
-                        <i class='fa fa-github'></i>
-                    </a>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
     </div>
 </footer>

@@ -55,6 +55,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 	var _Star = new Star();
 
+	this.isMobile = function() {
+		if (window.innerWidth <= 800 && window.innerHeight <= 600) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+
 	/**
 	 * Shows the annotation details for the given feature.
 	 *
@@ -301,7 +309,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		} else {
 			this.selectedFeature = null;
 		}
-		$(".number_annotated_allographs .number-allographs").html(0);
+		//$(".number_annotated_allographs .number-allographs").html(0);
 		restoreFullscreenPositions();
 	};
 
@@ -726,8 +734,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			$('.delete_trigger').unbind().on('click', function() {
 				if (annotator.selectedAnnotations.length) {
 					var features = annotator.selectedAnnotations;
-					for (var i = 0; i < features.length; i++) {
-						annotator.deleteAnnotation(annotator.vectorLayer, features[i], features.length);
+					var msg = 'You are about to delete ' + features.length + ' annotations. They cannot be restored at a later time! Continue?';
+					var doDelete = confirm(msg);
+					if (doDelete) {
+						for (var i = 0; i < features.length; i++) {
+							delete_annotation(annotator.vectorLayer, features[i], features.length);
+						}
 					}
 				} else {
 					if (annotator.selectedFeature) {
@@ -800,11 +812,19 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (absolute_position) {
 					var top_page_position = $(window).scrollTop();
 					var window_height = ($(window).height() / 100) * 25;
-					dialog.parent().css({
-						'position': 'absolute',
-						'top': top_page_position + window_height,
-						'left': '68%'
-					});
+					if (annotator.isMobile()) {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '4%'
+						});
+					} else {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '68%'
+						});
+					}
 				}
 			} else {
 				$('#annotations').html('');
@@ -1388,13 +1408,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
 			});
 
-			/*images_link.on('click', function() {
+			images_link.on('click', function() {
 				var vector = $(this);
-				annotator.centreById(vector.data('annotation'));
+				annotator.centreById(vector.data('graph'));
 			}).on("mouseover", function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('annotation')) {
+					if (features[i].graph == vector.data('graph')) {
 						features[i].originalColor = features[i].style.fillColor;
 						features[i].style.strokeColor = 'red';
 						features[i].style.strokeWidth = 6;
@@ -1406,7 +1426,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}).on('mouseout', function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('annotation')) {
+					if (features[i].graph == vector.data('graph')) {
 						features[i].style.strokeColor = features[i].originalColor;
 						features[i].style.strokeWidth = 2;
 						break;
@@ -1416,9 +1436,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				restoreFullscreenPositions();
 			}).on('dblclick', function() {
 				var vector = $(this);
-				annotator.selectFeatureByIdAndCentre(vector.data('annotation'));
+				annotator.selectFeatureByIdAndCentre(vector.data('graph'));
 			}).fadeIn();
-			*/
+
 			images_link.fadeIn();
 			if (img.length) {
 				img.remove();
@@ -2702,6 +2722,7 @@ function delete_annotation(layer, feature, number_annotations) {
 
 
 function isNodeEmpty(node) {
+	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
 	if (node) {
 		var string = $.parseHTML(node);
 		var emptyNodes = 0;
@@ -2712,7 +2733,7 @@ function isNodeEmpty(node) {
 			} else {
 				value = string[i].innerText;
 			}
-			if ($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') {
+			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
 				emptyNodes++;
 			}
 		}
@@ -2906,6 +2927,10 @@ function save(url, graphs, data, ann, features) {
 							feature.graph = new_graph;
 							feature.state = null;
 
+							if (feature.is_editorial) {
+								feature.vector_id = new_graphs[i].vector_id;
+							}
+
 							if (new_graphs[i].hasOwnProperty('hand_id')) {
 								feature.hand = new_graphs[i].hand_id;
 							}
@@ -2984,7 +3009,10 @@ function save(url, graphs, data, ann, features) {
 							feature.style.originalColor = color;
 							feature.style.strokeWidth = 2;
 							feature.stored = true;
-							feature.display_note = new_graphs[i].display_note;
+
+							if (new_graphs[i].hasOwnProperty('display_note')) {
+								feature.display_note = new_graphs[i].display_note;
+							}
 							if (new_graphs[i].hasOwnProperty('internal_note')) {
 								feature.internal_note = new_graphs[i].internal_note;
 							}

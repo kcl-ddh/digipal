@@ -359,6 +359,7 @@ function Scenario() {
         this.Scenario7 = function() {
             console.log('Activating editorial annotations');
             AnnotatorTasks.do.unselect();
+            AnnotatorTasks.options.clickOption('multiple_annotations');
             AnnotatorTasks.options.clickOption('development_annotation');
             casper.evaluate(function() {
                 annotator.editorial.activate();

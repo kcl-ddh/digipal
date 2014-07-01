@@ -615,3 +615,25 @@ different height depending when they are selected and push the other values down
 .nowrap {
     white-space: nowrap;
 }
+
+/*
+Bootstrap patch for extra small devices
+
+ */
+
+@media (max-width: 767px) {
+    .nav-tabs > li {
+        float:none;
+        border:1px solid #dddddd;
+    }
+    .nav-tabs > li.active > a{
+        border:none;
+    }
+    .nav > li > a:hover, .nav > li > a:focus,
+    .nav > li > a:hover, .nav > li > a:focus,
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus
+     {
+        background:none;
+        border:none;
+    }
+}

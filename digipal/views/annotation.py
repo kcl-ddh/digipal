@@ -483,6 +483,7 @@ def images_lightbox(request, collection_name):
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
+            print annotations_list
             annotations_list.sort(key=lambda t: graphs['annotations'].index(t.graph.id))
             for annotation in annotations_list:
 

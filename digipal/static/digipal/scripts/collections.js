@@ -58,6 +58,7 @@ function Collections() {
 		var collections = $('.collection');
 		collections.find('input').on('change', function(event) {
 			select_collection($(this).parent());
+			$(this).next('.tooltip').remove();
 			event.stopPropagation();
 			event.stopImmediatePropagation();
 		});
@@ -346,24 +347,37 @@ function Collections() {
 
 		copy: function(selectedCollection, new_collection_name) {
 			var id = uniqueid();
-			var re = /^\w*$/;
+			var re = /^[\w]+$/;
 			var flag = false;
 			var collections = JSON.parse(localStorage.getItem('collections'));
+
 			$.each(collections, function(index, value) {
-				if (new_collection_name != index && re.test(new_collection_name.replace(/\s*/gi), '') && new_collection_name.length <= 30) {
+				if (re.test(new_collection_name.replace(/\s*/gi, '')) && new_collection_name.length <= 30) {
+					if ($.trim(new_collection_name) == $.trim(index)) {
+						if (!/[0-9]+/.test(parseInt(new_collection_name[new_collection_name.length - 1], 10))) {
+							new_collection_name = new_collection_name + '1';
+						}
+						new_collection_name = increment_last(new_collection_name);
+					}
 					flag = true;
 				}
 			});
+
+
 			$.each(collections, function(index, value) {
 				if (value.id == selectedCollection && flag) {
 					var object_clone = $.extend({}, value);
 					collections[new_collection_name] = object_clone;
 					collections[new_collection_name].id = id;
 					notify('Collection successfully copied', 'success');
-				} else {
-					notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
 				}
 			});
+
+			if (!flag) {
+				notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+				return false;
+			}
+
 			localStorage.setItem('collections', JSON.stringify(collections));
 			show_collections(collections);
 
@@ -437,7 +451,7 @@ function Collections() {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
 		}
-
+		console.trace();
 		update_toolbar();
 	};
 

@@ -77,6 +77,13 @@ function update_counter() {
 
 }
 
+var changeNumbers = function() {
+	var tbody = $("tbody");
+	tbody.find('tr').each(function() {
+		$(this).find('.num_row').text('#' + $(this).index());
+	});
+};
+
 function main() {
 
 	var s = '';
@@ -328,6 +335,7 @@ function main() {
 						localStorage.setItem('collections', JSON.stringify(collections));
 						background.fadeOut().remove();
 						update_collection_counter();
+						changeNumbers();
 					});
 
 					$('#cancel').on('click', function() {
@@ -389,13 +397,6 @@ function main() {
 					event.stopPropagation();
 					event.stopImmediatePropagation();
 				});
-
-				var changeNumbers = function() {
-					var tbody = $("tbody");
-					tbody.find('tr').each(function() {
-						$(this).find('.num_row').text('#' + $(this).index());
-					});
-				};
 
 				var editCollection = function(el) {
 					var _collections = JSON.parse(localStorage.getItem('collections')),
@@ -487,7 +488,7 @@ function main() {
 		if (!$(this).data('active')) {
 			$(this).data('active', true);
 			var collections = JSON.parse(localStorage.getItem('collections'));
-			var name = $(this).text(),
+			var name = $.trim($(this).text()),
 				flag = false;
 
 			$.each(collections, function(index, value) {

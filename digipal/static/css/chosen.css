@@ -22,6 +22,8 @@
   zoom: 1;
   *display: inline;
   width: 175px !important;
+  margin-bottom: 1em;
+  margin-top: 1em;
 }
 .chzn-container .chzn-drop {
   background: #fff;

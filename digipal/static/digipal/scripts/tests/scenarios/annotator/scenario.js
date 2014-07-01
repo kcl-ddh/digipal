@@ -55,15 +55,13 @@ function Scenario() {
                 return annotator.annotating;
             });
 
-            casper.then(function() {
-                if (isMultipleSelected) {
-                    AnnotatorTasks.options.clickOption('multiple_annotations');
-                }
+            if (isMultipleSelected) {
+                AnnotatorTasks.options.clickOption('multiple_annotations');
+            }
 
-                if (!isAnnotatingSelected) {
-                    AnnotatorTasks.options.clickOption('development_annotation');
-                }
-            });
+            if (!isAnnotatingSelected) {
+                AnnotatorTasks.options.clickOption('development_annotation');
+            }
 
             var feature = AnnotatorTasks.get.random_vector(features);
             console.log('Graph selected:' + feature.graph);

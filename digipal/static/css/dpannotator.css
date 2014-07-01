@@ -211,11 +211,16 @@
 
 #panelImageBox .frmAnnotation {
     display:inline;
-     margin-bottom:0;
+     
+    /* margin-bottom: 1em; */
+    vertical-align: baseline;
+    margin-top: -0.9%;
 }
 
 #panelImageBox #form_annotation_hand {
     display:inline;
+    /* margin-bottom: 4em; */
+    /* vertical-align: -webkit-baseline-middle; */
 }
 
 #form_annotation_hand > div {

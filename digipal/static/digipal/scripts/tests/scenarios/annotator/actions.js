@@ -75,7 +75,7 @@ var Actions = function(options) {
                     Look for a feature that HAS a graph and is NOT undefined
                  */
                 var feature = features[Math.round(Math.random() * features.length)];
-                while (!feature.graph && typeof feature == 'undefined') {
+                while (!feature.hasOwnProperty('graph') && typeof feature == 'undefined') {
                     feature = features[Math.round(Math.random() * features.length)];
                 }
                 return feature;

@@ -655,10 +655,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.selectedFeature.contentTitle = $(this).val();
 			});
 
-			name_temporary_annotation.on('change', function() {
-				annotator.selectedFeature.contentTitle = $(this).val();
-			});
-
 			content_temporary_annotation.notebook({
 				placeholder: 'Type description here...'
 			});
@@ -855,11 +851,19 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 							dialog.find('#display_note').notebook({
 								placeholder: 'Type display note here...'
-							}).html(selectedFeature.display_note);
+							}).html(annotator.selectedFeature.display_note).on('contentChange', function(e) {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.display_note = content;
+							});
+
 
 							dialog.find('#internal_note').notebook({
 								placeholder: 'Type internal note here...'
-							}).html(selectedFeature.internal_note);
+							}).html(annotator.selectedFeature.internal_note).on('contentChange', function(e) {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.internal_note = content;
+							});
+
 							$('#panelImageBox .allograph_form').val('------');
 							$('#panelImageBox .hand_form').val('------');
 							$('select').trigger("liszt:updated");
@@ -2698,6 +2702,10 @@ function delete_annotation(layer, feature, number_annotations) {
 		updateTabCounter();
 		annotator.has_changed = true;
 	};
+
+	if (feature.popup) {
+		deletePopup(feature);
+	}
 
 	if (!feature.stored) {
 		updateStatus('Annotation deleted locally', 'success');

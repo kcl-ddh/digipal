@@ -52,7 +52,7 @@ urlpatterns += patterns('digipal.views.search',
     (r'^search/suggestions.json/?$', 'search_suggestions'),
     # Record views
     (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)/(?P<objectid>[^/]+)(/(?P<tabid>[^/]+))?(?:/|$)', 'record_view'),
-    (r'^(?P<content_type>hands|manuscripts|scribes|graphs|pages)(?:/|$)', 'index_view'),
+    (r'^(?P<content_type>hands|manuscripts|scribes|pages)(?:/|$)', 'index_view'),
 )
 
 urlpatterns += patterns('digipal.views.admin.image',

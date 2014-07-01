@@ -261,6 +261,6 @@ class SearchGraphs(SearchContentType):
         #
         # we get the annotation from the graph, then the abs URL
         # http://localhost/digipal/page/718/?vector_id=OpenLayers_Feature_Vector_191
-        annotation = Annotation.objects.get(graph__id=context['id'])
-        ret = u'/digipal/page/%s/?vector_id=%s' % (annotation.image.id, annotation.vector_id)
+        graph = Graph.objects.get(graph__id=context['id'])
+        ret = graph.get_absolute_url()
         return ret

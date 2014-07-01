@@ -11,7 +11,7 @@ class FilterManuscripts(forms.Form):
                             '%s' % cn for cn in CatalogueNumber.objects.filter(historical_item__item_parts__isnull=False).distinct()
                         ), 'Catalogue Number')
     repository = get_form_field_from_queryset([m.human_readable() for m in Repository.objects.filter(currentitem__itempart__isnull=False).order_by('place__name', 'name').distinct()], 'Repository')
-    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False).values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')
+    ms_date = get_form_field_from_queryset(sorted_natural(list(ItemPart.objects.filter(historical_items__date__isnull=False, historical_items__date__gt='').values_list('historical_items__date', flat=True).order_by('historical_items__date').distinct())), 'Date')
 
 class SearchManuscripts(SearchContentType):
 

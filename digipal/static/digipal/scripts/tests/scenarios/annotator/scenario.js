@@ -373,15 +373,15 @@ function Scenario() {
                         casper.evaluate(function() {
                             $('#internal_note').html('Internal Note');
                             $('#display_note').html('Display Note');
-                            console.log($('#internal_note').html())
                         });
-                        casper.capture('screen.png');
                         var vector_id = casper.evaluate(function() {
                             return annotator.selectedFeature.id;
                         });
+                        casper.echo(vector_id);
                         AnnotatorTasks.do.save(function() {
                             AnnotatorTasks.do.unselect();
-                            var feature = AnnotatorTasks.do.select(vector_id, function() {
+
+                            AnnotatorTasks.do.select(vector_id, function() {
                                 var values = casper.evaluate(function() {
                                     return {
                                         'internal_note': $('#internal_note').html(),

@@ -309,7 +309,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		} else {
 			this.selectedFeature = null;
 		}
-		$(".number_annotated_allographs .number-allographs").html(0);
+		//$(".number_annotated_allographs .number-allographs").html(0);
 		restoreFullscreenPositions();
 	};
 
@@ -2722,6 +2722,7 @@ function delete_annotation(layer, feature, number_annotations) {
 
 
 function isNodeEmpty(node) {
+	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
 	if (node) {
 		var string = $.parseHTML(node);
 		var emptyNodes = 0;
@@ -2732,7 +2733,7 @@ function isNodeEmpty(node) {
 			} else {
 				value = string[i].innerText;
 			}
-			if ($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') {
+			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
 				emptyNodes++;
 			}
 		}
@@ -2926,6 +2927,10 @@ function save(url, graphs, data, ann, features) {
 							feature.graph = new_graph;
 							feature.state = null;
 
+							if (feature.is_editorial) {
+								feature.vector_id = new_graphs[i].vector_id;
+							}
+
 							if (new_graphs[i].hasOwnProperty('hand_id')) {
 								feature.hand = new_graphs[i].hand_id;
 							}
@@ -3004,7 +3009,10 @@ function save(url, graphs, data, ann, features) {
 							feature.style.originalColor = color;
 							feature.style.strokeWidth = 2;
 							feature.stored = true;
-							feature.display_note = new_graphs[i].display_note;
+
+							if (new_graphs[i].hasOwnProperty('display_note')) {
+								feature.display_note = new_graphs[i].display_note;
+							}
 							if (new_graphs[i].hasOwnProperty('internal_note')) {
 								feature.internal_note = new_graphs[i].internal_note;
 							}

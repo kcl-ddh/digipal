@@ -20,7 +20,7 @@ var api = new DigipalAPI({
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 
-	if (typeof annotator !== 'undefined' && annotator.selectedFeature.isTemporary) {
+	if (typeof annotator.selectedFeature !== 'undefined' && annotator.selectedFeature.isTemporary) {
 		callback('');
 	}
 

@@ -734,8 +734,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			$('.delete_trigger').unbind().on('click', function() {
 				if (annotator.selectedAnnotations.length) {
 					var features = annotator.selectedAnnotations;
-					for (var i = 0; i < features.length; i++) {
-						annotator.deleteAnnotation(annotator.vectorLayer, features[i], features.length);
+					var msg = 'You are about to delete ' + features.length + ' annotations. They cannot be restored at a later time! Continue?';
+					var doDelete = confirm(msg);
+					if (doDelete) {
+						for (var i = 0; i < features.length; i++) {
+							delete_annotation(annotator.vectorLayer, features[i], features.length);
+						}
 					}
 				} else {
 					if (annotator.selectedFeature) {

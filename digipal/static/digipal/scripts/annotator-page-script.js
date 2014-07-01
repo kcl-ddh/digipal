@@ -30,6 +30,10 @@ function AnnotatorLoader() {
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
 			self.set_settings(self.digipal_settings); // setting settings
+			if (annotator.isMobile()) {
+				annotator.selectFeature.deactivate();
+				annotator.selectFeature.activate();
+			}
 		});
 	};
 
@@ -696,9 +700,9 @@ function AnnotatorLoader() {
 				toolbar.addClass('fullScreenToolbarVertical');
 			}
 
-			if ($(window).width() < 860) {
+			if (annotator.isMobile()) {
 				toolbar.css({
-					top: map.position().top - 150,
+					top: '100px',
 					left: 0
 				});
 			} else {
@@ -933,10 +937,9 @@ function AnnotatorLoader() {
 
 			if (input_toolbar_position.val() == 'Vertical') {
 
-
-				if ($(window).width() < 860) {
+				if (annotator.isMobile()) {
 					toolbar.css({
-						top: map.position().top - 150,
+						top: '100px',
 						left: 0
 					});
 				} else {

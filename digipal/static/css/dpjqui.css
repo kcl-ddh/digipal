@@ -7,7 +7,7 @@
     z-index: 900;
     overflow-y:scroll;
     margin:0;
-    width:24% !important;
+    width:290px !important;
 }
 
 .ui-dialog p:last-child{

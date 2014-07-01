@@ -55,6 +55,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 	var _Star = new Star();
 
+	this.isMobile = function() {
+		if (window.innerWidth <= 800 && window.innerHeight <= 600) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+
 	/**
 	 * Shows the annotation details for the given feature.
 	 *
@@ -800,11 +808,19 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (absolute_position) {
 					var top_page_position = $(window).scrollTop();
 					var window_height = ($(window).height() / 100) * 25;
-					dialog.parent().css({
-						'position': 'absolute',
-						'top': top_page_position + window_height,
-						'left': '68%'
-					});
+					if (annotator.isMobile()) {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '4%'
+						});
+					} else {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '68%'
+						});
+					}
 				}
 			} else {
 				$('#annotations').html('');
@@ -1388,13 +1404,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
 			});
 
-			/*images_link.on('click', function() {
+			images_link.on('click', function() {
 				var vector = $(this);
-				annotator.centreById(vector.data('annotation'));
+				annotator.centreById(vector.data('graph'));
 			}).on("mouseover", function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('annotation')) {
+					if (features[i].graph == vector.data('graph')) {
 						features[i].originalColor = features[i].style.fillColor;
 						features[i].style.strokeColor = 'red';
 						features[i].style.strokeWidth = 6;
@@ -1406,7 +1422,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}).on('mouseout', function() {
 				var vector = $(this);
 				for (var i = 0; i < features.length; i++) {
-					if (features[i].id == vector.data('annotation')) {
+					if (features[i].graph == vector.data('graph')) {
 						features[i].style.strokeColor = features[i].originalColor;
 						features[i].style.strokeWidth = 2;
 						break;
@@ -1416,9 +1432,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				restoreFullscreenPositions();
 			}).on('dblclick', function() {
 				var vector = $(this);
-				annotator.selectFeatureByIdAndCentre(vector.data('annotation'));
+				annotator.selectFeatureByIdAndCentre(vector.data('graph'));
 			}).fadeIn();
-			*/
+
 			images_link.fadeIn();
 			if (img.length) {
 				img.remove();

@@ -2,8 +2,8 @@
 	position:relative;
 	outline:0;
 	min-height:50px;
-	/* overflow-y: hidden;
-	 */
+	overflow-y: auto !important;
+	width: 96% !important;
 }
 
 .jquery-notebook.editor p{
@@ -32,10 +32,9 @@
 	 */line-height: inherit;
 	/* bottom: 5%;
 	 */margin-bottom: 0.5%;
-	/* left: 2%;
-	 *//* vertical-align: inherit;
+	/* left: 2%; *//* vertical-align: inherit;
 	 */border-top: 1px solid #eee;
-	width: 96%;
+	width: 99%;
 	padding: 0;
 	opacity:0;
 	border-radius:5px;
@@ -89,9 +88,8 @@
 
 .jquery-notebook.bubble ul li{
 	display:inline;
-	/* margin: 0;
-	 *//* padding: 0;
-	 */
+	margin: 0;
+	padding: 0;
 }
 
 .jquery-notebook.bubble button{
@@ -109,7 +107,7 @@
 	cursor:pointer;
 	-webkit-font-smoothing:antialiased;
 	margin: 0.2em;
-	margin-left: 0.35em;
+	margin-left: 0.30em;
 }
 
 .jquery-notebook.bubble button.active{

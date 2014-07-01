@@ -48,6 +48,8 @@
     color: #7d4644;
 }
 
+/* Thumbnails */
+
 .imageDatabase .img-frame {
     padding: 4px;
     border: 1px solid #ddd;
@@ -69,6 +71,18 @@
     transition-duration:0.5s;
     margin-bottom: 1em;
 }
+
+.img-frame {
+    display: inline-block;
+    overflow: hidden;
+}
+
+.img-frame img {
+    position:relative;
+    max-width:none;
+}
+
+/* --- */
 
 .imageDatabase img:hover{
     opacity:0.8;

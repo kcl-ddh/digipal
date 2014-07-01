@@ -261,7 +261,7 @@ def img(src, *args, **kwargs):
     
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
-        style += ';position:relative;max-width:none;'
+        ##style += ';position:relative;max-width:none;'
         if rotation > 0.0 or kwargs.get('force_rotation', False):
             style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
 
@@ -304,9 +304,15 @@ def img(src, *args, **kwargs):
                 style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
     #print style
     
-    ret = ur'<img src="%s" %s style="%s"/>' % (escape(src), more, style)
+    if style:
+        style = ' style="%s" ' % style
     
-    ret = ur'<span class="img-frame" style="display: inline-block; %s; overflow: hidden;">%s</span>' % (frame_css, ret)
+    ret = ur'<img src="%s" %s %s/>' % (escape(src), more, style)
+    
+    if frame_css:
+        frame_css = ' style="%s" ' % frame_css
+    
+    ret = ur'<span class="img-frame" %s>%s</span>' % (frame_css, ret)
     
     return mark_safe(ret)
 

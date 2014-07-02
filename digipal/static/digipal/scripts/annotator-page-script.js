@@ -123,7 +123,9 @@ function AnnotatorLoader() {
 			self.update_allographs_counter($(this).val());
 			if (annotator.selectedFeature && annotator.selectedFeature.state === "Insert") {
 				annotator.selectedFeature.allograph_id = $(this).val();
-				annotator.selectedFeature.feature = $(this).find('option:selected').text();
+				if ($(this).find('option:selected').text() !== '------') {
+					annotator.selectedFeature.feature = $(this).find('option:selected').text();
+				}
 			}
 		});
 

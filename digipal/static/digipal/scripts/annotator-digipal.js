@@ -1276,7 +1276,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					var cache = annotator.cacheAnnotations;
 					var allograph, hand;
 					var selectedFeature = annotator.selectedFeature;
-					if (selectedFeature) {
+					if (selectedFeature && selectedFeature.stored) {
 						var graph = selectedFeature.graph;
 						if (cache.search('graph', graph)) {
 							allograph = cache.cache.graphs[graph].allograph_id;
@@ -2912,7 +2912,7 @@ function save(url, graphs, data, ann, features) {
 						new_allograph = new_graphs[i].allograph_id;
 					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[i]);
 					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
-					if (typeof new_graph == 'undefined') {
+					if (typeof new_graph == 'undefined' || !new_graph) {
 						allographsPage.cache.update('graph', new_graphs[i].vector_id, new_graphs[i]);
 						is_editorial = true;
 					} else {
@@ -2922,7 +2922,7 @@ function save(url, graphs, data, ann, features) {
 
 					for (var k = 0; k < annotator.selectedAnnotations.length; k++) {
 						var crntFt = annotator.selectedAnnotations[k];
-						if (!crntFt.hasOwnProperty('graph')) {
+						if (!crntFt.hasOwnProperty('graph') && !crntFt.graph && crntFt.stored) {
 							if (crntFt.id == new_graphs[i].vector_id) {
 								crntFt.graph = new_graphs[i].vector_id;
 								crntFt.is_editorial = true;
@@ -2937,15 +2937,16 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if ((is_editorial && f[feature_ind].id == new_graphs[i].vector_id) || (!is_editorial && f[feature_ind].graph == new_graphs[i].graph)) {
+						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id) {
 							feature = f[feature_ind];
 							//id = feature.id;
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
 
-							if (feature.is_editorial) {
+							if (feature.is_editorial || !new_graph) {
 								feature.vector_id = new_graphs[i].vector_id;
+								feature.is_editorial = true;
 							}
 
 							if (new_graphs[i].hasOwnProperty('hand_id')) {
@@ -3008,11 +3009,11 @@ function save(url, graphs, data, ann, features) {
 							}
 
 
-							if (new_graphs[i].hasOwnProperty('features') && new_graphs[i].features.length) {
+							if (new_graphs[i].hasOwnProperty('features') && new_graphs[i].features.length && !feature.is_editorial) {
 								color = 'green';
 								feature.described = true;
 								feature.num_features = feature.features.length + 1;
-							} else if (new_graphs[i].hasOwnProperty('features') && !new_graphs[i].features.length) {
+							} else if (new_graphs[i].hasOwnProperty('features') && !new_graphs[i].features.length && !feature.is_editorial) {
 								color = '#ee9900';
 								feature.described = false;
 								feature.num_features = 0;

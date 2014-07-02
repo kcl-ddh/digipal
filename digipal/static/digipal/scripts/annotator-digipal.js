@@ -739,7 +739,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					}
 				} else {
 					if (annotator.selectedFeature) {
-						delete_annotation(annotator.vectorLayer, annotator.selectedFeature, 1);
+						annotator.delete_annotation(annotator.vectorLayer, annotator.selectedFeature, 1);
 					}
 				}
 			});
@@ -882,7 +882,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 					self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
-					panel.find('.allograph_form').unbind().on('change', function() {
+					panel.find('.allograph_form').unbind('change').on('change', function() {
 						var features = annotator.vectorLayer.features;
 						var allograph = $('#panelImageBox .allograph_form option:selected').text();
 						var allograph_id = $(this).val();
@@ -1304,9 +1304,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							allograph = selectedFeature.allograph_id;
 							hand = selectedFeature.hand;
 						}
+						select_allograph.val(allograph);
 
 						select_hand.val(hand);
-						select_allograph.val(allograph);
 						select_allograph.add(select_hand).trigger('liszt:updated');
 					}
 					callback(dialog);

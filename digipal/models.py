@@ -1874,6 +1874,13 @@ class Graph(models.Model):
         self.display_label = get_list_as_string(self.idiograph, '. ', self.hand)
         super(Graph, self).save(*args, **kwargs)
         
+    def get_absolute_url(self):
+        ret = '/'
+        # TODO: try/catch for missing annotation
+        if self.annotation:
+            ret = self.annotation.get_absolute_url()
+        return ret
+        
     def get_description_as_array_str(self):
         ret = []
         for c in self.graph_components.all().order_by('component__name'):
@@ -2007,6 +2014,13 @@ class Annotation(models.Model):
         # TODO: test if this exists!
         geo_json['geometry']['coordinates'][0] = path
         self.set_geo_json_from_dict(geo_json)
+        
+    def get_absolute_url(self):
+        ret = '/'
+        # TODO: change to ID instead of vector id!
+        if self.image and self.vector_id:
+            ret = u'/digipal/page/%s/?vector_id=%s' % (self.image.id, self.vector_id)
+        return ret
     
     def get_coordinates(self, geo_json_str=None, y_from_top=False, rotated=False):
         ''' Returns the coordinates of the smallest rectangle 
@@ -2618,7 +2632,7 @@ def set_additional_models_methods():
     for attribute in globals().values():
         # Among all the symbols accessible here, filter the Model defined in this module
         if isinstance(attribute, type) and issubclass(attribute, models.Model) and attribute.__module__ == __name__:
-            if getattr(attribute, 'has_absolute_url', False):
+            if (not hasattr(attribute, 'get_absolute_url')) and getattr(attribute, 'has_absolute_url', False):
                 attribute.get_absolute_url = model_get_absolute_url
             attribute.get_admin_url = model_get_admin_url
 

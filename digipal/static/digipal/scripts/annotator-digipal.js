@@ -1707,13 +1707,24 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		this.unsaved_annotations = [];
 		this.load_annotations(function(data) {
 			reload_described_annotations(div);
+			restoreFullscreenPositions();
 
+			var selectFeature = 0;
 			for (j = 0; j < _activeControls.length; j++) {
+
 				if (_activeControls[j].displayClass != "olControlNavigation") {
 					_activeControls[j].activate();
 				}
+
+				if (_activeControls[j].id == "OpenLayers_Control_SelectFeature_78") {
+					selectFeature++;
+				}
 			}
-			restoreFullscreenPositions();
+
+			if (!selectFeature) {
+				annotator.selectFeature.deactivate();
+			}
+
 
 		}, true);
 	};

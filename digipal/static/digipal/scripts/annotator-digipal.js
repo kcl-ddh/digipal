@@ -1909,16 +1909,14 @@ function open_allographs(allograph, show) {
 	}
 	$(this).addClass('active');
 	var allograph_value, allograph_id;
-	if (annotator.isAdmin == 'True') {
-		if (typeof allograph != "undefined") {
-			allograph_value = allograph.parent().prev().text();
-		} else {
-			allograph_value = $('#panelImageBox .allograph_form option:selected').text();
-			allograph_id = $('#panelImageBox .allograph_form').val();
-		}
+
+	if (typeof allograph != "undefined") {
+		allograph_value = allograph.parent().prev().text();
 	} else {
-		allograph_value = annotator.selectedFeature.feature;
+		allograph_value = $('#panelImageBox .allograph_form option:selected').text();
+		allograph_id = $('#panelImageBox .allograph_form').val();
 	}
+
 	if (allograph_value) {
 		var features = annotator.vectorLayer.features;
 		var feature;

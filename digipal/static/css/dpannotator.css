@@ -211,7 +211,7 @@
 
 #panelImageBox .frmAnnotation {
     display:inline;
-     
+
     /* margin-bottom: 1em; */
     vertical-align: baseline;
     margin-top: -0.9%;
@@ -614,7 +614,7 @@ label[for=id_internal_note], label[for=id_display_note]{
 }
 
 .allograph_label{
-    margin-right:3%;
+    float:left;
 }
 
 #tabbable-annotator-page{
@@ -699,3 +699,6 @@ path {
     padding-left: 20px;
 }
 
+.buttons_div{
+    margin-right: 9px;
+}

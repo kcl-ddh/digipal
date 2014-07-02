@@ -882,7 +882,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 					self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
-					panel.find('.allograph_form').on('change', function() {
+					panel.find('.allograph_form').unbind().on('change', function() {
 						var features = annotator.vectorLayer.features;
 						var allograph = $('#panelImageBox .allograph_form option:selected').text();
 						var allograph_id = $(this).val();
@@ -918,11 +918,16 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			dialog_label_element: '.allograph_label',
 			init: function(selectedFeature) {
 				var _self = this;
-				var html_string_label, html_string_buttons;
+				var html_string_label;
+				var html_string_buttons;
+				if (selectedFeature.feature && selectedFeature.feature.length > 8) {
+					html_string_buttons = "<div class='buttons_div'>";
+				} else {
+					html_string_buttons = "<div class='pull-right buttons_div'>";
+				}
 
 				if (annotator.editorial.active || selectedFeature.is_editorial) {
 					html_string_label = "<span class='allograph_label'>Editorial Ann.</span>";
-					html_string_buttons = '';
 					if (annotator.isAdmin == "True") {
 						html_string_buttons += " <button class='btn btn-xs btn-success save_trigger'><span data-toggle='tooltip' data-container='body' title='Save Annotation' class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button>";
 					}
@@ -931,30 +936,36 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					if (annotator.isAdmin == "True") {
 						if (selectedFeature && annotator.annotating) {
 							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
-							html_string_buttons = "<button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok' data-toggle='tooltip' data-container='body' title='Save Annotation'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
+							if (selectedFeature.feature && selectedFeature.feature.length > 8) {
+								html_string_buttons += "<br>";
+							}
+							html_string_buttons += "<button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok' data-toggle='tooltip' data-container='body' title='Save Annotation'></span></button>";
+
+							html_string_buttons += " <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
+
 						} else if (!annotator.annotating) {
 							if (!selectedFeature.hasOwnProperty('graph')) {
 								html_string_label = "<span class='allograph_label pull-left'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
 							} else {
 								html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
 							}
-							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
 						} else {
 
 							if (annotator.selectedFeature) {
 								html_string_label = "<span class='allograph_label'>" + annotator.selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							} else {
 								html_string_label = "<span class='allograph_label'>Annotation</span>";
-								html_string_buttons = "<button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
+								html_string_buttons += "<button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							}
 						}
 					} else {
 						if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
-							html_string_buttons = "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
+							html_string_buttons += "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 						} else {
 							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
-							html_string_buttons = "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
 						}
 					}
 				}
@@ -970,6 +981,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			set_label: function(label) {
 				$(this.dialog_label_element).html(label);
+				$(this.dialog_label_element).parent().find('br').remove();
+				if (label.length > 8) {
+					$('.allograph_label').after('<br>');
+					$('.buttons_div').removeClass("pull-right");
+				} else {
+					$('.buttons_div').addClass("pull-right");
+				}
 			},
 
 			set_dialog_buttons: function(html_string) { // selectedFeature.graph
@@ -999,6 +1017,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						html_string += " <button class='btn btn-default btn-xs link_graphs disabled' disabled><i class='fa fa-users'></i></button>";
 					}
 				}
+				html_string += "</div>";
 				return html_string;
 			},
 

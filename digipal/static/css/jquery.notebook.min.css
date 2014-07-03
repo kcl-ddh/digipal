@@ -159,15 +159,14 @@
 }
 
 .jquery-notebook .link-area button{
-	float:left
-}
+	float:left}
 
 .jquery-notebook .link-area button:after{
 	content:"\f00d"
 }
 
 .jquery-notebook input[type=text]{
-	width:220px;
+	width: 210px;
 	/* height:28px;
 	 */margin:6px 0 0 10px;
 	background:0;

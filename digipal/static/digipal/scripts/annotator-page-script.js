@@ -825,6 +825,10 @@ function AnnotatorLoader() {
 		$(".number_annotated_allographs .number-allographs").html(n);
 	};
 
+	var zoom = function() {
+		return annotator.vectorLayer.map.zoom + 1;
+	};
+
 	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
@@ -834,7 +838,8 @@ function AnnotatorLoader() {
 		feature.feature.stored = false;
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
-		if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
+		//if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
+		if (feature.feature.geometry.getLength() < 250) {
 			feature.feature.destroy();
 			$('circle').remove();
 			$('polyline').remove();

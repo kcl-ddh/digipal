@@ -217,23 +217,15 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.setSavedAttribute(e.feature, Annotator.UNSAVED, true);
 			_self.selectFeatureById(e.feature.id);
 
-			/*
-				prevent the vector to be too narrow
-				it also prevents a openlayers bug
-			*/
-
 		},
 		'transform': function(e) {
 			var feature = e.object.feature;
-
-			/*
-			if (feature.geometry.bounds.top - feature.geometry.bounds.bottom < 5 || feature.geometry.bounds.right - feature.geometry.bounds.left < 10) {
+			if (feature.geometry.getLength() < 100) {
 				feature.destroy();
 				$('circle').remove();
 				$('polyline').remove();
 				return false;
 			}
-			*/
 
 		},
 		'beforeset': function(e) {

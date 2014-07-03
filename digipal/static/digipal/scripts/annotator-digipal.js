@@ -3170,7 +3170,7 @@ function registerEvents() {
 
 DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 	var _self = this;
-
+	var toggleAll = _self.utils.toggleAll;
 	$(document).bind('keydown', function(event) {
 		activeControls = _self.map.getControlsBy('active', true);
 		var code = (event.keyCode ? event.keyCode : event.which);

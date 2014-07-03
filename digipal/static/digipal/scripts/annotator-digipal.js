@@ -2690,7 +2690,7 @@ function updateTabCounter() {
 }
 
 function delete_annotation(layer, feature, number_annotations) {
-	var featureId = feature.id;
+	var featureId = feature.graph || feature.id;
 	var temp = feature;
 	updateStatus('Deleting annotations', 'warning');
 	layer.destroyFeatures([feature]);

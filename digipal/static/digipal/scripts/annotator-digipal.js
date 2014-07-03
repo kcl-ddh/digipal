@@ -1537,6 +1537,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	 */
 	this.saveAnnotation = function(ann, allographs_page) {
 
+		var isModifyToolActive = annotator.transformFeature.active;
+		annotator.transformFeature.deactivate();
+
 		if (!ann) {
 			ann = null;
 		}
@@ -1573,6 +1576,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			geoJson;
 		var feature;
 		var data = make_form();
+		data['isModifyToolActive'] = isModifyToolActive;
 		var url = annotator.absolute_image_url + 'save';
 		var cache = this.cacheAnnotations.cache;
 		if (!annotator.editorial.active) {
@@ -2891,6 +2895,8 @@ function make_form() {
  */
 
 function save(url, graphs, data, ann, features) {
+
+	var isModifyToolActive = data.isModifyToolActive;
 	$.ajax({
 		url: url,
 		type: 'POST',
@@ -3079,7 +3085,9 @@ function save(url, graphs, data, ann, features) {
 
 		},
 		complete: function() {
-			//annotator.transformFeature.deactivate();
+			if (isModifyToolActive) {
+				annotator.transformFeature.activate();
+			}
 			annotator.has_changed = true;
 			updateTabCounter();
 		}

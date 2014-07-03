@@ -1,0 +1,39 @@
+{% load i18n pages_tags %}
+
+{% spaceless %}
+
+{% for page in page_branch %}
+    {% if page.is_primary %}
+        {% if forloop.first %}
+            <ul class="nav nav-tabs">
+        {% endif %}
+        {% if page.in_footer %}
+            <li class="dropdown"><ul class="dropdown-menu">
+        {% endif %}
+    {% endif %}
+
+    {% if page.in_footer %}
+        {% if forloop.first and not page.parent.in_footer and not page.is_primary %}
+            <li class="dropdown"><ul class="dropdown-menu">
+        {% endif %}
+        <li {% if page.is_current_or_ascendant %}class="active"{% endif %}>
+            <a href="{% url page page.slug %}">{{ page.title }}</a></li>
+    {% endif %}
+
+    {% if page.in_footer %}
+        {% if forloop.first and not page.parent.in_footer and not page.is_primary %}
+            </li></ul>
+        {% endif %}
+    {% endif %}
+
+    {% if page.is_primary %}
+        {% if page.in_footer %}
+            </ul></li>
+        {% endif %}
+        {% if forloop.last %}
+            </ul>
+        {% endif %}
+    {% endif %}
+
+{% endfor %}
+{% endspaceless %}

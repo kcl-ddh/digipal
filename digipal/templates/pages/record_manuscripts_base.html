@@ -1,0 +1,154 @@
+{% extends "pages/record.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load pagination_tags hand_filters html_escape  %}
+
+{% block meta_title %}{{ item_part.historical_item.historical_item_type|title }}: {{ item_part.display_label }}{% endblock %}
+{% block record_title %}
+    {% if item_part.type.name %}
+        {{ item_part.type.name }}:
+    {% else %}
+        {{ item_part.historical_item.historical_item_type|title }}:
+    {% endif%}
+    {{ item_part.display_label }}
+    {% include "digipal/admin_edit.html" with instance=item_part %}
+{% endblock %}
+
+{% block record_tabs %}
+    <li class="{% if not tabid %}active in{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
+    <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
+    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+{% endblock %}
+
+{% block details %}
+    <div class='tabbable'>
+        <div id='record-tab-content' class='tab-content'>
+            <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
+                {% block data_current_item %}
+                    {% for ci in item_part.get_current_items %}
+                        <h3>Current location</h3>
+        
+                        <dl class="dl-horizontal bs">
+                            <dt>Repository</dt>
+                            <dd>{{ ci.repository.name }}</dd>
+                            <dt>Town or City</dt>
+                            <dd>{{ ci.repository.place }}</dd>
+                            <dt>Shelfmark</dt>
+                            <dd>
+                                {{ ci.shelfmark }}
+                            </dd>
+                            {% if item_part.subdivisions.all.count %}
+                                <dt>Part</dt>
+                                <dd>
+                                    {% for part in item_part.subdivisions.all %}
+                                        {% if forloop.counter0 %}, {% endif %}
+                                        {% if part.current_item == ci %}
+                                                <a href="{{ part.get_absolute_url }}">f. {{ part.locus }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </dd>
+                            {% endif %}
+                        </dl>
+                    {% endfor %}
+                {% endblock %}
+
+                {% block data_group %}
+                    {% if item_part.group %}
+                        <h3>Part of</h3>
+                        <p>
+                            <a href="{{ item_part.group.get_absolute_url }}">{{ item_part.group.display_label }}</a>
+                        </p>
+                    {% endif %}
+                {% endblock %}
+                
+                {% block data_custom %}
+                {% endblock %}
+
+                {% block data_other %}
+                    <h3>Other information</h3>
+                    
+                    <dl class="dl-horizontal bs">
+                        {% if item_part.historical_item.name %}
+                            <dt>Name</dt>
+                            <dd>{{ item_part.historical_item.name }} </dd>
+                        {% endif %}
+                        
+                        <dt>Catalogue Numbers</dt>
+                        <dd>{{ item_part.historical_item.catalogue_number|default:'Unspecified' }}</dd>
+                        
+                        <dt>Format</dt>
+                        <dd>{{ item_part.historical_item.historical_item_format|default:'Unspecified' }}</dd>
+                        {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
+                        
+                        <dt>Date</dt><dd>{{ item_part.historical_item.date|default:'Unspecified' }}</dd>
+                        
+                        {% if item_part.historical_item.itemorigin_set.all.count %}
+                            <dt>Origin</dt>
+    
+                            {% for data in item_part.historical_item.itemorigin_set.all.distinct %}
+                                <dd>
+                                    {{ data.content_object }}
+                                    {% if data.dubitable %}(dubitable){% endif %}
+                                    {% if data.evidence %}, {{ data.evidence }}{% endif %}
+                                </dd>
+                            {% endfor %}
+                        {% endif %}
+                    </dl>
+                {% endblock %}
+            </div>
+
+            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
+                {% if item_part.historical_item.description_set.count %}
+                    {% for historical_item in item_part.historical_items.all %}
+                        {% for desc in historical_item.get_descriptions %}
+                            <h3>
+                                {{ desc.source.get_display_reference }}
+                                {% for catnum in historical_item.catalogue_numbers.all %}
+                                    {% if catnum.source == desc.source %}
+                                        ({{ catnum }})
+                                    {% endif %}
+                                {% endfor %}
+                            </h3>
+                            {% filter tag_phrase_terms:terms %}
+                                {{ desc.description|richfield }}
+                            {% endfilter %}
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="description" %}
+                {% endif %}
+            </div>
+
+            {% include "pages/tab_images.html" %}
+
+            <div class='tab-pane fade {% if tabid = "hands" %}active in{% endif %}' id='hands'>
+                {% if hands.count %}
+                    <ul class="list-group">
+                        {% for hand in hands %}
+                            <li class="list-group-item">
+                                <a href="{{ hand.get_absolute_url }}">
+                                    {{ hand }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="hand" %}
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    {% include "digipal/add_to_collection.html" %}
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+{% endblock %}

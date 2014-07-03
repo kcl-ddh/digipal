@@ -1,0 +1,212 @@
+/*  lightbox and collections */
+
+#lightbox_button{
+    margin: 1.2%;
+    padding: 0.3%;
+    font-weight: bold;
+}
+
+#lightbox_button a{
+    font-weight: bold;
+    color: #fff;
+    font-size: 13px;
+}
+
+#lightbox_button a:hover{
+    text-decoration: none;
+}
+
+#container_basket .image_label{
+    margin:2%;
+    display: block;
+}
+
+#container_basket, #container_collections{
+    margin:0;
+    margin-top: 1em;
+}
+
+#container_collections{
+    margin-top: 2.5em;
+    margin-bottom:5em;
+    min-height: 250px;
+}
+
+.collection{
+    margin: 0.5em;
+    margin-bottom: 1.5em;
+    text-align: center;
+    border-radius: 2px;
+    padding: 0.8em;
+    padding-bottom: 0;
+    border: 1px solid transparent;
+    word-wrap: break-word;
+}
+
+.disabled{
+    color: #999;
+    cursor: default;
+}
+
+.disabled:hover{
+    color: #999;
+}
+
+.selected-collection img{
+    box-shadow: 0px 0px 25px 8px yellow;
+    background: yellow;
+}
+
+.collection label{
+    font-weight: normal;
+    font-size: 13px;
+    display: block;
+    margin-top: 1em;
+    text-align: center;
+    position: relative;
+    cursor:pointer;
+    line-height: 1;
+}
+
+.collection button{
+    margin:1%;
+}
+
+.collection img {
+    cursor: pointer;
+    width: 64px;
+}
+
+.collection input {
+    position: absolute;
+    top: 0;
+    left: 4%;
+    cursor:pointer;
+}
+
+.collection:hover input {
+    display: block;
+}
+
+.collection img:hover {
+    box-shadow: 0px 0px 25px 4px yellow;
+    background: yellow;
+}
+
+.allograph_label_lightbox{
+    display: block;
+    margin:2%;
+}
+
+#header_images, #header_annotations {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+#table-annotations {
+   margin-bottom: 3em;
+}
+
+#span-check-collections input {
+    margin: 0;
+    vertical-align: inherit;
+}
+
+.collection-title {
+    border:1px solid transparent;
+    padding:0.2em;
+}
+
+.collection-title:hover, .collection-title:focus{
+    outline:none;
+    border:1px solid #ccc;
+    border-radius:4px;
+}
+
+#collection-breadcrumb{
+    background-color: #fff;
+}
+
+.page-header a{
+    cursor:pointer;
+}
+
+#counter-collections{
+    margin-left: 0.5em;
+}
+
+.starred {
+    color: yellow;
+    font-size: 15px;
+    cursor: pointer;
+    text-shadow: 0px 0px 1px #444;
+}
+
+.unstarred{
+    cursor: pointer;
+    font-size: 15px;
+    text-shadow: 0px 0px 2px #111;
+    color: #fff;
+}
+
+.unstarred:hover {
+    text-shadow: 0px 0px 3px #000;
+}
+
+button .starred, input .starred, button .unstarred, input .unstarred{
+    font-size:12px;
+}
+
+#dialog-star{
+    position: absolute;
+    top: 0;
+    left: 85%;
+    background: #fff;
+    padding: 4px;
+    width: 35px;
+    height: 35px;
+    text-align:center;
+    box-shadow: 0px 0px 8px 1px #999;
+    z-index: 1000;
+    border-radius:2px;
+}
+
+#dialog-star span{
+    position: absolute;
+    left: 30%;
+    top: 25%;
+}
+
+
+#table-images tr.table-row, #table-annotations tr.table-row {
+    cursor:pointer;
+}
+
+#table-images tr.table-row:hover, #table-annotations tr.table-row:hover {
+    background: #ffffcc;
+}
+
+tr.selected {
+    background: #ffffcc;
+}
+
+#counter-annotations, #counter-images {
+    position: relative;
+    right: 5px;
+    vertical-align: inherit;
+}
+
+.starred-image {
+    position: absolute;
+    text-shadow: 0px 0px 1px #444;
+    right: 8%;
+    top: 5%;
+    color: rgba(253, 253, 10, 0.8);
+}
+
+
+.num_row{
+    font-size:10px;
+    vertical-align: text-top;
+    font-weight: bold;
+}

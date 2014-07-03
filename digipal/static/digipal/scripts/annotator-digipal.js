@@ -1,0 +1,3255 @@
+// inherits from Annotator
+DigipalAnnotator.prototype = new Annotator();
+
+// corrects the contructor pointer because it points to Annotator
+DigipalAnnotator.prototype.constructor = DigipalAnnotator;
+
+/**
+ * Annotator implementation for DigiPal.
+ *
+ * @param imageUrl
+ *              URL of the image to annotate.
+ * @param imageWidth
+ *              Width of the image to annotate.
+ * @param imageHeight
+ *              Height of the image to annotate.
+ * @param imageServerUrl
+ *              URL of the image on an image server.
+ */
+
+function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServerUrl, isAdmin) {
+	if (imageServerUrl && imageServerUrl != 'None' && imageServerUrl.length) {
+		Annotator.call(this, imageServerUrl, imageWidth, imageHeight, true);
+	} else {
+		Annotator.call(this, imageUrl, imageWidth, imageHeight, false);
+	}
+
+	this.annotations = null;
+	this.annotating = true;
+	this.has_changed = false;
+	this.events = false;
+	this.url_allographs = false;
+	this.unsaved_annotations = [];
+	this.isAdmin = isAdmin;
+	this.mediaUrl = mediaUrl;
+	this.allow_multiple_dialogs = false;
+	this.boxes_on_click = false;
+	this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
+	this.transformFeature.panel_div.title = 'Modify (shift + m)';
+	this.rectangleFeature.panel_div.title = 'Draw Annotation (shift + d)';
+	if (isAdmin !== 'True') {
+		this.rectangleFeature.panel_div.title = 'Create Annotation (shift + d)';
+	}
+	this.selectFeature.panel_div.title = 'Select (shift + g)';
+	this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
+	this.saveButton.panel_div.title = 'Save (shift + s)';
+	this.selectedAnnotations = [];
+	this.cacheAnnotations = new AnnotationsCache();
+
+	var self = this;
+
+	self.api = new DigipalAPI({
+		crossDomain: false,
+		root: '/digipal/api'
+	});
+
+	var _Star = new Star();
+
+	this.isMobile = function() {
+		if (window.innerWidth <= 800 && window.innerHeight <= 600) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+
+	/**
+	 * Shows the annotation details for the given feature.
+	 *
+	 * @param feature
+	 *              The feature to display the annotation.
+	 */
+
+	/*
+	 ** caching most used selectors
+	 */
+
+	var number_allographs_element = $(".number_annotated_allographs .number-allographs");
+
+	////////////////////////////////////////
+
+	this.showAnnotation = function(feature) {
+		var select_allograph = get_forms().allograph_form;
+
+		if (feature) {
+			stylize(feature, 'blue', 'blue', 0.4);
+			self.vectorLayer.redraw();
+		}
+
+		var features = annotator.vectorLayer.features;
+		var features_length = features.length;
+
+		/*
+		var i = 0;
+		while (i < features_length && features[i].feature == feature.feature && features[i].stored) {
+			i++;
+		}
+		*/
+		//number_allographs_element.html(i);
+
+		if (self.annotations) {
+			var annotation = self.vectorLayer.getFeatureById(feature.id);
+			if (!annotation || !annotation.stored) {
+				annotation = {};
+			}
+			showBox(annotation, function() {
+				var allograph_id = $('#panelImageBox .allograph_form').val();
+				var al = select_allograph.find('option:selected').text();
+
+				self.annotationsGroup.check_if_linked($('.dialog_annotations'));
+				if (annotator.selectedAnnotations.length > 1) {
+					detect_common_features_init();
+				}
+				highlight_vectors();
+			});
+		}
+	};
+
+	/*
+		* function load_annotations
+		@parameter callback
+			- actions to be done after all the annotations get loaded
+	*/
+
+	this.load_annotations = function(callback, isRefresh) {
+		var request = $.getJSON(annotator.url_annotations, function(data) {
+			annotator.annotations = data;
+		});
+
+		var chained = request.then(function(data) {
+
+			var map = annotator.map;
+
+			if (!isRefresh) {
+				// zooms to the max extent of the map area
+				map.zoomToMaxExtent();
+			}
+
+			var layer = annotator.vectorLayer;
+			var format = annotator.format;
+			var annotations = data;
+
+			// Loading vectors
+
+			$('#loading_allographs_image').remove();
+			var features = [];
+			var f;
+			for (var i in annotations) {
+
+				f = format.read(annotations[i].geo_json)[0];
+				var allograph = annotations[i]['feature'];
+				var character_id = annotations[i]['character_id'];
+				var graph = annotations[i]['graph'];
+				var character = annotations[i]['character'];
+				var hand = annotations[i]['hand'];
+				var image_id = annotations[i]['image_id'];
+				var num_features = annotations[i]['num_features'];
+				var display_note = annotations[i]['display_note'];
+				var internal_note = annotations[i]['internal_note'];
+				var allograph_id = annotations[i]['allograph_id'];
+				var vector_id = annotations[i]['vector_id'];
+				var is_editorial = annotations[i]['is_editorial'];
+				if (graph || is_editorial) {
+					f.feature = allograph;
+					f.character_id = character_id;
+					f.graph = graph;
+					f.character = character;
+					f.hand = hand;
+					f.image_id = image_id;
+					f.num_features = num_features;
+					f.display_note = display_note;
+					f.internal_note = internal_note;
+					f.allograph_id = allograph_id;
+					f.vector_id = vector_id;
+					if (graph) {
+						f.id = graph;
+					} else {
+						f.id = vector_id;
+					}
+					f.is_editorial = is_editorial;
+					// it serves to differentiate stored and temporary annotations
+					f.stored = true;
+					f.linked_to = [];
+					/* annotator.vectorLayer.features is the array to access to all the features */
+					features.push(f);
+				}
+			}
+
+			// adds all the vectors to the vector layer
+			layer.addFeatures(features);
+			var vectors = annotator.vectorLayer.features;
+
+			var navigation = new OpenLayers.Control.Navigation({
+				'zoomBoxEnabled': false,
+				defaultDblClick: function(event) {
+					return;
+				}
+			});
+
+			map.addControl(navigation);
+
+			if (!annotator.events) {
+				var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+				map.events.register("moveend", map, function() {
+					registerEvents();
+					restoreFullscreenPositions();
+				});
+
+				map.events.register("zoomend", map, function() {
+					registerEvents();
+					restoreFullscreenPositions();
+				});
+
+			}
+
+			if (callback) {
+				callback(data); // calling all events on elements after all annotations get loaded
+			}
+
+		});
+	};
+
+	/**
+	 * Function that is called after a feature is selected.
+	 *
+	 * @param event
+	 *              The select event.
+	 */
+
+	this.onFeatureSelect = function(event) {
+		this.selectedFeature = event.feature;
+
+		if (self.selectedFeature.linked_to && !$.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
+			$.each(self.selectedFeature.linked_to[0], function(index, value) {
+				if (value) {
+					annotator.selectedAnnotations.push(value);
+					select_feature(value);
+				}
+			});
+			notifySelectedAnnotations();
+		} else if (typeof self.selectedFeature.linked_to != 'undefined' && $.isEmptyObject(self.selectedFeature.linked_to[0]) && allow_multiple()) {
+			annotator.selectedAnnotations.push(this.selectedFeature);
+			select_feature(self.selectedFeature);
+			notifySelectedAnnotations();
+		} else {
+			select_feature(this.selectedFeature);
+		}
+
+		restoreFullscreenPositions();
+	};
+
+	/**
+	 * Function that is called after a feature is unselected.
+	 *
+	 * @param event
+	 *              The unselect event.
+	 */
+
+	this.onFeatureUnSelect = function(event, is_event) {
+		var _self = this;
+		var feature;
+		if (is_event) {
+			feature = event.feature;
+		} else {
+			feature = event;
+		}
+		var boxes = $('.dialog_annotations');
+		if (allow_multiple()) {
+			for (var i = 0; i < this.selectedAnnotations.length; i++) {
+				if (feature.graph == this.selectedAnnotations[i].graph) {
+					this.selectedAnnotations.splice(i, 1);
+					i--;
+					break;
+				}
+			}
+			if (this.selectedAnnotations.length && boxes.length && !annotator.allow_multiple_dialogs) {
+				if (feature.graph & !$.isEmptyObject(feature.linked_to[0])) {
+					boxes.remove();
+				}
+			}
+			if (!this.selectedAnnotations.length) {
+				boxes.remove();
+			}
+			if (this.selectedAnnotations.length < 2) {
+				var group_button = $('.link_graphs');
+				group_button.addClass('disabled');
+			}
+			notifySelectedAnnotations();
+		} else {
+			if (!annotator.allow_multiple_dialogs) {
+				boxes.remove();
+			}
+		}
+		if (feature.described) {
+			stylize(feature, 'green', 'green', 0.4);
+		} else if (feature.is_editorial && $('#show_editorial_annotations').is(':checked')) {
+			stylize(feature, '#222', '#222', 0.4);
+		} else {
+			var color;
+			if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
+				color = "#fe2deb";
+			} else {
+				color = '#ee9900';
+			}
+			stylize(feature, color, color, 0.4);
+		}
+		this.vectorLayer.redraw();
+		if (this.selectedAnnotations.length) {
+			this.selectedFeature = this.selectedAnnotations[0];
+		} else {
+			this.selectedFeature = null;
+		}
+		//$(".number_annotated_allographs .number-allographs").html(0);
+		restoreFullscreenPositions();
+	};
+
+	this.annotationsGroup = {
+
+		linkAnnotations: function(dialog) {
+			var self = this;
+			var features = annotator.selectedAnnotations;
+			if (features.length) {
+				for (var i = 0; i < features.length; i++) {
+					if (!$.isEmptyObject(features[i].linked_to[0]) || typeof features[i].linked_to == 'undefined') {
+						features[i].linked_to = [];
+					}
+					var feature = {};
+					for (var j = 0; j < features.length; j++) {
+						feature[features[j].id] = features[j];
+					}
+					features[i].linked_to.push(feature);
+				}
+			}
+			this.check_if_linked(dialog);
+		},
+
+		check_if_linked: function(dialog) {
+			var self = this;
+			if (!annotator.editorial.active && annotator.selectedFeature && annotator.isAdmin == 'True') {
+				if (annotator.selectedFeature.linked_to && !$.isEmptyObject(annotator.selectedFeature.linked_to[0])) {
+					var num_linked = 0,
+						elements_linked = [];
+					for (var g in annotator.selectedFeature.linked_to[0]) {
+						num_linked++;
+						elements_linked.push(annotator.selectedFeature.linked_to[0][g]);
+					}
+
+					if (num_linked > 1) {
+						var allograph_label = $('.allograph_label');
+						allograph_label.html("Group (<span class='num_linked'>" + num_linked + '</span>) <i title="Show group elements" data-placement="bottom" data-container="body" data-toggle="tooltip" class="glyphicon glyphicon-list show_group" data-hidden="true" />')
+							.css('cursor', 'pointer')
+							.data('hidden', true);
+
+						allograph_label.unbind().click(function() {
+
+							var element = "<div class='elements_linked'>";
+
+							$.each(elements_linked, function() {
+								element += "<p data-id='" + this.id + "'>" + this.feature + "<i title='ungroup' class='pull-right glyphicon glyphicon-remove ungroup' data-id='" + this.id + "' /></p>";
+							});
+
+							element += '</div>';
+
+							if ($('.elements_linked').length) {
+								$('.elements_linked').replaceWith(element);
+							} else {
+								$('#box_features_container').prepend(element);
+							}
+
+							var el_link = $('.elements_linked');
+							if ($(this).data('hidden')) {
+								el_link.slideDown();
+								$(this).data('hidden', false);
+							} else {
+								el_link.slideUp(500);
+								$(this).data('hidden', true);
+							}
+
+							el_link.find('p').unbind().on('mouseover', function(event) {
+								var id = $(this).data('id');
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									var f = annotator.vectorLayer.features[i];
+									if (f.id == id) {
+										f.style.strokeColor = 'red';
+										f.style.strokeWidth = 6;
+									}
+								}
+								annotator.vectorLayer.redraw();
+								restoreFullscreenPositions();
+							}).on('mouseout', function(event) {
+								var id = $(this).data('id');
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									var f = annotator.vectorLayer.features[i];
+									if (f.id == id) {
+										f.style.strokeColor = 'blue';
+										f.style.strokeWidth = 2;
+									}
+								}
+								annotator.vectorLayer.redraw();
+								restoreFullscreenPositions();
+							}).on('click', function() {
+								var id = $(this).data('id');
+								var feature;
+								for (var i = 0; i < annotator.vectorLayer.features.length; i++) {
+									if (annotator.vectorLayer.features[i].id == id) {
+										feature = annotator.vectorLayer.features[i];
+									}
+								}
+								annotator.map.zoomToExtent(feature.geometry.getBounds());
+								restoreFullscreenPositions();
+							});
+
+							var ungroup_elements = $('.ungroup');
+
+							ungroup_elements.unbind().click(function() {
+								var id = $(this).data('id');
+								$(this).parent('p').fadeOut().remove();
+								self.ungroup(id);
+								var i = 0;
+								$.each(elements_linked, function(index, value) {
+									if (this.id == id) {
+										elements_linked.splice(i, 1);
+									}
+									i++;
+								});
+								restoreFullscreenPositions();
+							});
+
+						});
+					}
+				} else {
+					if (annotator.annotating) {
+						dialog.parent().find('.allograph_label').html($('#panelImageBox .allograph_form option:selected').text());
+					}
+				}
+				restoreFullscreenPositions();
+			}
+		},
+
+		ungroup: function(element_id) {
+			var a;
+
+			for (var i = 0; i < annotator.selectedAnnotations.length; i++) {
+				var annotation = annotator.selectedAnnotations[i];
+				if (!$.isEmptyObject(annotation.linked_to[0]) && typeof annotation.linked_to[0][element_id] !== "undefined") {
+					delete annotation.linked_to[0][element_id];
+				}
+
+				if (annotation.id == element_id) {
+					var group_items = 0;
+
+					for (var j in annotation.linked_to[0]) {
+						group_items++;
+					}
+
+					if (group_items <= 1) {
+						$('.allograph_label').html(annotation.feature);
+						$('.elements_linked').remove();
+					}
+
+					annotation.linked_to = [];
+					a = annotation;
+				}
+
+			}
+
+			annotator.selectFeature.unselect(a);
+
+			for (i = 0; i < annotator.vectorLayer.features.length; i++) {
+				var f = annotator.vectorLayer.features[i];
+
+				if (f.id == element_id) {
+					f.style.strokeWidth = 2;
+				}
+			}
+
+			annotator.vectorLayer.redraw();
+			var element_num_linked = $('.num_linked');
+			var num_linked = parseInt(element_num_linked.text(), 10) - 1;
+			if (!num_linked) {
+				var boxes = $('.dialog_annotations');
+				boxes.remove();
+			} else {
+				element_num_linked.html(num_linked);
+			}
+
+			if (annotator.selectedAnnotations.length) {
+				var lastAnnotation = annotator.selectedAnnotations[annotator.selectedAnnotations.length - 1];
+				annotator.showAnnotation(lastAnnotation);
+			}
+
+		},
+
+		toggleGroupButton: function() {
+			var group_button = $('.link_graphs');
+			if (group_button.length && annotator.selectedAnnotations.length > 1) {
+				group_button.removeClass('disabled').attr('disabled', false);
+			} else {
+				group_button.addClass('disabled').attr('disabled', true);
+			}
+		}
+
+	};
+
+
+	this.filters = {
+
+		filterAnnotation: function(checkboxes, formal_attribute, formal_attribute2) {
+			var features = self.vectorLayer.features;
+			var feature;
+			var attribute, attribute2;
+			var hand;
+			var allograph;
+			for (var i in features) {
+				if (formal_attribute == 'hand') {
+					if (!features[i].is_editorial) {
+						attribute = features[i].hand;
+						attribute2 = features[i].feature.replace(/[\.;,\s]/gi, '');
+						hand = $('#hand_input_' + attribute);
+						allograph = $('#allograph_' + attribute2);
+						var allographs = $('.checkVectors');
+						if (!($(checkboxes).is(':checked'))) {
+							if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
+								features[i].style.fillOpacity = 0;
+								features[i].style.strokeOpacity = 0;
+							}
+						} else {
+							var max = allographs.length;
+							for (var h = 0; h < max; h++) {
+								var a = $(allographs[h]);
+								if (a.is(':checked') && a.val().replace(/[\.;,\s]/gi, '') == attribute2) {
+									if ($(checkboxes).val() == attribute) {
+										features[i].style.fillOpacity = 0.4;
+										features[i].style.strokeOpacity = 0.4;
+									}
+								}
+							}
+						}
+					}
+				} else if (formal_attribute == 'feature') {
+					if (!features[i].is_editorial) {
+						attribute = features[i].feature.replace(/[\.;,\s]/gi, '_');
+						attribute2 = features[i].hand;
+						hand = $('#hand_input_' + attribute2);
+						allograph = $('#hand_input_' + attribute2);
+						if (!($(checkboxes).is(':checked'))) {
+							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val()) {
+								features[i].style.fillOpacity = 0;
+								features[i].style.strokeOpacity = 0;
+							}
+						} else {
+							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+								features[i].style.fillOpacity = 0.4;
+								features[i].style.strokeOpacity = 0.4;
+							}
+						}
+					}
+				} else {
+					attribute = features[i].is_editorial;
+					if (attribute) {
+						if (!($(checkboxes).is(':checked'))) {
+							features[i].style.fillOpacity = 0;
+							features[i].style.strokeOpacity = 0;
+						} else {
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 0.4;
+						}
+					}
+				}
+			}
+			self.vectorLayer.redraw();
+			restoreFullscreenPositions();
+		},
+
+		filterCheckboxes: function(checkboxes, check) {
+			var features = self.vectorLayer.features;
+			var show_editorial_annotations = $('#show_editorial_annotations').is(':checked');
+			var allographs = $('.checkVectors');
+			var hands = $('.checkVectors_hands');
+			var hand, i;
+			if (check == 'check') {
+				$(checkboxes).attr('checked', true);
+				var features_length = features.length;
+				var hands_length = hands.length;
+				for (i = 0; i < features_length; i++) {
+					for (var h = 0; h < hands_length; h++) {
+						hand = $(hands[h]);
+						if (features[i].hand == hand.val() && hand.is(':checked') && features[i].stored || features[i].is_editorial) {
+							if (!features[i].style) {
+								features.style = {};
+							}
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 0.4;
+						}
+					}
+				}
+
+			} else if (check == 'uncheck') {
+				$(checkboxes).attr('checked', false);
+				var max = features.length;
+				for (i = 0; i < max; i++) {
+					if (features[i].stored || features[i].is_editorial) {
+						if (!features[i].style) {
+							features[i].style = {};
+						}
+						features[i].style.fillOpacity = 0;
+						features[i].style.strokeOpacity = 0;
+
+					}
+				}
+			}
+
+			self.vectorLayer.redraw();
+			restoreFullscreenPositions();
+		}
+	};
+
+
+	this.dialog = {
+
+		init: function(selectedFeature, id, callback) {
+			var _self = this;
+			_self.create(selectedFeature, id, function(dialog_instance) {
+				_self.fill(dialog_instance, selectedFeature, function() {
+					_self.events(dialog_instance, selectedFeature);
+					if (callback) {
+						callback();
+					}
+				});
+			});
+		},
+
+		events: function(dialog_instance, selectedFeature) {
+			var url_allograph_button = dialog_instance.parent().find('.url_allograph');
+
+			url_allograph_button.on('click', function() {
+				show_url_allograph(dialog_instance, selectedFeature, $(this));
+			});
+
+			var name_temporary_annotation = $('.name_temporary_annotation');
+			var content_temporary_annotation = $('.textarea_temporary_annotation');
+
+			if (annotator.selectedFeature.contentAnnotation) {
+				content_temporary_annotation.val(annotator.selectedFeature.contentAnnotation);
+			}
+
+			if (annotator.selectedFeature.contentTitle) {
+				name_temporary_annotation.val(annotator.selectedFeature.contentTitle);
+			}
+
+			if (name_temporary_annotation.length) {
+				name_temporary_annotation.focus();
+			}
+
+			name_temporary_annotation.on('keyup', function() {
+				annotator.selectedFeature.contentTitle = $(this).val();
+			});
+
+			content_temporary_annotation.notebook({
+				placeholder: 'Type description here...'
+			});
+
+			content_temporary_annotation.on('contentChange', function(e) {
+				var content = e.originalEvent.detail.content;
+				annotator.selectedFeature.contentAnnotation = content;
+			});
+
+			// Showing all the allographs of a given allograph
+			dialog_instance.parent().find('.number_annotated_allographs').on('click', function() {
+				open_allographs($(this), true);
+			});
+
+			if (annotator.selectedFeature && !selectedFeature) {
+				selectedFeature = annotator.selectedFeature;
+			}
+
+			var to_lightbox = $('.to_lightbox');
+
+			to_lightbox.unbind().on('click', function() {
+				if (!$(this).find('span').hasClass("starred")) {
+					if (!annotator.selectedFeature) {
+						annotator.selectedFeature = annotator.selectedAnnotations[annotator.selectedAnnotations.length];
+					}
+					if (annotator.selectedAnnotations.length > 1) {
+						var links = [];
+						for (var l in annotator.selectedAnnotations) {
+							if (annotator.selectedAnnotations[l].is_editorial) {
+								links.push(annotator.selectedAnnotations[l].vector_id);
+							} else {
+								links.push(parseInt(annotator.selectedAnnotations[l].graph, 10));
+							}
+						}
+						if (add_to_lightbox($(this), 'annotation', links, true)) {
+							$(this).find('span').addClass('starred').removeClass('unstarred');
+						}
+					} else {
+						var _gr = parseInt(selectedFeature.graph, 10);
+						if (selectedFeature.is_editorial) {
+							_gr = selectedFeature.vector_id;
+						}
+						if (add_to_lightbox($(this), 'annotation', _gr, false)) {
+							$(this).find('span').addClass('starred').removeClass('unstarred');
+						}
+					}
+				} else {
+					if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial) {
+						_Star.removeFromCollection($(this), 'annotation');
+						$(this).find('span').addClass('unstarred').removeClass('starred');
+					}
+				}
+
+			});
+
+			var link_graphs = $('.link_graphs');
+			link_graphs.on('click', function() {
+				annotator.annotationsGroup.linkAnnotations(dialog_instance);
+			});
+
+			if (annotator.isAdmin == "False" || !annotator.annotating) {
+				$('.name_temporary_annotation').focus();
+				$('.ui-dialog-title').on('click', function() {
+					$('.name_temporary_annotation').focus();
+				});
+				annotator.selectedFeature.isTemporary = true;
+			}
+
+			$('.save_trigger').unbind().on('click', function() {
+				annotator.saveButton.trigger();
+			});
+
+			$('.delete_trigger').unbind().on('click', function() {
+				if (annotator.selectedAnnotations.length) {
+					var features = annotator.selectedAnnotations;
+					var msg = 'You are about to delete ' + features.length + ' annotations. They cannot be restored at a later time! Continue?';
+					var doDelete = confirm(msg);
+					if (doDelete) {
+						for (var i = 0; i < features.length; i++) {
+							delete_annotation(annotator.vectorLayer, features[i], features.length);
+						}
+					}
+				} else {
+					if (annotator.selectedFeature) {
+						annotator.deleteAnnotation(annotator.vectorLayer, annotator.selectedFeature, 1);
+					}
+				}
+			});
+
+			$('*[data-toggle="tooltip"]').tooltip({
+				container: 'body',
+				placement: 'bottom'
+			});
+		},
+
+		/* Function to create a new dialog for each allograph clicked */
+
+		create: function(selectedFeature, id, callback) {
+			var _self = this;
+			if (typeof annotator.allow_multiple_dialogs == "undefined") {
+				annotator.allow_multiple_dialogs = false;
+			}
+
+			if (!annotator.allow_multiple_dialogs || !annotator.boxes_on_click) {
+				var dialog_annotations = $('.dialog_annotations');
+				dialog_annotations.parent('.ui-dialog').remove();
+				dialog_annotations.remove();
+			}
+
+			var dialog = $("<div id = 'dialog" + id + "'>");
+
+			$('#annotations').append(dialog);
+			var path = $("#OpenLayers_Layer_Vector_27_svgRoot");
+
+			if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
+				var geometry_id;
+				var features_length = annotator.vectorLayer.features.length;
+				for (var i = 0; i < features_length; i++) {
+					var feature = annotator.vectorLayer.features[i];
+					if (feature.graph == selectedFeature.graph) {
+						geometry_id = feature.geometry.id;
+						break;
+					}
+				}
+				path = document.getElementById(geometry_id);
+			}
+
+			dialog.data('feature', selectedFeature);
+
+			var position = _self.position(path);
+			var absolute_position = position.absolute_position;
+
+			if (annotator.boxes_on_click) {
+				dialog.dialog({
+					draggable: true,
+					height: 340,
+					minHeight: 340,
+					minWidth: 335,
+					resizable: false,
+
+					close: function(event, ui) {
+						$(this).dialog('destroy').empty().remove();
+					},
+
+					title: _self.label.init(selectedFeature),
+
+					position: position.p
+
+				}).addClass('dialog_annotations');
+
+				if (absolute_position) {
+					var top_page_position = $(window).scrollTop();
+					var window_height = ($(window).height() / 100) * 25;
+					if (annotator.isMobile()) {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '4%'
+						});
+					} else {
+						dialog.parent().css({
+							'position': 'absolute',
+							'top': top_page_position + window_height,
+							'left': '68%'
+						});
+					}
+				}
+			} else {
+				$('#annotations').html('');
+			}
+			callback(dialog);
+		},
+
+		fill: function(dialog, selectedFeature, callback) {
+
+			var can_edit = $('#development_annotation').is(':checked');
+			var s = '';
+			var panel = $('#panelImageBox');
+			var _self = this;
+			var allograph = $('#panelImageBox .allograph_form option:selected');
+			var allograph_id = allograph.val();
+
+			s += "<div id='box_features_container'></div>";
+			if (annotator.boxes_on_click) {
+				if (annotator.isAdmin == 'True' && annotator.annotating) {
+					if (annotator.selectedFeature.is_editorial || annotator.editorial.active && !annotator.selectedFeature.stored || annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+						if (annotator.selectedFeature.is_editorial || annotator.editorial.active) {
+							s += '<label>Internal Note</label>';
+							s += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
+							s += '<label>Public Note</label>';
+							s += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
+							dialog.css("margin", "3%");
+							dialog.html(s);
+
+							dialog.find('#display_note').notebook({
+								placeholder: 'Type display note here...'
+							}).html(annotator.selectedFeature.display_note).on('contentChange', function(e) {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.display_note = content;
+							});
+
+
+							dialog.find('#internal_note').notebook({
+								placeholder: 'Type internal note here...'
+							}).html(annotator.selectedFeature.internal_note).on('contentChange', function(e) {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.internal_note = content;
+							});
+
+							$('#panelImageBox .allograph_form').val('------');
+							$('#panelImageBox .hand_form').val('------');
+							$('select').trigger("liszt:updated");
+							annotator.editorial.activate();
+						} else if (annotator.selectedFeature.contentAnnotation) {
+							s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
+							dialog.html(s);
+							if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+								$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+							}
+						}
+						return callback();
+					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
+						annotator.editorial.deactivate();
+					}
+
+					self.updateFeatureSelect.init(dialog, selectedFeature, callback);
+
+					panel.find('.allograph_form').unbind('change').on('change', function() {
+						var features = annotator.vectorLayer.features;
+						var allograph = $('#panelImageBox .allograph_form option:selected').text();
+						var allograph_id = $(this).val();
+						var n = 0;
+						for (var i = 0; i < features.length; i++) {
+							if (features[i].feature == allograph && features[i].stored) {
+								n++;
+							}
+						}
+						load_data({}, dialog);
+						$(".number_annotated_allographs .number-allographs").html(n);
+						self.dialog.label.set_label(allograph);
+						panel.data('event', true);
+					});
+
+				} else {
+					if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
+						s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+						dialog.html(s);
+						if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+						}
+						callback();
+					}
+				}
+			}
+			self.updateFeatureSelect.init(dialog, selectedFeature, callback);
+
+			refresh_letters_container_init(selectedFeature, selectedFeature.feature, selectedFeature.allograph_id, true);
+		},
+
+		label: {
+			dialog_label_element: '.allograph_label',
+			init: function(selectedFeature) {
+				var _self = this;
+				var html_string_label;
+				var html_string_buttons;
+				if (selectedFeature.feature && selectedFeature.feature.length > 8) {
+					html_string_buttons = "<div class='buttons_div'>";
+				} else {
+					html_string_buttons = "<div class='pull-right buttons_div'>";
+				}
+
+				if (annotator.editorial.active || selectedFeature.is_editorial) {
+					html_string_label = "<span class='allograph_label'>Editorial Ann.</span>";
+					if (annotator.isAdmin == "True") {
+						html_string_buttons += " <button class='btn btn-xs btn-success save_trigger'><span data-toggle='tooltip' data-container='body' title='Save Annotation' class='glyphicon glyphicon-ok'></span></button> <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button>";
+					}
+					html_string_buttons += " <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button>";
+				} else {
+					if (annotator.isAdmin == "True") {
+						if (selectedFeature && annotator.annotating) {
+							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + '</span>';
+							if (selectedFeature.feature && selectedFeature.feature.length > 8) {
+								html_string_buttons += "<br>";
+							}
+							html_string_buttons += "<button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok' data-toggle='tooltip' data-container='body' title='Save Annotation'></span></button>";
+
+							html_string_buttons += " <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
+
+						} else if (!annotator.annotating) {
+							if (!selectedFeature.hasOwnProperty('graph')) {
+								html_string_label = "<span class='allograph_label pull-left'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
+							} else {
+								html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
+							}
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' data-container='body' title='Share URL' data-hidden='true' class='url_allograph btn btn-xs btn-default'><i class='fa fa-link'></i></button> ";
+						} else {
+
+							if (annotator.selectedFeature) {
+								html_string_label = "<span class='allograph_label'>" + annotator.selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
+							} else {
+								html_string_label = "<span class='allograph_label'>Annotation</span>";
+								html_string_buttons += "<button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
+							}
+						}
+					} else {
+						if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
+							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
+							html_string_buttons += "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
+						} else {
+							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
+						}
+					}
+				}
+				var buttons = _self.set_dialog_buttons(html_string_buttons);
+				var label = html_string_label + ' ' + buttons;
+				return label;
+			},
+
+
+			get_dialog_label: function() {
+				return $(this.dialog_label_element);
+			},
+
+			set_label: function(label) {
+				$(this.dialog_label_element).html(label);
+				$(this.dialog_label_element).parent().find('br').remove();
+				if (label.length > 8) {
+					$('.allograph_label').after('<br>');
+					$('.buttons_div').removeClass("pull-right");
+				} else {
+					$('.buttons_div').addClass("pull-right");
+				}
+			},
+
+			set_dialog_buttons: function(html_string) { // selectedFeature.graph
+				var _self = this;
+				var current_collection = _Star.getCurrentCollection();
+
+				if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph)) {
+					var graph = annotator.selectedFeature.graph;
+					if (annotator.selectedFeature.is_editorial) {
+						graph = annotator.selectedFeature.graph;
+					}
+					var button = $("<button class='to_lightbox btn btn-default btn-xs' data-graph = '" + graph + "'  data-type='annotation'>");
+					var span = $("<span data-toggle='tooltip' data-container='body' title='Add to Collection' class='glyphicon glyphicon-star'>");
+					if (_Star.isInCollection(current_collection, graph, 'annotation')) {
+						span.addClass("starred").attr('data-original-title', 'Remove graph from collection');
+					} else {
+						span.addClass("unstarred").attr('data-original-title', 'Add graph to collection');
+					}
+					button.append(span);
+					html_string += ' ' + button.get(0).outerHTML;
+				}
+
+				if (annotator.isAdmin == 'True') {
+					if (allow_multiple() && annotator.selectedAnnotations.length > 1) {
+						html_string += " <button data-toggle='tooltip' data-container='body' title = 'Group Annotations' class='btn btn-default btn-xs link_graphs'><i class='fa fa-users'></i></button>";
+					} else {
+						html_string += " <button class='btn btn-default btn-xs link_graphs disabled' disabled><i class='fa fa-users'></i></button>";
+					}
+				}
+				html_string += "</div>";
+				return html_string;
+			},
+
+		},
+
+		position: function(path) {
+			var p;
+			var multiple = annotator.allow_multiple_dialogs;
+			var absolute_position = false;
+			if (multiple) {
+				p = {
+					my: 'right top',
+					at: 'right bottom',
+					of: $(path)
+				};
+			} else {
+				absolute_position = true;
+				p = ['60%', '30%'];
+			}
+			return {
+				'p': p,
+				'absolute_position': absolute_position
+			};
+		},
+
+		destroy: function(dialog) {
+			dialog.remove();
+		},
+
+		destroyAll: function() {
+			$('.dialog_annotations').parent().remove();
+		}
+	};
+
+	this.utils = {
+
+		Base64: {
+			// private property
+			_keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+
+			// public method for encoding
+			encode: function(input) {
+				var output = "";
+				var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+				var i = 0;
+				var Base64 = annotator.utils.Base64;
+				input = Base64._utf8_encode(input);
+
+				while (i < input.length) {
+
+					chr1 = input.charCodeAt(i++);
+					chr2 = input.charCodeAt(i++);
+					chr3 = input.charCodeAt(i++);
+
+					enc1 = chr1 >> 2;
+					enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+					enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+					enc4 = chr3 & 63;
+
+					if (isNaN(chr2)) {
+						enc3 = enc4 = 64;
+					} else if (isNaN(chr3)) {
+						enc4 = 64;
+					}
+
+					output = output +
+						Base64._keyStr.charAt(enc1) + Base64._keyStr.charAt(enc2) +
+						Base64._keyStr.charAt(enc3) + Base64._keyStr.charAt(enc4);
+
+				}
+
+				return output;
+			},
+
+			// public method for decoding
+			decode: function(input) {
+				var output = "";
+				var chr1, chr2, chr3;
+				var enc1, enc2, enc3, enc4;
+				var i = 0;
+				var Base64 = annotator.utils.Base64;
+				input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+				while (i < input.length) {
+
+					enc1 = Base64._keyStr.indexOf(input.charAt(i++));
+					enc2 = Base64._keyStr.indexOf(input.charAt(i++));
+					enc3 = Base64._keyStr.indexOf(input.charAt(i++));
+					enc4 = Base64._keyStr.indexOf(input.charAt(i++));
+
+					chr1 = (enc1 << 2) | (enc2 >> 4);
+					chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+					chr3 = ((enc3 & 3) << 6) | enc4;
+
+					output = output + String.fromCharCode(chr1);
+
+					if (enc3 != 64) {
+						output = output + String.fromCharCode(chr2);
+					}
+					if (enc4 != 64) {
+						output = output + String.fromCharCode(chr3);
+					}
+
+				}
+
+				output = Base64._utf8_decode(output);
+
+				return output;
+
+			},
+
+			// private method for UTF-8 encoding
+			_utf8_encode: function(string) {
+				string = string.replace(/\r\n/g, "\n");
+				var utftext = "";
+
+				for (var n = 0; n < string.length; n++) {
+
+					var c = string.charCodeAt(n);
+
+					if (c < 128) {
+						utftext += String.fromCharCode(c);
+					} else if ((c > 127) && (c < 2048)) {
+						utftext += String.fromCharCode((c >> 6) | 192);
+						utftext += String.fromCharCode((c & 63) | 128);
+					} else {
+						utftext += String.fromCharCode((c >> 12) | 224);
+						utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+						utftext += String.fromCharCode((c & 63) | 128);
+					}
+
+				}
+
+				return utftext;
+			},
+
+			// private method for UTF-8 decoding
+			_utf8_decode: function(utftext) {
+				var string = "";
+				var i = 0;
+				var c = c1 = c2 = 0;
+
+				while (i < utftext.length) {
+
+					c = utftext.charCodeAt(i);
+
+					if (c < 128) {
+						string += String.fromCharCode(c);
+						i++;
+					} else if ((c > 191) && (c < 224)) {
+						c2 = utftext.charCodeAt(i + 1);
+						string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+						i += 2;
+					} else {
+						c2 = utftext.charCodeAt(i + 1);
+						c3 = utftext.charCodeAt(i + 2);
+						string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+						i += 3;
+					}
+
+				}
+				return string;
+			}
+		},
+
+		getParameter: function(paramName) {
+			var searchString = window.location.search.substring(1),
+				i, val, params = searchString.split("&");
+			var parameters = [];
+			for (i = 0; i < params.length; i++) {
+				val = params[i].split("=");
+				if (val[0] == paramName) {
+					parameters.push(unescape(val[1]));
+				}
+			}
+			if (!parameters.length) {
+				return false;
+			}
+			return parameters;
+		},
+
+		getCookie: function(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie !== '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		},
+
+		/**
+		 * Turns on keyboard shortcuts for the controls.
+		 */
+
+		toggleAll: function(activeControls, active) {
+			for (i = 0; i < activeControls.length; i++) {
+				if (activeControls[i].title && activeControls[i].displayClass != 'olControlFullScreenFeature' && activeControls[i].displayClass != "olControlEditorialFeature") {
+					if (active) {
+						activeControls[i].activate();
+					} else {
+						activeControls[i].deactivate();
+					}
+				}
+			}
+		},
+
+		removeDuplicate: function(element, attribute, text) {
+			var seen = {};
+			var txt;
+			$(element).each(function() {
+				if (text) {
+					txt = $(this).text();
+					attribute = null;
+				} else {
+					txt = $(this).attr(attribute);
+				}
+				if (seen[txt])
+					$(this).remove();
+				else
+					seen[txt] = true;
+			});
+		}
+	};
+
+	/**
+	 
+	 * Updates the feature select according to the currently selected allograph.
+	 
+	 */
+
+	this.updateFeatureSelect = {
+
+		init: function(dialog, selectedFeature, callback) {
+			var _self = this;
+			_self.update(dialog, selectedFeature, function(dialog_instance) {
+				_self.events(dialog_instance);
+				if (callback) {
+					callback();
+				}
+			});
+
+		},
+
+		events: function(dialog_instance) {
+			if (annotator.selectedFeature && annotator.selectedFeature.state == 'Insert') {
+				$('.features_box').on('change', function() {
+					var checkbox = $(this);
+					var val = checkbox.val();
+					if (checkbox.is(':checked')) {
+						if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+							annotator.selectedFeature.features.push(val);
+						}
+					} else {
+						if (annotator.selectedFeature.features.indexOf(val) !== 0) {
+							annotator.selectedFeature.features.splice(annotator.selectedFeature.features.indexOf(val), 1);
+						}
+					}
+				});
+			}
+
+		},
+
+		update: function(dialog, selectedFeature, callback) {
+			if (!selectedFeature.is_editorial) {
+				load_data(selectedFeature, dialog, function() {
+					var select_allograph = get_forms().allograph_form;
+					var select_hand = get_forms().hand_form;
+					var cache = annotator.cacheAnnotations;
+					var allograph, hand;
+					var selectedFeature = annotator.selectedFeature;
+					if (selectedFeature && selectedFeature.stored) {
+						var graph = selectedFeature.graph;
+						if (cache.search('graph', graph)) {
+							allograph = cache.cache.graphs[graph].allograph_id;
+							hand = cache.cache.graphs[graph].hand_id;
+						} else {
+							allograph = selectedFeature.allograph_id;
+							hand = selectedFeature.hand;
+						}
+						select_allograph.val(allograph);
+
+						select_hand.val(hand);
+						select_allograph.add(select_hand).trigger('liszt:updated');
+					}
+					callback(dialog);
+				});
+			} else {
+				var data = {};
+				data['display_note'] = selectedFeature.display_note;
+				refresh_features_dialog(selectedFeature, dialog);
+				if (callback) {
+					return callback();
+				}
+			}
+		}
+	};
+
+	this.load_allographs_container = {
+
+		init: function(allograph_value, url, show, allograph_id) {
+			var _self = this;
+			_self.load(url, allograph_value, show, function(s) {
+				_self.events(s);
+			});
+		},
+
+		load: function(url, allograph_value, show, callback) {
+			var features = $.getJSON(url);
+
+			if (show === undefined) {
+				show = true;
+			}
+
+			if (show) {
+				var div = $("<div class='letters-allograph-container'>");
+				div.draggable({
+					handle: '#top_div_annotated_allographs',
+					cursor: "move"
+				}).css({
+					position: "fixed",
+					top: "20%",
+					left: "33%"
+				});
+
+				var top_div = $("<div id='top_div_annotated_allographs'>");
+				var number_allographs = $('.number-allographs');
+				top_div.append("<span>" + allograph_value + "</span> <i title='Close box' class='icon pull-right glyphicon glyphicon-remove close_top_div_annotated_allographs'></i>");
+				div.append(top_div);
+				var container_div = $("<div id='container-letters-popup'>");
+				var img = $("<img class='img-loading' src='/static/digipal/images/ajax-loader3.gif'>");
+				$('#top_div_annotated_allographs').find('span').after(img);
+				div.append(container_div);
+				$('#annotator').append(div);
+				features.done(function(data) {
+					number_allographs.html(data.length);
+					var s = '';
+
+					if (data != "False") {
+						data = data.sort();
+						var j = 0;
+						var data_hand;
+						if (data.length === 1) {
+							j = 1;
+							s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
+							data_hand = data[0].hand;
+							s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[0].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
+						} else {
+							for (var i = 0; i < data.length; i++) {
+								j++;
+								if (i === 0) {
+									s += "<label class='hands_labels' data-hand = '" + data[i].hand + "' id='hand_" + data[i].hand + "'>Hand: " + data[i].hand_name + "</label>\n";
+									data_hand = data[i].hand;
+								}
+								if (typeof data[i - 1] != "undefined" && typeof data[i + 1] != "undefined" && data[i].hand != data[i - 1].hand) {
+									j = 1;
+									data_hand = data[i].hand;
+									s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i + 1].hand_name + "</label>\n";
+								}
+								if (typeof data[i + 1] == "undefined" && data[i].hand != data[i - 1].hand) {
+									j = 1;
+									data_hand = data[i].hand;
+									s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
+								}
+								s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[i].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
+							}
+						}
+					} else {
+						s = "<p><label>No Annotations</label></p>";
+						container_div.html(s);
+					}
+					if (callback) {
+						callback(s);
+					}
+				});
+			}
+		},
+
+		events: function(s) {
+			var button = $('.close_top_div_annotated_allographs');
+			var container = $('.letters-allograph-container');
+			var container_div = container.find('#container-letters-popup');
+			var container_number = $('.number_annotated_allographs');
+			var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+			var features = annotator.vectorLayer.features;
+			var img = $(".img-loading");
+			var images = $(s).find('img');
+
+			container_div.html(s);
+
+			button.on('click', function() {
+				container.fadeOut().remove();
+				container_number.removeClass('active');
+			});
+
+			var hands = $('.hands_labels');
+			var images_link = $('.vector_image_link');
+			$.each(hands, function(index_hands, hand) {
+				var c = 0;
+				$.each(images_link, function(index_images, image) {
+					if ($(image).data('hand') == $(hand).data('hand')) {
+						c++;
+					}
+				});
+				$(hand).append(" <span class='num_all_hands badge'>" + c + "</span>");
+			});
+
+			images_link.on('click', function() {
+				var vector = $(this);
+				annotator.centreById(vector.data('graph'));
+			}).on("mouseover", function() {
+				var vector = $(this);
+				for (var i = 0; i < features.length; i++) {
+					if (features[i].graph == vector.data('graph')) {
+						features[i].originalColor = features[i].style.fillColor;
+						features[i].style.strokeColor = 'red';
+						features[i].style.strokeWidth = 6;
+						break;
+					}
+				}
+				annotator.vectorLayer.redraw();
+				restoreFullscreenPositions();
+			}).on('mouseout', function() {
+				var vector = $(this);
+				for (var i = 0; i < features.length; i++) {
+					if (features[i].graph == vector.data('graph')) {
+						features[i].style.strokeColor = features[i].originalColor;
+						features[i].style.strokeWidth = 2;
+						break;
+					}
+				}
+				annotator.vectorLayer.redraw();
+				restoreFullscreenPositions();
+			}).on('dblclick', function() {
+				var vector = $(this);
+				annotator.selectFeatureByIdAndCentre(vector.data('graph'));
+			}).fadeIn();
+
+			images_link.fadeIn();
+			if (img.length) {
+				img.remove();
+			}
+		}
+	};
+
+	this.toolbar = {
+
+		disable_annotation_tools: function() {
+			var editorial, delete_icon, edit;
+
+			if ($('.olControlEditorialFeature').length) {
+				editorial = $('.olControlEditorialFeature');
+			} else {
+				$('.olControlEditorialFeatureItemActive');
+			}
+
+			var save_icon = $('.olControlSaveFeaturesItemInactive');
+
+			if ($('.olControlDeleteFeature').length) {
+				delete_icon = $('.olControlDeleteFeature');
+			} else {
+				delete_icon = $('.olControlDeleteFeatureItemActive');
+			}
+
+			if ($('.olControlTransformFeature').length) {
+				edit = $('.olControlTransformFeature');
+			} else {
+				edit = $('.olControlTransformFeatureItemActive');
+			}
+
+			editorial.fadeOut();
+			delete_icon.fadeOut();
+			save_icon.fadeOut();
+			edit.fadeOut();
+		},
+
+		enable_annotation_tools: function() {
+
+			var editorial, delete_icon, edit;
+
+			if ($('.olControlEditorialFeature').length) {
+				editorial = $('.olControlEditorialFeature');
+			} else {
+				$('.olControlEditorialFeatureItemActive');
+			}
+
+			var save_icon = $('.olControlSaveFeatures');
+
+			if ($('.olControlDeleteFeature').length) {
+				delete_icon = $('.olControlDeleteFeature');
+			} else {
+				delete_icon = $('.olControlDeleteFeatureItemActive');
+			}
+
+			if ($('.olControlTransformFeatureItemInactive').length) {
+				edit = $('.olControlTransformFeatureItem');
+			} else {
+				edit = $('.olControlTransformFeatureItemActive');
+			}
+
+			editorial.fadeIn();
+			delete_icon.fadeIn();
+			save_icon.fadeIn();
+			edit.fadeIn();
+		}
+	};
+
+
+	/**
+	 * Saves an annotation for the currently selected feature.
+	 */
+	this.saveAnnotation = function(ann, allographs_page) {
+
+		var isModifyToolActive = annotator.transformFeature.active;
+		annotator.transformFeature.deactivate();
+
+		if (!ann) {
+			ann = null;
+		}
+
+		if (typeof allographs_page == 'undefined') {
+			allographs_page = false;
+		}
+		if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
+			updateStatus('Select annotations to proceed', 'danger');
+			return false;
+		}
+
+		var forms = get_forms();
+
+		var select_allograph = forms.panel;
+
+		var allograph_form = forms.allograph_form;
+		var hand_form = forms.hand_form;
+
+		if (!annotator.editorial.active && (!allograph_form.val() || !hand_form.val())) {
+			updateStatus('Hand and Allograph are required', 'danger');
+			return false;
+		}
+
+		if (this.selectedAnnotations.length) {
+			this.selectedAnnotations.reverse();
+		}
+
+		updateStatus('Saving Annotation...', 'warning');
+
+		var image_id = annotator.image_id;
+		var graphs = [],
+			vector = {},
+			geoJson;
+		var feature;
+		var data = make_form();
+		data['isModifyToolActive'] = isModifyToolActive;
+		var url = annotator.absolute_image_url + 'save';
+		var cache = this.cacheAnnotations.cache;
+		if (!annotator.editorial.active) {
+			if (allow_multiple() && this.selectedAnnotations.length > 1 && !allographs_page) {
+
+				var msg = 'You are about to save ' + this.selectedAnnotations.length + ' annotations. Do you want to continue?';
+
+				if (confirm(msg)) {
+					for (var i = 0; i < this.selectedAnnotations.length; i++) {
+
+						feature = this.selectedAnnotations[i];
+						geoJson = annotator.format.write(feature);
+
+						vector = {};
+						vector['id'] = feature.graph;
+						vector['image'] = image_id;
+						vector['geoJson'] = geoJson;
+						if (!feature.stored) {
+							vector['vector_id'] = feature.id;
+						}
+						graphs.push(vector);
+					}
+
+					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+					save(url, graphs, data, ann, data.features);
+
+				}
+
+			} else {
+
+				if (allographs_page) {
+
+					for (ind2 = 0; ind2 < ann.length; ind2++) {
+						geoJson = annotator.format.write(ann[ind2]);
+						graphs.push({
+							'id': ann[ind2].graph,
+							'image': image_id,
+							// GN: commented out to avoid clashes with the annotation editor
+							// modifying the shape. See JIRA DIGIPAL-479 and DIGIPAL-477
+							//'geoJson': geoJson,
+							//'vector_id': ann[ind2].id
+						});
+					}
+
+					url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+					save(url, graphs, data, ann, data.features);
+
+				} else {
+					if (this.selectedFeature) {
+						feature = this.selectedFeature;
+						geoJson = annotator.format.write(feature);
+
+						vector = {};
+						vector['id'] = feature.graph;
+						vector['image'] = image_id;
+						vector['geoJson'] = geoJson;
+
+						if (!feature.stored) {
+							vector['vector_id'] = feature.id;
+						}
+
+						graphs.push(vector);
+						url = '/digipal/api/graph/save/' + JSON.stringify(graphs) + '/';
+						save(url, graphs, data, ann, data.features);
+
+					}
+
+				}
+			}
+		} else {
+			if (!allow_multiple() || !this.selectedAnnotations.length) {
+				this.selectedAnnotations.push(annotator.selectedFeature);
+			}
+			for (var i = 0; i < this.selectedAnnotations.length; i++) {
+				feature = this.selectedAnnotations[i];
+
+				geoJson = annotator.format.write(feature);
+				vector = {};
+				vector['image'] = image_id;
+				vector['geoJson'] = geoJson;
+				vector['vector_id'] = feature.id;
+				graphs.push(vector);
+
+			}
+
+			url = '/digipal/api/graph/save_editorial/' + JSON.stringify(graphs) + '/';
+			save(url, graphs, data, ann, data.features);
+		}
+
+	};
+
+
+	/**
+	 * Deletes the annotation for the selected feature.
+	 *
+	 * @param layer
+	 *              The feature's layer.
+	 * @param feature
+	 *              The feature to delete the annotation for.
+	 */
+	this.deleteAnnotation = function(layer, feature, number_annotations) {
+		var _self = this;
+		var msg;
+		if (typeof number_annotations == 'undefined' || !number_annotations) {
+			msg = 'You are about to delete this annotation. It cannot be restored at a later time! Continue?';
+		} else {
+			var plural = number_annotations > 1;
+			if (!plural) {
+				msg = 'You are about to delete ' + number_annotations + ' annotation. It cannot be restored at a later time! Continue?';
+			} else {
+				msg = 'You are about to delete ' + number_annotations + ' annotations. They cannot be restored at a later time! Continue?';
+			}
+		}
+
+		var doDelete = confirm(msg);
+		if (doDelete) {
+			if (feature !== null && feature !== undefined) {
+				delete_annotation(layer, feature, number_annotations);
+			}
+		}
+
+		updateTabCounter();
+
+	};
+
+
+	/* Function to refresh the layer when saved an annotation */
+	this.refresh_layer = function() {
+		var _activeControls = annotator.map.getControlsBy('active', true);
+		for (var j = 0; j < annotator.map.controls.length; j++) {
+			annotator.map.controls[j].deactivate();
+		}
+		annotator.vectorLayer.removeAllFeatures();
+		annotator.vectorLayer.destroyFeatures();
+		annotator.vectorLayer.addFeatures([]);
+		$('circle').remove();
+		$('polyline').remove();
+		annotator.annotations = [];
+		annotator.selectedFeature = null;
+		annotator.selectedAnnotations = [];
+		annotator.cacheAnnotations.clear();
+		$('.dialog_annotations').parent().remove();
+		var request = $.getJSON(annotator.absolute_image_url + 'annotations/', function(data) {
+			annotator.annotations = data;
+		});
+		var div = $('<div>');
+		div.attr('class', 'loading-div');
+		div.html('<p>Reloading annotations. Please wait...</p><img src="/static/digipal/images/ajax-loader3.gif" />');
+		$('#annotator').append(div.fadeIn());
+		$('.number_unsaved_allographs').html(0);
+		this.unsaved_annotations = [];
+		this.load_annotations(function(data) {
+			reload_described_annotations(div);
+			restoreFullscreenPositions();
+
+			var selectFeature = 0;
+			for (j = 0; j < _activeControls.length; j++) {
+
+				if (_activeControls[j].displayClass != "olControlNavigation") {
+					_activeControls[j].activate();
+				}
+
+				if (_activeControls[j].id == "OpenLayers_Control_SelectFeature_78") {
+					selectFeature++;
+				}
+			}
+
+			if (!selectFeature) {
+				annotator.selectFeature.deactivate();
+			}
+
+
+		}, true);
+	};
+
+
+	/* FullScreen Mode */
+
+	this.full_Screen = function() {
+		var map = $('#map');
+		var panel = $('#panelImageBox');
+		var toolbar = $('#toolbar');
+		var map_size;
+		var input_toolbar_position = $("input[name='toolbar_position']:checked");
+		if (!(this.fullScreen.active)) {
+			$('html, body').animate({
+				scrollTop: map.position().top
+			}, 0);
+
+			this.fullScreen.activate();
+			map.addClass("fullScreenMap");
+
+			$(document).keyup(function(e) {
+				if (e.keyCode == 27) {
+					map.removeClass('fullScreenMap');
+					panel.removeClass('fullScreenPanel');
+					toolbar.removeClass('mapHorizontalFullscreen');
+					toolbar.removeClass('fullScreenToolbarVertical');
+					annotator.fullScreen.deactivate();
+				}
+			});
+
+			$('.olControlFullScreenFeatureItemInactive').attr('title', 'Deactivate Full Screen');
+			panel.addClass('fullScreenPanel');
+
+			if (input_toolbar_position.val() != 'Vertical') {
+				toolbar.addClass('mapHorizontalFullscreen');
+				toolbar.removeClass('fullScreenToolbarVertical');
+			} else {
+				toolbar.removeClass('mapHorizontalFullscreen');
+				toolbar.addClass('fullScreenToolbarVertical');
+			}
+		} else {
+			this.fullScreen.deactivate();
+			map.removeClass('fullScreenMap');
+
+			$('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
+			panel.removeClass('fullScreenPanel');
+			toolbar.removeClass('mapHorizontalFullscreen');
+			toolbar.removeClass('fullScreenToolbarVertical');
+
+			$('html, body').animate({
+				scrollTop: map.position().top
+			}, 0);
+
+			if (input_toolbar_position.val() == 'Vertical') {
+				loader.toolbar_position();
+			}
+		}
+		restoreFullscreenPositions();
+	};
+}
+
+
+
+function notifySelectedAnnotations() {
+	var msg;
+	if (annotator.selectedAnnotations.length > 1 || !annotator.selectedAnnotations.length) {
+		msg = annotator.selectedAnnotations.length + ' annotations selected';
+	} else {
+		msg = annotator.selectedAnnotations.length + ' annotation selected';
+	}
+	updateStatus(msg, 'success');
+}
+
+
+function select_feature(feature) {
+	annotator.showAnnotation(feature);
+	annotator.annotationsGroup.toggleGroupButton();
+}
+
+
+/* Applies style to a vector */
+var stylize = function(feature, fill, stroke, opacity) {
+	if (!feature.hasOwnProperty('style')) {
+		feature.style = {};
+	}
+	feature.style = {
+		'strokeColor': stroke,
+		'strokeOpacity': opacity,
+		'fillColor': fill,
+		"fillOpacity": opacity
+	};
+};
+
+
+/* Checks whether it is possible to select multiple annotations or not */
+
+function allow_multiple() {
+	var multiple_checkbox = $("#multiple_annotations");
+	if (multiple_checkbox.is(':checked')) {
+		return true;
+	}
+	return false;
+}
+
+
+function createPopup(feature) {
+	var map = annotator.map;
+	feature.popup = new OpenLayers.Popup("pop",
+		feature.geometry.getBounds().getCenterLonLat(),
+		null,
+		'<div class="markerContent">' + feature.display_note + '</div>',
+		true);
+
+	feature.popup.backgroundColor = 'transparent';
+	feature.popup.closeDiv = false;
+	feature.popup.autoSize = true;
+	feature.popup.maxSize = new OpenLayers.Size(600, 200);
+	feature.popup.keepInMap = true;
+	//feature.popup.closeOnMove = true;
+	map.addPopup(feature.popup);
+}
+
+function deletePopup(feature) {
+	feature.popup.destroy();
+	feature.popup = null;
+}
+
+/*
+
+Feature to discover the already described allographs and
+render the layer according to each allograph
+
+*/
+
+function reload_described_annotations(div) {
+	var show_editorial_annotations = $('#show_editorial_annotations').is(':checked');
+
+	var feature = annotator.vectorLayer.features;
+	var selectedFeature;
+	if (typeof annotator.selectedFeature !== "undefined" && typeof annotator.selectedFeature != "null") {
+		selectedFeature = annotator.selectedFeature;
+	}
+	var h = 0;
+	var path;
+
+	while (h < feature.length) {
+		var num_features = feature[h].num_features;
+
+		if (feature[h].is_editorial && !show_editorial_annotations) {
+			stylize(feature[h], '#222', '#222', 0);
+		} else if (feature[h].is_editorial && show_editorial_annotations) {
+			stylize(feature[h], '#222', '#222', 0.4);
+		} else {
+			if (num_features) {
+				stylize(feature[h], 'green', 'green', 0.4);
+				feature[h].described = true;
+
+				if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
+					//stylize(feature[h], 'blue', 'blue', 0.4);
+					feature[h].described = true;
+					annotator.selectFeatureById(feature[h].id);
+				}
+
+			} else {
+				stylize(feature[h], '#ee9900', '#ee9900', 0.4);
+				feature[h].described = false;
+
+				if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
+					if (feature[h].graph == selectedFeature.graph) {
+						//stylize(feature[h], 'blue', 'blue', 0.4);
+						feature[h].described = false;
+						annotator.selectFeatureById(feature[h].id);
+					}
+				}
+			}
+		}
+		h++;
+	}
+
+	annotator.vectorLayer.redraw();
+	if (typeof div != "undefined") {
+		div.fadeOut().remove();
+	}
+
+}
+
+function open_allographs(allograph, show) {
+	current_allograph = allograph;
+	var container = $('.letters-allograph-container');
+	if (container.length) {
+		container.remove();
+	}
+	$(this).addClass('active');
+	var allograph_value, allograph_id;
+
+	if (typeof allograph != "undefined") {
+		allograph_value = allograph.parent().prev().text();
+	} else {
+		allograph_value = $('#panelImageBox .allograph_form option:selected').text();
+		allograph_id = $('#panelImageBox .allograph_form').val();
+	}
+
+	if (allograph_value) {
+		var features = annotator.vectorLayer.features;
+		var feature;
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].feature == allograph_value) {
+				feature = features[i].graph;
+				break;
+			}
+		}
+		if (!feature) {
+			return false;
+		}
+		var url = annotator.absolute_image_url + "graph/" + feature + "/allographs_by_graph/";
+		annotator.load_allographs_container.init(allograph_value, url, show, allograph_id);
+	}
+}
+
+
+function detect_common_features_init() {
+	var checkboxes = $('.dialog_annotations').find('.features_box');
+	var graphs = [];
+
+	for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
+		if (annotator.selectedAnnotations[g].hasOwnProperty('graph') && annotator.selectedAnnotations[g].graph) {
+			graphs.push(annotator.selectedAnnotations[g].graph);
+		}
+	}
+
+	if (graphs.length > 1) {
+		var cache = $.extend({}, annotator.cacheAnnotations.cache);
+		detect_common_features(graphs, checkboxes, cache);
+	}
+}
+
+function refresh_letters_container_init(annotation, allograph, allograph_id, show) {
+	if ($('.letters-allograph-container').length && annotation && $('.tab-pane.active').attr('id') == 'annotator') {
+		refresh_letters_container(allograph, allograph_id, true);
+	}
+}
+
+function refresh_letters_container(allograph, allograph_id, show) {
+	current_allograph = allograph;
+	var features = annotator.vectorLayer.features;
+	var character_id;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == allograph) {
+			character_id = features[i].character_id;
+		}
+	}
+	var container = $('.letters-allograph-container');
+	if (container.length) {
+		container.remove();
+		show = true;
+	} else {
+		show = false;
+	}
+	var url = annotator.absolute_image_url + "allographs/" + allograph_id + "/" + character_id + "/allographs_by_allograph/";
+	annotator.load_allographs_container.init(allograph, url, show);
+}
+
+function get_allograph(allograph) {
+	var annotations = annotator.annotations;
+	var allograph_id;
+	$.each(annotations, function() {
+		if (this.feature == allograph) {
+			allograph_id = this.hidden_allograph.split('::')[0];
+		}
+	});
+	return allograph_id;
+}
+
+function show_url_allograph(dialog, annotation, button) {
+	var features = annotator.vectorLayer.features;
+	if (button.data('hidden')) {
+		button.data('hidden', false);
+		$('.link_graphs').after(' <img src="/static/digipal/images/ajax-loader3.gif" id="url_allograph_gif" />');
+		var url = $("<div class='allograph_url_div' data-url-type='short'>");
+		var allograph_url, stored = false;
+		var a = $('<input type="text">');
+		a.css('width', '100%');
+		var title = $('.name_temporary_annotation').val();
+		var desc = $('.textarea_temporary_annotation').html();
+		if (desc) {
+			desc.replace('contenteditable="true"', '');
+		}
+		// get annotations visibility status
+		var getAnnotationsVisibility = $('.toggle-state-switch').bootstrapSwitch('state');
+		var layerExtent = annotator.map.getExtent();
+		var dialogPosition = $('.dialog_annotations').offset();
+		var checkboxesOff = [];
+		var checkboxes = $('.checkVectors');
+		var i;
+		var stored = false;
+		checkboxes.each(function() {
+			if (!$(this).is(':checked')) {
+				checkboxesOff.push($(this).parent('p').data('annotation'));
+			}
+		});
+
+		if (annotation !== null && annotation && !$.isEmptyObject(annotation)) {
+			for (i = 0; i < features.length; i++) {
+				if (annotation.graph == features[i].graph && features[i].stored) {
+					stored = true;
+				}
+			}
+		}
+
+		if (annotator.selectedFeature.stored) {
+			annotation = annotator.selectedFeature;
+			stored = true;
+		}
+
+		var multiple = false,
+			url_temp;
+		if (annotation !== null && typeof annotation !== "undefined" && !$.isEmptyObject(annotation) && stored) {
+
+			if (annotator.selectedAnnotations.length &&
+				annotator.selectedFeature.linked_to != 'undefined' &&
+				annotator.selectedFeature.linked_to.length && allow_multiple()) {
+
+				multiple = true;
+				allograph_url = [];
+
+				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
+					if (annotator.selectedAnnotations[i].is_editorial) {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].vector_id;
+					} else {
+						url_temp = 'graph=' + annotator.selectedAnnotations[i].graph;
+					}
+					allograph_url.push(url_temp);
+
+				}
+
+				allograph_url = window.location.hostname + document.location.pathname + '?' + allograph_url.join('&') + '&map_extent=' + JSON.stringify(layerExtent);
+
+			} else {
+				if (annotator.selectedFeature.is_editorial) {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.vector_id;
+				} else {
+					allograph_url = window.location.hostname + document.location.pathname + '?graph=' + annotator.selectedFeature.graph;
+				}
+			}
+
+		} else {
+			var geometryObject, geoJSONText;
+			if (annotator.selectedAnnotations.length > 1 && allow_multiple()) {
+
+				allograph_url = [];
+
+				for (i = 0; i < annotator.selectedAnnotations.length; i++) {
+
+					geometryObject = annotator.selectedAnnotations[i];
+					geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+
+					geoJSONText.title = title;
+					geoJSONText.desc = encodeURIComponent(desc);
+					geoJSONText.dialogPosition = dialogPosition;
+					geoJSONText.extent = layerExtent;
+					geoJSONText.visibility = getAnnotationsVisibility;
+
+					if (checkboxesOff.length) {
+						geoJSONText.checkboxes = checkboxesOff;
+					}
+
+					url_temp = 'temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
+
+					allograph_url.push(url_temp);
+
+				}
+				allograph_url = window.location.hostname +
+					document.location.pathname + '?' + allograph_url.join('&');
+			} else {
+
+				geometryObject = annotator.selectedFeature;
+				geoJSONText = JSON.parse(annotator.format.write(geometryObject));
+
+				geoJSONText.title = title;
+				geoJSONText.desc = encodeURIComponent(desc);
+				geoJSONText.dialogPosition = dialogPosition;
+				geoJSONText.extent = layerExtent;
+				geoJSONText.visibility = getAnnotationsVisibility;
+
+				if (checkboxesOff.length) {
+					geoJSONText.checkboxes = checkboxesOff;
+				}
+				allograph_url = window.location.hostname +
+					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
+			}
+		}
+
+		gapi.client.load('urlshortener', 'v1', function() {
+
+			var request = gapi.client.urlshortener.url.insert({
+				'resource': {
+					'longUrl': allograph_url
+				}
+			});
+
+
+			var resp = request.execute(function(resp) {
+				if (resp.error) {
+					throw new Error('Got error in requesting short url');
+				} else {
+					$('#url_allograph_gif').fadeOut().remove();
+					a.attr('value', resp.id);
+					a.attr('title', 'Copy link to annotation and share it');
+					button.data('url', resp.id);
+					var p = $('<div>');
+					p.css('text-align', 'right');
+					p.css('margin-top', '0.34em');
+					url.append(a);
+
+					p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
+					p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
+
+					url.append(p);
+					dialog.prepend(url);
+					$("[data-toggle='tooltip']").tooltip();
+					var long_url_button = $('#long_url');
+					long_url_button.on('click', function() {
+						if (url.data('url-type') == 'short') {
+							a.attr('value', 'http://' + allograph_url);
+							button.data('url', 'http://' + allograph_url);
+							url.data('url-type', 'long');
+							long_url_button.text('Short URL?');
+							long_url_button.data('original-title', 'Show short URL');
+						} else {
+							a.attr('value', resp.id);
+							button.data('url', resp.id);
+							url.data('url-type', 'short');
+							long_url_button.text('Long URL?');
+							long_url_button.data('original-title', 'Show long URL');
+						}
+					});
+
+					$('#close_div_url').on('click', function() {
+						url.fadeOut().remove();
+					});
+				}
+			});
+
+		});
+
+	} else {
+		button.data('hidden', true);
+		var url_allograph_element = dialog.parent().find('.allograph_url_div');
+		url_allograph_element.fadeOut().remove();
+	}
+}
+
+function showBox(selectedFeature, callback) {
+
+	var features = annotator.vectorLayer.features;
+	var id = Math.random().toString(36).substring(7);
+	var can_edit = $('#development_annotation').is(':checked');
+	var n = 0;
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].feature == annotator.selectedFeature.feature && features[i].hand == annotator.selectedFeature.hand && features[i].stored) {
+			n++;
+		}
+	}
+
+	if ($(".number_annotated_allographs").length) {
+		$(".number_annotated_allographs .number-allographs").html(n);
+	}
+
+	annotator.dialog.init(selectedFeature, id, function() {
+		if (callback) {
+			callback();
+		}
+	});
+
+}
+
+function load_data(selectedFeature, dialog, callback) {
+	var content_type = 'graph';
+	var prefix = 'annotator_';
+	var url, request;
+	var cache = annotator.cacheAnnotations;
+	var can_edit = $('#development_annotation').is(':checked');
+
+	var select_allograph = get_forms().allograph_form;
+	var allograph;
+
+	if (!$.isEmptyObject(selectedFeature)) {
+		allograph = selectedFeature.allograph_id;
+	} else {
+		allograph = select_allograph.val();
+	}
+
+	if (typeof selectedFeature == "null" || $.isEmptyObject(selectedFeature) || !selectedFeature.hasOwnProperty('graph')) {
+
+		if (can_edit) {
+			if (!allograph) {
+				dialog.html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				if (callback) {
+					callback();
+				}
+				return false;
+			}
+			content_type = 'allograph';
+			url = 'old/' + content_type + '/' + allograph + '/';
+			annotator.api.request(url, function(data) {
+				cache.update('allograph', data[0]['allograph_id'], data[0]);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
+			});
+		} else {
+			if (callback) {
+				callback();
+			}
+			return false;
+		}
+	} else {
+
+		var graph = selectedFeature.graph;
+
+		// if there's no allograph cached, I make a full AJAX call
+		if (!cache.search("allograph", allograph)) {
+
+			url = 'old/' + content_type + '/' + selectedFeature.graph + '/';
+			annotator.api.request(url, function(data) {
+				cache.update('allograph', data[0]['allograph_id'], data[0]);
+				cache.update('graph', graph, data[0]);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
+
+			});
+
+			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
+		} else if (cache.search("allograph", allograph) && (!cache.search('graph', graph))) {
+
+			url = 'old/' + content_type + '/' + selectedFeature.graph + '/features';
+			annotator.api.request(url, function(data) {
+				data[0]['allographs'] = cache.cache.allographs[allograph];
+				cache.update('graph', graph, data[0]);
+				refresh_dialog(dialog, data[0], selectedFeature, callback);
+
+			});
+
+			// otherwise I have both cached, I can get them from the cache object
+		} else {
+			var data = {};
+			data['allographs'] = cache.cache.allographs[allograph];
+			data['features'] = cache.cache.graphs[graph]['features'];
+			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
+			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
+			data['hands'] = cache.cache.graphs[graph]['hands'];
+			data['display_note'] = cache.cache.graphs[graph]['display_note'];
+			data['internal_note'] = cache.cache.graphs[graph]['internal_note'];
+			refresh_dialog(dialog, data, selectedFeature, callback);
+
+		}
+	}
+}
+
+function refresh_features_dialog(data, dialog) {
+	var features = data.features;
+	var s = '<ul>';
+	if (data.hasOwnProperty('features') && !$.isEmptyObject(features)) {
+		var components = [];
+		for (i = 0; i < features.length; i++) {
+			var component = features[i].name;
+			if (components.indexOf(component) < 0) {
+				s += "<li class='component'><b>" + component + "</b></li>";
+			}
+			for (j = 0; j < features[i].feature.length; j++) {
+				var feature = features[i].feature[j];
+				s += "<li class='feature'>" + feature + "</li>";
+			}
+			components.push(component);
+		}
+	} else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
+		s += "<li class='component'>This graph has not yet been described.</li>";
+	}
+
+	s += "</ul>";
+
+	if (data.hasOwnProperty('display_note') && data.display_note) {
+		s += "<label class='label-dialog'>Public Note</label>";
+		s += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
+	}
+
+	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note') && data.internal_note) {
+		s += "<label class='label-dialog'>Internal Note</label>";
+		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
+	}
+
+	dialog.html(s);
+}
+
+function refresh_dialog(dialog, data, selectedFeature, callback) {
+
+	var can_edit = $('#development_annotation').is(':checked');
+
+	if (can_edit) {
+
+		if (annotator.selectedAnnotations.length > 1) {
+			var selected = [];
+
+			for (var g = 0; g < annotator.selectedAnnotations.length; g++) {
+				if (annotator.selectedAnnotations[g].hasOwnProperty('graph') && annotator.selectedAnnotations[g].graph) {
+					selected.push(annotator.selectedAnnotations[g].graph);
+				}
+			}
+
+			if (selected.length > 1) {
+				data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
+			}
+		}
+
+		update_dialog('annotator_', data, annotator.selectedAnnotations, function(s) {
+
+			$('#id_internal_note').remove();
+			$('#id_display_note').remove();
+
+			var display_note = $('<div>');
+			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control').data('hidden', true).html(selectedFeature.display_note);
+
+			var internal_note = $('<div>');
+			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true);
+
+			display_note.notebook({
+				placeholder: "Type display note here..."
+			}).html(selectedFeature.display_note);
+
+			internal_note.notebook({
+				placeholder: "Type internal note here..."
+			}).html(selectedFeature.internal_note);
+
+			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
+			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
+
+			dialog.html(s);
+
+			$('#label_display_note').after(display_note);
+			$('#label_internal_note').after(internal_note);
+
+
+			var check_all = $('.check_all');
+			check_all.click(function(event) {
+				var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
+				checkboxes.attr('checked', true);
+				event.stopPropagation();
+			});
+
+			var uncheck_all = $('.uncheck_all');
+			uncheck_all.click(function(event) {
+				var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');
+				checkboxes.attr('checked', false);
+				event.stopPropagation();
+			});
+
+			var set_by_default = dialog.find('.set_by_default');
+			set_by_default.on('click', function(event) {
+				var component_id = $(this).data('component');
+				var allograph = $('#panelImageBox .allograph_form').val();
+				check_features_by_default(component_id, allograph, annotator.cacheAnnotations.cache);
+				event.stopPropagation();
+			});
+
+			var set_all_by_default = $('.set_all_by_default');
+			set_all_by_default.on('click', function(event) {
+				var components = [];
+				var allograph = $('#panelImageBox .allograph_form').val();
+
+				for (var i in annotator.cacheAnnotations.cache.allographs) {
+					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].length; j++) {
+						var component = annotator.cacheAnnotations.cache.allographs[i][j].id;
+						components.push(component);
+					}
+				}
+
+				for (var c in components) {
+					check_features_by_default(components[c], allograph, annotator.cacheAnnotations.cache);
+				}
+
+				event.stopPropagation();
+			});
+
+			var component_labels = dialog.find('.component_labels');
+			component_labels.click(function() {
+				var component = $(this);
+				var div = $("#" + $(this).data('id'));
+				if (!div.data('hidden')) {
+					div.slideUp().data('hidden', true);
+					component.next('.checkboxes_div').hide();
+					component.find('.arrow_component').removeClass('fa-angle-double-up').addClass('fa-angle-double-down');
+				} else {
+					div.slideDown().data('hidden', false);
+					component.next('.checkboxes_div').show();
+					component.find('.arrow_component').removeClass('fa-angle-double-down').addClass('fa-angle-double-up');
+				}
+			});
+
+			var annotation;
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				for (var j in annotator.annotations) {
+					if (annotator.annotations[j].graph == features[i].graph) {
+						annotation = annotator.annotations[j];
+					}
+				}
+			}
+			var feature_checkboxes = $(".features_box");
+			feature_checkboxes.on('change', function() {
+				var value = $(this).val();
+				if (annotation.state == 'Insert') {
+					var index = annotation.features.indexOf(value);
+					if (index < 0) {
+						annotation.features.push(value);
+					} else {
+						annotation.features.splice(index, 1);
+					}
+				}
+			});
+
+			if (callback) {
+				callback();
+			}
+		});
+
+	} else {
+
+		refresh_features_dialog(data, dialog);
+		if (callback) {
+			callback();
+		}
+	}
+}
+
+
+/**
+ * Some fields are stored in the database as key:value. This function returns
+ * the key.
+ */
+
+function getKeyFromObjField(obj, field) {
+	var key = null;
+
+	if (obj[field]) {
+		key = obj[field];
+		key = key.substring(0, key.indexOf('::'));
+	}
+	return key;
+}
+
+/**
+ * This function returns the value.
+ */
+
+function getValueFromObjField(obj, field) {
+	var value = null;
+	if (obj[field]) {
+		value = obj[field];
+		value = value.substring(value.indexOf('::') + 1);
+	}
+	return value;
+}
+
+function get_forms() {
+	var panel;
+	var modal;
+	if ($('.tab-pane.active').attr('id') == 'annotator') {
+		panel = $('#panelImageBox');
+		modal = $('.dialog_annotations');
+	} else {
+		panel = $('.modal-body');
+		modal = $('.myModal');
+	}
+
+	return {
+		'allograph_form': panel.find('.allograph_form'),
+		'hand_form': panel.find('.hand_form'),
+		'frmAnnotation': panel.find('.frmAnnotation'),
+		'panel': panel,
+		'modal': modal
+	};
+}
+
+
+function highlight_vectors() {
+
+	var allograph_form_id = get_forms().allograph_form.attr('id');
+	var features = annotator.vectorLayer.features;
+
+	$('#' + allograph_form_id + '_chzn').find('li').on('mouseover', function() {
+		var text = $(this).text();
+
+		for (i = 0; i < features.length; i++) {
+			if (features[i].feature == text) {
+				features[i].originalColor = features[i].style.fillColor;
+				features[i].originalWidth = 2;
+				features[i].style.strokeColor = 'red';
+				features[i].style.strokeWidth = 6;
+			}
+		}
+		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
+	});
+
+	$('#' + allograph_form_id + '_chzn').find('li').on('mouseout', function() {
+		var text = $(this).text();
+		for (i = 0; i < features.length; i++) {
+			if (features[i].feature == text) {
+				features[i].style.strokeColor = features[i].originalColor;
+				features[i].style.strokeWidth = features[i].originalWidth;
+			}
+		}
+		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
+	});
+
+}
+
+function highlight_unsaved_vectors(button) {
+	var features = annotator.unsaved_annotations;
+	var color = "#fe2deb";
+	for (i = 0; i < features.length; i++) {
+		features[i].feature.originalColor = '#ee9900';
+		if (features[i].feature.style) {
+			features[i].featureoriginalWidth = 2;
+			features[i].feature.style.strokeColor = color;
+			features[i].feature.style.fillColor = color;
+		} else {
+			features[i].feature.style = {};
+			features[i].feature.fillopacity = 0.3;
+			features[i].featureoriginalWidth = 2;
+			features[i].feature.style.strokeColor = color;
+			features[i].feature.style.fillColor = color;
+		}
+	}
+	annotator.vectorLayer.redraw();
+	button.addClass('active');
+	restoreFullscreenPositions();
+}
+
+
+function unhighlight_unsaved_vectors(button) {
+	var features = annotator.unsaved_annotations;
+	for (i = 0; i < features.length; i++) {
+		features[i].feature.style.strokeColor = features[i].feature.originalColor;
+		features[i].feature.style.fillColor = features[i].feature.originalColor;
+		features[i].feature.style.strokeWidth = features[i].feature.originalWidth;
+	}
+	annotator.vectorLayer.redraw();
+	button.removeClass('active');
+	restoreFullscreenPositions();
+}
+
+function trigger_highlight_unsaved_vectors() {
+	$('.number_unsaved_allographs').on('click', function() {
+		if (!$(this).hasClass('active')) {
+			highlight_unsaved_vectors($(this));
+		} else {
+			unhighlight_unsaved_vectors($(this));
+		}
+	});
+}
+
+/**
+ * Displays an alert for each error in the Ajax response (json).
+ * Returns true only if data is invalid (contains error or empty).
+ *
+ * @param data
+ *              JSON response from the server
+ *              E.g. {'errors': ['allograph: This field is required.',
+ *              'hand: This field is required.'], 'success': False}
+ */
+
+function handleErrors(data) {
+	if (data && 'success' in data && data.success) return false;
+	// something is not right
+	var message = 'Internal error: the AJAX response is empty';
+	if (data) {
+		message = 'Internal error: no "success" in AJAX response';
+		if ('success' in data) {
+			message = '';
+			if (!data.success) {
+				message = 'Unknown error.';
+				if ('errors' in data) {
+					message = '';
+					for (var i in data.errors) {
+						message += '<p>' + data.errors[i] + '</p>';
+					}
+				}
+			}
+		}
+	}
+
+	if (message) {
+		updateStatus(message, 'danger');
+	}
+
+	return (message.length > 0);
+}
+
+/**
+ * Updates the status message and style of the last operation.
+ *
+ * @param msg
+ *              Status message to display.
+ * @param status
+ *              Either 'error', 'success' or ''
+ */
+
+
+
+/**
+ * Deletes the annotation for the feature with the given id.
+ *
+ * @param id
+ *              The feature id.
+ */
+
+function deleteAnnotationByFeatureId(id) {
+	annotator.selectFeatureByIdAndCentre(id);
+	annotator.deleteAnnotation(annotator.vectorLayer, annotator.vectorLayer.getFeatureById(id));
+}
+
+function updateTabCounter() {
+	var tab_link = $('a[data-target="#allographs"]');
+	var unsaved_link = $('.number_unsaved_allographs');
+	var f = annotator.vectorLayer.features;
+	annotator.unsaved_annotations = [];
+	var d = 0;
+	var x = 0;
+	for (y = 0; y < f.length; y++) {
+		if (f[y].stored) {
+			d++;
+		} else if (!f[y].stored && f[y].state == 'Insert') {
+			x++;
+			annotator.unsaved_annotations.push(f[y]);
+		}
+	}
+
+	tab_link.html('Annotations (' + d + ')');
+	unsaved_link.html(x);
+}
+
+function delete_annotation(layer, feature, number_annotations) {
+	var featureId = feature.graph || feature.id;
+	var temp = feature;
+	updateStatus('Deleting annotations', 'warning');
+	layer.destroyFeatures([feature]);
+	var isNotStored = false;
+	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
+
+
+	var _callback = function() {
+		if (number_annotations > 1) {
+			updateStatus('Annotations deleted.', 'success');
+		} else {
+			updateStatus('Annotation deleted.', 'success');
+		}
+
+		var allograph = $('#panelImageBox .allograph_form option:selected').text();
+		var allograph_id = $('#panelImageBox .allograph_form').val();
+
+		refresh_letters_container_init(temp, temp.feature, allograph_id, true);
+
+		if (temp['state'] == 'Insert') {
+			var element = $('.number_unsaved_allographs');
+			var number_unsaved = element.html();
+			var annotations = annotator.unsaved_annotations;
+			for (var i = 0; i < annotations.length; i++) {
+				if (annotations[i].feature.id == feature.id) {
+					annotations.splice(i, 1);
+					break;
+				}
+			}
+			element.html(annotations.length);
+			temp = null;
+		}
+
+		annotator.selectedAnnotations = [];
+
+		var boxes = $(".dialog_annotations");
+		if (boxes.length) {
+			boxes.remove();
+		}
+
+		updateTabCounter();
+		annotator.has_changed = true;
+	};
+
+	if (feature.popup) {
+		deletePopup(feature);
+	}
+
+	if (!feature.stored) {
+		updateStatus('Annotation deleted locally', 'success');
+		isNotStored = true;
+		_callback();
+		return false;
+	}
+
+	$.ajax({
+		url: url,
+		data: '',
+		error: function(xhr, textStatus, errorThrown) {
+			throw new Error(textStatus);
+		},
+		success: function(data) {
+			if (!handleErrors(data)) {
+				_callback();
+			}
+		}
+	});
+}
+
+
+function isNodeEmpty(node) {
+	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
+	if (node) {
+		var string = $.parseHTML(node);
+		var emptyNodes = 0;
+		var value;
+		for (var i = 0; i < string.length; i++) {
+			if (string[i].nodeName == '#text') {
+				value = string[i].nodeValue;
+			} else {
+				value = string[i].innerText;
+			}
+			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
+				emptyNodes++;
+			}
+		}
+		return emptyNodes === string.length;
+	}
+}
+
+function make_form() {
+
+	if (!annotator.selectedFeature && !annotator.selectedAnnotations.length) {
+		updateStatus('Select annotations to proceed', 'danger');
+		return false;
+	}
+
+	var forms = get_forms();
+	var allograph_form = forms.allograph_form;
+	var hand_form = forms.hand_form;
+	var form = forms.frmAnnotation;
+	var panel = forms.modal;
+	if (!annotator.editorial.active && (!allograph_form.val() || !hand_form.val())) {
+		updateStatus('Hand and Allograph are required', 'danger');
+		return false;
+	}
+
+	var obj = {};
+	var array_values_checked = [],
+		array_values_unchecked = [];
+	var features = {};
+	var has_features = false;
+
+	if (panel.find('.features_box').length) {
+		panel.find('.features_box').each(function() {
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+				array_values_checked.push($(this).val());
+				has_features = true;
+			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
+				array_values_unchecked.push($(this).val());
+			}
+		});
+	}
+
+	var features_labels = [];
+	var components = panel.find('.feature_containers');
+	$.each(components, function() {
+		if ($(this).find('.features_box:checked').length) {
+			var component_id = $(this).attr('id');
+			var component_name = $('[data-id="' + component_id + '"]');
+			var component = $.trim(component_name.children('b').text());
+			var features_labels_array = [];
+			var features_input = $(this).find('.features_box:checked');
+
+			var f_id, f_value, label_element;
+			$.each(features_input, function() {
+				f_id = $(this).attr('id');
+				f_value = $(this).val();
+				label_element = $('label[for="' + f_id + '"]');
+				features_labels_array.push(label_element.text());
+			});
+
+			features_labels.push({
+				'feature': features_labels_array,
+				'name': component,
+				'component_id': parseInt(f_value.split(':')[0], 10)
+			});
+		}
+	});
+
+
+	obj['feature'] = array_values_checked;
+
+	var form_serialized = form.find(":input").filter(function() {
+		return $.trim(this.value).length > 0;
+	}).serialize();
+	var s = '';
+
+	for (i = 0; i < array_values_checked.length; i++) {
+		s += '&feature=' + array_values_checked[i];
+	}
+
+	for (i = 0; i < array_values_unchecked.length; i++) {
+		s += '&-feature=' + array_values_unchecked[i];
+	}
+
+	form_serialized += s;
+
+	var display_note, internal_note;
+	if (annotator.editorial.active) {
+		display_note = $('#display_note');
+		internal_note = $('#internal_note');
+	} else {
+		display_note = $('#id_display_note');
+		internal_note = $('#id_internal_note');
+	}
+	if (!isNodeEmpty(display_note.html())) {
+		form_serialized += "&display_note=" + display_note.html();
+	}
+
+	if (!isNodeEmpty(internal_note.html())) {
+		form_serialized += "&internal_note=" + internal_note.html();
+	}
+
+	return {
+		'form_serialized': form_serialized,
+		'features_labels': features_labels
+	};
+
+}
+
+
+/**
+ * Executes an Ajax call to save a feature/annotation.
+ *
+ * @param url
+ *              The save url.
+ * @param feature
+ *              The feature.
+ * @param data
+ *              Additional data for the annotation.
+ */
+
+function save(url, graphs, data, ann, features) {
+
+	var isModifyToolActive = data.isModifyToolActive;
+	$.ajax({
+		url: url,
+		type: 'POST',
+		data: data['form_serialized'],
+		beforeSend: function() {
+			updateStatus('Saving annotation ...', 'warning');
+		},
+		error: function(xhr, textStatus, errorThrown) {
+			updateStatus(textStatus, 'danger');
+			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
+		},
+		success: function(data) {
+			console.log(data);
+			if (!handleErrors(data)) {
+				updateStatus('Saved annotation.', 'success');
+
+				var forms = get_forms();
+				var select_allograph = forms.allograph_form;
+
+				var allograph = select_allograph.find('option:selected').text();
+				var allograph_id = select_allograph.val();
+
+				refresh_letters_container_init(true, allograph, allograph_id, true);
+
+				var f = annotator.vectorLayer.features;
+				var f_length = annotator.vectorLayer.features.length;
+				var feature, id, temp;
+				var form_serialized = data;
+
+				var new_graphs = data.graphs;
+
+				for (var i = 0; i < new_graphs.length; i++) {
+
+					/*	Updating cache	*/
+
+					var is_editorial = false;
+					var new_graph = new_graphs[i].graph,
+						new_allograph = new_graphs[i].allograph_id;
+					annotator.cacheAnnotations.update('graph', new_graph, new_graphs[i]);
+					annotator.cacheAnnotations.update('allograph', new_allograph, new_graphs[i]);
+					if (typeof new_graph == 'undefined' || !new_graph) {
+						allographsPage.cache.update('graph', new_graphs[i].vector_id, new_graphs[i]);
+						is_editorial = true;
+					} else {
+						allographsPage.cache.update('graph', new_graph, new_graphs[i]);
+					}
+					allographsPage.cache.update('allograph', new_allograph, new_graphs[i]);
+
+					for (var k = 0; k < annotator.selectedAnnotations.length; k++) {
+						var crntFt = annotator.selectedAnnotations[k];
+						if (!crntFt.hasOwnProperty('graph') && !crntFt.graph && crntFt.stored) {
+							if (crntFt.id == new_graphs[i].vector_id) {
+								crntFt.graph = new_graphs[i].vector_id;
+								crntFt.is_editorial = true;
+								if ($('#show_editorial_annotations').is(':checked')) {
+									stylize(crntFt, '#222', '#222', 0.4);
+								} else {
+									stylize(crntFt, '#222', '#222', 0);
+								}
+							}
+						}
+					}
+
+					/*	Updating annotator features	*/
+					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
+						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id) {
+							feature = f[feature_ind];
+							//id = feature.id;
+							feature.feature = allograph;
+							feature.graph = new_graph;
+							feature.state = null;
+
+							if (feature.is_editorial || !new_graph) {
+								feature.vector_id = new_graphs[i].vector_id;
+								feature.is_editorial = true;
+							}
+
+							if (new_graphs[i].hasOwnProperty('hand_id')) {
+								feature.hand = new_graphs[i].hand_id;
+							}
+
+							if (new_graphs[i].hasOwnProperty('internal_note')) {
+								feature.internal_note = new_graphs[i].internal_note;
+							}
+
+							if (new_graphs[i].hasOwnProperty('display_note')) {
+								feature.display_note = new_graphs[i].display_note;
+							}
+
+							if (new_graphs[i].hasOwnProperty('allograph_id')) {
+								feature.allograph_id = new_graphs[i].allograph_id;
+							}
+
+							annotator.setSavedAttribute(feature, Annotator.SAVED, false);
+
+							var color;
+
+							if (new_graphs[i].hasOwnProperty('features')) {
+								feature.features = new_graphs[i].features;
+								var num_features = new_graphs[i].features.length;
+							}
+
+							var element = $('.number_unsaved_allographs');
+							var number_unsaved = element.html();
+							var unsaved_annotations = annotator.unsaved_annotations;
+
+							for (var ind = 0; ind < unsaved_annotations.length; ind++) {
+								if (unsaved_annotations[ind].feature.new_graph == new_graph) {
+									unsaved_annotations.splice(ind, 1);
+									ind--;
+									break;
+								}
+							}
+
+							element.html(unsaved_annotations.length);
+
+							var flag = 0,
+								ann;
+							for (ann in annotator.annotations) {
+								if (annotator.annotations[ann].graph == new_graph) {
+									annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
+									annotator.annotations[ann].feature = allograph;
+									annotator.annotations[ann].graph = new_graph;
+									flag = 1;
+								}
+							}
+
+							if (!flag) {
+								ann = parseInt(ann, 10) + 1;
+								annotator.annotations[ann] = {};
+								annotator.annotations[ann].hidden_allograph = new_allograph + '::' + $.trim(allograph.split(',')[1]);
+								annotator.annotations[ann].feature = allograph;
+								annotator.annotations[ann].graph = new_graph;
+								//annotator.annotations[ann].vector_id = feature.vector_id;
+							}
+
+
+							if (new_graphs[i].hasOwnProperty('features') && new_graphs[i].features.length && !feature.is_editorial) {
+								color = 'green';
+								feature.described = true;
+								feature.num_features = feature.features.length + 1;
+							} else if (new_graphs[i].hasOwnProperty('features') && !new_graphs[i].features.length && !feature.is_editorial) {
+								color = '#ee9900';
+								feature.described = false;
+								feature.num_features = 0;
+							} else {
+								color = '#222';
+								feature.described = false;
+								feature.num_features = 0;
+							}
+
+							stylize(feature, color, color, 0.4);
+							feature.style.originalColor = color;
+							feature.style.strokeWidth = 2;
+							feature.stored = true;
+
+							if (new_graphs[i].hasOwnProperty('display_note')) {
+								feature.display_note = new_graphs[i].display_note;
+							}
+							if (new_graphs[i].hasOwnProperty('internal_note')) {
+								feature.internal_note = new_graphs[i].internal_note;
+							}
+							feature.last_feature_selected = null;
+							element.html(annotations.length);
+
+							var n = 0,
+								d = 0;
+							for (g = 0; g < f_length; g++) {
+								if (f[g].feature == feature.feature && f[g].stored) {
+									n++;
+								}
+
+								if (f[g].stored) {
+									d++;
+								}
+							}
+
+							$(".number_annotated_allographs .number-allographs").html(n);
+
+							$('[data-target="#allographs"]').html('Annotations (' + d + ')');
+						}
+					}
+				}
+				annotator.selectedAnnotations = [];
+			}
+
+		},
+		complete: function() {
+			if (isModifyToolActive) {
+				annotator.transformFeature.activate();
+			}
+			annotator.has_changed = true;
+			updateTabCounter();
+		}
+	});
+
+}
+
+function registerEvents() {
+	if (annotator.isAdmin == 'True') {
+		annotator.events = true;
+		var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+		/*
+
+			Uncomment to activate mouseover and mouseout events
+			for displaying popups when a graphs has a display note field
+
+
+
+
+		paths.unbind('mouseenter').on('mouseenter', function() {
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if ($(this).attr('id') == features[i].geometry.id) {
+					if (features[i].display_note) {
+						createPopup(features[i]);
+					}
+				}
+			}
+		}).unbind('mouseleave').on('mouseleave', function() {
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].popup) {
+					deletePopup(features[i]);
+				}
+			}
+		});
+
+*/
+		paths.unbind('dblclick').on('dblclick', function(event) {
+
+			if (annotator.boxes_on_click) {
+				boxes_on_click = true;
+			}
+
+			if (annotator.selectFeature.active && !annotator.boxes_on_click) {
+
+				annotator.boxes_on_click = true;
+				var boxes_on_click_element = $("#boxes_on_click");
+				boxes_on_click_element.prop('checked', true);
+				var boxes_on_click = false;
+				var annotation;
+
+				for (var a in annotator.annotations) {
+					if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
+						annotation = annotator.annotations[a];
+					}
+				}
+				showBox(annotation, function() {
+					if (!boxes_on_click) {
+						annotator.boxes_on_click = false;
+						boxes_on_click_element.prop('checked', false);
+						restoreFullscreenPositions();
+						highlight_vectors();
+					}
+				});
+
+			}
+			/*
+			showBox(annotation, function() {
+				if (!boxes_on_click) {
+					annotator.boxes_on_click = false;
+					boxes_on_click_element.prop('checked', false);
+				}
+			});
+			*/
+		});
+	}
+}
+
+
+DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
+	var _self = this;
+	var toggleAll = _self.utils.toggleAll;
+	$(document).bind('keydown', function(event) {
+		activeControls = _self.map.getControlsBy('active', true);
+		var code = (event.keyCode ? event.keyCode : event.which);
+
+		if (event.shiftKey && annotator.isAdmin == 'True') {
+			var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
+			if (!isFocus) {
+				switch (code) {
+					case 77:
+						toggleAll(activeControls, false);
+						_self.modifyFeature.activate();
+						break;
+					case 8:
+						toggleAll(activeControls, false);
+						_self.deleteFeature.activate();
+						break;
+					case 77:
+						toggleAll(activeControls, false);
+						_self.transformFeature.activate();
+						break;
+					case 68:
+						toggleAll(activeControls, false);
+						_self.rectangleFeature.activate();
+						break;
+					case 71:
+						toggleAll(activeControls, false);
+						_self.selectFeature.activate();
+						break;
+					case 87:
+						toggleAll(activeControls, false);
+						_self.dragFeature.activate();
+						break;
+					case 90:
+						toggleAll(activeControls, false);
+						_self.zoomBoxFeature.activate();
+						break;
+					case 83:
+						_self.saveButton.trigger();
+						break;
+					case 70:
+						_self.full_Screen();
+						break;
+					case 38:
+						annotator.map.moveByPx(0, -60);
+						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
+						break;
+					case 40:
+						annotator.map.moveByPx(0, 60);
+						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
+						break;
+					case 37:
+						annotator.map.moveByPx(-60);
+						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
+						break;
+					case 39:
+						annotator.map.moveByPx(60);
+						annotator.vectorLayer.redraw();
+						restoreFullscreenPositions();
+						break;
+					case 187:
+						annotator.vectorLayer.map.zoomIn();
+						break;
+					case 189:
+						annotator.vectorLayer.map.zoomOut();
+						break;
+				}
+			}
+		}
+	});
+};
+
+function restoreFullscreenPositions() {
+	var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+	annotations_layer.attr('width', $(window).width())
+		.attr('height', $(window).height())
+		.attr('viewport', "0 0 " + $(window).width() + " " + $(window).height());
+
+	annotations_layer[0].setAttribute('viewBox', "0 0 " + $(window).width() + " " + $(window).height());
+}

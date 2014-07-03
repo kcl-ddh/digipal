@@ -1,0 +1,109 @@
+/* search pages */
+
+#searchform .errorlist {
+    display:none;
+}
+
+#filtersform{
+    display: none;
+    padding-top: 0;
+    margin-bottom: 0;
+}
+
+#filtersform .header5{
+    margin-top: 0;
+}
+
+#searchform, #filtersform{
+    line-height: 2;
+    padding-bottom: 0;
+}
+
+#searchform ul, #filtersform ul{
+    list-style: none;
+}
+
+#filterGraphs > ul > li{
+    display: inline;
+}
+
+#containerFilters >li, #formFilters > #searchform > ul > li, #filtersform  form > ul > li{
+    display: inline;
+    list-style: none;
+    margin-right:5px;
+    text-align: justify;
+}
+
+#searchform .container, #filtersform .container{
+    padding-top:0.5%;
+    padding-bottom:0.5%;
+}
+
+#labelFilters{
+    font-size: 13px;
+}
+
+#textEntry, #input{
+    margin-left:1%;
+}
+
+#filtersform form > label{
+    margin-right:0.7%;
+}
+
+#view-switch {
+    margin-top: 15px;
+}
+
+#searchform {
+    margin-bottom: 0.5em;
+}
+
+.breadcrumb {
+    margin-bottom: 0.5em;
+}
+
+#breadcrumb_graphs{
+    margin-top:0;
+    margin-bottom:12px;
+}
+
+.move-up-1 {
+    margin-top: -1em;
+}
+
+#searchform .row:first-child {
+    margin-bottom: 10px;
+}
+
+#graphs-images
+    .graph_active {
+        background: yellow;
+}
+
+#graphs-list
+    .graph_active {
+    -webkit-box-shadow: 0px 0px 8px 4px yellow !important;
+    -moz-box-shadow: 0px 0px 8px 4px yellow !important;
+    -ms-box-shadow: 0px 0px 8px 4px yellow !important;
+    -o-box-shadow: 0px 0px 8px 4px yellow !important;
+    box-shadow: 0px 0px 8px 4px yellow !important;
+}
+
+.tt-suggestion > p:hover, .tt-suggestion > p:focus, .tt-suggestion.tt-cursor p {
+    background-color: #A1514D;
+    cursor: pointer;
+}
+
+div.tt-suggestion p {
+    margin: 0px;
+}
+
+.result-image-count {
+    white-space: nowrap;
+    font-size: small;
+}
+
+.graph_img {
+    margin: 0.3em;
+}

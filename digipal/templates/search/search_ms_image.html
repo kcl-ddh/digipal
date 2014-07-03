@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load mezzanine_tags pagination_tags html_escape %}
+
+{% block meta_title %}
+    Manuscript Images
+    {% if query_summary %}({{ query_summary|truncatechars:50 }}){% endif %}
+{% endblock %}
+
+{% block main %}
+    <div class="page-header">
+        <h1>Manuscript Images 
+            ({{ images.count }})
+        </h1>
+    </div>
+
+    <form id='searchform' class="form-inline panel" action='.'>
+        <div class="row">
+            <div class="col-xs-12 col-sm-1">
+                <b>Filter by</b>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+                <ul class="flat-list use-chosen">
+                    {{ image_search_form.as_ul }}
+                </ul>
+            </div>
+            <div class="col-xs-12 col-sm-2">
+                <input class="sticky" type='hidden' name="view" value='{{ view }}' />
+                <input type='submit' value='Filter Images' class='btn btn-primary'/>
+            </div>
+        </div>
+    </form>
+
+    {% if query_summary %}
+        <p class='breadcrumb' id="search-breadcrumb">
+            <span id="auto-scroll"></span>
+            You are searching for:
+            {{ query_summary_interactive|safe }}
+        </p>
+    {% endif %}
+
+    <div class='row'>
+        <div class='col-xs-12 col-sm-3 col-md-2 pull-right' id='view-switch'>
+
+            <ul class="nav nav-pills">
+                <li title='Change Manuscripts View to Images' data-toggle='tooltip' data-container='body' class="{% if view == 'images' %}active{% endif %}">
+                    <a data-target="#images" data-toggle="pill"  href="{% filter add_query_params:request.META.QUERY_STRING %}?view=images{% endfilter %}">Images</a>
+                </li>
+
+                <li title='Change Manuscripts View to List' data-toggle='tooltip' data-container='body' class="{% if view == 'list' %}active{% endif %}">
+                    <a data-target="#list" data-toggle="pill" href="{% filter add_query_params:request.META.QUERY_STRING %}?view=list{% endfilter %}">List</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-xs-12 col-sm-8">
+            {% autopaginate images page_size as images_on_this_page %}
+            
+            {% include "pagination/pagination_with_size.html" %}
+        </div>
+
+    </div>
+
+    {% if images_on_this_page %}
+        <div class="tab-content">
+
+            <div class="tab-pane fade {% if view == 'images' %}active in{% endif %}" id="images">
+
+                {% for image in images_on_this_page %}
+                    {% if forloop.counter0|divisibleby:4 %}
+                        <div class="row">
+                    {% endif %}
+
+                    {% include "digipal/folio_image.html" with image=image width=180 full_label=1 %}
+
+                    {% if forloop.counter|divisibleby:4 or forloop.last %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="tab-pane fade {% if view == 'list' %}active in{% endif %}" id="list">
+
+                <table class='table table-condensed'>
+                    <tbody>
+                        <tr>
+                            <th>&nbsp;</th>
+                            <th>Page</th>
+                            <th>Place</th>
+                            <th>Repository</th>
+                            <th>Annotations</th>
+                            <th>Hands</th>
+                        </tr>
+                        {% for image in images_on_this_page %}
+                            <tr>
+                                <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
+                                <td><a data-type='image' data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
+                                <td>{{image.item_part.current_item.repository.place}}</td>
+                                <td>{{image.item_part.current_item.repository.name}}</td>
+                                <td>{{ image.annotation_set.all.publicly_visible.count }}</td>
+                                <td>{{ image.hands.all.count }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+    {% else %}
+        <div class='alert alert-warning has-margin-top'>
+            <h6>No Images available</h6>
+        </div>
+    {% endif %}
+
+    {% include "pagination/pagination_with_size.html" %}
+
+    {% include "digipal/add_to_collection.html" %}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+{% endblock %}

@@ -1,0 +1,33 @@
+Django==1.6.5
+Mezzanine==3.1.5
+MySQL-python==1.2.2
+PIL==1.1.7
+South==0.8.2
+Whoosh==2.5.4
+bleach==1.2.1
+disqus-python==0.4.2
+distribute==0.6.10
+django-debug-toolbar==0.9.4
+django-extensions==1.0.3
+django-grappelli==2.4.3
+-e git+https://github.com/toastdriven/django-haystack.git@1e087f63118aba8e212844cbd2d15caa46e71e62#egg=django_haystack-2.0.0_beta-py2.6-dev
+-e git+https://github.com/Gbuomprisco/django-pagination.git@899cc01674d28f9a625123d6a587d629cd7bdac1#egg=django_pagination-1.0.7-py2.6-dev
+git+git://github.com/geoffroy-noel-ddh/django-iipimage@0.1.0
+django-reversion==1.6.5
+django-tinymce==1.5.2
+filebrowser-safe==0.3.4
+grappelli-safe==0.2.21
+html5lib==1.0b3
+lxml==2.3.2
+mercurial==2.5
+psycopg2==2.4.5
+pyelasticsearch==0.6
+python-apt==0.7.100.1-squeeze1
+pytz==2013b
+reportbug==4.12.6
+requests==2.3.0
+simplejson==3.0.7
+unattended-upgrades==0.1
+virtualenv==1.4.9
+wsgiref==0.1.2
+future==0.9.0

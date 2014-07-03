@@ -1,0 +1,388 @@
+/* menu and header */
+
+
+.navbar .nav > li > a:hover {
+    background: url('/static/digipal/images/nav_hover.png');
+}
+.responsive-li-small {
+    font-size: 88%;
+    margin:1%;
+    padding: 1.5% !important;
+}
+
+.navbar-collapse{
+    clear: both;
+    float:left;
+    width:100%;
+    background: url('/static/digipal/images/nav_bg.png');
+    line-height: 3;
+    font-size: 1em;
+    margin:0;
+    margin-top: -1.5em;
+    height: 32px;
+}
+
+.nav_collapse_up{
+     margin-top: 0 !important;
+}
+
+.navLink{
+    cursor: pointer;
+}
+
+.navbar{
+    padding:0%;
+    padding-bottom: 0%;
+    margin:0;
+    margin-left: 0%;
+    border:none;
+    z-index:1;
+    background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
+}
+
+.logo{
+    padding-left: 4%;
+    line-height: 2;
+    background: url('/static/digipal/images/banner_bg.png') no-repeat scroll left 0 transparent;
+}
+
+
+.navbar .nav > li {
+    background: url('/static/digipal/images/nav_li.png')100% 50% no-repeat;
+    padding-right: 0;
+    display: inline;
+    position: relative;
+    line-height:1;
+    height: 32px !important;
+}
+
+.navbar .nav > li:last-child {
+    background: none;
+}
+
+.navbar-collapse {
+    max-height: none;
+}
+
+@media (min-width: 767px) and (max-width: 991px){
+    .navbar .nav > li > a{
+        font-size: 0.9em;
+        line-height: 1.5;
+        padding: 10px 15px 10px 15px !important;
+    }
+}
+
+
+@media (max-width: 767px) {
+	/* decrease height of the top bar in 'mobile' mode.
+		too much blank space wasted otherwise.*/
+
+    #contentNav{
+        height: 45px;
+    }
+
+    /* Boostrap sets a 20px padding on each side of the page.
+    	This is too much for mobile devices.
+    	Apply a smaller padding to the main containers only.*/
+    body {
+        padding-right: 0px;
+        padding-left: 0px;
+    }
+
+    body > .container {
+        padding:20px;
+    }
+
+    #homeSection {
+        text-align: center;
+    }
+
+    footer .row  {
+        margin:0;
+        margin-top: 4%;
+    }
+
+    #footer, #logos_footer, #footer_logos{
+        text-align: center;
+    }
+
+   .nav ul a, .nav a{
+        border-bottom:1px solid #eee !important;
+        color: #444 !important;
+        margin:0;
+        background: none !important;
+    }
+
+    .nav a:hover, .nav ul a:hover{
+        background: #a1514d !important;
+        color: #fff !important;
+    }
+
+    .navbar .nav > li > a {
+        line-height: 2 !important;
+    }
+
+    .navbar-collapse {
+        background: none !important;
+        margin-top: 2%;
+    }
+
+    #navQuickSearch{
+        background: #fff !important;
+    }
+
+    .nav a {
+        height: auto !important;
+    }
+
+    #OpenLayers_Control_Panel_29{
+        right: 0;
+    }
+
+    .logo, .navbar{
+        background: none;
+    }
+
+    #div-logo-desc {
+        margin-top: 1.5em !important;
+    }
+
+    #logo_words{
+        line-height: 2 !important;
+        float: none !important;
+    }
+
+    .loading-div{
+        left: 22% !important;
+        width: 24em !important;
+    }
+
+}
+
+
+
+.navbar .nav > li > a {
+    border: 0 none;
+    text-decoration: none;
+    color: #fff;
+    padding: 10px 22px 10px 22px;
+    text-shadow:none;
+    font-weight: bold;
+    line-height: 1;
+    height: 32px;
+}
+
+.navbar .nav > li > a:hover, .navbar .nav > li > a:focus {
+    background: url('/static/digipal/images/nav_hover.png');
+    color: #fff;
+}
+
+.navbar .nav > .active > a, .navbar .nav > .active > a:hover, .navbar .nav > .active > a:focus{
+    background: url('/static/digipal/images/nav_hover.png');
+    color: #fff;
+}
+
+.dropdown-menu li.active > a:hover{
+    background: #a1514d;
+    color: #fff;
+}
+.dropdown-menu li > a:hover, .dropdown-menu li.active > a{
+    background: #a1514d;
+    color: #fff;
+}
+
+.dropdown-menu{
+    margin:0;
+}
+
+#advanced {
+    margin-left:0;
+    padding-left:0;
+}
+
+#quickSearch li>ul {
+    display: none;
+}
+
+#search-terms {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    background-color: #fff !important;
+}
+
+#quickSearch #search-terms {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.quick-search-category option {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+span.quick-search-category {
+    float:left;
+    overflow: hidden;
+    width: 6.5em;
+    background: url(/static/digipal/images/arrow-down.png) no-repeat scroll 95% center #FFFFFF;
+    border: 1px solid #ccc;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-right: 0px;
+    height: 34px;
+}
+
+.quick-search-category select.form-control {
+    width: 11em;
+    font-size:smaller;
+    padding-left: 3px;
+    vertical-align: middle;
+    padding-top: 0.6em;
+    cursor: pointer;
+    background: transparent;
+    height: 34px;
+    /* Safari */
+    line-height: 29px;
+    border: 0px;
+}
+
+/*
+GN: commented this after upgrading to typeahead 0.10 out as the underlying
+	input box was slightly visible below the typeahead input.
+
+.tt-hint {
+    margin-top: 2px;
+}
+*/
+
+/*
+#quickSearch .textEntry {
+   border-radius: 4px;
+   background-color: #fff !important;
+}
+
+#quickSearch .input-group-btn {
+    vertical-align: top;
+}
+
+
+#quickSearch ul li, #quickSearch ul{
+    display: inline;
+}
+
+#advanced_search_link {
+    font-weight:bold;
+    color: #5e5e5e;
+    vertical-align: top;
+}
+*/
+
+/* Rounded right corner of the button after the text input
+	This is normal BS appearance but we force it because the
+	Quick Search has a non-button as the last element.
+*/
+#navQuickSearch .btn {
+   border-top-right-radius: 4px;
+   border-bottom-right-radius: 4px;
+   margin-top: -4px;
+}
+
+#navQuickSearch .dropdown.input-group-btn .btn {
+   border-top-right-radius: 0px;
+   border-bottom-right-radius: 0px;
+}
+
+/*
+#navQuickSearch .btn-default:hover, #navQuickSearch .btn-default:active, #navQuickSearch .btn-default:focus {
+   border-color: #A1514D;
+}
+*/
+
+#navQuickSearch{
+    height: 3.5em;
+    padding-top: 0.5em;
+    background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
+}
+
+.logo:hover {
+    text-decoration: none;
+}
+
+.logo img {
+    padding-bottom:20px;
+    max-width: 100%;
+    height: auto;
+}
+
+#resize_menu{
+    margin-right: 2%;
+    margin-top: 1.44%;
+    cursor:pointer;
+}
+
+.twitter-typeahead {
+    width: 100%;
+}
+
+.navbar-toggle {
+    background-color: #a1514d;
+    border-color: #904845;
+    color: #fff;
+    margin-top: 1.5em;
+}
+
+.icon-bar{
+    background-color: #fff;
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+    background-color: #eee;
+}
+
+#digi{
+    color:#a1514d;
+    font-size:3.3em;
+    font-family: Serif;
+}
+
+#pal{
+    color:#777;
+    font-size:3.3em;
+    font-family: Serif;
+}
+
+#trt{
+    background: #999;
+    height: 65px;
+    width: 1px;
+    margin-top: 1.5em;
+    display: inline;
+}
+
+.logo-desc{
+    color:#a1514d;
+    font-size:1em;
+    vertical-align:sub;
+    font-family:Helvetica;
+    display: block;
+}
+
+#div-logo-desc{
+    margin-top: 2.5em;
+    margin-left: 0.2em;
+    line-height: 1.3;
+}
+
+
+#logo > div {
+    float: left;
+    margin-left: 0.65em;
+}
+
+#logo{
+    margin-top:-0.5em;
+}
+
+#logo_words{
+    line-height: 2.3;
+}

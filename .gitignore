@@ -1,6 +1,8 @@
 .DS_Store
 *.log
 # *migrations/
+digipal/static/digipal/tests/screenshots
 *.pot
 *.pyc
 local_settings.py
+digipal/search/

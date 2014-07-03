@@ -1,4 +1,5 @@
 # DigiPal
+
 ###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
 ----
 
@@ -9,9 +10,10 @@
 3. How To Set Up Digipal
 4. Run Digipal
 5. What To Do After
-6. API
+6. Lightbox
+7. API
+8. Testing
 
-**Please note that an important part of the project is currently hosted on a private repository. The two will be soon merged into this. This means that at the current state this repository is not enough to run Digipal locally.**
 
 ## 1. About
 
@@ -23,11 +25,11 @@ See further http://digipal.eu/
 
 ## 2. Digipal Technologies Stack
 Digipal is built upon the Django Web Framework. The main technologies used by the project are:
-- Mezzanine as CMS and Blog
+- Django as web framework and Mezzanine as CMS and Blog
 - IIPImage for the image server
-- OpenLayers for the manuscript viewer
-- Bootstrap for the Front-end framework
-- FontAwesome icons
+- OpenLayers as manuscripts viewer and annotator
+- Bootstrap and JQuery as front-end frameworks (with the addition of various plugins)
+- FontAwesome and Glyphicons icons
 
 ## 3. How to set up Digipal
 
@@ -142,7 +144,20 @@ You should create a superuser to edit the Digipal back-end through the Mezzanine
 	
 After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin and log in.
 
-## 6. API
+## 6. Lightbox
+
+The Lightbox is a separate project, even though it's still tightly linked to Digipal.
+It is possible to install it through pip:
+	
+	pip install git+https://github.com/Gbuomprisco/Digital-Lightbox.git
+
+By default, it is disabled. You can enable it by setting the variable LIGHTBOX in your settings:
+
+	LIGHTBOX = True
+
+It will be available at the address /lightbox
+	
+## 7. API
 It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.
 
 ### Documentation
@@ -227,3 +242,7 @@ Another example:
 	}, function(data){
 		/* ... your data ... */
 	}, [], 1);
+
+## 8. Testing
+
+The documentation for testing Digipal is available at [https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md)

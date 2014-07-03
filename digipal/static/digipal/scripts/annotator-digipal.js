@@ -739,7 +739,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					}
 				} else {
 					if (annotator.selectedFeature) {
-						annotator.delete_annotation(annotator.vectorLayer, annotator.selectedFeature, 1);
+						annotator.deleteAnnotation(annotator.vectorLayer, annotator.selectedFeature, 1);
 					}
 				}
 			});

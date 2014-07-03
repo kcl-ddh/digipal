@@ -113,7 +113,7 @@ function Dialog() {
         /* making box draggable */
         if (defaultOptions.draggable) {
             selector.draggable({
-                handle: '.myModalLabel'
+                handle: '.modal_header'
             });
         }
 

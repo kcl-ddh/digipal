@@ -37,12 +37,12 @@ setup(
         'git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev',
         'django-reversion>=1.8.1',
         'django-tinymce',
-        'future',
+        #'future',
         #'lxml',
         # For postgreSQL database
         #'psycopg2',
-        'PIL',
-        'pillow',
+        #'PIL',
+        #'pillow',
         'pyelasticsearch==0.6.1',
     ],
     tests_require=[

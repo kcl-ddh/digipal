@@ -112,7 +112,7 @@ function main() {
 		var selectedCollection = localStorage.getItem('selectedCollection');
 
 		$.each(collections, function(index, value) {
-			if (index.replace(/\s+/gi, '') == collection_name_from_url) {
+			if (index.replace(/\s+/gi, '').toLowerCase() == collection_name_from_url.toLowerCase()) {
 				collection = value;
 				collection_name = index;
 			}

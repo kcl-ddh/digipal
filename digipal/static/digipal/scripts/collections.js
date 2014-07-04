@@ -95,6 +95,9 @@ function Collections() {
 				if (this['annotations']) {
 					n += this['annotations'].length;
 				}
+				if (this['editorial']) {
+					n += this['editorial'].length;
+				}
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
@@ -301,6 +304,7 @@ function Collections() {
 		to_lightbox: function() {
 			var graphs = [],
 				images = [],
+				editorial = [],
 				element,
 				basket;
 
@@ -329,7 +333,13 @@ function Collections() {
 					images.push(element);
 				}
 			}
-			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
+			if (basket && basket.editorial && basket.editorial.length) {
+				for (i = 0; i < basket.editorial.length; i++) {
+					element = basket.editorial[i].toString();
+					editorial.push(element);
+				}
+			}
+			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[' + editorial.toString() + ']';
 		},
 
 		share: share,

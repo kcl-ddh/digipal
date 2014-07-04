@@ -242,7 +242,7 @@ function main() {
 
 				s += "</table>";
 
-				if (collection.images && collection.images.length) {
+				if (data.images && data.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table id='table-images' class='table'>";
 					s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';

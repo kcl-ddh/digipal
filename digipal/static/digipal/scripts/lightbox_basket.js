@@ -39,19 +39,24 @@ function update_counter() {
 	var checkboxes = $('.checkbox_image');
 	var check_annotations_all = $('#check_annotations_all');
 	var check_images_all = $('#check_images_all');
-	var annotations = 0;
-	var images = 0;
+	var check_editorial_all = $('#check_editorial_all');
+	var annotations = 0,
+		images = 0,
+		editorial = 0;
 	$.each(checkboxes, function() {
 		if ($(this).is(':checked')) {
 			if ($(this).data('type') == 'image') {
 				images++;
-			} else {
+			} else if ($(this).data('type') == 'annotation') {
 				annotations++;
+			} else {
+				editorial++;
 			}
 		}
 	});
 	$('#counter-annotations').html(annotations);
 	$('#counter-images').html(images);
+	$('#counter-editorial').html(editorial);
 
 	if (!annotations) {
 		check_annotations_all.prop('checked', false).prop('indeterminate', false);
@@ -69,7 +74,15 @@ function update_counter() {
 		check_images_all.prop('indeterminate', true);
 	}
 
-	if (!images && !annotations) {
+	if (!editorial) {
+		check_editorial_all.prop('checked', false).prop('indeterminate', false);
+	} else if ($('#table-editorial .table-row').length == editorial) {
+		check_editorial_all.prop('checked', true).prop('indeterminate', false);
+	} else {
+		check_editorial_all.prop('indeterminate', true);
+	}
+
+	if (!images && !annotations && !editorial) {
 		$('#remove_from_collection').attr('disabled', true);
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
@@ -95,7 +108,7 @@ function main() {
 	if (!getParameter('collection').length) {
 		var collections = JSON.parse(localStorage.getItem('collections'));
 		var url = location.href;
-		var collection_name_from_url = url.split('/')[url.split('/').length - 2];
+		var collection_name_from_url = decodeURIComponent(url.split('/')[url.split('/').length - 2]);
 		var selectedCollection = localStorage.getItem('selectedCollection');
 
 		$.each(collections, function(index, value) {
@@ -110,7 +123,8 @@ function main() {
 		}
 
 		var graphs = [],
-			images = [];
+			images = [],
+			editorial = [];
 
 		if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
 			s += "<h3 id='header_annotations'>Graphs (" + collection.annotations.length + ")</h3>";
@@ -129,6 +143,13 @@ function main() {
 				}
 			}
 			data.images = images;
+		}
+
+		if (typeof collection.editorial !== 'undefined' && collection.editorial.length) {
+			for (d = 0; d < collection.editorial.length; d++) {
+				editorial.push((collection.editorial[d]));
+			}
+			data.editorial = editorial;
 		}
 
 	} else {
@@ -176,7 +197,7 @@ function main() {
 				'data': JSON.stringify(data)
 			},
 			success: function(data) {
-
+				console.log(data)
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
 					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
@@ -224,12 +245,27 @@ function main() {
 				if (collection.images && collection.images.length) {
 					s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
 					s += "<table id='table-images' class='table'>";
-					s += '<th><span id="counter-images"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';
+					s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';
 					for (i = 0; i < data['images'].length; i++) {
 						var image = data['images'][i];
 						s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
 						s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 						s += "<td>" + image[3] + "</td>";
+					}
+					s += "</table>";
+				}
+
+				if (data.editorial && data.editorial.length) {
+					s += "<h3 id ='header_images'>Editorial Annotations (" + collection.editorial.length + ")</h3>";
+					s += "<table id='table-editorial' class='table'>";
+					s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th>Page</th>';
+					for (i = 0; i < data['editorial'].length; i++) {
+						var editorial_annotation = data['editorial'][i];
+						s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
+						s += "</td>";
+
+						s += "<td data-graph = '" + editorial_annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
+						s += "</td>";
 					}
 					s += "</table>";
 				}
@@ -259,6 +295,17 @@ function main() {
 					} else {
 						$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
 						$('#table-annotations').find('.table-row').removeClass('selected');
+					}
+					update_counter();
+				});
+
+				$('#check_editorial_all').on('change', function() {
+					if ($(this).is(':checked')) {
+						$('#table-editorial').find('input[type="checkbox"]').prop('checked', true);
+						$('#table-editorial').find('.table-row').addClass('selected');
+					} else {
+						$('#table-editorial').find('input[type="checkbox"]').prop('checked', false);
+						$('#table-editorial').find('.table-row').removeClass('selected');
 					}
 					update_counter();
 				});
@@ -347,6 +394,7 @@ function main() {
 				$('#to_lightbox').on('click', function() {
 					var graphs = [],
 						images = [],
+						editorial_annotations = [],
 						element,
 						basket;
 
@@ -379,7 +427,15 @@ function main() {
 							}
 						}
 					}
-					location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
+					if (basket && basket.editorial && basket.editorial.length) {
+						for (i = 0; i < basket.editorial.length; i++) {
+							element = basket.editorial[i].toString();
+							if ($('input[type="checkbox"][data-graph="' + basket.editorial[i][0] + '"]').is(':checked')) {
+								editorial_annotations.push(element);
+							}
+						}
+					}
+					location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]';
 				});
 
 				$('tr.table-row').on('click', function(event) {
@@ -497,13 +553,12 @@ function main() {
 					return false;
 				} else {
 					if (value.id == selectedCollection) {
-						var re = /^(\w|\s|[@$&])*$/;
 						//name = name.replace(/\s+/gi, '');
-						if (name && re.test(name) && name.length <= 30) {
+						if (name && name.length <= 30) {
 							collections[name] = collections[index];
 							delete collections[index];
 							basket = value;
-							history.pushState(null, null, '../' + name);
+							history.pushState(null, null, '../' + encodeURIComponent(name));
 							flag = true;
 							return false;
 						} else {

@@ -65,7 +65,7 @@ function Collections() {
 
 		collections.find('img').on('click', function(event) {
 			localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-			location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+			location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 			event.stopPropagation();
 		});
 
@@ -238,9 +238,8 @@ function Collections() {
 			var collection_name = $('#name_collection').val();
 			var window_save_collection = $('#new-collection-div');
 			var id = uniqueid();
-			var re = /^\w*$/;
 			var collection_name_trimmed = collection_name.replace(/\s+/gi, '');
-			if (collection_name && re.test(collection_name_trimmed)) {
+			if ((collection_name_trimmed)) {
 				if (collection_name.length > 30) {
 					notify('Please enter a shorter name (max 30 chars)', "danger");
 					return false;
@@ -286,7 +285,7 @@ function Collections() {
 
 				collection.find('img').on('click', function(event) {
 					localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-					location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+					location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 					event.stopPropagation();
 				});
 
@@ -390,7 +389,7 @@ function Collections() {
 
 			collection.find('img').on('click', function(event) {
 				localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-				location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+				location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 				event.stopPropagation();
 			});
 		},

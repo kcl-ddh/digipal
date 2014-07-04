@@ -178,11 +178,11 @@ button .starred, input .starred, button .unstarred, input .unstarred{
 }
 
 
-#table-images tr.table-row, #table-annotations tr.table-row {
+#table-images tr.table-row, #table-annotations tr.table-row, #table-editorial tr.table-row {
     cursor:pointer;
 }
 
-#table-images tr.table-row:hover, #table-annotations tr.table-row:hover {
+#table-images tr.table-row:hover, #table-annotations tr.table-row:hover, #table-editorial tr.table-row:hover {
     background: #ffffcc;
 }
 

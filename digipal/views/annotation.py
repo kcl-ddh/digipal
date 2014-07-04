@@ -479,7 +479,6 @@ def images_lightbox(request, collection_name):
     data = {}
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
-        print graphs
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
@@ -510,6 +509,18 @@ def images_lightbox(request, collection_name):
             for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
+        if 'editorial' in graphs:
+            editorial_annotations = []
+            vector_ids = []
+            editorial_annotations_list = []
+            for ed in graphs['editorial']:
+                ed_annotation = Annotation.objects.get(vector_id=ed[0], image_id=ed[1])
+                editorial_annotations_list.append(ed_annotation)
+                vector_ids.append(ed[0])
+            editorial_annotations_list.sort(key=lambda t: vector_ids.index(t.vector_id))
+            for _annotation in editorial_annotations_list:
+                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label])
+            data['editorial'] = editorial_annotations
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):

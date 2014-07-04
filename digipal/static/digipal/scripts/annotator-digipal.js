@@ -676,6 +676,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var to_lightbox = $('.to_lightbox');
 
 			to_lightbox.unbind().on('click', function() {
+				var type;
 				if (!$(this).find('span').hasClass("starred")) {
 					if (!annotator.selectedFeature) {
 						annotator.selectedFeature = annotator.selectedAnnotations[annotator.selectedAnnotations.length];
@@ -683,9 +684,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					if (annotator.selectedAnnotations.length > 1) {
 						var links = [];
 						for (var l in annotator.selectedAnnotations) {
-							if (annotator.selectedAnnotations[l].is_editorial) {
-								links.push(annotator.selectedAnnotations[l].vector_id);
-							} else {
+							if (!annotator.selectedAnnotations[l].is_editorial) {
 								links.push(parseInt(annotator.selectedAnnotations[l].graph, 10));
 							}
 						}
@@ -694,16 +693,22 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						}
 					} else {
 						var _gr = parseInt(selectedFeature.graph, 10);
+						type = 'annotation';
 						if (selectedFeature.is_editorial) {
-							_gr = selectedFeature.vector_id;
+							_gr = [selectedFeature.vector_id, selectedFeature.image_id];
+							type = 'editorial';
 						}
-						if (add_to_lightbox($(this), 'annotation', _gr, false)) {
+						if (add_to_lightbox($(this), type, _gr, false)) {
 							$(this).find('span').addClass('starred').removeClass('unstarred');
 						}
 					}
 				} else {
 					if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial) {
-						_Star.removeFromCollection($(this), 'annotation');
+						type = 'annotation';
+						if (annotator.selectedFeature.is_editorial) {
+							type = 'editorial';
+						}
+						_Star.removeFromCollection($(this), type);
 						$(this).find('span').addClass('unstarred').removeClass('starred');
 					}
 				}
@@ -994,7 +999,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var _self = this;
 				var current_collection = _Star.getCurrentCollection();
 
-				if ((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph)) {
+				if (((annotator.selectedFeature.hasOwnProperty('graph') && annotator.selectedFeature.graph) || annotator.selectedFeature.is_editorial)) {
 					var graph = annotator.selectedFeature.graph;
 					if (annotator.selectedFeature.is_editorial) {
 						graph = annotator.selectedFeature.graph;

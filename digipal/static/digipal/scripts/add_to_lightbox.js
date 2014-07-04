@@ -65,8 +65,13 @@ function update_collection_counter() {
 	if (basket_elements[current_collection['name']]['images']) {
 		i += basket_elements[current_collection['name']]['images'].length;
 	}
+
 	if (basket_elements[current_collection['name']]['annotations']) {
 		i += basket_elements[current_collection['name']]['annotations'].length;
+	}
+
+	if (basket_elements[current_collection['name']]['editorial']) {
+		i += basket_elements[current_collection['name']]['editorial'].length;
 	}
 
 	var link_label = current_collection['name'];
@@ -145,9 +150,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
 			notify('Annotation successfully added to collection', 'success');
 		}
 	} else {
-		var graph;
+		var graph = annotations;
 		if (type == 'annotation') {
-			graph = annotations;
 			if (typeof graph == 'undefined' || !graph) {
 				notify('Annotation has not been saved yet', 'danger');
 				return false;
@@ -156,48 +160,43 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.annotations = [];
 			}
 			elements = current_basket.annotations;
-		} else {
-			graph = annotations;
+		} else if (type == 'image') {
 			if (current_basket.images === undefined) {
 				current_basket.images = [];
 			}
 			elements = current_basket.images;
+		} else if (type == 'editorial') {
+			if (current_basket.editorial === undefined) {
+				current_basket.editorial = [];
+			}
+			elements = current_basket.editorial;
+		} else {
+			throw new Error("Wrong type");
 		}
 
 		if (current_basket && elements && elements.length) {
 			for (j = 0; j < elements.length; j++) {
 				flag = true;
-
-				if (type == 'annotation') {
-					var el;
-
-					if (elements[j] == graph) {
-						flag = false;
-						break;
-					}
-
-				} else {
-					if (elements[j] == graph) {
-						flag = false;
-						break;
-					}
+				if (elements[j] == graph) {
+					flag = false;
+					break;
 				}
 			}
 			if (flag) {
-				if (type == 'annotation') {
+				if (type == 'annotation' || type == 'editorial') {
 					if (annotations == 'undefined' || !annotations) {
 						notify('Annotation has not been saved yet', 'danger');
 						return false;
 					}
 					elements.push(annotations);
 					notify('Annotation successfully added to collection', 'success');
-				} else {
+				} else if (type == 'image') {
 					image_id = graph;
 					elements.push(parseInt(image_id, 10));
 					notify('Image successfully added to collection', 'success');
 				}
 			} else {
-				if (type == 'annotation') {
+				if (type == 'annotation' || type == 'editorial') {
 					notify('Annotation has already been added to Collection', 'danger');
 				} else {
 					notify('Page has already been added to Collection', 'danger');
@@ -209,19 +208,21 @@ function add_to_lightbox(button, type, annotations, multiple) {
 
 		} else {
 
-			if (type == 'annotation') {
-				if (current_basket.hasOwnProperty('images')) {
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
+			if (type == 'annotation' || type == 'editorial') {
+				if (type == 'annotation') {
+					type = 'annotations';
+				}
+				if (current_basket.hasOwnProperty(type)) {
+					current_basket[type].push(annotations);
 				} else {
 					current_basket = {};
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
+					current_basket[type] = [];
+					current_basket[type].push(annotations);
 					current_basket.id = collection_id;
 					collections[collection_name] = current_basket;
 				}
 				notify('Annotation successfully added to collection', 'success');
-			} else {
+			} else if (type == 'image') {
 				image_id = graph;
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];

@@ -44,7 +44,7 @@ var Actions = function(options) {
             },
 
             adminAccess: function(admin_page, username, password, page_id) {
-                var page = options.page + '/digipal/page/' + page_id;
+                var page = options.root + '/digipal/page/' + page_id;
 
                 var isAdmin = casper.evaluate(function() {
                     if (typeof annotator === 'undefined') {
@@ -75,7 +75,7 @@ var Actions = function(options) {
                     Look for a feature that HAS a graph and is NOT undefined
                  */
                 var feature = features[Math.round(Math.random() * features.length)];
-                while (!feature.hasOwnProperty('graph') || typeof feature == 'undefined') {
+                while (typeof feature == 'undefined' || feature && !feature.hasOwnProperty('graph')) {
                     feature = features[Math.round(Math.random() * features.length)];
                 }
                 return feature;
@@ -397,7 +397,7 @@ var Actions = function(options) {
                     var url = casper.evaluate(function() {
                         return $('.allograph_url_div input').val();
                     });
-                    url = url.replace(/(.)*\/digipal/, options.page + '/digipal');
+                    url = url.replace(/(.)*\/digipal/, options.root + '/digipal');
                     casper.thenOpen(url, function() {
                         casper.test.assertExists('.dialog_annotations', 'The dialog has been correctly loaded');
                         if (typeof callback !== 'undefined' && callback instanceof Function) {

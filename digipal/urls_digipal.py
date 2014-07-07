@@ -82,7 +82,7 @@ if settings.DEBUG:
    )
 
 urlpatterns += patterns('digipal.views.test', (r'test/error/?$', 'server_error_view'),)
-urlpatterns += patterns('digipal.views.email', (r'test/email/?$', 'send_email'),)
+urlpatterns += patterns('digipal.views.email', (r'test/email/$', 'send_email'),)
 
 
 

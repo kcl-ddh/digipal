@@ -301,7 +301,7 @@ DASHBOARD_TAGS = (
 )
 
 # SITEMAP GENERATION (see python manage.py sitemap)
-# List of DigiPal models to list in the sitemap  
+# List of DigiPal models to list in the sitemap
 SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
 # The website root URL (with trailing slash)
 SITEMAP_PATH_TO_RESOURCE = 'http://www.digipal.eu/'

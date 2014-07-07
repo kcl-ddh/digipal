@@ -9,21 +9,12 @@ function TestSuite(_options) {
     var self = this;
     var config = require('./config.js').config;
     var local_config = require('./local_config.js').local_config;
-
     var http = require('http'),
         system = require('system'),
-        fs = require('fs');
+        fs = require('fs'),
+        webPage = require('webpage');
 
     var parentDirectory = fs.workingDirectory;
-
-    if (casper.cli.get('deep')) {
-        config.deepScan = true;
-        options.deepScan = config.deepScan;
-    }
-
-    if (casper.cli.get('root')) {
-        options.page = casper.cli.get('root');
-    }
 
     var init = function(_options) {
 
@@ -42,14 +33,6 @@ function TestSuite(_options) {
                 Scraper(Tests.tests, options);
             }).run(function() {
 
-                if (assert_failures.length) {
-                    this.echo(assert_failures.length + ' failures', 'ERROR');
-                }
-
-                if (assert_failures.length && config.email_on_errors) {
-                    EmailSender.send(assert_failures);
-                }
-
                 if (errors.length > 0) {
                     this.echo(errors.length + ' Javascript errors found', "WARNING");
                 } else {
@@ -60,10 +43,24 @@ function TestSuite(_options) {
                     this.echo(successes.length + ' Tests executed succesfully', "GREEN_BAR");
                 }
 
-                casper.test.done();
+                if (assert_failures.length) {
+                    this.echo(assert_failures.length + ' failures', 'ERROR');
 
-                this.echo('All tasks done.', 'GREEN_BAR');
-                this.exit();
+                    var msgfailures = "";
+                    for (var i = 0; i < assert_failures.length; i++) {
+                        msgfailures = +failure.message + '\n';
+                    }
+
+                    EmailSender.send(msgfailures, function() {
+                        casper.test.done();
+                        casper.echo('All tasks done.', 'GREEN_BAR');
+                        casper.exit();
+                    });
+                } else {
+                    casper.test.done();
+                    this.echo('All tasks done.', 'GREEN_BAR');
+                    this.exit();
+                }
             });
         });
 
@@ -231,18 +228,28 @@ function TestSuite(_options) {
 
     var EmailSender = {
 
-        send: function(message) {
+        send: function(message, callback) {
 
             var data = {};
-            data.from_email = config.from_email;
-            data.to = config.to;
+            data.from_email = config.email.from;
+            data.to = config.email.to;
             data.message = message;
+            data.subject = "Test log";
+            var page = webPage.create();
+            var url = options.root + config.email.url + '?';
 
-            page.open(config.url, 'get', data, function(status) {
+            for (var i in data) {
+                url += i + '=' + data[i] + '&';
+            }
+
+            page.open(url, function(status) {
                 if (status !== 'success') {
                     casper.echo('Unable to send email', 'ERROR');
                 } else {
-                    casper.echo(page.content, "GREEN");
+                    casper.echo(page.content);
+                }
+                if (callback) {
+                    return callback();
                 }
             });
         }
@@ -462,13 +469,18 @@ function TestSuite(_options) {
 
     /* Setting configuration and options */
 
+    var options = _options;
+
     config = Utils.extend({}, config, local_config);
-    var domain = config.root;
-    var options = {
-        'deepScan': config.deepScan,
-        "page": domain
-    };
-    options = Utils.extend({}, options, _options);
+    options = Utils.extend({}, options, config);
+
+    if (casper.cli.get('deep')) {
+        config.deepScan = true;
+    }
+
+    if (casper.cli.get('root')) {
+        options.page = casper.cli.get('root');
+    }
 
     return {
         'tests': Tests.tests,

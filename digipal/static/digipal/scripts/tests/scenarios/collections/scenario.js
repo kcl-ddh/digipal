@@ -11,7 +11,7 @@ function Scenario() {
          */
 
         this.Scenario1 = function() {
-            var page = options.page + '/digipal/collection';
+            var page = options.roo + '/digipal/collection';
 
             casper.thenOpen(page, function() {
                 casper.echo('Running Collection Scenario 1', 'PARAMETER');

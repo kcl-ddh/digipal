@@ -839,7 +839,7 @@ function AnnotatorLoader() {
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
 		//if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
-		if (feature.feature.geometry.getLength() < 250) {
+		if (feature.feature.geometry.getLength() < 50) {
 			feature.feature.destroy();
 			$('circle').remove();
 			$('polyline').remove();

@@ -462,7 +462,7 @@ function AnnotatorLoader() {
 					"<input data-attribute='hand' checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
 			checkOutput += "<p data-annotation class='paragraph_allograph_check'>";
-			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors' id='editorial_filter' type='checkbox' />";
+			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
 			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";
 		}
 

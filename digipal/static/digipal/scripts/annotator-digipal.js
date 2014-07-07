@@ -2376,13 +2376,9 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var internal_note = $('<div>');
 			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true);
 
-			display_note.notebook({
-				placeholder: "Type display note here..."
-			}).html(selectedFeature.display_note);
+			display_note.notebook().html(selectedFeature.display_note);
 
-			internal_note.notebook({
-				placeholder: "Type internal note here..."
-			}).html(selectedFeature.internal_note);
+			internal_note.notebook().html(selectedFeature.internal_note);
 
 			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
 			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
@@ -2967,7 +2963,7 @@ function save(url, graphs, data, ann, features) {
 
 					/*	Updating annotator features	*/
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id) {
+						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].graph == new_graphs[i].graph) {
 							feature = f[feature_ind];
 							//id = feature.id;
 							feature.feature = allograph;

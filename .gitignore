@@ -1,8 +1,8 @@
 .DS_Store
 *.log
 # *migrations/
-digipal/static/digipal/tests/screenshots
-digipal/static/digipal/tests/local_config.js
+digipal/static/digipal/scripts/tests/screenshots/
+digipal/static/digipal/scripts/tests/local_config.js
 *.pot
 *.pyc
 local_settings.py

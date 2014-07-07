@@ -10,15 +10,9 @@ function TestSuite(_options) {
     var config = require('./config.js').config;
     var local_config = require('./local_config.js').local_config;
 
-    var domain = config.root;
     var http = require('http'),
         system = require('system'),
         fs = require('fs');
-
-    var options = {
-        'deepScan': config.deepScan,
-        "page": domain
-    };
 
     var parentDirectory = fs.workingDirectory;
 
@@ -337,11 +331,11 @@ function TestSuite(_options) {
 
         screenshot: function(url, name) {
             var viewportSizes = [
-                    [320, 480],
-                    [320, 568],
-                    [600, 1024],
-                    [1024, 768],
-                    [1280, 800],
+                    //[320, 480],
+                    //[320, 568],
+                    //[600, 1024],
+                    //[1024, 768],
+                    //[1280, 800],
                     [1440, 900]
                 ],
 
@@ -466,8 +460,14 @@ function TestSuite(_options) {
 
     };
 
-    config = Utils.extend({}, local_config, config);
-    console.log(JSON.stringify(config));
+    /* Setting configuration and options */
+
+    config = Utils.extend({}, config, local_config);
+    var domain = config.root;
+    var options = {
+        'deepScan': config.deepScan,
+        "page": domain
+    };
     options = Utils.extend({}, options, _options);
 
     return {

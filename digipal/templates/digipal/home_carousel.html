@@ -2,7 +2,7 @@
 {% if carousel.get_visible_items.count %}
     <div class='col-md-8'>
         <div id="myCarousel" class="carousel slide">
-          <ol class="carousel-indicators hidden-xs">
+          <ol class="carousel-indicators">
             {% for item in carousel.get_visible_items %}
                 <li data-target="#myCarousel" data-slide-to="{{ forloop.counter0 }}" {% if not forloop.counter0 %}class="active"{% endif %}></li>
             {% endfor %}

@@ -23,7 +23,7 @@ urlpatterns = patterns('digipal.views.annotation',
     (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$', 'form_dialog'),
     (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$', 'get_vector'),
     (r'^collection/(?P<collection_name>.{1,30})/images/$', 'images_lightbox'),
-    (r'^collection/(?P<collection_name>.{1,30})$', direct_to_template, {
+    (r'^collection/(?P<collection_name>.{1,30})/$', direct_to_template, {
             'template': 'digipal/collection.html',
             'extra_context': {
                 'LIGHTBOX': settings.LIGHTBOX,
@@ -82,6 +82,9 @@ if settings.DEBUG:
    )
 
 urlpatterns += patterns('digipal.views.test', (r'test/error/?$', 'server_error_view'),)
+urlpatterns += patterns('digipal.views.email', (r'test/email/?$', 'send_email'),)
+
+
 
 # urlpatterns += patterns('haystack.views',
 #     url(r'^facets/(?P<model>\D+)/$', facet_search, name="haystack_facet"),

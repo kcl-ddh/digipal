@@ -8,6 +8,8 @@ function TestSuite(_options) {
 
     var self = this;
     var config = require('./config.js').config;
+    var local_config = require('./local_config.js').local_config;
+
     var domain = config.root;
     var http = require('http'),
         system = require('system'),
@@ -48,6 +50,10 @@ function TestSuite(_options) {
 
                 if (assert_failures.length) {
                     this.echo(assert_failures.length + ' failures', 'ERROR');
+                }
+
+                if (assert_failures.length && config.email_on_errors) {
+                    EmailSender.send(assert_failures);
                 }
 
                 if (errors.length > 0) {
@@ -227,6 +233,26 @@ function TestSuite(_options) {
                 }
             }
         }
+    };
+
+    var EmailSender = {
+
+        send: function(message) {
+
+            var data = {};
+            data.from_email = config.from_email;
+            data.to = config.to;
+            data.message = message;
+
+            page.open(config.url, 'get', data, function(status) {
+                if (status !== 'success') {
+                    casper.echo('Unable to send email', 'ERROR');
+                } else {
+                    casper.echo(page.content, "GREEN");
+                }
+            });
+        }
+
     };
 
     var Utils = {
@@ -440,6 +466,8 @@ function TestSuite(_options) {
 
     };
 
+    config = Utils.extend({}, local_config, config);
+    console.log(JSON.stringify(config));
     options = Utils.extend({}, options, _options);
 
     return {

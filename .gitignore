@@ -2,6 +2,7 @@
 *.log
 # *migrations/
 digipal/static/digipal/tests/screenshots
+digipal/static/digipal/tests/local_config.js
 *.pot
 *.pyc
 local_settings.py

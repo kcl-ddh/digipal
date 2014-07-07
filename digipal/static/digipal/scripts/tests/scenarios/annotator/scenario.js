@@ -295,8 +295,14 @@ function Scenario() {
                         (function() {
                             feature2 = AnnotatorTasks.get.random_vector(self.features);
                             AnnotatorTasks.do.unselect();
-                            AnnotatorTasks.do.select(feature.id);
-                            AnnotatorTasks.do.select(feature2.id);
+
+                            casper.then(function() {
+                                AnnotatorTasks.do.select(feature.id);
+                            });
+
+                            casper.then(function() {
+                                AnnotatorTasks.do.select(feature2.id);
+                            });
                         })();
                     }
                 });

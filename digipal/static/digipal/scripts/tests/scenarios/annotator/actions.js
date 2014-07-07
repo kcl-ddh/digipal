@@ -75,7 +75,7 @@ var Actions = function(options) {
                     Look for a feature that HAS a graph and is NOT undefined
                  */
                 var feature = features[Math.round(Math.random() * features.length)];
-                while (!feature.hasOwnProperty('graph') && typeof feature == 'undefined') {
+                while (!feature.hasOwnProperty('graph') || typeof feature == 'undefined') {
                     feature = features[Math.round(Math.random() * features.length)];
                 }
                 return feature;
@@ -96,13 +96,17 @@ var Actions = function(options) {
                 return casper.evaluate(function(feature) {
                     var _features = [];
                     var _feature;
-                    var cachedGraph = annotator.cacheAnnotations.cache.graphs[feature.graph];
-                    for (var i = 0; i < cachedGraph.features.length; i++) {
-                        _feature = {
-                            'id': cachedGraph.features[i].feature[0],
-                            'component_id': cachedGraph.features[i].component_id
-                        };
-                        _features.push(_feature);
+                    if (annotator.cacheAnnotations.cache.graphs.hasOwnProperty(feature.graph)) {
+                        var cachedGraph = annotator.cacheAnnotations.cache.graphs[feature.graph];
+                        for (var i = 0; i < cachedGraph.features.length; i++) {
+                            _feature = {
+                                'id': cachedGraph.features[i].feature[0],
+                                'component_id': cachedGraph.features[i].component_id
+                            };
+                            _features.push(_feature);
+                        }
+                    } else {
+                        casper.echo("The graph" + feature.graph + " has not been found in cache", "ERROR");
                     }
                     return _features;
                 }, feature);

@@ -52,3 +52,4 @@ setup(
     zip_safe=False,
     #test_suite='runtests.main',
 )
+

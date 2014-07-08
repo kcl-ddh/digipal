@@ -45,6 +45,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	this.saveButton.panel_div.title = 'Save (shift + s)';
 	this.selectedAnnotations = [];
 	this.cacheAnnotations = new AnnotationsCache();
+	this.cacheHiddenFilters = [];
 
 	var self = this;
 
@@ -514,7 +515,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				if (formal_attribute == 'hand') {
 					if (!features[i].is_editorial) {
 						attribute = features[i].hand;
-						attribute2 = features[i].feature.replace(/[\.;,\s]/gi, '');
+						attribute2 = features[i].allograph_id;
 						hand = $('#hand_input_' + attribute);
 						allograph = $('#allograph_' + attribute2);
 						var allographs = $('.checkVectors');
@@ -538,17 +539,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					}
 				} else if (formal_attribute == 'feature') {
 					if (!features[i].is_editorial) {
-						attribute = features[i].feature.replace(/[\.;,\s]/gi, '_');
+						attribute = features[i].allograph_id;
 						attribute2 = features[i].hand;
 						hand = $('#hand_input_' + attribute2);
 						allograph = $('#hand_input_' + attribute2);
 						if (!($(checkboxes).is(':checked'))) {
-							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val()) {
+							if ($(checkboxes).val() == attribute && features[i].hand == hand.val()) {
 								features[i].style.fillOpacity = 0;
 								features[i].style.strokeOpacity = 0;
 							}
 						} else {
-							if ($(checkboxes).val().replace(/[\.;,\s]/gi, '_') == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
+							if ($(checkboxes).val() == attribute && features[i].hand == hand.val() && hand.is(':checked')) {
 								features[i].style.fillOpacity = 0.4;
 								features[i].style.strokeOpacity = 0.4;
 							}
@@ -2068,6 +2069,22 @@ function show_url_allograph(dialog, annotation, button) {
 			stored = true;
 		}
 
+		var uncheckedAllographs = (function() {
+			var checkboxesList = {
+				'allographs': [],
+				'hands': []
+			};
+			var allographs = $('.checkVectors').not(':checked');
+			var hands = $('.checkVectors_hands').not(':checked');
+			allographs.each(function() {
+				checkboxesList.allographs.push($(this).attr("value"));
+			});
+			hands.each(function() {
+				checkboxesList.hands.push($(this).attr("value"));
+			});
+			return checkboxesList;
+		})();
+
 		var multiple = false,
 			url_temp;
 		if (annotation !== null && typeof annotation !== "undefined" && !$.isEmptyObject(annotation) && stored) {
@@ -2144,6 +2161,10 @@ function show_url_allograph(dialog, annotation, button) {
 				allograph_url = window.location.hostname +
 					document.location.pathname + '?temporary_vector=' + annotator.utils.Base64.encode(JSON.stringify(geoJSONText));
 			}
+		}
+
+		if (uncheckedAllographs.hands.length || uncheckedAllographs.allographs.length) {
+			allograph_url += '&hidden=' + annotator.utils.Base64.encode(JSON.stringify(uncheckedAllographs));
 		}
 
 		gapi.client.load('urlshortener', 'v1', function() {

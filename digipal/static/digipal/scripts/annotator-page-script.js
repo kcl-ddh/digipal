@@ -34,6 +34,7 @@ function AnnotatorLoader() {
 				annotator.selectFeature.deactivate();
 				annotator.selectFeature.activate();
 			}
+			hide_allographs_from_url();
 		});
 	};
 
@@ -282,6 +283,29 @@ function AnnotatorLoader() {
 			- loads temporary vectors through URL
 	*/
 
+	var hide_allographs_from_url = function() {
+		if (annotator.utils.getParameter('hidden').length) {
+			var hidden_allographs = JSON.parse(annotator.utils.Base64.decode(annotator.utils.getParameter('hidden')[0]).replace(/\0/g, ""));
+			annotator.cacheHiddenFilters = hidden_allographs;
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].hand && features[i].allograph_id) {
+					if (hidden_allographs.allographs.indexOf(features[i].allograph_id.toString()) >= 0 || hidden_allographs.hands.indexOf(features[i].hand.toString()) >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				} else {
+					if (hidden_allographs.hands.indexOf("editorial") >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				}
+			}
+		}
+		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
+	};
+
 	this.load_temporary_vector = function() {
 		var temporary_vectors = annotator.utils.getParameter('temporary_vector');
 		if (temporary_vectors.length && !no_image_reason) {
@@ -440,14 +464,16 @@ function AnnotatorLoader() {
 			var vectors = [];
 			for (var i in annotations) {
 				if (annotations[i].feature) {
-					list.push([annotations[i]['feature']]);
+					list.push([annotations[i]['allograph_id'],
+						annotations[i]['feature']
+					]);
 				}
 			}
 			list.sort();
 			for (h = 0; h < list.length; h++) {
-				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h] + "'>";
-				checkOutput += "<input data-attribute='feature' checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_";
-				checkOutput += list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
+				var checked = annotator.cacheHiddenFilters.allographs.indexOf(list[h][0].toString()) < 0 ? "checked" : "";
+				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h][0] + "'>";
+				checkOutput += "<input " + checked + " data-attribute='feature' value='" + list[h][0] + "' class='checkVectors' id='allograph_" + list[h][0] + "' type='checkbox'/> <label for='allograph_" + list[h][0] + "' style='display:inline;'>" + list[h][1] + "</label></p>";
 			}
 
 		}
@@ -458,11 +484,13 @@ function AnnotatorLoader() {
 		if (!$.isEmptyObject(annotations)) {
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
+				var checked = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
 				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
-					"<input data-attribute='hand' checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+					"<input data-attribute='hand' " + checked + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
+			checked = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
 			checkOutput += "<p data-annotation class='paragraph_allograph_check'>";
-			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
+			checkOutput += "<input data-attribute='editorial' " + checked + " value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
 			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";
 		}
 

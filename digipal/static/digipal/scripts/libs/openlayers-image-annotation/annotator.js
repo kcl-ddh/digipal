@@ -268,7 +268,6 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		this.vectorLayer, OpenLayers.Handler.RegularPolygon, {
 			displayClass: 'olControlDrawFeaturePolygon fa fa-pencil-square-o ',
 			handlerOptions: {
-				sides: 4,
 				irregular: true
 			},
 			title: 'Draw Rectangle'

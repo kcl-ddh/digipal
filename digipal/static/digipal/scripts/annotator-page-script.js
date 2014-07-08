@@ -859,6 +859,15 @@ function AnnotatorLoader() {
 
 	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
+
+		if (feature.feature.geometry.getLength() < 50 || annotator.vectorLayer.map.zoom <= 2) {
+			annotator.rectangleFeature.cancel();
+			feature.feature.destroy();
+			$('circle').remove();
+			$('polyline').remove();
+			return false;
+		}
+
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
 		feature.feature.features = [];
@@ -867,12 +876,7 @@ function AnnotatorLoader() {
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
 		//if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
-		if (feature.feature.geometry.getLength() < 50) {
-			feature.feature.destroy();
-			$('circle').remove();
-			$('polyline').remove();
-			return false;
-		}
+
 
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);

@@ -216,7 +216,12 @@ function AnnotatorLoader() {
 	};
 
 	this.get_initial_settings = function() {
-		var digipal_settings = localStorage.getItem('digipal_settings'); // load settings from LS
+		var digipal_settings;
+		if (annotator.utils.getParameter('settings').length) {
+			digipal_settings = annotator.utils.Base64.decode(annotator.utils.getParameter('settings')[0]).replace(/\0/g, "");
+		} else {
+			digipal_settings = localStorage.getItem('digipal_settings'); // load settings from LS
+		}
 
 		/* Setting default settings */
 
@@ -234,8 +239,9 @@ function AnnotatorLoader() {
 		} else {
 			digipal_settings = JSON.parse(digipal_settings);
 		}
-
-		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		if (!annotator.utils.getParameter('settings').length) {
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		}
 		return digipal_settings;
 	};
 

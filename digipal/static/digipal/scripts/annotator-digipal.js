@@ -803,6 +803,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 					close: function(event, ui) {
 						$(this).dialog('destroy').empty().remove();
+						annotator.selectFeature.unselectAll();
 					},
 
 					title: _self.label.init(selectedFeature),
@@ -821,10 +822,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							'left': '4%'
 						});
 					} else {
+						var vectorPosition = $("#" + selectedFeature.geometry.id).position();
+						var left = '68%';
+						if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
+							left = '25%';
+						}
 						dialog.parent().css({
 							'position': 'absolute',
 							'top': top_page_position + window_height,
-							'left': '68%'
+							'left': left
 						});
 					}
 				}
@@ -2167,6 +2173,9 @@ function show_url_allograph(dialog, annotation, button) {
 			allograph_url += '&hidden=' + annotator.utils.Base64.encode(JSON.stringify(uncheckedAllographs));
 		}
 
+		var settings = loader.digipal_settings;
+		allograph_url += '&settings=' + annotator.utils.Base64.encode(JSON.stringify(settings));
+
 		gapi.client.load('urlshortener', 'v1', function() {
 
 			var request = gapi.client.urlshortener.url.insert({
@@ -2349,6 +2358,7 @@ function refresh_features_dialog(data, dialog) {
 		}
 	} else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
 		s += "<li class='component'>This graph has not yet been described.</li>";
+		dialog.css('height', '100px');
 	}
 
 	s += "</ul>";

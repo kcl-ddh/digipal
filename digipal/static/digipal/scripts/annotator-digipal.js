@@ -214,6 +214,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}
 
 			if (callback) {
+				$('#toolbar').fadeIn();
+
 				callback(data); // calling all events on elements after all annotations get loaded
 			}
 
@@ -851,17 +853,29 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph = $('#panelImageBox .allograph_form option:selected');
 			var allograph_id = allograph.val();
 
-			s += "<div id='box_features_container'></div>";
+			s += "<div id='box_features_container'>";
+			s += "<ul class='nav nav-tabs'><li class='active in'><a data-toggle='tab' data-target='#components_tab'>Components</a></li>";
+			s += "<li><a data-toggle='tab' data-target='#aspects_tab'>Aspects</a></li>";
+			s += "<li><a data-toggle='tab' data-target='#notes_tab'>Notes</a></li>";
+			s += "</ul>";
+			s += "<div class='tabbable'><div class='tab-content'>";
+			s += "<div class='tab tab-pane active in fade' id='components_tab'></div>";
+			s += "<div class='tab tab-pane fade' id='aspects_tab'></div>";
+			s += "<div class='tab tab-pane fade' id='notes_tab'></div>";
+			s += "</div></div></div>";
+			dialog.html(s);
 			if (annotator.boxes_on_click) {
+				var notes = "";
 				if (annotator.isAdmin == 'True' && annotator.annotating) {
 					if (annotator.selectedFeature.is_editorial || annotator.editorial.active && !annotator.selectedFeature.stored || annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+
 						if (annotator.selectedFeature.is_editorial || annotator.editorial.active) {
-							s += '<label>Internal Note</label>';
-							s += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
-							s += '<label>Public Note</label>';
-							s += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
-							dialog.css("margin", "3%");
-							dialog.html(s);
+							notes += '<label>Internal Note</label>';
+							notes += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
+							notes += '<label>Public Note</label>';
+							notes += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
+							dialog.css("margin", "1%");
+							dialog.find('#notes_tab').html(notes);
 
 							dialog.find('#display_note').notebook({
 								placeholder: 'Type display note here...'
@@ -883,11 +897,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							$('select').trigger("liszt:updated");
 							annotator.editorial.activate();
 						} else if (annotator.selectedFeature.contentAnnotation) {
-							s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
-							dialog.html(s);
+							notes += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
+							dialog.find('#notes_tab').html(notes);
 							if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
 								$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
 							}
+							dialog.find('#notes_tab').tab('show');
+							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
 						}
 						return callback();
 					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
@@ -914,10 +930,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 				} else {
 					if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
-						s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
-						dialog.html(s);
+						notes += "<div style='height:100%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
+							$(this).parent('li').addClass('disabled');
+						});
+						dialog.find('#notes_tab').html(notes);
+						$("[data-target='#notes_tab']").tab('show');
 						if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
-							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation).focus();
 						}
 						callback();
 					}
@@ -1765,7 +1785,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				annotator.selectFeature.deactivate();
 			}
 
-
 		}, true);
 	};
 
@@ -2285,7 +2304,7 @@ function load_data(selectedFeature, dialog, callback) {
 
 		if (can_edit) {
 			if (!allograph) {
-				dialog.html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				dialog.find('#components_tab').html('<p class="component_labels">Choose an allograph from the dropdown</p>');
 				if (callback) {
 					callback();
 				}
@@ -2378,7 +2397,7 @@ function refresh_features_dialog(data, dialog) {
 		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
 	}
 
-	dialog.html(s);
+	dialog.find('#components_tab').html(s);
 }
 
 function refresh_dialog(dialog, data, selectedFeature, callback) {
@@ -2416,14 +2435,15 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			internal_note.notebook().html(selectedFeature.internal_note);
 
-			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
-			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
+			var notes = "";
+			notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
+			notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
 
-			dialog.html(s);
+			dialog.find('#components_tab').html(s);
+			dialog.find('#notes_tab').html(notes);
 
 			$('#label_display_note').after(display_note);
 			$('#label_internal_note').after(internal_note);
-
 
 			var check_all = $('.check_all');
 			check_all.click(function(event) {

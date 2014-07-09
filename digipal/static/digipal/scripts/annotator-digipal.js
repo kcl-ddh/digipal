@@ -996,7 +996,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					} else {
 						if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
-							html_string_buttons += "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 						} else {
 							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
 							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
@@ -2366,6 +2366,7 @@ function load_data(selectedFeature, dialog, callback) {
 
 function refresh_features_dialog(data, dialog) {
 	var features = data.features;
+	var notes = "";
 	var s = '<ul>';
 	if (data.hasOwnProperty('features') && !$.isEmptyObject(features)) {
 		var components = [];
@@ -2382,22 +2383,31 @@ function refresh_features_dialog(data, dialog) {
 		}
 	} else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
 		s += "<li class='component'>This graph has not yet been described.</li>";
-		dialog.css('height', '100px');
+		//dialog.css('height', '100px');
 	}
 
 	s += "</ul>";
 
 	if (data.hasOwnProperty('display_note') && data.display_note) {
-		s += "<label class='label-dialog'>Public Note</label>";
-		s += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
+		notes += "<label class='label-dialog'>Public Note</label>";
+		notes += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
 	}
 
 	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note') && data.internal_note) {
-		s += "<label class='label-dialog'>Internal Note</label>";
-		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
+		notes += "<label class='label-dialog'>Internal Note</label>";
+		notes += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
 	}
 
+	notes += "<label class='label-dialog'>Your Note</label>";
+	notes += "<div class='public_text_dialog_div form-control'></div>";
+
 	dialog.find('#components_tab').html(s);
+	dialog.find('#notes_tab').html(notes);
+
+	$('.public_text_dialog_div').notebook().css("margin", "2%");
+	if (data.user_note) {
+		$('.public_text_dialog_div').html(data.user_note);
+	}
 }
 
 function refresh_dialog(dialog, data, selectedFeature, callback) {

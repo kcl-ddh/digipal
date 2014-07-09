@@ -258,13 +258,19 @@ function main() {
 				if (data.editorial && data.editorial.length) {
 					s += "<h3 id ='header_images'>Editorial Annotations (" + collection.editorial.length + ")</h3>";
 					s += "<table id='table-editorial' class='table'>";
-					s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th>Page</th>';
+					s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th>Page</th><th>Public Note</th>';
 					for (i = 0; i < data['editorial'].length; i++) {
 						var editorial_annotation = data['editorial'][i];
 						s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
 						s += "</td>";
 
 						s += "<td data-graph = '" + editorial_annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
+						s += "</td>";
+						if (editorial_annotation[4].length > 50) {
+							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... <button class='link'>Read more</button></p>";
+						} else {
+							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4] + "</p>";
+						}
 						s += "</td>";
 					}
 					s += "</table>";

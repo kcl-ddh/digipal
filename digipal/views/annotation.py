@@ -482,7 +482,6 @@ def images_lightbox(request, collection_name):
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
-            print annotations_list
             annotations_list.sort(key=lambda t: graphs['annotations'].index(t.graph.id))
             for annotation in annotations_list:
 
@@ -519,7 +518,7 @@ def images_lightbox(request, collection_name):
                 vector_ids.append(ed[0])
             editorial_annotations_list.sort(key=lambda t: vector_ids.index(t.vector_id))
             for _annotation in editorial_annotations_list:
-                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label])
+                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label, _annotation.display_note])
             data['editorial'] = editorial_annotations
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
@@ -752,7 +751,7 @@ def save_editorial(request, graphs):
                             annotation.save()
 
                         new_graph = [{}]
-                        print gr
+
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
                         new_graph[0]['annotation_id'] = annotation.id

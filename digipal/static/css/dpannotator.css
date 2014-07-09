@@ -427,6 +427,10 @@ label[for=id_internal_note], label[for=id_display_note]{
     padding-top:2px;
 }
 
+.buttons_div br {
+    line-height: 1.6;
+}
+
 #box_features_container .row:hover, #features_container .row:hover, .component_labels:hover{
     cursor: pointer;
     background: #efefef;

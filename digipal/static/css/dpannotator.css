@@ -659,6 +659,7 @@ path {
     width: 85%;
     background: #fff;
     z-index: 2000;
+    display: none;
 }
 
 .jquery-notebook a {

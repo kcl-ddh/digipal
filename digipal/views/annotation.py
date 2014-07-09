@@ -711,18 +711,20 @@ def save_editorial(request, graphs):
             for gr in graphs:
                 image = Image.objects.get(id=gr['image'])
                 get_data = request.POST.copy()
-                vector_id = gr['vector_id']
-                annotation = Annotation.objects.filter(image=image, vector_id=vector_id).count()
-
+                _id = gr['id']
+                if _id and _id.isdigit():
+                    annotation = Annotation.objects.filter(image=image, id=_id).count()
+                else:
+                    annotation = 0
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
                 if annotation > 0:
-                    annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                    annotation = Annotation.objects.get(image=image, id=_id)
                 else:
-                    annotation = Annotation(image=image, vector_id=vector_id)
+                    annotation = Annotation(image=image)
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
@@ -750,11 +752,13 @@ def save_editorial(request, graphs):
                             annotation.save()
 
                         new_graph = [{}]
+                        print gr
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
-                            if has_edit_permission(request, Annotation):
-                                new_graph[0]['internal_note'] = annotation.internal_note
-                            new_graph[0]['display_note'] = annotation.display_note
+                        new_graph[0]['annotation_id'] = annotation.id
+                        if has_edit_permission(request, Annotation):
+                            new_graph[0]['internal_note'] = annotation.internal_note
+                        new_graph[0]['display_note'] = annotation.display_note
 
                         data['graphs'].append(new_graph[0])
 

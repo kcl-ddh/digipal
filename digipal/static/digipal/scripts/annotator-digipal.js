@@ -822,10 +822,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							'left': '4%'
 						});
 					} else {
-						var vectorPosition = $("#" + selectedFeature.geometry.id).position();
 						var left = '68%';
-						if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
-							left = '25%';
+						if (!$.isEmptyObject(selectedFeature)) {
+							var vectorPosition = $("#" + selectedFeature.geometry.id).position();
+							if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
+								left = '25%';
+							}
 						}
 						dialog.parent().css({
 							'position': 'absolute',
@@ -1669,7 +1671,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				vector = {};
 				vector['image'] = image_id;
 				vector['geoJson'] = geoJson;
-				vector['vector_id'] = feature.id;
+				if (feature.hasOwnProperty('id') && !feature.stored) {
+					vector['vector_id'] = feature.id;
+				}
+				vector['id'] = feature.id;
 				graphs.push(vector);
 
 			}
@@ -2981,7 +2986,6 @@ function save(url, graphs, data, ann, features) {
 						var crntFt = annotator.selectedAnnotations[k];
 						if (!crntFt.hasOwnProperty('graph') && !crntFt.graph && crntFt.stored) {
 							if (crntFt.id == new_graphs[i].vector_id) {
-								crntFt.graph = new_graphs[i].vector_id;
 								crntFt.is_editorial = true;
 								if ($('#show_editorial_annotations').is(':checked')) {
 									stylize(crntFt, '#222', '#222', 0.4);
@@ -2993,16 +2997,19 @@ function save(url, graphs, data, ann, features) {
 					}
 
 					/*	Updating annotator features	*/
+					var n = 0;
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].graph == new_graphs[i].graph) {
+						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].id || (new_graphs[i].hasOwnProperty('graph') && f[feature_ind].graph == new_graphs[i].graph)) {
 							feature = f[feature_ind];
+							n++;
 							//id = feature.id;
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
 
 							if (feature.is_editorial || !new_graph) {
-								feature.vector_id = new_graphs[i].vector_id;
+								feature.vector_id = new_graphs[i].annotation_id.toString();
+								feature.id = new_graphs[i].annotation_id.toString();
 								feature.is_editorial = true;
 							}
 
@@ -3112,6 +3119,7 @@ function save(url, graphs, data, ann, features) {
 						}
 					}
 				}
+				console.warn(n);
 				annotator.selectedAnnotations = [];
 			}
 

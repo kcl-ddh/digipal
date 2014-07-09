@@ -19,6 +19,10 @@ from tinymce.models import HTMLField
 import logging
 dplog = logging.getLogger('digipal_debugger')
 
+from patches import iipimage_patches, admin_patches, whoosh_patches
+# need to call it here because get_image_path() is called in the model 
+iipimage_patches()
+
 def has_edit_permission(request, model):
     '''Returns True if the user of the current HTTP request
         can edit a model. False otherwise.
@@ -2639,7 +2643,5 @@ def set_additional_models_methods():
 
 set_additional_models_methods()
 
-from patches import iipimage_patches, admin_patches, whoosh_patches
-iipimage_patches()
 admin_patches()
 whoosh_patches()

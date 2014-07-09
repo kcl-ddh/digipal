@@ -239,6 +239,10 @@
     margin-left: 2%;
 }
 
+#toolbar{
+    display: none;
+}
+
 #panelImageBox .chzn-container-single{
     width:160px !important;
     vertical-align: middle;
@@ -420,6 +424,11 @@ label[for=id_internal_note], label[for=id_display_note]{
 
 #box_features_container{
     clear: both;
+    padding-top:2px;
+}
+
+.buttons_div br {
+    line-height: 1.6;
 }
 
 #box_features_container .row:hover, #features_container .row:hover, .component_labels:hover{
@@ -659,6 +668,7 @@ path {
     width: 85%;
     background: #fff;
     z-index: 2000;
+    display: none;
 }
 
 .jquery-notebook a {
@@ -701,4 +711,8 @@ path {
 
 .buttons_div{
     margin-right: 9px;
+}
+
+#box_features_container .nav-tabs a{
+    cursor: pointer;
 }

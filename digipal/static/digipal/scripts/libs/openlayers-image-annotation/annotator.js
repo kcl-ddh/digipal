@@ -529,11 +529,17 @@ Annotator.prototype.selectFeatureById = function(featureId) {
 Annotator.prototype.getGraphByVectorId = function(featureId) {
 	var feature;
 	for (var i = 0; i < this.vectorLayer.features.length; i++) {
-		var vector_id = this.vectorLayer.features[i].vector_id || this.vectorLayer.features[i].id;
-		vector_id = vector_id.replace(/\./gi, '_');
-		if (featureId.replace(/\./gi, '_') == vector_id) {
-			feature = this.vectorLayer.features[i];
-			break;
+		if (this.vectorLayer.features[i].hasOwnProperty('id')) {
+			var vector_id = this.vectorLayer.features[i].vector_id || this.vectorLayer.features[i].id;
+			if (vector_id instanceof String && featureId instanceof String) {
+				featureId = featureId.replace(/\./gi, '_');
+				vector_id = vector_id.replace(/\./gi, '_');
+			}
+
+			if (featureId == vector_id) {
+				feature = this.vectorLayer.features[i];
+				break;
+			}
 		}
 	}
 	return feature;

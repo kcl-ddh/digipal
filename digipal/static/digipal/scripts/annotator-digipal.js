@@ -214,6 +214,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}
 
 			if (callback) {
+				$('#toolbar').fadeIn();
+
 				callback(data); // calling all events on elements after all annotations get loaded
 			}
 
@@ -803,6 +805,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 					close: function(event, ui) {
 						$(this).dialog('destroy').empty().remove();
+						annotator.selectFeature.unselectAll();
 					},
 
 					title: _self.label.init(selectedFeature),
@@ -821,10 +824,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							'left': '4%'
 						});
 					} else {
+						var left = '68%';
+						if (!$.isEmptyObject(selectedFeature)) {
+							var vectorPosition = $("#" + selectedFeature.geometry.id).position();
+							if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
+								left = '25%';
+							}
+						}
 						dialog.parent().css({
 							'position': 'absolute',
 							'top': top_page_position + window_height,
-							'left': '68%'
+							'left': left
 						});
 					}
 				}
@@ -843,17 +853,29 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph = $('#panelImageBox .allograph_form option:selected');
 			var allograph_id = allograph.val();
 
-			s += "<div id='box_features_container'></div>";
+			s += "<div id='box_features_container'>";
+			s += "<ul class='nav nav-tabs'><li class='active in'><a data-toggle='tab' data-target='#components_tab'>Components</a></li>";
+			s += "<li><a data-toggle='tab' data-target='#aspects_tab'>Aspects</a></li>";
+			s += "<li><a data-toggle='tab' data-target='#notes_tab'>Notes</a></li>";
+			s += "</ul>";
+			s += "<div class='tabbable'><div class='tab-content'>";
+			s += "<div class='tab tab-pane active in fade' id='components_tab'></div>";
+			s += "<div class='tab tab-pane fade' id='aspects_tab'></div>";
+			s += "<div class='tab tab-pane fade' id='notes_tab'></div>";
+			s += "</div></div></div>";
+			dialog.html(s);
 			if (annotator.boxes_on_click) {
+				var notes = "";
 				if (annotator.isAdmin == 'True' && annotator.annotating) {
 					if (annotator.selectedFeature.is_editorial || annotator.editorial.active && !annotator.selectedFeature.stored || annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
+
 						if (annotator.selectedFeature.is_editorial || annotator.editorial.active) {
-							s += '<label>Internal Note</label>';
-							s += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
-							s += '<label>Public Note</label>';
-							s += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
-							dialog.css("margin", "3%");
-							dialog.html(s);
+							notes += '<label>Internal Note</label>';
+							notes += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
+							notes += '<label>Public Note</label>';
+							notes += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
+							dialog.css("margin", "1%");
+							dialog.find('#notes_tab').html(notes);
 
 							dialog.find('#display_note').notebook({
 								placeholder: 'Type display note here...'
@@ -875,11 +897,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							$('select').trigger("liszt:updated");
 							annotator.editorial.activate();
 						} else if (annotator.selectedFeature.contentAnnotation) {
-							s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
-							dialog.html(s);
+							notes += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
+							dialog.find('#notes_tab').html(notes);
 							if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
 								$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
 							}
+							dialog.find('#notes_tab').tab('show');
+							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
 						}
 						return callback();
 					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
@@ -906,10 +930,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 				} else {
 					if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
-						s += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
-						dialog.html(s);
+						notes += "<div style='height:100%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
+							$(this).parent('li').addClass('disabled');
+						});
+						dialog.find('#notes_tab').html(notes);
+						$("[data-target='#notes_tab']").tab('show');
 						if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
-							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
+							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation).focus();
 						}
 						callback();
 					}
@@ -968,7 +996,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					} else {
 						if (selectedFeature && selectedFeature.hasOwnProperty('graph')) {
 							html_string_label = "<span class='allograph_label'>" + selectedFeature.feature + "</span>";
-							html_string_buttons += "<button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
+							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-toggle='tooltip' title='Share URL' data-hidden='true' class='url_allograph btn btn-default btn-xs'><i class='fa fa-link'></i></button>";
 						} else {
 							html_string_label = "<span class='allograph_label'><input type='text' placeholder = 'Type name' class='name_temporary_annotation' /></span>";
 							html_string_buttons += "<span class='pull-right' style='position: relative;right: 5%;'><button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' title='Share URL'><i class='fa fa-link'></i></button>";
@@ -1663,7 +1691,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				vector = {};
 				vector['image'] = image_id;
 				vector['geoJson'] = geoJson;
-				vector['vector_id'] = feature.id;
+				if (feature.hasOwnProperty('id') && !feature.stored) {
+					vector['vector_id'] = feature.id;
+				}
+				vector['id'] = feature.id;
 				graphs.push(vector);
 
 			}
@@ -1753,7 +1784,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			if (!selectFeature) {
 				annotator.selectFeature.deactivate();
 			}
-
 
 		}, true);
 	};
@@ -2167,6 +2197,9 @@ function show_url_allograph(dialog, annotation, button) {
 			allograph_url += '&hidden=' + annotator.utils.Base64.encode(JSON.stringify(uncheckedAllographs));
 		}
 
+		var settings = loader.digipal_settings;
+		allograph_url += '&settings=' + annotator.utils.Base64.encode(JSON.stringify(settings));
+
 		gapi.client.load('urlshortener', 'v1', function() {
 
 			var request = gapi.client.urlshortener.url.insert({
@@ -2271,7 +2304,7 @@ function load_data(selectedFeature, dialog, callback) {
 
 		if (can_edit) {
 			if (!allograph) {
-				dialog.html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				dialog.find('#components_tab').html('<p class="component_labels">Choose an allograph from the dropdown</p>');
 				if (callback) {
 					callback();
 				}
@@ -2333,6 +2366,7 @@ function load_data(selectedFeature, dialog, callback) {
 
 function refresh_features_dialog(data, dialog) {
 	var features = data.features;
+	var notes = "";
 	var s = '<ul>';
 	if (data.hasOwnProperty('features') && !$.isEmptyObject(features)) {
 		var components = [];
@@ -2349,21 +2383,31 @@ function refresh_features_dialog(data, dialog) {
 		}
 	} else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
 		s += "<li class='component'>This graph has not yet been described.</li>";
+		//dialog.css('height', '100px');
 	}
 
 	s += "</ul>";
 
 	if (data.hasOwnProperty('display_note') && data.display_note) {
-		s += "<label class='label-dialog'>Public Note</label>";
-		s += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
+		notes += "<label class='label-dialog'>Public Note</label>";
+		notes += "<div class='static_text_dialog_div'>" + data.display_note + '</div>';
 	}
 
 	if (annotator.isAdmin == 'True' && data.hasOwnProperty('internal_note') && data.internal_note) {
-		s += "<label class='label-dialog'>Internal Note</label>";
-		s += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
+		notes += "<label class='label-dialog'>Internal Note</label>";
+		notes += "<div class='static_text_dialog_div'>" + data.internal_note + '</div>';
 	}
 
-	dialog.html(s);
+	notes += "<label class='label-dialog'>Your Note</label>";
+	notes += "<div class='public_text_dialog_div form-control'></div>";
+
+	dialog.find('#components_tab').html(s);
+	dialog.find('#notes_tab').html(notes);
+
+	$('.public_text_dialog_div').notebook().css("margin", "2%");
+	if (data.user_note) {
+		$('.public_text_dialog_div').html(data.user_note);
+	}
 }
 
 function refresh_dialog(dialog, data, selectedFeature, callback) {
@@ -2401,14 +2445,15 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			internal_note.notebook().html(selectedFeature.internal_note);
 
-			s += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
-			s += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
+			var notes = "";
+			notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
+			notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
 
-			dialog.html(s);
+			dialog.find('#components_tab').html(s);
+			dialog.find('#notes_tab').html(notes);
 
 			$('#label_display_note').after(display_note);
 			$('#label_internal_note').after(internal_note);
-
 
 			var check_all = $('.check_all');
 			check_all.click(function(event) {
@@ -2971,7 +3016,6 @@ function save(url, graphs, data, ann, features) {
 						var crntFt = annotator.selectedAnnotations[k];
 						if (!crntFt.hasOwnProperty('graph') && !crntFt.graph && crntFt.stored) {
 							if (crntFt.id == new_graphs[i].vector_id) {
-								crntFt.graph = new_graphs[i].vector_id;
 								crntFt.is_editorial = true;
 								if ($('#show_editorial_annotations').is(':checked')) {
 									stylize(crntFt, '#222', '#222', 0.4);
@@ -2983,16 +3027,19 @@ function save(url, graphs, data, ann, features) {
 					}
 
 					/*	Updating annotator features	*/
+					var n = 0;
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].vector_id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].graph == new_graphs[i].graph) {
+						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].id || (new_graphs[i].hasOwnProperty('graph') && f[feature_ind].graph == new_graphs[i].graph)) {
 							feature = f[feature_ind];
+							n++;
 							//id = feature.id;
 							feature.feature = allograph;
 							feature.graph = new_graph;
 							feature.state = null;
 
 							if (feature.is_editorial || !new_graph) {
-								feature.vector_id = new_graphs[i].vector_id;
+								feature.vector_id = new_graphs[i].annotation_id.toString();
+								feature.id = new_graphs[i].annotation_id.toString();
 								feature.is_editorial = true;
 							}
 
@@ -3102,6 +3149,7 @@ function save(url, graphs, data, ann, features) {
 						}
 					}
 				}
+				console.warn(n);
 				annotator.selectedAnnotations = [];
 			}
 

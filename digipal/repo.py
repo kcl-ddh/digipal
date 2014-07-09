@@ -198,6 +198,8 @@ def process_commands_main_dir():
                 else:
                     system('hg update', validation_hg)
 
+                project_folder = get_hg_folder_name()
+
                 if os.name != 'nt':
                     print '> fix permissions'
                     if has_sudo: print '\t(with sudo)'
@@ -206,12 +208,12 @@ def process_commands_main_dir():
                     system('%schown www-data:digipal -R .' % sudo)
                     system('%schown gnoel:digipal -R .hg' % sudo)
                     system('%schmod 570 -R .' % sudo)
-                    dirs = [d for d in 'digipal_django/static/CACHE;digipal_django/search;digipal_django/logs;digipal_django/media/uploads;.hg'.split(';') if os.path.exists(d)]
+                    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
                     # we do this because the cron job to reindex the content 
                     # recreate the dirs with owner = gnoel:ddh-research
-                    system('%schmod o+r -R digipal_django/search' % sudo)
-                    system('%schmod o+x -R digipal_django/search/*' % sudo)
+                    system('%schmod o+r -R %s/search' % (project_folder, sudo))
+                    system('%schmod o+x -R %s/search/*' % (project_folder, sudo))
                 
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')

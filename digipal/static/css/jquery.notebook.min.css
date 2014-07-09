@@ -107,7 +107,7 @@
 	cursor:pointer;
 	-webkit-font-smoothing:antialiased;
 	margin: 0.2em;
-	margin-left: 0.30em;
+	margin-left: 0.20em;
 }
 
 .jquery-notebook.bubble button.active{

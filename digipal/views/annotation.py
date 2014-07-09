@@ -482,7 +482,6 @@ def images_lightbox(request, collection_name):
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
-            print annotations_list
             annotations_list.sort(key=lambda t: graphs['annotations'].index(t.graph.id))
             for annotation in annotations_list:
 
@@ -519,7 +518,7 @@ def images_lightbox(request, collection_name):
                 vector_ids.append(ed[0])
             editorial_annotations_list.sort(key=lambda t: vector_ids.index(t.vector_id))
             for _annotation in editorial_annotations_list:
-                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label])
+                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label, _annotation.display_note])
             data['editorial'] = editorial_annotations
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
@@ -711,18 +710,20 @@ def save_editorial(request, graphs):
             for gr in graphs:
                 image = Image.objects.get(id=gr['image'])
                 get_data = request.POST.copy()
-                vector_id = gr['vector_id']
-                annotation = Annotation.objects.filter(image=image, vector_id=vector_id).count()
-
+                _id = gr['id']
+                if _id and _id.isdigit():
+                    annotation = Annotation.objects.filter(image=image, id=_id).count()
+                else:
+                    annotation = 0
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
                 if annotation > 0:
-                    annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                    annotation = Annotation.objects.get(image=image, id=_id)
                 else:
-                    annotation = Annotation(image=image, vector_id=vector_id)
+                    annotation = Annotation(image=image)
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
@@ -750,11 +751,13 @@ def save_editorial(request, graphs):
                             annotation.save()
 
                         new_graph = [{}]
+
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
-                            if has_edit_permission(request, Annotation):
-                                new_graph[0]['internal_note'] = annotation.internal_note
-                            new_graph[0]['display_note'] = annotation.display_note
+                        new_graph[0]['annotation_id'] = annotation.id
+                        if has_edit_permission(request, Annotation):
+                            new_graph[0]['internal_note'] = annotation.internal_note
+                        new_graph[0]['display_note'] = annotation.display_note
 
                         data['graphs'].append(new_graph[0])
 

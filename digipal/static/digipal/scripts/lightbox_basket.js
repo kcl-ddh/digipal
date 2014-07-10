@@ -147,7 +147,7 @@ function main() {
 
 		if (typeof collection.editorial !== 'undefined' && collection.editorial.length) {
 			for (d = 0; d < collection.editorial.length; d++) {
-				editorial.push((collection.editorial[d]));
+				editorial.push(collection.editorial[d]);
 			}
 			data.editorial = editorial;
 		}
@@ -183,21 +183,21 @@ function main() {
 	header.find('.collection-title').html(collection_name);
 	$('#breadcrumb-current-collection').html(collection_name);
 	var length_basket = length_basket_elements(collection) || 0;
-
+	var editorialCache = {};
 	$('#delete-collection').attr('data-original-title', 'Delete ' + collection_name);
 	$('#share-collection').attr('data-original-title', 'Share ' + collection_name);
-
+	var url_request = '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/';
 	if (!$.isEmptyObject(data)) {
 
 		var request = $.ajax({
 			type: 'GET',
-			url: '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/',
+			url: url_request,
 			contentType: 'application/json',
 			data: {
 				'data': JSON.stringify(data)
 			},
 			success: function(data) {
-				console.log(data)
+				console.log(data);
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
 					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
@@ -267,10 +267,11 @@ function main() {
 						s += "<td data-graph = '" + editorial_annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
 						s += "</td>";
 						if (editorial_annotation[4].length > 50) {
-							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... <button class='link'>Read more</button></p>";
+							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... <button class='btn-link read-more' data-graph = '" + editorial_annotation[1] + "'>Read more</button></p>";
 						} else {
 							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4] + "</p>";
 						}
+						editorialCache[editorial_annotation[1]] = editorial_annotation[4];
 						s += "</td>";
 					}
 					s += "</table>";
@@ -507,6 +508,35 @@ function main() {
 					save_collection(collection);
 					$('#alert-save-collection').fadeOut().remove();
 					notify('Collection successfully saved', 'success');
+				});
+
+				$('.read-more').on('click', function(event) {
+					if ($('.dialog-background').length) {
+						$('.dialog-background').remove();
+					}
+					var background = $("<div class='dialog-background'>");
+					var windowGraph = $("<div class='editorial-annotation-div'>");
+					var title = $("<p class='editorial-annotation-title'>Editorial Annotation <span style='cursor:pointer;' class='fa fa-times pull-right'></span></p>");
+					windowGraph.append(title);
+					var content = $("<p class='editorial-annotation-content'>");
+					var graph = $(this).data('graph');
+					var value = editorialCache[graph];
+					content.append(value);
+					windowGraph.append(content);
+					background.append(windowGraph);
+					$('body').append(background);
+					windowGraph.on('click', function(event) {
+						event.stopPropagation();
+					});
+					background.on('click', function(event) {
+						$(this).remove();
+						event.stopPropagation();
+					});
+					title.find('.fa-times').on('click', function() {
+						background.remove();
+						event.stopPropagation();
+					});
+					event.stopPropagation();
 				});
 
 				$('[data-toggle="tooltip"]').tooltip();

@@ -476,6 +476,7 @@ def image_copyright(request, image_id):
 
 def images_lightbox(request, collection_name):
     data = {}
+    print request.GET.get('data', '')
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
         if 'annotations' in graphs:
@@ -510,14 +511,10 @@ def images_lightbox(request, collection_name):
         if 'editorial' in graphs:
             editorial_annotations = []
             vector_ids = []
-            editorial_annotations_list = []
-            for ed in graphs['editorial']:
-                ed_annotation = Annotation.objects.get(vector_id=ed[0], image_id=ed[1])
-                editorial_annotations_list.append(ed_annotation)
-                vector_ids.append(ed[0])
-            editorial_annotations_list.sort(key=lambda t: vector_ids.index(t.vector_id))
+            editorial_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
+            editorial_annotations_list.sort(key=lambda t: graphs['editorial'].index(str(t.id)))
             for _annotation in editorial_annotations_list:
-                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.vector_id, _annotation.image.display_label, _annotation.display_note])
+                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note])
             data['editorial'] = editorial_annotations
     return HttpResponse(json.dumps(data), mimetype='application/json')
 

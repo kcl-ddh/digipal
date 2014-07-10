@@ -697,7 +697,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						var _gr = parseInt(selectedFeature.graph, 10);
 						type = 'annotation';
 						if (selectedFeature.is_editorial) {
-							_gr = [selectedFeature.vector_id, selectedFeature.image_id];
+							_gr = selectedFeature.id;
 							type = 'editorial';
 						}
 						if (add_to_lightbox($(this), type, _gr, false)) {
@@ -870,9 +870,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 						if (annotator.selectedFeature.is_editorial || annotator.editorial.active) {
 							notes += '<label>Internal Note</label>';
-							notes += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;height:40%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
+							notes += '<div placeholder="Type here internal note" class="form-control" id="internal_note" name="internal_note" style="width:95%;margin-bottom:0.5em;margin-left:0.1em;"></div>';
 							notes += '<label>Public Note</label>';
-							notes += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;height:40%;margin-left:0.1em;"></div>';
+							notes += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;margin-left:0.1em;"></div>';
 							dialog.css("margin", "1%");
 							dialog.find('#notes_tab').html(notes);
 
@@ -2454,10 +2454,10 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			$('#id_display_note').remove();
 
 			var display_note = $('<div>');
-			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control').data('hidden', false);
+			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control');
 
 			var internal_note = $('<div>');
-			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', false);
+			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control');
 
 			display_note.notebook().html(selectedFeature.display_note);
 

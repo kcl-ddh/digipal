@@ -210,3 +210,29 @@ tr.selected {
     vertical-align: text-top;
     font-weight: bold;
 }
+
+
+.editorial-annotation-div{
+    width: 25%;
+    height: 45%;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    position: fixed;
+    top:30%;
+    left: 35%;
+}
+
+.editorial-annotation-title{
+    font-weight: bold;
+    background: #efefef;
+    padding: 0.5em;
+    margin:0;
+    font-size: 1.1em;
+}
+
+.editorial-annotation-content{
+    text-align: justify;
+    padding:1em;
+    overflow-y:auto;
+}

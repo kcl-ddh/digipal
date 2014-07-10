@@ -19,7 +19,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from digipal.forms import ImageAnnotationForm
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
-        has_edit_permission
+        has_edit_permission, Aspect
 import ast
 from django import template
 from django.conf import settings
@@ -670,12 +670,15 @@ def save(request, graphs):
                                 gc.features.add(feature)
                                 gc.save()
 
-                        aspects = get_data.getlist['aspects']
+                        aspects = get_data.getlist('aspect')
 
+                        graph.aspects.clear()
+                        print aspects
                         if aspects:
-                            feature.aspects.remove()
                             for aspect in aspects:
-                                feature.aspects.add(aspect)
+                                aspect_model = Aspect.objects.get(id=aspect)
+                                graph.aspects.add(aspect_model)
+                        graph.save()
 
                         # attach the graph to a containing one
                         if geo_json:

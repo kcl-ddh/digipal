@@ -2507,7 +2507,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 							break;
 						}
 					}
-					aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='aspect_" + aspects[i].name + '_' + aspects[i].id + "' type='checkbox' val='" + aspects[i].id + "' /> <label for='aspect_" + aspects[i].name + '_' + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
+					aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='aspect_" + aspects[i].name + '_' + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='aspect_" + aspects[i].name + '_' + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
 					aspects_list += "<div class='feature_containers'>";
 					for (var j = 0; j < aspects[i].features.length; j++) {
 						aspects_list += "<p class='feature'>" + aspects[i].features[j].name + "</p>";

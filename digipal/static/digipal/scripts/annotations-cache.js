@@ -40,6 +40,7 @@ function AnnotationsCache() {
 			obj[id]['image_id'] = object['image_id'];
 			obj[id]['hands'] = object['hands'];
 			obj[id]['item_part'] = object['item_part'];
+			obj[id]['aspects'] = object['aspects'];
 			if (object.hasOwnProperty('internal_note')) {
 				obj[id]['internal_note'] = object['internal_note'];
 			}

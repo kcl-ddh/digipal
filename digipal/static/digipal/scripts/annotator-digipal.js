@@ -976,7 +976,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							if (selectedFeature.feature && selectedFeature.feature.length > 8) {
 								html_string_buttons += "<br>";
 							}
-							html_string_buttons += "<button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok' data-toggle='tooltip' data-container='body' title='Save Annotation'></span></button>";
+							html_string_buttons += " <button class='btn btn-xs btn-success save_trigger'><span class='glyphicon glyphicon-ok' data-toggle='tooltip' data-container='body' title='Save Annotation'></span></button>";
 
 							html_string_buttons += " <button class='btn btn-xs btn-danger delete_trigger'><span class='glyphicon glyphicon-remove' data-toggle='tooltip' data-container='body' title = 'Delete Annotation'></span></button> <button title='Share URL' data-toggle='tooltip' data-container='body' data-hidden='true' class='url_allograph btn-default btn btn-xs'><i class='fa fa-link' ></i></button> <button data-toggle='tooltip' data-placement='bottom' data-container='body' type='button' title='Check by default' class='btn btn-xs btn-default set_all_by_default'><i class='fa fa-plus-square'></i></button>";
 
@@ -993,7 +993,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 								html_string_label = "<span class='allograph_label'>" + annotator.selectedFeature.feature + "</span> <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							} else {
 								html_string_label = "<span class='allograph_label'>Annotation</span>";
-								html_string_buttons += "<button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
+								html_string_buttons += " <button data-hidden='true' class='url_allograph btn btn-default btn-xs' data-toggle='tooltip' data-container='body' title='Share URL'><i class='fa fa-link'></i></button> ";
 							}
 						}
 					} else {
@@ -2352,6 +2352,7 @@ function load_data(selectedFeature, dialog, callback) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
 				data[0]['user_note'] = selectedFeature.user_note;
+				data[0]['graph_id'] = graph;
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 
@@ -2363,6 +2364,7 @@ function load_data(selectedFeature, dialog, callback) {
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
 				data[0]['user_note'] = selectedFeature.user_note;
+				data[0]['graph_id'] = graph;
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 
@@ -2372,11 +2374,13 @@ function load_data(selectedFeature, dialog, callback) {
 			data['allographs'] = cache.cache.allographs[allograph];
 			data['features'] = cache.cache.graphs[graph]['features'];
 			data['allograph_id'] = cache.cache.graphs[graph]['allograph_id'];
+			data['graph_id'] = graph;
 			data['hand_id'] = cache.cache.graphs[graph]['hand_id'];
 			data['hands'] = cache.cache.graphs[graph]['hands'];
 			data['display_note'] = cache.cache.graphs[graph]['display_note'];
 			data['internal_note'] = cache.cache.graphs[graph]['internal_note'];
 			data['user_note'] = selectedFeature.user_note;
+			data['aspects'] = cache.cache.graphs[graph]['aspects'];
 			refresh_dialog(dialog, data, selectedFeature, callback);
 		}
 	}
@@ -2426,6 +2430,22 @@ function refresh_features_dialog(data, dialog) {
 	if (data.user_note) {
 		$('.public_text_dialog_div').html(data.user_note);
 	}
+
+	var aspects = "<ul>";
+	if (data.aspects.length) {
+		for (var i = 0; i < data.aspects.length; i++) {
+			aspects += "<li class='component'><b>" + data.aspects[i].name + "</b></li>";
+			for (var j = 0; j < data.aspects[i].features.length; j++) {
+				aspects += "<li class='feature'>" + data.aspects[i].features[j].name + "</li>";
+			}
+		}
+	} else {
+		aspects += "<li class='component'>No aspects defined</li>";
+	}
+	aspects += "</ul>";
+
+	dialog.find('#aspects_tab').html(aspects);
+
 }
 
 function refresh_dialog(dialog, data, selectedFeature, callback) {
@@ -2444,7 +2464,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			}
 
 			if (selected.length > 1) {
-				data['allographs'] = common_components(selected, annotator.cacheAnnotations.cache, data['allographs']);
+				data.allographs.components = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.components);
 			}
 		}
 
@@ -2472,6 +2492,33 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			$('#label_display_note').after(display_note);
 			$('#label_internal_note').after(internal_note);
+
+
+			var aspects_list = "";
+			var aspects = annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects;
+			var graph_aspects = annotator.cacheAnnotations.cache.graphs[data.graph_id].aspects;
+
+			if (aspects.length) {
+				for (var i = 0; i < aspects.length; i++) {
+					var checked = "";
+					for (var j = 0; j < graph_aspects.length; j++) {
+						if (graph_aspects[i].id == aspects[i].id) {
+							checked = "checked";
+							break;
+						}
+					}
+					aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='aspect_" + aspects[i].name + '_' + aspects[i].id + "' type='checkbox' val='" + aspects[i].id + "' /> <label for='aspect_" + aspects[i].name + '_' + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
+					aspects_list += "<div class='feature_containers'>";
+					for (var j = 0; j < aspects[i].features.length; j++) {
+						aspects_list += "<p class='feature'>" + aspects[i].features[j].name + "</p>";
+					}
+					aspects_list += "</div>";
+				}
+			} else {
+				aspects_list += "<p class='component'>No aspects defined</p>";
+			}
+
+			dialog.find('#aspects_tab').html(aspects_list);
 
 			var check_all = $('.check_all');
 			check_all.click(function(event) {
@@ -2956,6 +3003,13 @@ function make_form() {
 
 	if (!isNodeEmpty(internal_note.html())) {
 		form_serialized += "&internal_note=" + internal_note.html();
+	}
+
+	if (panel.find('.aspect:checked').length) {
+		var aspects = panel.find('.aspect:checked');
+		aspects.each(function() {
+			form_serialized += "&aspect=" + $(this).val();
+		});
 	}
 
 	return {

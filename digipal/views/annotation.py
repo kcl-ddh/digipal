@@ -124,7 +124,15 @@ def get_features(graph_id, only_features=False):
                 for feature in component.features.all():
                     dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
 
+        aspects = []
+        for aspect in graph.aspects.all():
+            features = []
+            for feature in aspect.features.all():
+                features.append({'id': feature.id, 'name': feature.name})
+            aspects.append({'id': aspect.id, 'name': aspect.name, 'features': features})
+
         obj['features'] = dict_features
+        obj['aspects'] = aspects
         #obj['vector_id'] = vector_id
         obj['image_id'] = image_id
         obj['hand_id'] = hand_id
@@ -153,7 +161,9 @@ def allograph_features(request, allograph_id):
     allographs = Allograph.objects.filter(id__in=allographs_ids).select_related('allograph_components__component')
     for allograph in allographs:
         allograph_components = allograph.allograph_components.all()
-        allographs_list = []
+        allographs_list = {}
+        allographs_list['components'] = []
+        allographs_list['aspects'] = []
         if allograph_components:
             for ac in allograph_components:
                 ac_dict = {}
@@ -165,7 +175,16 @@ def allograph_features(request, allograph_id):
                     ac_dict['features'].append({'id': f.id, 'name': f.name})
                     if f.componentfeature_set.all()[0].set_by_default:
                         ac_dict['default'].append({'component': f.componentfeature_set.all()[0].component.id, 'feature': f.componentfeature_set.all()[0].feature.id})
-                allographs_list.append(ac_dict)
+                allographs_list['components'].append(ac_dict)
+        aspects = allograph.aspects.all()
+        for aspect in aspects:
+            aspect_obj = {}
+            aspect_obj['id'] = aspect.id
+            aspect_obj['features'] = []
+            for feature in aspect.features.all():
+                 aspect_obj['features'].append({'id': feature.id, 'name': feature.name})
+            aspect_obj['name'] = aspect.name
+            allographs_list['aspects'].append(aspect_obj)
         obj['features'] = []
         obj['allographs'] = allographs_list
         data.append(obj)
@@ -586,6 +605,7 @@ def save(request, graphs):
                         #annotation.after = clean['after']
                         allograph = clean['allograph']
                         hand = clean['hand']
+
                         if hand and allograph:
 
                             scribe = hand.scribe
@@ -649,6 +669,13 @@ def save(request, graphs):
 
                                 gc.features.add(feature)
                                 gc.save()
+
+                        aspects = get_data.getlist['aspects']
+
+                        if aspects:
+                            feature.aspects.remove()
+                            for aspect in aspects:
+                                feature.aspects.add(aspect)
 
                         # attach the graph to a containing one
                         if geo_json:

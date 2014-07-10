@@ -247,6 +247,18 @@ function add_to_lightbox(button, type, annotations, multiple) {
 function notify(msg, status) {
 
 	var running = running || true;
+	var current_collection_name = (function() {
+		var current_collection_id = localStorage.getItem('selectedCollection');
+		var collections = JSON.parse(localStorage.getItem('collections'));
+		var collection_name;
+		for (var i in collections) {
+			if (collections[i].id == current_collection_id) {
+				collection_name = i;
+				break;
+			}
+		}
+		return collection_name;
+	})();
 
 	if (running) {
 		clearInterval(timeout);
@@ -265,7 +277,7 @@ function notify(msg, status) {
 	status_element.attr('class', 'alert' + status_class);
 
 	if (status == 'success') {
-		status_element.html("<a style='color:#468847;' href='/digipal/collection'>" + msg + "</a>").fadeIn();
+		status_element.html("<a style='color:#468847;' href='/digipal/collection/" + current_collection_name + "'>" + msg + "</a>").fadeIn();
 	} else {
 		status_element.html(msg).fadeIn();
 	}

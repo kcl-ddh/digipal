@@ -2115,6 +2115,17 @@ function show_url_allograph(dialog, annotation, button) {
 			return checkboxesList;
 		})();
 
+		var personal_annotation = (function() {
+			var element = $('.public_text_dialog_div');
+			if (element.length) {
+				var value = element.html();
+				if ($.trim(value) && !isNodeEmpty(value)) {
+					return value;
+				}
+			}
+			return false;
+		})();
+
 		var multiple = false,
 			url_temp;
 		if (annotation !== null && typeof annotation !== "undefined" && !$.isEmptyObject(annotation) && stored) {
@@ -2195,6 +2206,10 @@ function show_url_allograph(dialog, annotation, button) {
 
 		if (uncheckedAllographs.hands.length || uncheckedAllographs.allographs.length) {
 			allograph_url += '&hidden=' + annotator.utils.Base64.encode(JSON.stringify(uncheckedAllographs));
+		}
+
+		if (personal_annotation) {
+			allograph_url += '&note=' + annotator.utils.Base64.encode(personal_annotation);
 		}
 
 		var settings = loader.digipal_settings;
@@ -2333,8 +2348,8 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				cache.update('allograph', data[0]['allograph_id'], data[0]);
 				cache.update('graph', graph, data[0]);
+				data[0]['user_note'] = selectedFeature.user_note;
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
-
 			});
 
 			// else if allograph is cached, I only need the features, therefore I change the URL to omit allographs
@@ -2344,8 +2359,8 @@ function load_data(selectedFeature, dialog, callback) {
 			annotator.api.request(url, function(data) {
 				data[0]['allographs'] = cache.cache.allographs[allograph];
 				cache.update('graph', graph, data[0]);
+				data[0]['user_note'] = selectedFeature.user_note;
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
-
 			});
 
 			// otherwise I have both cached, I can get them from the cache object
@@ -2358,8 +2373,8 @@ function load_data(selectedFeature, dialog, callback) {
 			data['hands'] = cache.cache.graphs[graph]['hands'];
 			data['display_note'] = cache.cache.graphs[graph]['display_note'];
 			data['internal_note'] = cache.cache.graphs[graph]['internal_note'];
+			data['user_note'] = selectedFeature.user_note;
 			refresh_dialog(dialog, data, selectedFeature, callback);
-
 		}
 	}
 }

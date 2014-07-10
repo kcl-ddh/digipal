@@ -328,7 +328,13 @@ function AnnotatorLoader() {
 			}
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
-				var temp = annotator.utils.Base64.decode(temporary_vectors[t]);
+				var base64regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/;
+				var temp;
+				if (base64regex.test(temporary_vectors[t])) {
+					temp = annotator.utils.Base64.decode(temporary_vectors[t]);
+				} else {
+					temp = temporary_vectors[t];
+				}
 				temp = temp.replace(/\0/g, "");
 				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
@@ -408,6 +414,9 @@ function AnnotatorLoader() {
 			$('html').animate({
 				scrollTop: $('#map').position().top + 'px'
 			}, 0);
+
+			var note;
+
 			// vectorLayer event moveend is triggered on first load so flag this
 
 			// tries to centre the map every 1/2 second
@@ -430,8 +439,11 @@ function AnnotatorLoader() {
 			if (annotator.utils.getParameter('map_extent').length) {
 				var extent_parsed = JSON.parse(decodeURI(annotator.utils.getParameter('map_extent')[0]));
 				var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
-
 				annotator.map.zoomToExtent(extent);
+			}
+
+			if (annotator.utils.getParameter('note').length) {
+				note = annotator.utils.Base64.decode(annotator.utils.getParameter('note')[0]);
 			}
 
 			if (vector_id_value.length == 1) {
@@ -445,6 +457,10 @@ function AnnotatorLoader() {
 
 					annotator.selectFeatureById(vector_id_value[i]);
 				}
+			}
+
+			if (note) {
+				annotator.selectedFeature.user_note = note;
 			}
 
 		} else {

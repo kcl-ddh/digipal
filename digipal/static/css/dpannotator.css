@@ -427,6 +427,10 @@ label[for=id_internal_note], label[for=id_display_note]{
     padding-top:2px;
 }
 
+#box_features_container .jquery-notebook.editor {
+    height: 80px;
+}
+
 .buttons_div br {
     line-height: 1.6;
 }

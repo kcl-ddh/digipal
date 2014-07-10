@@ -2454,18 +2454,18 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			$('#id_display_note').remove();
 
 			var display_note = $('<div>');
-			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control').data('hidden', true).html(selectedFeature.display_note);
+			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control').data('hidden', false);
 
 			var internal_note = $('<div>');
-			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', true);
+			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control').data('hidden', false);
 
 			display_note.notebook().html(selectedFeature.display_note);
 
 			internal_note.notebook().html(selectedFeature.internal_note);
 
 			var notes = "";
-			notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note'><b>Public Note</b></p>";
-			notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note'><b>Internal Note</b></p>";
+			notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";
+			notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note' data-hidden='false'><b>Internal Note</b></p>";
 
 			dialog.find('#components_tab').html(s);
 			dialog.find('#notes_tab').html(notes);

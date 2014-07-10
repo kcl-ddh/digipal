@@ -352,7 +352,6 @@
 #id_internal_note, #id_display_note {
     width: 270px;
     height: 120px;
-    display: none;
     margin: 2%;
     -webkit-column-count: 1;
     -moz-column-count: 1;
@@ -719,4 +718,5 @@ path {
 
 #box_features_container .nav-tabs a{
     cursor: pointer;
+    font-size: 12px;
 }

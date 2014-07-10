@@ -279,7 +279,7 @@ def image_vectors(request, image_id):
         if a.graph:
             data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
         else:
-            data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
+            data[a.id] = ast.literal_eval(a.geo_json.strip())
 
     if request:
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -290,7 +290,7 @@ def get_vector(request, image_id, graph):
     annotation = Annotation.objects.get(graph=graph)
     data = {}
     data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
-    data['id'] = annotation.vector_id
+    data['id'] = annotation.id
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
@@ -356,14 +356,13 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         """
     for e in editorial_annotations:
         data[e.id] = {}
-        if e.vector_id in vectors:
-            data[e.id]['geo_json'] = vectors[e.vector_id]['geometry']
+        data[e.id]['geo_json'] = vectors[unicode(e.id)]['geometry']
         data[e.id]['status_id'] = e.status_id
         data[e.id]['image_id'] = e.image.id
         data[e.id]['display_note'] = e.display_note
         data[e.id]['internal_note'] = e.internal_note
         data[e.id]['vector_id'] = e.vector_id
-        data[e.id]['id'] = e.vector_id
+        data[e.id]['id'] = unicode(e.id)
         data[e.id]['is_editorial'] = True
 
     if annotations_page:
@@ -711,16 +710,15 @@ def save_editorial(request, graphs):
                 image = Image.objects.get(id=gr['image'])
                 get_data = request.POST.copy()
                 _id = gr['id']
+                count = 0
                 if _id and _id.isdigit():
-                    annotation = Annotation.objects.filter(image=image, id=_id).count()
-                else:
-                    annotation = 0
+                    count = Annotation.objects.filter(image=image, id=_id).count()
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
-                if annotation > 0:
+                if count > 0:
                     annotation = Annotation.objects.get(image=image, id=_id)
                 else:
                     annotation = Annotation(image=image)
@@ -731,30 +729,26 @@ def save_editorial(request, graphs):
                         clean = form.cleaned_data
                         if geo_json:
                             annotation.geo_json = geo_json
-                            annotation_is_modified = True
 
                         # set the note (only if different) - see JIRA DIGIPAL-477
                         for f in ['display_note', 'internal_note']:
 
                             if getattr(annotation, f) != clean[f]:
                                 setattr(annotation, f, clean[f])
-                                annotation_is_modified = True
 
                         if not annotation.id:
                             # set the author only when the annotation is created
                             annotation.author = request.user
 
-
                         if geo_json:
                             annotation.set_graph_group()
-                        if annotation_is_modified or not annotation.id:
-                            annotation.save()
+                        annotation.save()
 
                         new_graph = [{}]
 
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
-                        new_graph[0]['annotation_id'] = annotation.id
+                        new_graph[0]['annotation_id'] = unicode(annotation.id)
                         if has_edit_permission(request, Annotation):
                             new_graph[0]['internal_note'] = annotation.internal_note
                         new_graph[0]['display_note'] = annotation.display_note
@@ -797,7 +791,7 @@ def delete(request, image_id, graph_id):
                 try:
                     annotation = Annotation.objects.get(image=image, graph=graph_id)
                 except:
-                    annotation = Annotation.objects.get(image=image, vector_id=graph_id)
+                    annotation = Annotation.objects.get(image=image, id=graph_id)
             except Annotation.DoesNotExist:
                 data.update({'success': False})
                 data.update({'errors': {}})

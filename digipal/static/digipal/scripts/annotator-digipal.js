@@ -158,7 +158,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var display_note = annotations[i]['display_note'];
 				var internal_note = annotations[i]['internal_note'];
 				var allograph_id = annotations[i]['allograph_id'];
-				var vector_id = annotations[i]['vector_id'];
+				var id = annotations[i]['id'];
 				var is_editorial = annotations[i]['is_editorial'];
 				if (graph || is_editorial) {
 					f.feature = allograph;
@@ -171,11 +171,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					f.display_note = display_note;
 					f.internal_note = internal_note;
 					f.allograph_id = allograph_id;
-					f.vector_id = vector_id;
 					if (graph) {
 						f.id = graph;
 					} else {
-						f.id = vector_id;
+						f.id = id;
 					}
 					f.is_editorial = is_editorial;
 					// it serves to differentiate stored and temporary annotations
@@ -905,6 +904,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							dialog.find('#notes_tab').tab('show');
 							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
 						}
+						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
+							$(this).parent('li').addClass('disabled');
+						});
+						$("[data-target='#notes_tab']").tab('show');
 						return callback();
 					} else if (!$.isEmptyObject(selectedFeature) && !selectedFeature.is_editorial && annotator.editorial.active) {
 						annotator.editorial.deactivate();
@@ -1698,7 +1701,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				graphs.push(vector);
 
 			}
-
+			console.log(graphs)
 			url = '/digipal/api/graph/save_editorial/' + JSON.stringify(graphs) + '/';
 			save(url, graphs, data, ann, data.features);
 		}
@@ -2778,8 +2781,6 @@ function delete_annotation(layer, feature, number_annotations) {
 	layer.destroyFeatures([feature]);
 	var isNotStored = false;
 	var url = annotator.absolute_image_url + 'delete/' + featureId + '/';
-
-
 	var _callback = function() {
 		if (number_annotations > 1) {
 			updateStatus('Annotations deleted.', 'success');
@@ -3030,7 +3031,7 @@ function save(url, graphs, data, ann, features) {
 					for (var k = 0; k < annotator.selectedAnnotations.length; k++) {
 						var crntFt = annotator.selectedAnnotations[k];
 						if (!crntFt.hasOwnProperty('graph') && !crntFt.graph && crntFt.stored) {
-							if (crntFt.id == new_graphs[i].vector_id) {
+							if (crntFt.id == new_graphs[i].id || crntFt.id == new_graphs[i].vector_id) {
 								crntFt.is_editorial = true;
 								if ($('#show_editorial_annotations').is(':checked')) {
 									stylize(crntFt, '#222', '#222', 0.4);
@@ -3044,7 +3045,7 @@ function save(url, graphs, data, ann, features) {
 					/*	Updating annotator features	*/
 					var n = 0;
 					for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
-						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].id || (new_graphs[i].hasOwnProperty('graph') && f[feature_ind].graph == new_graphs[i].graph)) {
+						if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].annotation_id || (new_graphs[i].hasOwnProperty('graph') && f[feature_ind].graph == new_graphs[i].graph)) {
 							feature = f[feature_ind];
 							n++;
 							//id = feature.id;

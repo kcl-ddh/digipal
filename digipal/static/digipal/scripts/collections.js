@@ -339,7 +339,7 @@ function Collections() {
 					editorial.push(element);
 				}
 			}
-			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[' + editorial.toString() + ']';
+			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[' + editorial.toString() + ']&from=' + location.pathname;
 		},
 
 		share: share,

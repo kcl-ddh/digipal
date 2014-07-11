@@ -447,7 +447,7 @@ function main() {
 							}
 						}
 					}
-					location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]';
+					location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
 				});
 
 				$('tr.table-row').on('click', function(event) {

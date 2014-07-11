@@ -49,10 +49,10 @@ function TestSuite(_options) {
                     var error_message = "";
                     for (var i = 0; i < assert_failures.length; i++) {
                         error_message += "Error: " + failure.type + '\n';
-                        error_message += "Line: " + failure.line + '\n';
-                        error_message += "Message: " + failure.message + '\n';
-                        error_message += "Source: " + failure.source + '\n';
-                        error_message += "Stack: " + failure.stack + '\n\n\n';
+                        error_message += "Line: " + failure.line || "not provided" + '\n';
+                        error_message += "Message: " + failure.message || "not provided" + '\n';
+                        error_message += "Source: " + failure.message.sourceURL || "not provided" + '\n';
+                        error_message += "Stack: " + failure.message.stack || "not provided" + '\n\n\n';
                     }
 
                     if (options.email.email_on_errors) {
@@ -110,10 +110,10 @@ function TestSuite(_options) {
             if (options.email.email_on_errors) {
                 var error_message = "";
                 error_message += "Error: " + failure.type + '\n';
-                error_message += "Line: " + failure.line + '\n';
-                error_message += "Message: " + failure.message.message + '\n';
-                error_message += "Source: " + failure.message.source + '\n';
-                error_message += "Stack: " + failure.message.stack + '\n\n\n';
+                error_message += "Line: " + failure.line || "not provided" + '\n';
+                error_message += "Message: " + failure.message || "not provided" + '\n';
+                error_message += "Source: " + failure.message.sourceURL || "not provided" + '\n';
+                error_message += "Stack: " + failure.message.stack || "not provided" + '\n\n\n';
 
                 EmailSender.send(error_message, function() {
                     casper.then(function() {

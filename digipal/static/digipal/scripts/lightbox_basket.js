@@ -267,7 +267,7 @@ function main() {
 						s += "<td data-graph = '" + editorial_annotation[2] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
 						s += "</td>";
 
-						if (isAdmin) {
+						if (typeof isAdmin !== 'undefined' && isAdmin) {
 							s += "<td data-graph = '" + editorial_annotation[2] + "'><div class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... </div> <button class='btn-link read-more' data-image='" + editorial_annotation[1] + "' data-id = '" + editorial_annotation[2] + "'>Read and Edit</button>";
 						} else {
 							if (editorial_annotation[4].length > 50) {
@@ -526,7 +526,7 @@ function main() {
 					var windowGraph = $("<div class='editorial-annotation-div'>");
 					var title = $("<p class='editorial-annotation-title'>Editorial Annotation <span class='pull-right'><span style='cursor:pointer' class='fa fa-times' title='Close' data-toggle='tooltip'></span></span></p>");
 					windowGraph.append(title);
-					if (isAdmin) {
+					if (typeof isAdmin !== 'undefined' && isAdmin) {
 						title.find('.pull-right').prepend("<span title='Edit' data-toggle='tooltip' style='cursor:pointer' class='fa fa-pencil-square-o'></span> <span title='Save' data-toggle='tooltip' style='cursor:pointer' class='fa fa-check-square'></span> ");
 					}
 					var content = $("<p class='editorial-annotation-content'>");

@@ -29,7 +29,7 @@ $(document).ready(function() {
 	        cb([]);
 	    }
 	}
-
+	
 	if ($.fn.typeahead) {
 		$("#search-terms").typeahead({
 		    minlength: 1,
@@ -44,7 +44,24 @@ $(document).ready(function() {
 		        }
 		    }
 		});
-	}
+	};
+	
+	// use bootstrap select to render the scop dropdown on the quick search
+	var $select = $('select[name="scp"]');
+	if ($.fn.bootstrapSelect && $select.length) {
+	    $select.bootstrapSelect({
+            input_group: true,
+            parent: {
+                selector: '#search-form-input-group',
+                placement: 'prepend'
+            }
+        }, function(){
+            $('.quick-search-category').hide();
+            $select.on('change', function(){
+                $('#search-terms').focus();
+            });
+        });
+	};
 
 	// Scrolls directly to the results on second or later pages.
 	// Scrolls to an element with id="auto-scroll" 

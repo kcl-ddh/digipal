@@ -264,14 +264,19 @@ function main() {
 						s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
 						s += "</td>";
 
-						s += "<td data-graph = '" + editorial_annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
+						s += "<td data-graph = '" + editorial_annotation[2] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
 						s += "</td>";
-						if (editorial_annotation[4].length > 50) {
-							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... <button class='btn-link read-more' data-graph = '" + editorial_annotation[1] + "'>Read more</button></p>";
+
+						if (isAdmin) {
+							s += "<td data-graph = '" + editorial_annotation[2] + "'><div class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... </div> <button class='btn-link read-more' data-image='" + editorial_annotation[1] + "' data-id = '" + editorial_annotation[2] + "'>Read and Edit</button>";
 						} else {
-							s += "<td data-graph = '" + editorial_annotation[1] + "'><p class='public-note'>" + editorial_annotation[4] + "</p>";
+							if (editorial_annotation[4].length > 50) {
+								s += "<td data-graph = '" + editorial_annotation[2] + "'><div class='public-note'>" + editorial_annotation[4].substring(0, 50) + " ... </div><button class='btn-link read-more' data-image='" + editorial_annotation[1] + "' data-id = '" + editorial_annotation[2] + "'>Read more</button>";
+							} else {
+								s += "<td data-graph = '" + editorial_annotation[2] + "'><div class='public-note'>" + editorial_annotation[4] + "</div>";
+							}
 						}
-						editorialCache[editorial_annotation[1]] = editorial_annotation[4];
+						editorialCache[editorial_annotation[2]] = editorial_annotation[4];
 						s += "</td>";
 					}
 					s += "</table>";
@@ -511,31 +516,82 @@ function main() {
 				});
 
 				$('.read-more').on('click', function(event) {
+
 					if ($('.dialog-background').length) {
 						$('.dialog-background').remove();
 					}
+					var image = $(this).data('image');
+					var id = $(this).data('id');
 					var background = $("<div class='dialog-background'>");
 					var windowGraph = $("<div class='editorial-annotation-div'>");
-					var title = $("<p class='editorial-annotation-title'>Editorial Annotation <span style='cursor:pointer;' class='fa fa-times pull-right'></span></p>");
+					var title = $("<p class='editorial-annotation-title'>Editorial Annotation <span class='pull-right'><span style='cursor:pointer' class='fa fa-times' title='Close' data-toggle='tooltip'></span></span></p>");
 					windowGraph.append(title);
+					if (isAdmin) {
+						title.find('.pull-right').prepend("<span title='Edit' data-toggle='tooltip' style='cursor:pointer' class='fa fa-pencil-square-o'></span> <span title='Save' data-toggle='tooltip' style='cursor:pointer' class='fa fa-check-square'></span> ");
+					}
 					var content = $("<p class='editorial-annotation-content'>");
-					var graph = $(this).data('graph');
-					var value = editorialCache[graph];
+					var value = editorialCache[id];
 					content.append(value);
 					windowGraph.append(content);
 					background.append(windowGraph);
 					$('body').append(background);
+
 					windowGraph.on('click', function(event) {
 						event.stopPropagation();
 					});
+
 					background.on('click', function(event) {
 						$(this).remove();
 						event.stopPropagation();
 					});
+
 					title.find('.fa-times').on('click', function() {
 						background.remove();
 						event.stopPropagation();
 					});
+
+					title.find('.fa-pencil-square-o').on('click', function() {
+						content.attr('contenteditable', true).focus();
+						event.stopPropagation();
+					});
+
+					title.find('.fa-check-square').on('click', function() {
+
+						var data = {
+							'display_note': content.html()
+						};
+
+						var url_data = {};
+						url_data.image = image;
+						url_data.id = id.toString();
+
+						$.ajax({
+							type: 'POST',
+							url: '/digipal/api/graph/save_editorial/' + JSON.stringify([url_data]) + '/',
+							data: data,
+							success: function(data) {
+								if (data.success) {
+									notify("Annotation successfully saved", "success");
+									var value = data.graphs[0].display_note;
+									if (value.length > 50) {
+										value = value.substring(0, 50) + '...';
+									}
+									$('td[data-graph="' + id + '"]').find('.public-note').html(value);
+									editorialCache[id] = data.graphs[0].display_note;
+								} else {
+									if (data.errors.length) {
+										notify("Annotation not saved", "danger");
+									}
+								}
+							},
+							error: function(data) {
+								console.warn(data);
+							}
+						});
+						event.stopPropagation();
+					});
+
+					$('[data-toggle="tooltip"]').tooltip();
 					event.stopPropagation();
 				});
 

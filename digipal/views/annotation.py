@@ -495,7 +495,6 @@ def image_copyright(request, image_id):
 
 def images_lightbox(request, collection_name):
     data = {}
-    print request.GET.get('data', '')
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
         if 'annotations' in graphs:

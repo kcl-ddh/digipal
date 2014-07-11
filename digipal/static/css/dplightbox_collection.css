@@ -236,3 +236,7 @@ tr.selected {
     padding:1em;
     overflow-y:auto;
 }
+
+.editorial-annotation-title .fa{
+    margin-left:2px;
+}

@@ -2072,6 +2072,7 @@ class Annotation(models.Model):
     def set_graph_group(self):
         # if the graph is contained within another
         # this function will set self.group to that other graph.
+        
         group_id = None
         min_dist = 1e6
 
@@ -2095,8 +2096,9 @@ class Annotation(models.Model):
                             group_id = a['graph_id']
                             min_dist = dist
 
-            self.graph.group_id = group_id
-            self.graph.save()
+            if group_id != self.graph.group_id:
+                self.graph.group_id = group_id
+                self.graph.save()
 
     def save(self, *args, **kwargs):
         # GN: why do we need this call BEFORE changing the cutout?

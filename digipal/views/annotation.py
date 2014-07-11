@@ -672,22 +672,22 @@ def save(request, graphs):
                         aspects = get_data.getlist('aspect')
 
                         graph.aspects.clear()
-                        print aspects
                         if aspects:
                             for aspect in aspects:
                                 aspect_model = Aspect.objects.get(id=aspect)
                                 graph.aspects.add(aspect_model)
+                        
                         graph.save()
 
-                        # attach the graph to a containing one
-                        if geo_json:
-                            annotation.set_graph_group()
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
-
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
+                            # attach the graph to a containing one
+                            # cannot be called BEFORE saving the annotation/graph
+                            if geo_json:
+                                annotation.set_graph_group()
 
                         new_graph = json.loads(get_features(graph.id))
                         if 'vector_id' in gr:

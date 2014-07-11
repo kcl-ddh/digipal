@@ -84,7 +84,7 @@ var Actions = function(options) {
             get_components: function(feature) {
                 return casper.evaluate(function(feature) {
                     var _components = [];
-                    var cachedAllograph = annotator.cacheAnnotations.cache.allographs[feature.allograph_id];
+                    var cachedAllograph = annotator.cacheAnnotations.cache.allographs[feature.allograph_id].components;
                     for (var i in cachedAllograph) {
                         _components.push(cachedAllograph[i].id);
                     }

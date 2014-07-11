@@ -46,16 +46,24 @@ function TestSuite(_options) {
                 if (assert_failures.length) {
                     this.echo(assert_failures.length + ' failures', 'ERROR');
 
-                    var msgfailures = "";
+                    var error_message = "";
                     for (var i = 0; i < assert_failures.length; i++) {
-                        msgfailures = +failure.message + '\n';
+                        error_message += "Error: " + failure.type + '\n';
+                        error_message += "Line: " + failure.line + '\n';
+                        error_message += "Message: " + failure.message + '\n';
+                        error_message += "Source: " + failure.source + '\n';
+                        error_message += "Stack: " + failure.stack + '\n\n\n';
                     }
 
-                    EmailSender.send(msgfailures, function() {
-                        casper.test.done();
-                        casper.echo('All tasks done.', 'GREEN_BAR');
-                        casper.exit();
-                    });
+                    if (options.email.email_on_errors) {
+                        EmailSender.send(error_message, function() {
+                            casper.then(function() {
+                                casper.test.done();
+                                casper.echo('All tasks done.', 'GREEN_BAR');
+                                casper.exit();
+                            });
+                        });
+                    }
                 } else {
                     casper.test.done();
                     this.echo('All tasks done.', 'GREEN_BAR');
@@ -99,6 +107,22 @@ function TestSuite(_options) {
         casper.test.on("fail", function(failure) {
             Utils.screenshot('screenshots', failure.message);
             assert_failures.push(failure);
+            if (options.email.email_on_errors) {
+                var error_message = "";
+                error_message += "Error: " + failure.type + '\n';
+                error_message += "Line: " + failure.line + '\n';
+                error_message += "Message: " + failure.message.message + '\n';
+                error_message += "Source: " + failure.message.source + '\n';
+                error_message += "Stack: " + failure.message.stack + '\n\n\n';
+
+                EmailSender.send(error_message, function() {
+                    casper.then(function() {
+                        casper.test.done();
+                        casper.echo('All tasks done.', 'GREEN_BAR');
+                        casper.exit();
+                    });
+                });
+            }
         });
 
         if (casper.cli.get('debug-remote')) {
@@ -234,14 +258,21 @@ function TestSuite(_options) {
             data.from_email = config.email.from;
             data.to = config.email.to;
             data.message = message;
-            data.subject = "Test log";
+            data.subject = "Digipal - Test Log";
             var page = webPage.create();
             var url = options.root + config.email.url + '?';
 
             for (var i in data) {
-                url += i + '=' + data[i] + '&';
+                if (i == 'to') {
+                    for (var j = 0; j < data[i].length; j++) {
+                        url += i + '=' + data[i][j] + '&';
+                    }
+                } else {
+                    url += i + '=' + data[i] + '&';
+                }
             }
 
+            console.log("Sending email:");
             page.open(url, function(status) {
                 if (status !== 'success') {
                     casper.echo('Unable to send email', 'ERROR');

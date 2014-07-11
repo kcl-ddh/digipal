@@ -8,14 +8,14 @@ from django.http import HttpResponse
 @login_required
 @csrf_exempt
 def send_email(request):
-    subject = (request.GET.get('subject', ''))
-    message = (request.GET.get('message', ''))
-    from_email = (request.GET.get('from_email', ''))
-    to_emails = list(request.GET.get('to', ''))
-
+    subject = request.GET.get('subject', '')
+    message = request.GET.get('message', '')
+    from_email = request.GET.get('from_email', '')
+    to_emails = request.GET.getlist('to')
     if subject and message and from_email and to_emails:
         try:
-            send_mail(subject, message, from_email, to_emails)
+            if send_mail(subject, message, from_email, to_emails):
+                return HttpResponse("Email succesfully sent")
         except BadHeaderError:
             return HttpResponse('Invalid header found.')
     else:

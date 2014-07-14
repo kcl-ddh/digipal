@@ -63,6 +63,7 @@ class API(object):
             mimetype = 'text/javascript'
         
         if format == 'xml':
+            from django.utils.html import escape
             def get_xml_from_entry(entry=None):
                 ret = u''
                 if isinstance(entry, dict):
@@ -77,9 +78,10 @@ class API(object):
                 elif entry is None:
                     ret += '' 
                 else:  
-                    ret += u'%s' % entry
+                    ret += u'%s' % escape(entry)
                 return ret
-            data = u'<response>%s</response>' % get_xml_from_entry(json.loads(data))
+            prolog = u'<?xml version="1.0" encoding="UTF-8"?>'
+            data = u'%s<response>%s</response>' % (prolog, get_xml_from_entry(json.loads(data)))
             mimetype = 'text/xml'
 
         return data, mimetype

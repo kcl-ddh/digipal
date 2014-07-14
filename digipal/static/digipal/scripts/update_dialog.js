@@ -20,7 +20,7 @@ var api = new DigipalAPI({
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 
-	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature.isTemporary) {
+	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature && annotator.selectedFeature.isTemporary) {
 		callback('');
 	}
 
@@ -445,8 +445,9 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 	var features_preprocessed = preprocess_features(selectedAnnotations, cache);
 	compute_features(features_preprocessed, checkboxes);
 	var aspects_processed = preprocess_features(selectedAnnotations, cache, "aspects");
-	compute_features(aspects_processed, $('.aspect'), "aspects");
-	checkboxes.unbind().on('change', function() {
+	var aspects_checkbox = $('.aspect');
+	compute_features(aspects_processed, aspects_checkbox, "aspects");
+	checkboxes.add(aspects_checkbox).unbind().on('change', function() {
 		var state = $(this).data('state');
 		if (!state) {
 			state = 1;

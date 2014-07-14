@@ -197,7 +197,6 @@ function main() {
 				'data': JSON.stringify(data)
 			},
 			success: function(data) {
-				console.log(data);
 				if (data['annotations']) {
 					s += "<table id='table-annotations' class='table'>";
 					s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th>Manuscript</th><th>Allograph</td><th>Hand</th><th>Scribe</th><th>Place</th>';
@@ -705,5 +704,7 @@ $(document).ready(function() {
 
 	$(window).bind('storage', function(e) {
 		main();
+		update_counter();
+		update_collection_counter();
 	});
 });

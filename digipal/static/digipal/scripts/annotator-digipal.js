@@ -2844,6 +2844,8 @@ function delete_annotation(layer, feature, number_annotations) {
 		deletePopup(feature);
 	}
 
+	$('.olPopup').remove();
+
 	if (!feature.stored) {
 		updateStatus('Annotation deleted locally', 'success');
 		isNotStored = true;

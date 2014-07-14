@@ -445,8 +445,8 @@ function Allographs(dialog, cache) {
 						var allograph = $('.myModal .allograph_form').val();
 
 						for (var i in allographs_cache.allographs) {
-							for (var j = 0; j < allographs_cache.allographs[i].length; j++) {
-								var component = allographs_cache.allographs[i][j].id;
+							for (var j = 0; j < allographs_cache.allographs[i].components.length; j++) {
+								var component = allographs_cache.allographs[i].components[j].id;
 								components.push(component);
 							}
 						}
@@ -568,7 +568,7 @@ function Allographs(dialog, cache) {
 			var string_summary = '';
 			var prefix = 'allographs_';
 			var array_features_owned = features_saved(data['features']);
-			var allographs = data['allographs'];
+			var allographs = data['allographs'].components;
 			if (selectedAnnotations.annotations.length > 1) {
 				var selected = [];
 

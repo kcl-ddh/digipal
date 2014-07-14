@@ -895,14 +895,20 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							$('#panelImageBox .hand_form').val('------');
 							$('select').trigger("liszt:updated");
 							annotator.editorial.activate();
+							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
+							dialog.find('#notes_tab').tab('show');
+
 						} else if (annotator.selectedFeature.contentAnnotation) {
 							notes += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
 							dialog.find('#notes_tab').html(notes);
 							if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
 								$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation);
 							}
-							dialog.find('#notes_tab').tab('show');
-							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
+							dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
+								$(this).parent('li').addClass('disabled');
+							});
+							$("[data-target='#notes_tab']").tab('show');
+
 						}
 						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
 							$(this).parent('li').addClass('disabled');
@@ -944,6 +950,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						}
 						callback();
 					}
+				}
+				if (annotator.selectedFeature.hasOwnProperty('contentAnnotation') || annotator.selectedFeature.is_editorial) {
+					dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
+						$(this).parent('li').addClass('disabled');
+					});
+					$("[data-target='#notes_tab']").tab('show');
+
 				}
 			}
 			self.updateFeatureSelect.init(dialog, selectedFeature, callback);
@@ -2432,7 +2445,7 @@ function refresh_features_dialog(data, dialog) {
 	}
 
 	var aspects = "<ul>";
-	if (data.aspects.length) {
+	if (data.hasOwnProperty('aspects') && data.aspects.length) {
 		for (var i = 0; i < data.aspects.length; i++) {
 			aspects += "<li class='component'><b>" + data.aspects[i].name + "</b></li>";
 			for (var j = 0; j < data.aspects[i].features.length; j++) {

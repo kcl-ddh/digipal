@@ -218,7 +218,7 @@ function EditGraphsSearch() {
         var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
 
         if (self.selectedAnnotations.length > 1) {
-            allographs.allographs = common_components(self.selectedAnnotations, cache, allographs['allographs'].components);
+            allographs.allographs.components = common_components(self.selectedAnnotations, cache, allographs.allographs.components);
         }
 
         var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];

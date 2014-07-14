@@ -707,6 +707,17 @@ class GraphAdmin(reversion.VersionAdmin):
     list_display = ['idiograph', 'hand', 'created', 'modified']
     list_display_links = ['idiograph', 'hand', 'created', 'modified']
 
+    actions = ['action_update_group']
+
+    def action_update_group(self, request, queryset):
+        #from django.http import HttpResponseRedirect
+        #graphs = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from digipal.models import Graph
+        graphs = Graph.objects.filter(annotation__isnull=False).select_related('annotation')
+        for graph in graphs:
+            graph.annotation.set_graph_group()
+
+    action_update_group.short_description = 'Update nestings'
 
 class HairAdmin(reversion.VersionAdmin):
     model = Hair

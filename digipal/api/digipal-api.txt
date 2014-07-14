@@ -7,7 +7,7 @@ It handles CRUD requests from HTTP and returns JSON responses.
 
 General form for the requests:
 
-    (HTTP-METHOD) http://.../digipal/api/:content_type/[:selector/]?[_:filter=:value1]&[@select=[*]:fieldset1,[*]:fieldset2,...]&[:field=:value2]&@limit=:limit
+    (HTTP-METHOD) http://.../digipal/api/:content_type/[:selector/]?[_:filter=:value1][&@select=[*]:fieldset1,[*]:fieldset2,...][&:field=:value2][&@limit=:limit][&@format=:format]
     
 Parts:
     
@@ -48,14 +48,14 @@ Parts:
          
         e.g. GET /digipal/api/annotation/1000/
             returns all the fields of annotation 1000
-        e.g. GET /digipal/api/annotation/@select=rotation,modified
+        e.g. GET /digipal/api/annotation/?@select=rotation,modified
             returns only annotation.id, annotation.rotation and annotation.modified
-        e.g. GET /digipal/api/annotation/@select=myset
+        e.g. GET /digipal/api/annotation/?@select=myset
             returns a custom-defined set of fields named 'myset'. This fieldset is defined
             in custom.py:APIAnnotation()
-        e.g. GET /digipal/api/annotation/1000/@select=graph
+        e.g. GET /digipal/api/annotation/1000/?@select=graph
             returns only 'id' and 'graph__id' and 'graph' (string repr of the associated graph record)
-        e.g. GET /digipal/api/annotation/1000/@select=*graph
+        e.g. GET /digipal/api/annotation/1000/?@select=*graph
             returns only 'id' and 'graph', with graph being a dictionary with id
 
     :field
@@ -67,6 +67,13 @@ Parts:
     :limit
     	Maximum number of records the operation works on. If unspecified the limit is DEFAULT_RESULT_SIZE. 
 		This is to avoid accidental requests retrieving too many records by mistake.
+		
+	:format
+		The desired output format for the response.
+		Supported formats are: json, jsonp and xml. If not provided the output format is json.
+		If @callback is specified, the output format is always jsonp (@format is ignored).  
+        e.g. GET /digipal/api/annotation/?@format=xml
+        	returns annotation records in a XML format
         
 Response format:
 

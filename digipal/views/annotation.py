@@ -35,8 +35,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     ''' General handler for API requests.
         if @callback=X in the query string a JSONP response is returned
     '''
-    mimetype = 'application/json'
-
     data = None
 
     # Support for JSONP responses
@@ -45,7 +43,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         if not re.match(ur'(?i)^\w+$', jsonpcallback):
             # invalid name format for the callback
             data = {'success': False, 'errors': ['Invalid JSONP callback name format.'], 'results': []}
-            import json
             data = json.dumps(data)
             jsonpcallback = None
 
@@ -55,10 +52,11 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         from digipal.api.generic import API
         data = API.process_request(request, content_type, ids)
 
-    # JSON -> JSONP
+    # convert from JSON to another format
+    format = request.REQUEST.get('@format', None)
     if jsonpcallback:
-        data = u';%s(%s);' % (jsonpcallback, data)
-        mimetype = 'text/javascript'
+        format = 'jsonp'
+    data, mimetype = API.convert_response(data, format, jsonpcallback)        
 
     return HttpResponse(data, mimetype=mimetype)
 
@@ -672,22 +670,22 @@ def save(request, graphs):
                         aspects = get_data.getlist('aspect')
 
                         graph.aspects.clear()
-                        print aspects
                         if aspects:
                             for aspect in aspects:
                                 aspect_model = Aspect.objects.get(id=aspect)
                                 graph.aspects.add(aspect_model)
+                        
                         graph.save()
 
-                        # attach the graph to a containing one
-                        if geo_json:
-                            annotation.set_graph_group()
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
-
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
+                            # attach the graph to a containing one
+                            # cannot be called BEFORE saving the annotation/graph
+                            if geo_json:
+                                annotation.set_graph_group()
 
                         new_graph = json.loads(get_features(graph.id))
                         if 'vector_id' in gr:

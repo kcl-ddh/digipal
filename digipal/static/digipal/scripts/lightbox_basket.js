@@ -702,4 +702,8 @@ function main() {
 
 $(document).ready(function() {
 	main();
+
+	$(window).bind('storage', function(e) {
+		main();
+	});
 });

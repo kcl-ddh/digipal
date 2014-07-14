@@ -56,7 +56,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     format = request.REQUEST.get('@format', None)
     if jsonpcallback:
         format = 'jsonp'
-    data, mimetype = API.convert_response(data, format, jsonpcallback)        
+    data, mimetype = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))        
 
     return HttpResponse(data, mimetype=mimetype)
 

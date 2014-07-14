@@ -56,7 +56,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     format = request.REQUEST.get('@format', None)
     if jsonpcallback:
         format = 'jsonp'
-    data, mimetype = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))        
+    data, mimetype = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))
 
     return HttpResponse(data, mimetype=mimetype)
 
@@ -668,13 +668,18 @@ def save(request, graphs):
                                 gc.save()
 
                         aspects = get_data.getlist('aspect')
+                        aspects_deleted = get_data.getlist('-aspect')
 
-                        graph.aspects.clear()
                         if aspects:
                             for aspect in aspects:
                                 aspect_model = Aspect.objects.get(id=aspect)
                                 graph.aspects.add(aspect_model)
-                        
+
+                        if aspects_deleted:
+                            for aspect in aspects_deleted:
+                                aspect_model = Aspect.objects.get(id=aspect)
+                                graph.aspects.remove(aspect_model)
+
                         graph.save()
 
                         # Only save the annotation if it has been modified (or new one)

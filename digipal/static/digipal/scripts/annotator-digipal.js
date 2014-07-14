@@ -2959,10 +2959,14 @@ function make_form() {
 		form_serialized += "&internal_note=" + internal_note.html();
 	}
 
-	if (panel.find('.aspect:checked').length) {
-		var aspects = panel.find('.aspect:checked');
+	if (panel.find('.aspect').length) {
+		var aspects = panel.find('.aspect');
 		aspects.each(function() {
-			form_serialized += "&aspect=" + $(this).val();
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&aspect=" + $(this).val();
+			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&-aspect=" + $(this).val();
+			}
 		});
 	}
 

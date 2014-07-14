@@ -142,9 +142,13 @@ function make_form() {
 
 
 	if (select_allograph.find('.aspect:checked').length) {
-		var aspects = select_allograph.find('.aspect:checked');
+		var aspects = panel.find('.aspect');
 		aspects.each(function() {
-			form_serialized += "&aspect=" + $(this).val();
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&aspect=" + $(this).val();
+			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&-aspect=" + $(this).val();
+			}
 		});
 	}
 

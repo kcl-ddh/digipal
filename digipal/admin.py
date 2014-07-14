@@ -22,7 +22,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem
+        CarouselItem, ApiTransform
 import reversion
 import django_admin_customisations
 from mezzanine.core.admin import StackedDynamicInlineAdmin
@@ -1448,6 +1448,18 @@ class RequestLogAdmin(admin.ModelAdmin):
         return ret
     request_hyperlink.short_description = 'Request'
     request_hyperlink.allow_tags = True
+
+class ApiTransformAdmin(reversion.VersionAdmin):
+    model = ApiTransform
+
+    list_display = ['id', 'title', 'slug', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'title', 'slug']
+    ordering = ['id']
+    
+    fieldsets = (
+                (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype')}),
+                ) 
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
@@ -1507,6 +1519,7 @@ admin.site.register(MediaPermission, MediaPermissionAdmin)
 admin.site.register(CarouselItem, CarouselItemAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
+admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 
 # Let's add the Keywords to the admin interface

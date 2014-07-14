@@ -49,7 +49,7 @@ class API(object):
         return ret    
     
     @classmethod
-    def convert_response(cls, data, format=None, jsonpcallback=None):
+    def convert_response(cls, data, format=None, jsonpcallback=None, xslt=None):
         '''Convert a json response (data) into another format
            Allowed formats:
             * json
@@ -61,6 +61,9 @@ class API(object):
         if format == 'jsonp':
             data = u';%s(%s);' % (jsonpcallback, data)
             mimetype = 'text/javascript'
+        
+        if xslt:
+            format = 'xml'
         
         if format == 'xml':
             from django.utils.html import escape
@@ -83,6 +86,16 @@ class API(object):
             prolog = u'<?xml version="1.0" encoding="UTF-8"?>'
             data = u'%s<response>%s</response>' % (prolog, get_xml_from_entry(json.loads(data)))
             mimetype = 'text/xml'
+
+        if xslt:
+            from digipal.models import ApiTransform
+            transforms = ApiTransform.objects.filter(slug=xslt.lower().strip())
+            if transforms.count():
+                transform = transforms[0]
+                template = transform.template
+                # apply the transform
+                data = utils.get_xslt_transform(data, template)
+                mimetype = transform.mimetype
 
         return data, mimetype
     

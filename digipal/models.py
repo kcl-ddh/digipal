@@ -2611,6 +2611,33 @@ class RequestLog(models.Model):
             rl = cls(result_count=count, request=path)
             rl.save()
 
+class ApiTransform(models.Model):
+    title = models.CharField(max_length=30, blank=False, null=False, help_text='A unique title for this XSLT template.', unique=True)
+    slug = models.SlugField(max_length=30, blank=False, null=False, help_text='A unique code to refer to this template when using the web API. @xslt=slug', editable=False, unique=True)
+    template = models.TextField(blank=True, null=True, help_text='Your XSLT template')
+    description = models.TextField(blank=True, null=True, help_text='A description of the transform')
+    mimetype = models.CharField(max_length=30, blank=False, null=False, help_text='The mime type of the output from the transform.', default='text/xml')
+    sample_request = models.CharField(max_length=200, blank=True, null=True, help_text='A sample API request this transform can be tested on. It is a API request URL without this part: http://.../digipal/api/. E.g. graph/100,101,102?@select=id,str', default='graph')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        ordering = ['title']
+
+    def clean(self):
+        from django.utils.text import slugify
+        self.slug = slugify(self.title)
+        
+    def get_absolute_url(self):
+        ret = '/digipal/api/' + self.sample_request
+        if '?' not in ret:
+            ret += '?'
+        ret += '&@xslt=' + self.slug
+        return ret
+        
+    def __unicode__(self):
+        return u'%s' % (self.title)
+
 # Assign get_absolute_url() and get_admin_url() for all models 
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID
 # E.g. /digipal/scribes/101

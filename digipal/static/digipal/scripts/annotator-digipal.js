@@ -2478,6 +2478,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			if (selected.length > 1) {
 				data.allographs.components = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.components);
+				data.allographs.aspects = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.aspects, "aspects");
 			}
 		}
 

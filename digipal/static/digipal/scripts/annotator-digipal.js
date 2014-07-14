@@ -2449,7 +2449,7 @@ function refresh_features_dialog(data, dialog) {
 		for (var i = 0; i < data.aspects.length; i++) {
 			aspects += "<li class='component'><b>" + data.aspects[i].name + "</b></li>";
 			for (var j = 0; j < data.aspects[i].features.length; j++) {
-				aspects += "<li class='feature'>" + data.aspects[i].features[j].name + "</li>";
+				aspects += "<li class='feature'>- " + data.aspects[i].features[j].name + "</li>";
 			}
 		}
 	} else {
@@ -2486,59 +2486,12 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			$('#id_internal_note').remove();
 			$('#id_display_note').remove();
 
-			var display_note = $('<div>');
-			display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control');
+			var cache = annotator.cacheAnnotations.cache;
+			var aspects_list = load_aspects(annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects,
+				data.graph_id, cache);
 
-			var internal_note = $('<div>');
-			internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control');
-
-			display_note.notebook().html(selectedFeature.display_note);
-
-			internal_note.notebook().html(selectedFeature.internal_note);
-
-			var notes = "";
-			notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";
-			notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note' data-hidden='false'><b>Internal Note</b></p>";
-
+			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
-			dialog.find('#notes_tab').html(notes);
-
-			$('#label_display_note').after(display_note);
-			$('#label_internal_note').after(internal_note);
-
-
-			var aspects_list = "";
-			var aspects = annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects;
-			var graph_aspects = null;
-
-			if (annotator.cacheAnnotations.cache.graphs.hasOwnProperty(data.graph_id)) {
-				if (annotator.cacheAnnotations.cache.graphs[data.graph_id].hasOwnProperty('aspects')) {
-					graph_aspects = annotator.cacheAnnotations.cache.graphs[data.graph_id].aspects;
-				}
-			}
-
-			if (aspects.length) {
-				for (var i = 0; i < aspects.length; i++) {
-					var checked = "";
-					if (typeof graph_aspects !== "undefined" && graph_aspects) {
-						for (var j = 0; j < graph_aspects.length; j++) {
-							if (graph_aspects[i].id == aspects[i].id) {
-								checked = "checked";
-								break;
-							}
-						}
-					}
-					aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='aspect_" + aspects[i].name + '_' + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='aspect_" + aspects[i].name + '_' + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
-					aspects_list += "<div class='feature_containers'>";
-					for (var j = 0; j < aspects[i].features.length; j++) {
-						aspects_list += "<p class='feature'>" + aspects[i].features[j].name + "</p>";
-					}
-					aspects_list += "</div>";
-				}
-			} else {
-				aspects_list += "<p class='component'>No aspects defined</p>";
-			}
-
 			dialog.find('#aspects_tab').html(aspects_list);
 
 			var check_all = $('.check_all');
@@ -2909,27 +2862,6 @@ function delete_annotation(layer, feature, number_annotations) {
 			}
 		}
 	});
-}
-
-
-function isNodeEmpty(node) {
-	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
-	if (node) {
-		var string = $.parseHTML(node);
-		var emptyNodes = 0;
-		var value;
-		for (var i = 0; i < string.length; i++) {
-			if (string[i].nodeName == '#text') {
-				value = string[i].nodeValue;
-			} else {
-				value = string[i].innerText;
-			}
-			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
-				emptyNodes++;
-			}
-		}
-		return emptyNodes === string.length;
-	}
 }
 
 function make_form() {

@@ -26,7 +26,7 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(data.features);
-	var allographs = data.allographs.components;
+	var allographs = data.allographs;
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
 	} else {
@@ -166,6 +166,7 @@ var get_graph = function(graph_id, data, cache) {
 	result['allographs'] = cache.allographs[graph.allograph_id];
 	result['features'] = graph['features'];
 	result['allograph_id'] = graph.allograph_id;
+	result['graph_id'] = graph_id;
 	result['hand_id'] = graph['hand_id'];
 	result['hands'] = graph['hands'];
 	result['item_part'] = graph['item_part'];
@@ -275,7 +276,7 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 	while (ind < selectedAnnotations.length) {
 		if (typeof cacheAnnotations.graphs[selectedAnnotations[ind]] !== 'undefined') {
 			allograph_id = cacheAnnotations.graphs[selectedAnnotations[ind]].allograph_id;
-			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id]);
+			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id].components);
 			cacheAnn.push(allographs);
 		}
 		ind++;
@@ -493,5 +494,82 @@ function updateStatus(msg, status) {
 	//
 	if (typeof annotator !== 'undefined') {
 		annotator.map.render(annotator.map.div);
+	}
+}
+
+
+function load_aspects(aspects, graph, cache) {
+	var aspects_list = "";
+	var graph_aspects = null;
+
+	if (cache.graphs.hasOwnProperty(graph)) {
+		if (cache.graphs[graph].hasOwnProperty('aspects')) {
+			graph_aspects = cache.graphs[graph].aspects;
+		}
+	}
+
+	if (aspects.length) {
+		for (var i = 0; i < aspects.length; i++) {
+			var checked = "";
+			if (typeof graph_aspects !== "undefined" && graph_aspects) {
+				for (var j = 0; j < graph_aspects.length; j++) {
+					if (graph_aspects[j].id == aspects[i].id) {
+						checked = "checked";
+						break;
+					}
+				}
+			}
+			aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='aspect_" + aspects[i].name + '_' + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='aspect_" + aspects[i].name + '_' + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
+			aspects_list += "<div class='feature_containers'>";
+			for (var j = 0; j < aspects[i].features.length; j++) {
+				aspects_list += "<p class='feature'>- " + aspects[i].features[j].name + "</p>";
+			}
+			aspects_list += "</div>";
+		}
+	} else {
+		aspects_list += "<p class='component'>No aspects defined</p>";
+	}
+	return aspects_list;
+}
+
+function setNotes(selectedFeature, dialog) {
+	var display_note = $('<div>');
+	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control');
+
+	var internal_note = $('<div>');
+	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control');
+
+	display_note.notebook().html(selectedFeature.display_note);
+
+	internal_note.notebook().html(selectedFeature.internal_note);
+
+	var notes = "";
+	notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";
+	notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note' data-hidden='false'><b>Internal Note</b></p>";
+
+	dialog.html(notes);
+
+	$('#label_display_note').after(display_note);
+	$('#label_internal_note').after(internal_note);
+}
+
+
+function isNodeEmpty(node) {
+	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
+	if (node) {
+		var string = $.parseHTML(node);
+		var emptyNodes = 0;
+		var value;
+		for (var i = 0; i < string.length; i++) {
+			if (string[i].nodeName == '#text') {
+				value = string[i].nodeValue;
+			} else {
+				value = string[i].innerText;
+			}
+			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
+				emptyNodes++;
+			}
+		}
+		return emptyNodes === string.length;
 	}
 }

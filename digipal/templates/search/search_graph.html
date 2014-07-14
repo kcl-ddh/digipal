@@ -104,7 +104,7 @@
                                             <dt>
                                                 {% for graph in hand.graphs_template %}
                                                     {% if forloop.counter < 10 %}
-                                                        <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' data-allograph='{{graph.idiograph.allograph.id}}'class='droppable_image graph_img' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                                        <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' data-allograph='{{graph.idiograph.allograph.id}}'class='droppable_image graph_img' data-container='body' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image_id }}/?graph={{ graph.annotation.graph.id }}">
                                                             {% annotation_img graph.annotation lazy=1 %}
                                                         </a>
                                                     {% endif %}
@@ -144,7 +144,7 @@
                                 <tr class="{% cycle 'bgColour' '' %}">
                                     <td>
                                         {% for graph in hand.graphs_template %}
-                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' data-allograph='{{graph.idiograph.allograph.id}}'  class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?vector_id={{ graph.annotation.vector_id }}">
+                                            <a data-image-id='{{ graph.annotation.image.id }}' data-placement='bottom' data-container='body' data-type='annotation' data-graph="{{ graph.id }}" data-id='{[ graph.id }}' data-allograph='{{graph.idiograph.allograph.id}}'  class='droppable_image graph_img' data-toggle="tooltip" title="{{ graph.display_label }}" href="/digipal/page/{{ graph.annotation.image.id }}/?graph={{ graph.annotation.graph.id }}">
                                                 {% annotation_img graph.annotation lazy=1 %}
                                             </a>
                                         {% endfor %}

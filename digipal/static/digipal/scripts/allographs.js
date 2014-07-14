@@ -427,13 +427,18 @@ function Allographs(dialog, cache) {
 				var all_select = $('select');
 				all_select.trigger('liszt:updated');
 
-				this.get_features(annotation, function(s, string_summary) {
+				this.get_features(annotation, function(s, aspects_list, string_summary) {
 					var myModal = $('.myModal');
 					var select_allograph = $('.myModal .allograph_form');
 					var summary = $('#summary');
 					var features_container = $('#features_container');
+					var aspects_container = $('#dialog_aspects');
+					var notes_container = $('#dialog_notes');
 					summary.html(string_summary);
 					features_container.html(s);
+					aspects_container.html(aspects_list);
+
+					setNotes(annotation, notes_container);
 
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
@@ -555,6 +560,7 @@ function Allographs(dialog, cache) {
 				data['allographs'] = allographs_cache.allographs[allograph];
 				data['features'] = allographs_cache.graphs[graph]['features'];
 				data['allograph_id'] = allographs_cache.graphs[graph]['allograph_id'];
+				data['graph_id'] = graph;
 				data['hand_id'] = allographs_cache.graphs[graph]['hand_id'];
 				data['hands'] = allographs_cache.graphs[graph]['hands'];
 				load_annotations_allographs.refresh(data, image_id, callback);
@@ -565,10 +571,12 @@ function Allographs(dialog, cache) {
 		refresh: function(data, image_id, callback) {
 			var allograph_id = data.id;
 			var s = "<div id='box_features_container'>";
+
 			var string_summary = '';
 			var prefix = 'allographs_';
 			var array_features_owned = features_saved(data['features']);
 			var allographs = data['allographs'].components;
+			var aspects_list = load_aspects(data['allographs'].aspects, data['graph_id'], allographs_cache);
 			if (selectedAnnotations.annotations.length > 1) {
 				var selected = [];
 
@@ -647,13 +655,12 @@ function Allographs(dialog, cache) {
 					if (!n) {
 						string_summary += "<span class='feature_summary' data-feature = '0' data-component='" + component_id + "'>undefined</span>";
 					}
-
 				});
 			}
 
 
 			if (callback) {
-				callback(s, string_summary);
+				callback(s, aspects_list, string_summary);
 			}
 		}
 

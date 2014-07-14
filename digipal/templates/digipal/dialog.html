@@ -43,7 +43,15 @@
         </li>
 
         <li>
-          <a data-toggle="tab" data-target="#annotation-editor-tab" href='#'>Edit Annotation</a>
+          <a data-toggle="tab" data-target="#dialog_aspects" href='#'>Aspects</a>
+        </li>
+
+        <li>
+          <a data-toggle="tab" data-target="#dialog_notes" href='#'>Notes</a>
+        </li>
+
+        <li>
+          <a data-toggle="tab" data-target="#annotation-editor-tab" href='#'>Edit</a>
         </li>
       </ul>
 
@@ -60,6 +68,10 @@
               </form>
           </div>
 
+          <div class="tab tab-pane fade" id="dialog_aspects"></div>
+
+          <div class="tab tab-pane fade" id="dialog_notes"></div>
+
           <div id="annotation-editor-tab" class="tab tab-pane fade">
               <div id="annotation-editor-toolbar" class="panel panel-default">
                   <div class="row">
@@ -70,7 +82,7 @@
                           <div id="annotation-editor-rotation" class="slider" data-min="0" data-max="360"></div>
                       </div>
                   </div>
-                  
+
                   {% if edit_annotation_shape %}
                       <div class="row">
                           <div class="col-xs-3">
@@ -80,7 +92,7 @@
                               <div id="annotation-editor-right" class="slider" data-min="-40" data-max="40"></div>
                           </div>
                       </div>
-    
+
                       <div class="row">
                           <div class="col-xs-3">
                               <label for="annotation-editor-down" class="smaller">&#177; Y (<span>0</span> px)</label>
@@ -89,7 +101,7 @@
                               <div id="annotation-editor-down" class="slider" data-min="-40" data-max="40"></div>
                           </div>
                       </div>
-    
+
                       <div class="row">
                           <div class="col-xs-3">
                               <label for="annotation-editor-width" class="smaller">&#177; width (<span>0</span> px)</label>
@@ -98,7 +110,7 @@
                             <div id="annotation-editor-width" class="slider" data-min="-40" data-max="40"></div>
                           </div>
                       </div>
-                      
+
                       <div class="row">
                           <div class="col-xs-3">
                               <label for="annotation-editor-height" class="smaller">&#177; height (<span>0</span> px)</label>
@@ -108,7 +120,7 @@
                           </div>
                       </div>
                   {% endif %}
-                  
+
               </div>
               <div id="" class="col-xs-12">
                   <div id="annotation-editor-preview">

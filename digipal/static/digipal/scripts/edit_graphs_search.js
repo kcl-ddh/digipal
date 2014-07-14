@@ -144,8 +144,11 @@ function EditGraphsSearch() {
                 data = {};
                 data['allographs'] = cache.allographs[allograph];
                 data['features'] = cache.graphs[graph]['features'];
+                data['graph_id'] = graph;
                 data['allograph_id'] = cache.graphs[graph]['allograph_id'];
                 data['hand_id'] = cache.graphs[graph]['hand_id'];
+                data['internal_note'] = cache.graphs[graph]['internal_note'];
+                data['display_note'] = cache.graphs[graph]['display_note'];
                 data['hands'] = cache.graphs[graph]['hands'];
                 refresh(data, image_id);
             }
@@ -172,6 +175,9 @@ function EditGraphsSearch() {
                     data['allograph_id'] = allograph;
                     data['hand_id'] = cache.graphs[graph]['hand_id'];
                     data['hands'] = cache.graphs[graph]['hands'];
+                    data['graph_id'] = graph;
+                    data['internal_note'] = cache.graphs[graph]['internal_note'];
+                    data['display_note'] = cache.graphs[graph]['display_note'];
                     refresh(data, image_id);
                     detect_common_features(self.selectedAnnotations, checkboxes, cache);
                 } else {
@@ -182,6 +188,9 @@ function EditGraphsSearch() {
                         data['allograph_id'] = allograph;
                         data['hand_id'] = cache.graphs[graph]['hand_id'];
                         data['hands'] = cache.graphs[graph]['hands'];
+                        data['graph_id'] = graph;
+                        data['internal_note'] = cache.graphs[graph]['internal_note'];
+                        data['display_note'] = cache.graphs[graph]['display_note'];
                         refresh(data, image_id);
                         detect_common_features(self.selectedAnnotations, checkboxes, cache);
                     });
@@ -205,8 +214,11 @@ function EditGraphsSearch() {
     */
     var refresh = function(data, image_id) {
         var allographs = data;
+
+        var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
+
         if (self.selectedAnnotations.length > 1) {
-            allographs['allographs'] = common_components(self.selectedAnnotations, cache, allographs['allographs']);
+            allographs.allographs.components = common_components(self.selectedAnnotations, cache, allographs.allographs.components);
         }
 
         var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
@@ -223,6 +235,7 @@ function EditGraphsSearch() {
 
                     /* fill container content */
                     self.dialog.selector.find('#features_container').html(s);
+                    self.dialog.selector.find('#dialog_aspects').html(aspects_list);
 
                     /* showing dialog */
                     self.dialog.show();
@@ -233,6 +246,8 @@ function EditGraphsSearch() {
                     rewriteHands(select_hand, graph.hands);
                     detect_common_features(self.selectedAnnotations, checkboxes, cache);
                     common_allographs(self.selectedAnnotations, cache, graph);
+
+                    setNotes(data, self.dialog.selector.find('#dialog_notes'));
 
                     /* launching DOM events */
                     self.dialog.events_postLoading(self.dialog.selector);

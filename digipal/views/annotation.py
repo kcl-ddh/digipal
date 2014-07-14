@@ -35,8 +35,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     ''' General handler for API requests.
         if @callback=X in the query string a JSONP response is returned
     '''
-    mimetype = 'application/json'
-
     data = None
 
     # Support for JSONP responses
@@ -45,7 +43,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         if not re.match(ur'(?i)^\w+$', jsonpcallback):
             # invalid name format for the callback
             data = {'success': False, 'errors': ['Invalid JSONP callback name format.'], 'results': []}
-            import json
             data = json.dumps(data)
             jsonpcallback = None
 
@@ -55,10 +52,11 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         from digipal.api.generic import API
         data = API.process_request(request, content_type, ids)
 
-    # JSON -> JSONP
+    # convert from JSON to another format
+    format = request.REQUEST.get('@format', None)
     if jsonpcallback:
-        data = u';%s(%s);' % (jsonpcallback, data)
-        mimetype = 'text/javascript'
+        format = 'jsonp'
+    data, mimetype = API.convert_response(data, format, jsonpcallback)        
 
     return HttpResponse(data, mimetype=mimetype)
 

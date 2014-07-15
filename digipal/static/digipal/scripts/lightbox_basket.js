@@ -333,16 +333,18 @@ function sortCache() {
 	return sortedCache;
 }
 
-function sort(property, reverse) {
+function sort(property, reverse, type) {
 	property = parseInt(property, 10);
 	var copy_cache = $.extend({}, cache);
 	for (var i in copy_cache) {
-		copy_cache[i] = copy_cache[i].sort(function(x, y) {
-			return x[property] < y[property];
-		});
+		if (i == type) {
+			copy_cache[i] = copy_cache[i].sort(function(x, y) {
+				return x[property] < y[property];
+			});
 
-		if (!reverse) {
-			copy_cache[i] = copy_cache[i].reverse();
+			if (!reverse) {
+				copy_cache[i] = copy_cache[i].reverse();
+			}
 		}
 	}
 	var attrs = {
@@ -358,7 +360,7 @@ function display(data, attrs) {
 	var reverse = attrs.reverse;
 	var s = '';
 
-	if (data['annotations']) {
+	if (data['annotations'] && data.annotations.length) {
 
 		cache.annotations = data['annotations'];
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
@@ -406,9 +408,9 @@ function display(data, attrs) {
 
 	if (data.images && data.images.length) {
 		cache.images = data['images'];
-		s += "<h3 id ='header_images'>Images (" + collection.images.length + ")</h3>";
+		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
 		s += "<table id='table-images' class='table'>";
-		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th>Label</td><th>Hand</th>';
+		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
 		for (i = 0; i < data['images'].length; i++) {
 
 			var image = data['images'][i];
@@ -422,7 +424,7 @@ function display(data, attrs) {
 	if (data.editorial && data.editorial.length) {
 		s += "<h3 id ='header_images'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
-		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th>Page</th><th>Public Note</th>';
+		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '">Page</th><th>Public Note</th>';
 		cache.editorial = data['editorial'];
 
 		for (i = 0; i < data['editorial'].length; i++) {
@@ -497,7 +499,7 @@ function launchEvents() {
 	$('th[data-sort]').unbind().on('click', function() {
 		var reverse = !$(this).data('reverse');
 		$(this).data('reverse', reverse);
-		sort($(this).data('sort'), $(this).data('reverse'));
+		sort($(this).data('sort'), $(this).data('reverse'), $(this).closest('table').attr('id').split('-')[1]);
 	});
 
 	$('#remove_from_collection').on('click', function() {

@@ -2,9 +2,10 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
-{% block meta_title %}Hand: {{ result }}{% endblock %}
+{% block meta_title %}Hand: {{ result }}, {{ result.item_part }}{% endblock %}
 {% block record_title %}
-    Hand: {{ result }}
+    Hand: {{ result }},
+    <small><a href="{{ result.item_part.get_absolute_url }}"> {{ result.item_part }}</a></small>
     {% include "digipal/admin_edit.html" with instance=result %}
 {% endblock %}
 

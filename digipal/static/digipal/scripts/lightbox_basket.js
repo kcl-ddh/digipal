@@ -13,6 +13,9 @@ var cache = {
 	'images': []
 };
 
+var editorialCache = {};
+
+
 var sum_images_collection = function(basket) {
 	var n = 0;
 	if (basket.annotations) {
@@ -187,7 +190,6 @@ function main() {
 	header.find('.collection-title').html(collection_name);
 	$('#breadcrumb-current-collection').html(collection_name);
 	var length_basket = length_basket_elements(collection) || 0;
-	var editorialCache = {};
 	$('#delete-collection').attr('data-original-title', 'Delete ' + collection_name);
 	$('#share-collection').attr('data-original-title', 'Share ' + collection_name);
 	var url_request = '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/';
@@ -201,7 +203,11 @@ function main() {
 				'data': JSON.stringify(data)
 			},
 			success: function(data) {
-				display(data, isExternal);
+				var attrs = {
+					"isExternal": isExternal,
+					"reverse": true
+				};
+				display(data, attrs);
 			},
 
 			complete: function() {
@@ -327,20 +333,29 @@ function sortCache() {
 	return sortedCache;
 }
 
-function sort(property) {
+function sort(property, reverse) {
 	property = parseInt(property, 10);
 	var copy_cache = $.extend({}, cache);
 	for (var i in copy_cache) {
 		copy_cache[i] = copy_cache[i].sort(function(x, y) {
 			return x[property] < y[property];
-		}).reverse();
-	}
+		});
 
-	display(copy_cache, false);
+		if (!reverse) {
+			copy_cache[i] = copy_cache[i].reverse();
+		}
+	}
+	var attrs = {
+		"isExternal": false,
+		"reverse": reverse
+	};
+	display(copy_cache, attrs);
 }
 
-function display(data, isExternal) {
+function display(data, attrs) {
 	var container_basket = $('#container_basket');
+	var isExternal = attrs.isExternal;
+	var reverse = attrs.reverse;
 	var s = '';
 
 	if (data['annotations']) {
@@ -348,7 +363,7 @@ function display(data, isExternal) {
 		cache.annotations = data['annotations'];
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
 		s += "<table id='table-annotations' class='table'>";
-		s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th data-sort="14"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Manuscript</th><th data-sort="11"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Allograph</td><th data-sort="3"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th><th data-sort="4"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Scribe</th><th data-sort="5"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Place</th>';
+		s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Manuscript</th><th data-sort="11" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Allograph</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th><th data-sort="4" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Scribe</th><th data-sort="5" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Place</th>';
 		for (i = 0; i < data['annotations'].length; i++) {
 			var annotation = data['annotations'][i];
 			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
@@ -446,7 +461,7 @@ function display(data, isExternal) {
 
 function launchEvents() {
 	update_counter();
-	$('#check_images_all').on('change', function() {
+	$('#check_images_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-images').find('input[type="checkbox"]').prop('checked', true);
 			$('#table-images').find('.table-row').addClass('selected');
@@ -457,7 +472,7 @@ function launchEvents() {
 		update_counter();
 	});
 
-	$('#check_annotations_all').on('change', function() {
+	$('#check_annotations_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
 			$('#table-annotations').find('.table-row').addClass('selected');
@@ -468,7 +483,7 @@ function launchEvents() {
 		update_counter();
 	});
 
-	$('#check_editorial_all').on('change', function() {
+	$('#check_editorial_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-editorial').find('input[type="checkbox"]').prop('checked', true);
 			$('#table-editorial').find('.table-row').addClass('selected');
@@ -479,8 +494,10 @@ function launchEvents() {
 		update_counter();
 	});
 
-	$('th[data-sort]').on('click', function() {
-		sort($(this).data('sort'));
+	$('th[data-sort]').unbind().on('click', function() {
+		var reverse = !$(this).data('reverse');
+		$(this).data('reverse', reverse);
+		sort($(this).data('sort'), $(this).data('reverse'));
 	});
 
 	$('#remove_from_collection').on('click', function() {
@@ -508,7 +525,7 @@ function launchEvents() {
 			background.append(loading_div);
 			$('body').append(background);
 		}
-		$('#remove_images_from_collection').on('click', function() {
+		$('#remove_images_from_collection').unbind().on('click', function() {
 			$.each(graphs, function(index, value) {
 				graph = index;
 				type = value;
@@ -558,13 +575,13 @@ function launchEvents() {
 			changeNumbers();
 		});
 
-		$('#cancel').on('click', function() {
+		$('#cancel').unbind().on('click', function() {
 			background.fadeOut().remove();
 		});
 
 	});
 
-	$('#to_lightbox').on('click', function() {
+	$('#to_lightbox').unbind().on('click', function() {
 		var graphs = [],
 			images = [],
 			editorial_annotations = [],
@@ -611,7 +628,7 @@ function launchEvents() {
 		location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
 	});
 
-	$('tr.table-row').on('click', function(event) {
+	$('tr.table-row').unbind().on('click', function(event) {
 
 		var checkbox = $(this).find('.checkbox_image');
 
@@ -666,17 +683,17 @@ function launchEvents() {
 
 	makeSortable();
 
-	$('#close-alert').click(function() {
+	$('#close-alert').unbind().click(function() {
 		$('#alert-save-collection').fadeOut().remove();
 	});
 
-	$('#save-collection').click(function() {
+	$('#save-collection').unbind().click(function() {
 		save_collection(collection);
 		$('#alert-save-collection').fadeOut().remove();
 		notify('Collection successfully saved', 'success');
 	});
 
-	$('.read-more').on('click', function(event) {
+	$('.read-more').unbind().on('click', function(event) {
 
 		if ($('.dialog-background').length) {
 			$('.dialog-background').remove();

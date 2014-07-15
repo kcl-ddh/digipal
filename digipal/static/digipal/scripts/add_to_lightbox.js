@@ -82,7 +82,7 @@ function update_collection_counter() {
 
 	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
-
+	basket_element.attr('title', current_collection['name']);
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {

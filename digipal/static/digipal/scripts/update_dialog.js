@@ -559,10 +559,10 @@ function load_aspects(aspects, graph, cache) {
 
 function setNotes(selectedFeature, dialog) {
 	var display_note = $('<div>');
-	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('feature_containers form-control');
+	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('form-control');
 
 	var internal_note = $('<div>');
-	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('feature_containers form-control');
+	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('form-control');
 
 	display_note.notebook().html(selectedFeature.display_note);
 

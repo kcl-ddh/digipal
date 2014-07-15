@@ -2721,6 +2721,7 @@ function CollectionFromImage(button) {
 	var label = button.data('label');
 	var id = Math.random().toString(36).substring(7);
 	var collections = JSON.parse(localStorage.getItem('collections'));
+
 	var collection = {
 		"id": id,
 		'editorial': [],
@@ -2739,7 +2740,12 @@ function CollectionFromImage(button) {
 
 	collections[label] = collection;
 	localStorage.setItem('collections', JSON.stringify(collections));
+	localStorage.setItem('selectedCollection', id);
 	notify("<a style='color:#468847;' href='/digipal/collection/" + label + "'>Collection succesfully created</a>", "success");
+	update_collection_counter();
+	$(window).bind('storage', function(e) {
+		update_collection_counter();
+	});
 }
 
 /**

@@ -410,7 +410,7 @@ function display(data, attrs) {
 		cache.images = data['images'];
 		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
 		s += "<table id='table-images' class='table'>";
-		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
+		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Label</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th>';
 		for (i = 0; i < data['images'].length; i++) {
 
 			var image = data['images'][i];
@@ -424,7 +424,7 @@ function display(data, attrs) {
 	if (data.editorial && data.editorial.length) {
 		s += "<h3 id ='header_images'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
-		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '">Page</th><th>Public Note</th>';
+		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Page</th><th>Public Note</th>';
 		cache.editorial = data['editorial'];
 
 		for (i = 0; i < data['editorial'].length; i++) {

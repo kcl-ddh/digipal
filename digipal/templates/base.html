@@ -7,11 +7,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
         <meta name="keywords" content="{% block meta_keywords %}{% endblock %}"/>
         <meta name="description" content="{% block meta_description %}{% endblock %}"/>
-        
+
         {% if nofollow %}
             <meta name="robots" content="nofollow" />
         {% endif %}
-        
+
         <title>
             {% block meta_title %}{% endblock %}
             {% block meta_title_site %}
@@ -45,6 +45,8 @@
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dptei.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpjqui.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpscrollbar.css"/>
+                <link rel="stylesheet" href="{{ STATIC_URL }}digipal/styles/print.css" media="print">
+
         {% endcompress %}
 
         {# leave this out of the compress block as we can't compress files served remotely #}

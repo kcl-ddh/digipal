@@ -31,11 +31,10 @@
         <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="image_to_lightbox" title='Add image to Collection' data-type='image' data-id='{{ image.id }}' data-add-star = 'false'>
             <i class="glyphicon glyphicon-star unstarred"></i>
         </button>
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="collection_from_image" title='Create a new Collection from this page' data-id='{{ image.id }}' data-label="{{ image.display_label|slugify }}">
+            <i class="glyphicon glyphicon-star unstarred"></i> <i class="glyphicon glyphicon-plus"></i>
+        </button>
     </div>
-
-    <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="collection_from_image" title='Create a new Collection from this image' data-id='{{ image.id }}' data-label="{{ image.display_label }}">
-            New Collection
-    </button>
 
     <form name='frmAnnotation' method="get" class='frmAnnotation pull-right hidden-xs'>
         <div id='form_annotation_hand'>

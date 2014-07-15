@@ -349,13 +349,13 @@
     width:auto;
 }
 
-#id_internal_note, #id_display_note {
+.jquery-notebook {
     width: 270px;
     height: 120px;
     margin: 2%;
-    -webkit-column-count: 1;
-    -moz-column-count: 1;
-    column-count: 1;
+    -webkit-column-count: none;
+    -moz-column-count: none;
+    column-count: none;
 }
 
 label[for=id_internal_note], label[for=id_display_note]{
@@ -719,4 +719,13 @@ path {
 #box_features_container .nav-tabs a{
     cursor: pointer;
     font-size: 12px;
+}
+
+th[data-sort] {
+    cursor: pointer;
+    color:#a1514d;
+}
+
+th[data-sort]:hover{
+    text-decoration: underline;
 }

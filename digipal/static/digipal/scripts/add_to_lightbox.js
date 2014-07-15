@@ -291,4 +291,7 @@ function notify(msg, status) {
 
 $(document).ready(function() {
 	update_collection_counter();
+	$(window).bind('storage', function(e) {
+		update_collection_counter();
+	});
 });

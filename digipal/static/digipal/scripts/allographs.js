@@ -251,6 +251,7 @@ function Allographs(dialog, cache) {
 		},
 
 		to_annotator: function(annotation_graph_id) {
+			annotator.vectorLayer.map.zoomToMaxExtent();
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
 			$('html, body').animate({

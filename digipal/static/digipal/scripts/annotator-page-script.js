@@ -182,6 +182,12 @@ function AnnotatorLoader() {
 			self.multiple_annotations($(this).is(':checked'));
 		});
 
+
+		var collection_from_image = $('#collection_from_image');
+		collection_from_image.on('click', function() {
+			CollectionFromImage($(this));
+		});
+
 		var show_editorial_annotations = $('#show_editorial_annotations');
 		show_editorial_annotations.on('change', function() {
 			var features = annotator.vectorLayer.features;
@@ -882,7 +888,7 @@ function AnnotatorLoader() {
 	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
 
-		if (feature.feature.geometry.getLength() < 50 || annotator.vectorLayer.map.zoom <= 2) {
+		if (feature.feature.geometry.getLength() < 50) {
 			annotator.rectangleFeature.cancel();
 			feature.feature.destroy();
 			$('circle').remove();

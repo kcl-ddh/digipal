@@ -33,18 +33,21 @@
         </button>
     </div>
 
+    <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="collection_from_image" title='Create a new Collection from this image' data-id='{{ image.id }}' data-label="{{ image.display_label }}">
+            New Collection
+    </button>
 
-        <form name='frmAnnotation' method="get" class='frmAnnotation pull-right hidden-xs'>
-            <div id='form_annotation_hand'>
-                <ul class='ul_inline_form'>
-                    {{ form }}
-                </ul>
-                <span data-toggle="tooltip" class='btn btn-small btn-default btn-sm number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
-                    <i class='fa fa-eye'></i>
-                    <span class='number-allographs'></span>
-                </span>
-            </div>
-        </form>
+    <form name='frmAnnotation' method="get" class='frmAnnotation pull-right hidden-xs'>
+        <div id='form_annotation_hand'>
+            <ul class='ul_inline_form'>
+                {{ form }}
+            </ul>
+            <span data-toggle="tooltip" class='btn btn-small btn-default btn-sm number_annotated_allographs' data-feature='' title='Show all the images of this allograph'>
+                <i class='fa fa-eye'></i>
+                <span class='number-allographs'></span>
+            </span>
+        </div>
+    </form>
 
 
 </div> {% comment %}DIV panelImageBox{% endcomment %}

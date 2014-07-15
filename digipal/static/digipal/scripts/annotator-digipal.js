@@ -2716,6 +2716,32 @@ function trigger_highlight_unsaved_vectors() {
 	});
 }
 
+function CollectionFromImage(button) {
+	var id = button.attr('id');
+	var label = button.data('label');
+	var id = Math.random().toString(36).substring(7);
+	var collections = JSON.parse(localStorage.getItem('collections'));
+	var collection = {
+		"id": id,
+		'editorial': [],
+		'annotations': []
+	};
+
+	var features = annotator.vectorLayer.features;
+
+	for (var i = 0; i < features.length; i++) {
+		if (features[i].stored && features[i].is_editorial) {
+			collection.editorial.push(features[i].id);
+		} else if (features[i].stored && features[i].graph) {
+			collection.annotations.push(parseInt(features[i].graph, 10));
+		}
+	}
+
+	collections[label] = collection;
+	localStorage.setItem('collections', JSON.stringify(collections));
+	notify("<a style='color:#468847;' href='/digipal/collection/" + label + "'>Collection succesfully created</a>", "success");
+}
+
 /**
  * Displays an alert for each error in the Ajax response (json).
  * Returns true only if data is invalid (contains error or empty).

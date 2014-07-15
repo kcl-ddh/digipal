@@ -466,10 +466,10 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
 	for (var component in allograph) {
-		if (allograph[component].default.length) {
+		if (allograph.components[component].hasOwnProperty('default') && allograph.components[component].default.length) {
 			for (var i = 0; i < allograph[component].default.length; i++) {
-				var default_feature = allograph[component].
-				default[i].component + '::' + allograph[component].
+				var default_feature = allograph.components[component].
+				default[i].component + '::' + allograph.components[component].
 				default[i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {

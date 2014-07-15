@@ -494,4 +494,9 @@ function Collections() {
 $(document).ready(function() {
 	var collections = new Collections();
 	collections.init();
+
+	$(window).bind('storage', function(e) {
+		$("#container_collections").html("");
+		collections.init();
+	});
 });

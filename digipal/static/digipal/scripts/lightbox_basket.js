@@ -561,6 +561,8 @@ function displayGrid(data, attrs) {
 		}
 	});
 
+	$('.grid-images').sortable();
+
 	update();
 }
 

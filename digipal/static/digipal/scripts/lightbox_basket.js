@@ -5,6 +5,8 @@
 			"X-CSRFToken": csrftoken
 		}
 	});
+
+	$('#sort-select').bootstrapSelect();
 })();
 
 var cache = {
@@ -14,7 +16,6 @@ var cache = {
 };
 
 var editorialCache = {};
-
 
 var sum_images_collection = function(basket) {
 	var n = 0;
@@ -208,7 +209,11 @@ function main() {
 					"reverse": true
 				};
 				displayTable(data, attrs);
-				displayGrid(data);
+
+
+				displayGrid(data, {
+					'sorting': 11
+				});
 
 			},
 
@@ -469,7 +474,7 @@ function displayGrid(data, attrs) {
 	var s = '';
 
 	data.annotations = data.annotations.sort(function(x, y) {
-		return x[11] < y[11];
+		return x[attrs.sorting] < y[attrs.sorting];
 	}).reverse();
 
 	s += "<div id='manuscripts-index'>";
@@ -483,14 +488,14 @@ function displayGrid(data, attrs) {
 	s += "<div id='annotations-grid'>";
 	for (var i = 0; i < data.annotations.length; i++) {
 
-		if (!i || (data.annotations[i][11] !== data.annotations[i - 1][11])) {
-			s += "<h3>" + data.annotations[i][11] + "</h3>";
+		if (!i || (data.annotations[i][attrs.sorting] !== data.annotations[i - 1][attrs.sorting])) {
+			s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
 			s += "<div class='grid-images'>";
 		}
 
 		s += "<div class='grid-image'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
 
-		if (!data.annotations[i + 1] || (data.annotations[i][11] !== data.annotations[i + 1][11])) {
+		if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
 			s += "</div>";
 		}
 	}
@@ -809,6 +814,22 @@ function launchEvents() {
 }
 
 $(document).ready(function() {
+
+	$('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+		if (e.target.getAttribute('data-target') == "#table") {
+			$('#select-sort-select').attr('disabled', true);
+		} else {
+			$('#select-sort-select').attr('disabled', false);
+		}
+	});
+	$('#select-sort-select').attr('disabled', true);
+	$('#sort-select').attr('disabled', true).on('change', function() {
+		displayGrid(cache, {
+			'sorting': $(this).val()
+		});
+		console.log($(this).val());
+	});
+
 	main();
 
 	$(window).bind('storage', function(e) {

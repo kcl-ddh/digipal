@@ -479,7 +479,7 @@ class TextItemPartInline(admin.StackedInline):
 class AllographAdmin(reversion.VersionAdmin):
     model = Allograph
 
-    search_fields = ['name', 'character']
+    search_fields = ['name', 'character__name']
 
     list_display = ['name', 'character', 'created', 'modified']
     list_display_links = list_display

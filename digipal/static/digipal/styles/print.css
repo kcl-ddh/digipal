@@ -1,10 +1,14 @@
-.navbar, #navQuickSearch, .page-header, button, input, footer, h3, .glyphicon, .num_row,
+.navbar, #navQuickSearch, .page-header, button, input, footer, h3, h2, .glyphicon, .num_row,
  #counter-annotations, #counter-images, #counter-editorial, .nav, .fa, #switcher {
     display: none !important;
 }
 
 a[href]:after {
    content: none !important;
+}
+
+.panel {
+    border:none;
 }
 
 #grid h3 {

@@ -6,7 +6,9 @@
 		}
 	});
 
-	$('#sort-select').bootstrapSelect();
+	$('#sort-select').bootstrapSelect({
+		label: "Sort By"
+	});
 })();
 
 var cache = {
@@ -511,14 +513,14 @@ function displayGrid(data, attrs) {
 		s += "<h2>Images (" + data.images.length + ")</h2>";
 		for (var i = 0; i < data.images.length; i++) {
 
-			if (!i || (data.images[i][1] !== data.images[i - 1][1])) {
-				s += "<h3>" + data.images[i][1] + "</h3>";
+			if (!i || (data.images[i][2] !== data.images[i - 1][2])) {
+				s += "<h3>" + data.images[i][2] + "</h3>";
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.images[i][14]] + "</span>" + data.images[i][0] + "</div>";
+			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
-			if (!data.images[i + 1] || (data.images[i][attrs.sorting] !== data.images[i + 1][attrs.sorting])) {
+			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2])) {
 				s += "</div>";
 			}
 		}

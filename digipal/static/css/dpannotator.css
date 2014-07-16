@@ -774,6 +774,11 @@ th[data-sort]:hover{
     padding-bottom: 2em;
 }
 
+.grid-image img:hover{
+    box-shadow: 0px 0px 3px 1px yellow;
+    cursor:pointer;
+}
+
 .grid-images:last-child{
     border-bottom-color: transparent;
 }
@@ -799,6 +804,7 @@ th[data-sort]:hover{
 .buttons-toolbar .dropdown .dropdown-menu{
     top: 160%;
 }
+
 #select-sort-select{
     font-size: 12px;
 }

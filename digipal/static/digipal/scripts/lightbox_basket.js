@@ -15,6 +15,8 @@ var cache = {
 	'images': []
 };
 
+var selectedItems = [];
+
 var editorialCache = {};
 
 var sum_images_collection = function(basket) {
@@ -451,10 +453,10 @@ function displayTable(data, attrs) {
 
 	container_basket.html(s);
 
+	update();
+
 	launchEvents();
-
 }
-
 
 function groupManuscripts(annotations) {
 	var manuscripts = {};
@@ -485,23 +487,79 @@ function displayGrid(data, attrs) {
 	}
 	s += "</div>";
 
-	s += "<div id='annotations-grid'>";
-	for (var i = 0; i < data.annotations.length; i++) {
+	if (data.annotations && data.annotations.length) {
+		s += "<div id='annotations-grid' class='panel'>";
+		s += "<h2>Graphs (" + data.annotations.length + ")</h2>";
+		for (var i = 0; i < data.annotations.length; i++) {
 
-		if (!i || (data.annotations[i][attrs.sorting] !== data.annotations[i - 1][attrs.sorting])) {
-			s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
-			s += "<div class='grid-images'>";
+			if (!i || (data.annotations[i][attrs.sorting] !== data.annotations[i - 1][attrs.sorting])) {
+				s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
+				s += "<div class='grid-images'>";
+			}
+
+			s += "<div class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
+
+			if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
+				s += "</div>";
+			}
 		}
-
-		s += "<div class='grid-image'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
-
-		if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
-			s += "</div>";
-		}
+		s += "</div>";
 	}
-	s += "</div>";
+
+	if (data.images && data.images.length) {
+		s += "<div id='images-grid' class='panel'>";
+		s += "<h2>Images (" + data.images.length + ")</h2>";
+		for (var i = 0; i < data.images.length; i++) {
+
+			if (!i || (data.images[i][1] !== data.images[i - 1][1])) {
+				s += "<h3>" + data.images[i][1] + "</h3>";
+				s += "<div class='grid-images'>";
+			}
+
+			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.images[i][14]] + "</span>" + data.images[i][0] + "</div>";
+
+			if (!data.images[i + 1] || (data.images[i][attrs.sorting] !== data.images[i + 1][attrs.sorting])) {
+				s += "</div>";
+			}
+		}
+		s += "</div>";
+	}
+
+	if (data.editorial && data.editorial.length) {
+		s += "<div id='editorial-grid' class='panel'>";
+		s += "<h2>Editorial Annotations (" + data.editorial.length + ")</h2>";
+		for (var i = 0; i < data.editorial.length; i++) {
+
+			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3])) {
+				s += "<h3>" + data.editorial[i][3] + "</h3>";
+				s += "<div class='grid-images'>";
+			}
+
+			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'><span class='manuscript-number'>" + manuscripts[data.editorial[i][3]] + "</span>" + data.editorial[i][0] + "</div>";
+
+			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3])) {
+				s += "</div>";
+			}
+		}
+		s += "</div>";
+	}
 
 	container.html(s);
+
+	$('.grid-image').on('click', function() {
+		var graph = $(this).data('graph');
+		if ($(this).find('img').hasClass('selected') && selectedItems.indexOf(graph) >= 0) {
+			selectedItems.splice(selectedItems.indexOf(graph), 1);
+			$(this).find('img').removeClass('selected');
+		} else {
+			if (selectedItems.indexOf(graph) < 0) {
+				selectedItems.push(graph);
+			}
+			$(this).find('img').addClass('selected');
+		}
+	});
+
+	update();
 }
 
 function launchEvents() {
@@ -509,10 +567,14 @@ function launchEvents() {
 	$('#check_images_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-images').find('input[type="checkbox"]').prop('checked', true);
-			$('#table-images').find('.table-row').addClass('selected');
+			$('#table-images').find('.table-row').addClass('selected').each(function() {
+				selectedItems.push($(this).data('graph'));
+			});
 		} else {
 			$('#table-images').find('input[type="checkbox"]').prop('checked', false);
-			$('#table-images').find('.table-row').removeClass('selected');
+			$('#table-images').find('.table-row').removeClass('selected').each(function() {
+				selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
+			});
 		}
 		update_counter();
 	});
@@ -520,21 +582,29 @@ function launchEvents() {
 	$('#check_annotations_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
-			$('#table-annotations').find('.table-row').addClass('selected');
+			$('#table-annotations').find('.table-row').addClass('selected').each(function() {
+				selectedItems.push($(this).data('graph'));
+			});
 		} else {
 			$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
-			$('#table-annotations').find('.table-row').removeClass('selected');
+			$('#table-annotations').find('.table-row').removeClass('selected').each(function() {
+				selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
+			});
+			update_counter();
 		}
-		update_counter();
 	});
 
 	$('#check_editorial_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-editorial').find('input[type="checkbox"]').prop('checked', true);
-			$('#table-editorial').find('.table-row').addClass('selected');
+			$('#table-editorial').find('.table-row').addClass('selected').each(function() {
+				selectedItems.push($(this).data('graph'));
+			});
 		} else {
 			$('#table-editorial').find('input[type="checkbox"]').prop('checked', false);
-			$('#table-editorial').find('.table-row').removeClass('selected');
+			$('#table-editorial').find('.table-row').removeClass('selected').each(function() {
+				selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
+			});
 		}
 		update_counter();
 	});
@@ -677,12 +747,16 @@ function launchEvents() {
 
 		var checkbox = $(this).find('.checkbox_image');
 
-		if ($(this).hasClass('selected')) {
+		if ($(this).hasClass('selected') && selectedItems.indexOf($(this).data('graph')) >= 0) {
 			$(this).removeClass('selected');
 			checkbox.prop('checked', false);
+			selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
 		} else {
 			$(this).addClass('selected');
 			checkbox.prop('checked', true);
+			if (selectedItems.indexOf($(this).data('graph')) < 0) {
+				selectedItems.push($(this).data('graph'));
+			}
 		}
 		update_counter();
 		event.stopPropagation();
@@ -810,6 +884,8 @@ function launchEvents() {
 		event.stopPropagation();
 	});
 
+	update();
+
 	$('[data-toggle="tooltip"]').tooltip();
 }
 
@@ -821,13 +897,13 @@ $(document).ready(function() {
 		} else {
 			$('#select-sort-select').attr('disabled', false);
 		}
+		update();
 	});
 	$('#select-sort-select').attr('disabled', true);
 	$('#sort-select').attr('disabled', true).on('change', function() {
 		displayGrid(cache, {
 			'sorting': $(this).val()
 		});
-		console.log($(this).val());
 	});
 
 	main();
@@ -838,3 +914,28 @@ $(document).ready(function() {
 		update_collection_counter();
 	});
 });
+
+
+function update() {
+	$("tr[data-graph]").each(function() {
+		var graph = $(this).data('graph');
+		if (selectedItems.indexOf(graph) >= 0) {
+			$(this).addClass('selected');
+			$(this).find('.checkbox_image').prop('checked', true);
+		} else {
+			$(this).removeClass('selected');
+			$(this).find('.checkbox_image').prop('checked', false);
+		}
+	});
+
+	$(".grid-image").each(function() {
+		var graph = $(this).data('graph');
+		if (selectedItems.indexOf(graph) >= 0) {
+			$(this).find('img').addClass('selected');
+		} else {
+			$(this).find('img').removeClass('selected');
+		}
+	});
+
+	update_counter();
+}

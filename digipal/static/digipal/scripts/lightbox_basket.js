@@ -207,7 +207,9 @@ function main() {
 					"isExternal": isExternal,
 					"reverse": true
 				};
-				display(data, attrs);
+				displayTable(data, attrs);
+				displayGrid(data);
+
 			},
 
 			complete: function() {
@@ -215,6 +217,15 @@ function main() {
 				if (loading_div.length) {
 					loading_div.fadeOut().remove();
 				}
+				$('#close-alert').unbind().click(function() {
+					$('#alert-save-collection').fadeOut().remove();
+				});
+
+				$('#save-collection').unbind().click(function() {
+					save_collection(collection);
+					$('#alert-save-collection').fadeOut().remove();
+					notify('Collection successfully saved', 'success');
+				});
 			},
 
 			error: function() {
@@ -308,30 +319,8 @@ function main() {
 	$('#delete-collection').on('click', function() {
 		delete_collections([collection['id']], false, true);
 	});
-
 }
 
-function sortCache() {
-	var selectedGraphs = $(".checkbox_image:checked");
-	var sortedCache = {};
-	var annotations = [];
-	selectedGraphs.each(function(x, y) {
-		annotations.push($(y).data('graph'));
-	});
-
-	for (var i in cache) {
-		sortedCache[i] = cache[i].filter(function(x) {
-			return annotations.indexOf(x.id) >= 0;
-		}).sort(function(x, y) {
-			return (x.manuscript < y.manuscript);
-		});
-	}
-
-	sortedCache.annotations.sort(function(x, y) {
-		return (x.allograph < y.allograph) && (x.manuscript < y.manuscript);
-	}).reverse();
-	return sortedCache;
-}
 
 function sort(property, reverse, type) {
 	property = parseInt(property, 10);
@@ -351,10 +340,10 @@ function sort(property, reverse, type) {
 		"isExternal": false,
 		"reverse": reverse
 	};
-	display(copy_cache, attrs);
+	displayTable(copy_cache, attrs);
 }
 
-function display(data, attrs) {
+function displayTable(data, attrs) {
 	var container_basket = $('#container_basket');
 	var isExternal = attrs.isExternal;
 	var reverse = attrs.reverse;
@@ -459,6 +448,55 @@ function display(data, attrs) {
 
 	launchEvents();
 
+}
+
+
+function groupManuscripts(annotations) {
+	var manuscripts = {};
+	var n = 0;
+	for (var i = 0; i < annotations.length; i++) {
+		if (!manuscripts[annotations[i][14]]) {
+			n++;
+			manuscripts[annotations[i][14]] = n;
+		}
+	}
+	return manuscripts;
+}
+
+function displayGrid(data, attrs) {
+	var manuscripts = groupManuscripts(data.annotations);
+	var container = $('#grid');
+	var s = '';
+
+	data.annotations = data.annotations.sort(function(x, y) {
+		return x[11] < y[11];
+	}).reverse();
+
+	s += "<div id='manuscripts-index'>";
+	if (data.annotations && data.annotations.length) {
+		for (var manuscript in manuscripts) {
+			s += "<p class='manuscript-index'>" + manuscripts[manuscript] + ") " + manuscript + "</p>";
+		}
+	}
+	s += "</div>";
+
+	s += "<div id='annotations-grid'>";
+	for (var i = 0; i < data.annotations.length; i++) {
+
+		if (!i || (data.annotations[i][11] !== data.annotations[i - 1][11])) {
+			s += "<h3>" + data.annotations[i][11] + "</h3>";
+			s += "<div class='grid-images'>";
+		}
+
+		s += "<div class='grid-image'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
+
+		if (!data.annotations[i + 1] || (data.annotations[i][11] !== data.annotations[i + 1][11])) {
+			s += "</div>";
+		}
+	}
+	s += "</div>";
+
+	container.html(s);
 }
 
 function launchEvents() {
@@ -685,15 +723,7 @@ function launchEvents() {
 
 	makeSortable();
 
-	$('#close-alert').unbind().click(function() {
-		$('#alert-save-collection').fadeOut().remove();
-	});
 
-	$('#save-collection').unbind().click(function() {
-		save_collection(collection);
-		$('#alert-save-collection').fadeOut().remove();
-		notify('Collection successfully saved', 'success');
-	});
 
 	$('.read-more').unbind().on('click', function(event) {
 

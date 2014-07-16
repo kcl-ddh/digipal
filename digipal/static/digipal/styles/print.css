@@ -6,3 +6,7 @@
 a[href]:after {
    content: none !important;
 }
+
+#grid h3 {
+    display: block !important;
+}

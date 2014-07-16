@@ -729,3 +729,49 @@ th[data-sort] {
 th[data-sort]:hover{
     text-decoration: underline;
 }
+
+.grid-image{
+    display: inline;
+    margin-right: 1em;
+    text-align: center;
+}
+
+.grid-image:first-child{
+    margin-right: 0;
+}
+
+.grid-image .manuscript-number{
+    font-size: 10px;
+}
+
+.manuscript-index {
+    line-height: 1.5;
+    font-size: 12px;
+    margin: 0;
+}
+
+.manuscript-number{
+    font-size: 10px;
+    position: relative;
+    bottom: 2.5em;
+    left:1em;
+    margin: 1em;
+}
+
+#manuscripts-index{
+    -moz-column-count: 2;
+    -webkit-column-count: 2;
+    column-count: 2;
+}
+
+#annotations-grid{
+    margin-top:1em;
+}
+
+.grid-images{
+    margin-bottom:1.5em;
+}
+
+#annotations-grid h3 {
+    margin-bottom: 1em;
+}

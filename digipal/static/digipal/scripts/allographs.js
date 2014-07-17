@@ -88,7 +88,7 @@ function Allographs(dialog, cache) {
 		to_lightbox.click(function(event) {
 			var annotations = [];
 			for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
-				methods.to_lightbox($(this), selectedAnnotations.annotations[i].graph, false);
+				methods.to_lightbox($(this), parseInt(selectedAnnotations.annotations[i].graph, 10), false);
 			}
 		});
 

@@ -11,11 +11,7 @@
 	});
 })();
 
-var cache = {
-	'annotations': [],
-	'editorial': [],
-	'images': []
-};
+var cache = {};
 
 var selectedItems = [];
 
@@ -364,7 +360,7 @@ function displayTable(data, attrs) {
 	var s = '';
 
 	if (data.annotations && data.annotations.length) {
-		if (!cache.annotations.length) {
+		if (!cache.annotations) {
 			cache.annotations = data.annotations;
 		}
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
@@ -411,7 +407,7 @@ function displayTable(data, attrs) {
 	s += "</table>";
 
 	if (data.images && data.images.length) {
-		if (!cache.images.length) {
+		if (!cache.images) {
 			cache.images = data.images;
 		}
 		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
@@ -431,7 +427,7 @@ function displayTable(data, attrs) {
 		s += "<h3 id='header_editorial'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
 		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Page</th><th>Public Note</th>';
-		if (!cache.editorial.length) {
+		if (!cache.editorial) {
 			cache.editorial = data.editorial;
 		}
 

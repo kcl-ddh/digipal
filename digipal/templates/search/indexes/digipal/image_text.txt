@@ -1,0 +1,4 @@
+{{ object.display_label }}
+{% for desc in object.item_part.historical_item.description_set.all %}
+	{{ desc.description|striptags }}
+{% endfor %}

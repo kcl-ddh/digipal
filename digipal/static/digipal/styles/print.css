@@ -14,3 +14,7 @@ a[href]:after {
 #grid h3 {
     display: block !important;
 }
+
+#manuscripts-index, .manuscript-number{
+    display: inline-block;
+}

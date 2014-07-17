@@ -736,10 +736,6 @@ th[data-sort]:hover{
     text-align: center;
 }
 
-.grid-image:first-child{
-    margin-right: 0;
-}
-
 .grid-image .manuscript-number{
     font-size: 10px;
 }
@@ -807,4 +803,8 @@ th[data-sort]:hover{
 
 #select-sort-select{
     font-size: 12px;
+}
+
+#manuscripts-index, .manuscript-number{
+    display:none;
 }

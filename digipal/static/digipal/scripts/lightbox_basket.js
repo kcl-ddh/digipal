@@ -96,7 +96,7 @@ function update_counter() {
 		check_editorial_all.prop('indeterminate', true);
 	}
 
-	if (!images && !annotations && !editorial) {
+	if (!selectedItems.length) {
 		$('#remove_from_collection').attr('disabled', true);
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
@@ -559,10 +559,11 @@ function displayGrid(data, attrs) {
 			}
 			$(this).find('img').addClass('selected');
 		}
+		update_counter();
 	});
 
 	$('.grid-images').sortable();
-
+	update_counter();
 	update();
 }
 
@@ -622,65 +623,44 @@ function launchEvents() {
 	$('#remove_from_collection').on('click', function() {
 
 		var basket;
+		var selectedCollection = localStorage.getItem('selectedCollection');
+		var collections = JSON.parse(localStorage.getItem('collections'));
 		$.each(collections, function(index, value) {
 			if (value.id == selectedCollection) {
 				basket = value;
-				basket['name'] = index;
+				basket.name = index;
+				basket.id = value.id;
 			}
 		});
-
-		var graph, type;
-		var element;
-		var selectedannotations = selectedAnnotations();
-		var graphs = selectedannotations.graphs;
-		var graphs_number = selectedannotations.graphs_number;
 
 		if (!$(".loading-div").length) {
 			var loading_div = $("<div class='loading-div'>");
 			var background = $("<div class='dialog-background'>");
 			loading_div.html('<h2>Removing images</h2>');
-			loading_div.append("<p>You are about to remove " + graphs_number + " images. Continue?");
+			loading_div.append("<p>You are about to remove " + selectedItems.length + " images. Continue?");
 			loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
 			background.append(loading_div);
 			$('body').append(background);
 		}
-		$('#remove_images_from_collection').unbind().on('click', function() {
-			$.each(graphs, function(index, value) {
-				graph = index;
-				type = value;
-				if (type == 'annotation') {
-					if (basket.annotations && basket.annotations.length) {
-						for (i = 0; i < basket.annotations.length; i++) {
-							element = basket.annotations[i];
-							var element_graph;
-							if (element.hasOwnProperty('graph')) {
-								element_graph = element.graph;
-							} else {
-								element_graph = element;
-							}
-							if (graph == element_graph) {
-								basket.annotations.splice(i, 1);
-								break;
-							}
-						}
-					}
-					$('#header_annotations').html("Annotations (" + basket.annotations.length + ")");
-				} else {
-					if (basket.images && basket.images.length) {
-						for (i = 0; i < basket.images.length; i++) {
-							image_id = basket.images[i];
-							if (graph == image_id) {
-								basket.images.splice(i, 1);
-								break;
-							}
-						}
-					}
-					$('#header_images').html("Images (" + basket.images.length + ")");
-				}
 
-				$('tr[data-graph="' + graph + '"]').fadeOut().remove();
-				update_counter();
-			});
+		$('#remove_images_from_collection').unbind().on('click', function() {
+			for (var j = 0; j < selectedItems.length; j++) {
+				for (var i in basket) {
+					if (basket[i] instanceof Array) {
+						if (i == "editorial") {
+							selectedItems[j] = selectedItems[j].toString();
+						}
+						if (basket[i].indexOf(selectedItems[j]) >= 0) {
+							basket[i].splice(basket[i].indexOf(selectedItems[j]), 1);
+							$('[data-graph="' + selectedItems[j] + '"]').fadeOut().remove();
+							selectedItems.splice(j, 1);
+							j--;
+						}
+					}
+				}
+			}
+
+			update_counter();
 
 			if (!sum_images_collection(basket)) {
 				var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';

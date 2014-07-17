@@ -105,9 +105,9 @@ function update_counter() {
 	}
 
 
-	$("#header_annotations").add($("#annotations-grid h2")).html($('#table-annotations').find('tr[data-graph]').length);
-	$("#header_editorial").add($("#editorial-grid h2")).html($('#table-editorial').find('tr[data-graph]').length);
-	$("#header_images").add($("#images-grid h2")).html($('#table-images').find('tr[data-graph]').length);
+	$("#header_annotations").add($("#annotations-grid h2")).html("Graphs (" + $('#table-annotations').find('tr[data-graph]').length + ")");
+	$("#header_editorial").add($("#editorial-grid h2")).html("Editorial Annotations (" + $('#table-editorial').find('tr[data-graph]').length + ")");
+	$("#header_images").add($("#images-grid h2")).html("Images (" + $('#table-images').find('tr[data-graph]').length + ")");
 
 }
 
@@ -337,25 +337,23 @@ function main() {
 	});
 }
 
-
 function sort(property, reverse, type) {
 	property = parseInt(property, 10);
 	var copy_cache = $.extend({}, cache);
-	for (var i in copy_cache) {
-		if (i == type) {
-			copy_cache[i] = copy_cache[i].sort(function(x, y) {
-				return x[property] < y[property];
-			});
 
-			if (!reverse) {
-				copy_cache[i] = copy_cache[i].reverse();
-			}
-		}
+	copy_cache[type].sort(function(x, y) {
+		return x[property] == y[property] ? 0 : (x[property] < y[property] ? -1 : 1);
+	});
+
+	if (reverse) {
+		copy_cache[type].reverse();
 	}
+
 	var attrs = {
 		"isExternal": false,
 		"reverse": reverse
 	};
+
 	displayTable(copy_cache, attrs);
 }
 
@@ -365,14 +363,15 @@ function displayTable(data, attrs) {
 	var reverse = attrs.reverse;
 	var s = '';
 
-	if (data['annotations'] && data.annotations.length) {
-
-		cache.annotations = data['annotations'];
+	if (data.annotations && data.annotations.length) {
+		if (!cache.annotations.length) {
+			cache.annotations = data.annotations;
+		}
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
 		s += "<table id='table-annotations' class='table'>";
 		s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Manuscript</th><th data-sort="11" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Allograph</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th><th data-sort="4" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Scribe</th><th data-sort="5" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Place</th>';
-		for (i = 0; i < data['annotations'].length; i++) {
-			var annotation = data['annotations'][i];
+		for (var i = 0; i < data.annotations.length; i++) {
+			var annotation = data.annotations[i];
 			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
 			s += "</td>";
 
@@ -412,7 +411,9 @@ function displayTable(data, attrs) {
 	s += "</table>";
 
 	if (data.images && data.images.length) {
-		cache.images = data['images'];
+		if (!cache.images.length) {
+			cache.images = data.images;
+		}
 		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
 		s += "<table id='table-images' class='table'>";
 		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Label</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th>';
@@ -427,10 +428,12 @@ function displayTable(data, attrs) {
 	}
 
 	if (data.editorial && data.editorial.length) {
-		s += "<h3 id ='header_images'>Editorial Annotations (" + data.editorial.length + ")</h3>";
+		s += "<h3 id='header_editorial'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
 		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Page</th><th>Public Note</th>';
-		cache.editorial = data['editorial'];
+		if (!cache.editorial.length) {
+			cache.editorial = data.editorial;
+		}
 
 		for (i = 0; i < data['editorial'].length; i++) {
 
@@ -485,8 +488,8 @@ function displayGrid(data, attrs) {
 	var s = '';
 
 	data.annotations = data.annotations.sort(function(x, y) {
-		return x[attrs.sorting] < y[attrs.sorting];
-	}).reverse();
+		return x[attrs.sorting] == y[attrs.sorting] ? 0 : (x[attrs.sorting] < y[attrs.sorting] ? -1 : 1);
+	});
 
 	s += "<div id='manuscripts-index'>";
 	if (data.annotations && data.annotations.length) {
@@ -666,6 +669,7 @@ function launchEvents() {
 					}
 				}
 			}
+			cache = basket;
 
 			update_counter();
 

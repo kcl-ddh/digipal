@@ -57,6 +57,7 @@ function update_counter() {
 	var annotations = 0,
 		images = 0,
 		editorial = 0;
+
 	$.each(checkboxes, function() {
 		if ($(this).is(':checked')) {
 			if ($(this).data('type') == 'image') {
@@ -68,6 +69,7 @@ function update_counter() {
 			}
 		}
 	});
+
 	$('#counter-annotations').html(annotations);
 	$('#counter-images').html(images);
 	$('#counter-editorial').html(editorial);
@@ -101,6 +103,11 @@ function update_counter() {
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
 	}
+
+
+	$("#header_annotations").add($("#annotations-grid h2")).html($('#table-annotations').find('tr[data-graph]').length);
+	$("#header_editorial").add($("#editorial-grid h2")).html($('#table-editorial').find('tr[data-graph]').length);
+	$("#header_images").add($("#images-grid h2")).html($('#table-images').find('tr[data-graph]').length);
 
 }
 
@@ -647,10 +654,10 @@ function launchEvents() {
 			for (var j = 0; j < selectedItems.length; j++) {
 				for (var i in basket) {
 					if (basket[i] instanceof Array) {
-						if (i == "editorial") {
-							selectedItems[j] = selectedItems[j].toString();
-						}
 						if (basket[i].indexOf(selectedItems[j]) >= 0) {
+							if (i == "editorial") {
+								selectedItems[j] = selectedItems[j].toString();
+							}
 							basket[i].splice(basket[i].indexOf(selectedItems[j]), 1);
 							$('[data-graph="' + selectedItems[j] + '"]').fadeOut().remove();
 							selectedItems.splice(j, 1);

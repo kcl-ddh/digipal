@@ -11,11 +11,7 @@
 	});
 })();
 
-var cache = {
-	'annotations': [],
-	'editorial': [],
-	'images': []
-};
+var cache = {};
 
 var selectedItems = [];
 
@@ -57,6 +53,7 @@ function update_counter() {
 	var annotations = 0,
 		images = 0,
 		editorial = 0;
+
 	$.each(checkboxes, function() {
 		if ($(this).is(':checked')) {
 			if ($(this).data('type') == 'image') {
@@ -68,6 +65,7 @@ function update_counter() {
 			}
 		}
 	});
+
 	$('#counter-annotations').html(annotations);
 	$('#counter-images').html(images);
 	$('#counter-editorial').html(editorial);
@@ -96,11 +94,16 @@ function update_counter() {
 		check_editorial_all.prop('indeterminate', true);
 	}
 
-	if (!images && !annotations && !editorial) {
+	if (!selectedItems.length) {
 		$('#remove_from_collection').attr('disabled', true);
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
 	}
+
+
+	$("#header_annotations").add($("#annotations-grid h2")).html("Graphs (" + $('#table-annotations').find('tr[data-graph]').length + ")");
+	$("#header_editorial").add($("#editorial-grid h2")).html("Editorial Annotations (" + $('#table-editorial').find('tr[data-graph]').length + ")");
+	$("#header_images").add($("#images-grid h2")).html("Images (" + $('#table-images').find('tr[data-graph]').length + ")");
 
 }
 
@@ -330,25 +333,23 @@ function main() {
 	});
 }
 
-
 function sort(property, reverse, type) {
 	property = parseInt(property, 10);
 	var copy_cache = $.extend({}, cache);
-	for (var i in copy_cache) {
-		if (i == type) {
-			copy_cache[i] = copy_cache[i].sort(function(x, y) {
-				return x[property] < y[property];
-			});
 
-			if (!reverse) {
-				copy_cache[i] = copy_cache[i].reverse();
-			}
-		}
+	copy_cache[type].sort(function(x, y) {
+		return x[property] == y[property] ? 0 : (x[property] < y[property] ? -1 : 1);
+	});
+
+	if (reverse) {
+		copy_cache[type].reverse();
 	}
+
 	var attrs = {
 		"isExternal": false,
 		"reverse": reverse
 	};
+
 	displayTable(copy_cache, attrs);
 }
 
@@ -358,14 +359,15 @@ function displayTable(data, attrs) {
 	var reverse = attrs.reverse;
 	var s = '';
 
-	if (data['annotations'] && data.annotations.length) {
-
-		cache.annotations = data['annotations'];
+	if (data.annotations && data.annotations.length) {
+		if (!cache.annotations) {
+			cache.annotations = data.annotations;
+		}
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
 		s += "<table id='table-annotations' class='table'>";
 		s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Manuscript</th><th data-sort="11" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Allograph</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th><th data-sort="4" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Scribe</th><th data-sort="5" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Place</th>';
-		for (i = 0; i < data['annotations'].length; i++) {
-			var annotation = data['annotations'][i];
+		for (var i = 0; i < data.annotations.length; i++) {
+			var annotation = data.annotations[i];
 			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
 			s += "</td>";
 
@@ -405,7 +407,9 @@ function displayTable(data, attrs) {
 	s += "</table>";
 
 	if (data.images && data.images.length) {
-		cache.images = data['images'];
+		if (!cache.images) {
+			cache.images = data.images;
+		}
 		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
 		s += "<table id='table-images' class='table'>";
 		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Label</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th>';
@@ -420,10 +424,12 @@ function displayTable(data, attrs) {
 	}
 
 	if (data.editorial && data.editorial.length) {
-		s += "<h3 id ='header_images'>Editorial Annotations (" + data.editorial.length + ")</h3>";
+		s += "<h3 id='header_editorial'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
 		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Page</th><th>Public Note</th>';
-		cache.editorial = data['editorial'];
+		if (!cache.editorial) {
+			cache.editorial = data.editorial;
+		}
 
 		for (i = 0; i < data['editorial'].length; i++) {
 
@@ -478,8 +484,8 @@ function displayGrid(data, attrs) {
 	var s = '';
 
 	data.annotations = data.annotations.sort(function(x, y) {
-		return x[attrs.sorting] < y[attrs.sorting];
-	}).reverse();
+		return x[attrs.sorting] == y[attrs.sorting] ? 0 : (x[attrs.sorting] < y[attrs.sorting] ? -1 : 1);
+	});
 
 	s += "<div id='manuscripts-index'>";
 	if (data.annotations && data.annotations.length) {
@@ -559,10 +565,11 @@ function displayGrid(data, attrs) {
 			}
 			$(this).find('img').addClass('selected');
 		}
+		update_counter();
 	});
 
 	$('.grid-images').sortable();
-
+	update_counter();
 	update();
 }
 
@@ -622,65 +629,45 @@ function launchEvents() {
 	$('#remove_from_collection').on('click', function() {
 
 		var basket;
+		var selectedCollection = localStorage.getItem('selectedCollection');
+		var collections = JSON.parse(localStorage.getItem('collections'));
 		$.each(collections, function(index, value) {
 			if (value.id == selectedCollection) {
 				basket = value;
-				basket['name'] = index;
+				basket.name = index;
+				basket.id = value.id;
 			}
 		});
-
-		var graph, type;
-		var element;
-		var selectedannotations = selectedAnnotations();
-		var graphs = selectedannotations.graphs;
-		var graphs_number = selectedannotations.graphs_number;
 
 		if (!$(".loading-div").length) {
 			var loading_div = $("<div class='loading-div'>");
 			var background = $("<div class='dialog-background'>");
 			loading_div.html('<h2>Removing images</h2>');
-			loading_div.append("<p>You are about to remove " + graphs_number + " images. Continue?");
+			loading_div.append("<p>You are about to remove " + selectedItems.length + " images. Continue?");
 			loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
 			background.append(loading_div);
 			$('body').append(background);
 		}
-		$('#remove_images_from_collection').unbind().on('click', function() {
-			$.each(graphs, function(index, value) {
-				graph = index;
-				type = value;
-				if (type == 'annotation') {
-					if (basket.annotations && basket.annotations.length) {
-						for (i = 0; i < basket.annotations.length; i++) {
-							element = basket.annotations[i];
-							var element_graph;
-							if (element.hasOwnProperty('graph')) {
-								element_graph = element.graph;
-							} else {
-								element_graph = element;
-							}
-							if (graph == element_graph) {
-								basket.annotations.splice(i, 1);
-								break;
-							}
-						}
-					}
-					$('#header_annotations').html("Annotations (" + basket.annotations.length + ")");
-				} else {
-					if (basket.images && basket.images.length) {
-						for (i = 0; i < basket.images.length; i++) {
-							image_id = basket.images[i];
-							if (graph == image_id) {
-								basket.images.splice(i, 1);
-								break;
-							}
-						}
-					}
-					$('#header_images').html("Images (" + basket.images.length + ")");
-				}
 
-				$('tr[data-graph="' + graph + '"]').fadeOut().remove();
-				update_counter();
-			});
+		$('#remove_images_from_collection').unbind().on('click', function() {
+			for (var j = 0; j < selectedItems.length; j++) {
+				for (var i in basket) {
+					if (basket[i] instanceof Array) {
+						if (basket[i].indexOf(selectedItems[j]) >= 0) {
+							if (i == "editorial") {
+								selectedItems[j] = selectedItems[j].toString();
+							}
+							basket[i].splice(basket[i].indexOf(selectedItems[j]), 1);
+							$('[data-graph="' + selectedItems[j] + '"]').fadeOut().remove();
+							selectedItems.splice(j, 1);
+							j--;
+						}
+					}
+				}
+			}
+			cache = basket;
+
+			update_counter();
 
 			if (!sum_images_collection(basket)) {
 				var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';

@@ -96,8 +96,10 @@ function update_counter() {
 
 	if (!selectedItems.length) {
 		$('#remove_from_collection').attr('disabled', true);
+		//$('#to_lightbox').attr('disabled', true);
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
+		//$('#to_lightbox').attr('disabled', false);
 	}
 
 
@@ -601,8 +603,8 @@ function launchEvents() {
 			$('#table-annotations').find('.table-row').removeClass('selected').each(function() {
 				selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
 			});
-			update_counter();
 		}
+		update_counter();
 	});
 
 	$('#check_editorial_all').unbind().on('change', function() {

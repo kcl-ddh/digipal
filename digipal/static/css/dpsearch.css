@@ -107,3 +107,8 @@ div.tt-suggestion p {
 .graph_img {
     margin: 0.3em;
 }
+
+.faceted-search .panel {
+    margin-bottom: 20px;
+    padding: 0;
+}

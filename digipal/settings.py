@@ -426,15 +426,6 @@ GITHUB = 'kcl-ddh/digipal'
 # South
 SOUTH_TESTS_MIGRATE = False
 
-# Haystack
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'haystack',
-    },
-}
-
 # DISQUS
 
 COMMENTS_DEFAULT_APPROVED = True
@@ -443,9 +434,18 @@ COMMENTS_DEFAULT_APPROVED = True
 #         SEARCH        #
 #########################
 
+# Search page
 # The slug of the CMS Page that contains the help about the search interface
 SEARCH_HELP_PAGE_SLUG = 'how-to-use-digipal'
 SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
+    },
+}
 
 #########################
 # OPTIONAL APPLICATIONS #

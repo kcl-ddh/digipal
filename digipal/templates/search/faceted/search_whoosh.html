@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
+
+{% block meta_title %}
+    Faceted Search
+{% endblock %}
+
+{% block main %}
+
+<h1 class='header1'>Faceted Search</h1>
+
+<div class="row faceted-search">
+    
+    <div class="col-md-3">
+        <form action="." method="get" class="">
+            {% for facet in facets %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {{ facet.name }} 
+                        {% if facet.options %}
+                            ({{ facet.options|length }})
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+                        {% if facet.input_text %}
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ facet.input_text }}" name="facet.key">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit">Go</button>
+                                </span>
+                            </div>
+                        {% endif %}
+                        {% if facet.options %}
+                            <ul>
+                                {% for option in facet.options %}
+                                    <li><a href="?{{facet.key}}={{option.key}}">{{ option.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}        
+        </form>
+    </div>
+    
+    <div class="col-md-9">
+        
+        <table class="table">
+            <tr>
+                {% for col in cols %}
+                    <td>
+                        {{ col.name }}                
+                    </td>
+                {% endfor %}
+            </tr>
+            {% for record in result %}
+                <tr>
+                    {% for col in record.cols %}
+                        <td>
+                            {{ col }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}       
+        </table> 
+    </div>
+
+</div>
+
+{% endblock %}
+

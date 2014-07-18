@@ -55,6 +55,12 @@ urlpatterns += patterns('digipal.views.search',
     (r'^(?P<content_type>hands|manuscripts|scribes|pages)(?:/|$)', 'index_view'),
 )
 
+urlpatterns += patterns('',
+    #(r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_woosh_view'),
+    #(r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_haystack_view'),
+    (r'^search/facets/$', include('haystack.urls')),
+)
+
 urlpatterns += patterns('digipal.views.admin.image',
     (r'admin/image/bulk_edit', 'image_bulk_edit'),
     (r'admin/newscriptentry/$', 'newScriptEntry'),

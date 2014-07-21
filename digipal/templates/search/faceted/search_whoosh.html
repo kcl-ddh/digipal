@@ -3,12 +3,12 @@
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 {% block meta_title %}
-    Faceted Search
+    Search {{ result_type.label }}
 {% endblock %}
 
 {% block main %}
 
-<h1 class='header1'>Faceted Search</h1>
+<h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ result|length }})</h1>
 
 <div class="row faceted-search">
     
@@ -17,7 +17,7 @@
             {% for facet in facets %}
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        {{ facet.name }} 
+                        {{ facet.label }} 
                         {% if facet.options %}
                             ({{ facet.options|length }})
                         {% endif %}
@@ -34,7 +34,7 @@
                         {% if facet.options %}
                             <ul>
                                 {% for option in facet.options %}
-                                    <li><a href="?{{facet.key}}={{option.key}}">{{ option.name }}</a></li>
+                                    <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a></li>
                                 {% endfor %}
                             </ul>
                         {% endif %}
@@ -50,15 +50,15 @@
             <tr>
                 {% for col in cols %}
                     <td>
-                        {{ col.name }}                
+                        {{ col.label }}                
                     </td>
                 {% endfor %}
             </tr>
             {% for record in result %}
                 <tr>
-                    {% for col in record.cols %}
+                    {% for col in cols %}
                         <td>
-                            {{ col }}
+                            {{ record.id }}
                         </td>
                     {% endfor %}
                 </tr>

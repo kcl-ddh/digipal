@@ -16,6 +16,19 @@
                     <input type="submit" value="Search">
                 </td>
             </tr>
+            
+            [ {{ facets }} ]
+            
+            {% if facets.fields.place %}
+                <p>Repo Place</p>
+                {# Provide only the top 5 authors #}
+                <ul>
+                {% for place in facets.fields.repo_place %}
+                    <dd><a href="{{ request.get_full_path }}&amp;selected_facets=repo_place_exact:{{ author.0|urlencode }}">{{ place.0 }}</a> ({{ place.1 }})</dd>
+                {% endfor %}
+                </ul>
+            {% endif %}
+                        
         </table>
 
         {% if query %}

@@ -366,3 +366,19 @@ def get_xslt_transform(source, template, error=None):
     ret = newdom
             
     return ret
+
+def recreate_whoosh_index(path, index_name, schema):
+    import os.path
+    from whoosh.index import create_in
+    if not os.path.exists(path):
+        os.mkdir(path)
+    path = os.path.join(path, index_name)
+    if os.path.exists(path):
+        import shutil
+        shutil.rmtree(path)
+    os.mkdir(path)
+    print '\tCreated index under "%s"' % path
+    # TODO: check if this REcreate the existing index
+    index = create_in(path, schema)
+    
+    return index

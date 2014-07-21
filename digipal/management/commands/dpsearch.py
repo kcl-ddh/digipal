@@ -74,6 +74,10 @@ Options:
             known_command = True
             self.index_all(options)
 
+        if command == 'index_facets':
+            known_command = True
+            self.index_facets(options)
+
         if command == 'schema':
             known_command = True
             self.schema(options)
@@ -226,6 +230,10 @@ Options:
             exit()
             
         return types        
+
+    def index_facets(self, options):
+        from digipal.views.faceted_search import faceted_search
+        faceted_search.rebuild_index()
         
     def index(self, index_name='unified'):
         types = self.get_requested_content_types()
@@ -309,21 +317,9 @@ Options:
         writer.commit()
 
     def recreate_index(self, index_name, schema):
-        import os.path
-        from whoosh.index import create_in
-        path = settings.SEARCH_INDEX_PATH
-        if not os.path.exists(path):
-            os.mkdir(path)
-        path = os.path.join(path, index_name)
-        if os.path.exists(path):
-            import shutil
-            shutil.rmtree(path)
-        os.mkdir(path)
-        print '\tCreated index under "%s"' % path
-        # TODO: check if this REcreate the existing index
-        index = create_in(path, schema)
-        
-        return index
+        from digipal.utils import recreate_whoosh_index
+        ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
+        return ret        
         
     def is_dry_run(self):
         return self.options.get('dry-run', False)

@@ -421,5 +421,4 @@ def record_field(content_type, record, field):
     '''
         {% record_field object field %}
     '''
-    print content_type, record, field
     return content_type.get_record_field(record, field)

@@ -41,7 +41,9 @@ class FacetedModel(object):
         return self.model.objects.all()
         
     def get_document_from_record(self, record):
-        ret = {'id': u'%s' % record.id}
+        ret = {'id': u'%s' % record.id, 'content': unicode(record)}
+        for field in self.fields:
+            ret[field['key']] = self.get_record_field(record, field)
         return ret
 
     def get_facets(self):
@@ -53,21 +55,47 @@ class FacetedModel(object):
 
     def get_facet_options(self, field):
         ret = []
-        for i in range(0, 3):
-            ret.append({'key': 'k%s' % i, 'label': '%s # %s' % (field['key'], i)})
+        for k, v in self.whoosh_groups[field['key']].iteritems():
+            ret.append({'key': k, 'label': k, 'count': v})
+        ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     
     def get_record_field(self, record, afield):
-        ret = u''
+        '''
+            returns the value of record.afield 
+            where record is a model instance and afield is field name.
+            afield and go through related objects.
+            afield can also be a field definition (e.g. self.fields[0]).
+            afield can also be a function of the object.
+        '''
+        if not hasattr(afield, 'get'):
+            for field in self.fields:
+                if field['key'] == afield:
+                    afield = field
         
-        for field in self.fields:
-            if field['key'] == afield:
-                if field['path'].endswith('()'):
-                    ret = getattr(record, field['path'][:-2], None)
-                    if callable(ret):
-                        ret = ret()
-                if field.get('type', None) == 'url':
-                    ret = u'<a href="%s">view</a>' % ret 
+#         for field in self.fields:
+#             if field['key'] == afield:
+#                 if field['path'].endswith('()'):
+#                     ret = getattr(record, field['path'][:-2], None)
+#                     if callable(ret):
+#                         ret = ret()
+#                 if field.get('type', None) == 'url':
+#                     ret = u'<a href="%s">view</a>' % ret
+        #print record.id, afield['key'], afield['path']
+        
+        # split the path
+        path = afield['path']
+        v = record
+        for part in path.split('.'):
+            if not hasattr(v, part):
+                raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
+            v = getattr(v, part, None)
+            if v is None:
+                break
+            if callable(v):
+                v = v()
+        ret = v
+
         return ret  
 
     def get_columns(self):
@@ -76,20 +104,69 @@ class FacetedModel(object):
             if field.get('view', False):
                 ret.append({'key': field['key'], 'label': field['label']})
         return ret
+    
+    def get_whoosh_facets(self):
+        from whoosh import sorting
+        return [sorting.FieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('faceted', False)]
+    
+    def get_requested_records(self, request):
+        # run the query with woosh
+        # 
+        from whoosh.index import open_dir
+        import os
+        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
+
+        from whoosh.qparser import QueryParser
+        
+        search_phrase = request.GET.get('search_terms', '').strip()
+        
+        # make the query
+        if search_phrase:
+            qp = QueryParser('content', schema=index.schema)
+            q = qp.parse(search_phrase)
+        else:
+            from whoosh.query.qcore import Every
+            q = Every()
+        
+        with index.searcher() as s:
+            # run the query
+            facets = self.get_whoosh_facets()
+
+            #ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
+            ret = s.search(q, groupedby=facets)
+            
+            self.whoosh_groups = {}
+            for field in self.fields:
+                if field.get('faceted', False):
+                    self.whoosh_groups[field['key']] = ret.groups(field['key'])
+        
+            # convert the result into a list of model instances
+            ids = [res['id'] for res in ret]
+            
+            records = self.model.objects.in_bulk(ids)
+            ret = [records[int(id)] for id in ids]
+
+            # TODO: make sure the order is preserved
+            
+            # get facets
+                    
+        return ret
         
 def get_types():
     image_options = {'key': 'image', 
                 'label': 'Image',
                 'model': Image,
                 'fields': [
-                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': '', 'index': True},
-                           {'key': 'repo_place', 'label': 'Repository Place', 'path': '', 'faceted': True, 'index': True},
-                           {'key': 'repo_city', 'label': 'Repository City', 'path': '', 'faceted': True, 'index': True},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': '', 'faceted': True, 'index': True},
-                           {'key': 'has_ann', 'label': 'Annotations', 'path': '', 'faceted': True, 'index': True},
                            #
-                           {'key': 'url', 'label': 'Address', 'path': 'get_absolute_url()', 'type': 'url', 'view': True},
-                           {'key': 'label', 'label': 'Label', 'path': '__unicode__()', 'view': True},
+                           {'key': 'url', 'label': 'Address', 'path': 'get_absolute_url', 'type': 'url', 'view': True},
+                           #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
+                           #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
+                           #
+                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.place.name', 'faceted': True, 'index': True, 'view': True},
+                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.name', 'faceted': True, 'index': True, 'view': True},
+                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'index': True, 'view': True},
+                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'index': True, 'view': True},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'faceted': True, 'index': True},
                            ],
                 }
     
@@ -109,20 +186,15 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['result_type'] = ct
     
     # run the search
-    records = ct.get_all_records()[0:3]
+    records = ct.get_requested_records(request)
     
     # add the search parameters to the template 
     context['facets'] = [
-                       {'label': 'Phrase', 'input_text': 'scribe'},
+                       {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', '')},
                         ]
+    
     context['facets'].extend(ct.get_facets())
     
-#     context['cols'] = [
-#                        {'label': 'view', 'key': 'get_absolute_url'},
-#                        {'label': 'id', 'key': 'id'},
-#                        {'label': 'label', 'key': '__unicode__'},
-#                        ]
-
     context['cols'] = ct.get_columns()
     
     # add the results to the template 
@@ -145,7 +217,9 @@ def create_index_schema(ct):
     
     # create schema
     from whoosh.fields import TEXT, ID, NGRAM, NUMERIC, KEYWORD
-    fields = {'id': ID(stored=True), 'description': TEXT()}
+    fields = {'id': ID(stored=True), 'content': TEXT()}
+    for field in ct.fields:
+        fields[field['key']] = TEXT()
     
     print '\trecreate empty index'
 

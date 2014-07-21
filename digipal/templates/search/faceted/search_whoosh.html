@@ -28,9 +28,9 @@
                     </div>
                     <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
                         <div class="panel-body">
-                            {% if facet.input_text %}
+                            {% if facet.type == 'textbox' %}
                                 <div class="input-group">
-                                    <input type="text" class="form-control" value="{{ facet.input_text }}" name="facet.key">
+                                    <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}">
                                     <span class="input-group-btn">
                                         <button class="btn btn-default" type="submit">Go</button>
                                     </span>
@@ -39,7 +39,9 @@
                             {% if facet.options %}
                                 <ul>
                                     {% for option in facet.options %}
-                                        <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a></li>
+                                        <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}
+                                            {% if option.count %}({{ option.count }}){% endif %}
+                                        </a></li>
                                     {% endfor %}
                                 </ul>
                             {% endif %}

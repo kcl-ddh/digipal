@@ -55,18 +55,41 @@ class FacetedModel(object):
         ret = []
         for i in range(0, 3):
             ret.append({'key': 'k%s' % i, 'label': '%s # %s' % (field['key'], i)})
-        return ret        
+        return ret      
+    
+    def get_record_field(self, record, afield):
+        ret = u''
+        
+        for field in self.fields:
+            if field['key'] == afield:
+                if field['path'].endswith('()'):
+                    ret = getattr(record, field['path'][:-2], None)
+                    if callable(ret):
+                        ret = ret()
+                if field.get('type', None) == 'url':
+                    ret = u'<a href="%s">view</a>' % ret 
+        return ret  
+
+    def get_columns(self):
+        ret = []
+        for field in self.fields:
+            if field.get('view', False):
+                ret.append({'key': field['key'], 'label': field['label']})
+        return ret
         
 def get_types():
     image_options = {'key': 'image', 
                 'label': 'Image',
                 'model': Image,
                 'fields': [
-                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': ''},
-                           {'key': 'repo_place', 'label': 'Repository Place', 'path': '', 'faceted': True},
-                           {'key': 'repo_city', 'label': 'Repository City', 'path': '', 'faceted': True},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': '', 'faceted': True},
-                           {'key': 'has_ann', 'label': 'Annotations', 'path': '', 'faceted': True},
+                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': '', 'index': True},
+                           {'key': 'repo_place', 'label': 'Repository Place', 'path': '', 'faceted': True, 'index': True},
+                           {'key': 'repo_city', 'label': 'Repository City', 'path': '', 'faceted': True, 'index': True},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': '', 'faceted': True, 'index': True},
+                           {'key': 'has_ann', 'label': 'Annotations', 'path': '', 'faceted': True, 'index': True},
+                           #
+                           {'key': 'url', 'label': 'Address', 'path': 'get_absolute_url()', 'type': 'url', 'view': True},
+                           {'key': 'label', 'label': 'Label', 'path': '__unicode__()', 'view': True},
                            ],
                 }
     
@@ -86,7 +109,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['result_type'] = ct
     
     # run the search
-    records = ct.get_all_records()
+    records = ct.get_all_records()[0:3]
     
     # add the search parameters to the template 
     context['facets'] = [
@@ -94,10 +117,13 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
                         ]
     context['facets'].extend(ct.get_facets())
     
-    context['cols'] = [
-                       {'label': 'id'},
-                       {'label': 'label'},
-                       ]
+#     context['cols'] = [
+#                        {'label': 'view', 'key': 'get_absolute_url'},
+#                        {'label': 'id', 'key': 'id'},
+#                        {'label': 'label', 'key': '__unicode__'},
+#                        ]
+
+    context['cols'] = ct.get_columns()
     
     # add the results to the template 
     context['result'] = list(records)

@@ -415,3 +415,11 @@ def mezzanine_page_active(request, page):
             ret = True
     
     return 'active' if ret else ''
+
+@register.simple_tag
+def record_field(content_type, record, field):
+    '''
+        {% record_field object field %}
+    '''
+    print content_type, record, field
+    return content_type.get_record_field(record, field)

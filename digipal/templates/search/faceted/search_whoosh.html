@@ -15,29 +15,35 @@
     <div class="col-md-3">
         <form action="." method="get" class="">
             {% for facet in facets %}
-                <div class="panel panel-default">
+                <div class="panel panel-default" id="panel-{{ facet.key }}">
                     <div class="panel-heading">
-                        {{ facet.label }} 
-                        {% if facet.options %}
-                            ({{ facet.options|length }})
-                        {% endif %}
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-target="#panel-{{ facet.key }}-body" href="#panel-{{ facet.key }}-body">
+                                {{ facet.label }} 
+                                {% if facet.options %}
+                                    ({{ facet.options|length }})
+                                {% endif %}
+                            </a>
+                        </h4>
                     </div>
-                    <div class="panel-body">
-                        {% if facet.input_text %}
-                            <div class="input-group">
-                                <input type="text" class="form-control" value="{{ facet.input_text }}" name="facet.key">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="submit">Go</button>
-                                </span>
-                            </div>
-                        {% endif %}
-                        {% if facet.options %}
-                            <ul>
-                                {% for option in facet.options %}
-                                    <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
+                    <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            {% if facet.input_text %}
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ facet.input_text }}" name="facet.key">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="submit">Go</button>
+                                    </span>
+                                </div>
+                            {% endif %}
+                            {% if facet.options %}
+                                <ul>
+                                    {% for option in facet.options %}
+                                        <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}        
@@ -58,7 +64,7 @@
                 <tr>
                     {% for col in cols %}
                         <td>
-                            {{ record.id }}
+                            {% record_field result_type record col.key %}
                         </td>
                     {% endfor %}
                 </tr>

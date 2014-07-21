@@ -1238,7 +1238,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				i, val, params = searchString.split("&");
 			var parameters = [];
 			for (i = 0; i < params.length; i++) {
-				val = params[i].split("=");
+				val = params[i].split(/={1}/);
 				if (val[0] == paramName) {
 					parameters.push(unescape(val[1]));
 				}

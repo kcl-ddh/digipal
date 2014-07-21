@@ -9,7 +9,10 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
-
+		annotator.cacheHiddenFilters = {
+			allographs: [],
+			hands: []
+		};
 		var csrftoken = annotator.utils.getCookie('csrftoken');
 		$.ajaxSetup({
 			headers: {
@@ -334,7 +337,7 @@ function AnnotatorLoader() {
 			}
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
-				var base64regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/;
+				var base64regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2})$/;
 				var temp;
 				if (base64regex.test(temporary_vectors[t])) {
 					temp = annotator.utils.Base64.decode(temporary_vectors[t]);

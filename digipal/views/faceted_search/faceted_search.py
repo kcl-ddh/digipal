@@ -54,6 +54,7 @@ class FacetedModel(object):
 
     def get_facet_options(self, field):
         ret = []
+        from django.template.defaultfilters import slugify
         for k, v in self.whoosh_groups[field['key']].iteritems():
             ret.append({'key': k, 'label': k, 'count': v})
         ret = sorted(ret, key=lambda o: o['key'])
@@ -102,7 +103,8 @@ class FacetedModel(object):
     
     def get_whoosh_facets(self):
         from whoosh import sorting
-        return [sorting.FieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('faceted', False)]
+        return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('faceted', False)]
+    
     
     def get_requested_records(self, request):
         # run the query with woosh
@@ -116,14 +118,21 @@ class FacetedModel(object):
         search_phrase = request.GET.get('search_terms', '').strip()
         
         # make the query
-        if search_phrase:
-            #qp = QueryParser('content', schema=index.schema)
+        # get the field=value query from the selected facet options
+        field_queries = u''
+        for field in self.fields:
+            value = request.GET.get(field['key'], '')
+            if value:
+                field_queries += u' %s:"%s" ' % (field['key'], value)
+            
+        # add the search phrase    
+        if search_phrase or field_queries:
             qp = self.get_whoosh_parser(index)
-            q = qp.parse(search_phrase)
+            q = qp.parse(u'%s %s' % (search_phrase, field_queries))
         else:
             from whoosh.query.qcore import Every
             q = Every()
-        
+            
         with index.searcher() as s:
             # run the query
             facets = self.get_whoosh_facets()

@@ -44,7 +44,7 @@
                                     {% for option in facet.options %}
                                         <tr>
                                             <td>
-                                                <a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a>
+                                                <a href="?{{facet.key}}={{option.key|urlencode}}">{{ option.label }}</a>
                                             </td>
                                             <td>{{ option.count }}</td>
                                         </tr>

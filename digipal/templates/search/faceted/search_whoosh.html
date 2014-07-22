@@ -30,20 +30,26 @@
                         <div class="panel-body">
                             {% if facet.type == 'textbox' %}
                                 <div class="input-group">
-                                    <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}">
+                                    <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}" 
+                                        {% if facet.id %}id="{{ facet.id }}"{% endif %}
+                                    >
                                     <span class="input-group-btn">
                                         <button class="btn btn-default" type="submit">Go</button>
                                     </span>
                                 </div>
                             {% endif %}
                             {% if facet.options %}
-                                <ul>
+                                <table class="table">
+                                    <tr><td>option</td><td>count</td></tr>
                                     {% for option in facet.options %}
-                                        <li><a href="?{{facet.key}}={{option.key}}">{{ option.label }}
-                                            {% if option.count %}({{ option.count }}){% endif %}
-                                        </a></li>
+                                        <tr>
+                                            <td>
+                                                <a href="?{{facet.key}}={{option.key}}">{{ option.label }}</a>
+                                            </td>
+                                            <td>{{ option.count }}</td>
+                                        </tr>
                                     {% endfor %}
-                                </ul>
+                                </table>
                             {% endif %}
                         </div>
                     </div>
@@ -58,7 +64,7 @@
             <tr>
                 {% for col in cols %}
                     <td>
-                        {{ col.label }}                
+                        {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
                     </td>
                 {% endfor %}
             </tr>
@@ -78,3 +84,8 @@
 
 {% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript">
+    	init_search_page({});
+    </script>
+{% endblock %}

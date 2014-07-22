@@ -183,7 +183,9 @@ function init_search_page(options) {
 		    search_box.val(search_terms).focus();
 		}
 		
-	    set_up_linked_fields(options.linked_fields);
+		if (options && options.linked_fields) {
+    	    set_up_linked_fields(options.linked_fields);
+	    }
 	}
 
 	$(document).ready(function() {

@@ -33,15 +33,14 @@ class FacetedModel(object):
         return self.options['model']
     model = property(get_model)
 
-    def get_option(self, option_name):
-        return self.options[option_name]
-    option = property(get_option)
+    def get_option(self, option_name, default=None):
+        return self.options.get(option_name, default)
     
     def get_all_records(self):
         return self.model.objects.all()
         
     def get_document_from_record(self, record):
-        ret = {'id': u'%s' % record.id, 'content': unicode(record)}
+        ret = {'id': u'%s' % record.id}
         for field in self.fields:
             ret[field['key']] = self.get_record_field(record, field)
         return ret
@@ -60,6 +59,17 @@ class FacetedModel(object):
         ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     
+    def get_record_field_html(self, record, field_key):
+        if not hasattr(field_key, 'get'):
+            for field in self.fields:
+                if field['key'] == field_key:
+                    break
+        
+        ret = self.get_record_field(record, field)
+        if field['type'] == 'url':
+            ret = '<a href="%s">View</a>' % ret
+        return ret
+        
     def get_record_field(self, record, afield):
         '''
             returns the value of record.afield 
@@ -68,21 +78,6 @@ class FacetedModel(object):
             afield can also be a field definition (e.g. self.fields[0]).
             afield can also be a function of the object.
         '''
-        if not hasattr(afield, 'get'):
-            for field in self.fields:
-                if field['key'] == afield:
-                    afield = field
-        
-#         for field in self.fields:
-#             if field['key'] == afield:
-#                 if field['path'].endswith('()'):
-#                     ret = getattr(record, field['path'][:-2], None)
-#                     if callable(ret):
-#                         ret = ret()
-#                 if field.get('type', None) == 'url':
-#                     ret = u'<a href="%s">view</a>' % ret
-        #print record.id, afield['key'], afield['path']
-        
         # split the path
         path = afield['path']
         v = record
@@ -101,8 +96,8 @@ class FacetedModel(object):
     def get_columns(self):
         ret = []
         for field in self.fields:
-            if field.get('view', False):
-                ret.append({'key': field['key'], 'label': field['label']})
+            if field.get('viewable', False):
+                ret.append(field)
         return ret
     
     def get_whoosh_facets(self):
@@ -116,13 +111,14 @@ class FacetedModel(object):
         import os
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
 
-        from whoosh.qparser import QueryParser
+        #from whoosh.qparser import QueryParser
         
         search_phrase = request.GET.get('search_terms', '').strip()
         
         # make the query
         if search_phrase:
-            qp = QueryParser('content', schema=index.schema)
+            #qp = QueryParser('content', schema=index.schema)
+            qp = self.get_whoosh_parser(index)
             q = qp.parse(search_phrase)
         else:
             from whoosh.query.qcore import Every
@@ -143,7 +139,17 @@ class FacetedModel(object):
             # convert the result into a list of model instances
             ids = [res['id'] for res in ret]
             
-            records = self.model.objects.in_bulk(ids)
+            records = self.model.objects.all()
+            if self.get_option('select_related'):
+                records = records.select_related(*self.get_option('select_related'))
+            if self.get_option('prefetch_related'):
+                records = records.prefetch_related(*self.get_option('prefetch_related'))
+            records = records.in_bulk(ids)
+            
+            if len(records) != len(ids):
+                raise Exception("DB query didn't retrieve all Whoosh results.")
+            
+            # 'item_part__historical_items'
             ret = [records[int(id)] for id in ids]
 
             # TODO: make sure the order is preserved
@@ -151,29 +157,54 @@ class FacetedModel(object):
             # get facets
                     
         return ret
+    
+    def get_whoosh_parser(self, index):
+        from whoosh.qparser import MultifieldParser
+        
+        term_fields = []
+        for field in self.fields:
+            if field.get('viewable', False):
+                term_fields.append(field['key'])
+        parser = MultifieldParser(term_fields, index.schema)
+        #parser = MultifieldParser(term_fields, index.schema)
+        return parser
         
 def get_types():
     image_options = {'key': 'image', 
                 'label': 'Image',
                 'model': Image,
                 'fields': [
-                           #
-                           {'key': 'url', 'label': 'Address', 'path': 'get_absolute_url', 'type': 'url', 'view': True},
+                           # label = the label displayed on the screen
+                           # label_col = the label in the column in the result table
+                           # viewable = True if the field can be displayed in the result set
+                           # index = True to index the field
+                           # type = the type of the field
+                           # counts = True to show the number of hits for each possible value of the field (i.e. show facet options)
+                           # filter = True to let the user filter by this field
+                           # path = a field name (can go through a related object or call a function)
+                           
+                           {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
                            #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
                            #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
                            #
-                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.place.name', 'faceted': True, 'index': True, 'view': True},
-                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.name', 'faceted': True, 'index': True, 'view': True},
-                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'index': True, 'view': True},
-                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'index': True, 'view': True},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'faceted': True, 'index': True},
+                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'faceted': True, 'index': True, 'viewable': True, 'type': 'title'},
+                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'faceted': True, 'index': True, 'viewable': True, 'type': 'title'},
+                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'index': True, 'viewable': True, 'type': 'code'},
+                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'index': True, 'viewable': True, 'type': 'code'},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'faceted': True, 'index': True, 'type': 'code'},
                            ],
+                'select_related': ['item_part__current_item__repository__place'],
+                'prefetch_related': ['item_part__historical_items'],
                 }
     
     ret = [FacetedModel(image_options)]
     return ret
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
+    hand_filters.chrono('VIEW:')
+    
+    hand_filters.chrono('SEARCH:')
+
     context = {'tabid': tabid}
     
     # select the content type 
@@ -190,7 +221,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     # add the search parameters to the template 
     context['facets'] = [
-                       {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', '')},
+                       {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms'},
                         ]
     
     context['facets'].extend(ct.get_facets())
@@ -202,7 +233,17 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     context['advanced_search_form'] = True
     
-    return render_to_response('search/faceted/search_whoosh.html', context, context_instance=RequestContext(request))
+    hand_filters.chrono(':SEARCH')
+
+    hand_filters.chrono('TEMPLATE:')
+    
+    ret = render_to_response('search/faceted/search_whoosh.html', context, context_instance=RequestContext(request))
+
+    hand_filters.chrono(':TEMPLATE')
+
+    hand_filters.chrono(':VIEW')
+    
+    return ret
 
 def rebuild_index():
     for ct in get_types():
@@ -217,9 +258,9 @@ def create_index_schema(ct):
     
     # create schema
     from whoosh.fields import TEXT, ID, NGRAM, NUMERIC, KEYWORD
-    fields = {'id': ID(stored=True), 'content': TEXT()}
+    fields = {'id': ID(stored=True)}
     for field in ct.fields:
-        fields[field['key']] = TEXT()
+        fields[field['key']] = get_whoosh_field_type(field)
     
     print '\trecreate empty index'
 
@@ -229,6 +270,42 @@ def create_index_schema(ct):
     from digipal.utils import recreate_whoosh_index
     ret = recreate_whoosh_index(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted'), ct.key, Schema(**fields))
     return ret        
+
+def get_whoosh_field_type(field):
+    '''
+    Defines Whoosh field types used to define the schemas.
+    See get_field_infos().
+    '''
+    
+    # see http://pythonhosted.org/Whoosh/api/analysis.html#analyzers
+    # see JIRA 165
+    
+    from whoosh.fields import TEXT, ID
+    # TODO: shall we use stop words? e.g. 'A and B' won't work? 
+    from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
+    from whoosh.support.charset import accent_map
+    # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
+    # minsize=1 because we want to search for 'Scribe 2'
+    
+    # A paragraph or more.
+    field_type = field['type']
+    if field_type == 'id':
+        # An ID (e.g. 708-AB)
+        ret = ID(stored=True)
+    elif field_type == 'code':
+        # A code (e.g. K. 402, Royal 7.C.xii)
+        # See JIRA 358
+        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True)
+    elif field_type == 'title':
+        # A title (e.g. British Library)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True)
+    elif field_type == 'short_text':
+        # A few words.
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True)
+    else:
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True)
+        
+    return ret
     
 def populate_index(ct, index):
     # Add documents to the index

@@ -45,18 +45,19 @@ class FacetedModel(object):
             ret[field['key']] = self.get_record_field(record, field)
         return ret
 
-    def get_facets(self):
+    def get_facets(self, request):
         ret = []
         for field in self.fields:
             if field.get('faceted', False):
-                ret.append({'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field)})
+                ret.append({'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field, request)})
         return ret        
 
-    def get_facet_options(self, field):
+    def get_facet_options(self, field, request):
         ret = []
         from django.template.defaultfilters import slugify
+        selected_key = request.GET.get(field['key'], '')
         for k, v in self.whoosh_groups[field['key']].iteritems():
-            ret.append({'key': k, 'label': k, 'count': v})
+            ret.append({'key': k, 'label': k, 'count': v, 'selected': selected_key == k})
         ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     
@@ -233,7 +234,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
                        {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms'},
                         ]
     
-    context['facets'].extend(ct.get_facets())
+    context['facets'].extend(ct.get_facets(request))
     
     context['cols'] = ct.get_columns()
     

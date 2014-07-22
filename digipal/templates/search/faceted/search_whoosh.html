@@ -44,7 +44,8 @@
                                     {% for option in facet.options %}
                                         <tr>
                                             <td>
-                                                <a href="?{{facet.key}}={{option.key|urlencode}}">{{ option.label }}</a>
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?{{facet.key}}={{option.key|urlencode}}{% endfilter %}">{{ option.label }}</a>
+                                                {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                             </td>
                                             <td>{{ option.count }}</td>
                                         </tr>

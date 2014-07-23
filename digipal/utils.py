@@ -102,7 +102,7 @@ def update_query_string(url, updates, url_wins=False):
     else:
         from copy import deepcopy
         updates_dict = deepcopy(updates)
-    
+        
     # Merge the two query strings (url and updates)
     # note that urlparse preserves the url encoding (%, &amp;)
     parts = [p for p in urlparse(url)]
@@ -127,6 +127,9 @@ def update_query_string(url, updates, url_wins=False):
     ret = urlunparse(parts)
     
     ret = escape(ret)
+    
+    if len(ret) == 0:
+        ret = '?'
     
     return ret
 

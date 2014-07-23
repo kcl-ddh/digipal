@@ -7,7 +7,7 @@ from digipal.forms import SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
-from digipal.templatetags import hand_filters
+from digipal.templatetags import hand_filters, html_escape
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -47,9 +47,19 @@ class FacetedModel(object):
 
     def get_facets(self, request):
         ret = []
+        
+        # a filter for search phrase 
+        phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms', 'selected_options': []}
+        if phrase_facet['value']:
+            phrase_facet['selected_options'] = [{'label': phrase_facet['value'], 'key': phrase_facet['value'], 'count': '?', 'selected': True}]
+        ret.append(phrase_facet)
+        
+        # facets based on faceted fields
         for field in self.fields:
             if field.get('faceted', False):
-                ret.append({'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field, request)})
+                facet = {'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field, request)}
+                facet['selected_options'] = [o for o in facet['options'] if o['selected']]
+                ret.append(facet)
         return ret        
 
     def get_facet_options(self, field, request):
@@ -94,6 +104,16 @@ class FacetedModel(object):
         ret = v
 
         return ret  
+
+    def get_summary(self, request):
+        ret = u''
+        for facet in self.get_facets(request):
+            for option in facet['selected_options']:
+                href = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {facet['key']: []})
+                ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label']) 
+
+        from django.utils.safestring import mark_safe
+        return mark_safe(ret)
 
     def get_columns(self):
         ret = []
@@ -229,17 +249,21 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # run the search
     records = ct.get_requested_records(request)
     
-    # add the search parameters to the template 
-    context['facets'] = [
-                       {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms'},
-                        ]
-    
-    context['facets'].extend(ct.get_facets(request))
+    # add the search parameters to the template
+#     context['facets'] = [
+#                        {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms'},
+#                         ]
+#     
+#     context['facets'].extend(ct.get_facets(request))
+
+    context['facets'] = ct.get_facets(request)
     
     context['cols'] = ct.get_columns()
     
     # add the results to the template 
     context['result'] = list(records)
+    
+    context['summary'] = ct.get_summary(request)
     
     context['advanced_search_form'] = True
     

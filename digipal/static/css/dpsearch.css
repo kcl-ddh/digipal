@@ -123,3 +123,22 @@ div.tt-suggestion p {
 .faceted-search .panel-heading a.collapsed:after {
     content: "\e080";
 }
+
+.faceted-summary span.label {
+    margin: 0.3em;
+    color: #a1514d;
+    background-color: #fff;
+    border: 1px solid #E0C4BE;
+}
+
+.faceted-summary span.label:after {
+    /* font-family: 'Glyphicons Halflings'; */
+    content: "\2716";
+    padding-left: 0.2em;
+    color: #a1514d;
+    font-size: large;
+}
+
+.faceted-summary a:hover {
+    text-decoration: line-through;
+}

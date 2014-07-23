@@ -10,8 +10,11 @@
 
 <h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ result|length }})</h1>
 
-<div class="row faceted-search">
+<div class="panel faceted-summary">
+    You are searching for: {{ summary }}
+</div>
     
+<div class="row faceted-search">
     <div class="col-md-3">
         <form action="." method="get" class="">
             {% for facet in facets %}
@@ -60,7 +63,6 @@
     </div>
     
     <div class="col-md-9">
-        
         <table class="table">
             <tr>
                 {% for col in cols %}

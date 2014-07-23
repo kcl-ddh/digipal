@@ -8,7 +8,7 @@
 
 {% block main %}
 
-<h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ result|length }})</h1>
+<h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ hit_count }})</h1>
 
 <div class="panel faceted-summary">
     You are searching for: {{ summary }}
@@ -63,9 +63,22 @@
     </div>
     
     <div class="col-md-9">
-        <div class="btn-group pagination-group">
-            {% dp_pagination_for current_page %}
-        </div>
+        {% if views %}
+            <div class="panel panel-default">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group pull-right">
+                        {% for view in views %}
+                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
+                                class="btn btn-default {% if view.selected %} active {% endif %}"
+                                title="{{ view.label }} View" data-toggle="tooltip">
+                                <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                            </a>                    
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% dp_pagination_with_size_for current_page %}
         <table class="table">
             <tr>
                 {% for col in cols %}
@@ -84,9 +97,7 @@
                 </tr>
             {% endfor %}       
         </table> 
-        <div class="btn-group pagination-group">
-            {% dp_pagination_for current_page %}
-        </div>
+        {% dp_pagination_with_size_for current_page %}
     </div>
 
 </div>

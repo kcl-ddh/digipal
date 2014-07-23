@@ -37,6 +37,10 @@ class FacetedModel(object):
     def get_option(self, option_name, default=None):
         return self.options.get(option_name, default)
     
+    def get_views(self):
+        return self.get_option('views', [])
+    views = property(get_views)
+
     def get_all_records(self):
         return self.model.objects.all()
         
@@ -133,6 +137,17 @@ class FacetedModel(object):
     
     
     def get_requested_records(self, request):
+        selected = False
+        selected_view_key = request.GET.get('view', '')
+        if selected_view_key:
+            for view in self.views:
+                if view['key'] == selected_view_key:
+                    view['selected'] = True
+                    selected = True
+                    break
+        if self.views and not selected:
+            self.views[0]['selected'] = True
+        
         # run the query with Whoosh
         # 
         from whoosh.index import open_dir
@@ -185,7 +200,8 @@ class FacetedModel(object):
             from django.core.paginator import Paginator
             
             # paginate
-            self.paginator = Paginator(ret, 10)
+            self.ids = ret
+            self.paginator = Paginator(ret, self.get_page_size(request))
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:
@@ -210,9 +226,14 @@ class FacetedModel(object):
 
             # TODO: make sure the order is preserved
             
+            
             # get facets
                     
         return ret
+    
+    def get_total_count(self):
+        '''returns the total number of records in the result set'''
+        return len(self.ids)
     
     def get_paginator(self):
         return getattr(self, 'paginator', Paginator([], 10))
@@ -231,6 +252,29 @@ class FacetedModel(object):
         parser = MultifieldParser(term_fields, index.schema)
         #parser = MultifieldParser(term_fields, index.schema)
         return parser
+    
+    def get_selected_view(self):
+        ret = self.views[0]
+        for view in self.views:
+            if view.get('selected', False):
+                ret = view
+                break
+        return ret
+    
+    def get_page_size(self, request):
+        ret = utils.get_int(request.GET.get('pgs'), 10)
+        sizes = self.get_page_sizes()
+        if ret not in sizes:
+            ret = sizes[0]
+        return ret     
+    
+    def get_page_sizes(self):
+        ret = [10, 20, 50, 100]
+        selected_view = self.get_selected_view()
+        view_type = selected_view.get('type', 'list')
+        if view_type == 'grid':
+            ret = [9, 18, 30, 90]
+        return ret
         
 def get_types():
     image_options = {'key': 'image', 
@@ -258,6 +302,10 @@ def get_types():
                            ],
                 'select_related': ['item_part__current_item__repository__place'],
                 'prefetch_related': ['item_part__historical_items'],
+                'views': [
+                          {'icon': 'th-list', 'label': 'List', 'key': 'list', 'type': 'list'},
+                          {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
+                          ],
                 }
     
     ret = [FacetedModel(image_options)]
@@ -301,6 +349,11 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['summary'] = ct.get_summary(request)
     
     context['advanced_search_form'] = True
+    
+    context['page_sizes'] = ct.get_page_sizes()
+    context['page_size'] = ct.get_page_size(request)
+    context['hit_count'] = ct.get_total_count()
+    context['views'] = ct.views
     
     hand_filters.chrono(':SEARCH')
 

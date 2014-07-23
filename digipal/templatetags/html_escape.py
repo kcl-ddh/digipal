@@ -337,6 +337,14 @@ escapenewline.is_safe = True
 escapenewline = stringfilter(escapenewline)
 register.filter('escapenewline', escapenewline)
 
+@register.inclusion_tag('pagination/pagination_with_size.html', takes_context=True)
+def dp_pagination_with_size_for(context, current_page):
+    ret = dp_pagination_for(context, current_page)
+    ret['page_sizes'] = context.get('page_sizes', [10, 20])
+    ret['page_size'] = context.get('page_size', 10)
+    ret['request'] = context.get('request', None)
+    return ret
+
 @register.inclusion_tag('pagination/pagination.html', takes_context=True)
 def dp_pagination_for(context, current_page):
     ''' Replacement for mezzanine template tag: pagination_for.

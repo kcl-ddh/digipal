@@ -146,3 +146,18 @@ div.tt-suggestion p {
 .faceted-search .pagination {
     margin-top: 0;
 }
+
+.faceted-search  .pagination-group .btn-group {
+    margin-top: 0;
+}
+
+.faceted-search .panel {
+    padding: 0.5em;    
+}
+
+.panel.interactive {
+    border: 1px solid #E0C4BE;
+}
+
+
+

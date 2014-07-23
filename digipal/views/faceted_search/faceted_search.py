@@ -8,6 +8,7 @@ from digipal.forms import SearchPageForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
+from digipal import utils
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -67,7 +68,7 @@ class FacetedModel(object):
         from django.template.defaultfilters import slugify
         selected_key = request.GET.get(field['key'], '')
         for k, v in self.whoosh_groups[field['key']].iteritems():
-            ret.append({'key': k, 'label': k, 'count': v, 'selected': selected_key == k})
+            ret.append({'key': k, 'label': k, 'count': v, 'selected': (selected_key == k) and (k)})
         ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     
@@ -109,10 +110,14 @@ class FacetedModel(object):
         ret = u''
         for facet in self.get_facets(request):
             for option in facet['selected_options']:
-                href = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {facet['key']: []})
+                href = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
                 ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label']) 
 
         from django.utils.safestring import mark_safe
+        
+        if not ret.strip():
+            ret = 'All' 
+            
         return mark_safe(ret)
 
     def get_columns(self):
@@ -128,7 +133,7 @@ class FacetedModel(object):
     
     
     def get_requested_records(self, request):
-        # run the query with woosh
+        # run the query with Whoosh
         # 
         from whoosh.index import open_dir
         import os
@@ -158,6 +163,16 @@ class FacetedModel(object):
             # run the query
             facets = self.get_whoosh_facets()
 
+            #
+            # result returned by search_page doesn't support pagination
+            # "'ResultsPage' object has no attribute 'groups'"
+            # 
+            # Two possible work-arounds:
+            # 1. run two Whoosh searches (one for the groups/facets another for the specific page)
+            # 2. run full faceted Whoosh search then paginate the ids
+            #
+            # TODO: check which one is the most efficient            
+            # 
             #ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
             ret = s.search(q, groupedby=facets)
             
@@ -167,7 +182,18 @@ class FacetedModel(object):
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
         
             # convert the result into a list of model instances
-            ids = [res['id'] for res in ret]
+            from django.core.paginator import Paginator
+            
+            # paginate
+            self.paginator = Paginator(ret, 10)
+            current_page = utils.get_int(request.GET.get('page'), 1)
+            if current_page < 1: current_page = 1
+            if current_page > self.paginator.num_pages:
+                current_page = self.paginator.num_pages 
+            self.current_page = self.paginator.page(current_page)
+            ids = [hit['id'] for hit in self.current_page.object_list]
+            
+            #ids = [res['id'] for res in ret]
             
             records = self.model.objects.all()
             if self.get_option('select_related'):
@@ -188,6 +214,13 @@ class FacetedModel(object):
                     
         return ret
     
+    def get_paginator(self):
+        return getattr(self, 'paginator', Paginator([], 10))
+    
+    def get_current_page(self):
+        ret = self.current_page
+        return ret
+
     def get_whoosh_parser(self, index):
         from whoosh.qparser import MultifieldParser
         
@@ -263,6 +296,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # add the results to the template 
     context['result'] = list(records)
     
+    context['current_page'] = ct.get_current_page()
+
     context['summary'] = ct.get_summary(request)
     
     context['advanced_search_form'] = True

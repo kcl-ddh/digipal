@@ -385,3 +385,13 @@ def recreate_whoosh_index(path, index_name, schema):
     index = create_in(path, schema)
     
     return index
+
+def get_int(obj, default=0):
+    '''Returns an int from an obj (e.g. string)
+        If the conversion fails, returns default.
+    '''
+    try:
+        ret = int(obj)
+    except:
+        ret = default
+    return ret

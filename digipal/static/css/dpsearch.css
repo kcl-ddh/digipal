@@ -142,3 +142,7 @@ div.tt-suggestion p {
 .faceted-summary a:hover {
     text-decoration: line-through;
 }
+
+.faceted-search .pagination {
+    margin-top: 0;
+}

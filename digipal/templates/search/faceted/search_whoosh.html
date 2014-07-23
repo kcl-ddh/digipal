@@ -47,7 +47,7 @@
                                     {% for option in facet.options %}
                                         <tr>
                                             <td>
-                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?{{facet.key}}={{option.key|urlencode}}{% endfilter %}">{{ option.label }}</a>
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&{{facet.key}}={{option.key|urlencode}}{% endfilter %}">{{ option.label }}</a>
                                                 {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                             </td>
                                             <td>{{ option.count }}</td>
@@ -63,6 +63,9 @@
     </div>
     
     <div class="col-md-9">
+        <div class="btn-group pagination-group">
+            {% dp_pagination_for current_page %}
+        </div>
         <table class="table">
             <tr>
                 {% for col in cols %}
@@ -81,6 +84,9 @@
                 </tr>
             {% endfor %}       
         </table> 
+        <div class="btn-group pagination-group">
+            {% dp_pagination_for current_page %}
+        </div>
     </div>
 
 </div>

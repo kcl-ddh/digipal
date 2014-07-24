@@ -229,7 +229,6 @@ class FacetedModel(object):
             if field.get('viewable', False):
                 term_fields.append(field['key'])
         parser = MultifieldParser(term_fields, index.schema)
-        #parser = MultifieldParser(term_fields, index.schema)
         return parser
         
 def get_types():

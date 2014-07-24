@@ -1,0 +1,62 @@
+Temporary todo for the faceted search
+
+JIRA 400: faceted search
+    +
+        all the facet values are visible
+        values have count
+        can apply any combination of facets for filtering (previously we were limited to a single content type)
+        faster (so far)
+        the CTs and views/layouts are not so dependent so we can do more for each CT with less constraints
+Other tickets resolved with this one:
+    JIRA 125: Page is a full citizen
+    
+
+TODO
+    finish pagination
+    filtering
+        differentiate filtering from counting
+        special filters for 
+            date type
+            catalogue list (need a text input)
+            feature/component
+    values
+        show all the counts even if 0 (use lexicon? move the end of the list)
+        sort by count/label
+        unselect value 
+    layouts/views
+        allow the CT to have different views:
+            list
+            grid
+            map
+    ajaxify
+    * graphs
+        multi-value fields
+    CT filter/facet
+        how to implement the counts?
+            a) with other SQL queries to retrieve the related records from the result set?
+                - we have a dual SQL+Whoosh system
+                + we can run it asynchronously to improve performance. There will be a small delay on the front end before the counts appear.
+            b) with other Whoosh queries on the other content types. 
+                - might be unnecessarily heavy. But we could have a light version of the query just for that count.
+                - this is logically different from a) and c) because we run independent searches. Instead a) and c) will use the ids
+                of the records in the result set to find related records.
+            c) as part of the same first Whoosh query. Each record will a field for each related content types and the id of the related fields there.
+                then we can use whoosh faceting to retrieve the count for each (content type, related record id) and sum them to get a count. Need to 
+                see how it impacts the performances.
+                + single system, single query.
+                - we bloat up the index with lots of ids
+                - may be slower than other implementations as we have to retrieve and group a lot of ids
+                - not parallelisable
+    Results set columns
+        Query phrase only applies to the fields displayed in the result set
+        Possibility to add/remove/swap fields in the results set
+        Possibility to reorder the fields in the result set
+    Sorting
+        How can we le the user chose the fields to be sorted by. E.g. city, repo, shelfmark, folio number?
+            a) we could have a pop-up with the list of fields being displayed and let the user reorder them
+            b) pre-defined sort orders
+            c) match the order of the columns
+    Persistent settings
+        some of the settings (order of the columns, sorting fields, collapsed/expanded facets) should be persisted across searches
+    Optimisation
+        

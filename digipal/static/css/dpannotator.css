@@ -350,9 +350,9 @@
     height: 120px;
     display: none;
     margin: 2%;
-    -webkit-column-count: 1;
-    -moz-column-count: 1;
-    column-count: 1;
+    -webkit-column-count: none;
+    -moz-column-count: none;
+    column-count: none;
 }
 
 label[for=id_internal_note], label[for=id_display_note]{

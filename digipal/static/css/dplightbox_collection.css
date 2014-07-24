@@ -235,6 +235,7 @@ tr.selected {
     text-align: justify;
     padding:1em;
     overflow-y:auto;
+    word-break: break-word;
 }
 
 .editorial-annotation-title .fa{

@@ -570,7 +570,7 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
 
 Annotator.prototype.centreById = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
-	this.map.zoomToExtent(feature.geometry.getBounds());
+	this.map.setCenter(feature.geometry.getBounds().getCenterLonLat());
 };
 /**
  * Returns the saved attribute for the given feature.

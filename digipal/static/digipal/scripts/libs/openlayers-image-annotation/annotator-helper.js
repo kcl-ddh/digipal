@@ -49,16 +49,16 @@ TransformFeature = OpenLayers.Class(OpenLayers.Control.TransformFeature, {
 		this.center = new OpenLayers.Geometry.Point(0, 0);
 		var box = new OpenLayers.Feature.Vector(
 			new OpenLayers.Geometry.LineString([
-                new OpenLayers.Geometry.Point(-1, -1),
-                new OpenLayers.Geometry.Point(0, -1),
-                new OpenLayers.Geometry.Point(1, -1),
-                new OpenLayers.Geometry.Point(1, 0),
-                new OpenLayers.Geometry.Point(1, 1),
-                new OpenLayers.Geometry.Point(0, 1),
-                new OpenLayers.Geometry.Point(-1, 1),
-                new OpenLayers.Geometry.Point(-1, 0),
-                new OpenLayers.Geometry.Point(-1, -1)
-            ]), null,
+				new OpenLayers.Geometry.Point(-1, -1),
+				new OpenLayers.Geometry.Point(0, -1),
+				new OpenLayers.Geometry.Point(1, -1),
+				new OpenLayers.Geometry.Point(1, 0),
+				new OpenLayers.Geometry.Point(1, 1),
+				new OpenLayers.Geometry.Point(0, 1),
+				new OpenLayers.Geometry.Point(-1, 1),
+				new OpenLayers.Geometry.Point(-1, 0),
+				new OpenLayers.Geometry.Point(-1, -1)
+			]), null,
 			typeof this.renderIntent == "string" ? null : this.renderIntent
 		);
 

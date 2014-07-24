@@ -85,6 +85,7 @@ function Collections() {
 	var show_collections = function(collections) {
 		var container = $('#container_collections');
 		var _self = this;
+		var d = 0;
 		if (collections) {
 			$.each(collections, function(index, value) {
 				var collection = $('<div>');
@@ -106,9 +107,14 @@ function Collections() {
 				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
 				if (!$('#' + value.id).length) {
+					if (d % 4 === 0) {
+						container.append('<br clear="all"/>');
+					}
+
 					container.append(collection);
 				}
 				$('[data-toggle="tooltip"]').tooltip();
+				d++;
 			});
 		} else {
 			var s = '<div class="container alert alert-warning">No collections</div>';

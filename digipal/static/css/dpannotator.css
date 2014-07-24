@@ -720,3 +720,8 @@ path {
     cursor: pointer;
     font-size: 12px;
 }
+
+#container-letters-popup{
+    overflow-y: auto;
+    height: 350px;
+}

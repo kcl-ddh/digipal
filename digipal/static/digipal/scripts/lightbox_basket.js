@@ -539,7 +539,7 @@ function displayGrid(data, attrs) {
 		s += "<div id='editorial-grid' class='panel'>";
 		s += "<h2>Editorial Annotations (" + data.editorial.length + ")</h2>";
 		for (var i = 0; i < data.editorial.length; i++) {
-
+			editorialCache[data.editorial[i][2]] = data.editorial[i][4];
 			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3])) {
 				s += "<h3>" + data.editorial[i][3] + "</h3>";
 				s += "<div class='grid-images'>";

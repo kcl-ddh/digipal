@@ -956,7 +956,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						$(this).parent('li').addClass('disabled');
 					});
 					$("[data-target='#notes_tab']").tab('show');
-
 				}
 			}
 			self.updateFeatureSelect.init(dialog, selectedFeature, callback);
@@ -1781,6 +1780,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		$('#annotator').append(div.fadeIn());
 		$('.number_unsaved_allographs').html(0);
 		this.unsaved_annotations = [];
+		$('.checkVectors').add('.checkVectors_hands').prop('checked', true);
+
 		this.load_annotations(function(data) {
 			reload_described_annotations(div);
 			restoreFullscreenPositions();
@@ -1802,6 +1803,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			}
 
 		}, true);
+
 	};
 
 
@@ -1899,10 +1901,7 @@ var stylize = function(feature, fill, stroke, opacity) {
 
 function allow_multiple() {
 	var multiple_checkbox = $("#multiple_annotations");
-	if (multiple_checkbox.is(':checked')) {
-		return true;
-	}
-	return false;
+	return multiple_checkbox.is(':checked') || annotator.selectFeature.multiple;
 }
 
 

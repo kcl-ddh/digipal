@@ -353,9 +353,7 @@
     width: 270px;
     height: 120px;
     margin: 2%;
-    -webkit-column-count: none;
-    -moz-column-count: none;
-    column-count: none;
+
 }
 
 label[for=id_internal_note], label[for=id_display_note]{
@@ -719,4 +717,9 @@ path {
 #box_features_container .nav-tabs a{
     cursor: pointer;
     font-size: 12px;
+}
+
+#container-letters-popup{
+    overflow-y: auto;
+    height: 350px;
 }

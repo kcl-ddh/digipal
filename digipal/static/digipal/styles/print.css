@@ -1,6 +1,11 @@
 .navbar, #navQuickSearch, .page-header, button, input, footer, h3, h2, .glyphicon, .num_row,
  #counter-annotations, #counter-images, #counter-editorial, .nav, .fa, #switcher {
-    display: none !important;
+    visibility: hidden !important;
+    height: 0;
+}
+
+.nav li {
+    height: 0;
 }
 
 a[href]:after {
@@ -12,9 +17,19 @@ a[href]:after {
 }
 
 #grid h3 {
+    visibility: visible !important;
     display: block !important;
 }
 
 #manuscripts-index, .manuscript-number{
     display: inline-block;
+}
+
+#logo_words, #div-logo-desc, #trt {
+    visibility: visible;
+    display: block;
+}
+
+.collapse, #navQuickSearch {
+    display: none;
 }

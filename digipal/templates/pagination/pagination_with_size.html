@@ -8,7 +8,7 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 {% for size in page_sizes %}
-                    <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}{% endfilter %}">{{ size }}</a></li>
+                    <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}&page=1{% endfilter %}">{{ size }}</a></li>
                 {% endfor %}
             </ul>
         </div>

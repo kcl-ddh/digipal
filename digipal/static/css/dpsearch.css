@@ -108,9 +108,15 @@ div.tt-suggestion p {
     margin: 0.3em;
 }
 
+/* Faceted Search Interface*/
+
 .faceted-search .panel {
+    padding: 0.5em;
+}
+
+.facets .panel {
     margin-bottom: 20px;
-    padding: 0;
+    padding: 0;    
 }
 
 .faceted-search .panel-heading a:after {
@@ -151,13 +157,29 @@ div.tt-suggestion p {
     margin-top: 0;
 }
 
-.faceted-search .panel {
-    padding: 0.5em;    
-}
-
 .panel.interactive {
     border: 1px solid #E0C4BE;
 }
 
+.facets .panel table {
+    margin-bottom: 0px;
+}
 
+.facets .panel td {
+    border: 0;
+    padding: 2px;
+}
 
+.facets .panel td.count {
+    text-align: right;
+}
+
+.facets .panel th {
+    border: 0;
+    border-bottom: 1px solid lightgrey;
+}
+
+.facets .panel-body {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}

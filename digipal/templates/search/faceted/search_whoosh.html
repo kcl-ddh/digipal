@@ -16,7 +16,7 @@
     
 <div class="row faceted-search">
     <div class="col-md-3">
-        <form action="." method="get" class="">
+        <form action="." method="get" class="facets">
             {% for facet in facets %}
                 <div class="panel panel-default" id="panel-{{ facet.key }}">
                     <div class="panel-heading">
@@ -42,15 +42,15 @@
                                 </div>
                             {% endif %}
                             {% if facet.options %}
-                                <table class="table">
-                                    <tr><td>option</td><td>count</td></tr>
+                                <table class="table table-condensed">
+                                    <tr><th>Option</th><th>Count</th></tr>
                                     {% for option in facet.options %}
                                         <tr>
                                             <td>
                                                 <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&{{facet.key}}={{option.key|urlencode}}{% endfilter %}">{{ option.label }}</a>
                                                 {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                             </td>
-                                            <td>{{ option.count }}</td>
+                                            <td class="count">{{ option.count }}</td>
                                         </tr>
                                     {% endfor %}
                                 </table>
@@ -79,12 +79,12 @@
             </div>
         {% endif %}
         {% dp_pagination_with_size_for current_page %}
-        <table class="table">
+        <table class="table table-condensed table-striped">
             <tr>
                 {% for col in cols %}
-                    <td>
+                    <th>
                         {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
-                    </td>
+                    </th>
                 {% endfor %}
             </tr>
             {% for record in result %}

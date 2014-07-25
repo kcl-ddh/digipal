@@ -59,4 +59,6 @@ TODO
     Persistent settings
         some of the settings (order of the columns, sorting fields, collapsed/expanded facets) should be persisted across searches
     Optimisation
-        
+    Link to records and back
+    Removed references to haystack
+    

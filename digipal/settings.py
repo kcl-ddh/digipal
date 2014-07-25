@@ -444,10 +444,10 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
     },
-    'whoosh': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
-    },
+#     'whoosh': {
+#         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+#         'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
+#     },
 }
 
 #########################

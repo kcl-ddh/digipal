@@ -62,3 +62,11 @@ TODO
     Link to records and back
     Removed references to haystack
     
+    Boolean field:
+    	provide a mapping from 0/1 to a label
+    		modify Image.full_size
+    
+    Convert field dict to a class
+    
+    	
+    	

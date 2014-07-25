@@ -1351,6 +1351,12 @@ class Image(models.Model):
     def is_media_private(self):
         return self.get_media_permission().is_private
 
+    def get_media_right_label(self):
+        ret = 'Full size image'
+        if self.is_media_private():
+            ret = 'Thumbnail only'
+        return ret
+
     def get_media_unavailability_reason(self, user=None):
         '''Returns an empty string if the media can be viewed by the user.
            Returns a message explaining the reason otherwise.

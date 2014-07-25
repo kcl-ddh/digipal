@@ -47,7 +47,8 @@ class FacetedModel(object):
     def get_document_from_record(self, record):
         ret = {'id': u'%s' % record.id}
         for field in self.fields:
-            ret[field['key']] = self.get_record_field(record, field)
+            if self.is_field_indexable(field):
+                ret[field['key']] = self.get_record_field_whoosh(record, field)
         return ret
 
     def get_facets(self, request):
@@ -61,7 +62,7 @@ class FacetedModel(object):
         
         # facets based on faceted fields
         for field in self.fields:
-            if field.get('faceted', False):
+            if field.get('count', False) or field.get('filter', False):
                 facet = {'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field, request)}
                 facet['selected_options'] = [o for o in facet['options'] if o['selected']]
                 ret.append(facet)
@@ -69,7 +70,8 @@ class FacetedModel(object):
 
     def get_facet_options(self, field, request):
         ret = []
-        from django.template.defaultfilters import slugify
+        if not field.get('count', False):
+            return ret
         selected_key = request.GET.get(field['key'], '')
         for k, v in self.whoosh_groups[field['key']].iteritems():
             ret.append({'key': k, 'label': k, 'count': v, 'selected': (selected_key == k) and (k)})
@@ -84,9 +86,19 @@ class FacetedModel(object):
         
         ret = self.get_record_field(record, field)
         if field['type'] == 'url':
-            ret = '<a href="%s">View</a>' % ret
+            ret = '<a href="%s" class="view_button">View</a>' % ret
+        if field['type'] == 'image':
+            # TODO: max_size as an argument for iip_img_a
+            ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1)
         return ret
         
+    def get_record_field_whoosh(self, record, afield):
+        ret = self.get_record_field(record, afield)
+        if ret is not None:
+            ret = unicode(ret)
+        
+        return ret
+
     def get_record_field(self, record, afield):
         '''
             returns the value of record.afield 
@@ -98,14 +110,16 @@ class FacetedModel(object):
         # split the path
         path = afield['path']
         v = record
-        for part in path.split('.'):
-            if not hasattr(v, part):
-                raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
-            v = getattr(v, part, None)
-            if v is None:
-                break
-            if callable(v):
-                v = v()
+        if path:
+            for part in path.split('.'):
+                if not hasattr(v, part):
+                    raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
+                v = getattr(v, part, None)
+                if v is None:
+                    break
+                if callable(v):
+                    v = v()
+            
         ret = v
 
         return ret  
@@ -133,8 +147,11 @@ class FacetedModel(object):
     
     def get_whoosh_facets(self):
         from whoosh import sorting
-        return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('faceted', False)]
+        return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
     
+    @classmethod
+    def is_field_indexable(cls, field):
+        return field.get('search', False) or field.get('count', False) or field.get('filter', False)    
     
     def get_requested_records(self, request):
         selected = False
@@ -193,7 +210,7 @@ class FacetedModel(object):
             
             self.whoosh_groups = {}
             for field in self.fields:
-                if field.get('faceted', False):
+                if field.get('count', False):
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
         
             # convert the result into a list of model instances
@@ -245,10 +262,8 @@ class FacetedModel(object):
     def get_whoosh_parser(self, index):
         from whoosh.qparser import MultifieldParser
         
-        term_fields = []
-        for field in self.fields:
-            if field.get('viewable', False):
-                term_fields.append(field['key'])
+        # TODO: only active columns
+        term_fields = [field['key'] for field in self.fields if field.get('search', False)]
         parser = MultifieldParser(term_fields, index.schema)
         return parser
     
@@ -282,22 +297,33 @@ def get_types():
                 'fields': [
                            # label = the label displayed on the screen
                            # label_col = the label in the column in the result table
-                           # viewable = True if the field can be displayed in the result set
-                           # index = True to index the field
                            # type = the type of the field
-                           # counts = True to show the number of hits for each possible value of the field (i.e. show facet options)
-                           # filter = True to let the user filter by this field
+
                            # path = a field name (can go through a related object or call a function)
+                           
+                           # count = True to show the number of hits for each possible value of the field (i.e. show facet options)
+                           # filter = True to let the user filter by this field
+                           # search = True if the field can be searched on (phrase query)
+                           # viewable = True if the field can be displayed in the result set
+
+                           # index = True iff (search or filter or count)
+                           
+                           # e.g. ann: viewable, full_size: count, repo_city: viewable+count+search
+                           # id: special
+                           # Most of the times viewable => searchable but not always (e.g. ann.)
                            
                            {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
                            #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
                            #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
                            #
-                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'faceted': True, 'index': True, 'viewable': True, 'type': 'title'},
-                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'faceted': True, 'index': True, 'viewable': True, 'type': 'title'},
-                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'index': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'index': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'faceted': True, 'index': True, 'type': 'code'},
+                           {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
+                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True},
+                           {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
+                           {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                            ],
                 'select_related': ['item_part__current_item__repository__place'],
                 'prefetch_related': ['item_part__historical_items'],
@@ -375,7 +401,10 @@ def create_index_schema(ct):
     from whoosh.fields import TEXT, ID, NGRAM, NUMERIC, KEYWORD
     fields = {'id': ID(stored=True)}
     for field in ct.fields:
-        fields[field['key']] = get_whoosh_field_type(field)
+        if ct.is_field_indexable(field):
+            fields[field['key']] = get_whoosh_field_type(field)
+        
+    print '\t' + ', '.join(key for key in fields.keys())
     
     print '\trecreate empty index'
 

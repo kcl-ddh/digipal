@@ -23,6 +23,9 @@ Commands:
   info
                         Show general info and whoosh schemas
                         
+  index_facets
+                        Re-Index the faceted content 
+
   dump
                         Dump indices
                         

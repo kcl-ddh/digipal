@@ -331,12 +331,6 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     records = ct.get_requested_records(request)
     
     # add the search parameters to the template
-#     context['facets'] = [
-#                        {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms'},
-#                         ]
-#     
-#     context['facets'].extend(ct.get_facets(request))
-
     context['facets'] = ct.get_facets(request)
     
     context['cols'] = ct.get_columns()

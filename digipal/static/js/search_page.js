@@ -93,6 +93,10 @@ $(document).ready(function() {
     
     // prevent the page from jumping each time we expand/collapse a panel 
     $('[data-toggle=collapse]').on('click', function() {return true;});
+    
+    if ($.fn.sortable) {
+        $('.sortable').sortable();
+    }
 });
 
 

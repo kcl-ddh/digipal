@@ -12,26 +12,26 @@ Other tickets resolved with this one:
     
 
 TODO
-    finish pagination
+    [done] finish pagination
     filtering
-        differentiate filtering from counting
+        [done] differentiate filtering from counting
         special filters for 
-            date type
+            2. date type
             catalogue list (need a text input)
             feature/component
     values
         show all the counts even if 0 (use lexicon? move the end of the list)
         sort by count/label
         unselect value 
-    layouts/views
+    1. layouts/views
         allow the CT to have different views:
             list
             grid
             map
     ajaxify
-    * graphs
+    4. * graphs
         multi-value fields
-    CT filter/facet
+    3. CT filter/facet
         how to implement the counts?
             a) with other SQL queries to retrieve the related records from the result set?
                 - we have a dual SQL+Whoosh system
@@ -47,11 +47,11 @@ TODO
                 - we bloat up the index with lots of ids
                 - may be slower than other implementations as we have to retrieve and group a lot of ids
                 - not parallelisable
-    Results set columns
+    6. Results set columns
         Query phrase only applies to the fields displayed in the result set
         Possibility to add/remove/swap fields in the results set
         Possibility to reorder the fields in the result set
-    Sorting
+    5. Sorting
         How can we le the user chose the fields to be sorted by. E.g. city, repo, shelfmark, folio number?
             a) we could have a pop-up with the list of fields being displayed and let the user reorder them
             b) pre-defined sort orders

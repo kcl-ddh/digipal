@@ -84,25 +84,11 @@
                     </div>
                 </div>
             {% endif %}
+            
             {% dp_pagination_with_size_for current_page %}
-            <table class="table table-condensed table-striped table-bordered table-hover">
-                <tr>
-                    {% for col in cols %}
-                        <th>
-                            {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
-                        </th>
-                    {% endfor %}
-                </tr>
-                {% for record in result %}
-                    <tr>
-                        {% for col in cols %}
-                            <td>
-                                {% record_field result_type record col.key %}
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}       
-            </table> 
+            
+            {% include result_type.selected_view_template %}
+            
             {% dp_pagination_with_size_for current_page %}
         </div>
     </form>

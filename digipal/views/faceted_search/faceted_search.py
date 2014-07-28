@@ -9,6 +9,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
+from django.utils.datastructures import SortedDict
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -40,6 +41,15 @@ class FacetedModel(object):
     def get_views(self):
         return self.get_option('views', [])
     views = property(get_views)
+    
+    def get_selected_views_template(self):
+        for view in self.views:
+            if view.get('selected', False):
+                ret = view.get('key', 'table')
+                break
+        
+        return 'search/faceted/views/' + ret + '.html' 
+    selected_view_template = property(get_selected_views_template)
 
     def get_all_records(self):
         return self.model.objects.all()
@@ -330,7 +340,7 @@ def get_types():
                 'select_related': ['item_part__current_item__repository__place'],
                 'prefetch_related': ['item_part__historical_items'],
                 'views': [
-                          {'icon': 'th-list', 'label': 'List', 'key': 'list', 'type': 'list'},
+                          {'icon': 'th-list', 'label': 'List', 'key': 'list'},
                           {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
                           ],
                 }

@@ -697,7 +697,7 @@ function launchEvents() {
 	var print = $('#print');
 	print.on('click', function() {
 		var tab = $('.tab-pane.active').attr('id');
-		location.href = location.href + '?view=print&tab=' + tab;
+		window.open(location.href + '?view=print&tab=' + tab);
 	});
 
 	$('#to_lightbox').unbind().on('click', function() {

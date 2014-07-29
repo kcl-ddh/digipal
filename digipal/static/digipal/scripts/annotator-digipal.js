@@ -2453,6 +2453,7 @@ function refresh_features_dialog(data, dialog) {
 		}
 	} else {
 		aspects += "<li class='component'>No aspects defined</li>";
+		$('[data-target="#aspects_tab"]').hide();
 	}
 	aspects += "</ul>";
 
@@ -2493,7 +2494,9 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-
+			if (!aspects_list.length) {
+				$('[data-target="#aspects_tab"]').hide();
+			}
 			var check_all = $('.check_all');
 			check_all.click(function(event) {
 				var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');

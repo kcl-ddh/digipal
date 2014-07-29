@@ -760,9 +760,9 @@ function launchEvents() {
 						editorial_annotations.push(element);
 					}
 				}
-				location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
 			}
 		}
+		window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname);
 	});
 
 	$('tr.table-row').unbind().on('click', function(event) {

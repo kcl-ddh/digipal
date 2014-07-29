@@ -116,7 +116,7 @@ var changeNumbers = function() {
 	});
 };
 
-function main() {
+function main(callback) {
 
 	var element_basket = $('#collection_link');
 	var container_basket = $('#container_basket');
@@ -223,6 +223,10 @@ function main() {
 				displayGrid(data, {
 					'sorting': 11
 				});
+
+				if (callback) {
+					callback();
+				}
 
 			},
 
@@ -697,7 +701,8 @@ function launchEvents() {
 	var print = $('#print');
 	print.on('click', function() {
 		var tab = $('.tab-pane.active').attr('id');
-		window.open(location.href + '?view=print&tab=' + tab);
+		var grouping = $('#sort-select').val();
+		window.open(location.href + '?view=print&tab=' + tab + '&grouping=' + grouping);
 	});
 
 	$('#to_lightbox').unbind().on('click', function() {
@@ -928,22 +933,30 @@ $(document).ready(function() {
 		});
 	});
 
-	main();
+	main(function() {
 
-	var print_view = getParameter('view');
-	var tab = getParameter('tab');
-	if (print_view.length && print_view[0] == 'print') {
-		if (tab[0]) {
-			$('[data-target="#' + tab[0] + '"]').tab('show');
+		var print_view = getParameter('view');
+		var tab = getParameter('tab');
+		var grouping = getParameter('grouping');
+		if (print_view.length && print_view[0] == 'print') {
+			if (tab[0]) {
+				$('[data-target="#' + tab[0] + '"]').tab('show');
+			}
+			$('[media="print"]').attr('media', 'screen');
 		}
-		$('[media="print"]').attr('media', 'screen');
-	}
+		if (grouping.length && tab == 'grid') {
+			displayGrid(cache, {
+				'sorting': grouping[0]
+			});
+		}
+	});
 
 	$(window).bind('storage', function(e) {
 		main();
 		update_counter();
 		update_collection_counter();
 	});
+
 });
 
 

@@ -7,7 +7,7 @@
 	});
 
 	$('#sort-select').bootstrapSelect({
-		label: "Sort By"
+		label: "Group By"
 	});
 })();
 
@@ -689,6 +689,13 @@ function launchEvents() {
 
 	});
 
+
+	var print = $('#print');
+	print.on('click', function() {
+		var tab = $('.tab-pane.active').attr('id');
+		location.href = location.href + '?view=print&tab=' + tab;
+	});
+
 	$('#to_lightbox').unbind().on('click', function() {
 		var graphs = [],
 			images = [],
@@ -900,6 +907,15 @@ $(document).ready(function() {
 	});
 
 	main();
+
+	var print_view = getParameter('view');
+	var tab = getParameter('tab');
+	if (print_view.length && print_view[0] == 'print') {
+		if (tab[0]) {
+			$('[data-target="#' + tab[0] + '"]').tab('show');
+		}
+		$('[media="print"]').attr('media', 'screen');
+	}
 
 	$(window).bind('storage', function(e) {
 		main();

@@ -21,8 +21,19 @@ a[href]:after {
     display: block !important;
 }
 
-#manuscripts-index, .manuscript-number{
+.manuscript-number{
     display: inline-block;
+}
+
+#manuscripts-index {
+    position: absolute;
+    display: block;
+    margin-top: -15px;
+}
+
+
+.manuscript-index {
+    font-size:17px;
 }
 
 #logo_words, #div-logo-desc, #trt {
@@ -32,4 +43,8 @@ a[href]:after {
 
 .collapse, #navQuickSearch {
     display: none;
+}
+
+.row, .container {
+    height:0;
 }

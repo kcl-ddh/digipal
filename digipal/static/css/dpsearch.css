@@ -170,7 +170,7 @@ div.tt-suggestion p {
     padding: 2px;
 }
 
-.facets .panel td.count {
+.facets .panel td.count, .facets .panel th.count {
     text-align: right;
 }
 

@@ -15,8 +15,8 @@
 </div>
     
 <div class="row faceted-search">
-    <div class="col-md-3">
-        <form action="." method="get" class="facets">
+    <form action="." method="get" class="">
+        <div class="col-md-3 facets">
             {% for facet in facets %}
                 <div class="panel panel-default" id="panel-{{ facet.key }}">
                     <div class="panel-heading">
@@ -42,12 +42,16 @@
                                 </div>
                             {% endif %}
                             {% if facet.options %}
-                                <table class="table table-condensed">
-                                    <tr><th>Option</th><th>Count</th></tr>
+                                <table class="table">
+                                    <tr><th>Option</th><th class="count">Count</th></tr>
                                     {% for option in facet.options %}
-                                        <tr>
+                                        <tr 
+                                            {% if option.selected %}class="active"{% endif %}
+                                            >
                                             <td>
-                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&{{facet.key}}={{option.key|urlencode}}{% endfilter %}">{{ option.label }}</a>
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&{{facet.key}}={{option.key|urlencode}}{% endfilter %}">
+                                                    {{ option.label }}
+                                                </a>
                                                 {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                             </td>
                                             <td class="count">{{ option.count }}</td>
@@ -59,47 +63,35 @@
                     </div>
                 </div>
             {% endfor %}        
-        </form>
-    </div>
-    
-    <div class="col-md-9">
-        {% if views %}
-            <div class="panel panel-default">
-                <div class="btn-toolbar" role="toolbar">
-                    <div class="btn-group pull-right">
-                        {% for view in views %}
-                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
-                                class="btn btn-default {% if view.selected %} active {% endif %}"
-                                title="{{ view.label }} View" data-toggle="tooltip">
-                                <span class="glyphicon glyphicon-{{ view.icon }}"></span>
-                            </a>                    
-                        {% endfor %}
+        </div>
+        
+        <div class="col-md-9">
+            {% if views %}
+                <div class="panel panel-default">
+                    <div class="btn-toolbar" role="toolbar">
+                        <div class="btn-group pull-right">
+                            {% for view in views %}
+                                {% if view.selected %}
+                                    <input type="hidden" name="view" value="{{ view.key }}" />
+                                {% endif %}
+                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
+                                    class="btn btn-default {% if view.selected %} active {% endif %}"
+                                    title="{{ view.label }} View" data-toggle="tooltip">
+                                    <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                                </a>                    
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-        {% dp_pagination_with_size_for current_page %}
-        <table class="table table-condensed table-striped">
-            <tr>
-                {% for col in cols %}
-                    <th>
-                        {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
-                    </th>
-                {% endfor %}
-            </tr>
-            {% for record in result %}
-                <tr>
-                    {% for col in cols %}
-                        <td>
-                            {% record_field result_type record col.key %}
-                        </td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}       
-        </table> 
-        {% dp_pagination_with_size_for current_page %}
-    </div>
-
+            {% endif %}
+            
+            {% dp_pagination_with_size_for current_page %}
+            
+            {% include result_type.selected_view_template %}
+            
+            {% dp_pagination_with_size_for current_page %}
+        </div>
+    </form>
 </div>
 
 {% endblock %}

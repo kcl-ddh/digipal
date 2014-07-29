@@ -503,7 +503,9 @@ function displayGrid(data, attrs) {
 		for (var i = 0; i < data.annotations.length; i++) {
 
 			if (!i || (data.annotations[i][attrs.sorting] !== data.annotations[i - 1][attrs.sorting])) {
-				s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
+				if (attrs.sorting !== 'no-group') {
+					s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
+				}
 				s += "<div class='grid-images'>";
 			}
 
@@ -521,14 +523,16 @@ function displayGrid(data, attrs) {
 		s += "<h2>Images (" + data.images.length + ")</h2>";
 		for (var i = 0; i < data.images.length; i++) {
 
-			if (!i || (data.images[i][2] !== data.images[i - 1][2])) {
-				s += "<h3>" + data.images[i][2] + "</h3>";
+			if (!i || (data.images[i][2] !== data.images[i - 1][2]) && (!attrs.sorting == 'no-group')) {
+				if (!attrs.sorting == 'no-group') {
+					s += "<h3>" + data.images[i][2] + "</h3>";
+				}
 				s += "<div class='grid-images'>";
 			}
 
 			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
-			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2])) {
+			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
 			}
 		}
@@ -540,14 +544,14 @@ function displayGrid(data, attrs) {
 		s += "<h2>Editorial Annotations (" + data.editorial.length + ")</h2>";
 		for (var i = 0; i < data.editorial.length; i++) {
 			editorialCache[data.editorial[i][2]] = data.editorial[i][4];
-			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3])) {
+			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3]) && (!attrs.sorting == 'no-group')) {
 				s += "<h3>" + data.editorial[i][3] + "</h3>";
 				s += "<div class='grid-images'>";
 			}
 
 			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'><span class='manuscript-number'>" + manuscripts[data.editorial[i][3]] + "</span>" + data.editorial[i][0] + "</div>";
 
-			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3])) {
+			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
 			}
 		}

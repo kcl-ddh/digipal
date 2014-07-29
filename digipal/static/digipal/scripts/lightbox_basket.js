@@ -705,7 +705,7 @@ function launchEvents() {
 
 		var selectedCollection = localStorage.getItem('selectedCollection');
 		var collections = JSON.parse(localStorage.getItem('collections'));
-
+		var view = $('.tab-pane.active').attr('id');
 		$.each(collections, function(index, value) {
 			if (value.id == selectedCollection) {
 				basket = value;
@@ -719,28 +719,46 @@ function launchEvents() {
 				} else {
 					element = basket.annotations[i];
 				}
-				if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
-					graphs.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+						graphs.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						graphs.push(element);
+					}
 				}
 			}
 		}
 		if (basket && basket.images && basket.images.length) {
 			for (i = 0; i < basket.images.length; i++) {
 				element = basket.images[i];
-				if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
-					images.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+						images.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						images.push(element);
+					}
 				}
 			}
 		}
 		if (basket && basket.editorial && basket.editorial.length) {
 			for (i = 0; i < basket.editorial.length; i++) {
 				element = basket.editorial[i].toString();
-				if ($('input[type="checkbox"][data-graph="' + basket.editorial[i][0] + '"]').is(':checked')) {
-					editorial_annotations.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + basket.editorial[i][0] + '"]').is(':checked')) {
+						editorial_annotations.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						editorial_annotations.push(element);
+					}
 				}
+				location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
 			}
 		}
-		location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
 	});
 
 	$('tr.table-row').unbind().on('click', function(event) {

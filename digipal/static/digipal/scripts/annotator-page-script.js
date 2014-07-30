@@ -573,14 +573,9 @@ function AnnotatorLoader() {
 			});
 
 			var checkAll_hands = $('#checkAll_hands');
+			var checkAll_hands_checkboxes = $('.checkVectors_hands');
 			checkAll_hands.click(function() {
-				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filters.filterCheckboxes('.checkVectors_hands', 'uncheck');
-					$(this).data('toggle', 'check');
-				} else {
-					annotator.filters.filterCheckboxes('.checkVectors_hands', 'check');
-					$(this).data('toggle', 'uncheck');
-				}
+				checkAll_hands_checkboxes.trigger('click');
 			});
 
 

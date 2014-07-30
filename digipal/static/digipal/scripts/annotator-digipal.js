@@ -514,7 +514,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph;
 			for (var i in features) {
 				if (formal_attribute == 'hand') {
-					if (!features[i].is_editorial) {
+					if (!features[i].is_editorial && features[i].stored) {
 						attribute = features[i].hand;
 						attribute2 = features[i].allograph_id;
 						hand = $('#hand_input_' + attribute);

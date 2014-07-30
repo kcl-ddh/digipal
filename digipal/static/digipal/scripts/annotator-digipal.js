@@ -556,7 +556,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}
 						}
 					}
-				} else {
+				} else if (formal_attribute == 'editorial') {
 					attribute = features[i].is_editorial;
 					if (attribute) {
 						if (!($(checkboxes).is(':checked'))) {
@@ -565,6 +565,19 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						} else {
 							features[i].style.fillOpacity = 0.4;
 							features[i].style.strokeOpacity = 0.4;
+						}
+					}
+				} else {
+					attribute = features[i].stored;
+					if (!attribute && features[i].state) {
+						if (!($(checkboxes).is(':checked'))) {
+							features[i].style.fillOpacity = 0;
+							features[i].style.strokeOpacity = 0;
+							$('polyline').add('circle').hide();
+						} else {
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 0.4;
+							$('polyline').add('circle').show();
 						}
 					}
 				}
@@ -1299,9 +1312,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-
+	 
 	 * Updates the feature select according to the currently selected allograph.
-
+	 
 	 */
 
 	this.updateFeatureSelect = {

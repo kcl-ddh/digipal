@@ -337,15 +337,15 @@ function AnnotatorLoader() {
 			}
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
-				var base64regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2})$/;
 				var temp;
-				if (base64regex.test(temporary_vectors[t])) {
+				try {
 					temp = annotator.utils.Base64.decode(temporary_vectors[t]);
-				} else {
+					temp = temp.replace(/\0/g, "");
+					geo_json = JSON.parse(temp);
+				} catch (e) {
 					temp = temporary_vectors[t];
+					geo_json = JSON.parse(temp);
 				}
-				temp = temp.replace(/\0/g, "");
-				geo_json = JSON.parse(temp);
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];
 
@@ -515,14 +515,18 @@ function AnnotatorLoader() {
 		if (!$.isEmptyObject(annotations)) {
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
-				var checked = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
+				var checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
 				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
-					"<input data-attribute='hand' " + checked + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
+					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
-			checked = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
-			checkOutput += "<p data-annotation class='paragraph_allograph_check'>";
-			checkOutput += "<input data-attribute='editorial' " + checked + " value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
+			checked_editorial = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
+			var checked_public = annotator.cacheHiddenFilters.hands.indexOf("public") < 0 ? "checked" : "";
+			checkOutput += "<p data-annotation='editorial' class='paragraph_allograph_check'>";
+			checkOutput += "<input data-attribute='editorial' " + checked_editorial + " value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
 			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";
+			checkOutput += "<p data-annotation='public' class='paragraph_allograph_check'>";
+			checkOutput += "<input data-attribute='public' " + checked_public + " value = 'public' class='checkVectors_hands' id='public_filter' type='checkbox' />";
+			checkOutput += "<label for='public_filter' style='display:inline;'> Public Annotations</label></p>";
 		}
 
 		checkOutput += "</div></div>";
@@ -544,7 +548,6 @@ function AnnotatorLoader() {
 
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
-
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
 			/* launching events */
@@ -666,6 +669,7 @@ function AnnotatorLoader() {
 				/* deselecting all checkboxes */
 				toggleButtons.attr('disabled', true);
 				checkboxes.add(checkboxes_hands).prop('disabled', true);
+				annotator.rectangleFeature.deactivate();
 			}
 
 			var clonedSwitcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');

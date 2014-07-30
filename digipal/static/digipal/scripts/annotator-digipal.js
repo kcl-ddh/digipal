@@ -1299,9 +1299,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -2031,7 +2031,7 @@ function detect_common_features_init() {
 	}
 
 	if (graphs.length > 1) {
-		var cache = $.extend({}, annotator.cacheAnnotations.cache);
+		var cache = $.extend(true, {}, annotator.cacheAnnotations.cache);
 		detect_common_features(graphs, checkboxes, cache);
 	}
 }
@@ -2465,6 +2465,8 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 	var can_edit = $('#development_annotation').is(':checked');
 
+	var copy_data = $.extend(true, {}, data);
+	var copy_cache = $.extend(true, {}, annotator.cacheAnnotations.cache);
 	if (can_edit) {
 
 		if (annotator.selectedAnnotations.length > 1) {
@@ -2477,12 +2479,12 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			}
 
 			if (selected.length > 1) {
-				data.allographs.components = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.components);
-				data.allographs.aspects = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.aspects, "aspects");
+				copy_data.allographs.components = common_components(selected, copy_cache, copy_data.allographs.components);
+				copy_data.allographs.aspects = common_components(selected, copy_cache, copy_data.allographs.aspects, "aspects");
 			}
 		}
 
-		update_dialog('annotator_', data, annotator.selectedAnnotations, function(s) {
+		update_dialog('annotator_', copy_data, annotator.selectedAnnotations, function(s) {
 
 			$('#id_internal_note').remove();
 			$('#id_display_note').remove();

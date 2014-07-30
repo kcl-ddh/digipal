@@ -513,7 +513,7 @@ function displayGrid(data, attrs) {
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
+			s += "<div data-toggle='tooltip' title='" + data.annotations[i][11] + "' class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
 
 			if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
 				s += "</div>";
@@ -534,7 +534,7 @@ function displayGrid(data, attrs) {
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
+			s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
 			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
@@ -579,6 +579,7 @@ function displayGrid(data, attrs) {
 	});
 
 	$('.grid-images').sortable();
+	$('[data-toggle="tooltip"]').tooltip();
 	update_counter();
 	update();
 }

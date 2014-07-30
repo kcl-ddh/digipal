@@ -23,7 +23,7 @@ TODO
         show all the counts even if 0 (use lexicon? move the end of the list)
         sort by count/label
         unselect value 
-    1. layouts/views
+    [done] 1. layouts/views
         allow the CT to have different views:
             list
             grid
@@ -69,4 +69,13 @@ TODO
     Convert field dict to a class
     
     	
-    	
+ Dates
+ 	ca 1016, 1000,1012.5,1025
+ 	1080s, 1080,1885,1090
+ 	1007x1025, 1007,1016,1025
+ 	ca 1002x1023, 1000,1012.5,1025
+ 	Saec. ix 800,850,900
+ 	Saec. ix ex. 870, 890, 900
+ 	Saec. ix ex. or ix/x 870, 900, 930
+ 	Saec. ix med. 
+ 	

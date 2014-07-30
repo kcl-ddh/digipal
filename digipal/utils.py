@@ -395,3 +395,139 @@ def get_int(obj, default=0):
     except:
         ret = default
     return ret
+
+def get_range_from_date(str):
+    '''
+    Returns a range of numeric dates from a string expression
+    e.g. get_range_from_date('940x956') => [940, 956]
+    e.g. get_range_from_date('Ca 1075') => [1070, 1080] 
+    '''
+    ret = [-5000, 5000]
+    
+    if not str:
+        return ret
+    
+    # expand s. => Saec.
+    str = re.sub(ur'\bs\.\s', u'Saec. ', str)
+    
+    # expand c. => ca
+    str = re.sub(ur'\bc\.\s', u'Ca ', str)
+
+    # remove prob.
+    str = re.sub(ur'(prob.|probably|by)\s', '', str).strip()
+    
+    # remove ?, A.D.
+    str = re.sub(ur'\?|A\.D\.', '', str).strip()
+
+    # remove (...)
+    str = re.sub(ur'\([^)]+\)', '', str).strip()
+    
+    # 845 for 830 => 830
+    str = re.sub(ur'.*\sfor\s', '', str).strip()
+
+    str = str.strip()
+    
+    # 1080
+    if re.match(ur'\d+$', str):
+        return [int(str), int(str)]
+
+    # 1035/6 => (1035, 1036)
+    m = re.match(ur'(\d+)/(\d+)$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(1))]
+        if len(m.group(2)) < len(m.group(1)):
+            ret[1] = int(m.group(1)[0:-len(m.group(2))] + m.group(2))
+    
+    m = re.match(ur'(?iu)(before|after)\s(\d+)$', str)
+    if m:
+        if m.group(1) == 'before':
+            ret[1] = int(m.group(2))
+        else:
+            ret[0] = int(m.group(2))
+    
+    # Saec. x/xi or xi in. [  980.0,  1030.0]
+    parts = re.split(ur'\bor\b', str)
+    if len(parts) == 1:
+        parts = re.split(ur'and', str)
+    if len(parts) > 1:
+        # combine different dates
+        #dates = [ret]
+        ret = get_range_from_date(parts[0].strip())
+        for part in parts[1:]:
+            part = part.strip()
+            if not part.lower().startswith('saec.') and str.lower().startswith('saec.'):
+                part = 'Saec. ' + part
+            # combine the dates
+            reti = get_range_from_date(part)
+            ret = [min(ret[0], reti[0]), max(ret[1], reti[1])]
+        return ret
+    
+    # Ca 1075 [ 1070.0,  1080.0]
+    # Ca 1086 [ 1080.0,  1090.0]
+    m = re.match(ur'(?iu)ca\.?\s?(\d+)$', str)
+    if m:
+        n = int(m.group(1))
+        str = 'Ca %sx%s' % (n-5, n+5)    
+    
+    # 1066x1087 => [1066, 1087]
+    # Ca 820x840 => [820, 840]
+    m = re.match(ur'(?iu)(?:ca\s)?(\d+)\s?[-x\xd7]\s?(\d+)$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(2))]
+        if str.lower().startswith('ca '):
+            # Ca 1002x1023 [ 1000.0,  1025.0]
+            ret[0] = ret[0] - (ret[0] % 5)
+            if ret[1] % 5:
+                ret[1] = ret[1] - (ret[1] % 5) + 5                        
+    #107    1080s    1080.0    1085.0    1090.0
+    m = re.match(ur'(?iu)(\d+0)s$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(1)) + 10]
+    
+    # Saec. x1
+    m = re.match(ur'(?iu)Saec. ([ivx]+)(.*)$', str)
+    if m:
+        mod = m.group(2).strip()
+        century = get_int_from_roman_number(m.group(1))
+        ret = [(century - 1) * 100, century * 100]
+        # Saec. x1/3 [  900.0,   933.0]
+        m2 = re.match(ur'(\d)/(\d)$', mod)
+        if m2:
+            dur = 100.0 / int(m2.group(2))
+            ret[1] = ret[0] + (int(m2.group(1)) * dur)
+            ret[0] = ret[1] - dur            
+    
+        # in./med./ex.
+        # digipal_date is not consistent for "ex."
+        # it can be the last 20 or 30 years
+        #139    Saec. viii ex.    780.0    790.0    800.0
+        #137    Saec. vii ex.    670.0    690.0    700.0
+        # => take last 30 years
+        ex_duration = 30    
+        if mod == 'ex.':
+            ret[0] = ret[1] - ex_duration
+        if mod == 'in.':
+            ret[1] = ret[0] + ex_duration
+        if mod == 'med.':
+            ret[1] = ret[0] + 66
+            ret[0] = ret[0] + 33
+        
+        # Saec. xi1 => 1000, 1050
+        if mod == '1':            
+            ret[1] = ret[0] + 50
+        if mod == '2':            
+            ret[0] = ret[0] + 50
+
+        #Saec. x/xi [  980.0,  1020.0]
+        m2 = re.match(ur'/([ivx]+)$', mod)
+        if m2:
+            century2 = get_int_from_roman_number(m2.group(1))
+            if century2 == century + 1:
+                ret = [ret[1] - 20, ret[1] + 20]
+            
+
+        #if m.group(2) == '':
+    
+    ret = [int(ret[0]), int(ret[1])]
+        
+    return ret

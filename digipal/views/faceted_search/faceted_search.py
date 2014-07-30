@@ -100,6 +100,10 @@ class FacetedModel(object):
         if field['type'] == 'image':
             # TODO: max_size as an argument for iip_img_a
             ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1)
+            
+        if ret is None:
+            ret = ''
+            
         return ret
         
     def get_record_field_whoosh(self, record, afield):
@@ -333,7 +337,7 @@ def get_types():
                            {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                            {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                            {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True},
                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                            ],

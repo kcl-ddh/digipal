@@ -514,7 +514,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			var allograph;
 			for (var i in features) {
 				if (formal_attribute == 'hand') {
-					if (!features[i].is_editorial) {
+					if (!features[i].is_editorial && features[i].stored) {
 						attribute = features[i].hand;
 						attribute2 = features[i].allograph_id;
 						hand = $('#hand_input_' + attribute);
@@ -556,7 +556,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}
 						}
 					}
-				} else {
+				} else if (formal_attribute == 'editorial') {
 					attribute = features[i].is_editorial;
 					if (attribute) {
 						if (!($(checkboxes).is(':checked'))) {
@@ -565,6 +565,19 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						} else {
 							features[i].style.fillOpacity = 0.4;
 							features[i].style.strokeOpacity = 0.4;
+						}
+					}
+				} else {
+					attribute = features[i].stored;
+					if (!attribute && features[i].state) {
+						if (!($(checkboxes).is(':checked'))) {
+							features[i].style.fillOpacity = 0;
+							features[i].style.strokeOpacity = 0;
+							$('polyline').add('circle').hide();
+						} else {
+							features[i].style.fillOpacity = 0.4;
+							features[i].style.strokeOpacity = 0.4;
+							$('polyline').add('circle').show();
 						}
 					}
 				}
@@ -2031,7 +2044,7 @@ function detect_common_features_init() {
 	}
 
 	if (graphs.length > 1) {
-		var cache = $.extend({}, annotator.cacheAnnotations.cache);
+		var cache = $.extend(true, {}, annotator.cacheAnnotations.cache);
 		detect_common_features(graphs, checkboxes, cache);
 	}
 }
@@ -2453,6 +2466,7 @@ function refresh_features_dialog(data, dialog) {
 		}
 	} else {
 		aspects += "<li class='component'>No aspects defined</li>";
+		$('[data-target="#aspects_tab"]').hide();
 	}
 	aspects += "</ul>";
 
@@ -2464,6 +2478,8 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 	var can_edit = $('#development_annotation').is(':checked');
 
+	var copy_data = $.extend(true, {}, data);
+	var copy_cache = $.extend(true, {}, annotator.cacheAnnotations.cache);
 	if (can_edit) {
 
 		if (annotator.selectedAnnotations.length > 1) {
@@ -2476,12 +2492,12 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			}
 
 			if (selected.length > 1) {
-				data.allographs.components = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.components);
-				data.allographs.aspects = common_components(selected, annotator.cacheAnnotations.cache, data.allographs.aspects, "aspects");
+				copy_data.allographs.components = common_components(selected, copy_cache, copy_data.allographs.components);
+				copy_data.allographs.aspects = common_components(selected, copy_cache, copy_data.allographs.aspects, "aspects");
 			}
 		}
 
-		update_dialog('annotator_', data, annotator.selectedAnnotations, function(s) {
+		update_dialog('annotator_', copy_data, annotator.selectedAnnotations, function(s) {
 
 			$('#id_internal_note').remove();
 			$('#id_display_note').remove();
@@ -2493,7 +2509,9 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-
+			if (!aspects_list.length) {
+				$('[data-target="#aspects_tab"]').hide();
+			}
 			var check_all = $('.check_all');
 			check_all.click(function(event) {
 				var checkboxes = $(this).parent().parent().next().find('input[type=checkbox]');

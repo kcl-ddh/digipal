@@ -7,7 +7,7 @@
 	});
 
 	$('#sort-select').bootstrapSelect({
-		label: "Sort By"
+		label: "Group By"
 	});
 })();
 
@@ -116,7 +116,7 @@ var changeNumbers = function() {
 	});
 };
 
-function main() {
+function main(callback) {
 
 	var element_basket = $('#collection_link');
 	var container_basket = $('#container_basket');
@@ -223,6 +223,10 @@ function main() {
 				displayGrid(data, {
 					'sorting': 11
 				});
+
+				if (callback) {
+					callback();
+				}
 
 			},
 
@@ -503,11 +507,13 @@ function displayGrid(data, attrs) {
 		for (var i = 0; i < data.annotations.length; i++) {
 
 			if (!i || (data.annotations[i][attrs.sorting] !== data.annotations[i - 1][attrs.sorting])) {
-				s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
+				if (attrs.sorting !== 'no-group') {
+					s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
+				}
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
+			s += "<div data-toggle='tooltip' title='" + data.annotations[i][11] + "' class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
 
 			if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
 				s += "</div>";
@@ -521,14 +527,16 @@ function displayGrid(data, attrs) {
 		s += "<h2>Images (" + data.images.length + ")</h2>";
 		for (var i = 0; i < data.images.length; i++) {
 
-			if (!i || (data.images[i][2] !== data.images[i - 1][2])) {
-				s += "<h3>" + data.images[i][2] + "</h3>";
+			if (!i || (data.images[i][2] !== data.images[i - 1][2]) && (!attrs.sorting == 'no-group')) {
+				if (!attrs.sorting == 'no-group') {
+					s += "<h3>" + data.images[i][2] + "</h3>";
+				}
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
+			s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
-			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2])) {
+			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
 			}
 		}
@@ -540,14 +548,14 @@ function displayGrid(data, attrs) {
 		s += "<h2>Editorial Annotations (" + data.editorial.length + ")</h2>";
 		for (var i = 0; i < data.editorial.length; i++) {
 			editorialCache[data.editorial[i][2]] = data.editorial[i][4];
-			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3])) {
+			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3]) && (!attrs.sorting == 'no-group')) {
 				s += "<h3>" + data.editorial[i][3] + "</h3>";
 				s += "<div class='grid-images'>";
 			}
 
 			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'><span class='manuscript-number'>" + manuscripts[data.editorial[i][3]] + "</span>" + data.editorial[i][0] + "</div>";
 
-			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3])) {
+			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
 			}
 		}
@@ -571,6 +579,7 @@ function displayGrid(data, attrs) {
 	});
 
 	$('.grid-images').sortable();
+	$('[data-toggle="tooltip"]').tooltip();
 	update_counter();
 	update();
 }
@@ -689,6 +698,14 @@ function launchEvents() {
 
 	});
 
+
+	var print = $('#print');
+	print.on('click', function() {
+		var tab = $('.tab-pane.active').attr('id');
+		var grouping = $('#sort-select').val();
+		window.open(location.href + '?view=print&tab=' + tab + '&grouping=' + grouping);
+	});
+
 	$('#to_lightbox').unbind().on('click', function() {
 		var graphs = [],
 			images = [],
@@ -698,7 +715,7 @@ function launchEvents() {
 
 		var selectedCollection = localStorage.getItem('selectedCollection');
 		var collections = JSON.parse(localStorage.getItem('collections'));
-
+		var view = $('.tab-pane.active').attr('id');
 		$.each(collections, function(index, value) {
 			if (value.id == selectedCollection) {
 				basket = value;
@@ -712,28 +729,46 @@ function launchEvents() {
 				} else {
 					element = basket.annotations[i];
 				}
-				if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
-					graphs.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+						graphs.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						graphs.push(element);
+					}
 				}
 			}
 		}
 		if (basket && basket.images && basket.images.length) {
 			for (i = 0; i < basket.images.length; i++) {
 				element = basket.images[i];
-				if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
-					images.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + element + '"]').is(':checked')) {
+						images.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						images.push(element);
+					}
 				}
 			}
 		}
 		if (basket && basket.editorial && basket.editorial.length) {
 			for (i = 0; i < basket.editorial.length; i++) {
 				element = basket.editorial[i].toString();
-				if ($('input[type="checkbox"][data-graph="' + basket.editorial[i][0] + '"]').is(':checked')) {
-					editorial_annotations.push(element);
+				if (view == 'table') {
+					if ($('input[type="checkbox"][data-graph="' + basket.editorial[i][0] + '"]').is(':checked')) {
+						editorial_annotations.push(element);
+					}
+				} else if (view == 'grid') {
+					if ($('.grid-image[data-graph="' + element + '"]').find('img').hasClass('selected')) {
+						editorial_annotations.push(element);
+					}
 				}
 			}
 		}
-		location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname;
+		window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname);
 	});
 
 	$('tr.table-row').unbind().on('click', function(event) {
@@ -899,13 +934,30 @@ $(document).ready(function() {
 		});
 	});
 
-	main();
+	main(function() {
+
+		var print_view = getParameter('view');
+		var tab = getParameter('tab');
+		var grouping = getParameter('grouping');
+		if (print_view.length && print_view[0] == 'print') {
+			if (tab[0]) {
+				$('[data-target="#' + tab[0] + '"]').tab('show');
+			}
+			$('[media="print"]').attr('media', 'screen');
+		}
+		if (grouping.length && tab == 'grid') {
+			displayGrid(cache, {
+				'sorting': grouping[0]
+			});
+		}
+	});
 
 	$(window).bind('storage', function(e) {
 		main();
 		update_counter();
 		update_collection_counter();
 	});
+
 });
 
 

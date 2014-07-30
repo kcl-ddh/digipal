@@ -273,6 +273,7 @@ MIDDLEWARE_CLASSES = (
         'pagination.middleware.PaginationMiddleware',
         # Uncomment the following if using any of the SSL settings:
         # 'mezzanine.core.middleware.SSLRedirectMiddleware',
+        "django.middleware.gzip.GZipMiddleware",
         )
 
 ###################

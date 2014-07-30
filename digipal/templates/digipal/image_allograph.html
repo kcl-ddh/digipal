@@ -51,52 +51,6 @@
 <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
 {% endif %}
 <script>
-        $(document).ready(function(){
-            var basket_collector = $('#basket_collector');
-            basket_collector.droppable({
-                accept: "a.droppable_image",
-                hoverClass: "ui-state-active",
-                drop: function(event, ui){
-                    var element = $(ui.helper[0]);
-                    add_to_lightbox(element, 'annotation', element.data('graph'), false);
-                    var s = '<p>Imaged added to Collection!</p>';
-                    s += '<p><img src="/static/digipal/images/success-icon.png" /></p>';
-                    $(this).html(s);
-                    setTimeout(function(){
-                        s = '<p>Add image to Collection</p>';
-                        s += '<p><img src="/static/digipal/images/shopping-cart-icon.png" alt="add to collection"/></p>';
-                        basket_collector.html(s);
-                    }, 2500);
-                },
-                out: function(){
-                    $(this).css('background', 'rgba(0, 0, 0, 0.5)');
-                },
-                over:function(){
-                    $(this).css('background', 'rgba(100, 100, 100, 0.5)');
-                }
-            });
-
-            var images = $('a.droppable_image');
-            images.draggable({
-                containment: 'window',
-                revert: true,
-                stack: 'div',
-                scroll: true,
-                cursor: 'move',
-                zIndex: 6000,
-                helper: "clone",
-                start: function(){
-                    $('#basket_collector').animate({
-                        left: '85%'
-                    }, 350);
-                },
-                stop: function(){
-                    $('#basket_collector').animate({
-                        left: '100%'
-                    }, 350);
-                }
-            });
-    });
 
   function selectFeature(id) {
     window.opener.annotator.selectFeatureByIdAndCentre(id);

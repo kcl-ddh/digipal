@@ -277,6 +277,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'featureadded': function(e) {
 			var geometry = e.feature;
 			_self.transformFeature.setFeature(geometry);
+		},
+		'activate': function() {
+			var switcher = $('.toggle-state-switch');
+			if (!switcher.bootstrapSwitch('state')) {
+				switcher.bootstrapSwitch('toggleState');
+			}
 		}
 	});
 

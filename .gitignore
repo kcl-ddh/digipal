@@ -6,4 +6,6 @@ digipal/static/digipal/scripts/tests/local_config.js
 *.pot
 *.pyc
 local_settings.py
+digipal/settings.py
 digipal/search/
+.gitignore

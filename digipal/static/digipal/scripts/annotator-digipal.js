@@ -668,15 +668,28 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			name_temporary_annotation.on('keyup', function() {
 				annotator.selectedFeature.contentTitle = $(this).val();
+				if ($('.allograph_url_div').length) {
+					$('.allograph_url_div').remove();
+				}
 			});
 
 			content_temporary_annotation.notebook({
 				placeholder: 'Type description here...'
 			});
 
+			content_temporary_annotation.on('keyup', function(e) {
+				var content = e.originalEvent.detail.content;
+				annotator.selectedFeature.contentAnnotation = content;
+				if ($('.allograph_url_div').length) {
+					$('.allograph_url_div').remove();
+				}
+			});
 			content_temporary_annotation.on('contentChange', function(e) {
 				var content = e.originalEvent.detail.content;
 				annotator.selectedFeature.contentAnnotation = content;
+				if ($('.allograph_url_div').length) {
+					$('.allograph_url_div').remove();
+				}
 			});
 
 			// Showing all the allographs of a given allograph
@@ -894,6 +907,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}).html(annotator.selectedFeature.display_note).on('contentChange', function(e) {
 								var content = e.originalEvent.detail.content;
 								annotator.selectedFeature.display_note = content;
+								if ($('.allograph_url_div').length) {
+									$('.allograph_url_div').remove();
+								}
+							}).on('keyup', function() {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.display_note = content;
+								if ($('.allograph_url_div').length) {
+									$('.allograph_url_div').remove();
+								}
 							});
 
 
@@ -902,6 +924,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}).html(annotator.selectedFeature.internal_note).on('contentChange', function(e) {
 								var content = e.originalEvent.detail.content;
 								annotator.selectedFeature.internal_note = content;
+								if ($('.allograph_url_div').length) {
+									$('.allograph_url_div').remove();
+								}
+							}).on('keyup', function() {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.internal_note = content;
+								if ($('.allograph_url_div').length) {
+									$('.allograph_url_div').remove();
+								}
 							});
 
 							$('#panelImageBox .allograph_form').val('------');
@@ -1312,9 +1343,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	};
 
 	/**
-	 
+
 	 * Updates the feature select according to the currently selected allograph.
-	 
+
 	 */
 
 	this.updateFeatureSelect = {
@@ -2089,6 +2120,9 @@ function get_allograph(allograph) {
 function show_url_allograph(dialog, annotation, button) {
 	var features = annotator.vectorLayer.features;
 	if (button.data('hidden')) {
+		if ($('.allograph_url_div').length) {
+			$('.allograph_url_div').remove();
+		}
 		button.data('hidden', false);
 		$('.link_graphs').after(' <img src="/static/digipal/images/ajax-loader3.gif" id="url_allograph_gif" />');
 		var url = $("<div class='allograph_url_div' data-url-type='short'>");
@@ -2580,7 +2614,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var feature_checkboxes = $(".features_box");
 			feature_checkboxes.on('change', function() {
 				var value = $(this).val();
-				if (annotation.state == 'Insert') {
+				if (annotation && annotation.state == 'Insert') {
 					var index = annotation.features.indexOf(value);
 					if (index < 0) {
 						annotation.features.push(value);

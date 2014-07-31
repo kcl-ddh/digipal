@@ -534,7 +534,7 @@ function displayGrid(data, attrs) {
 				s += "<div class='grid-images'>";
 			}
 
-			s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
+			s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' data-placement='right' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
 			if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";
@@ -549,11 +549,13 @@ function displayGrid(data, attrs) {
 		for (var i = 0; i < data.editorial.length; i++) {
 			editorialCache[data.editorial[i][2]] = data.editorial[i][4];
 			if (!i || (data.editorial[i][3] !== data.editorial[i - 1][3]) && (!attrs.sorting == 'no-group')) {
-				s += "<h3>" + data.editorial[i][3] + "</h3>";
-				s += "<div class='grid-images'>";
+				if (!attrs.sorting == 'no-group') {
+					s += "<h3>" + data.editorial[i][3] + "</h3>";
+				}
 			}
+			s += "<div class='grid-images'>";
 
-			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'><span class='manuscript-number'>" + manuscripts[data.editorial[i][3]] + "</span>" + data.editorial[i][0] + "</div>";
+			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'>" + data.editorial[i][0] + "</div>";
 
 			if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3]) && (!attrs.sorting == 'no-group')) {
 				s += "</div>";

@@ -48,30 +48,35 @@ function TestSuite(_options) {
 
                     var error_message = "";
                     for (var i = 0; i < assert_failures.length; i++) {
-                        error_message += "Error: " + failure.type + '\n';
-                        error_message += "Line: " + failure.line || "not provided" + '\n';
-                        error_message += "Message: " + failure.message || "not provided" + '\n';
-                        error_message += "Source: " + failure.message.sourceURL || "not provided" + '\n';
-                        error_message += "Stack: " + failure.message.stack || "not provided" + '\n\n\n';
+                        error_message += "Error: " + assert_failures[i].type + '\n';
+                        error_message += "Line: " + assert_failures[i].line || "not provided" + '\n';
+                        error_message += "Message: " + assert_failures[i].message || "not provided" + '\n';
+                        error_message += "Source: " + assert_failures[i].message.sourceURL || "not provided" + '\n';
+                        error_message += "Stack: " + assert_failures[i].message.stack || "not provided" + '\n\n\n';
                     }
 
                     if (options.email.email_on_errors) {
                         EmailSender.send(error_message, function() {
                             casper.then(function() {
-                                casper.test.done();
-                                casper.echo('All tasks done.', 'GREEN_BAR');
-                                casper.exit();
+                                exitCasper();
                             });
                         });
+                    } else {
+                        exitCasper();
                     }
                 } else {
-                    casper.test.done();
-                    this.echo('All tasks done.', 'GREEN_BAR');
-                    this.exit();
+                    exitCasper();
                 }
             });
         });
 
+    };
+
+
+    var exitCasper = function() {
+        casper.test.done();
+        casper.echo('All tasks done.', 'GREEN_BAR');
+        casper.exit();
     };
 
     var Events = function(errors, assert_failures, successes) {

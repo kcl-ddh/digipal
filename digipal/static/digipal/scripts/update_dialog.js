@@ -557,6 +557,12 @@ function load_aspects(aspects, graph, cache) {
 	return aspects_list;
 }
 
+function remove_url_div() {
+	if ($('.allograph_url_div').length) {
+		$('.allograph_url_div').remove();
+	}
+}
+
 function setNotes(selectedFeature, dialog) {
 	var display_note = $('<div>');
 	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('form-control');
@@ -565,8 +571,22 @@ function setNotes(selectedFeature, dialog) {
 	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('form-control');
 
 	display_note.notebook().html(selectedFeature.display_note);
+	display_note.on('keyup', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	});
 
 	internal_note.notebook().html(selectedFeature.internal_note);
+	internal_note.on('keyup', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	});
 
 	var notes = "";
 	notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";

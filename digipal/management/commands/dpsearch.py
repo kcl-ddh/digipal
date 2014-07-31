@@ -20,7 +20,7 @@ Commands:
   index
                         Re-Index all the content 
 
-  info
+  info [--if=KEYWORD]
                         Show general info and whoosh schemas
                         
   index_facets
@@ -124,7 +124,75 @@ Options:
                 for hit in hits:
                     print ('\t%s' % repr(hit)).encode('ascii', 'ignore')
 
+    def get_filtered_indexes(self):
+        ''' returns a list of index names passed in the --if=f1,f2 command line option'''
+        ret = self.options['index_filter']
+        if ret:
+            ret = ret.split(',')
+        else:
+            ret = []
+        return ret
+
+    def get_all_dirs_under_index_path(self):
+        ''' returns the absolute path to all the index folders 
+        (optionally filtered by --if command line option)'''
+        from digipal.utils import get_all_files_under
+        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, True, self.get_filtered_indexes())
+        return ret
+
     def info(self, options):
+        for dir in self.get_all_dirs_under_index_path():
+            from datetime import datetime
+            dir_rel = os.path.relpath(dir, settings.SEARCH_INDEX_PATH)
+            print dir_rel
+            info = self.get_index_info(dir)
+            print '  size  : %.2f MB' % (info['size'] / 1024.0 / 1024.0)
+            print '  date  : %s' % datetime.fromtimestamp(info['date'])
+            print '  docs  : %s' % info['entries']
+            
+            print '  fields:'
+            for field in info['fields']:
+                print '    %15s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
+            
+    def get_index_info(self, path):
+        ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?'}
+        
+        # basic filesystem info
+        from digipal.utils import get_all_files_under
+        for file in get_all_files_under(path, False):
+            ret['size'] += os.path.getsize(file)
+            ret['date'] = max(ret['date'], os.path.getmtime(file))
+            
+        # whoosh info
+        from whoosh.index import open_dir
+#        try:
+        index = open_dir(path)
+        with index.searcher() as searcher:
+            ret['entries'] = searcher.doc_count()
+            for item in index.schema.items():
+                field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
+                values = list(searcher.lexicon(item[0]))
+                field_info['unique_values'] = len(list(values))
+
+#                 if field_info['type'] == 'NUMERIC':
+#                     print item
+#                     for v in values:
+#                         print v.decode('utf-8')
+#                         break
+#                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
+#                     
+#                     vals = sorted(vals)
+#                     if vals:
+#                         field_info['range'] = (vals[0], vals[-1])
+                    
+                ret['fields'].append(field_info)
+#         except Exception, e:
+#             raise e
+#             pass
+        
+        return ret
+
+    def info_old(self, options):
         from datetime import datetime
         
         print 'Indices:'

@@ -17,6 +17,9 @@ TODO
         [done] differentiate filtering from counting
         special filters for 
             2. date type
+            	[done] convert str to range
+            	search for expression
+            		bug: 1001 works but not 1004
             catalogue list (need a text input)
             feature/component
     values
@@ -79,3 +82,33 @@ TODO
  	Saec. ix ex. or ix/x 870, 900, 930
  	Saec. ix med. 
  	
+
+ 	
+request the pleasure of your company
+at the reception
+of their marriage
+saturday, the eighteenth of october
+two thousand fourteen
+at half past two in the afternoon
+
+bancroft meeting place
+29 hadrian drive
+milton keynes, mk13 0qb
+
+
+the register office
+bracknell house
+aylesbury street
+bletchley, milton keynes
+MK2 2BE
+
+
+BANCROFT MEETING PLACE
+29 HADRIAN DRIVE
+MILTON KEYNES, MK13 0QB
+
+The Register Office
+Bracknell House
+Aylesbury Street
+Bletchley, Milton Keynes
+MK2 2BE

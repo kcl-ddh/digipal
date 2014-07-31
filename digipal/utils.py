@@ -396,13 +396,18 @@ def get_int(obj, default=0):
         ret = default
     return ret
 
+MAX_DATE_RANGE = [-5000, 5000]
+
+def is_max_date_range(rng):
+    return rng and rng[0] == MAX_DATE_RANGE[0] and rng[1] == MAX_DATE_RANGE[1]
+
 def get_range_from_date(str):
     '''
     Returns a range of numeric dates from a string expression
     e.g. get_range_from_date('940x956') => [940, 956]
     e.g. get_range_from_date('Ca 1075') => [1070, 1080] 
     '''
-    ret = [-5000, 5000]
+    ret = MAX_DATE_RANGE[:]
     
     if not str:
         return ret
@@ -530,4 +535,26 @@ def get_range_from_date(str):
     
     ret = [int(ret[0]), int(ret[1])]
         
+    return ret
+
+def get_all_files_under(root, dir_only=False, filters=[]):
+    '''Returns a list of absolute paths to all the files under root.
+        root is an absolute path
+        dir_only = True to return only directories
+        filters = a list of keywords to filter the result
+    '''
+    import os
+    ret = []
+    to_process = [root]
+    
+    while to_process:
+        path = to_process.pop(0)
+        isdir = os.path.isdir(path)
+        if not dir_only or isdir:
+            if not filters or os.path.basename(path) in filters:
+                if path != root:
+                    ret.append(path)
+        if isdir:
+            for file_name in os.listdir(path):
+                to_process.append(os.path.join(path, file_name))
     return ret

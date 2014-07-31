@@ -190,6 +190,21 @@ function init_search_page(options) {
 		if (options && options.linked_fields) {
     	    set_up_linked_fields(options.linked_fields);
 	    }
+		
+		// add sliders
+		    
+		$("div.slider").each(function() {
+		   $slider = $(this);
+           $slider.slider({
+               range: true,
+               min: $slider.data('min'),
+               max: $slider.data('max'),
+               values: [$slider.data('min-value'), $slider.data('max-value')],
+               slide: function( event, ui ) {
+                   $($slider.data('label-selector')).val("" + ui.values[ 0 ] + "x" + ui.values[ 1 ] );
+               }
+             });
+		});
 	}
 
 	$(document).ready(function() {

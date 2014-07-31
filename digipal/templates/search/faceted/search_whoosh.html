@@ -31,7 +31,7 @@
                     </div>
                     <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
                         <div class="panel-body">
-                            {% if facet.type == 'textbox' %}
+                            {% if facet.type == 'textbox' or facet.type == 'date' %}
                                 <div class="input-group">
                                     <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}" 
                                         {% if facet.id %}id="{{ facet.id }}"{% endif %}
@@ -40,6 +40,17 @@
                                         <button class="btn btn-default" type="submit">Go</button>
                                     </span>
                                 </div>
+                                {% if facet.type == 'date' %}
+                                    <div >
+                                        <div class="slider" 
+                                            {% if facet.id %}data-label-selector="#{{ facet.id }}"{% endif %}
+                                            data-min="{{ facet.min }}"
+                                            data-max="{{ facet.max }}"
+                                            data-min-value="{% if facet.value %}{{ facet.values.0 }}{% else %}{{ facet.min }}{% endif %}"
+                                            data-max-value="{% if facet.value %}{{ facet.values.1 }}{% else %}{{ facet.max }}{% endif %}"
+                                        ></div>
+                                    </div>
+                                {% endif %}
                             {% endif %}
                             {% if facet.options %}
                                 <table class="table">

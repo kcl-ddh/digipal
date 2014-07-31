@@ -59,6 +59,15 @@ class FacetedModel(object):
         for field in self.fields:
             if self.is_field_indexable(field):
                 ret[field['key']] = self.get_record_field_whoosh(record, field)
+                if field['type'] == 'date':
+                    from digipal.utils import get_range_from_date, is_max_date_range
+                    rng = get_range_from_date(ret[field['key']])
+                    ret[field['key']+'_min'] = rng[0]
+                    ret[field['key']+'_max'] = rng[1]
+                    if is_max_date_range(rng): 
+                        # we don't want the empty dates and invalid dates to be found
+                        ret[field['key']+'_max'] = ret[field['key']+'_min']
+                        
         return ret
 
     def get_facets(self, request):
@@ -71,12 +80,25 @@ class FacetedModel(object):
         ret.append(phrase_facet)
         
         # facets based on faceted fields
+        from copy import deepcopy
         for field in self.fields:
             if field.get('count', False) or field.get('filter', False):
-                facet = {'label': field['label'], 'key': field['key'], 'options': self.get_facet_options(field, request)}
-                facet['selected_options'] = [o for o in facet['options'] if o['selected']]
+                facet = deepcopy(field)
+                facet['options'] = self.get_facet_options(field, request)
+                facet['value'] = request.GET.get(field['key'], '')
+                
+                if facet['value'] and field['type'] == 'date':
+                    from digipal.utils import get_range_from_date
+                    facet['values'] = get_range_from_date(facet['value'])
+                
+                facet['selected_options'] = []
+                if facet['options']:
+                    facet['selected_options'] = [o for o in facet['options'] if o['selected']]
+                else:
+                    if facet['value']:
+                        facet['selected_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
                 ret.append(facet)
-        return ret        
+        return ret
 
     def get_facet_options(self, field, request):
         ret = []
@@ -193,13 +215,20 @@ class FacetedModel(object):
         # get the field=value query from the selected facet options
         field_queries = u''
         for field in self.fields:
-            value = request.GET.get(field['key'], '')
+            value = request.GET.get(field['key'], '').strip()
             if value:
-                field_queries += u' %s:"%s" ' % (field['key'], value)
+                if field['type'] == 'date':
+                    from digipal.utils import get_range_from_date
+                    rng = get_range_from_date(value)
+                    field_queries += u' %s_min:<=%s %s_max:>=%s ' % (field['key'], rng[1], field['key'], rng[0])
+                    #field_queries += u' %s_max:<=%s ' % (field['key'], rng[1])
+                else:                    
+                    field_queries += u' %s:"%s" ' % (field['key'], value)
             
         # add the search phrase    
         if search_phrase or field_queries:
             qp = self.get_whoosh_parser(index)
+            print field_queries
             q = qp.parse(u'%s %s' % (search_phrase, field_queries))
         else:
             from whoosh.query.qcore import Every
@@ -274,11 +303,12 @@ class FacetedModel(object):
         return ret
 
     def get_whoosh_parser(self, index):
-        from whoosh.qparser import MultifieldParser
+        from whoosh.qparser import MultifieldParser, GtLtPlugin
         
         # TODO: only active columns
         term_fields = [field['key'] for field in self.fields if field.get('search', False)]
         parser = MultifieldParser(term_fields, index.schema)
+        parser.add_plugin(GtLtPlugin)
         return parser
     
     def get_selected_view(self):
@@ -337,7 +367,7 @@ def get_types():
                            {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                            {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                            {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True},
+                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                            ],
@@ -418,7 +448,8 @@ def create_index_schema(ct):
     fields = {'id': ID(stored=True)}
     for field in ct.fields:
         if ct.is_field_indexable(field):
-            fields[field['key']] = get_whoosh_field_type(field)
+            for suffix, whoosh_type in get_whoosh_field_types(field).iteritems():
+                fields[field['key']+suffix] = whoosh_type
         
     print '\t' + ', '.join(key for key in fields.keys())
     
@@ -431,6 +462,18 @@ def create_index_schema(ct):
     ret = recreate_whoosh_index(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted'), ct.key, Schema(**fields))
     return ret        
 
+def get_whoosh_field_types(field):
+    ret = {}
+    
+    if field['type'] == 'date':
+        ret[''] = get_whoosh_field_type({'type': 'code'})
+        ret['_min'] = get_whoosh_field_type({'type': 'int'})
+        ret['_max'] = get_whoosh_field_type({'type': 'int'})
+    else:
+        ret[''] = get_whoosh_field_type(field)
+    
+    return ret
+
 def get_whoosh_field_type(field):
     '''
     Defines Whoosh field types used to define the schemas.
@@ -440,7 +483,7 @@ def get_whoosh_field_type(field):
     # see http://pythonhosted.org/Whoosh/api/analysis.html#analyzers
     # see JIRA 165
     
-    from whoosh.fields import TEXT, ID
+    from whoosh.fields import TEXT, ID, NUMERIC
     # TODO: shall we use stop words? e.g. 'A and B' won't work? 
     from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
     from whoosh.support.charset import accent_map
@@ -452,7 +495,9 @@ def get_whoosh_field_type(field):
     if field_type == 'id':
         # An ID (e.g. 708-AB)
         ret = ID(stored=True)
-    elif field_type == 'code':
+    elif field_type in ['int']:
+        ret = NUMERIC()
+    elif field_type in ['code']:
         # A code (e.g. K. 402, Royal 7.C.xii)
         # See JIRA 358
         ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True)

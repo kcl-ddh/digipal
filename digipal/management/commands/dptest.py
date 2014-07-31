@@ -23,7 +23,11 @@ Commands:
     
     email
     
-    validate    
+    validate
+    
+    max_date_range FIELD
+        e.g. max_date_range HistoricalItem.date
+        returns the minimum and maximum of the date values among all HistoricalItem records
 
 """
     
@@ -62,6 +66,10 @@ Commands:
         command = args[0]
         
         known_command = False
+
+        if command == 'max_date_range':
+            known_command = True
+            self.max_date_range(args[1])
 
         if command == 'locus':
             known_command = True
@@ -157,6 +165,46 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def max_date_range(self, *args):
+        ret = [None, None]
+        if not len(args) == 1:
+            print 'ERROR: please provide a path to a date field. E.g. dptest max_date_range HistoricalItem.date'
+            return 
+        
+        path = args[0]
+        print 'Path: %s' % path 
+
+        parts = path.split('.')
+        if len(parts) != 2:
+            print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
+            return 
+            
+        model_name = parts[0]
+        field_name = parts[1]
+        import digipal.models
+        model = getattr(digipal.models, model_name, None)
+        if not model:
+            print 'ERROR: Invalid model name. See digipal.models module.'
+            return 
+
+        from digipal.utils import get_range_from_date
+        for obj in model.objects.all():
+            value = getattr(obj, field_name)
+            if value:
+                rng = get_range_from_date(value)
+                if rng[0] and rng[0] > -5000:
+                    if ret[0] is None:
+                        ret[0] = rng[0]
+                    else:
+                        ret[0] = min(ret[0], rng[0])
+                if rng[1] and rng[1] < 5000:
+                    if ret[1] is None:
+                        ret[1] = rng[1]
+                    else:
+                        ret[1] = max(ret[1], rng[1])
+                        
+        print repr(ret)
 
     def date_conv(self, *args):
         from digipal.utils import get_range_from_date

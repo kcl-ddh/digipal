@@ -114,6 +114,10 @@ Commands:
             known_command = True
             self.find_image_offset(*args[1:])
 
+        if command == 'dateconv':
+            known_command = True
+            self.date_conv(*args[1:])
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -153,6 +157,43 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def date_conv(self, *args):
+        from digipal.utils import get_range_from_date
+        from digipal.models import Date, HistoricalItem
+        diff_count = 0
+        
+        if 'hi' in args:
+            query = HistoricalItem.objects.all()
+        else:  
+            query = Date.objects.all()
+            
+        rid = None
+        if len(args) == 2:
+            rid = args[1]
+            query = query.filter(id=rid)
+        
+        cnt = query.count()
+        for d in query.order_by('id'):
+        #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
+            status = '=='
+            if not args:
+                date_rgn = [d.min_weight, d.max_weight]
+                rng = get_range_from_date(d.date)
+                if not(rng[0] == date_rgn[0] and rng[1] == date_rgn[1]):
+                    status = '<>'
+                if rid or status == '<>':
+                    print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
+            if 'hi' in args:
+                if d.date:
+                    rng = get_range_from_date(d.date)
+                    if rid or (rng[0] == -5000 or rng[1] == 5000):
+                        status = '<>'
+                        print '%4s %40s [%7s, %7s]' % (d.id, d.date, rng[0], rng[1])
+            if status != '==':
+                diff_count += 1
+                                                
+        print '%s incorrect, %s correct, total %s' % (diff_count, cnt - diff_count, cnt)
 
     def adhoc_test(self, *args):
         from digipal.templatetags import html_escape

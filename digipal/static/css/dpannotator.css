@@ -198,6 +198,8 @@
 
 #panelImageBox{
    line-height: 2.5;
+   padding-top: 0;
+   padding-bottom: 0;
 }
 
 #panelImageBox .panel-label {
@@ -211,7 +213,7 @@
 
 #panelImageBox .frmAnnotation {
     display:inline;
-
+    margin-left: 21%;
     /* margin-bottom: 1em; */
     vertical-align: baseline;
     margin-top: -0.9%;
@@ -582,9 +584,9 @@ label[for=id_internal_note], label[for=id_display_note]{
 .fullScreenPanel {
     position: fixed;
     z-index: 2000;
-    width: 82%;
-    top: 2.6%;
-    left: 8%;
+    width: 88%;
+    top: 2%;
+    left: 6%;
     border-color: #333;
     background-color: rgba(10, 10, 10, 0.7);
     -webkit-transition-property:position, background-color, width;

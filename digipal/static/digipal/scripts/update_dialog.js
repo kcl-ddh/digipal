@@ -561,6 +561,8 @@ function remove_url_div() {
 	if ($('.allograph_url_div').length) {
 		$('.allograph_url_div').remove();
 	}
+	$('.tooltip').remove();
+	$('.url_allograph').data('hidden', true);
 }
 
 function setNotes(selectedFeature, dialog) {

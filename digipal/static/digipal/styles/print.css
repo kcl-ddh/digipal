@@ -1,4 +1,4 @@
-.navbar, #navQuickSearch, .page-header, button, input, footer, h3, h2, .glyphicon, .num_row,
+.navbar, #navQuickSearch, .page-header, button, input, footer, h2, .glyphicon, .num_row,
  #counter-annotations, #counter-images, #counter-editorial, .nav, .fa, #switcher {
     visibility: hidden !important;
     height: 0;

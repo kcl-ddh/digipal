@@ -465,12 +465,11 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 
 function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
-	for (var component in allograph) {
-		if (allograph.components[component].hasOwnProperty('default') && allograph.components[component].default.length) {
-			for (var i = 0; i < allograph[component].default.length; i++) {
-				var default_feature = allograph.components[component].
-				default[i].component + '::' + allograph.components[component].
-				default[i].feature;
+	var components = allograph.components;
+	for (var component in components) {
+		if (components[component].hasOwnProperty('default') && components[component].default.length) {
+			for (var i = 0; i < components[component].default.length; i++) {
+				var default_feature = components[component].default[i].component + '::' + components[component].default[i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
 					checkbox_val.prop('checked', true);
@@ -557,6 +556,14 @@ function load_aspects(aspects, graph, cache) {
 	return aspects_list;
 }
 
+function remove_url_div() {
+	if ($('.allograph_url_div').length) {
+		$('.allograph_url_div').remove();
+	}
+	$('.tooltip').remove();
+	$('.url_allograph').data('hidden', true);
+}
+
 function setNotes(selectedFeature, dialog) {
 	var display_note = $('<div>');
 	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('form-control');
@@ -565,8 +572,22 @@ function setNotes(selectedFeature, dialog) {
 	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('form-control');
 
 	display_note.notebook().html(selectedFeature.display_note);
+	display_note.on('keyup', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	});
 
 	internal_note.notebook().html(selectedFeature.internal_note);
+	internal_note.on('keyup', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	});
 
 	var notes = "";
 	notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";

@@ -668,15 +668,22 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			name_temporary_annotation.on('keyup', function() {
 				annotator.selectedFeature.contentTitle = $(this).val();
+				remove_url_div();
 			});
 
 			content_temporary_annotation.notebook({
 				placeholder: 'Type description here...'
 			});
 
+			content_temporary_annotation.on('keyup', function(e) {
+				var content = e.originalEvent.detail.content;
+				annotator.selectedFeature.contentAnnotation = content;
+				remove_url_div();
+			});
 			content_temporary_annotation.on('contentChange', function(e) {
 				var content = e.originalEvent.detail.content;
 				annotator.selectedFeature.contentAnnotation = content;
+				remove_url_div();
 			});
 
 			// Showing all the allographs of a given allograph
@@ -894,6 +901,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}).html(annotator.selectedFeature.display_note).on('contentChange', function(e) {
 								var content = e.originalEvent.detail.content;
 								annotator.selectedFeature.display_note = content;
+								remove_url_div();
+							}).on('keyup', function() {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.display_note = content;
+								remove_url_div();
 							});
 
 
@@ -902,6 +914,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							}).html(annotator.selectedFeature.internal_note).on('contentChange', function(e) {
 								var content = e.originalEvent.detail.content;
 								annotator.selectedFeature.internal_note = content;
+								remove_url_div();
+							}).on('keyup', function() {
+								var content = e.originalEvent.detail.content;
+								annotator.selectedFeature.internal_note = content;
+								remove_url_div();
 							});
 
 							$('#panelImageBox .allograph_form').val('------');
@@ -2289,7 +2306,7 @@ function show_url_allograph(dialog, annotation, button) {
 					});
 
 					$('#close_div_url').on('click', function() {
-						url.fadeOut().remove();
+						remove_url_div();
 					});
 				}
 			});
@@ -2540,8 +2557,8 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 				var allograph = $('#panelImageBox .allograph_form').val();
 
 				for (var i in annotator.cacheAnnotations.cache.allographs) {
-					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].length; j++) {
-						var component = annotator.cacheAnnotations.cache.allographs[i][j].id;
+					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].components.length; j++) {
+						var component = annotator.cacheAnnotations.cache.allographs[i].components[j].id;
 						components.push(component);
 					}
 				}
@@ -2580,7 +2597,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			var feature_checkboxes = $(".features_box");
 			feature_checkboxes.on('change', function() {
 				var value = $(this).val();
-				if (annotation.state == 'Insert') {
+				if (annotation && annotation.state == 'Insert') {
 					var index = annotation.features.indexOf(value);
 					if (index < 0) {
 						annotation.features.push(value);

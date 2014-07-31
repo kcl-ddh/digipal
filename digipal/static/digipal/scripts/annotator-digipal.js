@@ -2557,8 +2557,8 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 				var allograph = $('#panelImageBox .allograph_form').val();
 
 				for (var i in annotator.cacheAnnotations.cache.allographs) {
-					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].length; j++) {
-						var component = annotator.cacheAnnotations.cache.allographs[i][j].id;
+					for (var j = 0; j < annotator.cacheAnnotations.cache.allographs[i].components.length; j++) {
+						var component = annotator.cacheAnnotations.cache.allographs[i].components[j].id;
 						components.push(component);
 					}
 				}

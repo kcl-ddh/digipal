@@ -53,6 +53,50 @@ class FacetedModel(object):
 
     def get_all_records(self):
         return self.model.objects.all()
+    
+    @classmethod
+    def _get_sortable_whoosh_field(cls, field):
+        '''Returns the name of the whoosh field that we can use to sort the given field
+            Returns None if field is not sortable
+        '''
+        ret = None
+        
+        if field and cls.is_field_indexable(field) and field.get('viewable', False):
+            ret = field['key']
+            if field['type'] in ['id', 'code', 'title']:
+                ret += '_sortable'
+                
+        return ret
+    
+    def prepare_value_rankings(self):
+        ''' populate self.value_rankings dict
+            It generates a ranking number for each value in each sortable field 
+            This will be stored in the index as a separate field to allow sorting by any column
+        '''
+        self.value_rankings = {}
+        
+        records = self.get_all_records()
+        
+        for field in self.fields:
+            #print field['key']
+            if self.is_field_indexable(field):
+                whoosh_sortable_field = self._get_sortable_whoosh_field(field)
+                if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+                    
+                    # get all the values for that field in the table
+                    value_rankings = self.value_rankings[whoosh_sortable_field] = {}
+                    for record in records:
+                        value = self.get_record_field_whoosh(record, field)
+                        value_rankings[value] = value or u''
+                    
+                    # sort with natural order
+                    sorted_values = utils.sorted_natural(value_rankings.values(), True)
+                    
+                    # now assign the ranking to each value
+                    for value in value_rankings.keys():
+                        value_rankings[value] = sorted_values.index(value or u'')
+            
+                    #print self.value_rankings[whoosh_sortable_field]
         
     def get_document_from_record(self, record):
         ret = {'id': u'%s' % record.id}
@@ -60,8 +104,9 @@ class FacetedModel(object):
             if self.is_field_indexable(field):
                 ret[field['key']] = self.get_record_field_whoosh(record, field)
                 
-                if field.get('viewable', False) and field['type'] in ['id', 'code', 'title']:
-                    ret[field['key']+'_sortable'] = unicode(utils.natural_sort_key(unicode(ret[field['key']]), True))
+                whoosh_sortable_field = self._get_sortable_whoosh_field(field)
+                if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+                    ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][ret[field['key']]]
                 
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
@@ -200,6 +245,9 @@ class FacetedModel(object):
             ret = [field for field in self.fields if field.get('viewable', False)]
         else:
             ret = [self.get_field_by_key(key) for key in keys]
+        for field in ret:
+            field['sortable'] = self._get_sortable_whoosh_field(field)
+            
         return ret
     
     def get_whoosh_facets(self):
@@ -208,7 +256,32 @@ class FacetedModel(object):
     
     @classmethod
     def is_field_indexable(cls, field):
-        return field.get('search', False) or field.get('count', False) or field.get('filter', False)    
+        return field.get('search', False) or field.get('count', False) or field.get('filter', False)
+    
+    def get_whoosh_sortedby(self, request):
+        from whoosh import sorting
+        return [sorting.FieldFacet(field, reverse=False) for field in self.get_sorted_fields_from_request(request, True)]
+    
+    def get_sorted_fields_from_request(self, request, whoosh_fields=False):
+        '''Returns a list of field keys to sort by.
+            e.g. ('repo_city', 'repo_place')
+            The list will combine the sort fields from the request with the default sort fields.
+            E.g. request ('c', 'd'); default is ('a', 'b', 'c') => ('c', 'd', 'a', 'b')
+            
+            if whoosh_fields is True, returns the whoosh_field keys, e.g. ('a_sortable', 'b')
+        '''
+        ret = self.get_option('sorted_fields')[:]
+        for field in request.GET.get('sort', '').split(','):
+            field = field.strip()
+            if field and self._get_sortable_whoosh_field(self.get_field_by_key(field)):
+                if field in ret: 
+                    ret.remove(field)
+                ret.insert(0, field)
+                
+        if whoosh_fields:
+            ret = [self._get_sortable_whoosh_field(self.get_field_by_key(field)) for field in ret]
+                
+        return ret    
     
     def get_requested_records(self, request):
         selected = False
@@ -245,11 +318,10 @@ class FacetedModel(object):
                     #field_queries += u' %s_max:<=%s ' % (field['key'], rng[1])
                 else:                    
                     field_queries += u' %s:"%s" ' % (field['key'], value)
-            
+        
         # add the search phrase    
         if search_phrase or field_queries:
             qp = self.get_whoosh_parser(index)
-            print field_queries
             q = qp.parse(u'%s %s' % (search_phrase, field_queries))
         else:
             from whoosh.query.qcore import Every
@@ -260,7 +332,7 @@ class FacetedModel(object):
             facets = self.get_whoosh_facets()
 
             #
-            # result returned by search_page doesn't support pagination
+            # result returned by search_page() doesn't support faceting
             # "'ResultsPage' object has no attribute 'groups'"
             # 
             # Two possible work-arounds:
@@ -270,7 +342,13 @@ class FacetedModel(object):
             # TODO: check which one is the most efficient            
             # 
             #ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
-            ret = s.search(q, groupedby=facets)
+            
+            sortedby = self.get_whoosh_sortedby(request)
+            
+            # Will only take top 10/25 results by default
+            #ret = s.search(q, groupedby=facets)
+            ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            #ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
             
             self.whoosh_groups = {}
             for field in self.fields:
@@ -289,6 +367,8 @@ class FacetedModel(object):
                 current_page = self.paginator.num_pages 
             self.current_page = self.paginator.page(current_page)
             ids = [hit['id'] for hit in self.current_page.object_list]
+            
+            #print len(ids)
             
             #ids = [res['id'] for res in ret]
             
@@ -496,8 +576,9 @@ def get_whoosh_field_types(field):
     else:
         ret[''] = get_whoosh_field_type(field)
     
-    if field.get('viewable', False) and field['type'] in ['id', 'code', 'title']:
-        ret['_sortable'] = get_whoosh_field_type({'type': 'code'})
+    whoosh_sortable_field = FacetedModel._get_sortable_whoosh_field(field)
+    if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+        ret['_sortable'] = get_whoosh_field_type({'type': 'int'})
     
     return ret
 
@@ -521,29 +602,34 @@ def get_whoosh_field_type(field):
     field_type = field['type']
     if field_type == 'id':
         # An ID (e.g. 708-AB)
-        ret = ID(stored=True)
+        ret = ID(stored=True, sortable=True)
     elif field_type in ['int']:
-        ret = NUMERIC()
+        ret = NUMERIC(sortable=True)
     elif field_type in ['code']:
         # A code (e.g. K. 402, Royal 7.C.xii)
         # See JIRA 358
-        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True)
+        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=True)
     elif field_type == 'title':
         # A title (e.g. British Library)
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=True)
     elif field_type == 'short_text':
         # A few words.
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
     else:
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
         
     return ret
     
 def populate_index(ct, index):
     # Add documents to the index
+    print '\tgenerate sort rankings'
+    ct.prepare_value_rankings()
+    
     print '\tretrieve all records'
     writer = index.writer()
     rcs = ct.get_all_records()
+    
+    print '\tadd records to index'
     for record in rcs:
         writer.add_document(**ct.get_document_from_record(record))
     

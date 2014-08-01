@@ -1,10 +1,16 @@
-{% load html_escape%}
+{% load html_escape %}
 
 <table class="table table-condensed table-striped table-bordered table-hover">
     <tr class="sortable">
         {% for col in cols %}
             <th>
-                {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
+                {% if col.sortable %}
+                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={{ col.key }}{% endfilter %}">
+                {% endif %}
+                        {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
+                {% if col.sortable %}
+                    </a>
+                {% endif %}
             </th>
         {% endfor %}
     </tr>

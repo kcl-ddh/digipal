@@ -16,7 +16,7 @@ TODO
     filtering
         [done] differentiate filtering from counting
         special filters for 
-            2. date type
+            [done] 2. date type
             	[done] convert str to range
             	search for expression
             		bug: 1001 works but not 1004
@@ -34,7 +34,7 @@ TODO
     ajaxify
     4. * graphs
         multi-value fields
-    3. CT filter/facet
+    5. CT filter/facet
         how to implement the counts?
             a) with other SQL queries to retrieve the related records from the result set?
                 - we have a dual SQL+Whoosh system
@@ -54,7 +54,18 @@ TODO
         Query phrase only applies to the fields displayed in the result set
         Possibility to add/remove/swap fields in the results set
         Possibility to reorder the fields in the result set
-    5. Sorting
+    3. Sorting
+    	0. Implement only the default sort order
+    		[d] define fields in the structure and the transform to get the sortable value
+    		create new fields in the whoosh schema 
+    	1. Start with simple sort implementation:
+    		Click on a column to sort by it: up or down
+    		Then combine that with the default sort fields
+    	2. full sort options:
+    		pop up with sortable list of visible fields
+    		reset button
+    		a divider b/w sorted and non sorted field
+    		an arrow to change the sort direction   
         How can we le the user chose the fields to be sorted by. E.g. city, repo, shelfmark, folio number?
             a) we could have a pop-up with the list of fields being displayed and let the user reorder them
             b) pre-defined sort orders
@@ -64,6 +75,7 @@ TODO
     Optimisation
     Link to records and back
     Removed references to haystack
+    Mobile version
     
     Boolean field:
     	provide a mapping from 0/1 to a label

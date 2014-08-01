@@ -59,6 +59,10 @@ class FacetedModel(object):
         for field in self.fields:
             if self.is_field_indexable(field):
                 ret[field['key']] = self.get_record_field_whoosh(record, field)
+                
+                if field.get('viewable', False) and field['type'] in ['id', 'code', 'title']:
+                    ret[field['key']+'_sortable'] = unicode(utils.natural_sort_key(unicode(ret[field['key']]), True))
+                
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
                     rng = get_range_from_date(ret[field['key']])
@@ -69,6 +73,21 @@ class FacetedModel(object):
                         ret[field['key']+'_max'] = ret[field['key']+'_min']
                         
         return ret
+
+    def get_field_by_key(self, key):
+        # todo: think about caching this
+        for field in self.fields:
+            if field['key'] == key: 
+                return field
+        return None
+
+    def get_filter_field_keys(self):
+        ''' Returns a list of fields keys in the order they should appear in the filter panel '''
+        ret = self.get_option('filter_order', None)
+        if ret is None:
+            ret = [field['key'] for field in self.fields if field.get('count', False) or field.get('filter', False)]
+        return ret
+    filter_field_keys = property(get_filter_field_keys)
 
     def get_facets(self, request):
         ret = []
@@ -81,23 +100,23 @@ class FacetedModel(object):
         
         # facets based on faceted fields
         from copy import deepcopy
-        for field in self.fields:
-            if field.get('count', False) or field.get('filter', False):
-                facet = deepcopy(field)
-                facet['options'] = self.get_facet_options(field, request)
-                facet['value'] = request.GET.get(field['key'], '')
-                
-                if facet['value'] and field['type'] == 'date':
-                    from digipal.utils import get_range_from_date
-                    facet['values'] = get_range_from_date(facet['value'])
-                
-                facet['selected_options'] = []
-                if facet['options']:
-                    facet['selected_options'] = [o for o in facet['options'] if o['selected']]
-                else:
-                    if facet['value']:
-                        facet['selected_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
-                ret.append(facet)
+        for key in self.filter_field_keys:
+            field = self.get_field_by_key(key)
+            facet = deepcopy(field)
+            facet['options'] = self.get_facet_options(field, request)
+            facet['value'] = request.GET.get(field['key'], '')
+            
+            if facet['value'] and field['type'] == 'date':
+                from digipal.utils import get_range_from_date
+                facet['values'] = get_range_from_date(facet['value'])
+            
+            facet['selected_options'] = []
+            if facet['options']:
+                facet['selected_options'] = [o for o in facet['options'] if o['selected']]
+            else:
+                if facet['value']:
+                    facet['selected_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
+            ret.append(facet)
         return ret
 
     def get_facet_options(self, field, request):
@@ -176,9 +195,11 @@ class FacetedModel(object):
 
     def get_columns(self):
         ret = []
-        for field in self.fields:
-            if field.get('viewable', False):
-                ret.append(field)
+        keys = self.get_option('column_order', None)
+        if keys is None:
+            ret = [field for field in self.fields if field.get('viewable', False)]
+        else:
+            ret = [self.get_field_by_key(key) for key in keys]
         return ret
     
     def get_whoosh_facets(self):
@@ -372,7 +393,10 @@ def get_types():
                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                            ],
                 'select_related': ['item_part__current_item__repository__place'],
+                'filter_order': ['hi_date', 'full_size', 'hi_type', 'hi_format', 'repo_city', 'repo_place'],
+                'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
                 'prefetch_related': ['item_part__historical_items'],
+                'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                 'views': [
                           {'icon': 'th-list', 'label': 'List', 'key': 'list'},
                           {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
@@ -471,6 +495,9 @@ def get_whoosh_field_types(field):
         ret['_max'] = get_whoosh_field_type({'type': 'int'})
     else:
         ret[''] = get_whoosh_field_type(field)
+    
+    if field.get('viewable', False) and field['type'] in ['id', 'code', 'title']:
+        ret['_sortable'] = get_whoosh_field_type({'type': 'code'})
     
     return ret
 

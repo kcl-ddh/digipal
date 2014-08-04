@@ -552,8 +552,8 @@ function displayGrid(data, attrs) {
 				if (!attrs.sorting == 'no-group') {
 					s += "<h3>" + data.editorial[i][3] + "</h3>";
 				}
+				s += "<div class='grid-images'>";
 			}
-			s += "<div class='grid-images'>";
 
 			s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'>" + data.editorial[i][0] + "</div>";
 

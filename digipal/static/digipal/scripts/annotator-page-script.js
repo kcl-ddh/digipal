@@ -30,9 +30,10 @@ function AnnotatorLoader() {
 		select_elements.chosen();
 		self.switch_annotations();
 		self.toolbar_position();
+		self.set_settings(self.digipal_settings); // setting settings
+
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			self.events(); // events get launched
-			self.set_settings(self.digipal_settings); // setting settings
 			if (annotator.isMobile()) {
 				annotator.selectFeature.deactivate();
 				annotator.selectFeature.activate();
@@ -1008,9 +1009,15 @@ function AnnotatorLoader() {
 
 				if (annotator.isMobile()) {
 					toolbar.css({
-						top: '100px',
+						top: 100,
 						left: 0
 					});
+					if ((toolbar.offset().top + 100) < map.offset().top && annotator.isMobile()) {
+						toolbar.fadeOut();
+					} else {
+						toolbar.fadeIn();
+					}
+
 				} else {
 					toolbar.css({
 						top: map.position().top - 150,
@@ -1027,6 +1034,14 @@ function AnnotatorLoader() {
 
 			}
 		}
+
+		$(window).on('scroll', function() {
+			if ((toolbar.offset().top + 100) < map.offset().top && annotator.isMobile()) {
+				toolbar.fadeOut();
+			} else {
+				toolbar.fadeIn();
+			}
+		});
 
 		$(window).resize(function() {
 			set_map();

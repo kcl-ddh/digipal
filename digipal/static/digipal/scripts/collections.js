@@ -301,7 +301,7 @@ function Collections() {
 				notify('<span style="color: #468847;">New Collection successfully created</span>', "success");
 				$('.alert').remove();
 			} else {
-				notify('Please enter a name for this collection (Do not use special characters)', "danger");
+				notify('Please enter a name for this collection', "danger");
 			}
 
 			return false;

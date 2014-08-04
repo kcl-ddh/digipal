@@ -945,7 +945,7 @@ $(document).ready(function() {
 			if (tab[0]) {
 				$('[data-target="#' + tab[0] + '"]').tab('show');
 			}
-			$('[media="print"]').attr('media', 'screen');
+			$('[media="print"]').attr('media', 'screen, print');
 		}
 		if (grouping.length && tab == 'grid') {
 			displayGrid(cache, {

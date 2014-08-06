@@ -78,11 +78,6 @@ urlpatterns += patterns('digipal.views.admin.image',
     (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
 )
 
-urlpatterns += patterns('digipal.views.admin.stewart',
-    (r'admin/digipal/stewartrecord/match', 'stewart_match'),
-    (r'admin/digipal/stewartrecord/import', 'stewart_import'),
-)
-
 if settings.DEBUG:
     urlpatterns += patterns('digipal.views.test',
        (r'test/cookied_inputs/$', 'cookied_inputs'),

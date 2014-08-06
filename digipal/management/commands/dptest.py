@@ -126,6 +126,10 @@ Commands:
             known_command = True
             self.date_conv(*args[1:])
 
+        if command == 'sources':
+            known_command = True
+            self.test_sources(*args[1:])
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -166,6 +170,13 @@ Commands:
             known_command = True
             self.adhoc_test(*args[1:])
 
+    def test_sources(self, *args):
+        ret = []
+        for keyword in ['ker', 'pelteret', 'gneuss', 'digipal', 'english manuscripts 1060', settings.SOURCE_SAWYER_KW, 'scragg', 'cla', 'davis']:
+            print keyword, ' => ', repr(Source.get_source_from_keyword(keyword))
+        
+        return ret
+        
     def max_date_range(self, *args):
         ret = [None, None]
         if not len(args) == 1:

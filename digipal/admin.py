@@ -1342,9 +1342,10 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
     
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.filter(hands__id__gt=0).distinct()
+            return queryset.exclude(matched_hands__isnull=True).exclude(matched_hands__exact='').distinct()
         if self.value() == '0':
-            return queryset.all().exclude(hands__id__gt=0).distinct()
+            from django.db.models import Q
+            return queryset.filter(Q(matched_hands__isnull=True) | Q(matched_hands__exact='')).distinct()
 
 class StewartRecordFilterLegacy(admin.SimpleListFilter):
     title = 'Legacy'
@@ -1385,22 +1386,31 @@ class StewartRecordFilterMerged(admin.SimpleListFilter):
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
-    list_display = ['id', 'field_hands', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
-    list_display_links = list_display
+    list_display = ['id', 'field_hands', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    list_display_links = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterMerged]
-    search_fields = ['id', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    search_fields = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     
-    actions = ['match_hands', 'merge_matched']
+    actions = ['match_hands', 'merge_matched_simulation', 'merge_matched']
     
     def field_hands(self, record):
-        ret = ''
-        for hand in record.hands.all():
-            if ret: ret += ' ; '
-            ret += u'Hand #%s' % hand.id
-            ret += u', %s' % hand.scribe
-            ret += u', %s' % hand.item_part
+        ret = u''
+#         for hand in record.hands.all():
+#             if ret: ret += ' ; '
+#             ret += u'Hand #%s' % hand.id
+#             ret += u', %s' % hand.scribe
+#             ret += u', %s' % hand.item_part
+        for match_id in record.get_matched_hands():
+            rttype, rid = match_id.split(':')
+            if ret:
+                ret += '<br/>'
+            content_type = 'hand'
+            if rttype == 'ip':
+                content_type = 'itempart'
+            ret += u'<a href="/admin/digipal/%s/%s/">%s #%s</a>' % (content_type, rid, {'h': u'Hand', 'ip': u'New Hand on Item Part'}[rttype], rid)
         return ret
     field_hands.short_description = 'Matched hand'
+    field_hands.allow_tags = True 
 
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
@@ -1413,6 +1423,12 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
+    
+    def merge_matched_simulation(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?dry-run=1&ids=' + ','.join(selected) )
+    merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
     
 class RequestLogFilterEmpty(admin.SimpleListFilter):
     title = 'Result size'

@@ -15,6 +15,7 @@ import iipimage.fields
 import iipimage.storage
 from django.utils.html import conditional_escape, escape
 from tinymce.models import HTMLField
+from django.db import transaction
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -596,6 +597,26 @@ class Source(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.label or self.name)
+    
+    @classmethod
+    def get_source_from_keyword(cls, keyword, none_if_not_found=False):
+        '''Returns a source from a keyword matching part of the name or the label.
+           e.g. Source.get_source_from_keyword('digipal') => <Source: DigiPal>
+           If more than one match, the one with the lowest ID is returned. 
+        '''
+        ret = None
+        cls._sources = getattr(cls, '_sources', cls.objects.all().order_by('id'))
+        
+        if cls._sources:
+            for source in cls._sources:
+                if keyword.lower() in source.name.lower() or keyword.lower() in source.label.lower():
+                    ret = source
+                    break
+                
+        if not none_if_not_found and not ret:
+            raise Exception('Source not found "%s".' % keyword)
+        
+        return ret
 
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
@@ -1887,7 +1908,8 @@ class Graph(models.Model):
     def get_absolute_url(self):
         ret = '/'
         # TODO: try/catch for missing annotation
-        if self.annotation:
+        
+        if hasattr(self, 'annotation'):
             ret = self.annotation.get_absolute_url()
         return ret
         
@@ -2383,12 +2405,33 @@ class StewartRecord(models.Model):
     cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
     eel = models.CharField(max_length=1000, null=True, blank=True, default='')
     import_messages = models.TextField(null=True, blank=True, default='')
+    matched_hands = models.CharField(max_length=1000, null=True, blank=True, default='')
 
     class Meta:
         ordering = ['scragg']
 
     def __unicode__(self):
-        return ur'Scr%s K%s G%s D%s SP %s' % (self.scragg, self.ker, self.gneuss, self.stokes_db, self.sp)
+        ret = u'#%s' % self.id
+        ids = self.get_ids()
+        if ids:
+            ret += u', %s' % ids 
+        return ret
+    
+    def set_matched_hands(self, matched_hands=[]):
+        # format:
+        #     ['h:HAND_ID','ip:IP_ID']
+        if matched_hands:
+            import json
+            self.matched_hands = json.dumps(matched_hands)
+        else:
+            self.matched_hands = u''
+
+    def get_matched_hands(self):
+        ret = []
+        if self.matched_hands:
+            import json
+            ret = json.loads(self.matched_hands)
+        return ret
 
     def get_ids(self):
         ret = []
@@ -2399,7 +2442,12 @@ class StewartRecord(models.Model):
             if self.ker_hand:
                 ker += '.%s' % self.ker_hand
             ret.append(ker)
-        if self.sp: ret.append(u'SP. %s' % self.sp)
+        if self.sp:
+            aid = u'' 
+            if not ('p' in self.sp.lower()):
+                aid = u'S. '
+            aid += self.sp
+            ret.append(aid)
         if self.stokes_db: ret.append(u'L. %s' % self.stokes_db)
         return ', '.join(ret)
 
@@ -2427,25 +2475,13 @@ class StewartRecord(models.Model):
 
         return ret
 
-    @classmethod
-    def get_sources(self):
-        sources = getattr(self.__class__, 'sources', {})
-        if not sources:
-            sources = {}
-            for source in Source.objects.all():
-                sources[source.name] = source
-
-            self.__class__.sources = sources
-
-        return self.sources
-
     def import_related_object(self, hand, related_name, related_model, related_label_field, value):
         ret = ''
         related_object = getattr(hand, related_name, None)
         if related_object:
             existing_value = getattr(related_object, related_label_field)
             if existing_value != value:
-                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)' % (related_name, existing_value, value)
+                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)\n' % (related_name, existing_value, value)
             #else:
                 #ret = u'Already set'
         else:
@@ -2460,7 +2496,7 @@ class StewartRecord(models.Model):
                 # no, then create it
                 # but only if it does not have a ? at the end
                 if value.strip()[-1] == '?':
-                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)' % (related_name, value)
+                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)\n' % (related_name, value)
                     if hand.internal_note:
                         hand.internal_note += '\n' + ret
                     else:
@@ -2468,8 +2504,13 @@ class StewartRecord(models.Model):
                 else:
                     query = {related_label_field: value.strip()}
                     related_object = related_model(**query)
+                    
                     if related_model == Date:
-                        related_object.weight = 0.0
+                        from digipal.utils import get_range_from_date
+                        rng = get_range_from_date(value.strip())
+                        related_object.min_weight = rng[0]
+                        related_object.max_weight = rng[1]
+                        related_object.weight = (related_object.min_weight + related_object.max_weight) / 2
                     related_object.save()
                     #ret = u'Created %s' % related_object.id
             # create link
@@ -2485,33 +2526,40 @@ class StewartRecord(models.Model):
 
         return ret
 
+    @transaction.atomic
     def import_steward_record(self, single_hand=None):
         '''
-            TODO: transfer (Scragg_Description, EM_Description)
-
             [DONE] ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
             [DONE] sp ->
 
             # hand number
             [DONE] scragg -> hand.scragg
             [DONE] Locus -> hand.+locus
-            [DONE] Selected -> Page (Use this to generate a new Page record)
+            [DONE] Selected -> Page 
+                * (Use this to generate a new Page record)
             [DONE] Notes      Hand.InternalNote
 
-            [DONE] * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
+            [DONE] ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
             [DONE] Contents      Scragg_Description
             [DONE] EM      Hand.EM_Description (Use description + Source model.)
             [DONE] EEL      MISSING. Use Description + Source model
+            
             # Format is too messy to be imported into the catalogue num
             # we import it into the surrogates field and add a filter
-
             [DONE~] Surrogates      Use Source Model
-
-            Date      Hand.AssignedDate
-            Location      Hand.AssignedPlace
 
             [DONE] Glosses      Hand.GlossOnly
             [DONE] Minor      Hand.ScribbleOnly
+
+            TODO: 
+            [TEST] Date                  Hand.AssignedDate
+            [TEST] Location              Hand.AssignedPlace
+            
+            Charter: empty
+            Image URL: not in the import file
+            UCLA online: not in the import file
+            cartulary: empty
+            
         '''
         if single_hand:
             hands = [single_hand]
@@ -2548,11 +2596,11 @@ class StewartRecord(models.Model):
             # 2. Description fields
 
             # scragg
-            hand.set_description('Scragg, Conspectus of Scribal Hands', self.contents)
+            hand.set_description(Source.get_source_from_keyword('scragg').name, self.contents)
             # eel
-            hand.set_description('eel', self.eel)
+            hand.set_description('Early English Laws Project', self.eel)
             # em1060-1220
-            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
+            hand.set_description(Source.get_source_from_keyword('english manuscripts 1060'), self.em)
 
             # 3. Related objects
 
@@ -2568,32 +2616,31 @@ class StewartRecord(models.Model):
             # 4. Catalogue numbers
             # Ker, S/P (NOT Scragg, b/c its a hand number)
             if self.ker or self.sp:
-                def add_catalogue_number(historical_item, source, number):
-                    if CatalogueNumber.objects.filter(source=source, number=number).count() == 0:
-                        historical_item.catalogue_numbers.add(CatalogueNumber(source=source, number=number))
-
-                sources = self.get_sources()
-
-                cat_nums = {}
+                def add_catalogue_number(historical_item, source_keyword, number):
+                    if number and number.strip():
+                        number = number.strip()
+                        source = Source.get_source_from_keyword(source_keyword)
+                        if not CatalogueNumber.objects.filter(source=source, number__iexact=number, historical_item=historical_item):
+                            CatalogueNumber(source=source, number=number, historical_item=historical_item).save()
 
                 historical_item = hand.item_part.historical_item
-                for cat_num in historical_item.catalogue_numbers.all():
-                    cat_nums[cat_num.source.name] = cat_num.number
 
-                if self.ker and 'ker' not in cat_nums:
-                    add_catalogue_number(historical_item, sources['ker'], self.ker)
+                add_catalogue_number(historical_item, 'ker', self.ker)
 
                 if self.sp:
-                    source_dp = 'sawyer'
+                    source_dp = settings.SOURCE_SAWYER_KW
                     document_id = self.sp
                     document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
                     if document_id_p != document_id:
                         document_id = document_id_p
                         source_dp = 'pelteret'
 
-                    if source_dp not in cat_nums:
-                        add_catalogue_number(historical_item, sources[source_dp], document_id)
+                    add_catalogue_number(historical_item, source_dp, document_id)
 
+            if self.import_messages is None:
+                self.import_messages = u''
+            if self.import_messages:
+                self.import_messages += u'\n'
             self.import_messages += messages
             self.save()
 

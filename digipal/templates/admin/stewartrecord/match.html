@@ -29,7 +29,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 </style>
 
 <script>
-    $(function(){
+    jQuery(function($){
       $(document).on('change', '.select-item-part',
          function(event) {
                 $('.select-item-part:first').parents('li').find('input').attr('checked', 'checked');
@@ -57,7 +57,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 
 {% block content %}
 
-<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+<p><a href="{{ referer }}">Back to Page list.</a></p>
 
 {% if perms_lacking %}
     <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
@@ -69,6 +69,8 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 {% else %}
     <form id="form-hands" action="" method="post">
     {% csrf_token %}
+    
+    <input type="hidden" name="referer" value="{{ referer }}" />
     
     <h2>Selected records ({{ records.count }})</h2>
 	<table id="tbl-selected-folios" cellspacing="0">
@@ -91,19 +93,20 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                         <a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.contents|truncatechars:50}}</a>
                     </td>
                     <td>
-                        <input type="hidden" name="shand_{{ record.id }}_count" value="{{ record.dhands|length }}" />
                         {% if record.dhands %}
                             <ul>
+                                <input type="hidden" name="shand_{{ record.id }}_count" value="{{record.dhands|length}}" />
                                 {% for dhand in record.dhands %}
                                     <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %} {% if dhand.isnew %}new-hand{% endif %}" 
                                         data-title=" * Label: {{ dhand.label }} <br/> * Place: {{ dhand.assigned_place }} <br/> * Date: {{ dhand.assigned_date }} <br/> * Description:{{ dhand.description }} <br/> * Comments:{{ dhand.comments }} {% for desc in dhand.item_part.historical_item.get_descriptions %}<br/> * {{desc.source.name}}: {{ desc.description }}{% endfor%}"
                                         >
-                                        <input id="shand_{{ record.id }}_{{dhand.id}}"
+                                        <input 
+                                            id="shand_{{ record.id }}_{{ forloop.counter0 }}"
                                             type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
-                                            value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
+                                            value="h:{{ dhand.id }}"
                                             {% if dhand.selected %}checked="checked"{% endif %} 
                                         />
-                                        <label for="shand_{{ record.id }}_{{dhand.id}}">
+                                        <label for="shand_{{ record.id }}_{{ forloop.counter0 }}">
                                             {% if dhand.id > 0 %}
                                                 [#{{ dhand.id }} - {{ dhand.match_reason }}]  
                                                 {{ dhand.item_part }}, {{ dhand.num }}                               
@@ -113,18 +116,25 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                                                 No match, create a new Hand from this record<br/>
                                             {% endif %}
                                         </label>
-                                        {% if not dhand.id > 0 %}
-                                            <div class="select-item-part" style="margin-left:2em;">
-                                                <select name="shand_{{ record.id }}_item_part">
-                                                    <option value="0">-- Select an Item Part for this new Hand --</option>
-                                                    {% for item in item_parts %}
-                                                        <option value="{{ item.id }}">{{ item }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        {% endif %}
                                     </li>
                                 {% endfor %}
+                                {% comment %}
+                                <li>
+                                    <input 
+                                        type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter1 }}" 
+                                        value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
+                                        {% if dhand.selected %}checked="checked"{% endif %} 
+                                    />
+                                    <div class="select-item-part" style="margin-left:2em;">
+                                        <select name="shand_{{ record.id }}_item_part">
+                                            <option value="0">-- Select an Item Part for this new Hand --</option>
+                                            {% for item in item_parts %}
+                                                <option value="{{ item.id }}">{{ item }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </li> 
+                                {% endcomment %}
                             </ul>
                         {% else %}
                             No matching hand

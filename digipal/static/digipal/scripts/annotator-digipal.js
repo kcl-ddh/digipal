@@ -57,11 +57,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 	var _Star = new Star();
 
 	this.isMobile = function() {
-		if (window.innerWidth <= 800 && window.innerHeight <= 600) {
-			return true;
-		} else {
-			return false;
-		}
+		return (window.innerWidth <= 800);
 	};
 
 	/**

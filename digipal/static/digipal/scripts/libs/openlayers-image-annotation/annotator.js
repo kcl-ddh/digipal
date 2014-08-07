@@ -206,7 +206,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// creates a transform feature
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
 		renderIntent: 'transform',
-		irregular: true,
+		irregular: false,
 		rotate: false,
 		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'
@@ -268,6 +268,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		this.vectorLayer, OpenLayers.Handler.RegularPolygon, {
 			displayClass: 'olControlDrawFeaturePolygon fa fa-pencil-square-o ',
 			handlerOptions: {
+				sides: 4,
 				irregular: true
 			},
 			title: 'Draw Rectangle'

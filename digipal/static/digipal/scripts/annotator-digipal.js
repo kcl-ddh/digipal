@@ -1787,11 +1787,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		for (var j = 0; j < annotator.map.controls.length; j++) {
 			annotator.map.controls[j].deactivate();
 		}
-		annotator.vectorLayer.removeAllFeatures();
 		annotator.vectorLayer.destroyFeatures();
 		annotator.vectorLayer.addFeatures([]);
-		$('circle').remove();
-		$('polyline').remove();
 		annotator.annotations = [];
 		annotator.selectedFeature = null;
 		annotator.selectedAnnotations = [];
@@ -1807,7 +1804,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		$('.number_unsaved_allographs').html(0);
 		this.unsaved_annotations = [];
 		$('.checkVectors').add('.checkVectors_hands').prop('checked', true);
-
 		this.load_annotations(function(data) {
 			reload_described_annotations(div);
 			restoreFullscreenPositions();
@@ -1827,6 +1823,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			if (!selectFeature) {
 				annotator.selectFeature.deactivate();
 			}
+
+			$('circle').remove();
+			$('polyline').remove();
 
 		}, true);
 

@@ -362,17 +362,20 @@ function Collections() {
 
 		copy: function(selectedCollection, new_collection_name) {
 			var id = uniqueid();
-			var re = /^[\w]+$/;
 			var flag = false;
 			var collections = JSON.parse(localStorage.getItem('collections'));
 
 			$.each(collections, function(index, value) {
-				if (re.test(new_collection_name.replace(/\s*/gi, '')) && new_collection_name.length <= 30) {
+				var collection_name_trimmed = new_collection_name.replace(/\s+/gi, '');
+				if (collection_name_trimmed.length <= 30) {
 					if ($.trim(new_collection_name) == $.trim(index)) {
-						if (!/[0-9]+/.test(parseInt(new_collection_name[new_collection_name.length - 1], 10))) {
-							new_collection_name = new_collection_name + '1';
+						var new_re = /^[\w]*([0-9])$/;
+						if (!new_re.test(new_collection_name)) {
+							new_collection_name += '0';
 						}
-						new_collection_name = increment_last(new_collection_name);
+						while (collections[new_collection_name]) {
+							new_collection_name = increment_last(new_collection_name);
+						}
 					}
 					flag = true;
 				}
@@ -389,7 +392,7 @@ function Collections() {
 			});
 
 			if (!flag) {
-				notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+				notify("Ensure the name does not exceed 30 chars", 'danger');
 				return false;
 			}
 

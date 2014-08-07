@@ -114,7 +114,7 @@ TransformFeature = OpenLayers.Class(OpenLayers.Control.TransformFeature, {
 			var dy0 = dy1 - (this.y - oldGeom.y);
 
 			// jvieira: patch to support irregular transformations
-			if (0 && control.irregular && !control._setfeature) {
+			if (control.irregular && !control._setfeature) {
 				dx1 -= (this.x - oldGeom.x) / 2;
 				dy1 -= (this.y - oldGeom.y) / 2;
 			}
@@ -146,7 +146,7 @@ TransformFeature = OpenLayers.Class(OpenLayers.Control.TransformFeature, {
 			});
 
 			// jvieira: patch to support irregular transformations
-			if (0 && control.irregular && !control._setfeature) {
+			if (control.irregular && !control._setfeature) {
 				var newCenter = centerGeometry.clone();
 				newCenter.x += Math.abs(oldX - centerGeometry.x) < 0.00001 ? 0 : (this.x - oldX);
 				newCenter.y += Math.abs(oldY - centerGeometry.y) < 0.00001 ? 0 : (this.y - oldY);

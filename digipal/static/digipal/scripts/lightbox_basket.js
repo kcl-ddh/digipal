@@ -96,10 +96,10 @@ function update_counter() {
 
 	if (!selectedItems.length) {
 		$('#remove_from_collection').attr('disabled', true);
-		//$('#to_lightbox').attr('disabled', true);
+		$('#to_lightbox').attr('disabled', true);
 	} else {
 		$('#remove_from_collection').attr('disabled', false);
-		//$('#to_lightbox').attr('disabled', false);
+		$('#to_lightbox').attr('disabled', false);
 	}
 
 
@@ -371,7 +371,7 @@ function displayTable(data, attrs) {
 		}
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
 		s += "<table id='table-annotations' class='table'>";
-		s += '<th><span id="counter-annotations"></span><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Manuscript</th><th data-sort="11" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Allograph</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th><th data-sort="4" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Scribe</th><th data-sort="5" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Place</th>';
+		s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /> <label id="counter-annotations" for="check_annotations_all"></label></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '">Manuscript</th><th data-sort="11" data-reverse="' + reverse + '">Allograph</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th><th data-sort="4" data-reverse="' + reverse + '">Scribe</th><th data-sort="5" data-reverse="' + reverse + '">Place</th>';
 		for (var i = 0; i < data.annotations.length; i++) {
 			var annotation = data.annotations[i];
 			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
@@ -416,9 +416,9 @@ function displayTable(data, attrs) {
 		if (!cache.images) {
 			cache.images = data.images;
 		}
-		s += "<h3 id ='header_images'>Images (" + data.images.length + ")</h3>";
+		s += "<h3 id ='header_images'>Manuscript Images (" + data.images.length + ")</h3>";
 		s += "<table id='table-images' class='table'>";
-		s += '<th><span id="counter-images"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Label</td><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Hand</th>';
+		s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /> <label id="counter-images" for="check_images_all"></label></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
 		for (i = 0; i < data['images'].length; i++) {
 
 			var image = data['images'][i];
@@ -432,7 +432,7 @@ function displayTable(data, attrs) {
 	if (data.editorial && data.editorial.length) {
 		s += "<h3 id='header_editorial'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
-		s += '<th><span id="counter-editorial"></span> <input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '"><span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> Page</th><th>Public Note</th>';
+		s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /> <label id="counter-editorial" for="check_editorial_all"></label></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '">Page</th><th>Public Note</th>';
 		if (!cache.editorial) {
 			cache.editorial = data.editorial;
 		}
@@ -527,7 +527,7 @@ function displayGrid(data, attrs) {
 
 	if (data.images && data.images.length) {
 		s += "<div id='images-grid' class='panel'>";
-		s += "<h2>Images (" + data.images.length + ")</h2>";
+		s += "<h2>Manuscript Images (" + data.images.length + ")</h2>";
 		for (var i = 0; i < data.images.length; i++) {
 
 			if (!i || (data.images[i][2] !== data.images[i - 1][2]) && (!attrs.sorting == 'no-group')) {
@@ -595,7 +595,9 @@ function launchEvents() {
 		if ($(this).is(':checked')) {
 			$('#table-images').find('input[type="checkbox"]').prop('checked', true);
 			$('#table-images').find('.table-row').addClass('selected').each(function() {
-				selectedItems.push($(this).data('graph'));
+				if (selectedItems.indexOf($(this).data('graph')) < 0) {
+					selectedItems.push($(this).data('graph'));
+				}
 			});
 		} else {
 			$('#table-images').find('input[type="checkbox"]').prop('checked', false);
@@ -609,14 +611,18 @@ function launchEvents() {
 	$('#check_annotations_all').unbind().on('change', function() {
 		if ($(this).is(':checked')) {
 			$('#table-annotations').find('input[type="checkbox"]').prop('checked', true);
-			$('#table-annotations').find('.table-row').addClass('selected').each(function() {
-				selectedItems.push($(this).data('graph'));
+			$('#table-annotations').find('.table-row').each(function() {
+				if (selectedItems.indexOf($(this).data('graph')) < 0) {
+					selectedItems.push($(this).data('graph'));
+				}
 			});
+			$('#table-annotations').find('.table-row').addClass('selected');
 		} else {
 			$('#table-annotations').find('input[type="checkbox"]').prop('checked', false);
-			$('#table-annotations').find('.table-row').removeClass('selected').each(function() {
+			$('#table-annotations').find('.table-row').each(function() {
 				selectedItems.splice(selectedItems.indexOf($(this).data('graph')), 1);
 			});
+			$('#table-annotations').find('.table-row').removeClass('selected');
 		}
 		update_counter();
 	});
@@ -625,7 +631,9 @@ function launchEvents() {
 		if ($(this).is(':checked')) {
 			$('#table-editorial').find('input[type="checkbox"]').prop('checked', true);
 			$('#table-editorial').find('.table-row').addClass('selected').each(function() {
-				selectedItems.push($(this).data('graph'));
+				if (selectedItems.indexOf($(this).data('graph')) < 0) {
+					selectedItems.push($(this).data('graph'));
+				}
 			});
 		} else {
 			$('#table-editorial').find('input[type="checkbox"]').prop('checked', false);
@@ -638,8 +646,14 @@ function launchEvents() {
 
 	$('th[data-sort]').unbind().on('click', function() {
 		var reverse = !$(this).data('reverse');
+		var html = $(this).text();
 		$(this).data('reverse', reverse);
 		sort($(this).data('sort'), $(this).data('reverse'), $(this).closest('table').attr('id').split('-')[1]);
+		var th = $('th[data-sort="' + $(this).data('sort') + '"]');
+		th.html('<span class="glyphicon glyphicon-sort-by-attributes-alt small"></span> ' + html);
+		if (reverse) {
+			th.find('.glyphicon').addClass('reverse');
+		}
 	});
 
 	$('#remove_from_collection').on('click', function() {
@@ -647,6 +661,8 @@ function launchEvents() {
 		var basket;
 		var selectedCollection = localStorage.getItem('selectedCollection');
 		var collections = JSON.parse(localStorage.getItem('collections'));
+		var loading_div = $("<div class='loading-div'>");
+		var background = $("<div class='dialog-background'>");
 		$.each(collections, function(index, value) {
 			if (value.id == selectedCollection) {
 				basket = value;
@@ -656,8 +672,7 @@ function launchEvents() {
 		});
 
 		if (!$(".loading-div").length) {
-			var loading_div = $("<div class='loading-div'>");
-			var background = $("<div class='dialog-background'>");
+
 			loading_div.html('<h2>Removing images</h2>');
 			loading_div.append("<p>You are about to remove " + selectedItems.length + " images. Continue?");
 			loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
@@ -680,8 +695,24 @@ function launchEvents() {
 						}
 					}
 				}
+
+				for (var c in cache) {
+					for (var f = 0; f < cache[c].length; f++) {
+						if (cache[c] && cache.length) {
+							if (c == 'annotations' || c == 'images') {
+								if (selectedItems[j] == cache[d][f][1]) {
+									cache[c].splice(f, 1);
+								}
+							} else if (c == 'editorial') {
+								if (selectedItems[j] == cache[c][f][2]) {
+									cache[c].splice(f, 1);
+								}
+							}
+						}
+					}
+				}
 			}
-			cache = basket;
+			//cache = basket;
 
 			update_counter();
 
@@ -692,13 +723,13 @@ function launchEvents() {
 			}
 
 			localStorage.setItem('collections', JSON.stringify(collections));
-			background.fadeOut().remove();
+			$('.dialog-background').fadeOut().remove();
 			update_collection_counter();
 			changeNumbers();
 		});
 
 		$('#cancel').unbind().on('click', function() {
-			background.fadeOut().remove();
+			$('.dialog-background').fadeOut().remove();
 		});
 
 	});

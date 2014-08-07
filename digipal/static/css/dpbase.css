@@ -638,3 +638,8 @@ Bootstrap patch for extra small devices
     }
 }
 
+
+a[data-toggle="pill"]{
+    cursor:pointer;
+}
+

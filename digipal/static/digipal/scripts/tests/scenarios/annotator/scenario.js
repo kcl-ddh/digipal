@@ -278,6 +278,10 @@ function Scenario() {
             casper.then(function() {
                 console.log('Enabling multiple annotations option');
                 AnnotatorTasks.options.clickOption('multiple_annotations');
+                var isEnabled = casper.evaluate(function() {
+                    return annotator.selectFeature.multiple;
+                });
+                console.log("Enalbled: " + isEnabled);
             });
 
             casper.then(function() {
@@ -290,7 +294,6 @@ function Scenario() {
                     AnnotatorTasks.do.select(feature2.id);
 
                     casper.echo('Looking for different allographs with common components...');
-
                     while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
                         (function() {
                             feature2 = AnnotatorTasks.get.random_vector(self.features);
@@ -308,7 +311,8 @@ function Scenario() {
                 });
 
                 casper.then(function() {
-                    casper.wait(1000);
+                    casper.echo(AnnotatorTasks.get.common_components(feature, feature2));
+                    casper.wait(1500);
                 });
 
                 casper.then(function() {

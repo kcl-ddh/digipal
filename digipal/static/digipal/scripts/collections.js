@@ -469,7 +469,6 @@ function Collections() {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
 		}
-		console.trace();
 		update_toolbar();
 	};
 

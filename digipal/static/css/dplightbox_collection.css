@@ -192,7 +192,7 @@ tr.selected {
 
 #counter-annotations, #counter-images {
     position: relative;
-    right: 5px;
+    left: 5px;
     vertical-align: inherit;
 }
 
@@ -329,4 +329,12 @@ th[data-sort]:hover{
 
 #manuscripts-index, .manuscript-number{
     display:none;
+}
+
+.reverse {
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
 }

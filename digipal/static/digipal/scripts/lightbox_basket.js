@@ -475,10 +475,12 @@ function displayTable(data, attrs) {
 function groupManuscripts(annotations) {
 	var manuscripts = {};
 	var n = 0;
-	for (var i = 0; i < annotations.length; i++) {
-		if (!manuscripts[annotations[i][14]]) {
-			n++;
-			manuscripts[annotations[i][14]] = n;
+	if (annotations && annotations.length) {
+		for (var i = 0; i < annotations.length; i++) {
+			if (!manuscripts[annotations[i][14]]) {
+				n++;
+				manuscripts[annotations[i][14]] = n;
+			}
 		}
 	}
 	return manuscripts;
@@ -489,18 +491,19 @@ function displayGrid(data, attrs) {
 	var container = $('#grid');
 	var s = '';
 
-	data.annotations = data.annotations.sort(function(x, y) {
-		return x[attrs.sorting] == y[attrs.sorting] ? 0 : (x[attrs.sorting] < y[attrs.sorting] ? -1 : 1);
-	});
+	if (data.annotations) {
+		data.annotations = data.annotations.sort(function(x, y) {
+			return x[attrs.sorting] == y[attrs.sorting] ? 0 : (x[attrs.sorting] < y[attrs.sorting] ? -1 : 1);
+		});
 
-	s += "<div id='manuscripts-index'>";
-	if (data.annotations && data.annotations.length) {
-		for (var manuscript in manuscripts) {
-			s += "<p class='manuscript-index'>" + manuscripts[manuscript] + ") " + manuscript + "</p>";
+		s += "<div id='manuscripts-index'>";
+		if (data.annotations && data.annotations.length) {
+			for (var manuscript in manuscripts) {
+				s += "<p class='manuscript-index'>" + manuscripts[manuscript] + ") " + manuscript + "</p>";
+			}
 		}
+		s += "</div>";
 	}
-	s += "</div>";
-
 	if (data.annotations && data.annotations.length) {
 		s += "<div id='annotations-grid' class='panel'>";
 		s += "<h2>Graphs (" + data.annotations.length + ")</h2>";

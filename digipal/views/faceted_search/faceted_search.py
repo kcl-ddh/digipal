@@ -2,7 +2,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 import json
-from digipal.models import Image
+from digipal.models import Image, Graph
 from digipal.forms import SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -51,8 +51,14 @@ class FacetedModel(object):
         return 'search/faceted/views/' + ret + '.html' 
     selected_view_template = property(get_selected_views_template)
 
-    def get_all_records(self):
-        return self.model.objects.all()
+    def get_all_records(self, prefetch=False):
+        ret = self.model.objects.filter(**self.get_option('django_filter', {}))
+        if self.get_option('select_related'):
+            ret = ret.select_related(*self.get_option('select_related'))
+        if self.get_option('prefetch_related'):
+            ret = ret.prefetch_related(*self.get_option('prefetch_related'))
+        
+        return ret
     
     @classmethod
     def _get_sortable_whoosh_field(cls, field):
@@ -75,13 +81,14 @@ class FacetedModel(object):
         '''
         self.value_rankings = {}
         
-        records = self.get_all_records()
+        records = self.get_all_records(True)
         
         for field in self.fields:
-            #print field['key']
             if self.is_field_indexable(field):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+                    
+                    print '\t\t'+field['key'], records.count()
                     
                     # get all the values for that field in the table
                     value_rankings = self.value_rankings[whoosh_sortable_field] = {}
@@ -95,7 +102,7 @@ class FacetedModel(object):
                     # now assign the ranking to each value
                     for value in value_rankings.keys():
                         value_rankings[value] = sorted_values.index(value or u'')
-            
+                        
                     #print self.value_rankings[whoosh_sortable_field]
         
     def get_document_from_record(self, record):
@@ -211,10 +218,20 @@ class FacetedModel(object):
         path = afield['path']
         v = record
         if path:
+            from django.core.exceptions import ObjectDoesNotExist
             for part in path.split('.'):
-                if not hasattr(v, part):
+#                 if not hasattr(v, part):
+#                     message = u'2Model path error: %s : %s, \'%s\' not found' % (self.key, path, part)
+#                     #raise Exception(message)
+#                     print message
+#                     v = getattr(v, part)
+                try:
+                    v = getattr(v, part)
+                except ObjectDoesNotExist, e:
+                    v = None
+                except Exception, e:
                     raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
-                v = getattr(v, part, None)
+                                    
                 if v is None:
                     break
                 if callable(v):
@@ -252,6 +269,7 @@ class FacetedModel(object):
     
     def get_whoosh_facets(self):
         from whoosh import sorting
+        print [field['key'] for field in self.fields if field.get('count', False)]
         return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
     
     @classmethod
@@ -270,7 +288,7 @@ class FacetedModel(object):
             
             if whoosh_fields is True, returns the whoosh_field keys, e.g. ('a_sortable', 'b')
         '''
-        ret = self.get_option('sorted_fields')[:]
+        ret = self.get_option('sorted_fields', [])[:]
         for field in request.GET.get('sort', '').split(','):
             field = field.strip()
             if field and self._get_sortable_whoosh_field(self.get_field_by_key(field)):
@@ -327,6 +345,8 @@ class FacetedModel(object):
             from whoosh.query.qcore import Every
             q = Every()
             
+        print q
+            
         with index.searcher() as s:
             # run the query
             facets = self.get_whoosh_facets()
@@ -347,17 +367,33 @@ class FacetedModel(object):
             
             # Will only take top 10/25 results by default
             #ret = s.search(q, groupedby=facets)
+            
+            hand_filters.chrono('whoosh:')
+            
+            hand_filters.chrono('whoosh.search:')
+
+            #ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            #ret = s.search(q, groupedby=facets, limit=1000000)
+            #ret = s.search(q, sortedby=sortedby, limit=1000000)
+            #ret = s.search(q, limit=1000000)
+            print facets
             #ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
             
+            hand_filters.chrono(':whoosh.search')
+
+            hand_filters.chrono('whoosh.facets:')
             self.whoosh_groups = {}
             for field in self.fields:
                 if field.get('count', False):
-                    self.whoosh_groups[field['key']] = ret.groups(field['key'])
+                    #self.whoosh_groups[field['key']] = ret.groups(field['key'])
+                    self.whoosh_groups[field['key']] = {}
+            hand_filters.chrono(':whoosh.facets')
         
             # convert the result into a list of model instances
             from django.core.paginator import Paginator
             
+            hand_filters.chrono('whoosh.paginate:')
             # paginate
             self.ids = ret
             self.paginator = Paginator(ret, self.get_page_size(request))
@@ -367,16 +403,19 @@ class FacetedModel(object):
                 current_page = self.paginator.num_pages 
             self.current_page = self.paginator.page(current_page)
             ids = [hit['id'] for hit in self.current_page.object_list]
+            hand_filters.chrono(':whoosh.paginate')
+            
+            print ids
+
+            hand_filters.chrono(':whoosh')
             
             #print len(ids)
             
             #ids = [res['id'] for res in ret]
             
-            records = self.model.objects.all()
-            if self.get_option('select_related'):
-                records = records.select_related(*self.get_option('select_related'))
-            if self.get_option('prefetch_related'):
-                records = records.prefetch_related(*self.get_option('prefetch_related'))
+            hand_filters.chrono('sql:')
+            
+            records = self.get_all_records(True)
             records = records.in_bulk(ids)
             
             if len(records) != len(ids):
@@ -384,6 +423,8 @@ class FacetedModel(object):
             
             # 'item_part__historical_items'
             ret = [records[int(id)] for id in ids]
+
+            hand_filters.chrono(':sql')
 
             # TODO: make sure the order is preserved
             
@@ -473,9 +514,10 @@ def get_types():
                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                            ],
                 'select_related': ['item_part__current_item__repository__place'],
+                'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
                 'filter_order': ['hi_date', 'full_size', 'hi_type', 'hi_format', 'repo_city', 'repo_place'],
                 'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
-                'prefetch_related': ['item_part__historical_items'],
+                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                 'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                 'views': [
                           {'icon': 'th-list', 'label': 'List', 'key': 'list'},
@@ -483,7 +525,42 @@ def get_types():
                           ],
                 }
     
-    ret = [FacetedModel(image_options)]
+    graph_options = {'key': 'graph', 
+                'label': 'Graph',
+                'model': Graph,
+                'django_filter': {'annotation__isnull': False},
+                'fields': [
+                           {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
+#                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+#                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
+#                            {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+#                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
+                            {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                            {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                            {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+                            {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
+#                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
+#                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
+#                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
+                            {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
+                            {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
+                            {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.name', 'viewable': True, 'type': 'code', 'count': True},
+                           ],
+                'select_related': ['annotation__item_part__current_item__repository__place', 
+                                   'idiograph__allograph__character__ontograph__ontograph_type', 
+                                   ],
+                'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
+                'filter_order': ['repo_city', 'repo_place'],
+                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
+                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
+                'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
+                'views': [
+                          {'icon': 'th-list', 'label': 'List', 'key': 'list'},
+                          {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
+                          ],
+                }
+    #ret = [FacetedModel(image_options)]
+    ret = [FacetedModel(graph_options)]
     return ret
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
@@ -627,7 +704,7 @@ def populate_index(ct, index):
     
     print '\tretrieve all records'
     writer = index.writer()
-    rcs = ct.get_all_records()
+    rcs = ct.get_all_records(True)
     
     print '\tadd records to index'
     for record in rcs:

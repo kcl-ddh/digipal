@@ -33,7 +33,19 @@ TODO
             map
     ajaxify
     4. * graphs
-        multi-value fields
+    	*** performance
+    		very slow to index
+    		0.7s without sort Without
+    		1.2s sort by two fields
+    		3.7s for two facets
+			Due to the facets (3s), without it the search is done in 
+			Due to sorting, almost 1s
+        ** multi-value fields
+        	script, components, features
+        bugs:
+        	repo place is empty
+        	some repo city are empty
+        	char type is empty, character, allograph
     5. CT filter/facet
         how to implement the counts?
             a) with other SQL queries to retrieve the related records from the result set?
@@ -55,12 +67,15 @@ TODO
         Possibility to add/remove/swap fields in the results set
         Possibility to reorder the fields in the result set
     3. Sorting
-    	0. Implement only the default sort order
+    	[d] 0. Implement only the default sort order
     		[d] define fields in the structure and the transform to get the sortable value
-    		create new fields in the whoosh schema 
+    		[d] create new fields in the whoosh schema 
     	1. Start with simple sort implementation:
-    		Click on a column to sort by it: up or down
-    		Then combine that with the default sort fields
+    		[d] Click on a column to sort by it: up or down
+    		[d] Then combine that with the default sort fields
+    		sort by date
+    		reverse sorting
+    		show which field is searched by and the direction
     	2. full sort options:
     		pop up with sortable list of visible fields
     		reset button
@@ -73,6 +88,7 @@ TODO
     Persistent settings
         some of the settings (order of the columns, sorting fields, collapsed/expanded facets) should be persisted across searches
     Optimisation
+    	Could be greatly optimised by retrieving the values from the hits rather than the database. prefetch_relate helps but it's not as fast.
     Link to records and back
     Removed references to haystack
     Mobile version

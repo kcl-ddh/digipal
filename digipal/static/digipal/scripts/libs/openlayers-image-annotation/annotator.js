@@ -206,7 +206,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 	// creates a transform feature
 	this.transformFeature = new TransformFeature(this.vectorLayer, {
 		renderIntent: 'transform',
-		irregular: false,
+		irregular: true,
 		rotate: false,
 		displayClass: 'olControlTransformFeature fa fa-arrows-alt ',
 		title: 'Transform'

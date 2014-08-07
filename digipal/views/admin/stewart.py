@@ -21,35 +21,43 @@ dplog = logging.getLogger( 'digipal_debugger')
 
 @staff_member_required
 def stewart_import(request, url=None):
+    ret = None
     context = {}
     context['ids'] = request.GET.get('ids', '')
     record_ids = context['ids'].split(',')
     context['records'] = StewartRecord.objects.filter(id__in=record_ids)
-    context['dry-run'] = (request.GET.get('dry-run', '0') == '1')
+    context['dry_run'] = (request.GET.get('dry_run', '0') == '1')
+
+    from django.core.urlresolvers import reverse
+    context['referer'] = request.REQUEST.get('referer', request.META.get('HTTP_REFERER', reverse('admin:digipal_stewartrecord_changelist')))
     
     class RollBackException(Exception):
         pass
     
     try:
         with transaction.atomic():
+
             for record in context['records']:
                 record.import_steward_record()
-            if context['dry-run']:
-                raise RollBackException()
-    except RollBackException:
-        context['rolledback'] = True
-        pass
             
-    from django.shortcuts import render
-    return render(request, 'admin/stewartrecord/import.html', context)
+            from django.shortcuts import render
+            ret = render(request, 'admin/stewartrecord/import.html', context)
 
-def get_new_hand_from_stewart_record(record, item_part_id=0):
-    if not item_part_id: return None
-    ret = Hand(num='10000')
-    ret.item_part_id = item_part_id
-    ret.internal_note = (ret.internal_note or '') + '\nNew Hand created from Brookes record #%s' % record.id
-    record.import_steward_record(ret)
+            if context['dry_run']:
+                raise RollBackException()
+    
+    except RollBackException:
+        pass
+
     return ret
+
+# def get_new_hand_from_stewart_record(record, item_part_id=0):
+#     if not item_part_id: return None
+#     ret = Hand(num='10000')
+#     ret.item_part_id = item_part_id
+#     ret.internal_note = (ret.internal_note or '') + '\nNew Hand created from Brookes record #%s' % record.id
+#     record.import_steward_record(ret)
+#     return ret
 
 @staff_member_required
 def stewart_match(request, url=None):
@@ -63,6 +71,8 @@ def stewart_match(request, url=None):
     action = request.POST.get('action', '').strip()
         
     context['item_parts'] = ItemPart.objects.all().order_by('display_label')
+    
+    context['all_hands'] = Hand.objects.all().select_related('assigned_date', 'assigned_place')
         
     for record in context['records']:
         
@@ -89,8 +99,19 @@ def stewart_match(request, url=None):
     return render(request, 'admin/stewartrecord/match.html', context)
 
 def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=False):
-    hand = result.get(hand.id, hand)
+    # get a match_id from the hand (e.g. ip:300 for a new hand on IP #300; h:400 for Hand #400)
+    hand.match_id = u'h:%s' % hand.id
+    if not hand.id:
+        hand.match_id = ''
+        if hand.item_part_id:
+            hand.match_id = u'ip:%s' % hand.item_part_id
+    hand.selected = hand.match_id in steward_record.get_matched_hands()
+
+    # optionally merge with existing matches
+    hand = result.get(hand.match_id, hand)
     hand.match_reason = getattr(hand, 'match_reason', '') + reason
+    
+    # highlight if same locus or description
     if highlight:
         hand.highlighted = highlight
     if steward_record.locus:
@@ -100,10 +121,7 @@ def add_matching_hand_to_result(result, steward_record, hand, reason, highlight=
         if hand.description and re.search(ur'(?i)\W%s\W' % re.escape(locus), hand.description.replace(u'\u2013', u'-')): 
             hand.highlighted = True
     
-    hand.match_id = u'h:%s' % hand.id
-    hand.selected = hand.match_id in steward_record.get_matched_hands()
-    
-    result[hand.id] = hand
+    result[hand.match_id] = hand
     if hand.num == 10000: hand.isnew = True
     
     return hand
@@ -151,23 +169,19 @@ def get_best_matches(record):
             
     # find best matches based on the historical item
     
-    # Existing match (record.hand)
-#     for hand in record.hands.all():
-#         hand = add_matching_hand_to_result(ret, record, hand, 'M')
-#         hand.selected = True
+    # Existing matches
+    for match in record.get_matched_hands():
+        rtype, rid = match.split(':')
+        if rtype == 'h':
+            add_matching_hand_to_result(ret, record, Hand.objects.get(id=rid), 'M')
+        if rtype == 'ip':
+            add_matching_hand_to_result(ret, record, Hand(item_part_id=rid, label="NEW HAND"), 'M')
         
-#     for matched_hand in record.get_matched_hands():
-#         hand = None
-#         if matched_hand['type'] == 'hand':
-#             hand = Hand.objects.get(id=int(matched_hand['id']))
-#             hand = add_matching_hand_to_result(ret, record, hand, 'M')
-#         if matched_hand['type'] == 'itempart':
-#             hand = add_matching_hand_to_result(ret, record, hand, 'M')
-#         hand.selected = True
-#         
-#     # New Hand
-#     add_matching_hand_to_result(ret, record, Hand(), 'New')
+    # New Hand
+    add_matching_hand_to_result(ret, record, Hand(), 'New')
     
     record.documents = record.documents.values()
     
-    return [h for h in ret.values()]
+    ret = [h for h in ret.values()]
+    
+    return ret

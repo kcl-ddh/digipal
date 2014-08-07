@@ -1427,7 +1427,7 @@ class StewartRecordAdmin(reversion.VersionAdmin):
     def merge_matched_simulation(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?dry-run=1&ids=' + ','.join(selected) )
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
     merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
     
 class RequestLogFilterEmpty(admin.SimpleListFilter):

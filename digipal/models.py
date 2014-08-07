@@ -2421,16 +2421,30 @@ class StewartRecord(models.Model):
         # format:
         #     ['h:HAND_ID','ip:IP_ID']
         if matched_hands:
+            matched_hands = [hand for hand in matched_hands if re.match(ur'^(ip|h):\d+$', hand)]
+        if matched_hands:
             import json
             self.matched_hands = json.dumps(matched_hands)
         else:
             self.matched_hands = u''
+        return matched_hands
 
     def get_matched_hands(self):
         ret = []
         if self.matched_hands:
             import json
             ret = json.loads(self.matched_hands)
+        return ret
+    
+    def get_matched_hands_objects(self):
+        ret = []
+        for match in self.get_matched_hands():
+            rtype, rid = match.split(':')
+            if rtype == 'h':
+                ret.append(rid)
+        
+        ret = list(Hand.objects.filter(id__in=ret).order_by('id'))
+        
         return ret
 
     def get_ids(self):
@@ -2561,18 +2575,36 @@ class StewartRecord(models.Model):
             cartulary: empty
             
         '''
-        if single_hand:
-            hands = [single_hand]
-        else:
-            hands = self.hands.all()
-        if not hands:
-            return
+#         if single_hand:
+#             hands = [single_hand]
+#         else:
+#             matches = self.get_matched_hands()
+#         if not hands:
+#             return
 
         from datetime import datetime
         now = datetime.now()
+        
+        matched_hands = []
 
-        for hand in hands:
-            messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
+        for match in self.get_matched_hands():
+            
+            rtype, rid = match.split(':')
+            
+            hand = None
+            if rtype == 'h':
+                hand = Hand.objects.get(id=rid)
+            if rtype == 'ip':
+                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000')
+                hand.internal_note = (hand.internal_note or '') + '\nNew Hand created from Brookes record #%s' % self.id
+                hand.save()
+            
+            matched_hands.append(u'h:%s' % hand.id)
+            
+            new_label = ''
+            if rtype == 'ip':
+                new_label = 'NEW '
+            messages = u'[%s] IMPORT record #%s into %shand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, new_label, hand.id)
 
             # 1. Simple TEXT fields
 
@@ -2642,7 +2674,9 @@ class StewartRecord(models.Model):
             if self.import_messages:
                 self.import_messages += u'\n'
             self.import_messages += messages
-            self.save()
+        
+        self.set_matched_hands(matched_hands)
+        self.save()
 
 class RequestLog(models.Model):
     request = models.CharField(max_length=300, null=True, blank=True, default='')

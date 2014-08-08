@@ -804,7 +804,7 @@ function launchEvents() {
 				}
 			}
 		}
-		window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + location.pathname);
+		window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + encodeURIComponent(location.pathname));
 	});
 
 	$('tr.table-row').unbind().on('click', function(event) {

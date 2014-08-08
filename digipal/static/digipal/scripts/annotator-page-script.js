@@ -828,8 +828,6 @@ function AnnotatorLoader() {
 
 	var toggle_fixed_toolbar = function() {
 		var toolbar = $('#panelImageBox');
-		console.log('Gesucristo')
-
 		$(document).on('scroll', function() {
 			var current_tab = $('.nav li.active').find('[data-toggle="tab"]').data('target');
 			if (current_tab === '#annotator') {
@@ -892,7 +890,13 @@ function AnnotatorLoader() {
 	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
 
-		if (feature.feature.geometry.getLength() < 50) {
+		var threshold = 100;
+
+		if (annotator.map.zoom <= 1) {
+			threshold = 250;
+		}
+
+		if (feature.feature.geometry.getLength() < threshold) {
 			annotator.rectangleFeature.cancel();
 			feature.feature.destroy();
 			$('circle').remove();

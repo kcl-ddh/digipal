@@ -366,7 +366,7 @@ function displayTable(data, attrs) {
 	var s = '';
 
 	if (data.annotations && data.annotations.length) {
-		if (!cache.annotations) {
+		if (cache && !cache.annotations) {
 			cache.annotations = data.annotations;
 		}
 		s += "<h3 id='header_annotations'>Graphs (" + data.annotations.length + ")</h3>";
@@ -413,7 +413,7 @@ function displayTable(data, attrs) {
 	s += "</table>";
 
 	if (data.images && data.images.length) {
-		if (!cache.images) {
+		if (cache && !cache.images) {
 			cache.images = data.images;
 		}
 		s += "<h3 id ='header_images'>Manuscript Images (" + data.images.length + ")</h3>";
@@ -433,7 +433,7 @@ function displayTable(data, attrs) {
 		s += "<h3 id='header_editorial'>Editorial Annotations (" + data.editorial.length + ")</h3>";
 		s += "<table id='table-editorial' class='table'>";
 		s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_editorial_all" /> <label id="counter-editorial" for="check_editorial_all"></label></th><th>Annotation</th><th data-sort="3" data-reverse="' + reverse + '">Page</th><th>Public Note</th>';
-		if (!cache.editorial) {
+		if (cache && !cache.editorial) {
 			cache.editorial = data.editorial;
 		}
 
@@ -989,6 +989,7 @@ $(document).ready(function() {
 	});
 
 	$(window).bind('storage', function(e) {
+		cache = {};
 		main();
 		update_counter();
 		update_collection_counter();

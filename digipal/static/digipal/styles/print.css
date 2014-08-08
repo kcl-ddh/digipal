@@ -47,3 +47,8 @@ a[href]:after {
 .row, .container {
     height:0;
 }
+
+#header_annotations {
+    position: relative;
+    right: 86%;
+}

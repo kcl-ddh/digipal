@@ -105,7 +105,7 @@ function update_counter() {
 
 	$("#header_annotations").add($("#annotations-grid h2")).html("Graphs (" + $('#table-annotations').find('tr[data-graph]').length + ")");
 	$("#header_editorial").add($("#editorial-grid h2")).html("Editorial Annotations (" + $('#table-editorial').find('tr[data-graph]').length + ")");
-	$("#header_images").add($("#images-grid h2")).html("Images (" + $('#table-images').find('tr[data-graph]').length + ")");
+	$("#header_images").add($("#images-grid h2")).html("Manuscript Images (" + $('#table-images').find('tr[data-graph]').length + ")");
 
 }
 
@@ -286,7 +286,7 @@ function main(callback) {
 				} else {
 					if (value.id == selectedCollection) {
 						//name = name.replace(/\s+/gi, '');
-						if (name && name.length <= 30) {
+						if (name) {
 							collections[name] = collections[index];
 							delete collections[index];
 							basket = value;
@@ -294,7 +294,7 @@ function main(callback) {
 							flag = true;
 							return false;
 						} else {
-							notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+							notify("Please provide a valid name", 'danger');
 							$('.collection-title').html(index);
 							return false;
 						}
@@ -736,7 +736,7 @@ function launchEvents() {
 
 
 	var print = $('#print');
-	print.on('click', function() {
+	print.unbind().on('click', function() {
 		var tab = $('.tab-pane.active').attr('id');
 		var grouping = $('#sort-select').val();
 		window.open(location.href + '?view=print&tab=' + tab + '&grouping=' + grouping);

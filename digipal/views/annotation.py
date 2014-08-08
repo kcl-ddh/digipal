@@ -758,13 +758,14 @@ def save_editorial(request, graphs):
                 if form.is_valid():
                     with transaction.atomic():
                         clean = form.cleaned_data
+
                         if geo_json:
                             annotation.geo_json = geo_json
 
                         # set the note (only if different) - see JIRA DIGIPAL-477
                         for f in ['display_note', 'internal_note']:
 
-                            if getattr(annotation, f) != clean[f]:
+                            if getattr(annotation, f) != clean[f] and f in get_data:
                                 setattr(annotation, f, clean[f])
 
                         if not annotation.id:

@@ -249,10 +249,6 @@ function Collections() {
 			var id = uniqueid();
 			var collection_name_trimmed = collection_name.replace(/\s+/gi, '');
 			if ((collection_name_trimmed)) {
-				if (collection_name.length > 30) {
-					notify('Please enter a shorter name (max 30 chars)', "danger");
-					return false;
-				}
 				if (collections) {
 					if (collections[collection_name]) {
 						var new_re = /^[\w]*([0-9])$/;
@@ -367,18 +363,16 @@ function Collections() {
 
 			$.each(collections, function(index, value) {
 				var collection_name_trimmed = new_collection_name.replace(/\s+/gi, '');
-				if (collection_name_trimmed.length <= 30) {
-					if ($.trim(new_collection_name) == $.trim(index)) {
-						var new_re = /^[\w]*([0-9])$/;
-						if (!new_re.test(new_collection_name)) {
-							new_collection_name += '0';
-						}
-						while (collections[new_collection_name]) {
-							new_collection_name = increment_last(new_collection_name);
-						}
+				if ($.trim(new_collection_name) == $.trim(index)) {
+					var new_re = /^[\w]*([0-9])$/;
+					if (!new_re.test(new_collection_name)) {
+						new_collection_name += '0';
 					}
-					flag = true;
+					while (collections[new_collection_name]) {
+						new_collection_name = increment_last(new_collection_name);
+					}
 				}
+				flag = true;
 			});
 
 
@@ -392,7 +386,7 @@ function Collections() {
 			});
 
 			if (!flag) {
-				notify("Ensure the name does not exceed 30 chars", 'danger');
+				notify("Please provide a valid name", 'danger');
 				return false;
 			}
 

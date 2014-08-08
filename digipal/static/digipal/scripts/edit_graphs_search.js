@@ -112,7 +112,7 @@ function EditGraphsSearch() {
     */
     var load_graph = function(element) {
         var graph = element.data('graph');
-        var allograph = self.cache.search("graph", graph);
+        var allograph = element.data('allograph');
         var elements = $("[data-graph='" + graph + "']");
         var image_id = element.data('image-id');
         var data, url, request, content_type = 'graph';
@@ -149,6 +149,7 @@ function EditGraphsSearch() {
                 data['hand_id'] = cache.graphs[graph]['hand_id'];
                 data['internal_note'] = cache.graphs[graph]['internal_note'];
                 data['display_note'] = cache.graphs[graph]['display_note'];
+                data['aspects'] = cache.graphs[graph]['aspects'];
                 data['hands'] = cache.graphs[graph]['hands'];
                 refresh(data, image_id);
             }
@@ -176,6 +177,7 @@ function EditGraphsSearch() {
                     data['hand_id'] = cache.graphs[graph]['hand_id'];
                     data['hands'] = cache.graphs[graph]['hands'];
                     data['graph_id'] = graph;
+                    data['aspects'] = cache.graphs[graph]['aspects'];
                     data['internal_note'] = cache.graphs[graph]['internal_note'];
                     data['display_note'] = cache.graphs[graph]['display_note'];
                     refresh(data, image_id);
@@ -189,6 +191,7 @@ function EditGraphsSearch() {
                         data['hand_id'] = cache.graphs[graph]['hand_id'];
                         data['hands'] = cache.graphs[graph]['hands'];
                         data['graph_id'] = graph;
+                        data['aspects'] = cache.graphs[graph]['aspects'];
                         data['internal_note'] = cache.graphs[graph]['internal_note'];
                         data['display_note'] = cache.graphs[graph]['display_note'];
                         refresh(data, image_id);
@@ -219,6 +222,7 @@ function EditGraphsSearch() {
 
         if (self.selectedAnnotations.length > 1) {
             allographs.allographs.components = common_components(self.selectedAnnotations, cache, allographs.allographs.components);
+            allographs.allographs.aspects = common_components(self.selectedAnnotations, cache, allographs.allographs.aspects, 'aspects');
         }
 
         var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
@@ -308,7 +312,7 @@ function EditGraphsSearch() {
                         }
                     });
 
-
+                    $('input[data-checked="checked"]').prop('checked', true);
                     /* updating selected annotations count */
 
                     if (self.dialog.selector.find('.badge').length) {
@@ -328,12 +332,13 @@ function EditGraphsSearch() {
                 self.dialog.selector.find('#features_container').html(s);
 
                 self.dialog.show();
-
+                setNotes(data, self.dialog.selector.find('#dialog_notes'));
                 var select_hand = self.dialog.selector.find('.hand_form');
                 var checkboxes = self.dialog.selector.find('.features_box');
                 rewriteHands(select_hand, graph.hands);
                 detect_common_features(self.selectedAnnotations, checkboxes, cache);
                 common_allographs(self.selectedAnnotations, cache, graph);
+                self.dialog.selector.find('#dialog_aspects').html(aspects_list);
 
                 /* setting dialog label */
                 var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
@@ -346,7 +351,7 @@ function EditGraphsSearch() {
                 } else {
                     $('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
                 }
-
+                $('input[data-checked="checked"]').prop('checked', true);
                 self.dialog.events_postLoading(self.dialog.selector);
 
                 // GN - rotation prototype - to be reviewed

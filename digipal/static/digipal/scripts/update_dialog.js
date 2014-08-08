@@ -169,6 +169,7 @@ var get_graph = function(graph_id, data, cache) {
 	result['graph_id'] = graph_id;
 	result['hand_id'] = graph['hand_id'];
 	result['hands'] = graph['hands'];
+	result['aspects'] = graph['aspects'];
 	result['item_part'] = graph['item_part'];
 	return result;
 
@@ -543,7 +544,7 @@ function load_aspects(aspects, graph, cache) {
 					}
 				}
 			}
-			aspects_list += "<div class='component_labels'><input " + checked + "  class='aspect' id='" + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='" + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
+			aspects_list += "<div class='component_labels'><input " + checked + " data-checked='" + checked + "'  class='aspect' id='" + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='" + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
 			aspects_list += "<div class='feature_containers'>";
 			for (var j = 0; j < aspects[i].features.length; j++) {
 				aspects_list += "<p class='feature'>- " + aspects[i].features[j].name + "</p>";

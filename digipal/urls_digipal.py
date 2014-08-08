@@ -25,8 +25,8 @@ urlpatterns = patterns('digipal.views.annotation',
     (r'^page/(?P<image_id>\d+)/delete/(?P<graph_id>[a-zA-Z\._0-9]+)/', 'delete'),
     (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$', 'form_dialog'),
     (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$', 'get_vector'),
-    (r'^collection/(?P<collection_name>.{1,30})/images/$', 'images_lightbox'),
-    (r'^collection/(?P<collection_name>.{1,30})/$', direct_to_template, {
+    (r'^collection/(?P<collection_name>.+)/images/$', 'images_lightbox'),
+    (r'^collection/(?P<collection_name>.+)/$', direct_to_template, {
             'template': 'digipal/collection.html',
             'extra_context': {
                 'LIGHTBOX': settings.LIGHTBOX,

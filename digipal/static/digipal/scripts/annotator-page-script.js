@@ -820,7 +820,7 @@ function AnnotatorLoader() {
 		}
 
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-		if (annotator.isAdmin) {
+		if (annotator.isAdmin === 'True') {
 			toggle_fixed_toolbar();
 		}
 	};
@@ -828,6 +828,7 @@ function AnnotatorLoader() {
 
 	var toggle_fixed_toolbar = function() {
 		var toolbar = $('#panelImageBox');
+		console.log('Gesucristo')
 
 		$(document).on('scroll', function() {
 			var current_tab = $('.nav li.active').find('[data-toggle="tab"]').data('target');

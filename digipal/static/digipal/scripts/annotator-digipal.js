@@ -765,6 +765,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						annotator.deleteAnnotation(annotator.vectorLayer, annotator.selectedFeature, 1);
 					}
 				}
+				$('.tooltip').remove();
 			});
 
 			$('*[data-toggle="tooltip"]').tooltip({
@@ -821,6 +822,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					close: function(event, ui) {
 						$(this).dialog('destroy').empty().remove();
 						annotator.selectFeature.unselectAll();
+						$('.tooltip').remove();
 					},
 
 					title: _self.label.init(selectedFeature),
@@ -1739,7 +1741,6 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				graphs.push(vector);
 
 			}
-			console.log(graphs)
 			url = '/digipal/api/graph/save_editorial/' + JSON.stringify(graphs) + '/';
 			save(url, graphs, data, ann, data.features);
 		}
@@ -2515,8 +2516,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			$('#id_display_note').remove();
 
 			var cache = annotator.cacheAnnotations.cache;
-			var aspects_list = load_aspects(annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects,
-				data.graph_id, cache);
+			var aspects_list = load_aspects(annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects, data.graph_id, cache);
 
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
@@ -3067,7 +3067,6 @@ function save(url, graphs, data, ann, features) {
 			// annotator.setSavedAttribute(feature, Annotator.UNSAVED, false);
 		},
 		success: function(data) {
-			console.log(data);
 			if (!handleErrors(data)) {
 				updateStatus('Saved annotation.', 'success');
 

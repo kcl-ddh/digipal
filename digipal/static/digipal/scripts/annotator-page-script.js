@@ -33,6 +33,9 @@ function AnnotatorLoader() {
 		self.set_settings(self.digipal_settings); // setting settings
 
 		annotator.load_annotations(function() { // once annotations get loaded ...
+			if (annotator.isAdmin == "False") {
+				filterDropdowns();
+			}
 			self.events(); // events get launched
 			if (annotator.isMobile()) {
 				annotator.selectFeature.deactivate();
@@ -166,18 +169,18 @@ function AnnotatorLoader() {
 
 		if (star.isInCollection(selectedCollection, annotator.image_id, 'image')) {
 			image_to_lightbox.children().addClass('starred').removeClass('unstarred');
-			image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+			image_to_lightbox.attr('data-original-title', 'Remove page from collection');
 		}
 
 		image_to_lightbox.click(function() {
 			if ($(this).children().hasClass('starred')) {
 				star.removeFromCollection(image_to_lightbox, 'image');
 				$(this).children().removeClass('starred').addClass('unstarred');
-				image_to_lightbox.attr('data-original-title', 'Add image to collection');
+				image_to_lightbox.attr('data-original-title', 'Add page to collection');
 			} else {
 				add_to_lightbox($(this), 'image', annotator.image_id, false);
 				$(this).children().removeClass('unstarred').addClass('starred');
-				image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+				image_to_lightbox.attr('data-original-title', 'Remove page from collection');
 			}
 		}).tooltip();
 
@@ -310,8 +313,13 @@ function AnnotatorLoader() {
 						features[i].style.strokeOpacity = 0;
 						features[i].style.fillOpacity = 0;
 					}
-				} else {
+				} else if (features[i].is_editorial) {
 					if (hidden_allographs.hands.indexOf("editorial") >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				} else if (features[i].isTemporary) {
+					if (hidden_allographs.hands.indexOf("public") >= 0) {
 						features[i].style.strokeOpacity = 0;
 						features[i].style.fillOpacity = 0;
 					}
@@ -900,6 +908,38 @@ function AnnotatorLoader() {
 
 	var zoom = function() {
 		return annotator.vectorLayer.map.zoom + 1;
+	};
+
+	var filterDropdowns = function() {
+		var allographs = [],
+			hands = [];
+		var features = annotator.vectorLayer.features;
+		for (var i = 0; i < features.length; i++) {
+			if (allographs.indexOf(features[i].allograph_id) < 0 && features[i].graph) {
+				allographs.push(features[i].allograph_id);
+			}
+
+			if (hands.indexOf(features[i].hand) < 0 && features[i].graph) {
+				hands.push(features[i].hand);
+			}
+		}
+
+		var val;
+		$.each($('.allograph_form option'), function() {
+			val = parseInt($(this).val(), 10);
+			if (val && (allographs.indexOf(val) < 0)) {
+				$(this).remove();
+			}
+		});
+
+		$.each($('.hand_form option'), function() {
+			val = parseInt($(this).val(), 10);
+			if (val && (hands.indexOf(val) < 0)) {
+				$(this).remove();
+			}
+		});
+
+		$('select').trigger('liszt:updated');
 	};
 
 	// function to be called as a new features gets drawn

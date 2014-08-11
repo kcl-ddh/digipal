@@ -484,24 +484,29 @@ function AnnotatorLoader() {
 			-  filter allographs according to hands and allographs
 	*/
 
+	function sort(obj, property) {
+		return obj.sort(function(x, y) {
+			return x[property] == y[property] ? 0 : (x[property] < y[property] ? -1 : 1);
+		});
+	}
+
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
 		checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
-		var annotations = annotator.annotations;
+		var annotations = sort(annotator.vectorLayer.features, 'feature');
 		var h;
-		if (!$.isEmptyObject(annotations)) {
+		if (annotations.length) {
 			var list = [];
 			var vectors = [];
-			for (var i in annotations) {
+			for (var i = 0; i < annotations.length; i++) {
 				if (annotations[i].feature) {
 					list.push([annotations[i]['allograph_id'],
 						annotations[i]['feature']
 					]);
 				}
 			}
-			list.sort();
 			for (h = 0; h < list.length; h++) {
 				var checked = "checked";
 				if (annotator.cacheHiddenFilters.allographs.length) {

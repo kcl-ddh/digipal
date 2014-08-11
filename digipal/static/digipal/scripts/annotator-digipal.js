@@ -3014,11 +3014,11 @@ function make_form() {
 		display_note = $('#id_display_note');
 		internal_note = $('#id_internal_note');
 	}
-	if (!isNodeEmpty(display_note.html())) {
+	if (display_note.length && !isNodeEmpty(display_note.html())) {
 		form_serialized += "&display_note=" + display_note.html();
 	}
 
-	if (!isNodeEmpty(internal_note.html())) {
+	if (internal_note.length && !isNodeEmpty(internal_note.html())) {
 		form_serialized += "&internal_note=" + internal_note.html();
 	}
 

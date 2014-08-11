@@ -503,7 +503,10 @@ function AnnotatorLoader() {
 			}
 			list.sort();
 			for (h = 0; h < list.length; h++) {
-				var checked = annotator.cacheHiddenFilters.allographs.indexOf(list[h][0].toString()) < 0 ? "checked" : "";
+				var checked = "checked";
+				if (annotator.cacheHiddenFilters.allographs.length) {
+					checked = annotator.cacheHiddenFilters.allographs.indexOf(list[h][0].toString()) < 0 ? "checked" : "";
+				}
 				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h][0] + "'>";
 				checkOutput += "<input " + checked + " data-attribute='feature' value='" + list[h][0] + "' class='checkVectors' id='allograph_" + list[h][0] + "' type='checkbox'/> <label for='allograph_" + list[h][0] + "' style='display:inline;'>" + list[h][1] + "</label></p>";
 			}
@@ -513,15 +516,21 @@ function AnnotatorLoader() {
 		checkOutput += '<div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll_hands" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 
+		var checked_editorial = "checked",
+			checked_public = "checked";
 		if (!$.isEmptyObject(annotations)) {
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
-				var checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
+				if (annotator.cacheHiddenFilters.hands.length) {
+					checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
+				}
 				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
 					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
-			checked_editorial = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
-			var checked_public = annotator.cacheHiddenFilters.hands.indexOf("public") < 0 ? "checked" : "";
+			if (annotator.cacheHiddenFilters.hands.length) {
+				checked_public = annotator.cacheHiddenFilters.hands.indexOf("public") < 0 ? "checked" : "";
+				checked_editorial = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
+			}
 			checkOutput += "<p data-annotation='editorial' class='paragraph_allograph_check'>";
 			checkOutput += "<input data-attribute='editorial' " + checked_editorial + " value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
 			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";

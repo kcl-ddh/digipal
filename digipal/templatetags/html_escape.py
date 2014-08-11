@@ -211,11 +211,13 @@ def annotation_img(annotation, *args, **kwargs):
         Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         See iip_img() for more information
+
+        fixlen: fix the maximum length of the thumbnail
     '''
     
     ret = u''
     if annotation:
-        info = annotation.get_cutout_url_info()
+        info = annotation.get_cutout_url_info(fixlen=kwargs.get('fixlen', None))
         #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:

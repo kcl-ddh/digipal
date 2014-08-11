@@ -255,6 +255,11 @@ Commands:
         print '%s incorrect, %s correct, total %s' % (diff_count, cnt - diff_count, cnt)
 
     def adhoc_test(self, *args):
+        from digipal import utils
+        print utils.get_plain_text_from_html('''<p>a</p><p>b<a href="&gt;yo&lt;">c</a></p>''')
+        pass
+    
+    def adhoc_test_old(self, *args):
         from digipal.templatetags import html_escape
         value = u'''<tr>
                 <td>

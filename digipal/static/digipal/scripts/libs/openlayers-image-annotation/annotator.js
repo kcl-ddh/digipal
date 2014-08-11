@@ -218,16 +218,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.selectFeatureById(e.feature.id);
 
 		},
-		'transform': function(e) {
-			var feature = e.object.feature;
-			if (feature.geometry.getLength() < 100) {
-				feature.destroy();
-				$('circle').remove();
-				$('polyline').remove();
-				return false;
-			}
-
-		},
+		'transform': function(e) {},
 		'beforeset': function(e) {
 
 		},

@@ -272,8 +272,12 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		},
 		'activate': function() {
 			var switcher = $('.toggle-state-switch');
+			var public_annotations_check = $('[data-attribute="public"]');
 			if (!switcher.bootstrapSwitch('state')) {
 				switcher.bootstrapSwitch('toggleState');
+			}
+			if (!public_annotations_check.is(':checked')) {
+				public_annotations_check.prop('checked', true).trigger('change');
 			}
 		}
 	});

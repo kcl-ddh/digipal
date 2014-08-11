@@ -967,7 +967,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 				} else {
 					if (selectedFeature.state == 'Insert' || selectedFeature.contentAnnotation || $.isEmptyObject(selectedFeature)) {
-						notes += "<div style='height:100%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
+						notes += "<div placeholder='Describe annotation...' style='height:100%;width:100%;' class='textarea_temporary_annotation form-control' data-ph='Describe annotation ...'></div>";
 						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
 							$(this).parent('li').addClass('disabled');
 						});
@@ -3300,9 +3300,9 @@ function registerEvents() {
 				var boxes_on_click = false;
 				var annotation;
 
-				for (var a in annotator.annotations) {
-					if (annotator.annotations[a].graph == annotator.selectedFeature.graph) {
-						annotation = annotator.annotations[a];
+				for (var a in annotator.vectorLayer.features) {
+					if (annotator.vectorLayer.features[a].graph == annotator.selectedFeature.graph) {
+						annotation = annotator.vectorLayer.features[a];
 					}
 				}
 				showBox(annotation, function() {

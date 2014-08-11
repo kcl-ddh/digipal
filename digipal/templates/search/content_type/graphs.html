@@ -20,7 +20,6 @@
 
             <table class="table table-condensed">
                 <tr>
-                    <th>Graphs</th>
                     <th>Hand</th>
                     <th>Scribe</th>
                     <th>Place</th>
@@ -31,20 +30,6 @@
                 </tr>
                 {% for hand in ghands %}
                     <tr>
-                        <td data-group='true'>
-                            {% for graph in hand.graphs_template %}
-                                <span class="folio-image-wrapper">
-                                <a data-checked='false'
-                                    data-image-id='{{ graph.annotation.image.id }}'
-                                    href="{{ graph.annotation.image.get_absolute_url }}?graph={{ graph.annotation.graph.id }}"
-                                    data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
-                                    data-id='{{ graph.id }}' class='droppable_image graph_img'
-                                    >
-                                    {% annotation_img graph.annotation lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
-                                </a>
-                                </span>
-                            {% endfor %}
-                        </td>
                         <td>{{ hand }}</td>
                         <td>{% if hand.scribe %}{{ hand.scribe }}{% else %}Unspecified{% endif %}</td>
                         <td>{{ hand.assigned_place }}</td>
@@ -52,6 +37,22 @@
                         <td>{{ hand.item_part.current_item.repository.name }}</td>
                         <td>{{ hand.item_part.current_item.shelfmark }}</td>
                         <td>{{ hand.item_part.historical_item.catalogue_number }}</td>
+                    </tr>
+                    <tr>
+                        <td data-group='true' colspan="7">
+                            {% for graph in hand.graphs_template %}
+                                <span class="folio-image-wrapper">
+                                    <a data-checked='false'
+                                        data-image-id='{{ graph.annotation.image.id }}'
+                                        href="{{ graph.annotation.image.get_absolute_url }}?graph={{ graph.annotation.graph.id }}"
+                                        data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
+                                        data-id='{{ graph.id }}' class='droppable_image graph_img'
+                                        >
+                                        {% annotation_img graph.annotation lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
+                                    </a>
+                                </span>
+                            {% endfor %}
+                        </td>
                     </tr>
                 {% endfor %}
             </table>
@@ -82,7 +83,7 @@
                                                 data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
                                                 data-id='{{ graph.id }}' class='droppable_image'
                                                 href="/digipal/page/{{ graph.annotation.image_id }}/?graph={{ graph.annotation.graph.id }}">
-                                                {% annotation_img graph.annotation padding=5 lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
+                                                {% annotation_img graph.annotation fixlen=50 padding=5 lazy=1 a_title=graph.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
                                             </a>
                                         </span>
                                         {% endif %}

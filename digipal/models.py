@@ -2205,7 +2205,7 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url_info(self, esc=False, rotated=False):
+    def get_cutout_url_info(self, esc=False, rotated=False, fixlen=None):
         ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
 
         # get the rectangle surrounding the shape
@@ -2214,10 +2214,15 @@ class Annotation(models.Model):
         rotation = float(self.rotation)
         if rotation > 0.0:
             psr = self.get_coordinates(y_from_top=True, rotated=True)
+        # dims: full image dimensions
         dims = [float(v) for v in self.image.dimensions()]
         
         for d in [0, 1]:
             ret['frame_dims'][d] = psr[1][d] - psr[0][d]
+        
+        longest_dim = 0
+        if ret['frame_dims'][1] > ret['frame_dims'][0]:
+            longest_dim = 1
             
         if min(dims) <= 0 or min(ret['frame_dims']) <= 0:
             return ret
@@ -2238,7 +2243,15 @@ class Annotation(models.Model):
             ret['dims'] = ret['frame_dims'][:]
         
         # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
-        factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        #factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        if fixlen:
+            max_len = fixlen
+        else:
+            max_len = float(settings.MAX_THUMB_LENGTH)
+            if getattr(settings, 'MIN_THUMB_LENGTH', settings.MAX_THUMB_LENGTH) < settings.MAX_THUMB_LENGTH:
+                max_lens = [settings.MIN_THUMB_LENGTH, max_len]
+                max_len = min(max_lens[1], max_lens[0] + float(max_lens[1] - max_lens[0]) / float(dims[longest_dim]) * ret['frame_dims'][longest_dim] * 1.25)
+        factor = min(1.0, max_len / float(max(ret['frame_dims'])))
         
         ret['url'] = settings.IMAGE_SERVER_RGN % \
             (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH, self.image.path(), 

@@ -431,6 +431,7 @@ label[for=id_internal_note], label[for=id_display_note]{
 #box_features_container .jquery-notebook.editor {
     height: 80px;
     box-shadow: 0 1px 1px rgba(0,0,0,0.075);
+    border: 1px solid #ccc;
 }
 
 .buttons_div br {
@@ -499,7 +500,7 @@ label[for=id_internal_note], label[for=id_display_note]{
 
 .name_temporary_annotation{
     background: transparent !important;
-    border: none !important;
+    border: 1px solid #ccc;
     box-shadow: none !important;
     line-height: 1 !important;
     height: 50% !important;

@@ -519,12 +519,13 @@ function AnnotatorLoader() {
 		var checked_editorial = "checked",
 			checked_public = "checked";
 		if (!$.isEmptyObject(annotations)) {
+
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
 				if (annotator.cacheHiddenFilters.hands.length) {
 					checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
 				}
-				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
+				checkOutput += "<p data-annotation='" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
 					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
 			if (annotator.cacheHiddenFilters.hands.length) {

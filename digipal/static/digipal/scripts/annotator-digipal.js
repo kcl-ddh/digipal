@@ -765,7 +765,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						annotator.deleteAnnotation(annotator.vectorLayer, annotator.selectedFeature, 1);
 					}
 				}
-				$('.tooltip').remove();
+				$('.tooltip').add('circle').add('polyline').remove();
 			});
 
 			$('*[data-toggle="tooltip"]').tooltip({

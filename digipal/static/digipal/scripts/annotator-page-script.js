@@ -498,6 +498,36 @@ function AnnotatorLoader() {
 		});
 	}
 
+	var filtersEvents = function() {
+		/* launching events */
+		var check_vectors = $('.checkVectors');
+		check_vectors.change(function() {
+			annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
+		});
+
+		var check_vectors_hands = $('.checkVectors_hands');
+		check_vectors_hands.change(function() {
+			annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
+		});
+
+		var CheckAll = $('#checkAll');
+		CheckAll.click(function() {
+			if ($(this).data('toggle') == 'uncheck') {
+				annotator.filters.filterCheckboxes('.checkVectors', 'uncheck');
+				$(this).data('toggle', 'check');
+			} else {
+				annotator.filters.filterCheckboxes('.checkVectors', 'check');
+				$(this).data('toggle', 'uncheck');
+			}
+		});
+
+		var checkAll_hands = $('#checkAll_hands');
+		var checkAll_hands_checkboxes = $('.checkVectors_hands');
+		checkAll_hands.click(function() {
+			checkAll_hands_checkboxes.trigger('click');
+		});
+	};
+
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
@@ -574,35 +604,7 @@ function AnnotatorLoader() {
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
-			/* launching events */
-			var check_vectors = $('.checkVectors');
-			check_vectors.change(function() {
-				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
-			});
-
-			var check_vectors_hands = $('.checkVectors_hands');
-			check_vectors_hands.change(function() {
-				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
-			});
-
-			var CheckAll = $('#checkAll');
-			CheckAll.click(function() {
-				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filters.filterCheckboxes('.checkVectors', 'uncheck');
-					$(this).data('toggle', 'check');
-				} else {
-					annotator.filters.filterCheckboxes('.checkVectors', 'check');
-					$(this).data('toggle', 'uncheck');
-				}
-			});
-
-			var checkAll_hands = $('#checkAll_hands');
-			var checkAll_hands_checkboxes = $('.checkVectors_hands');
-			checkAll_hands.click(function() {
-				checkAll_hands_checkboxes.trigger('click');
-			});
-
-
+			filtersEvents();
 			var switcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
 			var switcherCloned = $('#panelImageBox').find('.toggle-state-switch');
 			switcher.bootstrapSwitch();
@@ -656,7 +658,11 @@ function AnnotatorLoader() {
 			}
 
 		} else {
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.dialog('open');
+			filtersEvents();
 		}
 
 	};

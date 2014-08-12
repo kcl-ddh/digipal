@@ -218,7 +218,9 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			_self.selectFeatureById(e.feature.id);
 
 		},
-		'transform': function(e) {},
+		'transform': function(e) {
+
+		},
 		'beforeset': function(e) {
 
 		},

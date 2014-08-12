@@ -217,7 +217,7 @@ function EditGraphsSearch() {
         @image_id {Integer}
     */
     var refresh = function(data, image_id) {
-        var allographs = $.extend({}, data, true);
+        var allographs = $.extend(true, {}, data);
 
         var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
 

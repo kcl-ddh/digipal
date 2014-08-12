@@ -209,7 +209,7 @@ function common_allographs(selectedAnnotations, cacheAnn, graph) {
 		hands = [],
 		item_parts = [];
 
-	cache = $.extend({}, cacheAnn, true);
+	var cache = $.extend(true, {}, cacheAnn);
 	var select_hand = $('.myModal .hand_form');
 	var select_allograph = $('.myModal .allograph_form');
 
@@ -271,7 +271,7 @@ function common_components(selectedAnnotations, _cacheAnnotations, data, type) {
 		return false;
 	}
 
-	var cacheAnnotations = $.extend({}, _cacheAnnotations, true);
+	var cacheAnnotations = $.extend(true, {}, _cacheAnnotations);
 
 	if (typeof type == 'undefined' || !type) {
 		type = "components";
@@ -284,7 +284,7 @@ function common_components(selectedAnnotations, _cacheAnnotations, data, type) {
 	while (ind < selectedAnnotations.length) {
 		if (typeof cacheAnnotations.graphs[selectedAnnotations[ind]] !== 'undefined') {
 			allograph_id = cacheAnnotations.graphs[selectedAnnotations[ind]].allograph_id;
-			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id][type], true);
+			allographs = $.extend(true, {}, cacheAnnotations.allographs[allograph_id][type]);
 			cacheAnn.push(allographs);
 		}
 		ind++;
@@ -327,11 +327,11 @@ function common_components(selectedAnnotations, _cacheAnnotations, data, type) {
 	return copy_data;
 }
 
-function preprocess_features(graphs, cache, type) {
+function preprocess_features(graphs, _cache, type) {
 	var graph, all = [],
 		features, component_id;
 
-	cache = $.extend({}, cache, true);
+	var cache = $.extend(true, {}, _cache);
 	if (!type) {
 		type = 'features';
 	}
@@ -446,7 +446,8 @@ function compute_features(graphs, checkboxes, type) {
 
 }
 
-function detect_common_features(selectedAnnotations, checkboxes, cache) {
+function detect_common_features(selectedAnnotations, checkboxes, _cache) {
+	var cache = $.extend(true, {}, _cache);
 	var features_preprocessed = preprocess_features(selectedAnnotations, cache);
 	compute_features(features_preprocessed, checkboxes);
 	var aspects_processed = preprocess_features(selectedAnnotations, cache, "aspects");
@@ -527,10 +528,11 @@ function updateStatus(msg, status) {
 }
 
 
-function load_aspects(aspects, graph, cache) {
+function load_aspects(aspects, graph, _cache) {
 	var aspects_list = "";
 	var graph_aspects = null;
 
+	var cache = $.extend(true, {}, _cache);
 	if (cache.graphs.hasOwnProperty(graph)) {
 		if (cache.graphs[graph].hasOwnProperty('aspects')) {
 			graph_aspects = cache.graphs[graph].aspects;

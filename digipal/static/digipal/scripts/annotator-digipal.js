@@ -844,8 +844,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						var left = '68%';
 						if (!$.isEmptyObject(selectedFeature)) {
 							var vectorPosition = $("#" + selectedFeature.geometry.id).position();
-							if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
-								left = '25%';
+							if (vectorPosition) {
+								if (vectorPosition.left > $('#map').width() - ($('#map').width() * 38) / 100) {
+									left = '25%';
+								}
 							}
 						}
 						dialog.parent().css({

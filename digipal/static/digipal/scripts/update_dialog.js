@@ -113,7 +113,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 	graphs = group_element.find('a[data-graph]');
 	$.each(graphs, function() {
 		graph = $(this).data('graph');
-		if (cache.search('graph', graph) === false) {
+		if (!cache.search('graph', graph)) {
 			graphs_list.push(graph);
 		}
 	});
@@ -135,7 +135,7 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 
 		api.request(url, function(data) {
 			for (var i = 0; i < data.length; i++) {
-				var graph = graphs[i];
+				var graph = data[i].graph;
 				var allograph = data[i]['allograph_id'];
 
 				if (!cache.search("allograph", allograph) && !only_features) {
@@ -204,11 +204,12 @@ function intersect(a, b) {
 	return intersection;
 }
 
-function common_allographs(selectedAnnotations, cache, graph) {
+function common_allographs(selectedAnnotations, cacheAnn, graph) {
 	var allographs = [],
 		hands = [],
 		item_parts = [];
 
+	cache = $.extend({}, cacheAnn, true);
 	var select_hand = $('.myModal .hand_form');
 	var select_allograph = $('.myModal .allograph_form');
 
@@ -264,11 +265,13 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	select_hand.add(select_allograph).trigger('liszt:updated');
 }
 
-function common_components(selectedAnnotations, cacheAnnotations, data, type) {
+function common_components(selectedAnnotations, _cacheAnnotations, data, type) {
 
 	if (!data) {
 		return false;
 	}
+
+	var cacheAnnotations = $.extend({}, _cacheAnnotations, true);
 
 	if (typeof type == 'undefined' || !type) {
 		type = "components";
@@ -281,7 +284,7 @@ function common_components(selectedAnnotations, cacheAnnotations, data, type) {
 	while (ind < selectedAnnotations.length) {
 		if (typeof cacheAnnotations.graphs[selectedAnnotations[ind]] !== 'undefined') {
 			allograph_id = cacheAnnotations.graphs[selectedAnnotations[ind]].allograph_id;
-			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id][type]);
+			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id][type], true);
 			cacheAnn.push(allographs);
 		}
 		ind++;
@@ -328,6 +331,7 @@ function preprocess_features(graphs, cache, type) {
 	var graph, all = [],
 		features, component_id;
 
+	cache = $.extend({}, cache, true);
 	if (!type) {
 		type = 'features';
 	}

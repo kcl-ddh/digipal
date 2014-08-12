@@ -203,6 +203,7 @@ function EditGraphsSearch() {
             self.selectedAllograph = allograph;
         }
 
+
         var panel = elements.closest('.allograph-item');
         if (!self.selectedAnnotations.length) {
             panel.find('.to_lightbox').attr('disabled', true);
@@ -216,7 +217,7 @@ function EditGraphsSearch() {
         @image_id {Integer}
     */
     var refresh = function(data, image_id) {
-        var allographs = data;
+        var allographs = $.extend({}, data, true);
 
         var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
 
@@ -259,7 +260,8 @@ function EditGraphsSearch() {
                     /* setting dialog label */
                     var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                     self.dialog.set_label(allograph_label);
-
+                    self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
+                    self.dialog.selector.find('.hand_form').val(allographs.hand_id);
                     /* applying delete event to selected feature */
                     var delete_button = self.dialog.selector.find('#delete');
                     delete_button.click(function(event) {
@@ -321,6 +323,7 @@ function EditGraphsSearch() {
                         self.dialog.selector.find('.label-modal-value').after(' <span class="badge badge default"> ' + self.selectedAnnotations.length + '</span>');
                     }
 
+                    $('select').trigger('liszt:updated');
 
                 });
             });
@@ -343,6 +346,8 @@ function EditGraphsSearch() {
                 /* setting dialog label */
                 var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                 self.dialog.set_label(allograph_label);
+                self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
+                self.dialog.selector.find('.hand_form').val(allographs.hand_id);
 
                 /* updating selected annotations count */
 
@@ -353,7 +358,7 @@ function EditGraphsSearch() {
                 }
                 $('input[data-checked="checked"]').prop('checked', true);
                 self.dialog.events_postLoading(self.dialog.selector);
-
+                $('select').trigger('liszt:updated');
                 // GN - rotation prototype - to be reviewed
                 self.annotation_editor.set_graphids(self.selectedAnnotations);
 

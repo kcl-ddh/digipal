@@ -97,7 +97,7 @@ function Allographs(dialog, cache) {
 		var a_images = $('.annotation_li a');
 		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
-				var id = $(this).parent('.annotation_li').data('graph');
+				var id = $(this).closest('.annotation_li').data('graph');
 				methods.to_annotator(id);
 
 				/*

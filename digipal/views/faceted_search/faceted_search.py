@@ -2,7 +2,6 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 import json
-from digipal.models import Image, Graph
 from digipal.forms import SearchPageForm
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -10,6 +9,7 @@ from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
 from django.utils.datastructures import SortedDict
+import digipal.models
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -18,6 +18,10 @@ class FacetedModel(object):
     
     def __init__(self, options):
         self.options = options
+        self.faceted_model_group = None
+    
+    def set_faceted_model_group(self, faceted_model_group=None):
+        self.faceted_model_group = faceted_model_group
     
     def get_label(self):
         return self.options['label']
@@ -32,14 +36,24 @@ class FacetedModel(object):
     fields = property(get_fields)
     
     def get_model(self):
-        return self.options['model']
+        ret = None
+        path = self.options['model'].split('.')
+        ret = __import__('.'.join(path[:-1]))
+        for part in path[1:]:
+            ret = getattr(ret, part)
+        return ret
     model = property(get_model)
 
     def get_option(self, option_name, default=None):
         return self.options.get(option_name, default)
     
+    @classmethod
+    def get_default_view(cls, selected=False):
+        return {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': selected}
+    
     def get_views(self):
-        return self.get_option('views', [])
+        ret = self.get_option('views', [self.get_default_view(selected=True)])
+        return ret
     views = property(get_views)
     
     def get_selected_views_template(self):
@@ -145,10 +159,18 @@ class FacetedModel(object):
         ret = []
         
         # a filter for search phrase 
-        phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms', 'selected_options': []}
+        phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'search_terms', 'value': request.GET.get('search_terms', ''), 'id': 'search-terms', 'removable_options': []}
         if phrase_facet['value']:
-            phrase_facet['selected_options'] = [{'label': phrase_facet['value'], 'key': phrase_facet['value'], 'count': '?', 'selected': True}]
+            phrase_facet['removable_options'] = [{'label': phrase_facet['value'], 'key': phrase_facet['value'], 'count': '?', 'selected': True}]
         ret.append(phrase_facet)
+        
+        # a filter for the content types
+        if self.faceted_model_group and len(self.faceted_model_group) > 1:
+            ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
+            for faceted_model in self.faceted_model_group:
+                option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': faceted_model.key == ct_facet['value']}
+                ct_facet['options'].append(option)
+            ret.append(ct_facet)
         
         # facets based on faceted fields
         from copy import deepcopy
@@ -162,12 +184,12 @@ class FacetedModel(object):
                 from digipal.utils import get_range_from_date
                 facet['values'] = get_range_from_date(facet['value'])
             
-            facet['selected_options'] = []
+            facet['removable_options'] = []
             if facet['options']:
-                facet['selected_options'] = [o for o in facet['options'] if o['selected']]
+                facet['removable_options'] = [o for o in facet['options'] if o['selected']]
             else:
                 if facet['value']:
-                    facet['selected_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
+                    facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
             ret.append(facet)
         return ret
 
@@ -244,7 +266,7 @@ class FacetedModel(object):
     def get_summary(self, request):
         ret = u''
         for facet in self.get_facets(request):
-            for option in facet['selected_options']:
+            for option in facet['removable_options']:
                 href = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
                 ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label']) 
 
@@ -269,7 +291,7 @@ class FacetedModel(object):
     
     def get_whoosh_facets(self):
         from whoosh import sorting
-        print [field['key'] for field in self.fields if field.get('count', False)]
+        #print [field['key'] for field in self.fields if field.get('count', False)]
         return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
     
     @classmethod
@@ -333,7 +355,6 @@ class FacetedModel(object):
                     from digipal.utils import get_range_from_date
                     rng = get_range_from_date(value)
                     field_queries += u' %s_min:<=%s %s_max:>=%s ' % (field['key'], rng[1], field['key'], rng[0])
-                    #field_queries += u' %s_max:<=%s ' % (field['key'], rng[1])
                 else:                    
                     field_queries += u' %s:"%s" ' % (field['key'], value)
         
@@ -377,7 +398,7 @@ class FacetedModel(object):
             #ret = s.search(q, groupedby=facets, limit=1000000)
             #ret = s.search(q, sortedby=sortedby, limit=1000000)
             #ret = s.search(q, limit=1000000)
-            print facets
+            #print facets
             #ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
             
             hand_filters.chrono(':whoosh.search')
@@ -386,8 +407,8 @@ class FacetedModel(object):
             self.whoosh_groups = {}
             for field in self.fields:
                 if field.get('count', False):
-                    #self.whoosh_groups[field['key']] = ret.groups(field['key'])
-                    self.whoosh_groups[field['key']] = {}
+                    self.whoosh_groups[field['key']] = ret.groups(field['key'])
+                    #self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
         
             # convert the result into a list of model instances
@@ -454,11 +475,13 @@ class FacetedModel(object):
         return parser
     
     def get_selected_view(self):
-        ret = self.views[0]
-        for view in self.views:
-            if view.get('selected', False):
-                ret = view
-                break
+        ret = None
+        if self.views:
+            ret = self.views[0]
+            for view in self.views:
+                if view.get('selected', False):
+                    ret = view
+                    break
         return ret
     
     def get_page_size(self, request):
@@ -471,96 +494,25 @@ class FacetedModel(object):
     def get_page_sizes(self):
         ret = [10, 20, 50, 100]
         selected_view = self.get_selected_view()
-        view_type = selected_view.get('type', 'list')
-        if view_type == 'grid':
-            ret = [9, 18, 30, 90]
+        if selected_view:
+            view_type = selected_view.get('type', 'list')
+            if view_type == 'grid':
+                ret = [9, 18, 30, 90]
         return ret
         
 def get_types():
-    image_options = {'key': 'image', 
-                'label': 'Image',
-                'model': Image,
-                'fields': [
-                           # label = the label displayed on the screen
-                           # label_col = the label in the column in the result table
-                           # type = the type of the field
-
-                           # path = a field name (can go through a related object or call a function)
-                           
-                           # count = True to show the number of hits for each possible value of the field (i.e. show facet options)
-                           # filter = True to let the user filter by this field
-                           # search = True if the field can be searched on (phrase query)
-                           # viewable = True if the field can be displayed in the result set
-
-                           # index = True iff (search or filter or count)
-                           
-                           # e.g. ann: viewable, full_size: count, repo_city: viewable+count+search
-                           # id: special
-                           # Most of the times viewable => searchable but not always (e.g. ann.)
-                           
-                           {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-                           #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
-                           #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
-                           #
-                           {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-                           {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
-                           {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
-                           {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
-                           {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                           {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                           {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
-                           {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-                           {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
-                           ],
-                'select_related': ['item_part__current_item__repository__place'],
-                'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
-                'filter_order': ['hi_date', 'full_size', 'hi_type', 'hi_format', 'repo_city', 'repo_place'],
-                'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
-                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-                'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
-                'views': [
-                          {'icon': 'th-list', 'label': 'List', 'key': 'list'},
-                          {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
-                          ],
-                }
+    ''' Returns a list of FacetModel instance generated from either 
+        settings.py::FACETED_SETTINGS 
+        or the local settings.py::CONTENT_TYPES
+    '''
+    from django.conf import settings
+    ret = getattr(settings, 'FACETED_SEARCH', None)
+    if ret is None:
+        import settings as faceted_settings
+        ret = faceted_settings.FACETED_SEARCH
+        
+    ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get('disabled', False)]
     
-    graph_options = {'key': 'graph', 
-                'label': 'Graph',
-                'model': Graph,
-                'django_filter': {'annotation__isnull': False},
-                'fields': [
-                           {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-#                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-#                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
-#                            {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
-#                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
-                            {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                            {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                            {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                            {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
-#                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-#                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
-#                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
-                            {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
-                            {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
-                            {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.name', 'viewable': True, 'type': 'code', 'count': True},
-                           ],
-                'select_related': ['annotation__item_part__current_item__repository__place', 
-                                   'idiograph__allograph__character__ontograph__ontograph_type', 
-                                   ],
-                'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                'filter_order': ['repo_city', 'repo_place'],
-                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
-                #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-                'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
-                'views': [
-                          {'icon': 'th-list', 'label': 'List', 'key': 'list'},
-                          {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
-                          ],
-                }
-    #ret = [FacetedModel(image_options)]
-    ret = [FacetedModel(graph_options)]
     return ret
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
@@ -576,6 +528,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     for ct in cts:
         if ct.key == ct_key:
             break
+    
+    ct.set_faceted_model_group(cts)
 
     context['result_type'] = ct
     

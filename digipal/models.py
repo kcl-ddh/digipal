@@ -1749,6 +1749,9 @@ class Hand(models.Model):
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
+    def get_search_label(self):
+        return 'DigiPal Hand %s' % self.id
+
     def get_short_label(self):
         ret = unicode(self)
         ret = re.sub(ur'\([^)]*\)', ur'', ret)

@@ -144,6 +144,7 @@ Options:
         for dir in self.get_all_dirs_under_index_path():
             from datetime import datetime
             dir_rel = os.path.relpath(dir, settings.SEARCH_INDEX_PATH)
+            print '-' * 78
             print dir_rel
             info = self.get_index_info(dir)
             print '  size  : %.2f MB' % (info['size'] / 1024.0 / 1024.0)
@@ -152,7 +153,7 @@ Options:
             
             print '  fields:'
             for field in info['fields']:
-                print '    %15s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
+                print '    %25s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
             
     def get_index_info(self, path):
         ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?'}
@@ -164,28 +165,34 @@ Options:
             ret['date'] = max(ret['date'], os.path.getmtime(file))
             
         # whoosh info
+        import whoosh
         from whoosh.index import open_dir
-#        try:
-        index = open_dir(path)
-        with index.searcher() as searcher:
-            ret['entries'] = searcher.doc_count()
-            for item in index.schema.items():
-                field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
-                values = list(searcher.lexicon(item[0]))
-                field_info['unique_values'] = len(list(values))
-
-#                 if field_info['type'] == 'NUMERIC':
-#                     print item
-#                     for v in values:
-#                         print v.decode('utf-8')
-#                         break
-#                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
-#                     
-#                     vals = sorted(vals)
-#                     if vals:
-#                         field_info['range'] = (vals[0], vals[-1])
-                    
-                ret['fields'].append(field_info)
+        index = None
+        try:
+            index = open_dir(path)
+        except whoosh.index.EmptyIndexError:
+            pass
+            
+        if index:
+            with index.searcher() as searcher:
+                ret['entries'] = searcher.doc_count()
+                for item in index.schema.items():
+                    field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
+                    values = list(searcher.lexicon(item[0]))
+                    field_info['unique_values'] = len(list(values))
+    
+    #                 if field_info['type'] == 'NUMERIC':
+    #                     print item
+    #                     for v in values:
+    #                         print v.decode('utf-8')
+    #                         break
+    #                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
+    #                     
+    #                     vals = sorted(vals)
+    #                     if vals:
+    #                         field_info['range'] = (vals[0], vals[-1])
+                        
+                    ret['fields'].append(field_info)
 #         except Exception, e:
 #             raise e
 #             pass
@@ -333,6 +340,10 @@ Options:
                                 field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
                     print '\t\t%s' % field_type          
                     fields[info['whoosh']['name']] = field_type
+                    
+                    # JIRA 508 - Add an ID counterpart to allow exact phrase search
+#                     if info.get('long_text', False):
+#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))                    
         
         from whoosh.fields import Schema
         schema = Schema(**fields)

@@ -35,12 +35,16 @@ class SearchContentType(object):
         # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
         # minsize=1 because we want to search for 'Scribe 2'
         
+        # JIRA 508 - don't ignore *, that's the best I can do as a field won't work well with both stemming and exact phrase search
+        from whoosh.util.text import rcompile
+        default_pattern = rcompile(r"\*|\w+(\.?\w+)*")
+        
         # A paragraph or more. 
-        self.FT_LONG_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map))
+        self.FT_LONG_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1, expression=default_pattern) | CharsetFilter(accent_map))
         # A few words.
-        self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map))
+        self.FT_SHORT_FIELD = TEXT(analyzer=StemmingAnalyzer(minsize=1, expression=default_pattern) | CharsetFilter(accent_map))
         # A title (e.g. British Library)
-        self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map))
+        self.FT_TITLE = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None, expression=default_pattern) | CharsetFilter(accent_map))
         # A code (e.g. K. 402, Royal 7.C.xii)
         # See JIRA 358
         self.FT_CODE = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True))
@@ -323,7 +327,7 @@ class SearchContentType(object):
         from django.utils.html import (conditional_escape, escapejs, fix_ampersands, escape, urlize as urlize_impl, linebreaks, strip_tags)
 
         fields = self.get_fields_info()
-
+        
         records = self.get_all_records_sorted()
         ret = len(records)
         
@@ -354,11 +358,15 @@ class SearchContentType(object):
                         if format:
                             val = format % val
                         document[fields[k]['whoosh']['name']] = val
+                        
+                        # JIRA 508 - Add an ID counterpart to allow exact phrase search
+#                         if fields[k].get('long_text', False):
+#                             document[fields[k]['whoosh']['name']+'_iexact'] = val
+                        
+                        # build autocomplete index
                         val2 = val
                         if id(fields[k]['whoosh']['type']) not in [id(self.FT_LONG_FIELD)]:
                             val2 += '|'
-                        #print fields[k]['whoosh']['type'].analyzer
-                        #print dir(fields[k]['whoosh']['type'].analyzer)
                         aci[val2] = 1
                     
             if document:
@@ -415,7 +423,7 @@ class SearchContentType(object):
         return ret
     
     def get_parser(self, index):
-        from whoosh.qparser import MultifieldParser
+        from whoosh.qparser import MultifieldParser, SingleQuotePlugin
         
         term_fields = []
         boosts = {}
@@ -430,6 +438,7 @@ class SearchContentType(object):
                     term_fields.append(name)
                     boosts[name] = field['whoosh'].get('boost', 1.0)
         parser = MultifieldParser(term_fields, index.schema, boosts)
+        #parser.add_plugin(SingleQuotePlugin())
         #parser = MultifieldParser(term_fields, index.schema)
         return parser
     
@@ -598,6 +607,7 @@ class SearchContentType(object):
         
         parser = self.get_parser(index)
         query = parser.parse(query)
+        #print query        
         
         # See http://pythonhosted.org/Whoosh/facets.html
         from whoosh import sorting
@@ -749,7 +759,7 @@ class SearchContentType(object):
             if term or query_advanced:
                 query = (ur'%s %s' % (term, query_advanced)).strip()
             query = (query + ur' type:%s' % self.key).strip()
-
+            
             # Run the search
             results = self.search_whoosh(query)
             ##results = self.search_whoosh(query, True)

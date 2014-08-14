@@ -607,7 +607,6 @@ class SearchContentType(object):
         
         parser = self.get_parser(index)
         query = parser.parse(query)
-        #print query        
         
         # See http://pythonhosted.org/Whoosh/facets.html
         from whoosh import sorting

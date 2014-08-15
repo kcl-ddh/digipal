@@ -49,6 +49,10 @@ Commands:
                         Import data from the filemaker table into the Text 
                         records
 
+
+  legacy_owners
+                        Import owner relationships from legacy DB into DigiPal
+                        
 """
     
     args = 'hand'
@@ -90,6 +94,10 @@ Commands:
         command = args[0]
         
         known_command = False
+
+        if command == 'legacy_owners':
+            known_command = True
+            self.import_legacy_owners()
 
         if command == 'hand':
             known_command = True
@@ -138,6 +146,10 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+    def import_legacy_owners(self):
+        
+        pass
+    
     def gen_em_table(self, options):
         # TODO: update this query to work with the itempartitem table
         query = ur'''

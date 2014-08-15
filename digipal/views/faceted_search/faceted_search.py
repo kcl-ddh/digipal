@@ -129,6 +129,9 @@ class FacetedModel(object):
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
                     ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][ret[field['key']]]
                 
+                if field['type'] == 'boolean':
+                    ret[field['key']] = int(bool(ret[field['key']]) and ret[field['key']] not in ['0', 'False', 'false'])
+                
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
                     rng = get_range_from_date(ret[field['key']])
@@ -190,6 +193,8 @@ class FacetedModel(object):
             else:
                 if facet['value']:
                     facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
+            if key == 'hi_has_images':
+                print facet
             ret.append(facet)
         return ret
 
@@ -199,7 +204,10 @@ class FacetedModel(object):
             return ret
         selected_key = request.GET.get(field['key'], '')
         for k, v in self.whoosh_groups[field['key']].iteritems():
-            ret.append({'key': k, 'label': k, 'count': v, 'selected': (selected_key == k) and (k)})
+            label = k
+            if field['type'] == 'boolean':
+                label = 'Yes' if k else 'No'
+            ret.append({'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k)})
         ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     
@@ -274,7 +282,7 @@ class FacetedModel(object):
         
         if not ret.strip():
             ret = 'All' 
-            
+        
         return mark_safe(ret)
 
     def get_columns(self):
@@ -355,7 +363,7 @@ class FacetedModel(object):
                     from digipal.utils import get_range_from_date
                     rng = get_range_from_date(value)
                     field_queries += u' %s_min:<=%s %s_max:>=%s ' % (field['key'], rng[1], field['key'], rng[0])
-                else:                    
+                else:
                     field_queries += u' %s:"%s" ' % (field['key'], value)
         
         # add the search phrase    
@@ -407,6 +415,8 @@ class FacetedModel(object):
             self.whoosh_groups = {}
             for field in self.fields:
                 if field.get('count', False):
+                    if field['key'] == 'hi_has_images':
+                        print ret.groups(field['key'])
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
                     #self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
@@ -426,8 +436,6 @@ class FacetedModel(object):
             ids = [hit['id'] for hit in self.current_page.object_list]
             hand_filters.chrono(':whoosh.paginate')
             
-            print ids
-
             hand_filters.chrono(':whoosh')
             
             #print len(ids)
@@ -567,11 +575,13 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     return ret
 
-def rebuild_index():
+def rebuild_index(index_filter=[]):
+    ''' Rebuild the indexes which key is in index_filter. All if index_filter is empty'''
     for ct in get_types():
-        index = create_index_schema(ct)
-        if index:
-            populate_index(ct, index)
+        if not index_filter or ct.key in index_filter:
+            index = create_index_schema(ct)
+            if index:
+                populate_index(ct, index)
 
 def create_index_schema(ct):
     print '%s' % ct.key
@@ -622,7 +632,7 @@ def get_whoosh_field_type(field):
     # see http://pythonhosted.org/Whoosh/api/analysis.html#analyzers
     # see JIRA 165
     
-    from whoosh.fields import TEXT, ID, NUMERIC
+    from whoosh.fields import TEXT, ID, NUMERIC, BOOLEAN
     # TODO: shall we use stop words? e.g. 'A and B' won't work? 
     from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
     from whoosh.support.charset import accent_map
@@ -646,6 +656,9 @@ def get_whoosh_field_type(field):
     elif field_type == 'short_text':
         # A few words.
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
+    elif field_type == 'boolean':
+        # A few words.
+        ret = NUMERIC(stored=True, sortable=True)
     else:
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
         

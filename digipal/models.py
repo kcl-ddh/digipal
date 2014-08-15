@@ -1369,6 +1369,9 @@ class Image(models.Model):
             ret = Repository.get_default_media_permission()
         return ret
 
+    def is_media_public(self):
+        return not self.is_media_private()
+
     def is_media_private(self):
         return self.get_media_permission().is_private
 

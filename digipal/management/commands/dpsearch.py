@@ -311,7 +311,7 @@ Options:
 
     def index_facets(self, options):
         from digipal.views.faceted_search import faceted_search
-        faceted_search.rebuild_index()
+        faceted_search.rebuild_index(self.get_filtered_indexes())
         
     def index(self, index_name='unified'):
         types = self.get_requested_content_types()

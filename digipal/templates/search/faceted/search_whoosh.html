@@ -54,7 +54,10 @@
                             {% endif %}
                             {% if facet.options %}
                                 <table class="table">
-                                    <tr><th>Option</th><th class="count">Count</th></tr>
+                                    <tr>
+                                        <th>Option</th>
+                                        {% if facet.options.0.count != '' %}<th class="count">Count</th>{% endif %}
+                                    </tr>
                                     {% for option in facet.options %}
                                         <tr 
                                             {% if option.selected %}class="active"{% endif %}
@@ -65,7 +68,9 @@
                                                 </a>
                                                 {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                             </td>
-                                            <td class="count">{{ option.count }}</td>
+                                            {% if facet.options.0.count != '' %}
+                                                <td class="count">{{ option.count }}</td>
+                                            {% endif %}
                                         </tr>
                                     {% endfor %}
                                 </table>

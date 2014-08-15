@@ -193,8 +193,6 @@ class FacetedModel(object):
             else:
                 if facet['value']:
                     facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
-            if key == 'hi_has_images':
-                print facet
             ret.append(facet)
         return ret
 
@@ -373,9 +371,7 @@ class FacetedModel(object):
         else:
             from whoosh.query.qcore import Every
             q = Every()
-            
-        print q
-            
+                       
         with index.searcher() as s:
             # run the query
             facets = self.get_whoosh_facets()

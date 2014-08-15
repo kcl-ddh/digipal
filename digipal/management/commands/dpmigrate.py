@@ -50,8 +50,8 @@ Commands:
                         records
 
 
-  legacy_owners
-                        Import owner relationships from legacy DB into DigiPal
+  match_owners
+                        Match owner relationships from legacy DB into DigiPal
                         
 """
     
@@ -95,9 +95,9 @@ Commands:
         
         known_command = False
 
-        if command == 'legacy_owners':
+        if command == 'match_owners':
             known_command = True
-            self.import_legacy_owners()
+            self.match_legacy_owners()
 
         if command == 'hand':
             known_command = True
@@ -146,10 +146,88 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
-    def import_legacy_owners(self):
+    def match_legacy_owners(self):
+        # find a match for all the record in legacy.`ms owners`
         
-        pass
-    
+        # 1. get all the ownership information from the legacy DB
+        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+        leg = connections['legacy']
+        cursor = leg.cursor()
+        
+        # legacy.manuscripts
+        #
+        # ['Hair Arrangement', 'Index', 'Illustrated?', 'Fragment?', 'Frame Width', 'Style', 'Colours', 'Illus Cat Refs', 'Illus Description', 
+        # 'Neumed?', 'Columns', 'On Top Line?', 'Description', 'Insular Pricking?', 'Inks', 'Tramline Width', 'Date', 'Illuminated?', 'Biblical?', 
+        # 'OldShelfMark', 'Ker Index', 'Shelfmark', 'CLA Number', 'Name', 'URL', 'Num Colours', 'Leaves', 'Num Inks', 'Lines', 'Back Flyleaves', 
+        # 'Multiple Sheet Ruling?', 'Vernacular', 'Text Type', 'ID', 'Bilinear Ruling?', 'Front Flyleaves', 'TempShelfmark', 'Layout Comments', 
+        # 'Frame Height', 'Ker Text Type', 'Page Height', 'Decorated?', 'Locus', 'Page Width', 'Location Index']
+        #
+        # legacy.ms owners
+        #
+        # ['Manuscript', 'Annotated?', 'Evidence', 'Rebound?', 'Date', 'Owner', 'Dubitable?', 'ID']
+        #
+        # Legacy.owner text 
+        #
+        # ['Owner', 'Category', 'Overseas?', 'ID']
+        #
+        
+        from digipal.models import Repository
+        from django.utils.text import slugify
+        repos = {}
+        for repo in Repository.objects.all():
+            key = repo.legacy_id
+            repos[key] = repo        
+        
+        cursor.execute('''select 
+                            ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID, 
+                            ms.*, mo.*, ot.*
+                        from 
+                            `owner text` ot
+                            left join libraries li on (ot.Owner = li.library),
+                            `ms owners` mo,
+                            `manuscripts` ms
+                        where 
+                            mo.Owner = ot.ID
+                            and 
+                            mo.Manuscript = ms.ID
+                        order 
+                            by ot.Owner, ms.Shelfmark
+                        ''')
+        
+        owners = {}
+        
+        i = 0
+        for row in utils.dictfetchall(cursor):
+            i += 1
+            utils.prnt(ur'%3s, Legacy record (OT #%4s, OW #%4s, MS #%4s, CAT %s) - (%s, %s)' % (i, row['ot_id'], row['mo_id'], row['ms_id'], row['Category'], row['Owner'], row['Shelfmark']))
+            
+            # match the owner
+            owner = owners.get(row['ot_id'], None)
+            if not owner:
+                owner = owners[row['ot_id']] = row
+                owner['repo'] = repos.get(row['li_ID'], None)
+                if owner['repo']:
+                    print '  %s' % owner['repo']
+                
+            repo = owner['repo']
+            
+            # match the MS
+        
+        owners_2_count = 0
+        matched_count = 0
+        for cat in [0, 1, 2]:
+            for owner in owners.values():
+                if owner['Category'] == cat:
+                    repo = owner['repo'] or ur''
+                    utils.prnt('%s %40s %-30s' % (owner['Category'], owner['Owner'][0:40], unicode(repo)[0:30]))
+                    if owner['Category'] == 2:
+                        owners_2_count += 1
+                    if owner['repo']:
+                        matched_count += 1
+        utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
+        
+        print 'done'
+        
     def gen_em_table(self, options):
         # TODO: update this query to work with the itempartitem table
         query = ur'''

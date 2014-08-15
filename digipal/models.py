@@ -339,6 +339,7 @@ class Reference(models.Model):
 
 
 # MsOwners in legacy db
+# GN: this is actually an Ownership table
 class Owner(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
 
@@ -355,6 +356,9 @@ class Owner(models.Model):
     person = models.ForeignKey('Person', blank=True, null=True, default=None,
         related_name='owners',
         help_text='Please select either an institution or a person')
+
+    repository = models.ForeignKey('Repository', blank=True, null=True
+        , default=None, related_name='owners', help_text='')
 
     date = models.CharField(max_length=128)
     evidence = models.TextField()
@@ -877,8 +881,20 @@ class Place(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class OwnerType(models.Model):
+    name = models.CharField(max_length=256)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+    
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 # Libraries in legacy db
+# GN: this is now a general Owner table (Person, Institution, Repo)
 class Repository(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=256)
@@ -886,7 +902,11 @@ class Repository(models.Model):
     place = models.ForeignKey(Place)
     url = models.URLField(blank=True, null=True)
     comma = models.NullBooleanField(null=True)
+    # legacy.`Overseas?`
     british_isles = models.NullBooleanField(null=True)
+    type = models.ForeignKey('OwnerType', null=True,
+            blank=True, default=None, related_name='repositories')
+    
     digital_project = models.NullBooleanField(null=True)
     copyright_notice = HTMLField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True,

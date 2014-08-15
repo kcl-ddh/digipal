@@ -893,6 +893,10 @@ class OwnerType(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class LibraryManager(models.Manager):
+    def get_queryset(self):
+        return super(LibraryManager, self).get_queryset().filter(type__id=3)
+
 # Libraries in legacy db
 # GN: this is now a general Owner table (Person, Institution, Repo)
 class Repository(models.Model):
@@ -923,6 +927,9 @@ class Repository(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
+    #objects = LibraryManager()
+    #all_objects = models.Manager()
+    
     class Meta:
         ordering = ['short_name', 'name']
         verbose_name_plural = 'Repositories'

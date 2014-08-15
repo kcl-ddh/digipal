@@ -171,12 +171,19 @@ Commands:
         # ['Owner', 'Category', 'Overseas?', 'ID']
         #
         
-        from digipal.models import Repository
+        #
+        # Heuristics match legacy.`owner text` (OT) with digipal_repository (REPO):
+        #    1. OT.Owner = legacy.Libraries.Library and legacy.Libraries.ID = REPO.legacy_id
+        #    2. find nearest distance between REPO.name and OT.Owner
+        #
+        from digipal.models import Repository, HistoricalItem, ItemPart
         from django.utils.text import slugify
         repos = {}
+        repos_by_name = {}
         for repo in Repository.objects.all():
             key = repo.legacy_id
-            repos[key] = repo        
+            repos[key] = repo
+            repos_by_name[slugify(repo.name)] = repo        
         
         cursor.execute('''select 
                             ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID, 
@@ -196,6 +203,10 @@ Commands:
         
         owners = {}
         
+        import difflib
+        
+        ms_matches = {}
+        
         i = 0
         for row in utils.dictfetchall(cursor):
             i += 1
@@ -207,24 +218,81 @@ Commands:
                 owner = owners[row['ot_id']] = row
                 owner['repo'] = repos.get(row['li_ID'], None)
                 if owner['repo']:
-                    print '  %s' % owner['repo']
+                    owner['repo_heu'] = 1
+                    #print '  %s' % owner['repo']
+                if not owner['repo'] and owner['Category'] == 2:
+                    # try other method based on similar names
+                    # but only if category = 2 (moder owner)
+                    #print slugify(row['Owner'])
+                    closests = difflib.get_close_matches(slugify(row['Owner']), repos_by_name.keys())
+                    if closests:
+                        owner['repo_heu'] = 2
+                        owner['repo'] = repos_by_name[closests[0]]
+                        #print '\t%s = %s' % (row['Owner'], owner['repo'].name)
                 
             repo = owner['repo']
             
             # match the MS
+            # legacy.`manuscripts`.ID = HI.legacy_id AND legacy.`manuscripts`.shelfmark = IP.CI.shelfmark
+            # Q: what about charters?
+            # Q: we replicate the IP.CI.Repo in the ownership...
+            
+            ms_matching_message = ''
+            ms_matching_message_extra = ''
+            ips = ItemPart.objects.filter(historical_items__legacy_id=row['ms_id'])
+            if ips.count() == 0:
+                ms_matching_message = 'not matched (NO HI with the same legacy ID)'
+            else:
+                if row['Shelfmark']:
+                    closests = difflib.get_close_matches(row['Shelfmark'], [ip.current_item.shelfmark for ip in ips])
+                    print '', closests
+                    if closests:
+                        if slugify(closests[0]) != slugify(row['Shelfmark']):
+                            ms_matching_message = 'matched (but shelfmark not exactly the same)'
+                    else:
+                            # last chance...
+                            # get_close_matches can miss in cases like this one: '277', ['Burney 277', '2522']
+                            # so we pick a candidate which contains the shelfmark we are looking for
+                            ms_matching_message_extra = ' (%s)' % repr([ip.current_item.shelfmark for ip in ips])
+                            matched_ips = [] 
+                            for ip in ips:
+                                if row['Shelfmark'] in ip.current_item.shelfmark:
+                                    matched_ips.append(ip)
+                            if matched_ips:
+                                if len(matched_ips) == 1:
+                                    ms_matching_message = 'matched (but loose shelfmark matching)'
+                                else:
+                                    ms_matching_message = 'not matched (more than one similar shelfmark)'
+                            else:
+                                ms_matching_message = 'not matched (no similar shelfmark)'
+                else:
+                    ms_matching_message = 'not matched (legacy shelfmark is empty)'
+                #, row['Shelfmark'], [ip.current_item.shelfmark for ip in ips]
+            
+            if ms_matching_message:
+                print '\t%s' % (ms_matching_message + ms_matching_message_extra)
+                ms_matches[ms_matching_message] = ms_matches.get(ms_matching_message, 0) + 1
         
-        owners_2_count = 0
-        matched_count = 0
-        for cat in [0, 1, 2]:
-            for owner in owners.values():
-                if owner['Category'] == cat:
-                    repo = owner['repo'] or ur''
-                    utils.prnt('%s %40s %-30s' % (owner['Category'], owner['Owner'][0:40], unicode(repo)[0:30]))
-                    if owner['Category'] == 2:
-                        owners_2_count += 1
-                    if owner['repo']:
-                        matched_count += 1
-        utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
+        
+        # Print the MS matches
+        print '\n%s ownerships' % i
+        for ms_match in ms_matches:
+            print ms_match, ms_matches[ms_match]
+        
+        # Print the owner matches
+        if 1:
+            owners_2_count = 0
+            matched_count = 0
+            for cat in [0, 1, 2]:
+                for owner in owners.values():
+                    if owner['Category'] == cat:
+                        repo = owner['repo'] or ur''
+                        utils.prnt('%s %40s %-30s' % (owner['Category'], owner['Owner'][0:40], unicode(repo)[0:30]))
+                        if owner['Category'] == 2:
+                            owners_2_count += 1
+                        if owner['repo']:
+                            matched_count += 1
+            utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
         
         print 'done'
         

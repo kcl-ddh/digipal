@@ -288,7 +288,7 @@ ADMIN_MENU_ORDER = (
     ('Annotation', ('digipal.Annotation', 'digipal.Graph')),
     ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
     ('Descriptor', ('digipal.Component', 'digipal.Feature', 'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
-    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
+    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
     ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County', 'digipal.InstitutionType')),
     ('Admin', ('admin.LogEntry', 'conf.Setting', 'auth.Group', 'auth.User', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog')),
 )

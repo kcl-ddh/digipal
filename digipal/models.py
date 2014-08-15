@@ -904,9 +904,13 @@ class Repository(models.Model):
     comma = models.NullBooleanField(null=True)
     # legacy.`Overseas?`
     british_isles = models.NullBooleanField(null=True)
+
     type = models.ForeignKey('OwnerType', null=True,
             blank=True, default=None, related_name='repositories')
     
+    part_of = models.ForeignKey('self', null=True,
+            blank=True, default=None, related_name='parts')
+
     digital_project = models.NullBooleanField(null=True)
     copyright_notice = HTMLField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True,
@@ -920,7 +924,7 @@ class Repository(models.Model):
             editable=False)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['short_name', 'name']
         verbose_name_plural = 'Repositories'
 
     def __unicode__(self):

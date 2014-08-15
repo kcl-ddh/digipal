@@ -17,7 +17,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
         Language, LatinStyle, Layout, \
         Measurement, \
-        Ontograph, OntographType, Owner, ImageAnnotationStatus, \
+        Ontograph, OntographType, Owner, OwnerType, ImageAnnotationStatus, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
@@ -1026,6 +1026,12 @@ class OwnerAdmin(reversion.VersionAdmin):
     list_display_links = list_display
     search_fields = ['evidence', 'institution__name', 'person__name']
     
+class OwnerTypeAdmin(reversion.VersionAdmin):
+    model = OwnerType
+
+    list_display = ['id', 'name']
+    list_display_links = list_display
+    search_fields = ['name']
 
 class CharacterInline(admin.StackedInline):
     model = Character
@@ -1515,6 +1521,7 @@ admin.site.register(Layout, LayoutAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Measurement, MeasurementAdmin)
 admin.site.register(Owner, OwnerAdmin)
+admin.site.register(OwnerType, OwnerTypeAdmin)
 admin.site.register(Ontograph, OntographAdmin)
 admin.site.register(OntographType, OntographTypeAdmin)
 admin.site.register(ImageAnnotationStatus, ImageAnnotationStatusAdmin)

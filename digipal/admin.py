@@ -452,8 +452,7 @@ class RepositoryForm(forms.ModelForm):
 
 #########################
 #                       #
-#     Admin Tables      #
-#     Visualization     #
+#        Inlines        #
 #                       #
 #########################
 
@@ -461,12 +460,34 @@ class RepositoryForm(forms.ModelForm):
 class OwnerInline(admin.StackedInline):
     model = Owner
 
+class PlaceInline(admin.StackedInline):
+    model = Place
+
+class CurrentItemInline(admin.StackedInline):
+    model = CurrentItem
+
+class HistoricalItemInline(admin.StackedInline):
+    model = HistoricalItem
+
+class HistoricalItemOwnerInline(admin.StackedInline):
+    model = HistoricalItem.owners.through
+    verbose_name = "Historical Item"
+    verbose_name_plural = "Historical Items"    
+
+class CurrentItemOwnerInline(admin.StackedInline):
+    model = CurrentItem.owners.through
+    verbose_name = "Current Item"
+    verbose_name_plural = "Current Items"    
+
+class ItemPartOwnerInline(admin.StackedInline):
+    model = ItemPart.owners.through
+    verbose_name = "Item Part"
+    verbose_name_plural = "Item Parts"    
 
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
 
     filter_horizontal = ['features']
-
 
 class IdiographInline(admin.StackedInline):
     model = Idiograph
@@ -475,6 +496,12 @@ class IdiographInline(admin.StackedInline):
 
 class TextItemPartInline(admin.StackedInline):
     model = TextItemPart
+
+#########################
+#                       #
+#     Model Admins      #
+#                       #
+#########################
 
 class AllographAdmin(reversion.VersionAdmin):
     model = Allograph
@@ -486,7 +513,6 @@ class AllographAdmin(reversion.VersionAdmin):
 
     filter_horizontal = ['aspects']
     inlines = [AllographComponentInline, IdiographInline]
-
 
 class AlphabetAdmin(reversion.VersionAdmin):
     model = Alphabet
@@ -1022,9 +1048,34 @@ class MeasurementAdmin(reversion.VersionAdmin):
 class OwnerAdmin(reversion.VersionAdmin):
     model = Owner
 
-    list_display = ['content_object', 'content_type', 'date', 'rebound', 'annotated', 'dubitable', 'created', 'modified']
+    list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date', 
+                    'rebound', 'annotated', 'dubitable', 'created', 'modified']
     list_display_links = list_display
-    search_fields = ['evidence', 'institution__name', 'person__name']
+    search_fields = ['evidence', 'institution__name', 'person__name', 'repository__name', 'itempart__display_label', 
+                     'current_items__display_label', 'historicalitem__display_label', 'id', 'legacy_id', 'date']
+
+    fieldsets = (
+                ('Owner', {'fields': ('repository', 'person', 'institution',)}),
+                ('Misc.', {'fields': ('date', 'rebound', 'annotated', 'dubitable', 'evidence')}),
+                ('legacy', {'fields': ('legacy_id',)}),
+                ) 
+
+    inlines = [HistoricalItemOwnerInline, ItemPartOwnerInline, CurrentItemOwnerInline]
+    
+    def get_content_type(self, obj):
+        ret = unicode(obj.content_type)
+        if ret == u'repository':
+            ret += u'/' + obj.repository.type.name
+        return ret
+    
+    def get_owned_item(self, obj):
+        return obj.get_owned_item()
+    get_owned_item.short_description = 'Owned Item'
+
+    def get_content_object(self, obj):
+        return obj.content_object
+    get_content_object.short_description = 'Owner'
+        
     
 class OwnerTypeAdmin(reversion.VersionAdmin):
     model = OwnerType
@@ -1179,7 +1230,6 @@ class PersonAdmin(reversion.VersionAdmin):
 class InstitutionInline(admin.StackedInline):
     model = Institution
 
-
 class PlaceTypeAdmin(reversion.VersionAdmin):
     model = PlaceType
 
@@ -1237,10 +1287,6 @@ class RegionAdmin(reversion.VersionAdmin):
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
-
-
-class CurrentItemInline(admin.StackedInline):
-    model = CurrentItem
 
 class RepositoryAdmin(reversion.VersionAdmin):
     form = RepositoryForm

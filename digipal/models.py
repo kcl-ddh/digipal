@@ -352,13 +352,14 @@ class Owner(models.Model):
     #
     institution = models.ForeignKey('Institution', blank=True, null=True
         , default=None, related_name='owners',
-        help_text='Please select either an institution or a person')
+        help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
     person = models.ForeignKey('Person', blank=True, null=True, default=None,
         related_name='owners',
-        help_text='Please select either an institution or a person')
+        help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
 
     repository = models.ForeignKey('Repository', blank=True, null=True
-        , default=None, related_name='owners', help_text='')
+        , default=None, related_name='owners', 
+        help_text='`Repository` actually represents the institution, person or library owning the item.')
 
     date = models.CharField(max_length=128)
     evidence = models.TextField()
@@ -382,14 +383,33 @@ class Owner(models.Model):
         if ret:
             ret = ContentType.objects.get_for_model(ret)
         return ret
+    
+    def get_owned_item(self):
+        ret = self.itempart_set.first() or self.historicalitem_set.first() or self.currentitem_set.first()
+        return ret
 
     def __unicode__(self):
         #return u'%s: %s. %s' % (self.content_type, self.content_object,
         #        self.date)
         #return get_list_as_string(self.content_type, ': ', self.content_object,
         #        '. ', self.date)
-        return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
+        #return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
+        ret = u''
+        
+        item = self.get_owned_item()
+        if item:
+            ret += u'\'%s\'' % item
+        else:
+            ret += u'?'
+        
+        ret += u' owned by '
+        
+        ret += u' \'%s\' ' % self.content_object
 
+        if self.date:
+            ret += u' in \'%s\'' % self.date
+            
+        return ret
 
 # DateText in legacy db
 class Date(models.Model):
@@ -2774,6 +2794,13 @@ class ApiTransform(models.Model):
         
     def __unicode__(self):
         return u'%s' % (self.title)
+
+# Generate a meaningful object label for the m2m models
+HistoricalItem.owners.through.__unicode__ = lambda self: self.historicalitem
+
+ItemPart.owners.through.__unicode__ = lambda self: self.itempart
+
+CurrentItem.owners.through.__unicode__ = lambda self: self.currentitem
 
 # Assign get_absolute_url() and get_admin_url() for all models 
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID

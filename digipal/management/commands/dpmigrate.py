@@ -175,14 +175,18 @@ Commands:
         # Legacy.owner text 
         #
         # ['Owner', 'Category', 'Overseas?', 'ID']
-        #
+        # Category = 
+        #            0 for Places (e.g. France or Gloucester)
+        #            1 for People (e.g. Lambarde, William (1536--1601))
+        #            2 for Library (e.g. Cambridge, Peterhouse College)
+        # 
         
         #
         # Heuristics match legacy.`owner text` (OT) with digipal_repository (REPO):
         #    1. OT.Owner = legacy.Libraries.Library and legacy.Libraries.ID = REPO.legacy_id
         #    2. find nearest distance between REPO.name and OT.Owner
         #
-        from digipal.models import Repository, HistoricalItem, ItemPart
+        from digipal.models import Repository, HistoricalItem, ItemPart, Owner
         
         self.load_ips()
         
@@ -205,6 +209,8 @@ Commands:
                             mo.Owner = ot.ID
                             and 
                             mo.Manuscript = ms.ID
+                            -- and
+                            -- ot.Category = 0
                         order 
                             by ot.Owner, ms.Shelfmark
                         ''')
@@ -243,17 +249,20 @@ Commands:
                 utils.prnt('\t\t#%s, %s' % (0, 'No match'))
             
             if ip is None:
-                self.print_warning('Don\'t import, matching IP not found', 1)
+                self.print_warning('Don\'t import, could not match the MS with an IP', 1)
             else:
                 if not repo:
                     self.print_warning('New owner/`repository` record', 1)
                     repo = self.create_owner(row, owners)
-                    utils.prnt(u'\t\t#%s, %s' % (repo.id, repo))
+                    utils.prnt(u'\t\t#%s, %s [Repository]' % (repo.id, repo))
                 
                 # do we have this relationship already?
                 if not ip.current_item.repository == repo:
                     self.print_warning('New ownership record (IP -> Repo)', 1)
-                    self.create_ownership(owner, ip, row)
+                    ownership = self.create_ownership(repo, ip, row)
+                    utils.prnt(u'\t\t#%s, %s [Owner]' % (ownership.id, ownership))
+                elif ip.owners.filter(id=repo.id).count():
+                    self.print_warning('Ownership record already in digipal (IP <- Owner -> Repo)', 1)
                 else:
                     self.print_warning('Ownership record already in digipal (IP -> CI -> Repo)', 1)
 
@@ -279,41 +288,62 @@ Commands:
                             matched_count += 1
             utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
         
-        raise Exception('DRY RUN')
+        #raise Exception('DRY RUN')
         
         print 'done'
         
-    def create_ownership(self, owner, ip, row):
+    def create_ownership(self, repo, ip, row):
+        # row = ['Manuscript', 'Annotated?', 'Evidence', 'Rebound?', 'Date', 'Owner', 'Dubitable?', 'ID']
         from digipal.models import Owner
-        ret = Owner()
+        ret = Owner(repository=repo, 
+                    legacy_id=row['mo_id'], 
+                    date=row['Date'] or u'',
+                    annotated=utils.get_bool_from_mysql(row['Annotated?']),
+                    evidence=row['Evidence'] or u'',
+                    rebound=utils.get_bool_from_mysql(row['Rebound?']),
+                    dubitable=utils.get_bool_from_mysql(row['Dubitable?']),
+                    )
         ret.save()
+        ip.owners.add(ret)
+        ip.save()
         return ret
         
-        
     def create_owner(self, row, owners):
-        from digipal.models import Repository
-        # ['Owner', 'Category', 'Overseas?', 'ID']
-        ret = Repository(legacy_id=-row['ot_id'], name=row['Owner'], british_isles=True, type_id=4)
-        # place unknown
-        ret.place_id = 40
-        if unicode(row['Overseas?']) == u'-1':
-            ret.british_isles = False
-        if row['Category'] == '0':
+        # row = ['Owner', 'Category', 'Overseas?', 'ID']
+
+        from digipal.models import Repository, Place
+        
+        # place unknown, type unknown        
+        ret = Repository(legacy_id=-row['ot_id'], name=row['Owner'], british_isles=utils.get_bool_from_mysql(row['Overseas?']), type_id=4, place_id = 40)
+        
+        cat = unicode(row['Category']).strip()            
+        if cat == '0':
             # unknown owner in a place
             # TODO: create the place
-            
-            pass
-        if row['Category'] == '1':
+            place = None
+            places = Place.objects.filter(name__iexact=row['Owner'])
+            if places.count():
+                self.print_warning(u'found matching Place record', 1, unicode(row['Owner']))
+                place = places[0]
+            else:
+                self.print_warning(u'create Place record', 1, row['Owner'])
+                place = Place(name=row['Owner'])
+                place.save()
+                utils.prnt(u'\t\t#%s, %s [Place]' % (place.id, place))
+            ret.place_id = place.id
+        if cat == '1':
             # person 
             if '(' not in row['Owner']:
-                self.print_warning('missing birth/death date, owner may not be a person', indent)
+                self.print_warning(u'missing birth/death date, owner may not be a person', 1)
             ret.type_id = 1
-        if row['Category'] == '2':
+        if cat == '2':
             # modern library 
             ret.type_id = 2
+            
         ret.save()
         row['repo'] = ret
         owners[row['ot_id']] = row
+        
         return ret
         
     def find_matching_repo(self, row, owners):
@@ -1267,7 +1297,7 @@ Commands:
         if not hasattr(self, 'messages'):
             self.messages = {}
         self.messages[message] = self.messages.get(message, 0) + 1
-        print ('\t' * indent) + 'WARNING: ' + message + extra
+        utils.prnt((u'\t' * indent) + u'WARNING: ' + message + u' ' + extra)
         
     def print_warning_report(self):
         print 'WARNINGS:'

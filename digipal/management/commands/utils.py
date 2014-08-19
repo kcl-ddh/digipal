@@ -207,4 +207,8 @@ def dictfetchall(cursor):
 
 def prnt(txt):
     '''A safe print function that won't generate encoding errors'''
-    print txt.encode('utf8', 'ingore')
+    print txt.encode('utf8', 'ignore')
+
+def get_bool_from_mysql(mysql_bool='-1'):
+    '''Returns True/False from a mysql boolean field'''
+    return mysql_bool and unicode(mysql_bool) == '-1'

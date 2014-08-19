@@ -374,7 +374,7 @@ class Owner(models.Model):
 
     @property
     def content_object(self):
-        return self.institution or self.person
+        return self.institution or self.person or self.repository
 
     @property
     def content_type(self):

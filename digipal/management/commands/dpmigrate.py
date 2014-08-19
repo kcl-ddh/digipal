@@ -9,6 +9,9 @@ from optparse import make_option
 import utils
 from utils import Logger  
 from django.utils.datastructures import SortedDict
+import difflib
+from django.utils.text import slugify
+from django.db import transaction
   
 
 class Command(BaseCommand):
@@ -83,6 +86,8 @@ Commands:
 
     def handle(self, *args, **options):
         
+        self.warnings = {}
+        
         self.logger = utils.Logger()
         
         self.log_level = 3
@@ -146,6 +151,7 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+    @transaction.atomic
     def match_legacy_owners(self):
         # find a match for all the record in legacy.`ms owners`
         
@@ -177,13 +183,15 @@ Commands:
         #    2. find nearest distance between REPO.name and OT.Owner
         #
         from digipal.models import Repository, HistoricalItem, ItemPart
-        from django.utils.text import slugify
-        repos = {}
-        repos_by_name = {}
+        
+        self.load_ips()
+        
+        self.repos = {}
+        self.repos_by_name = {}
         for repo in Repository.objects.all():
             key = repo.legacy_id
-            repos[key] = repo
-            repos_by_name[slugify(repo.name)] = repo        
+            self.repos[key] = repo
+            self.repos_by_name[slugify(repo.name)] = repo        
         
         cursor.execute('''select 
                             ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID, 
@@ -203,8 +211,6 @@ Commands:
         
         owners = {}
         
-        import difflib
-        
         ms_matches = {}
         
         i = 0
@@ -213,74 +219,53 @@ Commands:
             utils.prnt(ur'%3s, Legacy record (OT #%4s, OW #%4s, MS #%4s, CAT %s) - (%s, %s)' % (i, row['ot_id'], row['mo_id'], row['ms_id'], row['Category'], row['Owner'], row['Shelfmark']))
             
             # match the owner
-            owner = owners.get(row['ot_id'], None)
-            if not owner:
-                owner = owners[row['ot_id']] = row
-                owner['repo'] = repos.get(row['li_ID'], None)
-                if owner['repo']:
-                    owner['repo_heu'] = 1
-                    #print '  %s' % owner['repo']
-                if not owner['repo'] and owner['Category'] == 2:
-                    # try other method based on similar names
-                    # but only if category = 2 (moder owner)
-                    #print slugify(row['Owner'])
-                    closests = difflib.get_close_matches(slugify(row['Owner']), repos_by_name.keys())
-                    if closests:
-                        owner['repo_heu'] = 2
-                        owner['repo'] = repos_by_name[closests[0]]
-                        #print '\t%s = %s' % (row['Owner'], owner['repo'].name)
-                
-            repo = owner['repo']
+            repo = self.find_matching_repo(row, owners)
+    
+            if repo:
+                utils.prnt(u'\t\t#%s, %s' % (repo.id, repo))
+            else:
+                utils.prnt(u'\t\t#%s, %s' % (0, 'No match'))
             
             # match the MS
             # legacy.`manuscripts`.ID = HI.legacy_id AND legacy.`manuscripts`.shelfmark = IP.CI.shelfmark
             # Q: what about charters?
             # Q: we replicate the IP.CI.Repo in the ownership...
             
-            ms_matching_message = ''
-            ms_matching_message_extra = ''
-            ips = ItemPart.objects.filter(historical_items__legacy_id=row['ms_id'])
-            if ips.count() == 0:
-                ms_matching_message = 'not matched (NO HI with the same legacy ID)'
-            else:
-                if row['Shelfmark']:
-                    closests = difflib.get_close_matches(row['Shelfmark'], [ip.current_item.shelfmark for ip in ips])
-                    print '', closests
-                    if closests:
-                        if slugify(closests[0]) != slugify(row['Shelfmark']):
-                            ms_matching_message = 'matched (but shelfmark not exactly the same)'
-                    else:
-                            # last chance...
-                            # get_close_matches can miss in cases like this one: '277', ['Burney 277', '2522']
-                            # so we pick a candidate which contains the shelfmark we are looking for
-                            ms_matching_message_extra = ' (%s)' % repr([ip.current_item.shelfmark for ip in ips])
-                            matched_ips = [] 
-                            for ip in ips:
-                                if row['Shelfmark'] in ip.current_item.shelfmark:
-                                    matched_ips.append(ip)
-                            if matched_ips:
-                                if len(matched_ips) == 1:
-                                    ms_matching_message = 'matched (but loose shelfmark matching)'
-                                else:
-                                    ms_matching_message = 'not matched (more than one similar shelfmark)'
-                            else:
-                                ms_matching_message = 'not matched (no similar shelfmark)'
-                else:
-                    ms_matching_message = 'not matched (legacy shelfmark is empty)'
-                #, row['Shelfmark'], [ip.current_item.shelfmark for ip in ips]
+            ms_matches[row['ms_id']] = 0
+
+            print '\tmatch legacy.`manuscripts` with digipal.itempart'
+            ip = self.find_matching_ip(row)
             
-            if ms_matching_message:
-                print '\t%s' % (ms_matching_message + ms_matching_message_extra)
-                ms_matches[ms_matching_message] = ms_matches.get(ms_matching_message, 0) + 1
-        
-        
+            if ip:
+                ms_matches[row['ms_id']] = ip.id
+                utils.prnt('\t\t#%s, %s' % (ip.id, ip.display_label))
+            else:
+                utils.prnt('\t\t#%s, %s' % (0, 'No match'))
+            
+            if ip is None:
+                self.print_warning('Don\'t import, matching IP not found', 1)
+            else:
+                if not repo:
+                    self.print_warning('New owner/`repository` record', 1)
+                    repo = self.create_owner(row, owners)
+                    utils.prnt(u'\t\t#%s, %s' % (repo.id, repo))
+                
+                # do we have this relationship already?
+                if not ip.current_item.repository == repo:
+                    self.print_warning('New ownership record (IP -> Repo)', 1)
+                    self.create_ownership(owner, ip, row)
+                else:
+                    self.print_warning('Ownership record already in digipal (IP -> CI -> Repo)', 1)
+
         # Print the MS matches
-        print '\n%s ownerships' % i
-        for ms_match in ms_matches:
-            print ms_match, ms_matches[ms_match]
+        print '\n%s ownerships records' % i
+        self.print_warning_report()
+        
+        if 1:
+            print '%s manuscripts records, %s matched, %s not matched.' % (len(set(ms_matches.keys())), len(set(ms_matches.values())), len(set(ms_matches.keys())) - len(set(ms_matches.values())))
         
         # Print the owner matches
-        if 1:
+        if 0:
             owners_2_count = 0
             matched_count = 0
             for cat in [0, 1, 2]:
@@ -294,7 +279,261 @@ Commands:
                             matched_count += 1
             utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
         
+        raise Exception('DRY RUN')
+        
         print 'done'
+        
+    def create_ownership(self, owner, ip, row):
+        from digipal.models import Owner
+        ret = Owner()
+        ret.save()
+        return ret
+        
+        
+    def create_owner(self, row, owners):
+        from digipal.models import Repository
+        # ['Owner', 'Category', 'Overseas?', 'ID']
+        ret = Repository(legacy_id=-row['ot_id'], name=row['Owner'], british_isles=True, type_id=4)
+        # place unknown
+        ret.place_id = 40
+        if unicode(row['Overseas?']) == u'-1':
+            ret.british_isles = False
+        if row['Category'] == '0':
+            # unknown owner in a place
+            # TODO: create the place
+            
+            pass
+        if row['Category'] == '1':
+            # person 
+            if '(' not in row['Owner']:
+                self.print_warning('missing birth/death date, owner may not be a person', indent)
+            ret.type_id = 1
+        if row['Category'] == '2':
+            # modern library 
+            ret.type_id = 2
+        ret.save()
+        row['repo'] = ret
+        owners[row['ot_id']] = row
+        return ret
+        
+    def find_matching_repo(self, row, owners):
+        print '\tmatch legacy.`owner text` with digipal.repository record'
+        owner = owners.get(row['ot_id'], None)
+        if not owner:
+            owner = owners[row['ot_id']] = row
+            owner['repo'] = self.repos.get(row['li_ID'], None)
+            if owner['repo']:
+                owner['repo_heu'] = 1
+                #print '  %s' % owner['repo']
+            if not owner['repo'] and owner['Category'] == 2:
+                # try other method based on similar names
+                # but only if category = 2 (moder owner)
+                #print slugify(row['Owner'])
+                closests = difflib.get_close_matches(slugify(row['Owner']), self.repos_by_name.keys())
+                if closests:
+                    owner['repo_heu'] = 2
+                    owner['repo'] = self.repos_by_name[closests[0]]
+                    #print '\t%s = %s' % (row['Owner'], owner['repo'].name)
+        
+        repo = owner['repo']
+            
+        return repo
+
+    def load_ips(self):    
+        from django.utils.html import strip_tags
+
+        if not hasattr(self, 'ips'):
+            self.ips = []
+            print 'gen'
+            from digipal.models import ItemPart
+            from django.db import connections
+            con = connections['default']
+            cursor = con.cursor()
+            cursor.execute(''' 
+                    select ip.id, ci.shelfmark, hi.legacy_id, de.description, ip.display_label
+                    from digipal_itempart ip,
+                    digipal_itempartitem ipi,
+                    digipal_historicalitem hi,
+                    digipal_currentitem ci,
+                    digipal_description de
+                    where 
+                    ip.current_item_id = ci.id
+                    and
+                    ipi.historical_item_id = hi.id
+                    and
+                    ipi.item_part_id = ip.id
+                    and
+                    de.historical_item_id = hi.id
+                ''')
+            for ip in utils.dictfetchall(cursor):
+                ip['description'] = slugify(strip_tags(ip['description']))
+                ip['shelfmark'] = slugify(ip['shelfmark'])
+                self.ips.append(ip)
+    
+    def find_matching_ip(self, row):
+        # pm dpmigrate copy --src=2stg --table="digipal_.*item.*|collation|decoration|layout|description|hand|image|cataloguenumber"
+        ret = None
+        
+        from digipal.models import ItemPart
+        from django.utils.html import strip_tags
+        
+        matches = {'shelfmark': [], 'legacy_id': [], 'description': [], 'fshelfmark': []}
+        
+        # find matching IPs based on legacy id, shelfmark and description
+        
+        row_desc = slugify(row['Description'])
+        row_shelfmark = slugify(row['Shelfmark'])
+        for ip in self.ips:
+            if ip['description'] == row_desc:
+                matches['description'].append(ip['id'])
+            if ip['legacy_id'] and (int(ip['legacy_id']) == int(row['ms_id'])):
+                matches['legacy_id'].append(ip['id'])
+            if ip['shelfmark'] and ip['shelfmark'] == row_shelfmark:
+                matches['shelfmark'].append(ip['id'])
+
+        # fuzzy match on the shelfmark
+        #fshelfmarks = difflib.get_close_matches(row_shelfmark, [ip['shelfmark'] for ip in self.ips])
+        fshelfmarks = self.get_close_matches(row_shelfmark, [ip['shelfmark'] for ip in self.ips])
+        matches['fshelfmark'] = [ip['id'] for ip in self.ips if ip['shelfmark'] in fshelfmarks]
+
+        # combine the matches
+
+        for field in ['description', 'shelfmark', 'fshelfmark', 'legacy_id']:
+            print '\t\t\t%-12s: %s' % (field, ', '.join(set([unicode(v) for v in matches[field]])))
+        
+        def get_inter(d, *ks):
+            ret = None
+            for k in ks:
+                if ret is None:
+                    ret = set(d[k])
+                else:
+                    ret = ret.intersection(set(d[k]))
+            return ret
+
+        combinations = [
+                {'fields': ['legacy_id', 'shelfmark', 'description'], 'reliable': 1},
+                {'fields': ['legacy_id', 'shelfmark'], 'reliable': 1},
+                {'fields': ['legacy_id', 'fshelfmark', 'description'], 'reliable': 1},
+                {'fields': ['legacy_id', 'fshelfmark']},
+                {'fields': ['description', 'shelfmark']},
+                {'fields': ['description', 'fshelfmark']},
+                {'fields': ['shelfmark'], 'min_size': 3},
+#                 {'fields': ['fshelfmark'], 'w': ''},
+            ]
+
+        comb_name = ''
+        reason = ''
+        for combination in combinations:
+            comb_name = ', '.join(combination['fields'])
+            inter = get_inter(matches, *combination['fields'])
+            
+            if len(inter) == 1:
+                min_size = combination.get('min_size', 1)
+                if len(row['Shelfmark']) >= min_size:
+                    print '\t\t\tmatched on (%s)' % comb_name
+                    if not combination.get('reliable', 0):
+                        self.print_warning('loose match on (%s)' % comb_name, 2)
+                    ret = ItemPart.objects.get(id=list(inter)[0])
+                    break
+                else:
+                    reason = 'Exact match below minimum size (%s)' % min_size
+            elif len(inter) > 1:
+                reason = 'More than one match'
+                pass
+                #self.print_warning('More than one match', ', '.join([unicode(v) for v in inter]))
+            else:
+                reason = 'No exact match'
+                pass
+                #self.print_warning('No exact match', 1)
+
+        if not ret:
+            self.print_warning('%s (%s)' % (reason, comb_name), 2)
+
+#         if len(ips) == 1:
+#             ret = ips[0]
+#             self.print_warning('match based on desc', 1)
+#         if len(ips) == 0:
+#             self.print_warning('no match based on desc', 1)
+#         if len(ips) > 1:
+#             self.print_warning('more than one match based on desc', 1)
+        
+        return ret
+    
+    def get_close_matches(self, word, possibilities=[]):
+        '''Works like difflib.get_close_matches
+            but also include relevant matches ignored by difflib.get_close_matches
+            e.g. difflib.get_close_matches('123', ['abcdef 123', '12', '234'])
+            => ['12', '234']
+            e.g. self.get_close_matches('123', ['abcdef 123', '12', '234'])
+            => ['12', '234', 'abcdef 123']
+            
+        '''
+        ret = difflib.get_close_matches(word, possibilities)
+        digits = re.sub(ur'\D+', '-', '-%s-' % word)
+        if len(digits) > 2:
+            for pos in possibilities:
+                pos_digits = re.sub(ur'\D+', '-', '-%s-' % pos)
+                if pos_digits == digits:
+                    ret.append(pos)
+                    #print '\tfound [%s] in [%s]' % (word, pos)
+#         if len(word) > 1:
+#             ret.extend([pos for pos in possibilities if word in pos])
+#             print '\tfound [%s] in [%s]' % (word, ', '.join([pos for pos in possibilities if word in pos]))
+        return ret
+
+    
+    def find_matching_ip_old(self, row):
+        ret = None
+        
+        from digipal.models import ItemPart
+        
+        ms_matching_message = ''
+        ms_matching_message_extra = ''
+        ips = ItemPart.objects.filter(historical_items__legacy_id=row['ms_id'])
+        if ips.count() == 0:
+            ms_matching_message = 'not matched (NO HI with the same legacy ID)'
+        else:
+            if row['Shelfmark']:
+                closests = difflib.get_close_matches(row['Shelfmark'], [ip.current_item.shelfmark for ip in ips])
+                print '\t%s' % closests
+                if closests:
+                    if closests[0] == row['Shelfmark']:
+                        # perfect match
+                        pass
+                    elif slugify(closests[0]) == slugify(row['Shelfmark']):
+                        ms_matching_message = 'matched (but shelfmark not exactly the same)'
+                    else:
+                        ms_matching_message = 'matched (but shelfmark not exactly the same)'
+
+                    for ip in ips:
+                        if slugify(closests[0]) == slugify(ip.current_item.shelfmark):
+                            ret = ip
+                            break
+                else:
+                    # last chance...
+                    # get_close_matches can miss in cases like this one: '277', ['Burney 277', '2522']
+                    # so we pick a candidate which contains the shelfmark we are looking for
+                    ms_matching_message_extra = ' (%s)' % repr([ip.current_item.shelfmark for ip in ips])
+                    matched_ips = [] 
+                    for ip in ips:
+                        if row['Shelfmark'] in ip.current_item.shelfmark:
+                            matched_ips.append(ip)
+                    if matched_ips:
+                        if len(matched_ips) == 1:
+                            ms_matching_message = 'matched (but loose shelfmark matching)'
+                            ret = matched_ips[0]
+                        else:
+                            ms_matching_message = 'not matched (more than one similar shelfmark)'
+                    else:
+                        ms_matching_message = 'not matched (no similar shelfmark)'
+            else:
+                ms_matching_message = 'not matched (legacy shelfmark is empty)'
+            #, row['Shelfmark'], [ip.current_item.shelfmark for ip in ips]
+        
+        if ms_matching_message:
+            self.print_warning(ms_matching_message, 1, ms_matching_message_extra)
+        
+        return ret
         
     def gen_em_table(self, options):
         # TODO: update this query to work with the itempartitem table
@@ -1024,11 +1263,11 @@ Commands:
     def log(self, *args, **kwargs):
         self.logger.log(*args, **kwargs)
 
-    def print_warning(self, message, indent=0):
+    def print_warning(self, message, indent=0, extra=''):
         if not hasattr(self, 'messages'):
             self.messages = {}
         self.messages[message] = self.messages.get(message, 0) + 1
-        print ('\t' * indent) + 'WARNING: ' + message
+        print ('\t' * indent) + 'WARNING: ' + message + extra
         
     def print_warning_report(self):
         print 'WARNINGS:'

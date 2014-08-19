@@ -1051,6 +1051,9 @@ class OwnerAdmin(reversion.VersionAdmin):
     list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date', 
                     'rebound', 'annotated', 'dubitable', 'created', 'modified']
     list_display_links = list_display
+    
+    list_filter = ('repository__type__name', ) 
+
     search_fields = ['evidence', 'institution__name', 'person__name', 'repository__name', 'itempart__display_label', 
                      'current_items__display_label', 'historicalitem__display_label', 'id', 'legacy_id', 'date']
 
@@ -1058,8 +1061,8 @@ class OwnerAdmin(reversion.VersionAdmin):
                 ('Owner', {'fields': ('repository', 'person', 'institution',)}),
                 ('Misc.', {'fields': ('date', 'rebound', 'annotated', 'dubitable', 'evidence')}),
                 ('legacy', {'fields': ('legacy_id',)}),
-                ) 
-
+                )
+    
     inlines = [HistoricalItemOwnerInline, ItemPartOwnerInline, CurrentItemOwnerInline]
     
     def get_content_type(self, obj):

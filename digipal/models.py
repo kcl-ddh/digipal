@@ -2775,6 +2775,7 @@ class ApiTransform(models.Model):
     description = models.TextField(blank=True, null=True, help_text='A description of the transform')
     mimetype = models.CharField(max_length=30, blank=False, null=False, help_text='The mime type of the output from the transform.', default='text/xml')
     sample_request = models.CharField(max_length=200, blank=True, null=True, help_text='A sample API request this transform can be tested on. It is a API request URL without this part: http://.../digipal/api/. E.g. graph/100,101,102?@select=id,str', default='graph')
+    webpage = models.BooleanField(default=False, null=False, blank=False, verbose_name='Show as a webpage?')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 

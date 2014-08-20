@@ -56,7 +56,10 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     format = request.REQUEST.get('@format', None)
     if jsonpcallback:
         format = 'jsonp'
-    data, mimetype = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))
+    data, mimetype, is_webpage = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))
+
+    if is_webpage:
+        return render_to_response('digipal/api/webpage.html', {'api_response': mark_safe(data)}, context_instance=RequestContext(request))
 
     return HttpResponse(data, mimetype=mimetype)
 

@@ -57,6 +57,7 @@ class API(object):
             * xml
         '''
         mimetype = 'application/json'
+        is_webpage = False
         
         if format == 'jsonp':
             data = u';%s(%s);' % (jsonpcallback, data)
@@ -96,8 +97,9 @@ class API(object):
                 # apply the transform
                 data = utils.get_xslt_transform(data, template)
                 mimetype = transform.mimetype
+                is_webpage = transform.webpage
 
-        return data, mimetype
+        return data, mimetype, is_webpage
     
     @classmethod
     def get_all_content_types(cls, content_type):

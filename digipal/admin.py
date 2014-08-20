@@ -1529,7 +1529,7 @@ class ApiTransformAdmin(reversion.VersionAdmin):
     ordering = ['id']
     
     fieldsets = (
-                (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype')}),
+                (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
                 ) 
     
 admin.site.register(Allograph, AllographAdmin)

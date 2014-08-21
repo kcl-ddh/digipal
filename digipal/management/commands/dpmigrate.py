@@ -222,7 +222,7 @@ Commands:
         i = 0
         for row in utils.dictfetchall(cursor):
             i += 1
-            utils.prnt(ur'%3s, Legacy record (OT #%4s, OW #%4s, MS #%4s, CAT %s) - (%s, %s)' % (i, row['ot_id'], row['mo_id'], row['ms_id'], row['Category'], row['Owner'], row['Shelfmark']))
+            utils.prnt(ur'%3s, Legacy record (OT #%4s, OW #%4s, MS #%4s, CAT %s) - (%s; %s; %s)' % (i, row['ot_id'], row['mo_id'], row['ms_id'], row['Category'], row['Owner'], row['Shelfmark'], row['Locus']))
             
             # match the owner
             repo = self.find_matching_repo(row, owners)
@@ -257,14 +257,19 @@ Commands:
                     utils.prnt(u'\t\t#%s, %s [Repository]' % (repo.id, repo))
                 
                 # do we have this relationship already?
+                import_ownership = True
                 if not ip.current_item.repository == repo:
-                    self.print_warning('New ownership record (IP -> Repo)', 1)
-                    ownership = self.create_ownership(repo, ip, row)
-                    utils.prnt(u'\t\t#%s, %s [Owner]' % (ownership.id, ownership))
+                    pass
                 elif ip.owners.filter(id=repo.id).count():
+                    import_ownership = False
                     self.print_warning('Ownership record already in digipal (IP <- Owner -> Repo)', 1)
                 else:
                     self.print_warning('Ownership record already in digipal (IP -> CI -> Repo)', 1)
+                
+                if import_ownership:
+                    self.print_warning('New ownership record (IP -> Repo)', 1)
+                    ownership = self.create_ownership(repo, ip, row)
+                    utils.prnt(u'\t\t#%s, %s [Owner]' % (ownership.id, ownership))
 
         # Print the MS matches
         print '\n%s ownerships records' % i
@@ -288,7 +293,7 @@ Commands:
                             matched_count += 1
             utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
         
-        #raise Exception('DRY RUN')
+        raise Exception('DRY RUN')
         
         print 'done'
         
@@ -380,7 +385,7 @@ Commands:
             con = connections['default']
             cursor = con.cursor()
             cursor.execute(''' 
-                    select ip.id, ci.shelfmark, hi.legacy_id, de.description, ip.display_label
+                    select ip.id, ci.shelfmark, hi.legacy_id, de.description, ip.display_label, ip.locus
                     from digipal_itempart ip,
                     digipal_itempartitem ipi,
                     digipal_historicalitem hi,
@@ -398,6 +403,7 @@ Commands:
             for ip in utils.dictfetchall(cursor):
                 ip['description'] = slugify(strip_tags(ip['description']))
                 ip['shelfmark'] = slugify(ip['shelfmark'])
+                ip['locus'] = slugify(ip['locus'])
                 self.ips.append(ip)
     
     def find_matching_ip(self, row):
@@ -407,12 +413,15 @@ Commands:
         from digipal.models import ItemPart
         from django.utils.html import strip_tags
         
-        matches = {'shelfmark': [], 'legacy_id': [], 'description': [], 'fshelfmark': []}
+        matches = {'shelfmark': [], 'legacy_id': [], 'description': [], 'fshelfmark': [], 'locus': []}
         
         # find matching IPs based on legacy id, shelfmark and description
         
         row_desc = slugify(row['Description'])
         row_shelfmark = slugify(row['Shelfmark'])
+        row_locus = slugify(row['Locus'] or u'')
+        
+        # exact matches
         for ip in self.ips:
             if ip['description'] == row_desc:
                 matches['description'].append(ip['id'])
@@ -420,17 +429,19 @@ Commands:
                 matches['legacy_id'].append(ip['id'])
             if ip['shelfmark'] and ip['shelfmark'] == row_shelfmark:
                 matches['shelfmark'].append(ip['id'])
+            if ip['locus'] and ip['locus'] == row_locus:
+                matches['locus'].append(ip['id'])
 
         # fuzzy match on the shelfmark
         #fshelfmarks = difflib.get_close_matches(row_shelfmark, [ip['shelfmark'] for ip in self.ips])
         fshelfmarks = self.get_close_matches(row_shelfmark, [ip['shelfmark'] for ip in self.ips])
         matches['fshelfmark'] = [ip['id'] for ip in self.ips if ip['shelfmark'] in fshelfmarks]
 
-        # combine the matches
-
-        for field in ['description', 'shelfmark', 'fshelfmark', 'legacy_id']:
+        # show matches based on individual fields
+        for field in matches.keys():
             print '\t\t\t%-12s: %s' % (field, ', '.join(set([unicode(v) for v in matches[field]])))
         
+        # now combine the fields to find best and reliable matches
         def get_inter(d, *ks):
             ret = None
             for k in ks:
@@ -440,11 +451,18 @@ Commands:
                     ret = ret.intersection(set(d[k]))
             return ret
 
+        # sorted by reliability
         combinations = [
+                {'fields': ['legacy_id', 'shelfmark', 'description', 'locus'], 'reliable': 1},
+                {'fields': ['legacy_id', 'shelfmark', 'locus'], 'reliable': 1},
+                {'fields': ['legacy_id', 'fshelfmark', 'description', 'locus'], 'reliable': 1},
                 {'fields': ['legacy_id', 'shelfmark', 'description'], 'reliable': 1},
                 {'fields': ['legacy_id', 'shelfmark'], 'reliable': 1},
                 {'fields': ['legacy_id', 'fshelfmark', 'description'], 'reliable': 1},
+                {'fields': ['legacy_id', 'fshelfmark', 'locus'], 'reliable': 1},
+                {'fields': ['shelfmark', 'locus'], 'reliable': 1},
                 {'fields': ['legacy_id', 'fshelfmark']},
+                {'fields': ['fshelfmark', 'locus']},
                 {'fields': ['description', 'shelfmark']},
                 {'fields': ['description', 'fshelfmark']},
                 {'fields': ['shelfmark'], 'min_size': 3},
@@ -469,24 +487,12 @@ Commands:
                     reason = 'Exact match below minimum size (%s)' % min_size
             elif len(inter) > 1:
                 reason = 'More than one match'
-                pass
-                #self.print_warning('More than one match', ', '.join([unicode(v) for v in inter]))
             else:
                 reason = 'No exact match'
-                pass
-                #self.print_warning('No exact match', 1)
 
         if not ret:
             self.print_warning('%s (%s)' % (reason, comb_name), 2)
 
-#         if len(ips) == 1:
-#             ret = ips[0]
-#             self.print_warning('match based on desc', 1)
-#         if len(ips) == 0:
-#             self.print_warning('no match based on desc', 1)
-#         if len(ips) > 1:
-#             self.print_warning('more than one match based on desc', 1)
-        
         return ret
     
     def get_close_matches(self, word, possibilities=[]):

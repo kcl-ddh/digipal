@@ -293,7 +293,7 @@ Commands:
                             matched_count += 1
             utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
         
-        raise Exception('DRY RUN')
+        #raise Exception('DRY RUN')
         
         print 'done'
         

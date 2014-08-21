@@ -2058,7 +2058,7 @@ class Annotation(models.Model):
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
-    
+    holes = models.CharField(max_length=1000, null=True, blank=True)
     objects = AnnotationManager()
 
     class Meta:
@@ -2158,32 +2158,78 @@ class Annotation(models.Model):
         # if the graph is contained within another
         # this function will set self.group to that other graph.
         
-        group_id = None
+        group = None
         min_dist = 1e6
-
-        coord = self.get_coordinates()
 
         # Assumptions made:
         #    1. all regions are rectangles, no more complex shapes.
         #    2. nested graphs are saved after their parent graph.
         if self.graph:
             level = self.graph.idiograph.allograph.character.ontograph.nesting_level
-            if level > 1:
+            #
+            # we search for another annotations with 
+            #     * nesting_level > self.graph....nesting_level
+            #     * containing this annotation
+            #
+            # we keep only the annotation with the nearest top left corner  
+            #
+            if level >= 1:
+                coord = self.get_coordinates(y_from_top=True)
                 lvl_field = 'graph__idiograph__allograph__character__ontograph__nesting_level';
-                for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
-                    a_coord = self.get_coordinates(a['geo_json'])
+                #for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
+                for a in Annotation.objects.exclude(id=self.id).filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__gt=0).values('graph_id', 'geo_json', lvl_field):
+                    a_coord = self.get_coordinates(a['geo_json'], y_from_top=True)
+                    
+                    # containment test
                     if coord[0][0] >= a_coord[0][0] and \
                         coord[0][1] >= a_coord[0][1] and \
                         coord[1][0] <= a_coord[1][0] and \
                         coord[1][1] <= a_coord[1][1]:
+                        
+                        # top left corner distance
                         dist = abs(coord[0][0] - a_coord[0][0])
                         if dist < min_dist:
-                            group_id = a['graph_id']
+                            group = a
                             min_dist = dist
 
-            if group_id != self.graph.group_id:
-                self.graph.group_id = group_id
-                self.graph.save()
+            if group:
+                # now 'group' is the closest containing annotation
+                if group[lvl_field] < level:
+                    # nesting
+                    print '%s nested in %s' % (self.graph.id, group['graph_id'])
+                    if group['graph_id'] != self.graph.group_id:
+                        self.graph.group_id = group['graph_id']
+                        self.graph.save()
+                else:
+                    print '%s is a hole in %s' % (self.graph.id, group['graph_id'])
+                    a_group = Annotation.objects.get(graph_id=group['graph_id'])
+                    a_group.set_hole(self.id, coord)
+                    print a_group.holes
+                    a_group.save()
+                    
+    def get_holes(self):
+        import json
+        return json.loads(self.holes or '{}')
+
+    def set_hole(self, annotation_id, a_coord):
+        import json
+        holes = self.get_holes()
+        coord = self.get_coordinates(y_from_top=True)
+        #
+        # convert the coordinates into relative offsets and lengths
+        # [[781.818359375, 1889.2272949218996], [1805.818359375, 2929.2272949218996]]
+        # =>
+        # [offx, offy, lengthx, lengthy]
+        #
+        r_coord = [0, 0, 0, 0]
+        r_coord[2] = coord[1][0] - coord[0][0]
+        r_coord[3] = coord[1][1] - coord[0][1]
+        r_coord[0] = (a_coord[0][0] - coord[0][0]) / r_coord[2]
+        r_coord[1] = (a_coord[0][1] - coord[0][1]) / r_coord[3]
+        r_coord[2] = (a_coord[1][0] - a_coord[0][0]) / r_coord[2]
+        r_coord[3] = (a_coord[1][1] - a_coord[0][1]) / r_coord[3]
+        holes[annotation_id] = r_coord
+        self.holes = json.dumps(holes) 
 
     def save(self, *args, **kwargs):
         # GN: why do we need this call BEFORE changing the cutout?

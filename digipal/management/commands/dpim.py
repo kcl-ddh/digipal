@@ -493,7 +493,7 @@ class Command(BaseCommand):
 			target = join(jp2_path, file_relative_normalised_base + extension)
 			
 			if isfile(target) or \
-				isfile(join(jp2_path, file_relative_normalised_base + 'jp2')) \
+				isfile(join(jp2_path, file_relative_normalised_base + settings.IMAGE_SERVER_EXT)) \
 				:
 				copied = True
 
@@ -517,7 +517,7 @@ class Command(BaseCommand):
 					status = 'COPIED+CONVERTED'
 					
 					from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
-					shell_command = CONVERT_TO_JP2 % (join(original_path, file_relative), re.sub(ur'\.[^.]+$', ur'.jp2', target))
+					shell_command = CONVERT_TO_JP2 % (join(original_path, file_relative), re.sub(ur'\.[^.]+$', ur'.'+settings.IMAGE_SERVER_EXT, target))
  					ret_shell = self.run_shell_command(shell_command)
  					if ret_shell:
  						status = 'CONVERSION ERROR: %s (command: %s)' % (ret_shell[0], ret_shell[1])
@@ -546,7 +546,7 @@ class Command(BaseCommand):
 		path, basename = os.path.split(name)		
 		name = os.path.join(path, re.sub(r'(\s|,)+', '_' , basename.lower()))
 		path, ext = os.path.splitext(name)
-		name = path + '.jp2'
+		name = path + ur'.' + settings.IMAGE_SERVER_EXT
 		
 		ret_shell = []
 		
@@ -560,7 +560,8 @@ class Command(BaseCommand):
 				ret_shell = [e, 'rename']
 		else:
 			# assume the file is already a jpeg 2k, return
-			return ret
+			#return ret
+			pass
 				
 		# convert the image to tiff
 		if not ret_shell:

@@ -38,6 +38,7 @@ def iipimage_patches():
         try:
             import os
             ret = os.path.join(settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR, ret)
+            ret = ret[-3] + settings.IMAGE_SERVER_EXT
         except Exception:
             pass
         return ret

@@ -8,7 +8,9 @@
 
 {% block main %}
 
-<h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ hit_count }})</h1>
+<h1 class='header1'>Search {{ result_type.label|plural:2 }} ({{ hit_count }})  
+    <span class="label label-info pull-top" data-toggle="tooltip" title="This is a new and experimental search interface">Beta</span>
+</h1>
 
 <div class="panel faceted-summary">
     You are searching for: {{ summary }}

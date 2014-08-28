@@ -643,3 +643,6 @@ a[data-toggle="pill"]{
     cursor:pointer;
 }
 
+.pull-top {
+    vertical-align: top;
+}

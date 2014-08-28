@@ -13,6 +13,42 @@
         
     <div class="row faceted-search">
         <form action="." method="get" class="">
+            
+            <div class="col-md-9 pull-right-md">
+                {% if views %}
+                    <div class="panel panel-default">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group">
+                                {% for view in views %}
+                                    {% if view.selected %}
+                                        <input type="hidden" name="view" value="{{ view.key }}" />
+                                    {% endif %}
+                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
+                                        class="btn btn-default {% if view.selected %} active {% endif %}"
+                                        title="{{ view.label }} View" data-toggle="tooltip">
+                                        <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if result %}
+                    {% dp_pagination_with_size_for current_page %}
+                    
+                    {% include result_type.selected_view_template %}
+                    
+                    {% dp_pagination_with_size_for current_page %}
+                {% else %}
+                    <div class='alert alert-warning'>
+                        <h4>No results found</h4>
+                        <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
+                    </div>
+                {% endif %}
+                
+            </div>
+
             <div class="col-md-3 facets">
                 {% for facet in facets %}
                     <div class="panel panel-default" id="panel-{{ facet.key }}">
@@ -79,41 +115,7 @@
                     </div>
                 {% endfor %}        
             </div>
-            
-            <div class="col-md-9">
-                {% if views %}
-                    <div class="panel panel-default">
-                        <div class="btn-toolbar" role="toolbar">
-                            <div class="btn-group pull-right">
-                                {% for view in views %}
-                                    {% if view.selected %}
-                                        <input type="hidden" name="view" value="{{ view.key }}" />
-                                    {% endif %}
-                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
-                                        class="btn btn-default {% if view.selected %} active {% endif %}"
-                                        title="{{ view.label }} View" data-toggle="tooltip">
-                                        <span class="glyphicon glyphicon-{{ view.icon }}"></span>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-                
-                {% if result %}
-                    {% dp_pagination_with_size_for current_page %}
-                    
-                    {% include result_type.selected_view_template %}
-                    
-                    {% dp_pagination_with_size_for current_page %}
-                {% else %}
-                    <div class='alert alert-warning'>
-                        <h4>No results found</h4>
-                        <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
-                    </div>
-                {% endif %}
-                
-            </div>
+
         </form>
     </div>
 

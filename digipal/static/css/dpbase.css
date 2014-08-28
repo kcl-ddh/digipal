@@ -542,6 +542,10 @@ because it spreads across a column. */
     .pager.compact {
         float: right;
     }
+    
+    .pull-right-md {
+        float: right;
+    }
 
 }
 

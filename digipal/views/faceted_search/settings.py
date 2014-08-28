@@ -163,12 +163,13 @@ FACETED_SEARCH = {
                                 {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.name', 'viewable': True, 'type': 'code', 'count': True},
+                                {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place', 
                                        'idiograph__allograph__character__ontograph__ontograph_type', 
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['repo_city', 'repo_place'],
+                    'filter_order': ['is_described', 'repo_city', 'repo_place', 'chartype', 'character', 'allograph'],
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
@@ -177,41 +178,14 @@ FACETED_SEARCH = {
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
                               ],
                 },
-                {
-                    'disabled': False,
-                    'key': 'graph_samples', 
-                    'label': 'Graph (sample)',
-                    'model': 'digipal.models.Graph',
-                    'django_filter': {'annotation__isnull': False, 'id__lt': 5000},
-                    'fields': [
-                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-    #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-    #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
-    #                            {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
-    #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
-                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
-                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                                {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
-    #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-    #                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
-    #                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
-                                {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
-                                {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
-                                {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.name', 'viewable': True, 'type': 'code', 'count': True},
-                               ],
-                    'select_related': ['annotation__image__item_part__current_item__repository__place', 
-                                       'idiograph__allograph__character__ontograph__ontograph_type', 
-                                       ],
-                    'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['repo_city', 'repo_place'],
-                    #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
-                    #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-                    'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
-                    'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
-                              {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
-                              ],
-                }
             ]
 }
+
+from copy import deepcopy
+graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
+graph_sample.update({
+                    'key': 'graph_samples', 
+                    'label': 'Graph (sample)',
+                    'django_filter': {'annotation__isnull': False, 'id__lt': 5000},
+                     })
+FACETED_SEARCH['types'].append(graph_sample)

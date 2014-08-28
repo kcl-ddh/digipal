@@ -691,8 +691,8 @@ def populate_index(ct, index):
     
     print '\tretrieve all records'
     from whoosh.writing import BufferedWriter
-    writer = BufferedWriter(index, period=None, limit=500)
-    #writer = index.writer()
+    #writer = BufferedWriter(index, period=None, limit=500)
+    writer = index.writer()
     rcs = ct.get_all_records(True)
     
     print '\tadd records to index'

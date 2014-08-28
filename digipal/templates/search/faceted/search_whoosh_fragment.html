@@ -51,16 +51,18 @@
                                 {% endif %}
                                 {% if facet.options %}
                                     <table class="table">
-                                        <tr>
-                                            <th>Option</th>
-                                            {% if facet.options.0.count != '' %}<th class="count">Count</th>{% endif %}
-                                        </tr>
+                                        {% if 0 and facet.options.0.count != '' %}
+                                            <tr>
+                                                <th>Option</th>
+                                                <th class="count">Count</th>
+                                            </tr>
+                                        {% endif %}
                                         {% for option in facet.options %}
                                             <tr 
                                                 {% if option.selected %}class="active"{% endif %}
                                                 >
                                                 <td>
-                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&{{facet.key}}={{option.key|urlencode}}{% endfilter %}">
+                                                    <a href="{{ option.href }}">
                                                         {{ option.label }}
                                                     </a>
                                                     {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
@@ -98,11 +100,19 @@
                     </div>
                 {% endif %}
                 
-                {% dp_pagination_with_size_for current_page %}
+                {% if result %}
+                    {% dp_pagination_with_size_for current_page %}
+                    
+                    {% include result_type.selected_view_template %}
+                    
+                    {% dp_pagination_with_size_for current_page %}
+                {% else %}
+                    <div class='alert alert-warning'>
+                        <h4>No results found</h4>
+                        <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
+                    </div>
+                {% endif %}
                 
-                {% include result_type.selected_view_template %}
-                
-                {% dp_pagination_with_size_for current_page %}
             </div>
         </form>
     </div>

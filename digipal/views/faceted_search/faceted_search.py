@@ -193,9 +193,12 @@ class FacetedModel(object):
         
         # a filter for the content types
         if self.faceted_model_group and len(self.faceted_model_group) > 1:
-            ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
+            #ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
+            ct_facet = {'label': 'Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': []}
             for faceted_model in self.faceted_model_group:
-                option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': faceted_model.key == ct_facet['value']}
+                selected = faceted_model.key == ct_facet['value']
+                option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': selected}
+                option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] })
                 ct_facet['options'].append(option)
             ret.append(ct_facet)
         
@@ -229,7 +232,10 @@ class FacetedModel(object):
             label = k
             if field['type'] == 'boolean':
                 label = 'Yes' if k else 'No'
-            ret.append({'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k)})
+            option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k)}
+            option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
+            ret.append(option)
+            
         ret = sorted(ret, key=lambda o: o['key'])
         return ret      
     

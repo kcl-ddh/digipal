@@ -3,48 +3,52 @@
  * (main search, record pages, graph search, browse images)
  */
 
+function init_suggestions() {
+    // Autocomplete for the search input box
+    // Everywhere on the site + the search page
+    var suggestions_limit = 8;
+    
+    // return true if the scope of the quick search is the database
+    function is_searching_database() {
+        return !$('[name=scp]').val();
+    }
+    
+    function get_suggestions(query, cb) {
+        // returns suggestions only if we are searching the database
+        // so no suggestion for blog/news
+        if (is_searching_database()) {
+            $.getJSON('/digipal/search/suggestions.json', {q: query, l: suggestions_limit}, function(data) {
+                var ret = [];
+                $.each(data, function(i, str) {
+                    ret.push({txt: str.replace(/<\/?strong>/g, ''), html: str});
+                });
+                cb(ret);
+            });
+        } else {
+            cb([]);
+        }
+    }
+    
+    if ($.fn.typeahead) {
+        $("#search-terms").typeahead({
+            minlength: 1,
+            limit: suggestions_limit
+        }, {
+            name: 'dbrecords',
+            source: get_suggestions,
+            displayKey: 'txt',
+            templates: {
+                suggestion: function(suggestion) {
+                    return '<p style="white-space: normal;">' + suggestion.html + '</p>';
+                }
+            }
+        });
+    };
+}
+
 $(document).ready(function() {
 
-	// Autocomplete for the search input box
-	// Everywhere on the site + the search page
-	var suggestions_limit = 8;
-	
-	// return true if the scope of the quick search is the database
-	function is_searching_database() {
-	    return !$('[name=scp]').val();
-	}
-	
-	function get_suggestions(query, cb) {
-	    // returns suggestions only if we are searching the database
-	    // so no suggestion for blog/news
-	    if (is_searching_database()) {
-    	    $.getJSON('/digipal/search/suggestions.json', {q: query, l: suggestions_limit}, function(data) {
-    	        var ret = [];
-    	        $.each(data, function(i, str) {
-    	            ret.push({txt: str.replace(/<\/?strong>/g, ''), html: str});
-    	        });
-    	        cb(ret);
-    	    });
-	    } else {
-	        cb([]);
-	    }
-	}
-	
-	if ($.fn.typeahead) {
-		$("#search-terms").typeahead({
-		    minlength: 1,
-			limit: suggestions_limit
-		}, {
-		    name: 'dbrecords',
-		    source: get_suggestions,
-		    displayKey: 'txt',
-		    templates: {
-		        suggestion: function(suggestion) {
-                    return '<p style="white-space: normal;">' + suggestion.html + '</p>';
-		        }
-		    }
-		});
-	};
+    init_suggestions();
 	
 	// use bootstrap select to render the scop dropdown on the quick search
 	var $select = $('select[name="scp"]');
@@ -141,6 +145,34 @@ function init_search_page(options) {
 		});
 	*/
 
+	function set_focus_search_box() {
+        // Set focus on the search box. Place the cursor at the end.
+        // Add a whitespace after the last search term.
+        var search_box = $('#search-terms');
+        var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
+        if (search_terms == ' ') search_terms = '';
+        
+        var page = dputils.get_query_string_param('page');      
+        if (!page || (page=='1')) {
+            search_box.val(search_terms).focus();
+        }
+	}
+	
+	function init_sliders() {       
+	    $("div.slider").each(function() {
+	       $slider = $(this);
+	       $slider.slider({
+	           range: true,
+	           min: $slider.data('min'),
+	           max: $slider.data('max'),
+	           values: [$slider.data('min-value'), $slider.data('max-value')],
+	           slide: function( event, ui ) {
+	               $($slider.data('label-selector')).val("" + ui.values[ 0 ] + "x" + ui.values[ 1 ] );
+	           }
+	         });
+	    });
+	}
+
 	function set_up() {
         // update the advanced search hidden field
 	    $('#filter-toggler').on('click', function (e) {
@@ -168,6 +200,8 @@ function init_search_page(options) {
 
 			$('select').chosen();
 		});
+	    
+	    set_focus_search_box();
 
 		// Clicking a tab displays its content
 		// and we set the selected tab in a hidden form field
@@ -175,36 +209,13 @@ function init_search_page(options) {
 			e.preventDefault();
 			$('#searchform input[name=result_type]').val($(this).attr('data-target').replace('#', ''));
 		});
-
-		// Set focus on the search box. Place the cursor at the end.
-		// Add a whitespace after the last search term.
-		var search_box = $('#search-terms');
-		var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
-		if (search_terms == ' ') search_terms = '';
-		
-		var page = dputils.get_query_string_param('page');		
-		if (!page || (page=='1')) {
-		    search_box.val(search_terms).focus();
-		}
 		
 		if (options && options.linked_fields) {
     	    set_up_linked_fields(options.linked_fields);
 	    }
 		
-		// add sliders
-		    
-		$("div.slider").each(function() {
-		   $slider = $(this);
-           $slider.slider({
-               range: true,
-               min: $slider.data('min'),
-               max: $slider.data('max'),
-               values: [$slider.data('min-value'), $slider.data('max-value')],
-               slide: function( event, ui ) {
-                   $($slider.data('label-selector')).val("" + ui.values[ 0 ] + "x" + ui.values[ 1 ] );
-               }
-             });
-		});
+		// convert div.slider into jquery UI slider widget
+		init_sliders();
 		
 		// Ajaxify the faceted search request
 		// TODO: error management
@@ -213,11 +224,14 @@ function init_search_page(options) {
 		    $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
 		    $.get($a.attr('href'))
 		    .success(function(data) {
-		        $data = $(data);
+		        var $data = $(data);
 		        $('#search-ajax-fragment').html($data.html());
+                dputils.update_address_bar($a.attr('href'));
                 $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 1, 'border': 'none'}, 50);
 		        // make sure visible thumbnails are loaded
 		        document.load_lazy_images();
+                init_sliders();
+		        init_suggestions();
 		    })
 		    .fail(function(data) {
 		        $( "#search-ajax-fragment" ).stop().css({'opacity': 1}).animate({'background-color': '#FFA0A0' }, 250, function() { 

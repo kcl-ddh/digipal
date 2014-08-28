@@ -366,7 +366,7 @@ def dp_pagination_for(context, current_page):
     context['page_obj'] = current_page
     
     from pagination.templatetags.pagination_tags import paginate
-    ret = paginate(context)
+    ret = paginate(context, window=3)
       
     return ret
 

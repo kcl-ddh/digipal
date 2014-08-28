@@ -189,3 +189,11 @@ div.tt-suggestion p {
     padding-bottom: 5px;
 }
 
+.facets .panel-body tr.active td {
+    background-color: #a1514d;
+    color: white;
+}
+
+.facets .panel-body tr.active td a {
+    color: white;
+}

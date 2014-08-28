@@ -154,9 +154,12 @@ Options:
             print '  fields:'
             for field in info['fields']:
                 print '    %25s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
+            print '  segments:'
+            for seg in info['segments']:
+                print '    %25s: %s' % (seg['id'], seg['entries'])
             
     def get_index_info(self, path):
-        ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?'}
+        ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?', 'segments': []}
         
         # basic filesystem info
         from digipal.utils import get_all_files_under
@@ -176,6 +179,8 @@ Options:
         if index:
             with index.searcher() as searcher:
                 ret['entries'] = searcher.doc_count()
+                for segment in index._segments():
+                    ret['segments'].append({'id': segment.segid, 'entries': segment.doc_count()})
                 for item in index.schema.items():
                     field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
                     values = list(searcher.lexicon(item[0]))

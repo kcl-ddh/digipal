@@ -699,7 +699,7 @@ def populate_index(ct, index):
     c = rcs.count()
     i = 0
     max = 40
-    commit_size = 1000
+    commit_size = 400
     print '\t['+(max*' ')+']'
     import sys
     sys.stdout.write('\t ')
@@ -715,7 +715,7 @@ def populate_index(ct, index):
             # we have to commit every x document otherwise the memory saturates on the VM
             # BufferedWriter is buggy and will crash after a few 100x docs 
             if writer:
-                writer.commit()
+                writer.commit(optimize=True)
             # we have to recreate after commit because commit unlock index 
             writer = index.writer()            
         if i == 0:
@@ -732,7 +732,7 @@ def populate_index(ct, index):
     print '\n'
     
     chrono('commit:')
-    writer.commit()
+    writer.commit(optimize=True)
     chrono(':commit')
 
     chrono(':scan+index')

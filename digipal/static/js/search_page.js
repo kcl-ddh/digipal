@@ -210,13 +210,19 @@ function init_search_page(options) {
 		// TODO: error management
 		$('body').on('click', '#search-ajax-fragment a', function() {
 		    var $a = $(this);
-		    $( "#search-ajax-fragment" ).animate({opacity: 0.50,  }, 500, function() {      });
-		    $.ajax($a.attr('href')).done(function(data) {
+		    $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
+		    $.get($a.attr('href'))
+		    .success(function(data) {
 		        $data = $(data);
 		        $('#search-ajax-fragment').html($data.html());
-                $( "#search-ajax-fragment" ).stop().css({opacity: 1  });
+                $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 1, 'border': 'none'}, 50);
 		        // make sure visible thumbnails are loaded
 		        document.load_lazy_images();
+		    })
+		    .fail(function(data) {
+		        $( "#search-ajax-fragment" ).stop().css({'opacity': 1}).animate({'background-color': '#FFA0A0' }, 250, function() { 
+		            $( "#search-ajax-fragment" ).animate({'background-color': 'white' }, 250);
+		        });
 		    });
 		    return false;
 		});

@@ -142,13 +142,13 @@ FACETED_SEARCH = {
                 },
 
                 {
-                    'disabled': True,
+                    'disabled': False,
                     'key': 'graph', 
                     'label': 'Graph',
                     'model': 'digipal.models.Graph',
                     'django_filter': {'annotation__isnull': False},
                     'fields': [
-                               {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
+                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
     #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
     #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
     #                            {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
@@ -164,7 +164,7 @@ FACETED_SEARCH = {
                                 {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.name', 'viewable': True, 'type': 'code', 'count': True},
                                ],
-                    'select_related': ['annotation__item_part__current_item__repository__place', 
+                    'select_related': ['annotation__image__item_part__current_item__repository__place', 
                                        'idiograph__allograph__character__ontograph__ontograph_type', 
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],

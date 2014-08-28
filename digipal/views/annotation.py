@@ -233,10 +233,6 @@ def image(request, image_id):
 
     #annotations by allograph
     for a in annotations:
-        #print a.id
-        # TODO: remove
-        #a.set_graph_group()
-        
         if a.graph and a.graph.hand:
             hand_label = a.graph.hand
             allograph_name = a.graph.idiograph.allograph

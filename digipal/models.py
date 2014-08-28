@@ -2155,8 +2155,12 @@ class Annotation(models.Model):
         return ret
 
     def set_graph_group(self):
-        # if the graph is contained within another
-        # this function will set self.group to that other graph.
+        '''
+            If the graph is contained within another
+            This function will set self.group to that other graph.
+            It also set self.holes: the holes to draw on the image thumbnail on the frontend.
+            Modifications are directly saved to the DB, no need to call save().
+        '''
         
         group = None
         min_dist = 1e6
@@ -2196,15 +2200,15 @@ class Annotation(models.Model):
                 # now 'group' is the closest containing annotation
                 if group[lvl_field] < level:
                     # nesting
-                    print '%s nested in %s' % (self.graph.id, group['graph_id'])
+                    #print '%s nested in %s' % (self.graph.id, group['graph_id'])
                     if group['graph_id'] != self.graph.group_id:
                         self.graph.group_id = group['graph_id']
                         self.graph.save()
                 else:
-                    print '%s is a hole in %s' % (self.graph.id, group['graph_id'])
+                    #print '%s is a hole in %s' % (self.graph.id, group['graph_id'])
                     a_group = Annotation.objects.get(graph_id=group['graph_id'])
                     a_group.set_hole(self.id, coord)
-                    print a_group.holes
+                    #print a_group.holes
                     a_group.save()
                     
     def get_holes(self):

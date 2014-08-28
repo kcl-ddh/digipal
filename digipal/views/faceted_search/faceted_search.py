@@ -66,11 +66,12 @@ class FacetedModel(object):
     selected_view_template = property(get_selected_views_template)
 
     def get_all_records(self, prefetch=False):
-        ret = self.model.objects.filter(**self.get_option('django_filter', {}))
-        if self.get_option('select_related'):
-            ret = ret.select_related(*self.get_option('select_related'))
-        if self.get_option('prefetch_related'):
-            ret = ret.prefetch_related(*self.get_option('prefetch_related'))
+        ret = self.model.objects.filter(**self.get_option('django_filter', {})).order_by('id')
+        if prefetch:
+            if self.get_option('select_related'):
+                ret = ret.select_related(*self.get_option('select_related'))
+            if self.get_option('prefetch_related'):
+                ret = ret.prefetch_related(*self.get_option('prefetch_related'))
         
         return ret
     
@@ -88,6 +89,19 @@ class FacetedModel(object):
                 
         return ret
     
+    def get_model_from_field(self, field):
+        ret = self.model
+        parts = field['path'].split('.')
+        path = parts[-1]
+        for part in parts[:-1]:
+            ret = getattr(ret, part, None)
+            if not hasattr(ret, 'get_queryset'):
+                ret = self.model
+                path = field['path']
+                break
+            ret = ret.get_queryset().model
+        return ret, path
+
     def prepare_value_rankings(self):
         ''' populate self.value_rankings dict
             It generates a ranking number for each value in each sortable field 
@@ -95,19 +109,28 @@ class FacetedModel(object):
         '''
         self.value_rankings = {}
         
-        records = self.get_all_records(True)
+        records = self.get_all_records(False)
+        print '\t\t%d records' % records.count()
         
         for field in self.fields:
             if self.is_field_indexable(field):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
                     
-                    print '\t\t'+field['key'], records.count()
+                    print '\t\t'+field['key']
                     
                     # get all the values for that field in the table
                     value_rankings = self.value_rankings[whoosh_sortable_field] = {}
-                    for record in records:
-                        value = self.get_record_field_whoosh(record, field)
+                    # We call iterator() here to avoid fetching all the records at ones
+                    # which causes this query to crash on the Linux VM due to excessive 
+                    # memory consumption. 
+                    #for record in records.iterator():
+                    
+                    model, path = self.get_model_from_field(field)
+                    value_rankings[None] = u''
+                    for record in model.objects.all().order_by('id'):
+                    #for record in records:
+                        value = self.get_record_field_whoosh(record, {'path': path})
                         value_rankings[value] = value or u''
                     
                     # sort with natural order
@@ -124,6 +147,7 @@ class FacetedModel(object):
         for field in self.fields:
             if self.is_field_indexable(field):
                 ret[field['key']] = self.get_record_field_whoosh(record, field)
+                #ret[field['key']] = None
                 
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
@@ -666,13 +690,44 @@ def populate_index(ct, index):
     ct.prepare_value_rankings()
     
     print '\tretrieve all records'
-    writer = index.writer()
+    from whoosh.writing import BufferedWriter
+    writer = BufferedWriter(index, period=None, limit=500)
+    #writer = index.writer()
     rcs = ct.get_all_records(True)
     
     print '\tadd records to index'
-    for record in rcs:
-        writer.add_document(**ct.get_document_from_record(record))
+    c = rcs.count()
+    i = 0
+    max = 40
+    print '\t['+(max*' ')+']'
+    import sys
+    sys.stdout.write('\t ')
     
+    from digipal.templatetags.hand_filters import chrono
+    
+    #settings.DEV_SERVER = True
+    chrono('scan+index:')
+    chrono('iterator:')
+    for record in rcs.iterator():
+    #for record in rcs:
+        if i == 0:
+            chrono(':iterator')
+            chrono('index:')
+        i += 1
+        writer.add_document(**ct.get_document_from_record(record))
+        if (i / (c / max)) > ((i - 1) / (c / max)):
+            sys.stdout.write('.')
+#         if i > 5000:
+#             break
+    chrono(':index')
+    
+    print '\n'
+    
+    chrono('commit:')
     writer.commit()
+    chrono(':commit')
+
+    chrono(':scan+index')
+
     print '\tdone (%s records)' % rcs.count()
     

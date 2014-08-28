@@ -221,7 +221,7 @@ def annotation_img(annotation, *args, **kwargs):
         #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:
-            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, 
+            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(), 
                         width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0], 
                         frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret
@@ -245,6 +245,7 @@ def img(src, *args, **kwargs):
             rotation=float => converted to a CSS rotation in the inline style
             width, height
             padding: nb of pixels between the frame and the image on each side (default = 0)
+            holes: {ANNOTATIONID: [offx, offy, lengthx, lengthy], ...}
     '''
     more = ''
     style = ''
@@ -304,17 +305,23 @@ def img(src, *args, **kwargs):
             v = (vs[0]-vs[1])/2
             if v:
                 style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
-    #print style
     
     if style:
         style = ' style="%s" ' % style
     
     ret = ur'<img src="%s" %s %s/>' % (escape(src), more, style)
     
+    holes_html = u''
+    frame_size = [kwargs.get('frame_width', 0), kwargs.get('frame_height', 0)]
+    if all(frame_size):
+        for hole in kwargs.get('holes', {}).values():
+            # [offx, offy, lengthx, lengthy]
+            holes_html += ur'<span class="hole" style="left:%dpx;top:%dpx;width:%dpx;height:%dpx;"></span>' % (hole[0] * frame_size[0], hole[1] * frame_size[1], hole[2] * frame_size[0], hole[3] * frame_size[1])
+    
     if frame_css:
         frame_css = ' style="%s" ' % frame_css
-    
-    ret = ur'<span class="img-frame" %s>%s</span>' % (frame_css, ret)
+            
+    ret = ur'<span class="img-frame" %s>%s%s</span>' % (frame_css, holes_html, ret)
     
     return mark_safe(ret)
 

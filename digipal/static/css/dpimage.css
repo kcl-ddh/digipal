@@ -75,11 +75,18 @@
 .img-frame {
     display: inline-block;
     overflow: hidden;
+    position: relative;
 }
 
 .img-frame img {
     position:relative;
     max-width:none;
+}
+
+.img-frame .hole {
+    position: absolute;
+    background: white;
+    z-index: 10;
 }
 
 /* --- */

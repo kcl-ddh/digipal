@@ -1156,7 +1156,7 @@ class ImageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage', 'annotation_status__name']
 
-    actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
+    actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
     
     list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
@@ -1199,6 +1199,12 @@ class ImageAdmin(reversion.VersionAdmin):
         for image in queryset.all():
             image.save()
     action_regen_display_label.short_description = 'Regenerate display labels'
+
+    def action_find_nested_annotations(self, request, queryset):
+        from digipal.models import Annotation
+        for annotation in Annotation.objects.filter(image__in=queryset).order_by('image__id'):
+            annotation.set_graph_group()
+    action_find_nested_annotations.short_description = 'Find nested annotations'
 
     def bulk_editing(self, request, queryset):
         from django.http import HttpResponseRedirect

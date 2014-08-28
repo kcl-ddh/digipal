@@ -290,6 +290,8 @@
         $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', load_lazy_images);
         
         load_lazy_images();
+        
+        document.load_lazy_images = load_lazy_images;
     });
 })(jQuery);
 

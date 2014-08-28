@@ -205,6 +205,21 @@ function init_search_page(options) {
                }
              });
 		});
+		
+		// Ajaxify the faceted search request
+		// TODO: error management
+		$('body').on('click', '#search-ajax-fragment a', function() {
+		    var $a = $(this);
+		    $( "#search-ajax-fragment" ).animate({opacity: 0.50,  }, 500, function() {      });
+		    $.ajax($a.attr('href')).done(function(data) {
+		        $data = $(data);
+		        $('#search-ajax-fragment').html($data.html());
+                $( "#search-ajax-fragment" ).stop().css({opacity: 1  });
+		        // make sure visible thumbnails are loaded
+		        document.load_lazy_images();
+		    });
+		    return false;
+		});
 	}
 
 	$(document).ready(function() {

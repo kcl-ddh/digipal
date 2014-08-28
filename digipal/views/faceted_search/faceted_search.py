@@ -552,10 +552,14 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     # select the content type 
     cts = get_types()
-    ct_key = request.REQUEST.get('result_type', cts[0].key)
+    context['result_type'] = cts[0]
+    ct_key = request.REQUEST.get('result_type', context['result_type'].key)
     for ct in cts:
         if ct.key == ct_key:
+            context['result_type'] = ct
             break
+    
+    ct = context['result_type']
     
     ct.set_faceted_model_group(cts)
 
@@ -587,7 +591,11 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     hand_filters.chrono('TEMPLATE:')
     
-    ret = render_to_response('search/faceted/search_whoosh.html', context, context_instance=RequestContext(request))
+    fragment = ''
+    if request.is_ajax():
+        fragment = '_fragment'
+    
+    ret = render_to_response('search/faceted/search_whoosh%s.html' % fragment, context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':TEMPLATE')
 

@@ -691,14 +691,15 @@ def populate_index(ct, index):
     
     print '\tretrieve all records'
     from whoosh.writing import BufferedWriter
-    #writer = BufferedWriter(index, period=None, limit=500)
-    writer = index.writer()
+    #writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
+    writer = None
     
     print '\tadd records to index'
     c = rcs.count()
     i = 0
     max = 40
+    commit_size = 1000
     print '\t['+(max*' ')+']'
     import sys
     sys.stdout.write('\t ')
@@ -710,6 +711,13 @@ def populate_index(ct, index):
     chrono('iterator:')
     for record in rcs.iterator():
     #for record in rcs:
+        if (i % commit_size) == 0:
+            # we have to commit every x document otherwise the memory saturates on the VM
+            # BufferedWriter is buggy and will crash after a few 100x docs 
+            if writer:
+                writer.commit()
+            # we have to recreate after commit because commit unlock index 
+            writer = index.writer()            
         if i == 0:
             chrono(':iterator')
             chrono('index:')

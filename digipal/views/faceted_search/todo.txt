@@ -114,3 +114,11 @@ TODO
  	
 Order of the scribe names (roman numbers, ix before v)
 date of the scribe: slider not working
+
+
+allograph.hidden
+	[Done] Hide from the annotator
+	[Done] Hide from graph list on the Annotations tab if not logged in
+	[Done] Hide from graph list on the Hand annotation tab
+	[Done] Don't show in the search filters
+	[Done] Don't return in the search results

@@ -441,8 +441,8 @@ class FacetedModel(object):
             self.whoosh_groups = {}
             for field in self.fields:
                 if field.get('count', False):
-                    if field['key'] == 'hi_has_images':
-                        print ret.groups(field['key'])
+#                     if field['key'] == 'hi_has_images':
+#                         print ret.groups(field['key'])
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
                     #self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')

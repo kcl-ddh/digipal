@@ -508,8 +508,9 @@ class AllographAdmin(reversion.VersionAdmin):
 
     search_fields = ['name', 'character__name']
 
-    list_display = ['name', 'character', 'created', 'modified']
-    list_display_links = list_display
+    list_display = ['name', 'character', 'hidden', 'created', 'modified']
+    list_display_links = ['name', 'character', 'created', 'modified']
+    list_editable = ['hidden']
 
     filter_horizontal = ['aspects']
     inlines = [AllographComponentInline, IdiographInline]

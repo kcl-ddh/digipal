@@ -203,9 +203,12 @@ def image(request, image_id):
         return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
                               context_instance=RequestContext(request))
 
+    is_admin = has_edit_permission(request, Image)
+
     images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id), True)
-    annotations_count = image.annotation_set.values('graph').count()
-    annotations = image.annotation_set.all()
+    #annotations_count = image.annotation_set.all().values('graph').count()
+    #annotations = image.annotation_set.all()
+    annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(is_admin).select_related('graph__hand', 'graph__idiograph__allograph')
     dimensions = {
         'width': image.dimensions()[0],
         'height': image.dimensions()[1]
@@ -252,14 +255,14 @@ def image(request, image_id):
     width, height = image.dimensions()
     image_server_url = image.zoomify
     zoom_levels = settings.ANNOTATOR_ZOOM_LEVELS
-    is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
     context = {
                'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               'image_link': image_link, 'annotations': annotations_count,
+               #'image_link': image_link, 'annotations': annotations_count,
+               'image_link': image_link, 'annotations': annotations.count(),
                'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
@@ -315,16 +318,19 @@ def get_vector(request, image_id, graph):
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
+    
+    can_edit = has_edit_permission(request, Annotation)
 
     if annotations_page:
         annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
     else:
         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
+    annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
 
     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
-
-    if not has_edit_permission(request, Annotation):
+    if not can_edit:
         editorial_annotations = editorial_annotations.editorial().publicly_visible()
+    editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
 
     vectors = json.loads(image_vectors(False, image_id))
 
@@ -432,7 +438,9 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
-    annotations = Annotation.objects.filter(image=image_id).select_related('graph')
+    can_edit = has_edit_permission(request, Annotation)
+    
+    annotations = Annotation.objects.filter(image=image_id).exclude_hidden(can_edit).select_related('graph')
 
     data_allographs = SortedDict()
     for a in annotations:
@@ -450,7 +458,7 @@ def image_allographs(request, image_id):
 
     context = {
         'annotations_list': data_allographs,
-        'can_edit': has_edit_permission(request, Annotation)
+        'can_edit': can_edit
     }
 
     return render_to_response('digipal/annotations.html', context, context_instance=RequestContext(request))

@@ -37,6 +37,7 @@ def get_search_types_display(content_types):
     return ret
 
 def record_view(request, content_type='', objectid='', tabid=''):
+    '''The generic view for any type of record: Hand, Scribe, Manuscript'''
     context = {'tabid': tabid}
     
     template = 'errors/404.html'

@@ -231,6 +231,7 @@ class Allograph(models.Model):
     character = models.ForeignKey(Character)
     default = models.BooleanField(default=False)
     aspects = models.ManyToManyField(Aspect, blank=True, null=True)
+    hidden = models.BooleanField(default=False, help_text=u'''If ticked the public users won't see this allograph on the web site.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -2028,6 +2029,15 @@ class AnnotationQuerySet(models.query.QuerySet):
     def publicly_visible(self):
         '''returns only annotations which have either a graph or a display note'''
         return self.filter(Q(graph__isnull=False) | ~(Q(display_note__exact='') | Q(display_note__isnull=True)))
+    
+    def exclude_hidden(self, include_hidden=False):
+        '''Don't return the annotations where allograph.hidden=True.
+            Unless include_hidden=True.
+        '''
+        ret = self
+        if not include_hidden:
+            ret = self.exclude(graph__idiograph__allograph__hidden=True)
+        return ret
 
 class AnnotationManager(models.Manager):
     def get_queryset(self):

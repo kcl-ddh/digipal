@@ -66,12 +66,15 @@ class SearchHands(SearchContentType):
     def set_record_view_context(self, context, request):
         super(SearchHands, self).set_record_view_context(context, request)
 
+        context['can_edit'] = request and has_edit_permission(request, Annotation)
+
         from django.utils.datastructures import SortedDict
         current_hand = Hand.objects.get(id=context['id'])
 
         #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id)
+        annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id).exclude_hidden(context['can_edit'])
         data = SortedDict()
+        
         for annotation in annotation_list:
             hand = annotation.graph.hand
             allograph_name = annotation.graph.idiograph.allograph
@@ -86,9 +89,6 @@ class SearchHands(SearchContentType):
             data[hand][allograph_name].append(annotation)
 
             context['annotations_list'] = data
-
-        # GN: ???
-        context['can_edit'] = request and has_edit_permission(request, Annotation)
 
         images = current_hand.images.all()
         if images.count():

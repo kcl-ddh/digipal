@@ -146,7 +146,7 @@
                                         {% chrono ":pagination" %}
 
                                         {% filter update_query_params:type.result_type_qs %}
-                                            {% include "pagination/pagination_with_size.html" %}
+                                            {% dp_pagination_with_size_for page_obj %}
                                         {% endfilter %}
                                     </div>
 
@@ -174,7 +174,7 @@
                                 {% chrono type.key %}
 
                                 {% filter update_query_params:type.result_type_qs %}
-                                    {% paginate %}
+                                    {% dp_pagination_with_size_for page_obj %}
                                 {% endfilter %}
 
                             {% endif %}

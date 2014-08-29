@@ -367,7 +367,7 @@ def dp_pagination_for(context, current_page):
     
     from pagination.templatetags.pagination_tags import paginate
     ret = paginate(context, window=3)
-      
+    
     return ret
 
 @register.simple_tag

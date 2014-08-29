@@ -52,7 +52,20 @@ class FacetedModel(object):
         return {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': selected}
     
     def get_views(self):
-        ret = self.get_option('views', [self.get_default_view(selected=True)])
+        ret = self.get_option('views', [self.get_default_view(selected=False)])
+        
+        found = False 
+        if hasattr(self, 'request'):
+            view_key = self.request.GET.get('view')
+            for view in ret:
+                selected = view['key'] == view_key
+                found = found or selected
+                if selected:
+                    ret[0]['selected'] = False
+                view['selected'] = selected
+        if not found:
+            ret[0]['selected'] = True
+                
         return ret
     views = property(get_views)
     
@@ -360,16 +373,23 @@ class FacetedModel(object):
         return ret    
     
     def get_requested_records(self, request):
-        selected = False
-        selected_view_key = request.GET.get('view', '')
-        if selected_view_key:
-            for view in self.views:
-                if view['key'] == selected_view_key:
-                    view['selected'] = True
-                    selected = True
-                    break
-        if self.views and not selected:
-            self.views[0]['selected'] = True
+#         selected = False
+#         
+#         selected_view_key = request.GET.get('view', '')
+#         if selected_view_key:
+#             for view in self.views:
+#                 if view['key'] == selected_view_key:
+#                     print view
+#                     view['selected'] = True
+#                     selected = True
+#                     break
+#         if self.views and not selected:
+#             print 'h2'
+#             self.views[0]['selected'] = True
+#         print self.views
+#         print 'h3'
+
+        self.request = request
         
         # run the query with Whoosh
         # 

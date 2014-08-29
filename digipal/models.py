@@ -2476,7 +2476,8 @@ class Proportion(models.Model):
     
 class CarouselItem(models.Model):
     link = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the page this item links to. E.g. /digipal/page/80/')
-    image = models.CharField(max_length=200, blank=False, null=False, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg')
+    image_file = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True, null=True, default=None, help_text='The image for this item. Not needed if you have provided a the URL of the image in the image field.')
+    image = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg. Not needed if you have uploaded a file in the image_file field.')
     image_alt = models.CharField(max_length=300, blank=True, null=True, help_text='a few words describing the image content.')
     image_title = models.CharField(max_length=300, blank=True, null=True, help_text='the piece of text that appears when the user moved the mouse over the image (optional).')
     sort_order = models.IntegerField(help_text='The order of this item in the carousel. 1 appears first, 2 second, etc. 0 is hidden.')

@@ -541,10 +541,8 @@ class FacetedModel(object):
     def get_page_size(self, request):
         ret = utils.get_int(request.GET.get('pgs'), 10)
         sizes = self.get_page_sizes()
-        print ret, sizes
         if ret not in sizes:
             ret = sizes[0]
-            print 'NOT'
         return ret     
     
     def get_page_sizes(self):

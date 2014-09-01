@@ -218,10 +218,16 @@ function init_search_page(options) {
 		init_sliders();
 		
 		// Ajaxify the faceted search request
+		// Any click on a link is intercepted and sent as an ajax request
+		// the html fragment returned is re-injected into the page.
 		// TODO: error management
 		$('body').on('click', '#search-ajax-fragment a:not([data-target])', function() {
 		    var $a = $(this);
-		    $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
+		    
+		    // check if the href is for this page
+		    if (dputils.get_page_url($(location).attr('href')) !== dputils.get_page_url(this.href)) return true;
+		    
+		    $("#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
 		    $.get($a.attr('href'))
 		    .success(function(data) {
 		        var $data = $(data);

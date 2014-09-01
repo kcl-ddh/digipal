@@ -71,8 +71,18 @@
                 var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
                     results = regex.exec(location.search);
                 return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-            }
+            },
             
+            /*
+             * Returns the url without the qury string and fragment parts
+             */
+            get_page_url: function(url) {
+                ret = url;
+                ret = ret.replace(/\?.*$/gi, '');
+                ret = ret.replace(/#.*$/gi, '');
+                ret = ret.replace(/\/$/gi, '');
+                return ret;
+            }
         }
     });
 })(jQuery);

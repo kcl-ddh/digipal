@@ -72,7 +72,7 @@ class FacetedModel(object):
     def get_selected_views_template(self):
         for view in self.views:
             if view.get('selected', False):
-                ret = view.get('key', 'table')
+                ret = view.get('template', view.get('key', 'table'))
                 break
         
         return 'search/faceted/views/' + ret + '.html' 
@@ -541,17 +541,23 @@ class FacetedModel(object):
     def get_page_size(self, request):
         ret = utils.get_int(request.GET.get('pgs'), 10)
         sizes = self.get_page_sizes()
+        print ret, sizes
         if ret not in sizes:
             ret = sizes[0]
+            print 'NOT'
         return ret     
     
     def get_page_sizes(self):
         ret = [10, 20, 50, 100]
         selected_view = self.get_selected_view()
         if selected_view:
-            view_type = selected_view.get('type', 'list')
-            if view_type == 'grid':
-                ret = [9, 18, 30, 90]
+            pgs = selected_view.get('page_sizes', None)
+            if pgs:
+                ret = pgs
+            else:
+                view_type = selected_view.get('type', 'list')
+                if view_type == 'grid':
+                    ret = [9, 18, 30, 90]
         return ret
         
 def get_types():

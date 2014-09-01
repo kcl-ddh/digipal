@@ -1,0 +1,12 @@
+{% load html_escape%}
+
+
+<div class="row">
+    <div class="col-md-12">
+        {% for record in result %}
+            
+            {% annotation_img record.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
+            
+        {% endfor %}       
+    </div>
+</div>

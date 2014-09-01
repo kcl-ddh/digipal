@@ -219,7 +219,7 @@ function init_search_page(options) {
 		
 		// Ajaxify the faceted search request
 		// TODO: error management
-		$('body').on('click', '#search-ajax-fragment a', function() {
+		$('body').on('click', '#search-ajax-fragment a:not([data-target])', function() {
 		    var $a = $(this);
 		    $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
 		    $.get($a.attr('href'))
@@ -240,6 +240,12 @@ function init_search_page(options) {
 		    });
 		    return false;
 		});
+
+//		$('.facets a[data-toggle=collapse]').on('click', function() {
+//		    var $target = $($(this).data('target'));
+//		    $target.toggle();
+//		    return false;
+//		});
 	}
 
 	$(document).ready(function() {

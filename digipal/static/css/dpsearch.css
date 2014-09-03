@@ -197,3 +197,7 @@ div.tt-suggestion p {
 .facets .panel-body tr.active td a {
     color: white;
 }
+
+.facets .panel-body tr a {
+    display: block;
+}

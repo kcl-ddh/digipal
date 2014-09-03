@@ -1510,8 +1510,8 @@ class Image(models.Model):
             self.height = 0
             self.width = 0
             
-        if self.iipimage:
-            self.iipimage = self.iipimage.replace('\\', '/')
+        if self.iipimage and self.iipimage.name:
+            self.iipimage.name = self.iipimage.name.replace('\\', '/')
         
         super(Image, self).save(*args, **kwargs)
         self.__original_iipimage = self.iipimage

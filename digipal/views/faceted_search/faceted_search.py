@@ -97,7 +97,7 @@ class FacetedModel(object):
         
         if field and cls.is_field_indexable(field) and field.get('viewable', False):
             ret = field['key']
-            if field['type'] in ['id', 'code', 'title']:
+            if field['type'] in ['id', 'code', 'title', 'date']:
                 ret += '_sortable'
                 
         return ret
@@ -139,19 +139,27 @@ class FacetedModel(object):
                     # memory consumption. 
                     #for record in records.iterator():
                     
+                    # get unique values
                     model, path = self.get_model_from_field(field)
                     value_rankings[None] = u''
                     for record in model.objects.all().order_by('id'):
-                    #for record in records:
                         value = self.get_record_field_whoosh(record, {'path': path})
-                        value_rankings[value] = value or u''
-                    
-                    # sort with natural order
-                    sorted_values = utils.sorted_natural(value_rankings.values(), True)
+                        v = value or u''
+                        value_rankings[value] = v
+
+                    # convert dates to numbers
+                    if field['type'] == 'date':
+                        for k, v in value_rankings.iteritems():
+                            v = utils.get_midpoint_from_date_range(v)
+                            value_rankings[k] = v or 10000
+                        sorted_values = sorted(value_rankings.values())
+                    else:
+                        # sort by natural order
+                        sorted_values = utils.sorted_natural(value_rankings.values(), True)
                     
                     # now assign the ranking to each value
-                    for value in value_rankings.keys():
-                        value_rankings[value] = sorted_values.index(value or u'')
+                    for k, v in value_rankings.iteritems():
+                        value_rankings[k] = sorted_values.index(v)
                         
                     #print self.value_rankings[whoosh_sortable_field]
         
@@ -245,7 +253,7 @@ class FacetedModel(object):
             label = k
             if field['type'] == 'boolean':
                 label = 'Yes' if k else 'No'
-            option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k)}
+            option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
             option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
             ret.append(option)
             

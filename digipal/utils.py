@@ -6,7 +6,13 @@ _nsre = re.compile(ur'(?iu)([0-9]+)')
 
 def sorted_natural(l, roman_numbers=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
-    return sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+    ret = sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+    # make sure the empty values are at the end
+    for v in [None, u'', '']:
+        if v in ret:
+            ret.remove(v)
+            ret.append(v)
+    return ret
 
 def natural_sort_key(s, roman_numbers=False):
     '''
@@ -406,6 +412,39 @@ MAX_DATE_RANGE = [-5000, 5000]
 
 def is_max_date_range(rng):
     return rng and rng[0] == MAX_DATE_RANGE[0] and rng[1] == MAX_DATE_RANGE[1]
+
+def get_midpoint_from_date_range(astr=None, arange=None):
+    '''
+    Returns a numeric date which is the midpoint of a date range expressed in astr
+    The midpoint is not always the average of the range, it is biased 
+    towards the date mentioned in the label.
+    e.g. get_range_from_date('940x956') => 948
+    e.g. get_range_from_date('Ca 1075') => 1075
+    
+    Returns None for unknown date 
+    '''
+    ret = None
+    
+    if arange is None:
+        arange = get_range_from_date(astr)
+    
+    if is_max_date_range(arange):
+        return ret
+    
+    # by default we take the middle point 
+    ret = (arange[1] + arange[0]) / 2
+
+    if astr:    
+        # try harder... if we have a single date in the input we pick that one
+        # Ca. 1090 => 1090
+        patterns = [ur'(?i)^(?:c|ca)\.? (\d+)$']
+        for pattern in patterns:
+            s = re.sub(pattern, ur'\1', astr.strip())
+            if s != astr:
+                ret = int(s)
+                break
+    
+    return ret
 
 def get_range_from_date(str):
     '''

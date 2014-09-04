@@ -221,7 +221,7 @@ function main(callback) {
 
 
 				displayGrid(data, {
-					'sorting': 11
+					'sorting': "no-group"
 				});
 
 				if (callback) {
@@ -975,7 +975,7 @@ $(document).ready(function() {
 
 		var print_view = getParameter('view');
 		var tab = getParameter('tab');
-		var grouping = getParameter('grouping');
+		var grouping = getParameter('grouping')[0] || "no-group";
 		if (print_view.length && print_view[0] == 'print') {
 			if (tab[0]) {
 				$('[data-target="#' + tab[0] + '"]').tab('show');
@@ -984,7 +984,7 @@ $(document).ready(function() {
 		}
 		if (grouping.length && tab == 'grid') {
 			displayGrid(cache, {
-				'sorting': grouping[0]
+				'sorting': grouping
 			});
 		}
 	});

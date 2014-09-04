@@ -233,7 +233,7 @@ function init_search_page(options) {
 		    // This tricks prevents caching of the fragment by the browser.
 		    // Without this if you move away from the page and then click back 
 		    // it will show only the last Ajax response instead of the full HTML page.
-		    var url_ajax += url + (url.indexOf('?') ? '&' : '?') + 'jx=1'; 
+		    var url_ajax += url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1'; 
 		    $.get(url_ajax)
 		    .success(function(data) {
 		        var $data = $(data);

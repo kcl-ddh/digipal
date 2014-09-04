@@ -136,6 +136,11 @@ def update_query_string(url, updates, url_wins=False):
     
     if len(ret) == 0:
         ret = '?'
+        
+    # We mark this safe so django template renderer won't try to escape it a second time
+    # This would generate something like this in the html output: '?k1=v1&amp;amp;k2=v'  
+    from django.utils.safestring import mark_safe
+    ret = mark_safe(ret)
     
     return ret
 
@@ -614,3 +619,13 @@ def get_cms_url_from_slug(slug):
     for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
         return page.get_absolute_url()
     return u'/%s' % slug
+
+def remove_param_from_request(request, key):
+    ret = request
+    #print dir(ret.GET)
+    ret.GET = ret.GET.copy()
+    if ret.GET.has_key('jx'):
+        del ret.GET['jx']
+    ret.META = ret.META.copy()
+    ret.META['QUERY_STRING'] = re.sub(ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
+    return ret

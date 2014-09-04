@@ -226,6 +226,9 @@ class FacetedModel(object):
                 selected = faceted_model.key == ct_facet['value']
                 option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': selected}
                 option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] })
+                from django.utils.safestring import mark_safe
+                option['href'] = mark_safe(option['href'])
+                #print option['href']
                 ct_facet['options'].append(option)
             ret.append(ct_facet)
         
@@ -402,11 +405,8 @@ class FacetedModel(object):
 #             self.views[0]['selected'] = True
 #         print self.views
 #         print 'h3'
-
-        self.request = request
         
         # run the query with Whoosh
-        # 
         from whoosh.index import open_dir
         import os
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
@@ -588,10 +588,15 @@ def get_types():
     return ret
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
+    
+    # we just remove jx=1 from the request as we don't want to expose it in the HTML
+    # this is an ajax ONLY request parameter.
+    request = utils.remove_param_from_request(request, 'jx')
+    
     hand_filters.chrono('VIEW:')
     
     hand_filters.chrono('SEARCH:')
-
+    
     context = {'tabid': tabid}
     
     # select the content type 
@@ -639,9 +644,9 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     fragment = ''
     if request.is_ajax():
         fragment = '_fragment'
-    
+        
     ret = render_to_response('search/faceted/search_whoosh%s.html' % fragment, context, context_instance=RequestContext(request))
-
+    
     hand_filters.chrono(':TEMPLATE')
 
     hand_filters.chrono(':VIEW')

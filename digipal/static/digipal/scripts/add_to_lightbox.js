@@ -131,7 +131,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					notify('Graph added to Collection', 'success');
 				} else {
 					notify('Annotation has already been added to Collection', 'danger');
-					continue;
 				}
 			}
 
@@ -175,13 +174,12 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		}
 
 		if (current_basket && elements && elements.length) {
-			for (j = 0; j < elements.length; j++) {
-				flag = true;
-				if (elements[j] == graph) {
-					flag = false;
-					break;
-				}
+			flag = true;
+
+			if (elements.indexOf(graph) >= 0) {
+				flag = false;
 			}
+
 			if (flag) {
 				if (type == 'annotation' || type == 'editorial') {
 					if (annotations == 'undefined' || !annotations) {
@@ -201,7 +199,6 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				} else {
 					notify('Page has already been added to Collection', 'danger');
 				}
-				return false;
 			}
 
 			localStorage.setItem('collections', JSON.stringify(collections));

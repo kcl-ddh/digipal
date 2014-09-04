@@ -153,6 +153,8 @@ class FacetedModel(object):
                             v = utils.get_midpoint_from_date_range(v)
                             value_rankings[k] = v or 10000
                         sorted_values = sorted(value_rankings.values())
+                        #print sorted_values
+                        #exit()
                     else:
                         # sort by natural order
                         sorted_values = utils.sorted_natural(value_rankings.values(), True)
@@ -624,6 +626,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['page_size'] = ct.get_page_size(request)
     context['hit_count'] = ct.get_total_count()
     context['views'] = ct.views
+    context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
     
     hand_filters.chrono(':SEARCH')
 

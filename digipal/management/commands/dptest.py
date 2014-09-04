@@ -187,12 +187,12 @@ Commands:
         print 'Path: %s' % path 
 
         parts = path.split('.')
-        if len(parts) != 2:
-            print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
-            return 
+#         if len(parts) != 2:
+#             print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
+#             return 
             
         model_name = parts[0]
-        field_name = parts[1]
+        path_name = '__'.join(parts[1:])
         import digipal.models
         model = getattr(digipal.models, model_name, None)
         if not model:
@@ -200,8 +200,8 @@ Commands:
             return 
 
         from digipal.utils import get_range_from_date
-        for obj in model.objects.all():
-            value = getattr(obj, field_name)
+        for value in model.objects.values_list(path_name, flat=True):
+            #value = getattr(obj, path_name)
             if value:
                 rng = get_range_from_date(value)
                 if rng[0] and rng[0] > -5000:
@@ -256,8 +256,11 @@ Commands:
 
     def adhoc_test(self, *args):
         from digipal import utils
-        print utils.get_plain_text_from_html('''<p>a</p><p>b<a href="&gt;yo&lt;">c</a></p>''')
-        pass
+        #print utils.get_plain_text_from_html('''<p>a</p><p>b<a href="&gt;yo&lt;">c</a></p>''')
+        d = '670 (? for 937) or 937'
+        #d = 'c. 950x68'
+        print d
+        print utils.get_midpoint_from_date_range(d)
     
     def adhoc_test_old(self, *args):
         from digipal.templatetags import html_escape

@@ -512,7 +512,7 @@ class FacetedModel(object):
             
             # 'item_part__historical_items'
             ret = [records[int(id)] for id in ids]
-
+            
             hand_filters.chrono(':sql')
 
             # TODO: make sure the order is preserved

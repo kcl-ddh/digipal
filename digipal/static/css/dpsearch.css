@@ -179,6 +179,10 @@ div.tt-suggestion p {
     border-bottom: 1px solid lightgrey;
 }
 
+.facets .panel {
+    line-height: normal;    
+}
+
 .facets .panel-body {
     padding-top: 2px;
     padding-bottom: 2px;

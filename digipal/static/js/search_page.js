@@ -228,12 +228,18 @@ function init_search_page(options) {
 		    if (dputils.get_page_url($(location).attr('href')) !== dputils.get_page_url(this.href)) return true;
 		    
 		    $("#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 0.50, 'border': 'none'}, 500);
-		    $.get($a.attr('href'))
+		    var url = $a.attr('href');
+		    // See http://stackoverflow.com/questions/9956255. 
+		    // This tricks prevents caching of the fragment by the browser.
+		    // Without this if you move away from the page and then click back 
+		    // it will show only the last Ajax response instead of the full HTML page.
+		    var url_ajax += url + (url.indexOf('?') ? '&' : '?') + 'jx=1'; 
+		    $.get(url_ajax)
 		    .success(function(data) {
 		        var $data = $(data);
 		        var $fragment = $('#search-ajax-fragment');
 		        $fragment.html($data.html());
-                dputils.update_address_bar($a.attr('href'));
+                dputils.update_address_bar(url);
                 $fragment.stop().animate({'background-color': 'white', opacity: 1, 'border': 'none'}, 50);
 		        // make sure visible thumbnails are loaded
 		        document.load_lazy_images();

@@ -405,6 +405,8 @@ class FacetedModel(object):
 #             self.views[0]['selected'] = True
 #         print self.views
 #         print 'h3'
+
+        self.request = request
         
         # run the query with Whoosh
         from whoosh.index import open_dir

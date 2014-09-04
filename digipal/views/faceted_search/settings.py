@@ -93,7 +93,7 @@ FACETED_SEARCH = {
                                
                                {'key': 'scribe', 'label': 'Scribe', 'path': 'name', 'type': 'title', 'viewable': True, 'search': True},
 
-                               {'key': 'scribe_date', 'label': 'Scribe', 'path': 'date', 'type': 'date', 'viewable': True, 'filter': True, 'min': 500, 'max': 1300, 'id': 'scribe_date'},
+                               {'key': 'scribe_date', 'label': 'Scribe', 'path': 'date', 'type': 'date', 'viewable': True, 'filter': True, 'min': 900, 'max': 1200, 'id': 'scribe_date'},
                                
                                {'key': 'scriptorium', 'label': 'Scriptorium', 'path': 'scriptorium.name', 'type': 'title', 'viewable': True, 'search': True, 'count': True},
     
@@ -125,7 +125,7 @@ FACETED_SEARCH = {
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'hand_place', 'label': 'Place', 'path': 'assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                
-                               {'key': 'hand_date', 'label': 'Date', 'path': 'assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hand_date', 'label': 'Date', 'path': 'assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                
                                {'key': 'index', 'label': 'Index', 'path': 'item_part.historical_item.catalogue_number', 'search': True, 'viewable': True, 'type': 'code'},
                                
@@ -188,6 +188,7 @@ graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
 graph_sample.update({
                     'key': 'graph_samples', 
                     'label': 'Graph (sample)',
+                    'label_plural': 'Graphs (sample)',
                     'django_filter': {'annotation__isnull': False, 'id__lt':1000},
                      })
 FACETED_SEARCH['types'].append(graph_sample)

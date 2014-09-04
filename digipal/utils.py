@@ -524,6 +524,11 @@ def get_range_from_date(str):
     m = re.match(ur'(?iu)(?:ca\s)?(\d+)\s?[-x\xd7]\s?(\d+)$', str)
     if m:
         ret = [int(m.group(1)), int(m.group(2))]
+        
+        # case for '950x68' => 950x968
+        if len(m.group(2)) < len(m.group(1)):
+            ret[1] = int(m.group(1)[0:-len(m.group(2))] + m.group(2))
+        
         if str.lower().startswith('ca '):
             # Ca 1002x1023 [ 1000.0,  1025.0]
             ret[0] = ret[0] - (ret[0] % 5)
@@ -603,3 +608,9 @@ def get_all_files_under(root, dir_only=False, filters=[]):
             for file_name in os.listdir(path):
                 to_process.append(os.path.join(path, file_name))
     return ret
+
+def get_cms_url_from_slug(slug):
+    from mezzanine.pages.models import Page as MPage 
+    for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
+        return page.get_absolute_url()
+    return u'/%s' % slug

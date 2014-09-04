@@ -123,7 +123,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'item_part.current_item.repository.human_readable', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'hand_place', 'label': 'Place', 'path': 'assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
+                               {'key': 'hand_place', 'label': 'Medieval Place', 'path': 'assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                
                                {'key': 'hand_date', 'label': 'Date', 'path': 'assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                
@@ -156,6 +156,7 @@ FACETED_SEARCH = {
                                 {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.human_readable', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+                                {'key': 'hand_place', 'label': 'Medieval Place', 'path': 'hand.assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'hand_relative', 'label': 'Hand', 'path': 'hand.label', 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
     #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
@@ -171,7 +172,7 @@ FACETED_SEARCH = {
                                        'idiograph__allograph__character__ontograph__ontograph_type', 
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['is_described', 'repo_city', 'repo_place', 'chartype', 'character', 'allograph'],
+                    'filter_order': ['is_described', 'repo_city', 'repo_place', 'hand_place', 'chartype', 'character', 'allograph'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_relative', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],

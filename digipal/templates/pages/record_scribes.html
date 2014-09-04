@@ -20,7 +20,7 @@
         <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
     </li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ pages|length }})</a>
+        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ pages|length }})</a>
     </li>
     <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if idiograph_components.distinct.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}idiographs/" data-address-bar="1" data-target="#idiographs" data-toggle="tab">Idiographs ({{ idiograph_components.distinct.count }}) </a>

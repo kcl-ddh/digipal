@@ -1251,6 +1251,11 @@ class PlaceTypeAdmin(reversion.VersionAdmin):
 class PlaceAdmin(reversion.VersionAdmin):
     model = Place
 
+    list_display = ['name', 'type', 'region', 'current_county', 'historical_county', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name', 'type__name']
+    list_filter = ['type__name']
+
     fieldsets = (
                 (None, {'fields': ('name', 'type')}),
                 ('Regions', {'fields': ('region', 'current_county', 'historical_county')}),
@@ -1258,12 +1263,6 @@ class PlaceAdmin(reversion.VersionAdmin):
                 ('Legacy', {'fields': ('legacy_id',)}),
                 ) 
     inlines = [InstitutionInline, PlaceEvidenceInline]
-    
-    list_display = ['name', 'type', 'region', 'current_county',
-            'historical_county', 'created', 'modified']
-    list_display_links = list_display
-    search_fields = ['name', 'type']
-    list_filter = ['type__name']
 
 class PlaceEvidenceAdmin(reversion.VersionAdmin):
     model = PlaceEvidence

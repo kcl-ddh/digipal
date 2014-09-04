@@ -2772,7 +2772,7 @@ function CollectionFromImage(button) {
 	collections[label] = collection;
 	localStorage.setItem('collections', JSON.stringify(collections));
 	localStorage.setItem('selectedCollection', id);
-	notify("<a style='color:#468847;' href='/digipal/collection/" + label + "'>Collection succesfully created</a>", "success");
+	notify("<a style='color:#468847;' href='/digipal/collection/" + label + "'>Collection created</a>", "success");
 	update_collection_counter();
 	$(window).bind('storage', function(e) {
 		update_collection_counter();

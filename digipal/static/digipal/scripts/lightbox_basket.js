@@ -374,7 +374,7 @@ function displayTable(data, attrs) {
 		s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /> <label id="counter-annotations" for="check_annotations_all"></label></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '">Manuscript</th><th data-sort="11" data-reverse="' + reverse + '">Allograph</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th><th data-sort="4" data-reverse="' + reverse + '">Scribe</th><th data-sort="5" data-reverse="' + reverse + '">Place</th>';
 		for (var i = 0; i < data.annotations.length; i++) {
 			var annotation = data.annotations[i];
-			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
+			s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
 			s += "</td>";
 
 			s += "<td data-graph = '" + annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -422,8 +422,8 @@ function displayTable(data, attrs) {
 		for (i = 0; i < data['images'].length; i++) {
 
 			var image = data['images'][i];
-			s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
-			s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='See manuscript' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
+			s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+			s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
 			s += "<td>" + image[3] + "</td>";
 		}
 		s += "</table>";
@@ -440,7 +440,7 @@ function displayTable(data, attrs) {
 		for (i = 0; i < data['editorial'].length; i++) {
 
 			var editorial_annotation = data['editorial'][i];
-			s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='Inspect letter in manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
+			s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
 			s += "</td>";
 
 			s += "<td data-graph = '" + editorial_annotation[2] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";
@@ -717,6 +717,7 @@ function launchEvents() {
 			update_counter();
 
 			if (!sum_images_collection(basket)) {
+				var container_basket = $('#container_basket');
 				var s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
 				s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the DigiPal <a href="/digipal/search/?from_link=true">search engine</a></div>';
 				container_basket.html(s);

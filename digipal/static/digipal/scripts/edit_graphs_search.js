@@ -425,6 +425,7 @@ function EditGraphsSearch() {
                         // deleting graph from cache
                         delete cache.graphs[graph];
                     });
+                    self.dialog.hide();
                 }
 
             } else {

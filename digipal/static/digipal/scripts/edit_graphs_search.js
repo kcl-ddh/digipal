@@ -429,7 +429,7 @@ function EditGraphsSearch() {
                 }
 
             } else {
-                msg = 'You are about to delete ' + self.selectedAnnotations.length + ' annotation. Continue?';
+                msg = 'You are about to delete ' + self.selectedAnnotations.length + ' annotations. Continue?';
                 if (confirm(msg)) {
                     for (var i = 0; i < self.selectedAnnotations.length; i++) {
                         graph = self.selectedAnnotations[i];

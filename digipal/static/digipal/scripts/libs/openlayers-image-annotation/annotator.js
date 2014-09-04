@@ -281,6 +281,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 			if (!public_annotations_check.is(':checked')) {
 				public_annotations_check.prop('checked', true).trigger('change');
 			}
+
 		}
 	});
 
@@ -294,6 +295,14 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		hover: false,
 		toggleKey: 'shiftKey',
 		box: false
+	});
+
+	this.selectFeature.events.on({
+		activate: function() {
+			if (_self.editorial.active) {
+				_self.editorial.deactivate();
+			}
+		}
 	});
 
 
@@ -379,7 +388,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	this.editorial = new OpenLayers.Control.Button({
 		displayClass: 'olControlEditorialFeature fa fa-pencil ',
-		title: 'Editorial Annotations',
+		title: 'Create Editorial Annotation',
 		active: false,
 		trigger: function() {
 			var activeControls = this.map.getControlsBy('active', true);

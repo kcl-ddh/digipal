@@ -231,13 +231,17 @@ function init_search_page(options) {
 		    $.get($a.attr('href'))
 		    .success(function(data) {
 		        var $data = $(data);
-		        $('#search-ajax-fragment').html($data.html());
+		        var $fragment = $('#search-ajax-fragment');
+		        $fragment.html($data.html());
                 dputils.update_address_bar($a.attr('href'));
-                $( "#search-ajax-fragment" ).stop().animate({'background-color': 'white', opacity: 1, 'border': 'none'}, 50);
+                $fragment.stop().animate({'background-color': 'white', opacity: 1, 'border': 'none'}, 50);
 		        // make sure visible thumbnails are loaded
 		        document.load_lazy_images();
                 init_sliders();
 		        init_suggestions();
+		        if ($.fn.tooltip) {
+		            $fragment.find('[data-toggle="tooltip"]').tooltip();
+		        }
 		    })
 		    .fail(function(data) {
 		        $( "#search-ajax-fragment" ).stop().css({'opacity': 1}).animate({'background-color': '#FFA0A0' }, 250, function() { 

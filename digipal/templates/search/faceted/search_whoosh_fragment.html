@@ -3,9 +3,7 @@
 
 <div id="search-ajax-fragment">
 
-    <h1 class='header1'>Search 
-    {% if result_type.label_plural %}{{ result_type.label_plural }}{% else %}{{ result_type.label|plural:2 }}{% endif %} 
-    ({{ hit_count }})  
+    <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
         <span class="label label-info pull-top" data-toggle="tooltip" title="This is a new and experimental search interface">Beta</span>
     </h1>
     

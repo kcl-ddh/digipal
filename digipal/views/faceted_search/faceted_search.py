@@ -27,6 +27,10 @@ class FacetedModel(object):
         return self.options['label']
     label = property(get_label)
 
+    def get_label_plural(self):
+        return self.get_option('label_plural', html_escape.plural(self.label))
+    label_plural = property(get_label_plural)
+
     def get_key(self):
         return self.options['key']
     key = property(get_key)

@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.db.models import Q
 import json
 from digipal.forms import SearchPageForm
+from django.utils.safestring import mark_safe
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
@@ -225,10 +226,7 @@ class FacetedModel(object):
             for faceted_model in self.faceted_model_group:
                 selected = faceted_model.key == ct_facet['value']
                 option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': selected}
-                option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] })
-                from django.utils.safestring import mark_safe
-                option['href'] = mark_safe(option['href'])
-                #print option['href']
+                option['href'] = mark_safe(html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] }))
                 ct_facet['options'].append(option)
             ret.append(ct_facet)
         
@@ -237,7 +235,8 @@ class FacetedModel(object):
         for key in self.filter_field_keys:
             field = self.get_field_by_key(key)
             facet = deepcopy(field)
-            facet['options'] = self.get_facet_options(field, request)
+            facet['sorted_by'] = request.GET.get('@st_'+field['key'], 'c')
+            facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])
             facet['value'] = request.GET.get(field['key'], '')
             
             if facet['value'] and field['type'] == 'date':
@@ -251,9 +250,13 @@ class FacetedModel(object):
                 if facet['value']:
                     facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
             ret.append(facet)
+        
+        for facet in ret:
+            facet['expanded'] = utils.get_int(request.GET.get('@xp_'+facet['key'], 0), 0)
+        
         return ret
 
-    def get_facet_options(self, field, request):
+    def get_facet_options(self, field, request, sorted_by='c'):
         ret = []
         if not field.get('count', False):
             return ret
@@ -266,7 +269,10 @@ class FacetedModel(object):
             option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
             ret.append(option)
             
-        ret = sorted(ret, key=lambda o: o['key'])
+        sort_option = 'count'
+        if sorted_by == 'o':
+            sort_option = 'key'
+        ret = sorted(ret, key=lambda o: o[sort_option], reverse=(sort_option=='count'))
         return ret      
     
     def get_record_field_html(self, record, field_key):
@@ -275,7 +281,7 @@ class FacetedModel(object):
                 if field['key'] == field_key:
                     break
         
-        ret = self.get_record_field(record, field)
+        ret = self.get_record_field(record, field, True)
         if field['type'] == 'url':
             ret = '<a href="%s" class="view_button">View</a>' % ret
         if field['type'] == 'image':
@@ -294,25 +300,23 @@ class FacetedModel(object):
         
         return ret
 
-    def get_record_field(self, record, afield):
+    def get_record_field(self, record, afield, use_path_result=False):
         '''
             returns the value of record.afield 
             where record is a model instance and afield is field name.
             afield and go through related objects.
             afield can also be a field definition (e.g. self.fields[0]).
             afield can also be a function of the object.
+            table_value = True we show the field as is should appear in the result table
         '''
         # split the path
         path = afield['path']
+        if use_path_result and 'path_result' in afield:
+            path = afield['path_result']
         v = record
         if path:
             from django.core.exceptions import ObjectDoesNotExist
             for part in path.split('.'):
-#                 if not hasattr(v, part):
-#                     message = u'2Model path error: %s : %s, \'%s\' not found' % (self.key, path, part)
-#                     #raise Exception(message)
-#                     print message
-#                     v = getattr(v, part)
                 try:
                     v = getattr(v, part)
                 except ObjectDoesNotExist, e:

@@ -251,6 +251,10 @@ class FacetedModel(object):
                 if facet['value']:
                     facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
             ret.append(facet)
+        
+        for facet in ret:
+            facet['expanded'] = request.GET.get('@xp_'+facet['key'], 0)
+        
         return ret
 
     def get_facet_options(self, field, request):

@@ -247,6 +247,13 @@ li.active > a{
     border: 1px solid #E0C4BE;
 }
 
+.view_button.small {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    /* font-size: 100%; */
+    line-height: 1.5em;
+}
+
 .view_button:hover {
     color: #fff !important;
     background: url('/static/digipal/images/nav_bg.png');

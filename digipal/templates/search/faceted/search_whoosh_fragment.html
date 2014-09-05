@@ -93,20 +93,32 @@
                                             </tr>
                                         {% endif %}
                                         {% for option in facet.options %}
-                                            <tr 
-                                                {% if option.selected %}class="active"{% endif %}
-                                                >
-                                                <td>
-                                                    <a href="{{ option.href }}">
-                                                        {{ option.label }}
-                                                    </a>
-                                                    {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
-                                                </td>
-                                                {% if facet.options.0.count != '' %}
-                                                    <td class="count">{{ option.count }}</td>
-                                                {% endif %}
-                                            </tr>
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected %}
+                                                <tr 
+                                                    {% if option.selected %}class="active"{% endif %}
+                                                    >
+                                                    <td>
+                                                        <a href="{{ option.href }}">
+                                                            {{ option.label }}
+                                                        </a>
+                                                        {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
+                                                    </td>
+                                                    {% if facet.options.0.count != '' %}
+                                                        <td class="count">{{ option.count }}</td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endif %}
                                         {% endfor %}
+                                        {% if facet.options.count > 5 %}
+                                            <tr><td colspan="2">
+                                                {{facet.options.count}}
+                                                {% if facet.expanded == 1 %}
+                                                    <a href="?@xp_{{facet.key}}=0" class="view_button small">Show less</a>
+                                                {% else %}
+                                                    <a href="?@xp_{{facet.key}}=1" class="view_button small">Show more...</a>
+                                                {% endif %}
+                                            </td></tr>
+                                        {% endif %}
                                     </table>
                                 {% endif %}
                             </div>

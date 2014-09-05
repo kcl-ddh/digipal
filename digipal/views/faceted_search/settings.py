@@ -142,7 +142,7 @@ FACETED_SEARCH = {
                 },
 
                 {
-                    'disabled': False,
+                    'disabled': True,
                     'key': 'graphs', 
                     'label': 'Graph',
                     'model': 'digipal.models.Graph',
@@ -187,6 +187,7 @@ FACETED_SEARCH = {
 from copy import deepcopy
 graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
 graph_sample.update({
+                    'disabled': False,
                     'key': 'graph_samples', 
                     'label': 'Graph (sample)',
                     'label_plural': 'Graphs (sample)',

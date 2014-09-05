@@ -173,8 +173,8 @@ footer .container {
 }
 
 blockquote{
-    font-family: Helvetica;
     border-bottom:1px dotted #efefef;
+    font-size:13px;
 }
 
 /* ... except icons used as link */
@@ -542,7 +542,7 @@ because it spreads across a column. */
     .pager.compact {
         float: right;
     }
-    
+
     .pull-right-md {
         float: right;
     }

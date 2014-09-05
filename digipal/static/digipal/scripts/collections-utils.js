@@ -69,14 +69,13 @@ function getParameter(paramName) {
 
 function save_collection(collection) {
     var id = uniqueid();
-    var re = /^\w*$/;
     var collections = JSON.parse(localStorage.getItem('collections'));
     var collection_name = collection['name'];
     var collection_name_trimmed = collection_name.replace(' ', '');
-    if (collection_name && re.test(collection_name_trimmed)) {
+    if (collection_name) {
         if (collections) {
             if (collections[collection_name]) {
-                var new_re = /^[\w]*([0-9])$/;
+                var new_re = /^[.]*([0-9])$/;
                 if (!new_re.test(collection_name)) {
                     collection_name += '0';
                 }
@@ -92,6 +91,7 @@ function save_collection(collection) {
         collections[collection_name]['id'] = id;
         localStorage.setItem("collections", JSON.stringify(collections));
     }
+    return id;
 }
 
 function delete_collections(selectedCollections, delete_function, collection_page) {

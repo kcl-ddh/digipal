@@ -86,13 +86,6 @@
                                 {% endif %}
                                 {% if facet.options %}
                                     <table class="table">
-                                        {% if facet.options.5 %}
-                                            <tr><td colspan="2">
-                                            {% if facet.expanded == 1 %}
-                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="view_button small">Show less</a>
-                                            {% endif %}
-                                            </td></tr>
-                                        {% endif %}
                                         {% if facet.options.5 and facet.options.0.count != '' %}
                                             <tr>
                                                 <th><a href="{% filter add_query_params:request.META.QUERY_STRING %}?@st_{{facet.key}}=o{% endfilter %}">
@@ -102,6 +95,13 @@
                                                     {% if facet.sorted_by == 'c' %}<span class="glyphicon glyphicon-arrow-up"></span>{% endif %}
                                                     Count</a></th>
                                             </tr>
+                                        {% endif %}
+                                        {% if facet.options.5 %}
+                                            <tr><td colspan="2">
+                                            {% if facet.expanded == 1 %}
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="view_button small">Show less</a>
+                                            {% endif %}
+                                            </td></tr>
                                         {% endif %}
                                         {% for option in facet.options %}
                                             {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected %}

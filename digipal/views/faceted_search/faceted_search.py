@@ -281,7 +281,7 @@ class FacetedModel(object):
                 if field['key'] == field_key:
                     break
         
-        ret = self.get_record_field(record, field)
+        ret = self.get_record_field(record, field, True)
         if field['type'] == 'url':
             ret = '<a href="%s" class="view_button">View</a>' % ret
         if field['type'] == 'image':
@@ -300,25 +300,23 @@ class FacetedModel(object):
         
         return ret
 
-    def get_record_field(self, record, afield):
+    def get_record_field(self, record, afield, use_path_result=False):
         '''
             returns the value of record.afield 
             where record is a model instance and afield is field name.
             afield and go through related objects.
             afield can also be a field definition (e.g. self.fields[0]).
             afield can also be a function of the object.
+            table_value = True we show the field as is should appear in the result table
         '''
         # split the path
         path = afield['path']
+        if use_path_result and 'path_result' in afield:
+            path = afield['path_result']
         v = record
         if path:
             from django.core.exceptions import ObjectDoesNotExist
             for part in path.split('.'):
-#                 if not hasattr(v, part):
-#                     message = u'2Model path error: %s : %s, \'%s\' not found' % (self.key, path, part)
-#                     #raise Exception(message)
-#                     print message
-#                     v = getattr(v, part)
                 try:
                     v = getattr(v, part)
                 except ObjectDoesNotExist, e:

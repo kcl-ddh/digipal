@@ -652,8 +652,24 @@ Bootstrap patch for extra small devices
 
 a[data-toggle="pill"]{
     cursor:pointer;
+    border-radius: 2px;
 }
 
 .pull-top {
     vertical-align: top;
+}
+
+.chzn-container:hover a {
+    box-shadow: 0 1px 0 #fff inset;
+    background-color: #eee;
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#ffffff', GradientType=0 );
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, color-stop(20%, #eeeeee), color-stop(80%, #ffffff));
+    background-image: -webkit-linear-gradient(top, #eeeeee 20%, #ffffff 80%);
+    background-image: -moz-linear-gradient(top, #eeeeee 20%, #ffffff 80%);
+    background-image: -o-linear-gradient(top, #eeeeee 20%, #ffffff 80%);
+    background-image: linear-gradient(#eeeeee 20%, #ffffff 80%);
+}
+
+.top-1-em {
+    margin-top: 1em;
 }

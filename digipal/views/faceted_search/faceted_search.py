@@ -767,7 +767,7 @@ def populate_index(ct, index):
     c = rcs.count()
     i = 0
     max = 40
-    commit_size = 400
+    commit_size = 1000000
     print '\t['+(max*' ')+']'
     import sys
     sys.stdout.write('\t ')

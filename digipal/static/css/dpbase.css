@@ -173,8 +173,8 @@ footer .container {
 }
 
 blockquote{
-    font-family: Helvetica;
     border-bottom:1px dotted #efefef;
+    font-size:13px;
 }
 
 /* ... except icons used as link */
@@ -245,6 +245,13 @@ li.active > a{
     line-height: 2.5;
     border-radius: 3.5px;
     border: 1px solid #E0C4BE;
+}
+
+.view_button.small {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    /* font-size: 100%; */
+    line-height: 1.5em;
 }
 
 .view_button:hover {
@@ -543,6 +550,10 @@ because it spreads across a column. */
         float: right;
     }
 
+    .pull-right-md {
+        float: right;
+    }
+
 }
 
 /* 3D effect to the primary buttons */
@@ -638,3 +649,11 @@ Bootstrap patch for extra small devices
     }
 }
 
+
+a[data-toggle="pill"]{
+    cursor:pointer;
+}
+
+.pull-top {
+    vertical-align: top;
+}

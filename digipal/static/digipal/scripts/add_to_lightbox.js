@@ -65,8 +65,13 @@ function update_collection_counter() {
 	if (basket_elements[current_collection['name']]['images']) {
 		i += basket_elements[current_collection['name']]['images'].length;
 	}
+
 	if (basket_elements[current_collection['name']]['annotations']) {
 		i += basket_elements[current_collection['name']]['annotations'].length;
+	}
+
+	if (basket_elements[current_collection['name']]['editorial']) {
+		i += basket_elements[current_collection['name']]['editorial'].length;
 	}
 
 	var link_label = current_collection['name'];
@@ -77,7 +82,7 @@ function update_collection_counter() {
 
 	basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
 	basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
-
+	basket_element.attr('title', current_collection['name']);
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
@@ -123,10 +128,9 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				}
 				if (flag) {
 					current_basket.annotations.push(parseInt(annotations[i], 10));
-					notify('Annotation successfully added to collection', 'success');
+					notify('Graph added to Collection', 'success');
 				} else {
 					notify('Annotation has already been added to Collection', 'danger');
-					continue;
 				}
 			}
 
@@ -140,14 +144,13 @@ function add_to_lightbox(button, type, annotations, multiple) {
 		collections[collection_name].annotations = current_basket.annotations;
 		localStorage.setItem('collections', JSON.stringify(collections));
 		if (annotations.length > 1) {
-			notify('Annotations successfully added to collection', 'success');
+			notify('Annotations added to Collection', 'success');
 		} else {
-			notify('Annotation successfully added to collection', 'success');
+			notify('Graph added to Collection', 'success');
 		}
 	} else {
-		var graph;
+		var graph = annotations;
 		if (type == 'annotation') {
-			graph = annotations;
 			if (typeof graph == 'undefined' || !graph) {
 				notify('Annotation has not been saved yet', 'danger');
 				return false;
@@ -156,72 +159,67 @@ function add_to_lightbox(button, type, annotations, multiple) {
 				current_basket.annotations = [];
 			}
 			elements = current_basket.annotations;
-		} else {
-			graph = annotations;
+		} else if (type == 'image') {
 			if (current_basket.images === undefined) {
 				current_basket.images = [];
 			}
 			elements = current_basket.images;
+		} else if (type == 'editorial') {
+			if (current_basket.editorial === undefined) {
+				current_basket.editorial = [];
+			}
+			elements = current_basket.editorial;
+		} else {
+			throw new Error("Wrong type");
 		}
 
 		if (current_basket && elements && elements.length) {
-			for (j = 0; j < elements.length; j++) {
-				flag = true;
+			flag = true;
 
-				if (type == 'annotation') {
-					var el;
-
-					if (elements[j] == graph) {
-						flag = false;
-						break;
-					}
-
-				} else {
-					if (elements[j] == graph) {
-						flag = false;
-						break;
-					}
-				}
+			if (elements.indexOf(graph) >= 0) {
+				flag = false;
 			}
+
 			if (flag) {
-				if (type == 'annotation') {
+				if (type == 'annotation' || type == 'editorial') {
 					if (annotations == 'undefined' || !annotations) {
 						notify('Annotation has not been saved yet', 'danger');
 						return false;
 					}
 					elements.push(annotations);
-					notify('Annotation successfully added to collection', 'success');
-				} else {
+					notify('Graph added to Collection', 'success');
+				} else if (type == 'image') {
 					image_id = graph;
 					elements.push(parseInt(image_id, 10));
-					notify('Image successfully added to collection', 'success');
+					notify('Image added to Collection', 'success');
 				}
 			} else {
-				if (type == 'annotation') {
+				if (type == 'annotation' || type == 'editorial') {
 					notify('Annotation has already been added to Collection', 'danger');
 				} else {
 					notify('Page has already been added to Collection', 'danger');
 				}
-				return false;
 			}
 
 			localStorage.setItem('collections', JSON.stringify(collections));
 
 		} else {
 
-			if (type == 'annotation') {
-				if (current_basket.hasOwnProperty('images')) {
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
+			if (type == 'annotation' || type == 'editorial') {
+				if (type == 'annotation') {
+					type = 'annotations';
+				}
+				if (current_basket.hasOwnProperty(type)) {
+					current_basket[type].push(annotations);
 				} else {
 					current_basket = {};
-					current_basket.annotations = [];
-					current_basket.annotations.push(annotations);
+					current_basket[type] = [];
+					current_basket[type].push(annotations);
 					current_basket.id = collection_id;
 					collections[collection_name] = current_basket;
 				}
-				notify('Annotation successfully added to collection', 'success');
-			} else {
+				notify('Graph added to Collection', 'success');
+			} else if (type == 'image') {
 				image_id = graph;
 				if (current_basket.hasOwnProperty('annotations')) {
 					current_basket.images = [];
@@ -233,7 +231,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
 					current_basket.id = collection_id;
 					collections[collection_name] = current_basket;
 				}
-				notify('Image successfully added to collection', 'success');
+				notify('Image added to Collection', 'success');
 			}
 			localStorage.setItem('collections', JSON.stringify(collections));
 		}
@@ -246,6 +244,18 @@ function add_to_lightbox(button, type, annotations, multiple) {
 function notify(msg, status) {
 
 	var running = running || true;
+	var current_collection_name = (function() {
+		var current_collection_id = localStorage.getItem('selectedCollection');
+		var collections = JSON.parse(localStorage.getItem('collections'));
+		var collection_name;
+		for (var i in collections) {
+			if (collections[i].id == current_collection_id) {
+				collection_name = i;
+				break;
+			}
+		}
+		return collection_name;
+	})();
 
 	if (running) {
 		clearInterval(timeout);
@@ -264,7 +274,7 @@ function notify(msg, status) {
 	status_element.attr('class', 'alert' + status_class);
 
 	if (status == 'success') {
-		status_element.html("<a style='color:#468847;' href='/digipal/collection'>" + msg + "</a>").fadeIn();
+		status_element.html("<a style='color:#468847;' href='/digipal/collection/" + current_collection_name + "'>" + msg + "</a>").fadeIn();
 	} else {
 		status_element.html(msg).fadeIn();
 	}
@@ -278,4 +288,7 @@ function notify(msg, status) {
 
 $(document).ready(function() {
 	update_collection_counter();
+	$(window).bind('storage', function(e) {
+		update_collection_counter();
+	});
 });

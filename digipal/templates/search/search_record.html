@@ -48,6 +48,9 @@
                             Show filters
                         {% endif %}
                     </a>
+                    <a class="pull-right" href="/digipal/search/facets/?terms={{ request.GET.terms|urlencode }}&amp;result_type={{ result_type|urlencode }}" >
+                        Try our Beta Search 
+                    </a>
             </div>
         </div>
 
@@ -143,7 +146,7 @@
                                         {% chrono ":pagination" %}
 
                                         {% filter update_query_params:type.result_type_qs %}
-                                            {% include "pagination/pagination_with_size.html" %}
+                                            {% dp_pagination_with_size_for page_obj %}
                                         {% endfilter %}
                                     </div>
 
@@ -171,7 +174,7 @@
                                 {% chrono type.key %}
 
                                 {% filter update_query_params:type.result_type_qs %}
-                                    {% paginate %}
+                                    {% dp_pagination_with_size_for page_obj %}
                                 {% endfilter %}
 
                             {% endif %}
@@ -203,9 +206,11 @@
         <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
         <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
         <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+        <script src='{{ STATIC_URL }}js/jquery.notebook.min.js'></script>
         <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
     {% endif %}
 {% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
 {% endblock %}

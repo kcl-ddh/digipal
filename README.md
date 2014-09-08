@@ -120,11 +120,6 @@ After that, run in your terminal the following commands:
 	COMMENTS_DEFAULT_APPROVED = True
 	COMMENTS_DISQUS_SHORTNAME = "yourDisqusName"
 
-### Lightbox
-If set to True, the links to the Lightbox will be available in Collections' page, and the Lightbox will be correctly working and accessible. The default setting value is False.
-
-	LIGHTBOX = False
-
 ### Annotator Settings
 	ANNOTATOR_ZOOM_LEVELS = 7	# This setting sets the number of zoom levels of OpenLayers' image map
 	REJECT_HTTP_API_REQUESTS = False	# if True, prevents any change to the DB
@@ -155,7 +150,9 @@ By default, it is disabled. You can enable it by setting the variable LIGHTBOX i
 
 	LIGHTBOX = True
 
-It will be available at the address /lightbox
+It will be available at the address /lightbox.
+
+For more information about the Digital lightbox, see the [project page](https://github.com/Gbuomprisco/Digital-Lightbox)
 	
 ## 7. API
 It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.

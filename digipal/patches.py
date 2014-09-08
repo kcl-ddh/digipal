@@ -22,6 +22,13 @@ def iipimage_patches():
     import re
     dplog = logging.getLogger('digipal_debugger')
     
+    # Patch 3+1:
+    # We now support TIF as well as JP2 on the image server
+    # If default format is set to 'tif' then we overwrite the conversion instruction to a pyramidal TIF 
+    #CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
+    if settings.IMAGE_SERVER_EXT == 'tif':
+        storage.CONVERT_TO_JP2 = "convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s"
+
     # PATCH 1:
     
     # prefix the upload dir with IMAGE_SERVER_ADMIN_UPLOAD_DIR
@@ -31,6 +38,7 @@ def iipimage_patches():
         try:
             import os
             ret = os.path.join(settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR, ret)
+            ret = ret[-3] + settings.IMAGE_SERVER_EXT
         except Exception:
             pass
         return ret
@@ -126,7 +134,6 @@ def iipimage_patches():
         return '%s%s%s&CVT=JPEG' % (self.full_base_url, height, width)
     
     fields.ImageFieldFile.thumbnail_url = thumbnail_url
-    
     
 def mezzanine_patches():
     # Patch 4:

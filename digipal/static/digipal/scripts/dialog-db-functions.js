@@ -129,12 +129,27 @@ function make_form() {
 
 	form_serialized += s;
 
-	if ($('#id_display_note').val()) {
-		form_serialized += "&display_note=" + $('#id_display_note').val();
+	var display_note, internal_note;
+	display_note = $('#id_display_note');
+	internal_note = $('#id_internal_note');
+	if (!isNodeEmpty(display_note.html())) {
+		form_serialized += "&display_note=" + display_note.html();
 	}
 
-	if ($('#id_internal_note').val()) {
-		form_serialized += "&internal_note=" + $('#id_internal_note').val();
+	if (!isNodeEmpty(internal_note.html())) {
+		form_serialized += "&internal_note=" + internal_note.html();
+	}
+
+
+	if (select_allograph.find('.aspect').length) {
+		var aspects = select_allograph.find('.aspect');
+		aspects.each(function() {
+			if ($(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&aspect=" + $(this).val();
+			} else if (!$(this).is(':checked') && !$(this).prop('indeterminate')) {
+				form_serialized += "&-aspect=" + $(this).val();
+			}
+		});
 	}
 
 	return {

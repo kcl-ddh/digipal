@@ -23,7 +23,11 @@ Commands:
     
     email
     
-    validate    
+    validate
+    
+    max_date_range FIELD
+        e.g. max_date_range HistoricalItem.date
+        returns the minimum and maximum of the date values among all HistoricalItem records
 
 """
     
@@ -62,6 +66,10 @@ Commands:
         command = args[0]
         
         known_command = False
+
+        if command == 'max_date_range':
+            known_command = True
+            self.max_date_range(args[1])
 
         if command == 'locus':
             known_command = True
@@ -114,6 +122,14 @@ Commands:
             known_command = True
             self.find_image_offset(*args[1:])
 
+        if command == 'dateconv':
+            known_command = True
+            self.date_conv(*args[1:])
+
+        if command == 'sources':
+            known_command = True
+            self.test_sources(*args[1:])
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -154,7 +170,99 @@ Commands:
             known_command = True
             self.adhoc_test(*args[1:])
 
+    def test_sources(self, *args):
+        ret = []
+        for keyword in ['ker', 'pelteret', 'gneuss', 'digipal', 'english manuscripts 1060', settings.SOURCE_SAWYER_KW, 'scragg', 'cla', 'davis']:
+            print keyword, ' => ', repr(Source.get_source_from_keyword(keyword))
+        
+        return ret
+        
+    def max_date_range(self, *args):
+        ret = [None, None]
+        if not len(args) == 1:
+            print 'ERROR: please provide a path to a date field. E.g. dptest max_date_range HistoricalItem.date'
+            return 
+        
+        path = args[0]
+        print 'Path: %s' % path 
+
+        parts = path.split('.')
+#         if len(parts) != 2:
+#             print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
+#             return 
+            
+        model_name = parts[0]
+        path_name = '__'.join(parts[1:])
+        import digipal.models
+        model = getattr(digipal.models, model_name, None)
+        if not model:
+            print 'ERROR: Invalid model name. See digipal.models module.'
+            return 
+
+        from digipal.utils import get_range_from_date
+        for value in model.objects.values_list(path_name, flat=True):
+            #value = getattr(obj, path_name)
+            if value:
+                rng = get_range_from_date(value)
+                if rng[0] and rng[0] > -5000:
+                    if ret[0] is None:
+                        ret[0] = rng[0]
+                    else:
+                        ret[0] = min(ret[0], rng[0])
+                if rng[1] and rng[1] < 5000:
+                    if ret[1] is None:
+                        ret[1] = rng[1]
+                    else:
+                        ret[1] = max(ret[1], rng[1])
+                        
+        print repr(ret)
+
+    def date_conv(self, *args):
+        from digipal.utils import get_range_from_date
+        from digipal.models import Date, HistoricalItem
+        diff_count = 0
+        
+        if 'hi' in args:
+            query = HistoricalItem.objects.all()
+        else:  
+            query = Date.objects.all()
+            
+        rid = None
+        if len(args) == 2:
+            rid = args[1]
+            query = query.filter(id=rid)
+        
+        cnt = query.count()
+        for d in query.order_by('id'):
+        #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
+            status = '=='
+            if not args:
+                date_rgn = [d.min_weight, d.max_weight]
+                rng = get_range_from_date(d.date)
+                if not(rng[0] == date_rgn[0] and rng[1] == date_rgn[1]):
+                    status = '<>'
+                if rid or status == '<>':
+                    print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
+            if 'hi' in args:
+                if d.date:
+                    rng = get_range_from_date(d.date)
+                    if rid or (rng[0] == -5000 or rng[1] == 5000):
+                        status = '<>'
+                        print '%4s %40s [%7s, %7s]' % (d.id, d.date, rng[0], rng[1])
+            if status != '==':
+                diff_count += 1
+                                                
+        print '%s incorrect, %s correct, total %s' % (diff_count, cnt - diff_count, cnt)
+
     def adhoc_test(self, *args):
+        from digipal import utils
+        #print utils.get_plain_text_from_html('''<p>a</p><p>b<a href="&gt;yo&lt;">c</a></p>''')
+        d = '670 (? for 937) or 937'
+        #d = 'c. 950x68'
+        print d
+        print utils.get_midpoint_from_date_range(d)
+    
+    def adhoc_test_old(self, *args):
         from digipal.templatetags import html_escape
         value = u'''<tr>
                 <td>

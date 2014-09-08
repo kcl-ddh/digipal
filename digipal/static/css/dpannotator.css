@@ -198,6 +198,8 @@
 
 #panelImageBox{
    line-height: 2.5;
+   padding-top: 0;
+   padding-bottom: 0;
 }
 
 #panelImageBox .panel-label {
@@ -211,7 +213,7 @@
 
 #panelImageBox .frmAnnotation {
     display:inline;
-
+    margin-left: 21%;
     /* margin-bottom: 1em; */
     vertical-align: baseline;
     margin-top: -0.9%;
@@ -237,6 +239,10 @@
 
 #panelImageBox .btn-toolbar{
     margin-left: 2%;
+}
+
+#toolbar{
+    display: none;
 }
 
 #panelImageBox .chzn-container-single{
@@ -345,10 +351,9 @@
     width:auto;
 }
 
-#id_internal_note, #id_display_note {
+.jquery-notebook {
     width: 270px;
     height: 120px;
-    display: none;
     margin: 2%;
     -webkit-column-count: none;
     -moz-column-count: none;
@@ -420,6 +425,17 @@ label[for=id_internal_note], label[for=id_display_note]{
 
 #box_features_container{
     clear: both;
+    padding-top:2px;
+}
+
+#box_features_container .jquery-notebook.editor {
+    height: 80px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.075);
+    border: 1px solid #ccc;
+}
+
+.buttons_div br {
+    line-height: 1.6;
 }
 
 #box_features_container .row:hover, #features_container .row:hover, .component_labels:hover{
@@ -484,7 +500,7 @@ label[for=id_internal_note], label[for=id_display_note]{
 
 .name_temporary_annotation{
     background: transparent !important;
-    border: none !important;
+    border: 1px solid #ccc;
     box-shadow: none !important;
     line-height: 1 !important;
     height: 50% !important;
@@ -569,9 +585,9 @@ label[for=id_internal_note], label[for=id_display_note]{
 .fullScreenPanel {
     position: fixed;
     z-index: 2000;
-    width: 82%;
-    top: 2.6%;
-    left: 8%;
+    width: 88%;
+    top: 2%;
+    left: 6%;
     border-color: #333;
     background-color: rgba(10, 10, 10, 0.7);
     -webkit-transition-property:position, background-color, width;
@@ -659,6 +675,7 @@ path {
     width: 85%;
     background: #fff;
     z-index: 2000;
+    display: none;
 }
 
 .jquery-notebook a {
@@ -701,4 +718,17 @@ path {
 
 .buttons_div{
     margin-right: 9px;
+}
+
+#box_features_container .nav-tabs a{
+    cursor: pointer;
+    font-size: 12px;
+}
+
+#container-letters-popup{
+    overflow-y: auto;
+}
+
+.align-right {
+    text-align: right;
 }

@@ -49,11 +49,19 @@
              * If address_bar_must_change is false, this loading will
              * never occur.
              * 
+             * If add_to_history is true, the previous address is kept 
+             * in the history otherwise the new one replaces it.
+             * 
              * address_bar_must_change = false by default.
+             * add_to_history = false by default
              */
-            update_address_bar: function(url, address_bar_must_change) {
+            update_address_bar: function(url, address_bar_must_change, add_to_history) {
                 if (window.history && window.history.replaceState) {
-                    window.history.replaceState(null, null, url);
+                    if (add_to_history) {
+                        window.history.pushState({ url: '', id: url, label: '' }, null, url);
+                    } else {
+                        window.history.replaceState(null, null, url);
+                    }
                 } else {
                     // The browser does not support replaceState (e.g. IE 9),
                     // we just load the page.
@@ -71,8 +79,18 @@
                 var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
                     results = regex.exec(location.search);
                 return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-            }
+            },
             
+            /*
+             * Returns the url without the qury string and fragment parts
+             */
+            get_page_url: function(url) {
+                ret = url;
+                ret = ret.replace(/\?.*$/gi, '');
+                ret = ret.replace(/#.*$/gi, '');
+                ret = ret.replace(/\/$/gi, '');
+                return ret;
+            }
         }
     });
 })(jQuery);
@@ -290,6 +308,8 @@
         $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', load_lazy_images);
         
         load_lazy_images();
+        
+        document.load_lazy_images = load_lazy_images;
     });
 })(jQuery);
 

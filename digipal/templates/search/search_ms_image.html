@@ -55,7 +55,7 @@
         <div class="col-xs-12 col-sm-8">
             {% autopaginate images page_size as images_on_this_page %}
             
-            {% include "pagination/pagination_with_size.html" %}
+            {% dp_pagination_with_size_for page_obj %}
         </div>
 
     </div>
@@ -113,7 +113,7 @@
         </div>
     {% endif %}
 
-    {% include "pagination/pagination_with_size.html" %}
+    {% dp_pagination_with_size_for page_obj %}
 
     {% include "digipal/add_to_collection.html" %}
 

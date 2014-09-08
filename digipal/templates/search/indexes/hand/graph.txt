@@ -1,0 +1,1 @@
+{{ object.idiograph__allograph__character__ontograph__ontograph_type__name }}

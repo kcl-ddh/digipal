@@ -1,0 +1,124 @@
+Temporary todo for the faceted search
+
+JIRA 400: faceted search
+    +
+        all the facet values are visible
+        values have count
+        can apply any combination of facets for filtering (previously we were limited to a single content type)
+        faster (so far)
+        the CTs and views/layouts are not so dependent so we can do more for each CT with less constraints
+Other tickets resolved with this one:
+    JIRA 125: Page is a full citizen
+    
+
+TODO
+    [done] finish pagination
+    filtering
+        [done] differentiate filtering from counting
+        special filters for 
+            [done] 2. date type
+            	[done] convert str to range
+            	search for expression
+            		bug: 1001 works but not 1004
+            catalogue list (need a text input)
+            feature/component
+    values
+        show all the counts even if 0 (use lexicon? move the end of the list)
+        sort by count/label
+        unselect value 
+    [done] 1. layouts/views
+        allow the CT to have different views:
+            list
+            grid
+            map
+    ajaxify
+    4. * graphs
+    	*** performance
+    		very slow to index
+    		0.7s without sort Without
+    		1.2s sort by two fields
+    		3.7s for two facets
+			Due to the facets (3s), without it the search is done in 
+			Due to sorting, almost 1s
+        ** multi-value fields
+        	script, components, features
+        bugs:
+        	repo place is empty
+        	some repo city are empty
+        	char type is empty, character, allograph
+    5. CT filter/facet
+        how to implement the counts?
+            a) with other SQL queries to retrieve the related records from the result set?
+                - we have a dual SQL+Whoosh system
+                + we can run it asynchronously to improve performance. There will be a small delay on the front end before the counts appear.
+            b) with other Whoosh queries on the other content types. 
+                - might be unnecessarily heavy. But we could have a light version of the query just for that count.
+                - this is logically different from a) and c) because we run independent searches. Instead a) and c) will use the ids
+                of the records in the result set to find related records.
+            c) as part of the same first Whoosh query. Each record will a field for each related content types and the id of the related fields there.
+                then we can use whoosh faceting to retrieve the count for each (content type, related record id) and sum them to get a count. Need to 
+                see how it impacts the performances.
+                + single system, single query.
+                - we bloat up the index with lots of ids
+                - may be slower than other implementations as we have to retrieve and group a lot of ids
+                - not parallelisable
+    6. Results set columns
+        Query phrase only applies to the fields displayed in the result set
+        Possibility to add/remove/swap fields in the results set
+        Possibility to reorder the fields in the result set
+    3. Sorting
+    	[d] 0. Implement only the default sort order
+    		[d] define fields in the structure and the transform to get the sortable value
+    		[d] create new fields in the whoosh schema 
+    	1. Start with simple sort implementation:
+    		[d] Click on a column to sort by it: up or down
+    		[d] Then combine that with the default sort fields
+    		sort by date
+    		reverse sorting
+    		show which field is searched by and the direction
+    	2. full sort options:
+    		pop up with sortable list of visible fields
+    		reset button
+    		a divider b/w sorted and non sorted field
+    		an arrow to change the sort direction   
+        How can we le the user chose the fields to be sorted by. E.g. city, repo, shelfmark, folio number?
+            a) we could have a pop-up with the list of fields being displayed and let the user reorder them
+            b) pre-defined sort orders
+            c) match the order of the columns
+    Persistent settings
+        some of the settings (order of the columns, sorting fields, collapsed/expanded facets) should be persisted across searches
+    Optimisation
+    	Could be greatly optimised by retrieving the values from the hits rather than the database. prefetch_relate helps but it's not as fast.
+    Link to records and back
+    Removed references to haystack
+    Mobile version
+    
+    Boolean field:
+    	provide a mapping from 0/1 to a label
+    		modify Image.full_size
+    
+    Convert field dict to a class
+    
+    	
+ Dates
+ 	ca 1016, 1000,1012.5,1025
+ 	1080s, 1080,1885,1090
+ 	1007x1025, 1007,1016,1025
+ 	ca 1002x1023, 1000,1012.5,1025
+ 	Saec. ix 800,850,900
+ 	Saec. ix ex. 870, 890, 900
+ 	Saec. ix ex. or ix/x 870, 900, 930
+ 	Saec. ix med. 
+ 	
+
+ 	
+Order of the scribe names (roman numbers, ix before v)
+date of the scribe: slider not working
+
+
+allograph.hidden
+	[Done] Hide from the annotator
+	[Done] Hide from graph list on the Annotations tab if not logged in
+	[Done] Hide from graph list on the Hand annotation tab
+	[Done] Don't show in the search filters
+	[Done] Don't return in the search results

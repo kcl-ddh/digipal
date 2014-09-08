@@ -1,0 +1,142 @@
+<div id="search-ajax-fragment">
+    {% load pages_tags mezzanine_tags i18n %}
+    {% load mezzanine_tags pagination_tags html_escape hand_filters %}
+
+    <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
+        <span class="label label-info pull-top" data-toggle="tooltip" title="This is a new and experimental search interface">Beta</span>
+    </h1>
+    
+    <div class="panel faceted-summary">
+        You are searching for: {{ summary }}
+    </div>
+        
+    <div class="row faceted-search">
+        <form action="." method="get" class="">
+            
+            <div class="col-md-9 pull-right-md">
+                {% if views %}
+                    <div class="panel panel-default">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group pull-right">
+                                {% for view in views %}
+                                    {% if view.selected %}
+                                        <input type="hidden" name="view" value="{{ view.key }}" />
+                                    {% endif %}
+                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
+                                        class="btn btn-default {% if view.selected %} active {% endif %}"
+                                        title="{{ view.label }} View" data-toggle="tooltip">
+                                        <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if result %}
+                    {% dp_pagination_with_size_for current_page %}
+                    
+                    {% include result_type.selected_view_template %}
+                    
+                    {% dp_pagination_with_size_for current_page %}
+                {% else %}
+                    <div class='alert alert-warning'>
+                        <h4>No results found</h4>
+                        <p>Do you need <a href="{{ search_help_url }}">help with the search?</a></p>
+                    </div>
+                {% endif %}
+                
+            </div>
+
+            <div class="col-md-3 facets">
+                {% for facet in facets %}
+                    <div class="panel panel-default" id="panel-{{ facet.key }}">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                {% comment %}<a data-toggle="collapse" data-target="#panel-{{ facet.key }}-body">{% endcomment %}
+                                    {{ facet.label }} 
+                                    {% if facet.options %}
+                                        ({{ facet.options|length }})
+                                    {% endif %}
+                                {% comment %}</a>{% endcomment %}
+                            </h4>
+                        </div>
+                        <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                {% if facet.type == 'textbox' or facet.type == 'date' %}
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}" 
+                                            {% if facet.id %}id="{{ facet.id }}"{% endif %}
+                                        >
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="submit">Go</button>
+                                        </span>
+                                    </div>
+                                    {% if facet.type == 'date' %}
+                                        <div >
+                                            <div class="slider" 
+                                                {% if facet.id %}data-label-selector="#{{ facet.id }}"{% endif %}
+                                                data-min="{{ facet.min }}"
+                                                data-max="{{ facet.max }}"
+                                                data-min-value="{% if facet.value %}{{ facet.values.0 }}{% else %}{{ facet.min }}{% endif %}"
+                                                data-max-value="{% if facet.value %}{{ facet.values.1 }}{% else %}{{ facet.max }}{% endif %}"
+                                            ></div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                {% if facet.options %}
+                                    <table class="table">
+                                        {% if facet.options.5 and facet.options.0.count != '' %}
+                                            <tr>
+                                                <th><a href="{% filter add_query_params:request.META.QUERY_STRING %}?@st_{{facet.key}}=o{% endfilter %}">
+                                                    {% if facet.sorted_by == 'o' %}<span class="glyphicon glyphicon-arrow-down"></span>{% endif %}
+                                                    Option</a></th>
+                                                <th class="count"><a href="{% filter add_query_params:request.META.QUERY_STRING %}?@st_{{facet.key}}=c{% endfilter %}">
+                                                    {% if facet.sorted_by == 'c' %}<span class="glyphicon glyphicon-arrow-up"></span>{% endif %}
+                                                    Count</a></th>
+                                            </tr>
+                                        {% endif %}
+                                        {% if facet.options.5 %}
+                                            <tr><td colspan="2">
+                                            {% if facet.expanded == 1 %}
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="view_button small">Show less</a>
+                                            {% endif %}
+                                            </td></tr>
+                                        {% endif %}
+                                        {% for option in facet.options %}
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected %}
+                                                <tr 
+                                                    {% if option.selected %}class="active"{% endif %}
+                                                    >
+                                                    <td>
+                                                        <a href="{{ option.href }}">
+                                                            {{ option.label }}
+                                                        </a>
+                                                        {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
+                                                    </td>
+                                                    {% if facet.options.0.count != '' %}
+                                                        <td class="count">{{ option.count }}</td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if facet.options.5 %}
+                                            <tr><td colspan="2">
+                                                {% if facet.expanded == 1 %}
+                                                {% else %}
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}" class="view_button small">Show more...</a>
+                                                {% endif %}
+                                            </td></tr>
+                                        {% endif %}
+                                    </table>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}        
+            </div>
+
+        </form>
+    </div>
+
+</div>

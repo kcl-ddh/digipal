@@ -49,6 +49,59 @@ class API(object):
         return ret    
     
     @classmethod
+    def convert_response(cls, data, format=None, jsonpcallback=None, xslt=None):
+        '''Convert a json response (data) into another format
+           Allowed formats:
+            * json
+            * jsonp (jsonpcallback must also be provided)
+            * xml
+        '''
+        mimetype = 'application/json'
+        is_webpage = False
+        
+        if format == 'jsonp':
+            data = u';%s(%s);' % (jsonpcallback, data)
+            mimetype = 'text/javascript'
+        
+        if xslt:
+            format = 'xml'
+        
+        if format == 'xml':
+            from django.utils.html import escape
+            def get_xml_from_entry(entry=None):
+                ret = u''
+                if isinstance(entry, dict):
+                    for k, v in entry.iteritems():
+                        ret += u'<%s>%s</%s>' % (k, get_xml_from_entry(v), k)
+                elif isinstance(entry, list) or isinstance(entry, tuple):
+                    ret = u''
+                    for v in entry:
+                        ret += u'<item>%s</item>' % get_xml_from_entry(v)
+                elif isinstance(entry, bool):
+                    ret += '1' if entry else '0' 
+                elif entry is None:
+                    ret += '' 
+                else:  
+                    ret += u'%s' % escape(entry)
+                return ret
+            prolog = u'<?xml version="1.0" encoding="UTF-8"?>'
+            data = u'%s<response>%s</response>' % (prolog, get_xml_from_entry(json.loads(data)))
+            mimetype = 'text/xml'
+
+        if xslt:
+            from digipal.models import ApiTransform
+            transforms = ApiTransform.objects.filter(slug=xslt.lower().strip())
+            if transforms.count():
+                transform = transforms[0]
+                template = transform.template
+                # apply the transform
+                data = utils.get_xslt_transform(data, template)
+                mimetype = transform.mimetype
+                is_webpage = transform.webpage
+
+        return data, mimetype, is_webpage
+    
+    @classmethod
     def get_all_content_types(cls, content_type):
         ret = {'success': True, 'errors': [], 'results': []}
         from digipal import models

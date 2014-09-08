@@ -20,13 +20,13 @@ var api = new DigipalAPI({
 
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 
-	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature.isTemporary) {
+	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature && annotator.selectedFeature.isTemporary) {
 		callback('');
 	}
 
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(data.features);
-	var allographs = data.allographs;
+	var allographs = data.allographs.components;
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
 	} else {
@@ -113,7 +113,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 	graphs = group_element.find('a[data-graph]');
 	$.each(graphs, function() {
 		graph = $(this).data('graph');
-		if (cache.search('graph', graph) === false) {
+		if (!cache.search('graph', graph)) {
 			graphs_list.push(graph);
 		}
 	});
@@ -135,7 +135,7 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 
 		api.request(url, function(data) {
 			for (var i = 0; i < data.length; i++) {
-				var graph = graphs[i];
+				var graph = data[i].graph;
 				var allograph = data[i]['allograph_id'];
 
 				if (!cache.search("allograph", allograph) && !only_features) {
@@ -166,8 +166,10 @@ var get_graph = function(graph_id, data, cache) {
 	result['allographs'] = cache.allographs[graph.allograph_id];
 	result['features'] = graph['features'];
 	result['allograph_id'] = graph.allograph_id;
+	result['graph_id'] = graph_id;
 	result['hand_id'] = graph['hand_id'];
 	result['hands'] = graph['hands'];
+	result['aspects'] = graph['aspects'];
 	result['item_part'] = graph['item_part'];
 	return result;
 
@@ -202,11 +204,12 @@ function intersect(a, b) {
 	return intersection;
 }
 
-function common_allographs(selectedAnnotations, cache, graph) {
+function common_allographs(selectedAnnotations, cacheAnn, graph) {
 	var allographs = [],
 		hands = [],
 		item_parts = [];
 
+	var cache = $.extend(true, {}, cacheAnn);
 	var select_hand = $('.myModal .hand_form');
 	var select_allograph = $('.myModal .allograph_form');
 
@@ -262,10 +265,16 @@ function common_allographs(selectedAnnotations, cache, graph) {
 	select_hand.add(select_allograph).trigger('liszt:updated');
 }
 
-function common_components(selectedAnnotations, cacheAnnotations, data) {
+function common_components(selectedAnnotations, _cacheAnnotations, data, type) {
 
 	if (!data) {
 		return false;
+	}
+
+	var cacheAnnotations = $.extend(true, {}, _cacheAnnotations);
+
+	if (typeof type == 'undefined' || !type) {
+		type = "components";
 	}
 
 	var allograph_id, allograph, allographs, allograph_names = [],
@@ -275,7 +284,7 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 	while (ind < selectedAnnotations.length) {
 		if (typeof cacheAnnotations.graphs[selectedAnnotations[ind]] !== 'undefined') {
 			allograph_id = cacheAnnotations.graphs[selectedAnnotations[ind]].allograph_id;
-			allographs = $.extend({}, cacheAnnotations.allographs[allograph_id]);
+			allographs = $.extend(true, {}, cacheAnnotations.allographs[allograph_id][type]);
 			cacheAnn.push(allographs);
 		}
 		ind++;
@@ -318,33 +327,47 @@ function common_components(selectedAnnotations, cacheAnnotations, data) {
 	return copy_data;
 }
 
-function preprocess_features(graphs, cache) {
+function preprocess_features(graphs, _cache, type) {
 	var graph, all = [],
 		features, component_id;
+
+	var cache = $.extend(true, {}, _cache);
+	if (!type) {
+		type = 'features';
+	}
 	for (var i = 0; i < graphs.length; i++) {
 		graph_id = graphs[i];
 		graph = cache.graphs[graph_id];
-		features = graph.features;
+		features = graph[type];
 
 		obj = {
 			graph: graph_id
 		};
 
 		for (var d = 0; d < features.length; d++) {
-			component_id = features[d].component_id;
+			if (type == 'features') {
+				component_id = features[d].component_id;
+			} else {
+				component_id = features[d].id;
+			}
 			if (!obj.hasOwnProperty(component_id)) {
 				obj[component_id] = {};
-				obj[component_id]['features'] = [];
+				obj[component_id][type] = [];
 			}
-			var f = features[d].feature[0];
-			obj[component_id].features.push(f);
+			var f;
+			if (type == 'features') {
+				f = features[d].feature[0];
+			} else {
+				f = features[d].name;
+			}
+			obj[component_id][type].push(f);
 		}
 		all.push(obj);
 	}
 	return all;
 }
 
-function compute_features(graphs, checkboxes) {
+function compute_features(graphs, checkboxes, type) {
 	var iterations;
 
 	var ticked = [],
@@ -352,7 +375,12 @@ function compute_features(graphs, checkboxes) {
 		indeterminate = [];
 
 	var graph, graph_next, parent;
-	parent = checkboxes.closest('#box_features_container').parent();
+	if (type == 'features' || !type) {
+		type = 'features';
+		parent = checkboxes.closest('#box_features_container').parent();
+	} else {
+		parent = $('#notes_tab').parent();
+	}
 	$.each(checkboxes, function() {
 		var checkbox = $(this);
 		var label = parent.find('label[for="' + checkbox.attr('id') + '"]');
@@ -368,13 +396,13 @@ function compute_features(graphs, checkboxes) {
 
 			if (graphs.length > 1) {
 				if (graphs[i].hasOwnProperty(component)) {
-					graph = graphs[i][component].features;
+					graph = graphs[i][component][type];
 				} else {
 					graph = [];
 				}
 
 				if (graphs[i + 1].hasOwnProperty(component)) {
-					graph_next = graphs[i + 1][component].features;
+					graph_next = graphs[i + 1][component][type];
 				} else {
 					graph_next = [];
 				}
@@ -392,10 +420,10 @@ function compute_features(graphs, checkboxes) {
 				}
 
 			} else if (graphs.length == 1) {
-				if (!graphs[0].hasOwnProperty(component) || typeof graphs[0][component].features == 'undefined') {
+				if (!graphs[0].hasOwnProperty(component) || typeof graphs[0][component][type] == 'undefined') {
 					graph = [];
 				} else {
-					graph = graphs[0][component].features;
+					graph = graphs[0][component][type];
 				}
 
 				if (graph.indexOf(val) >= 0) {
@@ -418,10 +446,14 @@ function compute_features(graphs, checkboxes) {
 
 }
 
-function detect_common_features(selectedAnnotations, checkboxes, cache) {
+function detect_common_features(selectedAnnotations, checkboxes, _cache) {
+	var cache = $.extend(true, {}, _cache);
 	var features_preprocessed = preprocess_features(selectedAnnotations, cache);
 	compute_features(features_preprocessed, checkboxes);
-	checkboxes.unbind().on('change', function() {
+	var aspects_processed = preprocess_features(selectedAnnotations, cache, "aspects");
+	var aspects_checkbox = $('.aspect');
+	compute_features(aspects_processed, aspects_checkbox, "aspects");
+	checkboxes.add(aspects_checkbox).unbind().on('change', function() {
 		var state = $(this).data('state');
 		if (!state) {
 			state = 1;
@@ -439,12 +471,11 @@ function detect_common_features(selectedAnnotations, checkboxes, cache) {
 
 function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
-	for (var component in allograph) {
-		if (allograph[component].default.length) {
-			for (var i = 0; i < allograph[component].default.length; i++) {
-				var default_feature = allograph[component].
-				default[i].component + '::' + allograph[component].
-				default[i].feature;
+	var components = allograph.components;
+	for (var component in components) {
+		if (components[component].hasOwnProperty('default') && components[component].default.length) {
+			for (var i = 0; i < components[component].default.length; i++) {
+				var default_feature = components[component].default[i].component + '::' + components[component].default[i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
 					checkbox_val.prop('checked', true);
@@ -493,5 +524,105 @@ function updateStatus(msg, status) {
 	//
 	if (typeof annotator !== 'undefined') {
 		annotator.map.render(annotator.map.div);
+	}
+}
+
+
+function load_aspects(aspects, graph, _cache) {
+	var aspects_list = "";
+	var graph_aspects = null;
+
+	var cache = $.extend(true, {}, _cache);
+	if (cache.graphs.hasOwnProperty(graph)) {
+		if (cache.graphs[graph].hasOwnProperty('aspects')) {
+			graph_aspects = cache.graphs[graph].aspects;
+		}
+	}
+
+	if (aspects.length) {
+		for (var i = 0; i < aspects.length; i++) {
+			var checked = "";
+			if (typeof graph_aspects !== "undefined" && graph_aspects) {
+				for (var j = 0; j < graph_aspects.length; j++) {
+					if (graph_aspects[j].id == aspects[i].id) {
+						checked = "checked";
+						break;
+					}
+				}
+			}
+			aspects_list += "<div class='component_labels'><input " + checked + " data-checked='" + checked + "'  class='aspect' id='" + aspects[i].id + "' type='checkbox' value='" + aspects[i].id + "' /> <label for='" + aspects[i].id + "'>" + aspects[i].name + "</label></div>";
+			aspects_list += "<div class='feature_containers'>";
+			for (var j = 0; j < aspects[i].features.length; j++) {
+				aspects_list += "<p class='feature'>- " + aspects[i].features[j].name + "</p>";
+			}
+			aspects_list += "</div>";
+		}
+	} else {
+		aspects_list += "<p class='component'>No common aspects (or not defined)</p>";
+	}
+	return aspects_list;
+}
+
+function remove_url_div() {
+	if ($('.allograph_url_div').length) {
+		$('.allograph_url_div').remove();
+	}
+	$('.tooltip').remove();
+	$('.url_allograph').data('hidden', true);
+}
+
+function setNotes(selectedFeature, dialog) {
+	var display_note = $('<div>');
+	display_note.attr('id', 'id_display_note').attr('name', 'display_note').addClass('form-control');
+
+	var internal_note = $('<div>');
+	internal_note.attr('id', 'id_internal_note').attr('name', 'internal_note').addClass('form-control');
+
+	display_note.notebook().html(selectedFeature.display_note);
+	display_note.on('keyup', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.display_note = $(this).html();
+		remove_url_div();
+	});
+
+	internal_note.notebook().html(selectedFeature.internal_note);
+	internal_note.on('keyup', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	}).on('contentChange', function() {
+		selectedFeature.internal_note = $(this).html();
+		remove_url_div();
+	});
+
+	var notes = "";
+	notes += "<p id='label_display_note' class='component_labels' data-id='id_display_note' data-hidden='false'><b>Public Note</b></p>";
+	notes += "<p id='label_internal_note' class='component_labels' data-id='id_internal_note' data-hidden='false'><b>Internal Note</b></p>";
+
+	dialog.html(notes);
+
+	$('#label_display_note').after(display_note);
+	$('#label_internal_note').after(internal_note);
+}
+
+
+function isNodeEmpty(node) {
+	var self_closed = ["AREA", "BR", "COL", "EMBED", "HR", "IMG", "INPUT", "LINK", "META", "PARAM"];
+	if (node) {
+		var string = $.parseHTML(node);
+		var emptyNodes = 0;
+		var value;
+		for (var i = 0; i < string.length; i++) {
+			if (string[i].nodeName == '#text') {
+				value = string[i].nodeValue;
+			} else {
+				value = string[i].innerText;
+			}
+			if (($.trim(value) === '' || $.trim(value) == 'Type display note here...' || $.trim(value) == 'Type internal note here...') && self_closed.indexOf(string[i].nodeName) < 0) {
+				emptyNodes++;
+			}
+		}
+		return emptyNodes === string.length;
 	}
 }

@@ -273,6 +273,7 @@ MIDDLEWARE_CLASSES = (
         'pagination.middleware.PaginationMiddleware',
         # Uncomment the following if using any of the SSL settings:
         # 'mezzanine.core.middleware.SSLRedirectMiddleware',
+        "django.middleware.gzip.GZipMiddleware",
         )
 
 ###################
@@ -287,7 +288,7 @@ ADMIN_MENU_ORDER = (
     ('Annotation', ('digipal.Annotation', 'digipal.Graph')),
     ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
     ('Descriptor', ('digipal.Component', 'digipal.Feature', 'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
-    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
+    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
     ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County', 'digipal.InstitutionType')),
     ('Admin', ('admin.LogEntry', 'conf.Setting', 'auth.Group', 'auth.User', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog')),
 )
@@ -301,7 +302,7 @@ DASHBOARD_TAGS = (
 )
 
 # SITEMAP GENERATION (see python manage.py sitemap)
-# List of DigiPal models to list in the sitemap  
+# List of DigiPal models to list in the sitemap
 SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
 # The website root URL (with trailing slash)
 SITEMAP_PATH_TO_RESOURCE = 'http://www.digipal.eu/'
@@ -345,6 +346,7 @@ SOURCE_GNEUSS = 'gneuss'
 SOURCE_KER = 'ker'
 SOURCE_SCRAGG = 'scragg'
 SOURCE_SAWYER = 'sawyer'
+SOURCE_SAWYER_KW = 'electronic'
 SOURCE_PELTERET = 'pelteret'
 # To be removed, no longer used
 #SOURCES = [SOURCE_CLA, SOURCE_GNEUSS, SOURCE_KER, SOURCE_SCRAGG, SOURCE_SAWYER, SOURCE_PELTERET]
@@ -382,6 +384,7 @@ STATUS_DEFAULT = 'draft'
 STATUS = [STATUS_DEFAULT, STATUS_CHOPPER]
 
 MAX_THUMB_LENGTH = 50
+#MIN_THUMB_LENGTH = 50
 
 # Image Server
 
@@ -426,15 +429,6 @@ GITHUB = 'kcl-ddh/digipal'
 # South
 SOUTH_TESTS_MIGRATE = False
 
-# Haystack
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'haystack',
-    },
-}
-
 # DISQUS
 
 COMMENTS_DEFAULT_APPROVED = True
@@ -443,9 +437,21 @@ COMMENTS_DEFAULT_APPROVED = True
 #         SEARCH        #
 #########################
 
+# Search page
 # The slug of the CMS Page that contains the help about the search interface
 SEARCH_HELP_PAGE_SLUG = 'how-to-use-digipal'
 SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
+    },
+#     'whoosh': {
+#         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+#         'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
+#     },
+}
 
 #########################
 # OPTIONAL APPLICATIONS #

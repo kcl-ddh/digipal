@@ -1,0 +1,21 @@
+
+<tr>
+    <td>&nbsp;</td>
+    <td>Title</td>
+    <td>Thumbnail</td>
+</tr>
+
+{% for result in page.object_list %}
+    <tr>
+        <td>
+            <a href="{{ result.object.get_absolute_url }}">view</a>
+        </td>
+        <td>
+            {{ result.object.display_label }}
+        </td>
+        <td>
+            {% include "digipal/folio_image.html" with image=result.object width=50 full_label=0 %}
+        </td>
+    </tr>
+{% endfor %}
+    

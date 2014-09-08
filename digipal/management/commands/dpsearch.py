@@ -20,9 +20,12 @@ Commands:
   index
                         Re-Index all the content 
 
-  info
+  info [--if=KEYWORD]
                         Show general info and whoosh schemas
                         
+  index_facets
+                        Re-Index the faceted content 
+
   dump
                         Dump indices
                         
@@ -74,6 +77,10 @@ Options:
             known_command = True
             self.index_all(options)
 
+        if command == 'index_facets':
+            known_command = True
+            self.index_facets(options)
+
         if command == 'schema':
             known_command = True
             self.schema(options)
@@ -117,7 +124,87 @@ Options:
                 for hit in hits:
                     print ('\t%s' % repr(hit)).encode('ascii', 'ignore')
 
+    def get_filtered_indexes(self):
+        ''' returns a list of index names passed in the --if=f1,f2 command line option'''
+        ret = self.options['index_filter']
+        if ret:
+            ret = ret.split(',')
+        else:
+            ret = []
+        return ret
+
+    def get_all_dirs_under_index_path(self):
+        ''' returns the absolute path to all the index folders 
+        (optionally filtered by --if command line option)'''
+        from digipal.utils import get_all_files_under
+        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, True, self.get_filtered_indexes())
+        return ret
+
     def info(self, options):
+        for dir in self.get_all_dirs_under_index_path():
+            from datetime import datetime
+            dir_rel = os.path.relpath(dir, settings.SEARCH_INDEX_PATH)
+            print '-' * 78
+            print dir_rel
+            info = self.get_index_info(dir)
+            print '  size  : %.2f MB' % (info['size'] / 1024.0 / 1024.0)
+            print '  date  : %s' % datetime.fromtimestamp(info['date'])
+            print '  docs  : %s' % info['entries']
+            
+            print '  fields:'
+            for field in info['fields']:
+                print '    %25s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
+            print '  segments:'
+            for seg in info['segments']:
+                print '    %25s: %s' % (seg['id'], seg['entries'])
+            
+    def get_index_info(self, path):
+        ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?', 'segments': []}
+        
+        # basic filesystem info
+        from digipal.utils import get_all_files_under
+        for file in get_all_files_under(path, False):
+            ret['size'] += os.path.getsize(file)
+            ret['date'] = max(ret['date'], os.path.getmtime(file))
+            
+        # whoosh info
+        import whoosh
+        from whoosh.index import open_dir
+        index = None
+        try:
+            index = open_dir(path)
+        except whoosh.index.EmptyIndexError:
+            pass
+            
+        if index:
+            with index.searcher() as searcher:
+                ret['entries'] = searcher.doc_count()
+                for segment in index._segments():
+                    ret['segments'].append({'id': segment.segid, 'entries': segment.doc_count()})
+                for item in index.schema.items():
+                    field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
+                    values = list(searcher.lexicon(item[0]))
+                    field_info['unique_values'] = len(list(values))
+    
+    #                 if field_info['type'] == 'NUMERIC':
+    #                     print item
+    #                     for v in values:
+    #                         print v.decode('utf-8')
+    #                         break
+    #                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
+    #                     
+    #                     vals = sorted(vals)
+    #                     if vals:
+    #                         field_info['range'] = (vals[0], vals[-1])
+                        
+                    ret['fields'].append(field_info)
+#         except Exception, e:
+#             raise e
+#             pass
+        
+        return ret
+
+    def info_old(self, options):
         from datetime import datetime
         
         print 'Indices:'
@@ -226,6 +313,10 @@ Options:
             exit()
             
         return types        
+
+    def index_facets(self, options):
+        from digipal.views.faceted_search import faceted_search
+        faceted_search.rebuild_index(self.get_filtered_indexes())
         
     def index(self, index_name='unified'):
         types = self.get_requested_content_types()
@@ -254,6 +345,10 @@ Options:
                                 field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
                     print '\t\t%s' % field_type          
                     fields[info['whoosh']['name']] = field_type
+                    
+                    # JIRA 508 - Add an ID counterpart to allow exact phrase search
+#                     if info.get('long_text', False):
+#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))                    
         
         from whoosh.fields import Schema
         schema = Schema(**fields)
@@ -309,21 +404,9 @@ Options:
         writer.commit()
 
     def recreate_index(self, index_name, schema):
-        import os.path
-        from whoosh.index import create_in
-        path = settings.SEARCH_INDEX_PATH
-        if not os.path.exists(path):
-            os.mkdir(path)
-        path = os.path.join(path, index_name)
-        if os.path.exists(path):
-            import shutil
-            shutil.rmtree(path)
-        os.mkdir(path)
-        print '\tCreated index under "%s"' % path
-        # TODO: check if this REcreate the existing index
-        index = create_in(path, schema)
-        
-        return index
+        from digipal.utils import recreate_whoosh_index
+        ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
+        return ret        
         
     def is_dry_run(self):
         return self.options.get('dry-run', False)

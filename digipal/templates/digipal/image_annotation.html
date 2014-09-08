@@ -2,7 +2,8 @@
 {% load html_escape hand_filters %}
 
 {% block meta_title %}
-    {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+    {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
+    Manuscript Image:
     {{image|capfirst}}
 {% endblock %}
 
@@ -14,7 +15,8 @@
 
 {% block main %}
             <h2 class='header1'>
-                {% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:
+                {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
+                Manuscript Image:
                 <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
                 {% include "digipal/admin_edit.html" with instance=image %}
                 {% if not no_image_reason or can_edit %}
@@ -44,7 +46,7 @@
                             <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                         </li>
                         <li {% if image.item_part.images.all.count == 1 %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
-                            <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Pages ({{ image.item_part.images.all.count|add:'-1' }})</a>
+                            <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ image.item_part.images.all.count|add:'-1' }})</a>
                         </li>
                     </ul>
                 </div>
@@ -192,5 +194,5 @@
     {% endif %}
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-
+    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
 {% endblock %}

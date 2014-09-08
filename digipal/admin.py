@@ -17,12 +17,12 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
         Language, LatinStyle, Layout, \
         Measurement, \
-        Ontograph, OntographType, Owner, ImageAnnotationStatus, \
+        Ontograph, OntographType, Owner, OwnerType, ImageAnnotationStatus, \
         Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem
+        CarouselItem, ApiTransform
 import reversion
 import django_admin_customisations
 from mezzanine.core.admin import StackedDynamicInlineAdmin
@@ -452,8 +452,7 @@ class RepositoryForm(forms.ModelForm):
 
 #########################
 #                       #
-#     Admin Tables      #
-#     Visualization     #
+#        Inlines        #
 #                       #
 #########################
 
@@ -461,12 +460,34 @@ class RepositoryForm(forms.ModelForm):
 class OwnerInline(admin.StackedInline):
     model = Owner
 
+class PlaceInline(admin.StackedInline):
+    model = Place
+
+class CurrentItemInline(admin.StackedInline):
+    model = CurrentItem
+
+class HistoricalItemInline(admin.StackedInline):
+    model = HistoricalItem
+
+class HistoricalItemOwnerInline(admin.StackedInline):
+    model = HistoricalItem.owners.through
+    verbose_name = "Historical Item"
+    verbose_name_plural = "Historical Items"    
+
+class CurrentItemOwnerInline(admin.StackedInline):
+    model = CurrentItem.owners.through
+    verbose_name = "Current Item"
+    verbose_name_plural = "Current Items"    
+
+class ItemPartOwnerInline(admin.StackedInline):
+    model = ItemPart.owners.through
+    verbose_name = "Item Part"
+    verbose_name_plural = "Item Parts"    
 
 class AllographComponentInline(admin.StackedInline):
     model = AllographComponent
 
     filter_horizontal = ['features']
-
 
 class IdiographInline(admin.StackedInline):
     model = Idiograph
@@ -476,17 +497,23 @@ class IdiographInline(admin.StackedInline):
 class TextItemPartInline(admin.StackedInline):
     model = TextItemPart
 
+#########################
+#                       #
+#     Model Admins      #
+#                       #
+#########################
+
 class AllographAdmin(reversion.VersionAdmin):
     model = Allograph
 
     search_fields = ['name', 'character__name']
 
-    list_display = ['name', 'character', 'created', 'modified']
-    list_display_links = list_display
+    list_display = ['name', 'character', 'hidden', 'created', 'modified']
+    list_display_links = ['name', 'character', 'created', 'modified']
+    list_editable = ['hidden']
 
     filter_horizontal = ['aspects']
     inlines = [AllographComponentInline, IdiographInline]
-
 
 class AlphabetAdmin(reversion.VersionAdmin):
     model = Alphabet
@@ -707,6 +734,17 @@ class GraphAdmin(reversion.VersionAdmin):
     list_display = ['idiograph', 'hand', 'created', 'modified']
     list_display_links = ['idiograph', 'hand', 'created', 'modified']
 
+    actions = ['action_update_group']
+
+    def action_update_group(self, request, queryset):
+        #from django.http import HttpResponseRedirect
+        #graphs = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        from digipal.models import Graph
+        graphs = Graph.objects.filter(annotation__isnull=False).select_related('annotation')
+        for graph in graphs:
+            graph.annotation.set_graph_group()
+
+    action_update_group.short_description = 'Update nestings'
 
 class HairAdmin(reversion.VersionAdmin):
     model = Hair
@@ -1011,10 +1049,44 @@ class MeasurementAdmin(reversion.VersionAdmin):
 class OwnerAdmin(reversion.VersionAdmin):
     model = Owner
 
-    list_display = ['content_object', 'content_type', 'date', 'rebound', 'annotated', 'dubitable', 'created', 'modified']
+    list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date', 
+                    'rebound', 'annotated', 'dubitable', 'created', 'modified']
     list_display_links = list_display
-    search_fields = ['evidence', 'institution__name', 'person__name']
     
+    list_filter = ('repository__type__name', ) 
+
+    search_fields = ['evidence', 'institution__name', 'person__name', 'repository__name', 'itempart__display_label', 
+                     'current_items__display_label', 'historicalitem__display_label', 'id', 'legacy_id', 'date']
+
+    fieldsets = (
+                ('Owner', {'fields': ('repository', 'person', 'institution',)}),
+                ('Misc.', {'fields': ('date', 'rebound', 'annotated', 'dubitable', 'evidence')}),
+                ('legacy', {'fields': ('legacy_id',)}),
+                )
+    
+    inlines = [HistoricalItemOwnerInline, ItemPartOwnerInline, CurrentItemOwnerInline]
+    
+    def get_content_type(self, obj):
+        ret = unicode(obj.content_type)
+        if ret == u'repository':
+            ret += u'/' + obj.repository.type.name
+        return ret
+    
+    def get_owned_item(self, obj):
+        return obj.get_owned_item()
+    get_owned_item.short_description = 'Owned Item'
+
+    def get_content_object(self, obj):
+        return obj.content_object
+    get_content_object.short_description = 'Owner'
+        
+    
+class OwnerTypeAdmin(reversion.VersionAdmin):
+    model = OwnerType
+
+    list_display = ['id', 'name']
+    list_display_links = list_display
+    search_fields = ['name']
 
 class CharacterInline(admin.StackedInline):
     model = Character
@@ -1085,7 +1157,7 @@ class ImageAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage', 'annotation_status__name']
 
-    actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting']
+    actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
     
     list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
@@ -1129,6 +1201,12 @@ class ImageAdmin(reversion.VersionAdmin):
             image.save()
     action_regen_display_label.short_description = 'Regenerate display labels'
 
+    def action_find_nested_annotations(self, request, queryset):
+        from digipal.models import Annotation
+        for annotation in Annotation.objects.filter(image__in=queryset).order_by('image__id'):
+            annotation.set_graph_group()
+    action_find_nested_annotations.short_description = 'Find nested annotations'
+
     def bulk_editing(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
@@ -1162,7 +1240,6 @@ class PersonAdmin(reversion.VersionAdmin):
 class InstitutionInline(admin.StackedInline):
     model = Institution
 
-
 class PlaceTypeAdmin(reversion.VersionAdmin):
     model = PlaceType
 
@@ -1174,6 +1251,11 @@ class PlaceTypeAdmin(reversion.VersionAdmin):
 class PlaceAdmin(reversion.VersionAdmin):
     model = Place
 
+    list_display = ['name', 'type', 'region', 'current_county', 'historical_county', 'created', 'modified']
+    list_display_links = list_display
+    search_fields = ['name', 'type__name']
+    list_filter = ['type__name']
+
     fieldsets = (
                 (None, {'fields': ('name', 'type')}),
                 ('Regions', {'fields': ('region', 'current_county', 'historical_county')}),
@@ -1181,12 +1263,6 @@ class PlaceAdmin(reversion.VersionAdmin):
                 ('Legacy', {'fields': ('legacy_id',)}),
                 ) 
     inlines = [InstitutionInline, PlaceEvidenceInline]
-    
-    list_display = ['name', 'type', 'region', 'current_county',
-            'historical_county', 'created', 'modified']
-    list_display_links = list_display
-    search_fields = ['name', 'type']
-    list_filter = ['type__name']
 
 class PlaceEvidenceAdmin(reversion.VersionAdmin):
     model = PlaceEvidence
@@ -1220,10 +1296,6 @@ class RegionAdmin(reversion.VersionAdmin):
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
-
-
-class CurrentItemInline(admin.StackedInline):
-    model = CurrentItem
 
 class RepositoryAdmin(reversion.VersionAdmin):
     form = RepositoryForm
@@ -1331,9 +1403,10 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
     
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.filter(hands__id__gt=0).distinct()
+            return queryset.exclude(matched_hands__isnull=True).exclude(matched_hands__exact='').distinct()
         if self.value() == '0':
-            return queryset.all().exclude(hands__id__gt=0).distinct()
+            from django.db.models import Q
+            return queryset.filter(Q(matched_hands__isnull=True) | Q(matched_hands__exact='')).distinct()
 
 class StewartRecordFilterLegacy(admin.SimpleListFilter):
     title = 'Legacy'
@@ -1374,22 +1447,31 @@ class StewartRecordFilterMerged(admin.SimpleListFilter):
 class StewartRecordAdmin(reversion.VersionAdmin):
     model = StewartRecord
     
-    list_display = ['id', 'field_hands', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
-    list_display_links = list_display
+    list_display = ['id', 'field_hands', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    list_display_links = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterMerged]
-    search_fields = ['id', 'scragg', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
+    search_fields = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     
-    actions = ['match_hands', 'merge_matched']
+    actions = ['match_hands', 'merge_matched_simulation', 'merge_matched']
     
     def field_hands(self, record):
-        ret = ''
-        for hand in record.hands.all():
-            if ret: ret += ' ; '
-            ret += u'Hand #%s' % hand.id
-            ret += u', %s' % hand.scribe
-            ret += u', %s' % hand.item_part
+        ret = u''
+#         for hand in record.hands.all():
+#             if ret: ret += ' ; '
+#             ret += u'Hand #%s' % hand.id
+#             ret += u', %s' % hand.scribe
+#             ret += u', %s' % hand.item_part
+        for match_id in record.get_matched_hands():
+            rttype, rid = match_id.split(':')
+            if ret:
+                ret += '<br/>'
+            content_type = 'hand'
+            if rttype == 'ip':
+                content_type = 'itempart'
+            ret += u'<a href="/admin/digipal/%s/%s/">%s #%s</a>' % (content_type, rid, {'h': u'Hand', 'ip': u'New Hand on Item Part'}[rttype], rid)
         return ret
     field_hands.short_description = 'Matched hand'
+    field_hands.allow_tags = True 
 
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
@@ -1402,6 +1484,12 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
+    
+    def merge_matched_simulation(self, request, queryset):
+        from django.http import HttpResponseRedirect
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
+    merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
     
 class RequestLogFilterEmpty(admin.SimpleListFilter):
     title = 'Result size'
@@ -1437,6 +1525,18 @@ class RequestLogAdmin(admin.ModelAdmin):
         return ret
     request_hyperlink.short_description = 'Request'
     request_hyperlink.allow_tags = True
+
+class ApiTransformAdmin(reversion.VersionAdmin):
+    model = ApiTransform
+
+    list_display = ['id', 'title', 'slug', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'title', 'slug']
+    ordering = ['id']
+    
+    fieldsets = (
+                (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
+                ) 
     
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
@@ -1476,6 +1576,7 @@ admin.site.register(Layout, LayoutAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Measurement, MeasurementAdmin)
 admin.site.register(Owner, OwnerAdmin)
+admin.site.register(OwnerType, OwnerTypeAdmin)
 admin.site.register(Ontograph, OntographAdmin)
 admin.site.register(OntographType, OntographTypeAdmin)
 admin.site.register(ImageAnnotationStatus, ImageAnnotationStatusAdmin)
@@ -1496,6 +1597,7 @@ admin.site.register(MediaPermission, MediaPermissionAdmin)
 admin.site.register(CarouselItem, CarouselItemAdmin)
 admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
+admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 
 # Let's add the Keywords to the admin interface

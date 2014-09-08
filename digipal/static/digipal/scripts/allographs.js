@@ -86,9 +86,8 @@ function Allographs(dialog, cache) {
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
 		to_lightbox.click(function(event) {
-			var annotations = [];
 			for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
-				methods.to_lightbox($(this), selectedAnnotations.annotations[i].graph, false);
+				methods.to_lightbox($(this), parseInt(selectedAnnotations.annotations[i].graph, 10), false);
 			}
 		});
 
@@ -97,7 +96,7 @@ function Allographs(dialog, cache) {
 		var a_images = $('.annotation_li a');
 		a_images.on('click', function(event) {
 			if (!switcher.bootstrapSwitch('state')) {
-				var id = $(this).parent('.annotation_li').data('graph');
+				var id = $(this).closest('.annotation_li').data('graph');
 				methods.to_annotator(id);
 
 				/*
@@ -245,12 +244,14 @@ function Allographs(dialog, cache) {
 
 		to_lightbox: function(button, annotation, multiple) {
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-			if (add_to_lightbox(button, 'annotation', annotation, multiple)) {
-				$('[data-graph="' + annotation + '"]').append(star);
+			var el = $('[data-graph="' + annotation + '"]');
+			if (add_to_lightbox(button, 'annotation', annotation, multiple) && !el.find('.starred-image').length) {
+				el.append(star);
 			}
 		},
 
 		to_annotator: function(annotation_graph_id) {
+			annotator.vectorLayer.map.zoomToMaxExtent();
 			var tab = $('a[data-target="#annotator"]');
 			tab.tab('show');
 			$('html, body').animate({
@@ -427,13 +428,18 @@ function Allographs(dialog, cache) {
 				var all_select = $('select');
 				all_select.trigger('liszt:updated');
 
-				this.get_features(annotation, function(s, string_summary) {
+				this.get_features(annotation, function(s, aspects_list, string_summary) {
 					var myModal = $('.myModal');
 					var select_allograph = $('.myModal .allograph_form');
 					var summary = $('#summary');
 					var features_container = $('#features_container');
+					var aspects_container = $('#dialog_aspects');
+					var notes_container = $('#dialog_notes');
 					summary.html(string_summary);
 					features_container.html(s);
+					aspects_container.html(aspects_list);
+
+					setNotes(annotation, notes_container);
 
 					var check_all = $('.check_all');
 					var uncheck_all = $('.uncheck_all');
@@ -445,8 +451,8 @@ function Allographs(dialog, cache) {
 						var allograph = $('.myModal .allograph_form').val();
 
 						for (var i in allographs_cache.allographs) {
-							for (var j = 0; j < allographs_cache.allographs[i].length; j++) {
-								var component = allographs_cache.allographs[i][j].id;
+							for (var j = 0; j < allographs_cache.allographs[i].components.length; j++) {
+								var component = allographs_cache.allographs[i].components[j].id;
 								components.push(component);
 							}
 						}
@@ -555,6 +561,7 @@ function Allographs(dialog, cache) {
 				data['allographs'] = allographs_cache.allographs[allograph];
 				data['features'] = allographs_cache.graphs[graph]['features'];
 				data['allograph_id'] = allographs_cache.graphs[graph]['allograph_id'];
+				data['graph_id'] = graph;
 				data['hand_id'] = allographs_cache.graphs[graph]['hand_id'];
 				data['hands'] = allographs_cache.graphs[graph]['hands'];
 				load_annotations_allographs.refresh(data, image_id, callback);
@@ -565,10 +572,12 @@ function Allographs(dialog, cache) {
 		refresh: function(data, image_id, callback) {
 			var allograph_id = data.id;
 			var s = "<div id='box_features_container'>";
+
 			var string_summary = '';
 			var prefix = 'allographs_';
 			var array_features_owned = features_saved(data['features']);
-			var allographs = data['allographs'];
+			var allographs = data['allographs'].components;
+			var aspects_list = load_aspects(data['allographs'].aspects, data['graph_id'], allographs_cache);
 			if (selectedAnnotations.annotations.length > 1) {
 				var selected = [];
 
@@ -647,13 +656,12 @@ function Allographs(dialog, cache) {
 					if (!n) {
 						string_summary += "<span class='feature_summary' data-feature = '0' data-component='" + component_id + "'>undefined</span>";
 					}
-
 				});
 			}
 
 
 			if (callback) {
-				callback(s, string_summary);
+				callback(s, aspects_list, string_summary);
 			}
 		}
 

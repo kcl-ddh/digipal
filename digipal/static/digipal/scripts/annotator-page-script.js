@@ -9,7 +9,10 @@ function AnnotatorLoader() {
 
 	this.init = function() {
 		self.digipal_settings = self.get_initial_settings(); // loading settings
-
+		annotator.cacheHiddenFilters = {
+			allographs: [],
+			hands: []
+		};
 		var csrftoken = annotator.utils.getCookie('csrftoken');
 		$.ajaxSetup({
 			headers: {
@@ -27,13 +30,18 @@ function AnnotatorLoader() {
 		select_elements.chosen();
 		self.switch_annotations();
 		self.toolbar_position();
+		self.set_settings(self.digipal_settings); // setting settings
+
 		annotator.load_annotations(function() { // once annotations get loaded ...
+			if (annotator.isAdmin == "False") {
+				filterDropdowns();
+			}
 			self.events(); // events get launched
-			self.set_settings(self.digipal_settings); // setting settings
 			if (annotator.isMobile()) {
 				annotator.selectFeature.deactivate();
 				annotator.selectFeature.activate();
 			}
+			hide_allographs_from_url();
 		});
 	};
 
@@ -161,24 +169,30 @@ function AnnotatorLoader() {
 
 		if (star.isInCollection(selectedCollection, annotator.image_id, 'image')) {
 			image_to_lightbox.children().addClass('starred').removeClass('unstarred');
-			image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+			image_to_lightbox.attr('data-original-title', 'Remove page from collection');
 		}
 
 		image_to_lightbox.click(function() {
 			if ($(this).children().hasClass('starred')) {
 				star.removeFromCollection(image_to_lightbox, 'image');
 				$(this).children().removeClass('starred').addClass('unstarred');
-				image_to_lightbox.attr('data-original-title', 'Add image to collection');
+				image_to_lightbox.attr('data-original-title', 'Add page to collection');
 			} else {
 				add_to_lightbox($(this), 'image', annotator.image_id, false);
 				$(this).children().removeClass('unstarred').addClass('starred');
-				image_to_lightbox.attr('data-original-title', 'Remove image from collection');
+				image_to_lightbox.attr('data-original-title', 'Remove page from collection');
 			}
 		}).tooltip();
 
 		var multiple_annotations = $('#multiple_annotations');
 		multiple_annotations.on('change', function() {
 			self.multiple_annotations($(this).is(':checked'));
+		});
+
+
+		var collection_from_image = $('#collection_from_image');
+		collection_from_image.on('click', function() {
+			CollectionFromImage($(this));
 		});
 
 		var show_editorial_annotations = $('#show_editorial_annotations');
@@ -215,7 +229,12 @@ function AnnotatorLoader() {
 	};
 
 	this.get_initial_settings = function() {
-		var digipal_settings = localStorage.getItem('digipal_settings'); // load settings from LS
+		var digipal_settings;
+		if (annotator.utils.getParameter('settings').length) {
+			digipal_settings = annotator.utils.Base64.decode(annotator.utils.getParameter('settings')[0]).replace(/\0/g, "");
+		} else {
+			digipal_settings = localStorage.getItem('digipal_settings'); // load settings from LS
+		}
 
 		/* Setting default settings */
 
@@ -233,8 +252,9 @@ function AnnotatorLoader() {
 		} else {
 			digipal_settings = JSON.parse(digipal_settings);
 		}
-
-		localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		if (!annotator.utils.getParameter('settings').length) {
+			localStorage.setItem('digipal_settings', JSON.stringify(digipal_settings));
+		}
 		return digipal_settings;
 	};
 
@@ -282,6 +302,34 @@ function AnnotatorLoader() {
 			- loads temporary vectors through URL
 	*/
 
+	var hide_allographs_from_url = function() {
+		if (annotator.utils.getParameter('hidden').length) {
+			var hidden_allographs = JSON.parse(annotator.utils.Base64.decode(annotator.utils.getParameter('hidden')[0]).replace(/\0/g, ""));
+			annotator.cacheHiddenFilters = hidden_allographs;
+			var features = annotator.vectorLayer.features;
+			for (var i = 0; i < features.length; i++) {
+				if (features[i].hand && features[i].allograph_id) {
+					if (hidden_allographs.allographs.indexOf(features[i].allograph_id.toString()) >= 0 || hidden_allographs.hands.indexOf(features[i].hand.toString()) >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				} else if (features[i].is_editorial) {
+					if (hidden_allographs.hands.indexOf("editorial") >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				} else if (features[i].isTemporary) {
+					if (hidden_allographs.hands.indexOf("public") >= 0) {
+						features[i].style.strokeOpacity = 0;
+						features[i].style.fillOpacity = 0;
+					}
+				}
+			}
+		}
+		annotator.vectorLayer.redraw();
+		restoreFullscreenPositions();
+	};
+
 	this.load_temporary_vector = function() {
 		var temporary_vectors = annotator.utils.getParameter('temporary_vector');
 		if (temporary_vectors.length && !no_image_reason) {
@@ -298,9 +346,15 @@ function AnnotatorLoader() {
 			}
 
 			for (var t = 0; t < temporary_vectors.length; t++) {
-				var temp = annotator.utils.Base64.decode(temporary_vectors[t]);
-				temp = temp.replace(/\0/g, "");
-				geo_json = JSON.parse(temp);
+				var temp;
+				try {
+					temp = annotator.utils.Base64.decode(temporary_vectors[t]);
+					temp = temp.replace(/\0/g, "");
+					geo_json = JSON.parse(temp);
+				} catch (e) {
+					temp = temporary_vectors[t];
+					geo_json = JSON.parse(temp);
+				}
 				var object = geoJSON.read(temp);
 				var objectGeometry = object[0];
 
@@ -378,6 +432,9 @@ function AnnotatorLoader() {
 			$('html').animate({
 				scrollTop: $('#map').position().top + 'px'
 			}, 0);
+
+			var note;
+
 			// vectorLayer event moveend is triggered on first load so flag this
 
 			// tries to centre the map every 1/2 second
@@ -400,8 +457,11 @@ function AnnotatorLoader() {
 			if (annotator.utils.getParameter('map_extent').length) {
 				var extent_parsed = JSON.parse(decodeURI(annotator.utils.getParameter('map_extent')[0]));
 				var extent = new OpenLayers.Bounds(extent_parsed.left, extent_parsed.bottom, extent_parsed.right, extent_parsed.top);
-
 				annotator.map.zoomToExtent(extent);
+			}
+
+			if (annotator.utils.getParameter('note').length) {
+				note = annotator.utils.Base64.decode(annotator.utils.getParameter('note')[0]);
 			}
 
 			if (vector_id_value.length == 1) {
@@ -417,6 +477,10 @@ function AnnotatorLoader() {
 				}
 			}
 
+			if (note) {
+				annotator.selectedFeature.user_note = note;
+			}
+
 		} else {
 			return false;
 		}
@@ -428,26 +492,66 @@ function AnnotatorLoader() {
 			-  filter allographs according to hands and allographs
 	*/
 
+	function sort(obj, property) {
+		return obj.sort(function(x, y) {
+			return x[property] == y[property] ? 0 : (x[property] < y[property] ? -1 : 1);
+		});
+	}
+
+	var filtersEvents = function() {
+		/* launching events */
+		var check_vectors = $('.checkVectors');
+		check_vectors.change(function() {
+			annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
+		});
+
+		var check_vectors_hands = $('.checkVectors_hands');
+		check_vectors_hands.change(function() {
+			annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
+		});
+
+		var CheckAll = $('#checkAll');
+		CheckAll.click(function() {
+			if ($(this).data('toggle') == 'uncheck') {
+				annotator.filters.filterCheckboxes('.checkVectors', 'uncheck');
+				$(this).data('toggle', 'check');
+			} else {
+				annotator.filters.filterCheckboxes('.checkVectors', 'check');
+				$(this).data('toggle', 'uncheck');
+			}
+		});
+
+		var checkAll_hands = $('#checkAll_hands');
+		var checkAll_hands_checkboxes = $('.checkVectors_hands');
+		checkAll_hands.click(function() {
+			checkAll_hands_checkboxes.trigger('click');
+		});
+	};
+
 	this.filter_allographs = function(button) {
 		button.addClass('active');
 		var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
 		checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
-		var annotations = annotator.annotations;
+		var annotations = sort(annotator.vectorLayer.features, 'feature');
 		var h;
-		if (!$.isEmptyObject(annotations)) {
+		if (annotations.length) {
 			var list = [];
 			var vectors = [];
-			for (var i in annotations) {
+			for (var i = 0; i < annotations.length; i++) {
 				if (annotations[i].feature) {
-					list.push([annotations[i]['feature']]);
+					list.push([annotations[i]['allograph_id'],
+						annotations[i]['feature']
+					]);
 				}
 			}
-			list.sort();
 			for (h = 0; h < list.length; h++) {
-				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h] + "'>";
-				checkOutput += "<input data-attribute='feature' checked='checked' value = '" + list[h] + "' class='checkVectors' id='allograph_";
-				checkOutput += list[h] + "' type='checkbox' /> <label for='allograph_" + list[h] + "'' style='display:inline;'>" + list[h] + "</label></p>";
+				var checked = "checked";
+				if (annotator.cacheHiddenFilters.allographs.length) {
+					checked = annotator.cacheHiddenFilters.allographs.indexOf(list[h][0].toString()) < 0 ? "checked" : "";
+				}
+				checkOutput += "<p class='paragraph_allograph_check' data-annotation = '" + list[h][0] + "'>";
+				checkOutput += "<input " + checked + " data-attribute='feature' value='" + list[h][0] + "' class='checkVectors' id='allograph_" + list[h][0] + "' type='checkbox'/> <label for='allograph_" + list[h][0] + "' style='display:inline;'>" + list[h][1] + "</label></p>";
 			}
 
 		}
@@ -455,15 +559,28 @@ function AnnotatorLoader() {
 		checkOutput += '<div class="col-lg-6">';
 		checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll_hands" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 
+		var checked_editorial = "checked",
+			checked_public = "checked";
 		if (!$.isEmptyObject(annotations)) {
+
 			var hands = annotator.hands;
 			for (h = 0; h < hands.length; h++) {
-				checkOutput += "<p class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
-					"<input data-attribute='hand' checked='checked' value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "'' style='display:inline;'>" + hands[h].name + "</label></p>";
+				if (annotator.cacheHiddenFilters.hands.length) {
+					checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
+				}
+				checkOutput += "<p data-annotation='" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
+					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
-			checkOutput += "<p data-annotation class='paragraph_allograph_check'>";
-			checkOutput += "<input data-attribute='editorial' checked='checked' value = 'editorial' class='checkVectors' id='editorial_filter' type='checkbox' />";
+			if (annotator.cacheHiddenFilters.hands.length) {
+				checked_public = annotator.cacheHiddenFilters.hands.indexOf("public") < 0 ? "checked" : "";
+				checked_editorial = annotator.cacheHiddenFilters.hands.indexOf("editorial") < 0 ? "checked" : "";
+			}
+			checkOutput += "<p data-annotation='editorial' class='paragraph_allograph_check'>";
+			checkOutput += "<input data-attribute='editorial' " + checked_editorial + " value = 'editorial' class='checkVectors_hands' id='editorial_filter' type='checkbox' />";
 			checkOutput += "<label for='editorial_filter' style='display:inline;'> [Digipal Editor]</label></p>";
+			checkOutput += "<p data-annotation='public' class='paragraph_allograph_check'>";
+			checkOutput += "<input data-attribute='public' " + checked_public + " value = 'public' class='checkVectors_hands' id='public_filter' type='checkbox' />";
+			checkOutput += "<label for='public_filter' style='display:inline;'> Public Annotations</label></p>";
 		}
 
 		checkOutput += "</div></div>";
@@ -485,43 +602,9 @@ function AnnotatorLoader() {
 
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
-
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 
-			/* launching events */
-			var check_vectors = $('.checkVectors');
-			check_vectors.change(function() {
-				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
-			});
-
-			var check_vectors_hands = $('.checkVectors_hands');
-			check_vectors_hands.change(function() {
-				annotator.filters.filterAnnotation($(this), $(this).data('attribute'));
-			});
-
-			var CheckAll = $('#checkAll');
-			CheckAll.click(function() {
-				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filters.filterCheckboxes('.checkVectors', 'uncheck');
-					$(this).data('toggle', 'check');
-				} else {
-					annotator.filters.filterCheckboxes('.checkVectors', 'check');
-					$(this).data('toggle', 'uncheck');
-				}
-			});
-
-			var checkAll_hands = $('#checkAll_hands');
-			checkAll_hands.click(function() {
-				if ($(this).data('toggle') == 'uncheck') {
-					annotator.filters.filterCheckboxes('.checkVectors_hands', 'uncheck');
-					$(this).data('toggle', 'check');
-				} else {
-					annotator.filters.filterCheckboxes('.checkVectors_hands', 'check');
-					$(this).data('toggle', 'uncheck');
-				}
-			});
-
-
+			filtersEvents();
 			var switcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
 			var switcherCloned = $('#panelImageBox').find('.toggle-state-switch');
 			switcher.bootstrapSwitch();
@@ -575,7 +658,11 @@ function AnnotatorLoader() {
 			}
 
 		} else {
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
+			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.dialog('open');
+			filtersEvents();
 		}
 
 	};
@@ -607,6 +694,7 @@ function AnnotatorLoader() {
 				/* deselecting all checkboxes */
 				toggleButtons.attr('disabled', true);
 				checkboxes.add(checkboxes_hands).prop('disabled', true);
+				annotator.rectangleFeature.deactivate();
 			}
 
 			var clonedSwitcher = $('#allographs_filtersBox').parent().find('.toggle-state-switch');
@@ -761,7 +849,7 @@ function AnnotatorLoader() {
 		}
 
 		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-		if (annotator.isAdmin) {
+		if (annotator.isAdmin === 'True') {
 			toggle_fixed_toolbar();
 		}
 	};
@@ -769,7 +857,6 @@ function AnnotatorLoader() {
 
 	var toggle_fixed_toolbar = function() {
 		var toolbar = $('#panelImageBox');
-
 		$(document).on('scroll', function() {
 			var current_tab = $('.nav li.active').find('[data-toggle="tab"]').data('target');
 			if (current_tab === '#annotator') {
@@ -829,8 +916,55 @@ function AnnotatorLoader() {
 		return annotator.vectorLayer.map.zoom + 1;
 	};
 
+	var filterDropdowns = function() {
+		var allographs = [],
+			hands = [];
+		var features = annotator.vectorLayer.features;
+		for (var i = 0; i < features.length; i++) {
+			if (allographs.indexOf(features[i].allograph_id) < 0 && features[i].graph) {
+				allographs.push(features[i].allograph_id);
+			}
+
+			if (hands.indexOf(features[i].hand) < 0 && features[i].graph) {
+				hands.push(features[i].hand);
+			}
+		}
+
+		var val;
+		$.each($('.allograph_form option'), function() {
+			val = parseInt($(this).val(), 10);
+			if (val && (allographs.indexOf(val) < 0)) {
+				$(this).remove();
+			}
+		});
+
+		$.each($('.hand_form option'), function() {
+			val = parseInt($(this).val(), 10);
+			if (val && (hands.indexOf(val) < 0)) {
+				$(this).remove();
+			}
+		});
+
+		$('select').trigger('liszt:updated');
+	};
+
 	// function to be called as a new features gets drawn
 	this.findRectangleFeatureAdded = function(feature) {
+
+		var threshold = 100;
+
+		if (annotator.map.zoom <= 1) {
+			threshold = 250;
+		}
+
+		if (feature.feature.geometry.getLength() < threshold) {
+			annotator.rectangleFeature.cancel();
+			feature.feature.destroy();
+			$('circle').remove();
+			$('polyline').remove();
+			return false;
+		}
+
 		var unsaved_allographs_button = $('.number_unsaved_allographs');
 		var last_feature_selected = annotator.last_feature_selected;
 		feature.feature.features = [];
@@ -839,12 +973,7 @@ function AnnotatorLoader() {
 		feature.feature.hand = $('#panelImageBox .hand_form').val();
 		feature.feature.originalSize = feature.feature.geometry.bounds.clone();
 		//if (feature.feature.geometry.bounds.top - feature.feature.geometry.bounds.bottom < 5 || feature.feature.geometry.bounds.right - feature.feature.geometry.bounds.left < 10) {
-		if (feature.feature.geometry.getLength() < 50) {
-			feature.feature.destroy();
-			$('circle').remove();
-			$('polyline').remove();
-			return false;
-		}
+
 
 		if (annotator.isAdmin == "False") {
 			annotator.user_annotations.push(feature.feature.id);
@@ -946,9 +1075,15 @@ function AnnotatorLoader() {
 
 				if (annotator.isMobile()) {
 					toolbar.css({
-						top: '100px',
+						top: 100,
 						left: 0
 					});
+					if ((toolbar.offset().top + 100) < map.offset().top && annotator.isMobile()) {
+						toolbar.fadeOut();
+					} else {
+						toolbar.fadeIn();
+					}
+
 				} else {
 					toolbar.css({
 						top: map.position().top - 150,
@@ -965,6 +1100,14 @@ function AnnotatorLoader() {
 
 			}
 		}
+
+		$(window).on('scroll', function() {
+			if ((toolbar.offset().top + 100) < map.offset().top && annotator.isMobile()) {
+				toolbar.fadeOut();
+			} else {
+				toolbar.fadeIn();
+			}
+		});
 
 		$(window).resize(function() {
 			set_map();

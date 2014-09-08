@@ -93,15 +93,9 @@
               {% endif %}
               <div class="folio-image-wrapper">
                 <!-- graph -->
-                <div data-container='body' class='annotation_li droppable_image' data-graph = "{{ graph.graph.id }}" data-image-id="{{ graph.image_id }}" data-allograph="{{ graph.graph.idiograph.allograph.id }}" data-type ='annotation'>
+                <div data-add-star='true' data-toggle='tooltip' {% if can_edit %}title="Edit graph"{% endif %} data-container='body' class='annotation_li droppable_image' data-graph = "{{ graph.graph.id }}" data-image-id="{{ graph.image_id }}" data-allograph="{{ graph.graph.idiograph.allograph.id }}" data-type ='annotation'>
 
                   <p>
-
-                    {% if not can_edit %}
-
-                    <a data-container='body' data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}'>View</a>
-
-                    {% endif %}
 
                     {% if can_edit %}
                      <!-- graph number -->
@@ -111,7 +105,7 @@
 
                   </p>
 
-              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?vector_id={{graph.vector_id}}' data-graph = '{{ graph.graph.id }}' class='' {% if not can_edit %}title="View graph in the manuscript viewer"{%else%}title="Edit graph"{% endif %}>
+              <a data-placement='right' data-toggle='tooltip' href='{{graph.image.get_absolute_url}}?graph={{graph.graph.id}}' data-graph = '{{ graph.graph.id }}' class='' title="View graph in the manuscript viewer">
                 {% annotation_img graph lazy=1 %}
               </a>
 

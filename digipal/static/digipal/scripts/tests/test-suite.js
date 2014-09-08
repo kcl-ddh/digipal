@@ -8,26 +8,13 @@ function TestSuite(_options) {
 
     var self = this;
     var config = require('./config.js').config;
-    var domain = config.root;
+    var local_config = require('./local_config.js').local_config;
     var http = require('http'),
         system = require('system'),
-        fs = require('fs');
-
-    var options = {
-        'deepScan': config.deepScan,
-        "page": domain
-    };
+        fs = require('fs'),
+        webPage = require('webpage');
 
     var parentDirectory = fs.workingDirectory;
-
-    if (casper.cli.get('deep')) {
-        config.deepScan = true;
-        options.deepScan = config.deepScan;
-    }
-
-    if (casper.cli.get('root')) {
-        options.page = casper.cli.get('root');
-    }
 
     var init = function(_options) {
 
@@ -46,10 +33,6 @@ function TestSuite(_options) {
                 Scraper(Tests.tests, options);
             }).run(function() {
 
-                if (assert_failures.length) {
-                    this.echo(assert_failures.length + ' failures', 'ERROR');
-                }
-
                 if (errors.length > 0) {
                     this.echo(errors.length + ' Javascript errors found', "WARNING");
                 } else {
@@ -60,13 +43,40 @@ function TestSuite(_options) {
                     this.echo(successes.length + ' Tests executed succesfully', "GREEN_BAR");
                 }
 
-                casper.test.done();
+                if (assert_failures.length) {
+                    this.echo(assert_failures.length + ' failures', 'ERROR');
 
-                this.echo('All tasks done.', 'GREEN_BAR');
-                this.exit();
+                    var error_message = "";
+                    for (var i = 0; i < assert_failures.length; i++) {
+                        error_message += "Error: " + assert_failures[i].type + '\n';
+                        error_message += "Line: " + assert_failures[i].line || "not provided" + '\n';
+                        error_message += "Message: " + assert_failures[i].message || "not provided" + '\n';
+                        error_message += "Source: " + assert_failures[i].message.sourceURL || "not provided" + '\n';
+                        error_message += "Stack: " + assert_failures[i].message.stack || "not provided" + '\n\n\n';
+                    }
+
+                    if (options.email.email_on_errors) {
+                        EmailSender.send(error_message, function() {
+                            casper.then(function() {
+                                exitCasper();
+                            });
+                        });
+                    } else {
+                        exitCasper();
+                    }
+                } else {
+                    exitCasper();
+                }
             });
         });
 
+    };
+
+
+    var exitCasper = function() {
+        casper.test.done();
+        casper.echo('All tasks done.', 'GREEN_BAR');
+        casper.exit();
     };
 
     var Events = function(errors, assert_failures, successes) {
@@ -102,6 +112,22 @@ function TestSuite(_options) {
         casper.test.on("fail", function(failure) {
             Utils.screenshot('screenshots', failure.message);
             assert_failures.push(failure);
+            if (options.email.email_on_errors) {
+                var error_message = "";
+                error_message += "Error: " + failure.type + '\n';
+                error_message += "Line: " + failure.line || "not provided" + '\n';
+                error_message += "Message: " + failure.message || "not provided" + '\n';
+                error_message += "Source: " + failure.message.sourceURL || "not provided" + '\n';
+                error_message += "Stack: " + failure.message.stack || "not provided" + '\n\n\n';
+
+                EmailSender.send(error_message, function() {
+                    casper.then(function() {
+                        casper.test.done();
+                        casper.echo('All tasks done.', 'GREEN_BAR');
+                        casper.exit();
+                    });
+                });
+            }
         });
 
         if (casper.cli.get('debug-remote')) {
@@ -229,6 +255,43 @@ function TestSuite(_options) {
         }
     };
 
+    var EmailSender = {
+
+        send: function(message, callback) {
+
+            var data = {};
+            data.from_email = config.email.from;
+            data.to = config.email.to;
+            data.message = message;
+            data.subject = "Digipal - Test Log";
+            var page = webPage.create();
+            var url = options.root + config.email.url + '?';
+
+            for (var i in data) {
+                if (i == 'to') {
+                    for (var j = 0; j < data[i].length; j++) {
+                        url += i + '=' + data[i][j] + '&';
+                    }
+                } else {
+                    url += i + '=' + data[i] + '&';
+                }
+            }
+
+            console.log("Sending email:");
+            page.open(url, function(status) {
+                if (status !== 'success') {
+                    casper.echo('Unable to send email', 'ERROR');
+                } else {
+                    casper.echo(page.content);
+                }
+                if (callback) {
+                    return callback();
+                }
+            });
+        }
+
+    };
+
     var Utils = {
 
         dom: {
@@ -311,11 +374,11 @@ function TestSuite(_options) {
 
         screenshot: function(url, name) {
             var viewportSizes = [
-                    [320, 480],
-                    [320, 568],
-                    [600, 1024],
-                    [1024, 768],
-                    [1280, 800],
+                    //[320, 480],
+                    //[320, 568],
+                    //[600, 1024],
+                    //[1024, 768],
+                    //[1280, 800],
                     [1440, 900]
                 ],
 
@@ -440,7 +503,20 @@ function TestSuite(_options) {
 
     };
 
-    options = Utils.extend({}, options, _options);
+    /* Setting configuration and options */
+
+    var options = _options;
+
+    config = Utils.extend({}, config, local_config);
+    options = Utils.extend({}, options, config);
+
+    if (casper.cli.get('deep')) {
+        config.deepScan = true;
+    }
+
+    if (casper.cli.get('root')) {
+        options.page = casper.cli.get('root');
+    }
 
     return {
         'tests': Tests.tests,

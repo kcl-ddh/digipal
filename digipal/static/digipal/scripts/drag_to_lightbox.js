@@ -127,6 +127,7 @@ var Star = function(options) {
 				return false;
 			}
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+			if (element.find('.starred-image').length) return false;
 			element.append(star);
 		}
 	};
@@ -213,23 +214,23 @@ var Star = function(options) {
 
 	var findStarredInPage = function() {
 		var collection_id = getCurrentCollection();
-		var graphs = $('[data-graph]').add($('[data-id]'));
-		$.each(graphs, function() {
+		var graphs = $('.droppable_image[data-graph]').add($('.droppable_image[data-id]'));
+		var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+		$.each(graphs, function(index, value) {
+			value = $(value);
 			var id;
-			if ($(this).data('graph')) {
-				id = $(this).data('graph');
+			if (value.data('graph')) {
+				id = value.data('graph');
 				type = 'annotation';
 			} else {
-				id = $(this).data('id');
+				id = value.data('id');
 				type = 'image';
 			}
 
 			if (isInCollection(collection_id, id, type)) {
-				if (typeof $(this).data('add-star') !== 'undefined' && !$(this).data('add-star')) {
-					return false;
+				if (typeof value.data('add-star') === 'undefined' || value.data('add-star')) {
+					value.append(star);
 				}
-				var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-				$(this).append(star);
 			}
 		});
 	};

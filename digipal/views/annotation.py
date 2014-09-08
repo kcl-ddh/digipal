@@ -19,7 +19,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from digipal.forms import ImageAnnotationForm
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
-        has_edit_permission
+        has_edit_permission, Aspect
 import ast
 from django import template
 from django.conf import settings
@@ -35,8 +35,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     ''' General handler for API requests.
         if @callback=X in the query string a JSONP response is returned
     '''
-    mimetype = 'application/json'
-
     data = None
 
     # Support for JSONP responses
@@ -45,7 +43,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         if not re.match(ur'(?i)^\w+$', jsonpcallback):
             # invalid name format for the callback
             data = {'success': False, 'errors': ['Invalid JSONP callback name format.'], 'results': []}
-            import json
             data = json.dumps(data)
             jsonpcallback = None
 
@@ -55,10 +52,14 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         from digipal.api.generic import API
         data = API.process_request(request, content_type, ids)
 
-    # JSON -> JSONP
+    # convert from JSON to another format
+    format = request.REQUEST.get('@format', None)
     if jsonpcallback:
-        data = u';%s(%s);' % (jsonpcallback, data)
-        mimetype = 'text/javascript'
+        format = 'jsonp'
+    data, mimetype, is_webpage = API.convert_response(data, format, jsonpcallback, request.REQUEST.get('@xslt', None))
+
+    if is_webpage:
+        return render_to_response('digipal/api/webpage.html', {'api_response': mark_safe(data)}, context_instance=RequestContext(request))
 
     return HttpResponse(data, mimetype=mimetype)
 
@@ -124,7 +125,15 @@ def get_features(graph_id, only_features=False):
                 for feature in component.features.all():
                     dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
 
+        aspects = []
+        for aspect in graph.aspects.all():
+            features = []
+            for feature in aspect.features.all():
+                features.append({'id': feature.id, 'name': feature.name})
+            aspects.append({'id': aspect.id, 'name': aspect.name, 'features': features})
+
         obj['features'] = dict_features
+        obj['aspects'] = aspects
         #obj['vector_id'] = vector_id
         obj['image_id'] = image_id
         obj['hand_id'] = hand_id
@@ -153,7 +162,9 @@ def allograph_features(request, allograph_id):
     allographs = Allograph.objects.filter(id__in=allographs_ids).select_related('allograph_components__component')
     for allograph in allographs:
         allograph_components = allograph.allograph_components.all()
-        allographs_list = []
+        allographs_list = {}
+        allographs_list['components'] = []
+        allographs_list['aspects'] = []
         if allograph_components:
             for ac in allograph_components:
                 ac_dict = {}
@@ -165,7 +176,16 @@ def allograph_features(request, allograph_id):
                     ac_dict['features'].append({'id': f.id, 'name': f.name})
                     if f.componentfeature_set.all()[0].set_by_default:
                         ac_dict['default'].append({'component': f.componentfeature_set.all()[0].component.id, 'feature': f.componentfeature_set.all()[0].feature.id})
-                allographs_list.append(ac_dict)
+                allographs_list['components'].append(ac_dict)
+        aspects = allograph.aspects.all()
+        for aspect in aspects:
+            aspect_obj = {}
+            aspect_obj['id'] = aspect.id
+            aspect_obj['features'] = []
+            for feature in aspect.features.all():
+                 aspect_obj['features'].append({'id': feature.id, 'name': feature.name})
+            aspect_obj['name'] = aspect.name
+            allographs_list['aspects'].append(aspect_obj)
         obj['features'] = []
         obj['allographs'] = allographs_list
         data.append(obj)
@@ -183,9 +203,12 @@ def image(request, image_id):
         return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
                               context_instance=RequestContext(request))
 
+    is_admin = has_edit_permission(request, Image)
+
     images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id), True)
-    annotations_count = image.annotation_set.values('graph').count()
-    annotations = image.annotation_set.all()
+    #annotations_count = image.annotation_set.all().values('graph').count()
+    #annotations = image.annotation_set.all()
+    annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(is_admin).select_related('graph__hand', 'graph__idiograph__allograph')
     dimensions = {
         'width': image.dimensions()[0],
         'height': image.dimensions()[1]
@@ -232,14 +255,14 @@ def image(request, image_id):
     width, height = image.dimensions()
     image_server_url = image.zoomify
     zoom_levels = settings.ANNOTATOR_ZOOM_LEVELS
-    is_admin = has_edit_permission(request, Image)
 
     from digipal.models import OntographType
     context = {
                'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               'image_link': image_link, 'annotations': annotations_count,
+               #'image_link': image_link, 'annotations': annotations_count,
+               'image_link': image_link, 'annotations': annotations.count(),
                'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
                'no_image_reason': image.get_media_unavailability_reason(request.user),
@@ -279,7 +302,7 @@ def image_vectors(request, image_id):
         if a.graph:
             data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
         else:
-            data[a.vector_id] = ast.literal_eval(a.geo_json.strip())
+            data[a.id] = ast.literal_eval(a.geo_json.strip())
 
     if request:
         return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -290,21 +313,24 @@ def get_vector(request, image_id, graph):
     annotation = Annotation.objects.get(graph=graph)
     data = {}
     data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
-    data['id'] = annotation.vector_id
+    data['id'] = annotation.id
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
+    
+    can_edit = has_edit_permission(request, Annotation)
 
     if annotations_page:
         annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
     else:
         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
+    annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
 
     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
-
-    if not has_edit_permission(request, Annotation):
+    if not can_edit:
         editorial_annotations = editorial_annotations.editorial().publicly_visible()
+    editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
 
     vectors = json.loads(image_vectors(False, image_id))
 
@@ -356,14 +382,13 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         """
     for e in editorial_annotations:
         data[e.id] = {}
-        if e.vector_id in vectors:
-            data[e.id]['geo_json'] = vectors[e.vector_id]['geometry']
+        data[e.id]['geo_json'] = vectors[unicode(e.id)]['geometry']
         data[e.id]['status_id'] = e.status_id
         data[e.id]['image_id'] = e.image.id
         data[e.id]['display_note'] = e.display_note
         data[e.id]['internal_note'] = e.internal_note
         data[e.id]['vector_id'] = e.vector_id
-        data[e.id]['id'] = e.vector_id
+        data[e.id]['id'] = unicode(e.id)
         data[e.id]['is_editorial'] = True
 
     if annotations_page:
@@ -413,7 +438,9 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
 def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
-    annotations = Annotation.objects.filter(image=image_id).select_related('graph')
+    can_edit = has_edit_permission(request, Annotation)
+    
+    annotations = Annotation.objects.filter(image=image_id).exclude_hidden(can_edit).select_related('graph')
 
     data_allographs = SortedDict()
     for a in annotations:
@@ -431,7 +458,7 @@ def image_allographs(request, image_id):
 
     context = {
         'annotations_list': data_allographs,
-        'can_edit': has_edit_permission(request, Annotation)
+        'can_edit': can_edit
     }
 
     return render_to_response('digipal/annotations.html', context, context_instance=RequestContext(request))
@@ -479,11 +506,9 @@ def images_lightbox(request, collection_name):
     data = {}
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
-        print graphs
         if 'annotations' in graphs:
             annotations = []
             annotations_list = list(Annotation.objects.filter(graph__in=graphs['annotations']))
-            print annotations_list
             annotations_list.sort(key=lambda t: graphs['annotations'].index(t.graph.id))
             for annotation in annotations_list:
 
@@ -499,7 +524,8 @@ def images_lightbox(request, collection_name):
                         scribe_id = 'Unknown'
                         place_name = 'Unknown'
                         date = 'Unknown'
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label])
+                    full_size = u'<img alt="%s" src="%s" />' % (annotation.graph, annotation.get_cutout_url(True, True))
+                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                 except:
                     continue
             data['annotations'] = annotations
@@ -510,6 +536,15 @@ def images_lightbox(request, collection_name):
             for image in images_list:
                 images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
+        if 'editorial' in graphs:
+            editorial_annotations = []
+            vector_ids = []
+            editorial_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
+            editorial_annotations_list.sort(key=lambda t: graphs['editorial'].index(str(t.id)))
+            for _annotation in editorial_annotations_list:
+                full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
+                editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
+            data['editorial'] = editorial_annotations
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
 def form_dialog(request, image_id):
@@ -580,6 +615,7 @@ def save(request, graphs):
                         #annotation.after = clean['after']
                         allograph = clean['allograph']
                         hand = clean['hand']
+
                         if hand and allograph:
 
                             scribe = hand.scribe
@@ -644,15 +680,30 @@ def save(request, graphs):
                                 gc.features.add(feature)
                                 gc.save()
 
-                        # attach the graph to a containing one
-                        if geo_json:
-                            annotation.set_graph_group()
+                        aspects = get_data.getlist('aspect')
+                        aspects_deleted = get_data.getlist('-aspect')
+
+                        if aspects:
+                            for aspect in aspects:
+                                aspect_model = Aspect.objects.get(id=aspect)
+                                graph.aspects.add(aspect_model)
+
+                        if aspects_deleted:
+                            for aspect in aspects_deleted:
+                                aspect_model = Aspect.objects.get(id=aspect)
+                                graph.aspects.remove(aspect_model)
+
+                        graph.save()
+
                         # Only save the annotation if it has been modified (or new one)
                         # see JIRA DIGIPAL-477
-
                         if annotation_is_modified or not annotation.id:
                             annotation.graph = graph
                             annotation.save()
+                            # attach the graph to a containing one
+                            # cannot be called BEFORE saving the annotation/graph
+                            if geo_json:
+                                annotation.set_graph_group()
 
                         new_graph = json.loads(get_features(graph.id))
                         if 'vector_id' in gr:
@@ -700,50 +751,50 @@ def save_editorial(request, graphs):
             for gr in graphs:
                 image = Image.objects.get(id=gr['image'])
                 get_data = request.POST.copy()
-                vector_id = gr['vector_id']
-                annotation = Annotation.objects.filter(image=image, vector_id=vector_id).count()
-
+                _id = gr['id']
+                count = 0
+                if _id and _id.isdigit():
+                    count = Annotation.objects.filter(image=image, id=_id).count()
                 if 'geoJson' in gr:
                     geo_json = str(gr['geoJson'])
                 else:
                     geo_json = False
 
-                if annotation > 0:
-                    annotation = Annotation.objects.get(image=image, vector_id=vector_id)
+                if count > 0:
+                    annotation = Annotation.objects.get(image=image, id=_id)
                 else:
-                    annotation = Annotation(image=image, vector_id=vector_id)
+                    annotation = Annotation(image=image)
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():
                     with transaction.atomic():
                         clean = form.cleaned_data
+
                         if geo_json:
                             annotation.geo_json = geo_json
-                            annotation_is_modified = True
 
                         # set the note (only if different) - see JIRA DIGIPAL-477
                         for f in ['display_note', 'internal_note']:
 
-                            if getattr(annotation, f) != clean[f]:
+                            if getattr(annotation, f) != clean[f] and f in get_data:
                                 setattr(annotation, f, clean[f])
-                                annotation_is_modified = True
 
                         if not annotation.id:
                             # set the author only when the annotation is created
                             annotation.author = request.user
 
-
                         if geo_json:
                             annotation.set_graph_group()
-                        if annotation_is_modified or not annotation.id:
-                            annotation.save()
+                        annotation.save()
 
                         new_graph = [{}]
+
                         if 'vector_id' in gr:
                             new_graph[0]['vector_id'] = gr['vector_id']
-                            if has_edit_permission(request, Annotation):
-                                new_graph[0]['internal_note'] = annotation.internal_note
-                            new_graph[0]['display_note'] = annotation.display_note
+                        new_graph[0]['annotation_id'] = unicode(annotation.id)
+                        if has_edit_permission(request, Annotation):
+                            new_graph[0]['internal_note'] = annotation.internal_note
+                        new_graph[0]['display_note'] = annotation.display_note
 
                         data['graphs'].append(new_graph[0])
 
@@ -783,7 +834,7 @@ def delete(request, image_id, graph_id):
                 try:
                     annotation = Annotation.objects.get(image=image, graph=graph_id)
                 except:
-                    annotation = Annotation.objects.get(image=image, vector_id=graph_id)
+                    annotation = Annotation.objects.get(image=image, id=graph_id)
             except Annotation.DoesNotExist:
                 data.update({'success': False})
                 data.update({'errors': {}})

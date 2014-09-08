@@ -37,6 +37,7 @@ def get_search_types_display(content_types):
     return ret
 
 def record_view(request, content_type='', objectid='', tabid=''):
+    '''The generic view for any type of record: Hand, Scribe, Manuscript'''
     context = {'tabid': tabid}
     
     template = 'errors/404.html'
@@ -204,7 +205,8 @@ def search_record_view(request):
             if not type.is_empty:
                 context['is_empty'] = False
 
-    context['search_help_url'] = get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+    from digipal import utils
+    context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the advanced search forms 
     #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
@@ -399,12 +401,6 @@ def get_search_page_js_data(content_types, expanded_search=False, request=None):
     };
     
     return ret
-
-def get_cms_url_from_slug(slug):
-    from mezzanine.pages.models import Page as MPage 
-    for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
-        return page.get_absolute_url()
-    return u'/%s' % slug
 
 def search_graph_view(request):
     # this has been integrated into the main search page

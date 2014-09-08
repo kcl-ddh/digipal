@@ -15,6 +15,7 @@ import iipimage.fields
 import iipimage.storage
 from django.utils.html import conditional_escape, escape
 from tinymce.models import HTMLField
+from django.db import transaction
 
 import logging
 dplog = logging.getLogger('digipal_debugger')
@@ -230,6 +231,7 @@ class Allograph(models.Model):
     character = models.ForeignKey(Character)
     default = models.BooleanField(default=False)
     aspects = models.ManyToManyField(Aspect, blank=True, null=True)
+    hidden = models.BooleanField(default=False, help_text=u'''If ticked the public users won't see this allograph on the web site.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -338,6 +340,7 @@ class Reference(models.Model):
 
 
 # MsOwners in legacy db
+# GN: this is actually an Ownership table
 class Owner(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
 
@@ -350,10 +353,14 @@ class Owner(models.Model):
     #
     institution = models.ForeignKey('Institution', blank=True, null=True
         , default=None, related_name='owners',
-        help_text='Please select either an institution or a person')
+        help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
     person = models.ForeignKey('Person', blank=True, null=True, default=None,
         related_name='owners',
-        help_text='Please select either an institution or a person')
+        help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
+
+    repository = models.ForeignKey('Repository', blank=True, null=True
+        , default=None, related_name='owners', 
+        help_text='`Repository` actually represents the institution, person or library owning the item.')
 
     date = models.CharField(max_length=128)
     evidence = models.TextField()
@@ -369,7 +376,7 @@ class Owner(models.Model):
 
     @property
     def content_object(self):
-        return self.institution or self.person
+        return self.institution or self.person or self.repository
 
     @property
     def content_type(self):
@@ -377,14 +384,33 @@ class Owner(models.Model):
         if ret:
             ret = ContentType.objects.get_for_model(ret)
         return ret
+    
+    def get_owned_item(self):
+        ret = self.itempart_set.first() or self.historicalitem_set.first() or self.currentitem_set.first()
+        return ret
 
     def __unicode__(self):
         #return u'%s: %s. %s' % (self.content_type, self.content_object,
         #        self.date)
         #return get_list_as_string(self.content_type, ': ', self.content_object,
         #        '. ', self.date)
-        return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
+        #return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
+        ret = u''
+        
+        item = self.get_owned_item()
+        if item:
+            ret += u'\'%s\'' % item
+        else:
+            ret += u'?'
+        
+        ret += u' owned by '
+        
+        ret += u' \'%s\' ' % self.content_object
 
+        if self.date:
+            ret += u' in \'%s\'' % self.date
+            
+        return ret
 
 # DateText in legacy db
 class Date(models.Model):
@@ -541,29 +567,6 @@ class HistoricalItem(models.Model):
 
     def get_display_description(self):
         ret = None
-        if 0:
-            ret_priority = 10
-            is_charter = (self.historical_item_type and self.historical_item_type.name == 'charter')
-            # See JIRA 95
-            for desc in  self.get_descriptions():
-                if desc.source.id == settings.SOURCE_PROJECT_ID:
-                    ret = desc
-                    break
-                # esawyer
-                if is_charter and (desc.source.id == 5) and ret_priority > 1:
-                    ret = desc
-                    ret_priority = 1
-                # pelteret
-                if is_charter and (desc.source.id == 6) and ret_priority > 2:
-                    ret = desc
-                    ret_priority = 2
-                # gneuss
-                if not is_charter and (desc.source.id == 2) and ret_priority > 3:
-                    ret = desc
-                    ret_priority = 3
-                if ret_priority == 10:
-                    ret = desc
-        
         descs = self.get_descriptions()
         if descs.count():
             ret = descs[0]
@@ -596,6 +599,26 @@ class Source(models.Model):
 
     def __unicode__(self):
         return u'%s' % (self.label or self.name)
+    
+    @classmethod
+    def get_source_from_keyword(cls, keyword, none_if_not_found=False):
+        '''Returns a source from a keyword matching part of the name or the label.
+           e.g. Source.get_source_from_keyword('digipal') => <Source: DigiPal>
+           If more than one match, the one with the lowest ID is returned. 
+        '''
+        ret = None
+        cls._sources = getattr(cls, '_sources', cls.objects.all().order_by('id'))
+        
+        if cls._sources:
+            for source in cls._sources:
+                if keyword.lower() in source.name.lower() or keyword.lower() in source.label.lower():
+                    ret = source
+                    break
+                
+        if not none_if_not_found and not ret:
+            raise Exception('Source not found "%s".' % keyword)
+        
+        return ret
 
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
@@ -856,8 +879,24 @@ class Place(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+class OwnerType(models.Model):
+    name = models.CharField(max_length=256)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
+    
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+
+class LibraryManager(models.Manager):
+    def get_queryset(self):
+        return super(LibraryManager, self).get_queryset().filter(type__id=3)
 
 # Libraries in legacy db
+# GN: this is now a general Owner table (Person, Institution, Repo)
 class Repository(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=256)
@@ -865,7 +904,15 @@ class Repository(models.Model):
     place = models.ForeignKey(Place)
     url = models.URLField(blank=True, null=True)
     comma = models.NullBooleanField(null=True)
+    # legacy.`Overseas?`
     british_isles = models.NullBooleanField(null=True)
+
+    type = models.ForeignKey('OwnerType', null=True,
+            blank=True, default=None, related_name='repositories')
+    
+    part_of = models.ForeignKey('self', null=True,
+            blank=True, default=None, related_name='parts')
+
     digital_project = models.NullBooleanField(null=True)
     copyright_notice = HTMLField(blank=True, null=True)
     media_permission = models.ForeignKey(MediaPermission, null=True,
@@ -878,8 +925,11 @@ class Repository(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
+    #objects = LibraryManager()
+    #all_objects = models.Manager()
+    
     class Meta:
-        ordering = ['name']
+        ordering = ['short_name', 'name']
         verbose_name_plural = 'Repositories'
 
     def __unicode__(self):
@@ -1348,8 +1398,17 @@ class Image(models.Model):
             ret = Repository.get_default_media_permission()
         return ret
 
+    def is_media_public(self):
+        return not self.is_media_private()
+
     def is_media_private(self):
         return self.get_media_permission().is_private
+
+    def get_media_right_label(self):
+        ret = 'Full size image'
+        if self.is_media_private():
+            ret = 'Thumbnail only'
+        return ret
 
     def get_media_unavailability_reason(self, user=None):
         '''Returns an empty string if the media can be viewed by the user.
@@ -1427,6 +1486,9 @@ class Image(models.Model):
         if self.iipimage != self.__original_iipimage:
             self.height = 0
             self.width = 0
+            
+        if self.iipimage and self.iipimage.name:
+            self.iipimage.name = self.iipimage.name.replace('\\', '/')
         
         super(Image, self).save(*args, **kwargs)
         self.__original_iipimage = self.iipimage
@@ -1722,6 +1784,9 @@ class Hand(models.Model):
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
+    def get_search_label(self):
+        return 'DigiPal Hand %s' % self.id
+
     def get_short_label(self):
         ret = unicode(self)
         ret = re.sub(ur'\([^)]*\)', ur'', ret)
@@ -1881,7 +1946,8 @@ class Graph(models.Model):
     def get_absolute_url(self):
         ret = '/'
         # TODO: try/catch for missing annotation
-        if self.annotation:
+        
+        if hasattr(self, 'annotation'):
             ret = self.annotation.get_absolute_url()
         return ret
         
@@ -1943,6 +2009,15 @@ class AnnotationQuerySet(models.query.QuerySet):
     def publicly_visible(self):
         '''returns only annotations which have either a graph or a display note'''
         return self.filter(Q(graph__isnull=False) | ~(Q(display_note__exact='') | Q(display_note__isnull=True)))
+    
+    def exclude_hidden(self, include_hidden=False):
+        '''Don't return the annotations where allograph.hidden=True.
+            Unless include_hidden=True.
+        '''
+        ret = self
+        if not include_hidden:
+            ret = self.exclude(graph__idiograph__allograph__hidden=True)
+        return ret
 
 class AnnotationManager(models.Manager):
     def get_queryset(self):
@@ -1973,7 +2048,7 @@ class Annotation(models.Model):
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
-    
+    holes = models.CharField(max_length=1000, null=True, blank=True)
     objects = AnnotationManager()
 
     class Meta:
@@ -2070,33 +2145,85 @@ class Annotation(models.Model):
         return ret
 
     def set_graph_group(self):
-        # if the graph is contained within another
-        # this function will set self.group to that other graph.
-        group_id = None
+        '''
+            If the graph is contained within another
+            This function will set self.group to that other graph.
+            It also set self.holes: the holes to draw on the image thumbnail on the frontend.
+            Modifications are directly saved to the DB, no need to call save().
+        '''
+        
+        group = None
         min_dist = 1e6
-
-        coord = self.get_coordinates()
 
         # Assumptions made:
         #    1. all regions are rectangles, no more complex shapes.
         #    2. nested graphs are saved after their parent graph.
         if self.graph:
             level = self.graph.idiograph.allograph.character.ontograph.nesting_level
-            if level > 1:
+            #
+            # we search for another annotations with 
+            #     * nesting_level > self.graph....nesting_level
+            #     * containing this annotation
+            #
+            # we keep only the annotation with the nearest top left corner  
+            #
+            if level >= 1:
+                coord = self.get_coordinates(y_from_top=True)
                 lvl_field = 'graph__idiograph__allograph__character__ontograph__nesting_level';
-                for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
-                    a_coord = self.get_coordinates(a['geo_json'])
+                #for a in Annotation.objects.filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__range=(1, level - 1)).values('graph_id', 'geo_json', lvl_field):
+                for a in Annotation.objects.exclude(id=self.id).filter(image=self.image, graph__idiograph__allograph__character__ontograph__nesting_level__gt=0).values('graph_id', 'geo_json', lvl_field):
+                    a_coord = self.get_coordinates(a['geo_json'], y_from_top=True)
+                    
+                    # containment test
                     if coord[0][0] >= a_coord[0][0] and \
                         coord[0][1] >= a_coord[0][1] and \
                         coord[1][0] <= a_coord[1][0] and \
                         coord[1][1] <= a_coord[1][1]:
+                        
+                        # top left corner distance
                         dist = abs(coord[0][0] - a_coord[0][0])
                         if dist < min_dist:
-                            group_id = a['graph_id']
+                            group = a
                             min_dist = dist
 
-            self.graph.group_id = group_id
-            self.graph.save()
+            if group:
+                # now 'group' is the closest containing annotation
+                if group[lvl_field] < level:
+                    # nesting
+                    #print '%s nested in %s' % (self.graph.id, group['graph_id'])
+                    if group['graph_id'] != self.graph.group_id:
+                        self.graph.group_id = group['graph_id']
+                        self.graph.save()
+                else:
+                    #print '%s is a hole in %s' % (self.graph.id, group['graph_id'])
+                    a_group = Annotation.objects.get(graph_id=group['graph_id'])
+                    a_group.set_hole(self.id, coord)
+                    #print a_group.holes
+                    a_group.save()
+                    
+    def get_holes(self):
+        import json
+        return json.loads(self.holes or '{}')
+
+    def set_hole(self, annotation_id, a_coord):
+        import json
+        holes = self.get_holes()
+        coord = self.get_coordinates(y_from_top=True)
+        #
+        # convert the coordinates into relative offsets and lengths
+        # [[781.818359375, 1889.2272949218996], [1805.818359375, 2929.2272949218996]]
+        # =>
+        # [offx, offy, lengthx, lengthy]
+        #
+        r_coord = [0, 0, 0, 0]
+        r_coord[2] = coord[1][0] - coord[0][0]
+        r_coord[3] = coord[1][1] - coord[0][1]
+        r_coord[0] = (a_coord[0][0] - coord[0][0]) / r_coord[2]
+        r_coord[1] = (a_coord[0][1] - coord[0][1]) / r_coord[3]
+        r_coord[2] = (a_coord[1][0] - a_coord[0][0]) / r_coord[2]
+        r_coord[3] = (a_coord[1][1] - a_coord[0][1]) / r_coord[3]
+        holes[annotation_id] = r_coord
+        self.holes = json.dumps(holes) 
 
     def save(self, *args, **kwargs):
         # GN: why do we need this call BEFORE changing the cutout?
@@ -2175,7 +2302,7 @@ class Annotation(models.Model):
 
         super(Annotation, self).save(*args, **kwargs)
 
-    def get_cutout_url_info(self, esc=False, rotated=False):
+    def get_cutout_url_info(self, esc=False, rotated=False, fixlen=None):
         ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
 
         # get the rectangle surrounding the shape
@@ -2184,10 +2311,15 @@ class Annotation(models.Model):
         rotation = float(self.rotation)
         if rotation > 0.0:
             psr = self.get_coordinates(y_from_top=True, rotated=True)
+        # dims: full image dimensions
         dims = [float(v) for v in self.image.dimensions()]
         
         for d in [0, 1]:
             ret['frame_dims'][d] = psr[1][d] - psr[0][d]
+        
+        longest_dim = 0
+        if ret['frame_dims'][1] > ret['frame_dims'][0]:
+            longest_dim = 1
             
         if min(dims) <= 0 or min(ret['frame_dims']) <= 0:
             return ret
@@ -2208,7 +2340,15 @@ class Annotation(models.Model):
             ret['dims'] = ret['frame_dims'][:]
         
         # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
-        factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        #factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        if fixlen:
+            max_len = fixlen
+        else:
+            max_len = float(settings.MAX_THUMB_LENGTH)
+            if getattr(settings, 'MIN_THUMB_LENGTH', settings.MAX_THUMB_LENGTH) < settings.MAX_THUMB_LENGTH:
+                max_lens = [settings.MIN_THUMB_LENGTH, max_len]
+                max_len = min(max_lens[1], max_lens[0] + float(max_lens[1] - max_lens[0]) / float(dims[longest_dim]) * ret['frame_dims'][longest_dim] * 1.25)
+        factor = min(1.0, max_len / float(max(ret['frame_dims'])))
         
         ret['url'] = settings.IMAGE_SERVER_RGN % \
             (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH, self.image.path(), 
@@ -2316,7 +2456,8 @@ class Proportion(models.Model):
     
 class CarouselItem(models.Model):
     link = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the page this item links to. E.g. /digipal/page/80/')
-    image = models.CharField(max_length=200, blank=False, null=False, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg')
+    image_file = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True, null=True, default=None, help_text='The image for this item. Not needed if you have provided a the URL of the image in the image field.')
+    image = models.CharField(max_length=200, blank=True, null=True, help_text='The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg. Not needed if you have uploaded a file in the image_file field.')
     image_alt = models.CharField(max_length=300, blank=True, null=True, help_text='a few words describing the image content.')
     image_title = models.CharField(max_length=300, blank=True, null=True, help_text='the piece of text that appears when the user moved the mouse over the image (optional).')
     sort_order = models.IntegerField(help_text='The order of this item in the carousel. 1 appears first, 2 second, etc. 0 is hidden.')
@@ -2375,12 +2516,47 @@ class StewartRecord(models.Model):
     cartulary = models.CharField(max_length=300, null=True, blank=True, default='')
     eel = models.CharField(max_length=1000, null=True, blank=True, default='')
     import_messages = models.TextField(null=True, blank=True, default='')
+    matched_hands = models.CharField(max_length=1000, null=True, blank=True, default='')
 
     class Meta:
         ordering = ['scragg']
 
     def __unicode__(self):
-        return ur'Scr%s K%s G%s D%s SP %s' % (self.scragg, self.ker, self.gneuss, self.stokes_db, self.sp)
+        ret = u'#%s' % self.id
+        ids = self.get_ids()
+        if ids:
+            ret += u', %s' % ids 
+        return ret
+    
+    def set_matched_hands(self, matched_hands=[]):
+        # format:
+        #     ['h:HAND_ID','ip:IP_ID']
+        if matched_hands:
+            matched_hands = [hand for hand in matched_hands if re.match(ur'^(ip|h):\d+$', hand)]
+        if matched_hands:
+            import json
+            self.matched_hands = json.dumps(matched_hands)
+        else:
+            self.matched_hands = u''
+        return matched_hands
+
+    def get_matched_hands(self):
+        ret = []
+        if self.matched_hands:
+            import json
+            ret = json.loads(self.matched_hands)
+        return ret
+    
+    def get_matched_hands_objects(self):
+        ret = []
+        for match in self.get_matched_hands():
+            rtype, rid = match.split(':')
+            if rtype == 'h':
+                ret.append(rid)
+        
+        ret = list(Hand.objects.filter(id__in=ret).order_by('id'))
+        
+        return ret
 
     def get_ids(self):
         ret = []
@@ -2391,7 +2567,12 @@ class StewartRecord(models.Model):
             if self.ker_hand:
                 ker += '.%s' % self.ker_hand
             ret.append(ker)
-        if self.sp: ret.append(u'SP. %s' % self.sp)
+        if self.sp:
+            aid = u'' 
+            if not ('p' in self.sp.lower()):
+                aid = u'S. '
+            aid += self.sp
+            ret.append(aid)
         if self.stokes_db: ret.append(u'L. %s' % self.stokes_db)
         return ', '.join(ret)
 
@@ -2419,25 +2600,13 @@ class StewartRecord(models.Model):
 
         return ret
 
-    @classmethod
-    def get_sources(self):
-        sources = getattr(self.__class__, 'sources', {})
-        if not sources:
-            sources = {}
-            for source in Source.objects.all():
-                sources[source.name] = source
-
-            self.__class__.sources = sources
-
-        return self.sources
-
     def import_related_object(self, hand, related_name, related_model, related_label_field, value):
         ret = ''
         related_object = getattr(hand, related_name, None)
         if related_object:
             existing_value = getattr(related_object, related_label_field)
             if existing_value != value:
-                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)' % (related_name, existing_value, value)
+                ret = u'Different values for %s: already set to "%s", cannot overwrite it with "%s" (Brookes DB)\n' % (related_name, existing_value, value)
             #else:
                 #ret = u'Already set'
         else:
@@ -2452,7 +2621,7 @@ class StewartRecord(models.Model):
                 # no, then create it
                 # but only if it does not have a ? at the end
                 if value.strip()[-1] == '?':
-                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)' % (related_name, value)
+                    ret = 'Did not set uncertain value for %s field: "%s" (Brookes DB)\n' % (related_name, value)
                     if hand.internal_note:
                         hand.internal_note += '\n' + ret
                     else:
@@ -2460,8 +2629,13 @@ class StewartRecord(models.Model):
                 else:
                     query = {related_label_field: value.strip()}
                     related_object = related_model(**query)
+                    
                     if related_model == Date:
-                        related_object.weight = 0.0
+                        from digipal.utils import get_range_from_date
+                        rng = get_range_from_date(value.strip())
+                        related_object.min_weight = rng[0]
+                        related_object.max_weight = rng[1]
+                        related_object.weight = (related_object.min_weight + related_object.max_weight) / 2
                     related_object.save()
                     #ret = u'Created %s' % related_object.id
             # create link
@@ -2477,46 +2651,71 @@ class StewartRecord(models.Model):
 
         return ret
 
+    @transaction.atomic
     def import_steward_record(self, single_hand=None):
         '''
-            TODO: transfer (Scragg_Description, EM_Description)
-
             [DONE] ker -> ItemPart_HistoricalItem_CatalogueNumbers(Source.name='ker')
             [DONE] sp ->
 
             # hand number
             [DONE] scragg -> hand.scragg
             [DONE] Locus -> hand.+locus
-            [DONE] Selected -> Page (Use this to generate a new Page record)
+            [DONE] Selected -> Page 
+                * (Use this to generate a new Page record)
             [DONE] Notes      Hand.InternalNote
 
-            [DONE] * ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
+            [DONE] ker_hand -> Missing. Use description + Source model. [this is only a hand number, why saving this as a desc?]
             [DONE] Contents      Scragg_Description
             [DONE] EM      Hand.EM_Description (Use description + Source model.)
             [DONE] EEL      MISSING. Use Description + Source model
+            
             # Format is too messy to be imported into the catalogue num
             # we import it into the surrogates field and add a filter
-
             [DONE~] Surrogates      Use Source Model
-
-            Date      Hand.AssignedDate
-            Location      Hand.AssignedPlace
 
             [DONE] Glosses      Hand.GlossOnly
             [DONE] Minor      Hand.ScribbleOnly
+
+            TODO: 
+            [TEST] Date                  Hand.AssignedDate
+            [TEST] Location              Hand.AssignedPlace
+            
+            Charter: empty
+            Image URL: not in the import file
+            UCLA online: not in the import file
+            cartulary: empty
+            
         '''
-        if single_hand:
-            hands = [single_hand]
-        else:
-            hands = self.hands.all()
-        if not hands:
-            return
+#         if single_hand:
+#             hands = [single_hand]
+#         else:
+#             matches = self.get_matched_hands()
+#         if not hands:
+#             return
 
         from datetime import datetime
         now = datetime.now()
+        
+        matched_hands = []
 
-        for hand in hands:
-            messages = u'[%s] IMPORT record #%s into hand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, hand.id)
+        for match in self.get_matched_hands():
+            
+            rtype, rid = match.split(':')
+            
+            hand = None
+            if rtype == 'h':
+                hand = Hand.objects.get(id=rid)
+            if rtype == 'ip':
+                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000')
+                hand.internal_note = (hand.internal_note or '') + '\nNew Hand created from Brookes record #%s' % self.id
+                hand.save()
+            
+            matched_hands.append(u'h:%s' % hand.id)
+            
+            new_label = ''
+            if rtype == 'ip':
+                new_label = 'NEW '
+            messages = u'[%s] IMPORT record #%s into %shand #%s.\n' % (now.strftime('%d-%m-%Y %H:%M:%S') , self.id, new_label, hand.id)
 
             # 1. Simple TEXT fields
 
@@ -2540,11 +2739,11 @@ class StewartRecord(models.Model):
             # 2. Description fields
 
             # scragg
-            hand.set_description('Scragg, Conspectus of Scribal Hands', self.contents)
+            hand.set_description(Source.get_source_from_keyword('scragg').name, self.contents)
             # eel
-            hand.set_description('eel', self.eel)
+            hand.set_description('Early English Laws Project', self.eel)
             # em1060-1220
-            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
+            hand.set_description(Source.get_source_from_keyword('english manuscripts 1060'), self.em)
 
             # 3. Related objects
 
@@ -2560,34 +2759,35 @@ class StewartRecord(models.Model):
             # 4. Catalogue numbers
             # Ker, S/P (NOT Scragg, b/c its a hand number)
             if self.ker or self.sp:
-                def add_catalogue_number(historical_item, source, number):
-                    if CatalogueNumber.objects.filter(source=source, number=number).count() == 0:
-                        historical_item.catalogue_numbers.add(CatalogueNumber(source=source, number=number))
-
-                sources = self.get_sources()
-
-                cat_nums = {}
+                def add_catalogue_number(historical_item, source_keyword, number):
+                    if number and number.strip():
+                        number = number.strip()
+                        source = Source.get_source_from_keyword(source_keyword)
+                        if not CatalogueNumber.objects.filter(source=source, number__iexact=number, historical_item=historical_item):
+                            CatalogueNumber(source=source, number=number, historical_item=historical_item).save()
 
                 historical_item = hand.item_part.historical_item
-                for cat_num in historical_item.catalogue_numbers.all():
-                    cat_nums[cat_num.source.name] = cat_num.number
 
-                if self.ker and 'ker' not in cat_nums:
-                    add_catalogue_number(historical_item, sources['ker'], self.ker)
+                add_catalogue_number(historical_item, 'ker', self.ker)
 
                 if self.sp:
-                    source_dp = 'sawyer'
+                    source_dp = settings.SOURCE_SAWYER_KW
                     document_id = self.sp
                     document_id_p = re.sub('(?i)^\s*p\s*(\d+)', r'\1', document_id)
                     if document_id_p != document_id:
                         document_id = document_id_p
                         source_dp = 'pelteret'
 
-                    if source_dp not in cat_nums:
-                        add_catalogue_number(historical_item, sources[source_dp], document_id)
+                    add_catalogue_number(historical_item, source_dp, document_id)
 
+            if self.import_messages is None:
+                self.import_messages = u''
+            if self.import_messages:
+                self.import_messages += u'\n'
             self.import_messages += messages
-            self.save()
+        
+        self.set_matched_hands(matched_hands)
+        self.save()
 
 class RequestLog(models.Model):
     request = models.CharField(max_length=300, null=True, blank=True, default='')
@@ -2608,6 +2808,41 @@ class RequestLog(models.Model):
             path = request.build_absolute_uri()
             rl = cls(result_count=count, request=path)
             rl.save()
+
+class ApiTransform(models.Model):
+    title = models.CharField(max_length=30, blank=False, null=False, help_text='A unique title for this XSLT template.', unique=True)
+    slug = models.SlugField(max_length=30, blank=False, null=False, help_text='A unique code to refer to this template when using the web API. @xslt=slug', editable=False, unique=True)
+    template = models.TextField(blank=True, null=True, help_text='Your XSLT template')
+    description = models.TextField(blank=True, null=True, help_text='A description of the transform')
+    mimetype = models.CharField(max_length=30, blank=False, null=False, help_text='The mime type of the output from the transform.', default='text/xml')
+    sample_request = models.CharField(max_length=200, blank=True, null=True, help_text='A sample API request this transform can be tested on. It is a API request URL without this part: http://.../digipal/api/. E.g. graph/100,101,102?@select=id,str', default='graph')
+    webpage = models.BooleanField(default=False, null=False, blank=False, verbose_name='Show as a webpage?')
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        ordering = ['title']
+
+    def clean(self):
+        from django.utils.text import slugify
+        self.slug = slugify(self.title)
+        
+    def get_absolute_url(self):
+        ret = '/digipal/api/' + self.sample_request
+        if '?' not in ret:
+            ret += '?'
+        ret += '&@xslt=' + self.slug
+        return ret
+        
+    def __unicode__(self):
+        return u'%s' % (self.title)
+
+# Generate a meaningful object label for the m2m models
+HistoricalItem.owners.through.__unicode__ = lambda self: self.historicalitem
+
+ItemPart.owners.through.__unicode__ = lambda self: self.itempart
+
+CurrentItem.owners.through.__unicode__ = lambda self: self.currentitem
 
 # Assign get_absolute_url() and get_admin_url() for all models 
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID

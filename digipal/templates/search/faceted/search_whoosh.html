@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
+
+{% block meta_title %}
+    Search {{ result_type.label }}
+{% endblock %}
+
+{% block main %}
+
+    {% include "search/faceted/search_whoosh_fragment.html" %}
+    
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+    	init_search_page({});
+    </script>
+{% endblock %}

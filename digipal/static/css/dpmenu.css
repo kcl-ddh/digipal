@@ -64,9 +64,17 @@
     max-height: none;
 }
 
-@media (min-width: 767px) and (max-width: 991px){
+@media (min-width: 837px) and (max-width: 1200px){
     .navbar .nav > li > a{
-        font-size: 0.9em;
+        font-size: 0.85em;
+        line-height: 1.5;
+        padding: 10px 15px 10px 15px !important;
+    }
+}
+
+@media (min-width: 767px) and (max-width: 837px){
+    .navbar .nav > li > a{
+        font-size: 0.74em;
         line-height: 1.5;
         padding: 10px 15px 10px 15px !important;
     }

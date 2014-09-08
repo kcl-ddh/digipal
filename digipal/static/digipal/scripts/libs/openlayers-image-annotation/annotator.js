@@ -219,13 +219,6 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 		},
 		'transform': function(e) {
-			var feature = e.object.feature;
-			if (feature.geometry.getLength() < 100) {
-				feature.destroy();
-				$('circle').remove();
-				$('polyline').remove();
-				return false;
-			}
 
 		},
 		'beforeset': function(e) {
@@ -278,6 +271,17 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		'featureadded': function(e) {
 			var geometry = e.feature;
 			_self.transformFeature.setFeature(geometry);
+		},
+		'activate': function() {
+			var switcher = $('.toggle-state-switch');
+			var public_annotations_check = $('[data-attribute="public"]');
+			if (!switcher.bootstrapSwitch('state')) {
+				switcher.bootstrapSwitch('toggleState');
+			}
+			if (!public_annotations_check.is(':checked')) {
+				public_annotations_check.prop('checked', true).trigger('change');
+			}
+
 		}
 	});
 
@@ -291,6 +295,14 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 		hover: false,
 		toggleKey: 'shiftKey',
 		box: false
+	});
+
+	this.selectFeature.events.on({
+		activate: function() {
+			if (_self.editorial.active) {
+				_self.editorial.deactivate();
+			}
+		}
 	});
 
 
@@ -376,7 +388,7 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
 
 	this.editorial = new OpenLayers.Control.Button({
 		displayClass: 'olControlEditorialFeature fa fa-pencil ',
-		title: 'Editorial Annotations',
+		title: 'Create Editorial Annotation',
 		active: false,
 		trigger: function() {
 			var activeControls = this.map.getControlsBy('active', true);
@@ -530,11 +542,17 @@ Annotator.prototype.selectFeatureById = function(featureId) {
 Annotator.prototype.getGraphByVectorId = function(featureId) {
 	var feature;
 	for (var i = 0; i < this.vectorLayer.features.length; i++) {
-		var vector_id = this.vectorLayer.features[i].vector_id || this.vectorLayer.features[i].id;
-		vector_id = vector_id.replace(/\./gi, '_');
-		if (featureId.replace(/\./gi, '_') == vector_id) {
-			feature = this.vectorLayer.features[i];
-			break;
+		if (this.vectorLayer.features[i].hasOwnProperty('id')) {
+			var vector_id = this.vectorLayer.features[i].vector_id || this.vectorLayer.features[i].id;
+			if (vector_id instanceof String && featureId instanceof String) {
+				featureId = featureId.replace(/\./gi, '_');
+				vector_id = vector_id.replace(/\./gi, '_');
+			}
+
+			if (featureId == vector_id) {
+				feature = this.vectorLayer.features[i];
+				break;
+			}
 		}
 	}
 	return feature;
@@ -565,7 +583,7 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
 
 Annotator.prototype.centreById = function(featureId) {
 	var feature = this.vectorLayer.getFeatureById(featureId);
-	this.map.zoomToExtent(feature.geometry.getBounds());
+	this.map.setCenter(feature.geometry.getBounds().getCenterLonLat());
 };
 /**
  * Returns the saved attribute for the given feature.

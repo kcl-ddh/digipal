@@ -6,7 +6,13 @@ _nsre = re.compile(ur'(?iu)([0-9]+)')
 
 def sorted_natural(l, roman_numbers=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
-    return sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+    ret = sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+    # make sure the empty values are at the end
+    for v in [None, u'', '']:
+        if v in ret:
+            ret.remove(v)
+            ret.append(v)
+    return ret
 
 def natural_sort_key(s, roman_numbers=False):
     '''
@@ -102,7 +108,7 @@ def update_query_string(url, updates, url_wins=False):
     else:
         from copy import deepcopy
         updates_dict = deepcopy(updates)
-    
+        
     # Merge the two query strings (url and updates)
     # note that urlparse preserves the url encoding (%, &amp;)
     parts = [p for p in urlparse(url)]
@@ -127,6 +133,14 @@ def update_query_string(url, updates, url_wins=False):
     ret = urlunparse(parts)
     
     ret = escape(ret)
+    
+    if len(ret) == 0:
+        ret = '?'
+        
+    # We mark this safe so django template renderer won't try to escape it a second time
+    # This would generate something like this in the html output: '?k1=v1&amp;amp;k2=v'  
+    from django.utils.safestring import mark_safe
+    ret = mark_safe(ret)
     
     return ret
 
@@ -282,13 +296,19 @@ def get_int_from_roman_number(input):
     return sum
 
 def get_plain_text_from_html(html):
-    '''Returns the unencoded text from a HTML fragment. No tags, no entities, just plain utf-8 text.'''
+    '''Returns the unencoded text from a HTML fragment. No tags, no entities, just plain utf-8 text.
+        Add spaces after </p>s.
+    '''
     ret = html
     if ret:
+        # JIRA 522
+        ret = ret.replace('</p>', '</p> ')
+        #
         from django.utils.html import strip_tags
         import HTMLParser
         html_parser = HTMLParser.HTMLParser()
-        ret = strip_tags(html_parser.unescape(ret))        
+        #ret = strip_tags(html_parser.unescape(ret))
+        ret = html_parser.unescape(strip_tags(ret)).strip()
     else:
         ret = u''
     return ret
@@ -349,4 +369,263 @@ def get_one2one_object(model, field_name):
         except ObjectDoesNotExist, e:
             pass
     
+    return ret
+
+def get_xslt_transform(source, template, error=None):
+    ret = source
+    import lxml.etree as ET
+    from io import BytesIO
+    
+    d = BytesIO(source.encode('utf-8'))
+    dom = ET.parse(d)
+    d = BytesIO(template.encode('utf-8'))
+    xslt = ET.parse(d)
+    transform = ET.XSLT(xslt)
+    newdom = transform(dom)
+    #print(ET.tostring(newdom, pretty_print=True))
+    ret = newdom
+            
+    return ret
+
+def recreate_whoosh_index(path, index_name, schema):
+    import os.path
+    from whoosh.index import create_in
+    if not os.path.exists(path):
+        os.mkdir(path)
+    path = os.path.join(path, index_name)
+    if os.path.exists(path):
+        import shutil
+        shutil.rmtree(path)
+    os.mkdir(path)
+    print '\tCreated index under "%s"' % path
+    # TODO: check if this REcreate the existing index
+    index = create_in(path, schema)
+    
+    return index
+
+def get_int(obj, default=0):
+    '''Returns an int from an obj (e.g. string)
+        If the conversion fails, returns default.
+    '''
+    try:
+        ret = int(obj)
+    except:
+        ret = default
+    return ret
+
+MAX_DATE_RANGE = [-5000, 5000]
+
+def is_max_date_range(rng):
+    return rng and rng[0] == MAX_DATE_RANGE[0] and rng[1] == MAX_DATE_RANGE[1]
+
+def get_midpoint_from_date_range(astr=None, arange=None):
+    '''
+    Returns a numeric date which is the midpoint of a date range expressed in astr
+    The midpoint is not always the average of the range, it is biased 
+    towards the date mentioned in the label.
+    e.g. get_range_from_date('940x956') => 948
+    e.g. get_range_from_date('Ca 1075') => 1075
+    
+    Returns None for unknown date 
+    '''
+    ret = None
+    
+    if arange is None:
+        arange = get_range_from_date(astr)
+    
+    if is_max_date_range(arange):
+        return ret
+    
+    # by default we take the middle point 
+    ret = (arange[1] + arange[0]) / 2
+
+    if astr:    
+        # try harder... if we have a single date in the input we pick that one
+        # Ca. 1090 => 1090
+        patterns = [ur'(?i)^(?:c|ca)\.? (\d+)$']
+        for pattern in patterns:
+            s = re.sub(pattern, ur'\1', astr.strip())
+            if s != astr:
+                ret = int(s)
+                break
+    
+    return ret
+
+def get_range_from_date(str):
+    '''
+    Returns a range of numeric dates from a string expression
+    e.g. get_range_from_date('940x956') => [940, 956]
+    e.g. get_range_from_date('Ca 1075') => [1070, 1080] 
+    '''
+    ret = MAX_DATE_RANGE[:]
+    
+    if not str:
+        return ret
+    
+    # expand s. => Saec.
+    str = re.sub(ur'\bs\.\s', u'Saec. ', str)
+    
+    # expand c. => ca
+    str = re.sub(ur'\bc\.\s', u'Ca ', str)
+
+    # remove prob.
+    str = re.sub(ur'(prob.|probably|by)\s', '', str).strip()
+    
+    # remove ?, A.D.
+    str = re.sub(ur'\?|A\.D\.', '', str).strip()
+
+    # remove (...)
+    str = re.sub(ur'\([^)]+\)', '', str).strip()
+    
+    # 845 for 830 => 830
+    str = re.sub(ur'.*\sfor\s', '', str).strip()
+
+    str = str.strip()
+    
+    # 1080
+    if re.match(ur'\d+$', str):
+        return [int(str), int(str)]
+
+    # 1035/6 => (1035, 1036)
+    m = re.match(ur'(\d+)/(\d+)$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(1))]
+        if len(m.group(2)) < len(m.group(1)):
+            ret[1] = int(m.group(1)[0:-len(m.group(2))] + m.group(2))
+    
+    m = re.match(ur'(?iu)(before|after)\s(\d+)$', str)
+    if m:
+        if m.group(1) == 'before':
+            ret[1] = int(m.group(2))
+        else:
+            ret[0] = int(m.group(2))
+    
+    # Saec. x/xi or xi in. [  980.0,  1030.0]
+    parts = re.split(ur'\bor\b', str)
+    if len(parts) == 1:
+        parts = re.split(ur'and', str)
+    if len(parts) > 1:
+        # combine different dates
+        #dates = [ret]
+        ret = get_range_from_date(parts[0].strip())
+        for part in parts[1:]:
+            part = part.strip()
+            if not part.lower().startswith('saec.') and str.lower().startswith('saec.'):
+                part = 'Saec. ' + part
+            # combine the dates
+            reti = get_range_from_date(part)
+            ret = [min(ret[0], reti[0]), max(ret[1], reti[1])]
+        return ret
+    
+    # Ca 1075 [ 1070.0,  1080.0]
+    # Ca 1086 [ 1080.0,  1090.0]
+    m = re.match(ur'(?iu)ca\.?\s?(\d+)$', str)
+    if m:
+        n = int(m.group(1))
+        str = 'Ca %sx%s' % (n-5, n+5)    
+    
+    # 1066x1087 => [1066, 1087]
+    # Ca 820x840 => [820, 840]
+    m = re.match(ur'(?iu)(?:ca\s)?(\d+)\s?[-x\xd7]\s?(\d+)$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(2))]
+        
+        # case for '950x68' => 950x968
+        if len(m.group(2)) < len(m.group(1)):
+            ret[1] = int(m.group(1)[0:-len(m.group(2))] + m.group(2))
+        
+        if str.lower().startswith('ca '):
+            # Ca 1002x1023 [ 1000.0,  1025.0]
+            ret[0] = ret[0] - (ret[0] % 5)
+            if ret[1] % 5:
+                ret[1] = ret[1] - (ret[1] % 5) + 5                        
+    #107    1080s    1080.0    1085.0    1090.0
+    m = re.match(ur'(?iu)(\d+0)s$', str)
+    if m:
+        ret = [int(m.group(1)), int(m.group(1)) + 10]
+    
+    # Saec. x1
+    m = re.match(ur'(?iu)Saec. ([ivx]+)(.*)$', str)
+    if m:
+        mod = m.group(2).strip()
+        century = get_int_from_roman_number(m.group(1))
+        ret = [(century - 1) * 100, century * 100]
+        # Saec. x1/3 [  900.0,   933.0]
+        m2 = re.match(ur'(\d)/(\d)$', mod)
+        if m2:
+            dur = 100.0 / int(m2.group(2))
+            ret[1] = ret[0] + (int(m2.group(1)) * dur)
+            ret[0] = ret[1] - dur            
+    
+        # in./med./ex.
+        # digipal_date is not consistent for "ex."
+        # it can be the last 20 or 30 years
+        #139    Saec. viii ex.    780.0    790.0    800.0
+        #137    Saec. vii ex.    670.0    690.0    700.0
+        # => take last 30 years
+        ex_duration = 30    
+        if mod == 'ex.':
+            ret[0] = ret[1] - ex_duration
+        if mod == 'in.':
+            ret[1] = ret[0] + ex_duration
+        if mod == 'med.':
+            ret[1] = ret[0] + 66
+            ret[0] = ret[0] + 33
+        
+        # Saec. xi1 => 1000, 1050
+        if mod == '1':            
+            ret[1] = ret[0] + 50
+        if mod == '2':            
+            ret[0] = ret[0] + 50
+
+        #Saec. x/xi [  980.0,  1020.0]
+        m2 = re.match(ur'/([ivx]+)$', mod)
+        if m2:
+            century2 = get_int_from_roman_number(m2.group(1))
+            if century2 == century + 1:
+                ret = [ret[1] - 20, ret[1] + 20]
+            
+
+        #if m.group(2) == '':
+    
+    ret = [int(ret[0]), int(ret[1])]
+        
+    return ret
+
+def get_all_files_under(root, dir_only=False, filters=[]):
+    '''Returns a list of absolute paths to all the files under root.
+        root is an absolute path
+        dir_only = True to return only directories
+        filters = a list of keywords to filter the result
+    '''
+    import os
+    ret = []
+    to_process = [root]
+    
+    while to_process:
+        path = to_process.pop(0)
+        isdir = os.path.isdir(path)
+        if not dir_only or isdir:
+            if not filters or os.path.basename(path) in filters:
+                if path != root:
+                    ret.append(path)
+        if isdir:
+            for file_name in os.listdir(path):
+                to_process.append(os.path.join(path, file_name))
+    return ret
+
+def get_cms_url_from_slug(slug):
+    from mezzanine.pages.models import Page as MPage 
+    for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
+        return page.get_absolute_url()
+    return u'/%s' % slug
+
+def remove_param_from_request(request, key):
+    ret = request
+    #print dir(ret.GET)
+    ret.GET = ret.GET.copy()
+    if ret.GET.has_key('jx'):
+        del ret.GET['jx']
+    ret.META = ret.META.copy()
+    ret.META['QUERY_STRING'] = re.sub(ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
     return ret

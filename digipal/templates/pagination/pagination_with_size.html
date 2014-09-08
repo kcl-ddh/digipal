@@ -3,15 +3,16 @@
     <div class="btn-group pagination-group">
         <div class="btn-group">
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-    	       {{ page_size }} / page
+    	       {{ page_size }} / pages
                <span class="caret"></span>
             </button>
+            <input type="hidden" name="pgs" value="{{ page_size }}"/>
             <ul class="dropdown-menu" role="menu">
                 {% for size in page_sizes %}
-                    <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}{% endfilter %}">{{ size }}</a></li>
+                    <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}&page=1{% endfilter %}">{{ size }}</a></li>
                 {% endfor %}
             </ul>
         </div>
-        {% paginate %}                                        
+        {% include "pagination/pagination.html" %}
     </div>                                        
 {% endif %}

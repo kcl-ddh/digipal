@@ -26,15 +26,69 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 #option-title {border: 2px solid orange; background-color: lightyellow; position: fixed; display: none; left: 0px; top: 0px; z-index:2000; padding: 1em; width: auto; margin: 3px;}
 .hand-highlight {background-color: lightgreen;}
 .new-hand {border: 1px solid brown; margin: 1px;}
+.select-item-part {display:none;margin-left:2em;}
 </style>
 
 <script>
-    $(function(){
-      $(document).on('change', '.select-item-part',
-         function(event) {
-                $('.select-item-part:first').parents('li').find('input').attr('checked', 'checked');
+    jQuery(function($){
+      // Rules:
+      // 	select IP => show hands
+      // 	select no IP => hide Hand selector
+      // 	select IP or Hand => change the value of the checkbox (ip: or h:)
+      function populate_hands_selector_from_selected_ip($sel_ip) {
+    	var $sel_hand = $sel_ip.parent().find('.h-selector');
+    	// show or hide the hands selector
+    	$sel_hand.toggle($sel_ip.val() ? true : false);
+    	// hide all the options
+    	$sel_hand.find('option').hide();    	
+    	// only show the hands for the selected item part
+    	$sel_hand.find('option.ip' + $sel_ip.val() + ', option.ip').show();
+    	// if the selected hand is hidden show the first option
+    	if (!$sel_hand.find('option:selected').is(':visible')) {
+    	    $sel_hand.val('');
+    	}
+      };
+      
+      function update_other_hand_checkbox($sel) {
+      	// update the value of the checkbox e.g. ip:100, h:200
+      	var $sel_ip = $sel.parent().find('.ip-selector');
+      	var $sel_hand = $sel.parent().find('.h-selector');
+  	    var mid = '';
+      	if ($sel_hand.val()) {
+      		mid = 'h:'+$sel_hand.val();
+      	} else if ($sel_ip.val()) {
+      		mid = 'ip:'+$sel_ip.val();
+      	}
+  		$($sel.parents('li')[0]).find('input[type=checkbox]').val(mid);
+      };
+      
+      $(document).on('change keypress', '.ip-selector, .h-selector', 
+      	function(event) {
+          	var $sel = $(event.target);
+        	if ($sel.hasClass('ip-selector')) {
+        	    populate_hands_selector_from_selected_ip($sel);
+        	} else {
+              	$sel_ip = $sel.parent().find('.ip-selector');
+        	}
+        	update_other_hand_checkbox($sel);
+      	}
+      );
+      
+      $(document).on('change', '.another-hand', 
+        function(event) {
+            var $sel = $(event.target);
+            var $select_div = $sel.parent().find('.select-item-part');
+            // clone the template for the IP+H selectors
+            if (!$select_div.children().length) {
+                var $select_div_cloned = $('.select-item-part:last').clone();
+                $select_div.replaceWith($select_div_cloned);
+                $select_div = $select_div_cloned;
             }
-         );
+            // hide/show the selectors div
+            $select_div.toggle($sel.is(':checked'));
+      	}
+      );
+      
       $(document).on('mouseenter mouseleave', '.hand-tooltip',
          function(event) {
             var container = $('#option-title');
@@ -57,7 +111,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 
 {% block content %}
 
-<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+<p><a href="{{ referer }}">Back to Page list.</a></p>
 
 {% if perms_lacking %}
     <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
@@ -69,6 +123,8 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
 {% else %}
     <form id="form-hands" action="" method="post">
     {% csrf_token %}
+    
+    <input type="hidden" name="referer" value="{{ referer }}" />
     
     <h2>Selected records ({{ records.count }})</h2>
 	<table id="tbl-selected-folios" cellspacing="0">
@@ -91,36 +147,32 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                         <a href="/admin/digipal/stewartrecord/{{record.id}}/">{{record.contents|truncatechars:50}}</a>
                     </td>
                     <td>
-                        <input type="hidden" name="shand_{{ record.id }}_count" value="{{ record.dhands|length }}" />
                         {% if record.dhands %}
                             <ul>
+                                <input type="hidden" name="shand_{{ record.id }}_count" value="{{record.dhands|length}}" />
                                 {% for dhand in record.dhands %}
                                     <li class="hand-tooltip {% if dhand.highlighted %}hand-highlight{% endif %} {% if dhand.isnew %}new-hand{% endif %}" 
                                         data-title=" * Label: {{ dhand.label }} <br/> * Place: {{ dhand.assigned_place }} <br/> * Date: {{ dhand.assigned_date }} <br/> * Description:{{ dhand.description }} <br/> * Comments:{{ dhand.comments }} {% for desc in dhand.item_part.historical_item.get_descriptions %}<br/> * {{desc.source.name}}: {{ desc.description }}{% endfor%}"
                                         >
-                                        <input id="shand_{{ record.id }}_{{dhand.id}}"
+                                        <input 
+                                            id="shand_{{ record.id }}_{{ forloop.counter0 }}"
                                             type="checkbox" name="shand_{{ record.id }}_{{ forloop.counter0 }}" 
-                                            value="{% if dhand.id > 0 %}{{ dhand.id }}{% else %}0{% endif %}"
+                                            value="{{ dhand.match_id }}"
+                                            class="hand-checkbox {% if not dhand.match_id %}another-hand{% endif %}"
                                             {% if dhand.selected %}checked="checked"{% endif %} 
                                         />
-                                        <label for="shand_{{ record.id }}_{{dhand.id}}">
-                                            {% if dhand.id > 0 %}
-                                                [#{{ dhand.id }} - {{ dhand.match_reason }}]  
-                                                {{ dhand.item_part }}, {{ dhand.num }}                               
-                                                - <a href="/admin/digipal/hand/{{ dhand.id }}">view</a>
+                                        <label for="shand_{{ record.id }}_{{ forloop.counter0 }}">
+                                            {% if dhand.match_id %}
+                                                [#{{ dhand.id|default:"NEW HAND" }} - {{ dhand.match_reason }}]  
+                                                {{ dhand.item_part }}{% if dhand.num %}, {{ dhand.num }}{% endif %}
+                                                {% if dhand.id %}- <a href="/admin/digipal/hand/{{ dhand.id }}">view</a>{% endif %}
                                                 {{ dhand.label }}
                                             {% else %}
-                                                No match, create a new Hand from this record<br/>
+                                                Select another Hand record<br/>
                                             {% endif %}
                                         </label>
-                                        {% if not dhand.id > 0 %}
-                                            <div class="select-item-part" style="margin-left:2em;">
-                                                <select name="shand_{{ record.id }}_item_part">
-                                                    <option value="0">-- Select an Item Part for this new Hand --</option>
-                                                    {% for item in item_parts %}
-                                                        <option value="{{ item.id }}">{{ item }}</option>
-                                                    {% endfor %}
-                                                </select>
+                                        {% if not dhand.match_id %}
+                                            <div class="select-item-part">
                                             </div>
                                         {% endif %}
                                     </li>
@@ -155,6 +207,32 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
     <div id="option-title">
         test
     </div>
+
+
+<div class="select-item-part">
+    <select name="shand_X_item_part" class="ip-selector">
+        <option value="">-- Select an Item Part --</option>
+        {% for item in item_parts %}
+            <option value="{{ item.id }}">{{ item }}</option>
+        {% endfor %}
+    </select>
+    <select name="shand_X_hand" class="h-selector">
+        <option value="" class="ip">-- Create a new Hand --</option>
+        {% for ahand in all_hands %}
+            <option value="{{ ahand.id }}" class="ip{{ ahand.item_part_id }}">#{{ ahand.id }} {{ ahand.label }}
+                (
+                {% if ahand.ker or ahand.scragg %}
+                    {% if ahand.ker %}K {{ahand.ker}}{% endif %}
+                    {% if ahand.scragg %}Scr {{ahand.scragg}}{% endif %}
+                    -
+                {% endif %}
+                {% if ahand.assigned_place %}place: {{ahand.assigned_place}}{% endif %}
+                {% if ahand.assigned_date %}, date: {{ahand.assigned_date}}{% endif %}
+                )
+            </option>
+        {% endfor %}
+    </select>
+</div>
 
 {% endif %}
 {% endblock %} 

@@ -8,11 +8,7 @@ var AnnotatorTest = {
     name: 'annotator',
     run: function(loadScenarios) {
 
-        if (!casper.cli.get('username') || !casper.cli.get('password')) {
-            casper.echo('This task needs username and password to the get root access', 'ERROR');
-            casper.exit();
-        }
-
+        phantom.clearCookies();
         var scenarios = ['annotator'];
         loadScenarios(scenarios);
     }

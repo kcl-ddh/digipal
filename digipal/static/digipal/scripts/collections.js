@@ -65,7 +65,7 @@ function Collections() {
 
 		collections.find('img').on('click', function(event) {
 			localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-			location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+			location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 			event.stopPropagation();
 		});
 
@@ -85,6 +85,7 @@ function Collections() {
 	var show_collections = function(collections) {
 		var container = $('#container_collections');
 		var _self = this;
+		var d = 0;
 		if (collections) {
 			$.each(collections, function(index, value) {
 				var collection = $('<div>');
@@ -95,6 +96,9 @@ function Collections() {
 				if (this['annotations']) {
 					n += this['annotations'].length;
 				}
+				if (this['editorial']) {
+					n += this['editorial'].length;
+				}
 				collection.attr('class', 'collection');
 				collection.attr('id', value.id);
 				collection.data('id', value.id);
@@ -103,9 +107,14 @@ function Collections() {
 				collection.append('<label for= "' + index + '">' + index + ' (' + n + ')<label>');
 				collection.append('<input data-toggle="tooltip" data-placement="top" title="Check to select collection" type="checkbox" id="' + index + '" />');
 				if (!$('#' + value.id).length) {
+					if (d % 4 === 0) {
+						container.append('<br clear="all"/>');
+					}
+
 					container.append(collection);
 				}
 				$('[data-toggle="tooltip"]').tooltip();
+				d++;
 			});
 		} else {
 			var s = '<div class="container alert alert-warning">No collections</div>';
@@ -238,13 +247,8 @@ function Collections() {
 			var collection_name = $('#name_collection').val();
 			var window_save_collection = $('#new-collection-div');
 			var id = uniqueid();
-			var re = /^\w*$/;
 			var collection_name_trimmed = collection_name.replace(/\s+/gi, '');
-			if (collection_name && re.test(collection_name_trimmed)) {
-				if (collection_name.length > 30) {
-					notify('Please enter a shorter name (max 30 chars)', "danger");
-					return false;
-				}
+			if ((collection_name_trimmed)) {
 				if (collections) {
 					if (collections[collection_name]) {
 						var new_re = /^[\w]*([0-9])$/;
@@ -286,14 +290,14 @@ function Collections() {
 
 				collection.find('img').on('click', function(event) {
 					localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-					location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+					location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 					event.stopPropagation();
 				});
 
 				notify('<span style="color: #468847;">New Collection successfully created</span>', "success");
 				$('.alert').remove();
 			} else {
-				notify('Please enter a name for this collection (Do not use special characters)', "danger");
+				notify('Please enter a name for this collection', "danger");
 			}
 
 			return false;
@@ -302,6 +306,7 @@ function Collections() {
 		to_lightbox: function() {
 			var graphs = [],
 				images = [],
+				editorial = [],
 				element,
 				basket;
 
@@ -330,7 +335,13 @@ function Collections() {
 					images.push(element);
 				}
 			}
-			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']';
+			if (basket && basket.editorial && basket.editorial.length) {
+				for (i = 0; i < basket.editorial.length; i++) {
+					element = basket.editorial[i].toString();
+					editorial.push(element);
+				}
+			}
+			location.href = '/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[' + editorial.toString() + ']&from=' + location.pathname;
 		},
 
 		share: share,
@@ -347,20 +358,21 @@ function Collections() {
 
 		copy: function(selectedCollection, new_collection_name) {
 			var id = uniqueid();
-			var re = /^[\w]+$/;
 			var flag = false;
 			var collections = JSON.parse(localStorage.getItem('collections'));
 
 			$.each(collections, function(index, value) {
-				if (re.test(new_collection_name.replace(/\s*/gi, '')) && new_collection_name.length <= 30) {
-					if ($.trim(new_collection_name) == $.trim(index)) {
-						if (!/[0-9]+/.test(parseInt(new_collection_name[new_collection_name.length - 1], 10))) {
-							new_collection_name = new_collection_name + '1';
-						}
+				var collection_name_trimmed = new_collection_name.replace(/\s+/gi, '');
+				if ($.trim(new_collection_name) == $.trim(index)) {
+					var new_re = /^[\w]*([0-9])$/;
+					if (!new_re.test(new_collection_name)) {
+						new_collection_name += '0';
+					}
+					while (collections[new_collection_name]) {
 						new_collection_name = increment_last(new_collection_name);
 					}
-					flag = true;
 				}
+				flag = true;
 			});
 
 
@@ -374,7 +386,7 @@ function Collections() {
 			});
 
 			if (!flag) {
-				notify("Ensure the name entered doesn't contain special chars, nor exceeds 30 chars", 'danger');
+				notify("Please provide a valid name", 'danger');
 				return false;
 			}
 
@@ -390,7 +402,7 @@ function Collections() {
 
 			collection.find('img').on('click', function(event) {
 				localStorage.setItem('selectedCollection', $(this).closest('.collection').attr('id'));
-				location.href = window.location.href + $(this).closest('.collection').find('span').data('href');
+				location.href = window.location.href + encodeURIComponent($(this).closest('.collection').find('span').data('href'));
 				event.stopPropagation();
 			});
 		},
@@ -451,7 +463,6 @@ function Collections() {
 			selectedCollections.push(collection.attr('id'));
 			collection.addClass('selected-collection');
 		}
-		console.trace();
 		update_toolbar();
 	};
 
@@ -485,4 +496,9 @@ function Collections() {
 $(document).ready(function() {
 	var collections = new Collections();
 	collections.init();
+
+	$(window).bind('storage', function(e) {
+		$("#container_collections").html("");
+		collections.init();
+	});
 });

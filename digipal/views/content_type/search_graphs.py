@@ -12,15 +12,15 @@ class FilterGraphs(forms.Form):
     chartype = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__ontograph__ontograph_type__name', flat= True).order_by('idiograph__allograph__character__ontograph__ontograph_type__name').distinct(), 'Character Type', aid='chartype')
     character = get_form_field_from_queryset(Graph.objects.values_list('idiograph__allograph__character__name', flat= True).order_by('idiograph__allograph__character__ontograph__sort_order').distinct(), 'Character', aid='character')
     allograph = forms.ChoiceField(
-        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).distinct()],
+        choices = [("", "Allograph")] + [(m.name, m.human_readable()) for m in Allograph.objects.filter(idiograph__graph__isnull=False).exclude(hidden=True).distinct()],
         #queryset=Allograph.objects.values_list('name', flat= True).order_by('name').distinct(),
         widget=Select(attrs={'id':'allograph', 'class':'chzn-select', 'data-placeholder':"Choose an Allograph"}),
         label='',
         initial='Allograph',
         required=False
     )
-    component = get_form_field_from_queryset(Graph.objects.values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
-    feature = get_form_field_from_queryset(Graph.objects.values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature', other_choices=[(-1, 'No Features'), (-2, 'One of more features')])
+    component = get_form_field_from_queryset(Graph.objects.exclude(idiograph__allograph__hidden=True).values_list('graph_components__component__name', flat= True).order_by('graph_components__component__name').distinct(), 'Component', aid='component')
+    feature = get_form_field_from_queryset(Graph.objects.exclude(idiograph__allograph__hidden=True).values_list('graph_components__features__name', flat= True).order_by('graph_components__features__name').distinct(), 'Feature', aid='feature', other_choices=[(-1, 'No Features'), (-2, 'One of more features')])
 
 class SearchGraphs(SearchContentType):
 
@@ -150,6 +150,11 @@ class SearchGraphs(SearchContentType):
 
         # we discard freak graph records (i.e. without annotation) to prevent errors further down the line. 
         graphs = graphs.filter(annotation__isnull=False)
+        
+        # if the user is not logged in we exclude graphs where the allograph is hidden
+        from digipal.models import has_edit_permission
+        if not has_edit_permission(request, self.get_model()):
+            graphs = graphs.exclude(idiograph__allograph__hidden=True)
         
         # condition on component
         if component:

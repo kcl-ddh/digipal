@@ -2,6 +2,9 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from mezzanine.core.views import direct_to_template
 #from views.facet import facet_search
+#from haystack.forms import FacetedSearchForm
+#from haystack.query import SearchQuerySet
+#from haystack.views import FacetedSearchView
 
 urlpatterns = patterns('digipal.views.annotation',
     (r'^page/(?P<image_id>\d+)/$', 'image'),
@@ -19,10 +22,13 @@ urlpatterns = patterns('digipal.views.annotation',
 
     (r'^api/graph/save/(?P<graphs>.+)/', 'save'),
     (r'^api/graph/save_editorial/(?P<graphs>.+)/', 'save_editorial'),
+    
     (r'^page/(?P<image_id>\d+)/delete/(?P<graph_id>[a-zA-Z\._0-9]+)/', 'delete'),
     (r'^page/dialog/(?P<image_id>[a-zA-Z\._0-9]+)/$', 'form_dialog'),
     (r'^page/(?P<image_id>\d+)/(?P<graph>[a-zA-Z\._0-9]+)/graph_vector/$', 'get_vector'),
-    (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/$', direct_to_template, {
+    
+    (r'^collection/(?P<collection_name>.+)/images/$', 'images_lightbox'),
+    (r'^collection/(?P<collection_name>.+)/$', direct_to_template, {
             'template': 'digipal/collection.html',
             'extra_context': {
                 'LIGHTBOX': settings.LIGHTBOX,
@@ -40,7 +46,6 @@ urlpatterns = patterns('digipal.views.annotation',
                   'LIGHTBOX': settings.LIGHTBOX,
             }
         }),
-    (r'^collection/(?P<collection_name>[a-zA-Z-_0-9]+)/images/$', 'images_lightbox'),
 )
 
 urlpatterns += patterns('digipal.views.search',
@@ -55,6 +60,13 @@ urlpatterns += patterns('digipal.views.search',
     (r'^(?P<content_type>hands|manuscripts|scribes|pages)(?:/|$)', 'index_view'),
 )
 
+urlpatterns += patterns('',
+    (r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_whoosh_view'),
+    #(r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_haystack_view'),
+    #(r'^search/facets/$', include('haystack.urls')),
+    #url(r'^search/facets/$', FacetedSearchView(form_class=FacetedSearchForm, searchqueryset=sqs), name='haystack_search'),
+)
+
 urlpatterns += patterns('digipal.views.admin.image',
     (r'admin/image/bulk_edit', 'image_bulk_edit'),
     (r'admin/newscriptentry/$', 'newScriptEntry'),
@@ -64,11 +76,6 @@ urlpatterns += patterns('digipal.views.admin.image',
     (r'admin/newscriptentry/save_idiograph', 'save_idiograph'),
     (r'admin/newscriptentry/update_idiograph', 'update_idiograph'),
     (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
-)
-
-urlpatterns += patterns('digipal.views.admin.stewart',
-    (r'admin/digipal/stewartrecord/match', 'stewart_match'),
-    (r'admin/digipal/stewartrecord/import', 'stewart_import'),
 )
 
 if settings.DEBUG:
@@ -82,6 +89,9 @@ if settings.DEBUG:
    )
 
 urlpatterns += patterns('digipal.views.test', (r'test/error/?$', 'server_error_view'),)
+urlpatterns += patterns('digipal.views.email', (r'test/email/$', 'send_email'),)
+
+
 
 # urlpatterns += patterns('haystack.views',
 #     url(r'^facets/(?P<model>\D+)/$', facet_search, name="haystack_facet"),

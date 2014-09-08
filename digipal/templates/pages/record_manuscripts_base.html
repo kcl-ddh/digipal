@@ -19,7 +19,7 @@
     <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Pages ({{ images.count }})</a></li>
+        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
     <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
 {% endblock %}
@@ -28,6 +28,15 @@
     <div class='tabbable'>
         <div id='record-tab-content' class='tab-content'>
             <div class='tab-pane fade {% if not tabid %}active in{% endif %}' id='data'>
+                {% with desc=item_part.historical_item.get_display_description %}
+                    {% if desc %}
+                        <h3>Description <span class="small">(from {{ desc.source.get_display_reference }})</span></h3>
+                        {% filter tag_phrase_terms:terms %}
+                            {{ desc.description|richfield }}
+                        {% endfilter %}
+                    {% endif %}
+                {% endwith %}
+
                 {% block data_current_item %}
                     {% for ci in item_part.get_current_items %}
                         <h3>Current location</h3>

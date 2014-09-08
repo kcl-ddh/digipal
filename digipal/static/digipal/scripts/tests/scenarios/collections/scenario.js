@@ -11,7 +11,7 @@ function Scenario() {
          */
 
         this.Scenario1 = function() {
-            var page = options.page + '/digipal/collection';
+            var page = options.root + '/digipal/collection';
 
             casper.thenOpen(page, function() {
                 casper.echo('Running Collection Scenario 1', 'PARAMETER');
@@ -60,7 +60,7 @@ function Scenario() {
          */
         this.Scenario4 = function() {
             casper.echo('Running Collection Scenario 4', 'PARAMETER');
-            casper.thenOpen(options.page + '/digipal/collection', function() {
+            casper.thenOpen(options.root + '/digipal/collection', function() {
                 var name = 'Just Another Collection';
                 tasks.do.newCollection(name);
                 casper.click('span[data-href="' + name.replace(/\s/gi, '') + '"] img');

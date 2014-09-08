@@ -196,3 +196,19 @@ def web_fetch(url):
         ret['error'] = e
 
     return ret
+
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]
+
+def prnt(txt):
+    '''A safe print function that won't generate encoding errors'''
+    print txt.encode('utf8', 'ignore')
+
+def get_bool_from_mysql(mysql_bool='-1'):
+    '''Returns True/False from a mysql boolean field'''
+    return mysql_bool and unicode(mysql_bool) == '-1'

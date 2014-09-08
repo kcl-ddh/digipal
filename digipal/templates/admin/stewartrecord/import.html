@@ -36,7 +36,11 @@ h2 {margin-top:1em; margin-bottom:1em; }
 
 {% block content %}
 
-<p><a href="/admin/digipal/stewartrecord">Back to Page list.</a></p>
+<p><a href="{{ referer }}">Back to Page list.</a></p>
+
+{% if dry_run %}
+    <p style="color:red"><br/>DRY RUN: This was a simulation, the database was not modified. <a href="?ids={{ ids }}&referer={{referer}}">Execute it for real</a>.</p>
+{% endif %}
 
 {% if perms_lacking %}
     <p>{% blocktrans %}Deleting the {{ object_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
@@ -53,10 +57,10 @@ h2 {margin-top:1em; margin-bottom:1em; }
                 <li>
                     <span class="record-description">
                         <a href="/admin/digipal/stewartrecord/{{ record.id }}">
-                            Record #{{ record.id }}, {{ record }}
+                            SB Record {{ record }}
                         </a> 
                         -&gt; 
-                        {% for hand in record.hands.all %}
+                        {% for hand in record.get_matched_hands_objects %}
                             {% if not forloop.first %} AND {% endif %}
                             <a href="/admin/digipal/hand/{{ hand.id }}">
                                 Hand #{{ hand.id }}, {{ hand }}

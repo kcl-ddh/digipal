@@ -273,7 +273,7 @@
 			}
 		}
 
-		$('#delete-collection').add($('#share-collection')).tooltip();
+		$('[data-toggle="tooltip"]').tooltip();
 
 		header.find('.collection-title').on('blur', function() {
 			if (!$(this).data('active')) {
@@ -746,7 +746,7 @@
 
 
 		var print = $('#print');
-		print.unbind().on('click', function() {
+		print.unbind('click').on('click', function() {
 			var tab = $('.tab-pane.active').attr('id');
 			var grouping = $('#sort-select').val();
 			window.open(location.href + '?view=print&tab=' + tab + '&grouping=' + grouping);

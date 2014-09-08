@@ -127,6 +127,7 @@ var Star = function(options) {
 				return false;
 			}
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+			if (element.find('.starred-image').length) return false;
 			element.append(star);
 		}
 	};

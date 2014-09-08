@@ -97,12 +97,6 @@
 
                   <p>
 
-                    {% if not can_edit and not no_image_reason %}
-
-                    <a data-container='body' data-placement='right' data-toggle='tooltip' class='label_link_annotation' title="View graph in the manuscript" href='{{graph.image.get_absolute_url}}?graph={{graph.graph.id}}'>View</a>
-
-                    {% endif %}
-
                     {% if can_edit %}
                      <!-- graph number -->
                     <span id='label_{{ graph.graph.id }}' data-graph-id = "{{ graph.graph.id }}" class='label label-default'>{{forloop.counter}}</span>

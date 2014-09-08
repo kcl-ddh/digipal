@@ -114,7 +114,10 @@ function PublicAllograhs() {
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
 			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
 				if (add_to_lightbox($(this), 'annotation', _self.selectedAnnotations[i], false)) {
-					$('[data-graph="' + _self.selectedAnnotations[i] + '"]').append(star);
+					var element = $('[data-graph="' + _self.selectedAnnotations[i] + '"]');
+					if (!element.find('.starred-image').length) {
+						element.append(star);
+					}
 				}
 			}
 		});

@@ -242,4 +242,4 @@ Another example:
 
 ## 8. Testing
 
-The documentation for testing Digipal is available at [https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md)
+The documentation for testing Digipal is available at [https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/tests/README.md](https://github.com/kcl-ddh/digipal/blob/master/digipal/static/digipal/scripts/tests/README.md)

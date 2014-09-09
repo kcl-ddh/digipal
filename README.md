@@ -158,10 +158,10 @@ For more information about the Digital lightbox, see the [project page](https://
 It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.
 
 ### Documentation
-To use the API, read Digipal's API [Documentation](https://github.com/kcl-ddh/digipal/blob/master/api/digipal-api.txt)
+To use the API, read Digipal's API [Documentation](https://github.com/kcl-ddh/digipal/blob/master/digipal/api/digipal-api.txt)
 
 ### Import Digipal API script
-You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/api.digipal.js). Then, you can include it on your web page.
+You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/digipal/static/digipal/scripts/api.digipal.js). Then, you can include it on your web page.
 
 	<script src='api.digipal.js'></script>
 

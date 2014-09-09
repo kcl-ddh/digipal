@@ -258,8 +258,11 @@ Another example:
 #### Results returned by the API functions
 
 Every API call returns an object with the following properties:
+
 	- count: The number of items found
-	- errors: An array whose first element represents the HTTP number error (500,400, etc.) and the second element representing the error message (can be an HTML page)
+	- errors: An array whose first element represents the HTTP 
+	  number error (500,400, etc.) and the second element representing 
+	  the error message (can be an HTML page)
 	- results: An array of objects representing the items found
 	- success: A boolean that specifies whether the call has been successful or not
 

@@ -70,7 +70,7 @@ Set up the database in your local_settings.py file and fill the DATABASES object
 	 }
 
 After that, run in your terminal the following commands:
-	
+
 	python manage.py syncdb
 	python manage.py migrate
 
@@ -134,16 +134,16 @@ Run you browser at the address localhost:8000
 ## 5. What to do after
 
 You should create a superuser to edit the Digipal back-end through the Mezzanine interface.
-	
+
 	python manage.py createsuperuser
-	
+
 After that, you will be able to get to the admin page by using the credentials chosen. To do this, go to the page http://localhost:8000/admin and log in.
 
 ## 6. Lightbox
 
 The Lightbox is a separate project, even though it's still tightly linked to Digipal.
 It is possible to install it through pip:
-	
+
 	pip install git+https://github.com/Gbuomprisco/Digital-Lightbox.git
 
 By default, it is disabled. You can enable it by setting the variable LIGHTBOX in your settings:
@@ -153,7 +153,7 @@ By default, it is disabled. You can enable it by setting the variable LIGHTBOX i
 It will be available at the address /lightbox.
 
 For more information about the Digital lightbox, see the [project page](https://github.com/Gbuomprisco/Digital-Lightbox)
-	
+
 ## 7. API
 It is possible to explore Digipal's content thanks to a RESTFUL API, which can be also used through a Javascript script.
 
@@ -162,7 +162,7 @@ To use the API, read Digipal's API [Documentation](https://github.com/kcl-ddh/di
 
 ### Import Digipal API script
 You can find the digipal API script here: [Digipal API](https://github.com/kcl-ddh/digipal/blob/master/static/digipal/scripts/api.digipal.js). Then, you can include it on your web page.
-	
+
 	<script src='api.digipal.js'></script>
 
 ### How To Use The API
@@ -174,7 +174,7 @@ If you are running the script into a Digipal instance:
 		crossDomain: false,
 		root: '/digipal/api
 	});
-	
+
 ... otherwise just call it without any options:
 
 	var dapi = new DigipalAPI();
@@ -188,22 +188,22 @@ It is possible to use the API in various ways:
 **Note that the first two parameters of the methods are required**
 
 In the first case, we would have:
-	
+
 	var url = 'graph/12453';
 	dapi.request(url, function(data){
 		console.log(data);
 	});
-	
+
 Instead, in the second case, we can have:
-	
+
 	dapi.graph(12453, function(data){
 		console.log(data);
 	});
-	
+
 	// or
-	
+
 	dapi.image(61, function(data){
-		/* ... data ... */ 
+		/* ... data ... */
 	});
 
 It is possible to use the first parameter in various ways:
@@ -211,9 +211,24 @@ It is possible to use the first parameter in various ways:
 2. An array of ids. Ex. [134, 553, 356]
 3. An object representing the fields and chosen values to match the record. Ex. {id: 10, image:61}
 
+	// an object representing properties and values
+	var parameters = {
+		name: "Square",
+		character__name: "a"
+	};
+
+	dapi.allograph(parameters, function(data) {
+		console.log(data);
+	});
+
+	// a list of ids
+	dapi.image([60, 61], function(data) {
+		console.log(data);
+	});
+
 #### Optional Parameters
 There are two further but optional paramaters.
-	
+
 	/* Note the paramters select and limit	*/
 	dapi.request(url, callback, select, limit)
 
@@ -223,22 +238,30 @@ Ex select = ['image'] will return only two fields: id and image.
 The parameter **limit** allows to limit the number of records returned by the request. The default value is 100.
 
 Another example:
-	
+
 	dapi.image({
 		id: 18
 	}, function(data){
 		/* ... your data ... */
 	}, ['item_part', 'image'));
-	
+
 	// or
 	// note that if select is empty, it will get all the fields to the response
 	// here we are limiting the number of record returned down to 1
-	
+
 	dapi.image({
 		hands: 35
 	}, function(data){
 		/* ... your data ... */
 	}, [], 1);
+
+#### Results returned by the API functions
+
+Every API call returns an object with the following properties:
+	- count: The number of items found
+	- errors: An array whose first element represents the HTTP number error (500,400, etc.) and the second element representing the error message (can be an HTML page)
+	- results: An array of objects representing the items found
+	- success: A boolean that specifies whether the call has been successful or not
 
 ## 8. Testing
 

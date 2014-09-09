@@ -787,10 +787,9 @@ def populate_index(ct, index):
             chrono('index:')
         i += 1
         writer.add_document(**ct.get_document_from_record(record))
-        if (i / (c / max)) > ((i - 1) / (c / max)):
+        di = (c / max)
+        if di and (i / di) > ((i - 1) / di):
             sys.stdout.write('.')
-#         if i > 5000:
-#             break
     chrono(':index')
     
     print '\n'

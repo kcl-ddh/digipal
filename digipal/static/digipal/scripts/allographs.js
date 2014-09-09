@@ -85,7 +85,7 @@ function Allographs(dialog, cache) {
 
 		/* applying to_lightbox function */
 		var to_lightbox = $('.to_lightbox');
-		to_lightbox.click(function(event) {
+		to_lightbox.on('click', function(event) {
 			for (var i = 0; i < selectedAnnotations.annotations.length; i++) {
 				methods.to_lightbox($(this), parseInt(selectedAnnotations.annotations[i].graph, 10), false);
 			}
@@ -245,6 +245,7 @@ function Allographs(dialog, cache) {
 		to_lightbox: function(button, annotation, multiple) {
 			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
 			var el = $('[data-graph="' + annotation + '"]');
+			debugger;
 			if (add_to_lightbox(button, 'annotation', annotation, multiple) && !el.find('.starred-image').length) {
 				el.append(star);
 			}

@@ -472,17 +472,17 @@ function EditGraphsSearch() {
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', false);
             var annotations = ul.find('[data-graph]').find('.img-frame').not('.graph_active').parent().parent();
-            for (var i = 0; i < annotations.length; i++) {
-                load_graph($(annotations[i]));
-            }
+            load_graph($(annotations[i][0]));
         },
 
         toggle_all: function(button) {
             var graphs_elements = button.next().find('a[data-graph]');
             if (!button.data('checked')) {
-                graphs_elements.click();
                 button.data('checked', true);
+                graphs_elements.click();
             } else {
+                button.data('checked', false);
+
                 var graphs = [];
 
                 $.each(graphs_elements, function() {
@@ -501,7 +501,7 @@ function EditGraphsSearch() {
                     self.dialog.hide();
                 }
 
-                button.data('checked', false);
+                graphs_elements.click();
             }
         },
 
@@ -513,9 +513,11 @@ function EditGraphsSearch() {
     var rewriteHands = function(select_hand, hands) {
         /* rewriting hands select */
         var string_hand_select = '<option>------</option>';
-        for (var h = 0; h < hands.length; h++) {
-            string_hand_select += '<option value="' + hands[h].id + '">' +
-                hands[h].label + '</option>';
+        if (hands.length) {
+            for (var h = 0; h < hands.length; h++) {
+                string_hand_select += '<option value="' + hands[h].id + '">' +
+                    hands[h].label + '</option>';
+            }
         }
 
         select_hand.html(string_hand_select);

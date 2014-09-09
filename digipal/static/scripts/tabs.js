@@ -27,17 +27,14 @@ $(document).ready(function() {
 			}
 
 			if (e.target.getAttribute('data-target') == '#allographs') {
-				if (annotator.has_changed) {
+				if (annotator.has_changed && typeof allographsPage !== 'undefined') {
 					allographsPage.refresh();
 				}
+
 			}
 		} else {
 			if (typeof annotator.annotations == 'undefined') {
 				main(true);
-			}
-
-			if (typeof loader !== 'undefined') {
-				loader.toolbar_position();
 			}
 
 			if (dialog.length) {
@@ -53,6 +50,12 @@ $(document).ready(function() {
 			}
 
 			history.pushState(null, null, annotator.absolute_image_url);
+
+			setTimeout(function() {
+				if (typeof loader !== 'undefined') {
+					loader.toolbar_position();
+				}
+			}, 500);
 
 		}
 

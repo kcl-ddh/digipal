@@ -194,5 +194,7 @@
     {% endif %}
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+    {% if not can_edit %}
     <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+    {% endif %}
 {% endblock %}

@@ -1071,7 +1071,7 @@ function AnnotatorLoader() {
 				"z-index": 1000
 			});
 
-			if (input_toolbar_position.val() == 'Vertical') {
+			if (input_toolbar_position.val() == 'Vertical' || !input_toolbar_position.val()) {
 
 				if (annotator.isMobile()) {
 					toolbar.css({

@@ -45,12 +45,8 @@
 
 .disabled{
     color: #999;
-    cursor: default;
 }
 
-.disabled:hover{
-    color: #999;
-}
 
 .selected-collection img{
     box-shadow: 0px 0px 25px 8px yellow;

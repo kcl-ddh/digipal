@@ -732,3 +732,8 @@ path {
 .align-right {
     text-align: right;
 }
+
+.jquery-notebook iframe {
+    width:260px !important;
+    height: 230px !important;
+}

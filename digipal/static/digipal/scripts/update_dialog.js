@@ -18,6 +18,8 @@ var api = new DigipalAPI({
 	root: '/digipal/api'
 });
 
+var local_cache = {};
+
 function update_dialog(prefix, data, selectedAnnotations, callback) {
 
 	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature && annotator.selectedFeature.isTemporary) {
@@ -133,10 +135,12 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 			url += 'features';
 		}
 
+		if (local_cache[url]) return local_cache[url];
+
 		api.request(url, function(data) {
 			for (var i = 0; i < data.length; i++) {
 				var graph = data[i].graph;
-				var allograph = data[i]['allograph_id'];
+				var allograph = data[i].allograph_id;
 
 				if (!cache.search("allograph", allograph) && !only_features) {
 					cache.update('allograph', allograph, data[i]);
@@ -147,13 +151,17 @@ var reload_cache = function(graphs, cache, only_features, callback) {
 				}
 			}
 
+			local_cache[url] = data;
+
 			if (callback) {
 				callback(data);
 			}
 		});
 
 	} else {
-		callback();
+		if (callback) {
+			callback();
+		}
 	}
 };
 
@@ -473,9 +481,13 @@ function check_features_by_default(component_id, allograph_id, cache) {
 	var allograph = cache.allographs[allograph_id];
 	var components = allograph.components;
 	for (var component in components) {
-		if (components[component].hasOwnProperty('default') && components[component].default.length) {
-			for (var i = 0; i < components[component].default.length; i++) {
-				var default_feature = components[component].default[i].component + '::' + components[component].default[i].feature;
+		if (components[component].hasOwnProperty('default') && components[component].
+			default.length) {
+			for (var i = 0; i < components[component].
+				default.length; i++) {
+				var default_feature = components[component].
+				default [i].component + '::' + components[component].
+				default [i].feature;
 				var checkbox_val = $('input[value="' + default_feature + '"]');
 				if (checkbox_val.length && checkbox_val.val().split('::')[0] == component_id) {
 					checkbox_val.prop('checked', true);

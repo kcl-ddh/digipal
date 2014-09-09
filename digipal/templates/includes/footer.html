@@ -21,7 +21,7 @@
                 <img src="{{ STATIC_URL }}digipal/images/logos/fp7.png" alt="FP7 logo" title="FP7" />
             </a>
         </div>
-        
+
         <div class='col-md-8 col-xs-12' id='footer'>
             {% render_mezzanine_page 'footer' %}
         </div>
@@ -34,7 +34,7 @@
             {% endif %}
 
             {% if settings.GITHUB %}
-                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Explore Digipal source code on GitHub' href= 'https://github.com/{{ settings.GITHUB }}'>
+                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Digipal's source code on GitHub" href= 'https://github.com/{{ settings.GITHUB }}'>
                     <i class='fa fa-github'></i>
                 </a>
             {% endif %}

@@ -362,6 +362,7 @@ class FacetedModel(object):
     def get_whoosh_facets(self):
         from whoosh import sorting
         #print [field['key'] for field in self.fields if field.get('count', False)]
+        #return []
         return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
     
     @classmethod
@@ -484,6 +485,7 @@ class FacetedModel(object):
 #                     if field['key'] == 'hi_has_images':
 #                         print ret.groups(field['key'])
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
+                    ##self.whoosh_groups[field['key']] = {}
                     #self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
         
@@ -694,20 +696,22 @@ def create_index_schema(ct):
 def get_whoosh_field_types(field):
     ret = {}
     
+    whoosh_sortable_field = FacetedModel._get_sortable_whoosh_field(field)
+    sortable = (whoosh_sortable_field == field['key'])
+
     if field['type'] == 'date':
         ret[''] = get_whoosh_field_type({'type': 'code'})
-        ret['_min'] = get_whoosh_field_type({'type': 'int'})
-        ret['_max'] = get_whoosh_field_type({'type': 'int'})
+        ret['_min'] = get_whoosh_field_type({'type': 'int'}, True)
+        ret['_max'] = get_whoosh_field_type({'type': 'int'}, True)
     else:
         ret[''] = get_whoosh_field_type(field)
     
-    whoosh_sortable_field = FacetedModel._get_sortable_whoosh_field(field)
-    if whoosh_sortable_field and whoosh_sortable_field != field['key']:
-        ret['_sortable'] = get_whoosh_field_type({'type': 'int'})
+    if whoosh_sortable_field and not sortable:
+        ret['_sortable'] = get_whoosh_field_type({'type': 'int'}, True)
     
     return ret
 
-def get_whoosh_field_type(field):
+def get_whoosh_field_type(field, sortable=False):
     '''
     Defines Whoosh field types used to define the schemas.
     See get_field_infos().
@@ -727,24 +731,24 @@ def get_whoosh_field_type(field):
     field_type = field['type']
     if field_type == 'id':
         # An ID (e.g. 708-AB)
-        ret = ID(stored=True, sortable=True)
+        ret = ID(stored=True, sortable=sortable)
     elif field_type in ['int']:
-        ret = NUMERIC(sortable=True)
+        ret = NUMERIC(sortable=sortable)
     elif field_type in ['code']:
         # A code (e.g. K. 402, Royal 7.C.xii)
         # See JIRA 358
-        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=True)
+        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
     elif field_type == 'title':
         # A title (e.g. British Library)
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'short_text':
         # A few words.
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'boolean':
         # A few words.
-        ret = NUMERIC(stored=True, sortable=True)
+        ret = NUMERIC(stored=True, sortable=sortable)
     else:
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=True)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=sortable)
         
     return ret
     

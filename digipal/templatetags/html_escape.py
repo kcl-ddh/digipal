@@ -348,7 +348,10 @@ register.filter('escapenewline', escapenewline)
 
 @register.inclusion_tag('pagination/pagination_with_size.html', takes_context=True)
 def dp_pagination_with_size_for(context, current_page):
-    ret = dp_pagination_for(context, current_page)
+    ret = {}
+    # JIRA 617
+    if current_page:
+        ret = dp_pagination_for(context, current_page)
     ret['page_sizes'] = context.get('page_sizes', [10, 20])
     ret['page_size'] = context.get('page_size', 10)
     ret['request'] = context.get('request', None)
@@ -362,7 +365,8 @@ def dp_pagination_for(context, current_page):
         
         current_page = instance of 'django.core.paginator.Page'
     '''    
-    context['paginator'] = current_page.paginator
+    # JIRA 617
+    context['paginator'] = current_page.paginator if current_page else None 
     context['page_obj'] = current_page
     
     from pagination.templatetags.pagination_tags import paginate

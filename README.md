@@ -172,7 +172,7 @@ If you are running the script into a Digipal instance:
 
 	var dapi = new DigipalAPI({
 		crossDomain: false,
-		root: '/digipal/api
+		root: '/digipal/api'
 	});
 
 ... otherwise just call it without any options:
@@ -190,19 +190,19 @@ It is possible to use the API in various ways:
 In the first case, we would have:
 
 	var url = 'graph/12453';
-	dapi.request(url, function(data){
+	dapi.request(url, function(data) {
 		console.log(data);
 	});
 
 Instead, in the second case, we can have:
 
-	dapi.graph(12453, function(data){
+	dapi.graph(12453, function(data) {
 		console.log(data);
 	});
 
 	// or
 
-	dapi.image(61, function(data){
+	dapi.image(61, function(data) {
 		/* ... data ... */
 	});
 
@@ -241,9 +241,9 @@ Another example:
 
 	dapi.image({
 		id: 18
-	}, function(data){
+	}, function(data) {
 		/* ... your data ... */
-	}, ['item_part', 'image'));
+	}, ['item_part', 'image']);
 
 	// or
 	// note that if select is empty, it will get all the fields to the response
@@ -251,7 +251,7 @@ Another example:
 
 	dapi.image({
 		hands: 35
-	}, function(data){
+	}, function(data) {
 		/* ... your data ... */
 	}, [], 1);
 

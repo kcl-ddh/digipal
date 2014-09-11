@@ -152,7 +152,10 @@ def load_hands(context, var_name):
     
     # get all the graphs on this page
     graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image', 
-        'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by('hand__scribe__name', 'hand__id', 'id')
+        'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by(
+        #'hand__scribe__name', 'hand__id', 'id')
+        # JIRA 539: sort the graphs alphabetically
+        'hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
     
     hands = Hand.objects.in_bulk([g.hand_id for g in graphs])
 #     .select_related('scribe', 

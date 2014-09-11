@@ -124,7 +124,12 @@ def search_ms_image_view(request):
         images = images.filter(hands__assigned_date__date = date)
 
     images = images.filter(item_part_id__gt = 0)
-    images = Image.sort_query_set_by_locus(images)
+    # not sufficient, see JIRA #552
+    #images = Image.sort_query_set_by_locus(images)
+    
+    images = list(images.order_by('id'))
+    from digipal.utils import natural_sort_key
+    images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
 
     context['images'] = images
 

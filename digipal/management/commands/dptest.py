@@ -130,6 +130,10 @@ Commands:
             known_command = True
             self.test_sources(*args[1:])
 
+        if command == 'recim':
+            known_command = True
+            self.reconstruct_image(*args[1:])
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -169,6 +173,80 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def reconstruct_image(self, *args):
+        from utils import web_fetch, write_file
+
+        ret = []
+
+        max_length = 2000
+        
+        # e.g. pm dptest recim "http://xxxx/proxy?method=R&ark=btv1b6001165p.f320&l=6&r=5923,3407,731,1406&save" 157v.png
+        
+        # download all the parts
+        print 'download tiles...'
+        tile_numbers = [0, 0]
+        if len(args) in [1, 2]:
+            url = args[0]
+            dest_file = 'reconstructed.png'
+            if len(args) > 1:
+                dest_file = args[1]
+
+            if 1:
+                for x in range(0, 10):
+                    for y in range(0, 10):
+                        print '', x, y
+                        url = re.sub(ur'\d+,\d+,\d+,\d+', '%d,%d,%d,%d' % (y * max_length, x * max_length, max_length, max_length), url)
+                        #print url
+                        info = web_fetch(url)
+                        #warning = ('OK' if info['status'] == '200' else 'ERROR!!!!!!!!!!')
+                        status = info['status']
+                        #print status
+                        if not status == '200':
+                            #tile_file = info['body']
+                            break
+                        tile_name = '%d-%d.jpg' % (x,y)
+                        write_file(tile_name, info['body'])
+                        tile_numbers[0] = max(tile_numbers[0], x)
+                        tile_numbers[1] = max(tile_numbers[1], y)
+                    if y == 0:
+                        break
+            else:
+                tile_numbers = [2, 3]
+        
+            # now reconstruct the full image
+            # find the total size (by looking at the size of the last tile)
+            last_tile = '%d-%d.jpg' % (tile_numbers[0], tile_numbers[1])
+            from PIL import Image
+            tile = Image.open(last_tile)
+            size = [n * max_length for n in tile_numbers]
+            size = size[0] + tile.size[0] + 1, size[1] + tile.size[1] + 1
+            print '', 'Size: ', size
+
+            # create the new image
+            print 'Reconstruct full image'
+            im = Image.new('RGB', size, 'white')
+            for x in range(0, tile_numbers[0] + 1):
+                for y in range(0, tile_numbers[1] + 1):
+                    tile_name = '%d-%d.jpg' % (x,y)
+                    panel = Image.open(tile_name).convert('RGB')
+
+                    # paste that panel
+                    box = [0, 0]
+                    box.extend(panel.size)
+                    crop = panel.crop(box)
+                    target_area = (x * max_length, y * max_length, x*max_length + crop.size[0], y*max_length + crop.size[1])
+                    print '', x, y, crop.size, target_area
+                    im.paste(crop, target_area)
+            
+            print 'Save full image (%s)' % dest_file
+            im.save(dest_file)
+            print 'done'
+                    
+        else:
+            print 'ERROR: please specify a URL to the bottom right tile of an image'
+        
+        return ret
 
     def test_sources(self, *args):
         ret = []

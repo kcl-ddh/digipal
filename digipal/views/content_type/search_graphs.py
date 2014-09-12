@@ -207,10 +207,10 @@ class SearchGraphs(SearchContentType):
         graph_ids = graphs.values_list('id', 'hand_id')
         chrono(':graph values_list')
         
-#         chrono('len:')
-#         l = len(graph_ids)
-#         print graph_ids.query
-#         chrono(':len')
+#        chrono('len:')
+#        l = len(graph_ids)
+#        print graph_ids.query
+#        chrono(':len')
         
         # Build a structure that groups all the graph ids by hand id
         # context['hand_ids'] = [[1, 101, 102], [2, 103, 104]]

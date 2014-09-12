@@ -12,7 +12,7 @@
 {% block record_tabs %}
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.description %}{% else %}disabled{% endif %}">
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
         <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
     </li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">

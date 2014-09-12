@@ -52,3 +52,7 @@ a[href]:after {
     position: relative;
     right: 78%;
 }
+
+.panel {
+    background: #fff;
+}

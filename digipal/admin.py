@@ -78,6 +78,23 @@ class ImageFilterNoItemPart(SimpleListFilter):
         if self.value() == 'without':
             return queryset.exclude(item_part_id__gt = 0).distinct()
 
+class GraphFilterNoAnnotation(SimpleListFilter):
+    title = 'Annotation'
+
+    parameter_name = ('annotation')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('with', ('With annotation')),
+            ('without', ('Annotation is missing')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'with':
+            return queryset.filter(annotation__isnull = False).distinct()
+        if self.value() == 'without':
+            return queryset.filter(annotation__isnull = True).distinct()
+
 class ImageFilterDuplicateShelfmark(SimpleListFilter):
     title = 'Duplicate Shelfmark'
 
@@ -731,8 +748,10 @@ class GraphAdmin(reversion.VersionAdmin):
 
     filter_horizontal = ['aspects']
     inlines = [GraphComponentInline]
-    list_display = ['idiograph', 'hand', 'created', 'modified']
-    list_display_links = ['idiograph', 'hand', 'created', 'modified']
+    list_display = ['id', 'hand', 'idiograph', 'created', 'modified']
+    list_display_links = list_display
+
+    list_filter = [GraphFilterNoAnnotation]
 
     actions = ['action_update_group']
 
@@ -745,6 +764,7 @@ class GraphAdmin(reversion.VersionAdmin):
             graph.annotation.set_graph_group()
 
     action_update_group.short_description = 'Update nestings'
+
 
 class HairAdmin(reversion.VersionAdmin):
     model = Hair

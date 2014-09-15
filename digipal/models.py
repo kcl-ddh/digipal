@@ -1381,6 +1381,14 @@ class Image(models.Model):
                 ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
         return ret
 
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        graphids = list(Graph.objects.filter(annotation__image=self).values_list('id', flat=True))
+        ret = super(Image, self).delete(*args, **kwargs)
+        # delete the graphs
+        Graph.objects.filter(id__in=graphids).delete()
+        return ret
+
     def get_repository(self):
         ret = None
         if self.item_part and self.item_part.current_item and self.item_part.current_item:
@@ -2055,6 +2063,17 @@ class Annotation(models.Model):
         ordering = ['graph', 'modified']
         #unique_together = ('image', 'vector_id')
     
+    def __unicode__(self):
+        return get_list_as_string(self.graph, ' in ', self.image)
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        ret = super(Annotation, self).delete(*args, **kwargs)
+        # delete the graph
+        if self.graph:
+            self.graph.delete()
+        return ret
+    
     @property
     def is_editorial(self):
         '''Returns True only if the annotation has no graph attached to it'''
@@ -2399,7 +2418,6 @@ class Annotation(models.Model):
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
-
 
 # PlaceEvidence in legacy db
 class PlaceEvidence(models.Model):

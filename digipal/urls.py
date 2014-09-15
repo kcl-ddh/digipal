@@ -4,11 +4,14 @@ from django.contrib import admin
 from mezzanine.core.views import direct_to_template
 from patches import mezzanine_patches
 from digipal.models import CarouselItem
+from digipal.signals import init_signals
 from index import count
 admin.autodiscover()
 
 # apply mezzanine patches at this stage. Before that would be troublesome (importing mezzanine would reimport digipal, etc)
 mezzanine_patches()
+
+init_signals()
 
 statistic = count()
 
@@ -56,3 +59,4 @@ if settings.DEBUG:
 # FOR PAGES, SO URLPATTERNS ADDED BELOW ``mezzanine.urls``
 # WILL NEVER BE MATCHED!
 urlpatterns += patterns('', ('^', include('mezzanine.urls')))
+

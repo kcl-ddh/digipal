@@ -269,7 +269,7 @@ function Dialog() {
     };
 
     var update_onChange = function(allograph, selector) {
-        var ABSOLUTE_URL = '/digipal/api/';
+        var ABSOLUTE_URL = '/digipal/api/old/';
         var PREFIX = 'search_';
         var content_type = 'allograph';
         var url = ABSOLUTE_URL + content_type + '/' + allograph;

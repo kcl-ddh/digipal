@@ -2519,12 +2519,16 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			var cache = annotator.cacheAnnotations.cache;
 			var aspects_list = load_aspects(annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects, data.graph_id, cache);
+			var aspects = annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects;
+			var components = annotator.cacheAnnotations.cache.allographs[data.allograph_id].components;
 
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-			if (!aspects_list.length) {
+			if (!aspects.length || !components.length) {
 				$('[data-target="#aspects_tab"]').hide();
+			} else {
+				$('[data-target="#aspects_tab"]').show();
 			}
 			var check_all = $('.check_all');
 			check_all.click(function(event) {

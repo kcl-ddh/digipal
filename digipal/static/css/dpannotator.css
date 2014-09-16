@@ -432,6 +432,8 @@ label[for=id_internal_note], label[for=id_display_note]{
     height: 80px;
     box-shadow: 0 1px 1px rgba(0,0,0,0.075);
     border: 1px solid #ccc;
+    margin-top: 0.5em;
+    /* margin-bottom: 0.5em; */
 }
 
 .buttons_div br {

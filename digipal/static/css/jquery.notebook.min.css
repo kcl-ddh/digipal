@@ -20,6 +20,9 @@
 
 .jquery-notebook p:first-child,.jquery-notebook p.placeholder+p{
 	margin-top:0
+;
+	line-height: 0;
+	margin-bottom: 0;
 }
 
 .jquery-notebook.bubble{

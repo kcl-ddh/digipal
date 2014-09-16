@@ -742,7 +742,6 @@ function AnnotatorLoader() {
 				}
 			});
 		}
-
 	};
 
 	// Filter the allograph by ontograph type.

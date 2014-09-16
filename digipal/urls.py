@@ -41,6 +41,8 @@ urlpatterns = patterns('',
     url(r'^tinymce/', include('tinymce.urls')),
 
     url(r'^blog/search/$', 'mezzanine.core.views.search'),
+
+    url(r'^doc/(?P<path>.*)$', 'digipal.views.doc.doc_view'),
 )
 
 if settings.LIGHTBOX:

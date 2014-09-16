@@ -629,3 +629,11 @@ def remove_param_from_request(request, key):
     ret.META = ret.META.copy()
     ret.META['QUERY_STRING'] = re.sub(ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
     return ret
+
+def read_file(filepath):
+    import codecs
+    f = codecs.open(filepath, 'r', "utf-8")
+    ret = f.read()
+    f.close()
+    
+    return ret

@@ -691,7 +691,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				selectedFeature = annotator.selectedFeature;
 			}
 
-			var to_lightbox = $('.dialog_annotations').find('.to_lightbox');
+			var to_lightbox = $('.ui-dialog').find('.to_lightbox');
 
 			to_lightbox.unbind().on('click', function() {
 				var type;

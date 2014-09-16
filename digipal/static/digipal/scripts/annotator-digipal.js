@@ -2369,6 +2369,8 @@ function load_data(selectedFeature, dialog, callback) {
 		if (can_edit) {
 			if (!allograph) {
 				dialog.find('#components_tab').html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
+				targets.hide();
 				if (callback) {
 					callback();
 				}

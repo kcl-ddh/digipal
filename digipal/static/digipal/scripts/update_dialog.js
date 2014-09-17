@@ -20,7 +20,7 @@ var api = new DigipalAPI({
 
 var local_cache = {};
 
-function update_dialog(prefix, data, selectedAnnotations, callback) {
+function update_dialog(prefix, data, selectedAnnotations, callback, cache) {
 
 	if (typeof annotator !== 'undefined' && annotator.selectedFeature !== 'undefined' && annotator.selectedFeature && annotator.selectedFeature.isTemporary) {
 		callback('');
@@ -29,9 +29,12 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 	var s = '<div id="box_features_container">';
 	var array_features_owned = features_saved(data.features);
 	var allographs = data.allographs.components;
+	var string_summary = "";
 	if (!allographs.length) {
 		s += '<p class="component" style="margin:0;">No common components</p>';
+		string_summary = "<span class='component_summary'>No componensts</span>";
 	} else {
+
 		$.each(allographs, function(idx) {
 			component = allographs[idx].name;
 			component_id = allographs[idx].id;
@@ -41,12 +44,39 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 			s += "<div class='checkboxes_div btn-group'><span data-toggle='tooltip' data-container='body'  title='Check all' data-component = '" + component_id + "' class='check_all btn btn-xs btn-default'><i class='fa fa-check-square-o'></i></span> <span title='Unheck all' data-toggle='tooltip' data-container='body' data-component = '" + component_id + "' class='uncheck_all btn btn-xs btn-default'><i class='fa fa-square-o'></i></span><span data-component = '" + component_id + "' title='Check by default' data-toggle='tooltip' data-container='body' class='set_by_default btn btn-xs btn-default'><i class='fa fa-plus-square'></i></span></div></div>";
 
 			s += "<div id='" + prefix + "component_" + component_id + "' data-hidden='false' class='feature_containers'>";
-
+			string_summary += "<span class='component_summary' data-component='" + component_id + "'>" + allographs[idx].name + "</span>";
+			var n = 0;
 			$.each(features, function(idx) {
 				var value = component_id + '::' + features[idx].id;
 				var id = component_id + '_' + features[idx].id;
 				var names = component + ':' + features[idx].name;
 				s += '<div class="row row-no-margin">';
+
+				if (cache) {
+					var f = selectedAnnotations;
+					var al = '';
+					var d = 0;
+					var temporary_vectors = [];
+					var title = '';
+					var ann;
+					for (var k = 0; k < f.length; k++) {
+						var graph = cache.graphs[f];
+						var features_graph = graph.features;
+						for (var j = 0; j < features_graph.length; j++) {
+							if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {
+								d++;
+								temporary_vectors.push(names);
+							}
+						}
+					}
+
+					var array_features_owned_temporary = array_features_owned.concat(temporary_vectors);
+
+					if (array_features_owned_temporary.indexOf(names) >= 0) {
+						string_summary += "<span data-component='" + component_id + "' title='" + features[idx].name + "' data-feature = '" + features[idx].id + "' class='feature_summary'>" + features[idx].name + ' ' + al + "</span>";
+						n++;
+					}
+				}
 
 				if (typeof annotator !== 'undefined') {
 					if (typeof annotator.selectedFeature !== "undefined" && annotator.selectedFeature !== null && annotator.selectedFeature.state == 'Insert') {
@@ -71,14 +101,16 @@ function update_dialog(prefix, data, selectedAnnotations, callback) {
 
 				s += '</div>';
 			});
-
+			if (!n) {
+				string_summary += "<span class='feature_summary' data-feature = '0' data-component='" + component_id + "'>undefined</span>";
+			}
 			s += "</div>";
 		});
 	}
 
 	s += "</div>";
 	if (callback) {
-		callback(s);
+		callback(s, string_summary);
 	}
 }
 

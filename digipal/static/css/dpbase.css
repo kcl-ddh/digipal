@@ -681,3 +681,8 @@ a[data-toggle="pill"]{
 .digipal-doc a[name] {
     color: #5A5A5A;
 }
+
+.digipal-doc code {
+    color: #333;
+    background-color: #F5F5F5;
+}

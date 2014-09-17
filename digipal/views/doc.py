@@ -51,10 +51,9 @@ def get_doc_from_md(md, request):
     return ret
 
 def postprocess_markdown(html, request):
-    # convert 'code' into 'pre'
     ret = html
-    ret = re.sub('<code>', '<pre>', ret)
-    ret = re.sub('</code>', '</pre>', ret)
+    #ret = re.sub('<code>', '<pre>', ret)
+    #ret = re.sub('</code>', '</pre>', ret)
 
     # add anchor to each heading
     # <h1>My Heading</h1>
@@ -91,6 +90,22 @@ def postprocess_markdown(html, request):
 
 def preprocess_markdown(md, request):
     ret = md
+
+    # As opposed to github MD, python MD will parse the content of ` and ```
+    # E.g. ```\n#test\n``` => <h1>test</h1>
+    # So we convert ` and ``` to 4 space indent to produce the intended effect
+    lines = ret.split('\n')
+    in_code = False
+    new_lines = []
+    for line in lines:
+        code_swicth = line.rstrip() in ['`', '```']
+        if code_swicth:
+            in_code = not in_code
+            continue
+        if in_code:
+            line = '    ' + line
+        new_lines.append(line) 
+    ret = '\n'.join(new_lines)
     
     # convert link to another .md file 
     # e.g. [See the other test document](test2.md)

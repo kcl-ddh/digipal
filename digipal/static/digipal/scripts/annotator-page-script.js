@@ -568,7 +568,7 @@ function AnnotatorLoader() {
 				if (annotator.cacheHiddenFilters.hands.length) {
 					checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
 				}
-				checkOutput += "<p data-annotation='" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
+				checkOutput += "<p data-annotation='hand_" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
 					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
 			if (annotator.cacheHiddenFilters.hands.length) {
@@ -582,7 +582,6 @@ function AnnotatorLoader() {
 			checkOutput += "<input data-attribute='public' " + checked_public + " value = 'public' class='checkVectors_hands' id='public_filter' type='checkbox' />";
 			checkOutput += "<label for='public_filter' style='display:inline;'> Public Annotations</label></p>";
 		}
-
 		checkOutput += "</div></div>";
 		var switcherClone = $('.toggle-state-switch').clone();
 		var allographs_filter_box = $('#allographs_filtersBox');
@@ -660,7 +659,6 @@ function AnnotatorLoader() {
 		} else {
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
-			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.dialog('open');
 			filtersEvents();
 		}

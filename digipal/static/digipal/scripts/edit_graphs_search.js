@@ -231,12 +231,10 @@ function EditGraphsSearch() {
 
         if (!self.dialog) {
             /* creating dialog */
-            dialog(image_id, {
-                summary: false
-            }, function(dialog_instance) {
+            dialog(image_id, {}, function(dialog_instance) {
                 self.dialog = dialog_instance;
 
-                self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
+                self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s, string_summary) {
 
                     /* fill container content */
                     self.dialog.selector.find('#features_container').html(s);
@@ -247,6 +245,7 @@ function EditGraphsSearch() {
 
                     var select_hand = self.dialog.selector.find('.hand_form');
                     var checkboxes = self.dialog.selector.find('.features_box');
+                    var summary = $('#summary');
 
                     rewriteHands(select_hand, graph.hands);
                     detect_common_features(self.selectedAnnotations, checkboxes, cache);
@@ -262,6 +261,7 @@ function EditGraphsSearch() {
                     self.dialog.set_label(allograph_label);
                     self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
                     self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                    summary.html(string_summary);
                     /* applying delete event to selected feature */
                     var delete_button = self.dialog.selector.find('#delete');
                     delete_button.click(function(event) {
@@ -325,11 +325,11 @@ function EditGraphsSearch() {
 
                     $('select').trigger('liszt:updated');
 
-                });
+                }, cache);
             });
         } else {
 
-            self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
+            self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s, string_summary) {
 
                 /* fill container content */
                 self.dialog.selector.find('#features_container').html(s);
@@ -338,11 +338,12 @@ function EditGraphsSearch() {
                 setNotes(data, self.dialog.selector.find('#dialog_notes'));
                 var select_hand = self.dialog.selector.find('.hand_form');
                 var checkboxes = self.dialog.selector.find('.features_box');
+                var summary = $('#summary');
                 rewriteHands(select_hand, graph.hands);
                 detect_common_features(self.selectedAnnotations, checkboxes, cache);
                 common_allographs(self.selectedAnnotations, cache, graph);
                 self.dialog.selector.find('#dialog_aspects').html(aspects_list);
-
+                summary.html(string_summary);
                 /* setting dialog label */
                 var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                 self.dialog.set_label(allograph_label);
@@ -362,7 +363,7 @@ function EditGraphsSearch() {
                 // GN - rotation prototype - to be reviewed
                 self.annotation_editor.set_graphids(self.selectedAnnotations);
 
-            });
+            }, cache);
         }
     };
 

@@ -7,11 +7,11 @@ def doc_view(request, path):
     template = 'digipal/doc_page.html'
     context = {}
     
-    context['doc'] = get_doc_from_path(path)
+    context['doc'] = get_doc_from_path(path, request)
     
     return render_to_response(template, context, context_instance=RequestContext(request))
 
-def get_doc_from_path(path):
+def get_doc_from_path(path, request):
     # find the doc file from the given path
     file_path = get_doc_absolute_path(path)
     
@@ -20,11 +20,11 @@ def get_doc_from_path(path):
     md = readFile(file_path)
       
     # transform into HTML
-    ret = get_doc_from_md(md)
+    ret = get_doc_from_md(md, request)
         
     return ret
 
-def get_doc_from_md(md):
+def get_doc_from_md(md, request):
     '''Returns the doc info structure from a mark down text (md)'''
     ret = {}
     
@@ -38,13 +38,52 @@ def get_doc_from_md(md):
     
     # convert the document to HTML
     import markdown2
-    from django.utils.safestring import mark_safe    
-    ret['content'] = mark_safe(markdown2.markdown(md))
+    from django.utils.safestring import mark_safe
+    
+    md = preprocess_markdown(md, request)
+    
+    html = markdown2.markdown(md)
+
+    html = postprocess_markdown(html, request)
+    
+    ret['content'] = mark_safe(html)
+    
+    return ret
+
+def postprocess_markdown(html, request):
+    # convert 'code' into 'pre'
+    ret = html
+    ret = re.sub('<code>', '<pre>', ret)
+    ret = re.sub('</code>', '</pre>', ret)
+    
+    # convert links to static files
+    # <img href="/digipal/static/doc/april-boat.jpg?raw=true"/>
+    # => <img href="/static/doc/april-boat.jpg?raw=true"/>
+    # We have to make sure the URL is relative to this site (i.e. starts with /)
+    # We assume that doc images are stored in a 'static' folder in the repo.
+    # We also assume that the web path to static files starts with 'static'.
+    ret = re.sub(ur'(href|src)="/[^"]*(/static/[^"]*)"', ur'\1="\2"', ret)
+    
+    return ret
+
+
+def preprocess_markdown(md, request):
+    ret = md
+    
+    # convert link to another .md file 
+    # e.g. [See the other test document](test2.md)
+    # => [See the other test document](test2)
+    link_prefix = ''
+    request_path = request.META['PATH_INFO']
+    if request_path[-1] == '/':
+        link_prefix = '../'
+    
+    ret = re.sub(ur'\]\(([^)]+).md\)', ur'](%s\1)' % link_prefix, ret)
     
     return ret
 
 def get_doc_absolute_path(relative_path):
-    path = relative_path
+    path = relative_path.strip('/')
     parts = path.split('/')
 
     if len(parts) <= 1:

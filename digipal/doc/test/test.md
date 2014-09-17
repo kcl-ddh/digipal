@@ -41,6 +41,6 @@ Code
 
 ## Images
 
-![](../static/april-boat.jpg?raw=true)
+![](/digipal/static/doc/april-boat.jpg?raw=true)
 
-![](../static/april-digipal-symposium.jpg?raw=true)
+![](/digipal/static/doc/april-digipal-symposium.jpg?raw=true)

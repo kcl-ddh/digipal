@@ -8,4 +8,4 @@ This is just to test the links among documents.
 
 This should link to the first document.
 
-[See the first document](test.md)
+[See the first document](test.md/#images)

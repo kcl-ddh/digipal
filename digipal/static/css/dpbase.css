@@ -677,3 +677,7 @@ a[data-toggle="pill"]{
 .disabled {
     cursor: not-allowed !important;
 }
+
+.digipal-doc a[name] {
+    color: #5A5A5A;
+}

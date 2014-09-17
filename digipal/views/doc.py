@@ -55,6 +55,28 @@ def postprocess_markdown(html, request):
     ret = html
     ret = re.sub('<code>', '<pre>', ret)
     ret = re.sub('</code>', '</pre>', ret)
+
+    # add anchor to each heading
+    # <h1>My Heading</h1>
+    # =>
+    # <h1><a href="#my-heading" name="my-heading">My Heading</a></h1>
+    #
+    from django.utils.text import slugify
+    pos = 1
+    pattern = re.compile(ur'(<h\d>)([^<]*)(</h\d>)')
+    while True:
+        # pos-1 because we want to include the last > we've inserted in the previous loop.
+        # without this we might miss occurrences
+        m = pattern.search(ret, pos - 1)
+        
+        if not m: break
+        
+        anchor_name = slugify(m.group(2).strip())
+        replacement = ur'%s<a href="#%s" name="%s">%s</a>%s' % (m.group(1), anchor_name, anchor_name, m.group(2), m.group(3)) 
+        
+        ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+        
+        pos = m.start(0) + len(replacement)
     
     # convert links to static files
     # <img href="/digipal/static/doc/april-boat.jpg?raw=true"/>
@@ -78,7 +100,8 @@ def preprocess_markdown(md, request):
     if request_path[-1] == '/':
         link_prefix = '../'
     
-    ret = re.sub(ur'\]\(([^)]+).md\)', ur'](%s\1)' % link_prefix, ret)
+    # we preserve the fragment (#...)
+    ret = re.sub(ur'\]\(([^)]+).md/?(#?[^)]*)\)', ur'](%s\1\2)' % link_prefix, ret)
     
     return ret
 

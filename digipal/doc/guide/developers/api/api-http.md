@@ -2,7 +2,7 @@
 
 Expose the DigiPal Django Models as a Restful web API.
 
-It handles CRUD requests from HTTP and returns JSON `#responses`.
+It handles CRUD requests from HTTP and returns JSON responses.
 
 ## Request
 

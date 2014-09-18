@@ -657,8 +657,8 @@ function AnnotatorLoader() {
 			}
 
 		} else {
-			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
+			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.dialog('open');
 			filtersEvents();
 		}

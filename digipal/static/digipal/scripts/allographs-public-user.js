@@ -75,7 +75,7 @@ function PublicAllograhs() {
 
 		});
 
-		annotation_li.find('a').click(function(event) {
+		annotation_li.on('click', function(event) {
 			var id = $(this).parent('.annotation_li').data('graph');
 			_self.to_annotator(id);
 
@@ -92,7 +92,7 @@ function PublicAllograhs() {
 		});
 
 		var deselect_all = $('.deselect_all');
-		deselect_all.click(function() {
+		deselect_all.on('click', function() {
 			var key = $(this).data('key');
 			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var checkboxes = ul.find('.annotation_li');
@@ -105,7 +105,7 @@ function PublicAllograhs() {
 		});
 
 		var select_all = $('.select_all');
-		select_all.click(function() {
+		select_all.on('click', function() {
 			var key = $(this).data('key');
 			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var checkboxes = ul.find('.annotation_li');

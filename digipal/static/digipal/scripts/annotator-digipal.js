@@ -2538,7 +2538,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-			if (!aspects.length || !components.length) {
+			if (!aspects.length) {
 				$('[data-target="#aspects_tab"]').hide();
 			} else {
 				$('[data-target="#aspects_tab"]').show();

@@ -10,3 +10,6 @@ urlpatterns += patterns('digipal.views.admin.stewart',
     (r'digipal/stewartrecord/import', 'stewart_import'),
 )
 
+urlpatterns = patterns('digipal.views.admin.quickforms',
+    (r'digipal/itempart/add/?', 'add_itempart_view'),
+)

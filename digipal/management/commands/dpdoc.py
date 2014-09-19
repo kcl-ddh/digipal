@@ -56,7 +56,6 @@ Commands:
     
                 
     def handle(self, *args, **options):
-        
         self.options = options
         self.args = args
         
@@ -86,24 +85,50 @@ Commands:
         
         # convert to md
         from bs4 import BeautifulSoup
-        soup = BeautifulSoup(html).prettify()
+        soup = BeautifulSoup(html)
+        
+        # remove any line breaks within the <ul>s
+        for tag in soup.find_all('ul'):
+            tag_markup = unicode(tag)
+            tag_markup = re.sub(ur'(?musi)<p>|</p>' , ur' ', tag_markup)
+            tag_markup = re.sub(ur'(?musi)\s+' , ur' ', tag_markup)
+            tag.replace_with(BeautifulSoup(tag_markup).ul)
+
+        # convert <li>s
+        for tag in soup.find_all('li'):
+            prefix = ''
+            for parent in tag.parents:
+                if parent.name in ('ul', 'ol'):
+                    if not prefix:
+                        if parent.name == 'ul':
+                            prefix = '* '
+                        if parent.name == 'ol':
+                            prefix = '%s. ' % (len([s for s in tag.previous_siblings if s.name == 'li']) + 1)
+                    else:
+                        prefix = '#SPACE#' + prefix
+            for tag_str in tag.strings:
+                tag_str.insert_before(prefix)
+                break
+        
+        # serialise into a string
         ret = unicode(soup)
         
         # strip all unnecessary spaces
-        ret = re.sub(ur'>\s+', ur'>', ret)
-        ret = re.sub(ur'\s+<', ur'<', ret)
-        
+        ret = re.sub(ur'(?musi)>\s+', ur'>', ret)
+        ret = re.sub(ur'(?musi)\s+<', ur'<', ret)
+
         # convert <hx> to #
         for i in range(1, 5):
             ret = re.sub(ur'<h%s>(.*?)</h%s>' % (i, i), ur'\n%s \1\n' % ('#' * i,), ret)
-            
+        
         # convert <p> to paragraphs
-        ret = re.sub(ur'<p>(.*?)</p>\s*', ur'\1\n\n', ret)
+        ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
         
-        # convert <li>
-        ret = re.sub(ur'\s*<li>(.*?)</li>\s*', ur'\n* \1', ret)
+        ret = re.sub(ur'\s*<li>', ur'\n', ret)
+        
+        ret = re.sub(ur'#SPACE#', ur' ', ret)
+        
+        # remove remaining tags
+        ret = re.sub(ur'<[^>]*>', ur' ', ret)
 
-        #print repr(ret.encode('utf8', 'ignore'))
         print ret.encode('utf8', 'ignore')
-        
-        print 'done'

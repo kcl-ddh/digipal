@@ -94,6 +94,22 @@ Commands:
             tag_markup = re.sub(ur'(?musi)\s+' , ur' ', tag_markup)
             tag.replace_with(BeautifulSoup(tag_markup).ul)
 
+        # images
+        # <img src="./collections_files/col-management.png">
+        # ![](/digipal/static/doc/col-management.png?raw=true)
+        # copy the image file
+        # convert the tag
+        import digipal
+        import shutil
+        static_path = os.path.join(digipal.__path__[0], 'static/doc')
+        for tag in soup.find_all('img'):
+            file_name = re.sub('.*?([^/?]*)($|\?|#)', ur'\1', tag['src'])
+            img_src = os.path.join(os.path.dirname(path), tag['src'])
+            img_dst = os.path.join(static_path, file_name)
+            imgmd = '![](/static/doc/%s?raw=true)' % file_name
+            tag.replace_with(imgmd)
+            shutil.copyfile(img_src, img_dst)
+        
         # convert <li>s
         for tag in soup.find_all('li'):
             prefix = ''
@@ -125,7 +141,7 @@ Commands:
         ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
         
         ret = re.sub(ur'\s*<li>', ur'\n', ret)
-        
+
         ret = re.sub(ur'#SPACE#', ur' ', ret)
         
         # remove remaining tags

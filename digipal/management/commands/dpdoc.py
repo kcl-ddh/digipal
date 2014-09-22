@@ -86,6 +86,7 @@ Commands:
         # convert to md
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(html)
+        soup = soup.body
         
         # remove any line breaks within the <ul>s
         for tag in soup.find_all('ul'):
@@ -128,10 +129,22 @@ Commands:
         
         # serialise into a string
         ret = unicode(soup)
+
+        # Preserve the spaces and line breaks in <pre> tags
+        pattern = re.compile(ur'(?musi)<pre>(.*?)</pre>')
+        pos = 1
+        while True:
+            m = pattern.search(ret, pos - 1)
+            if not m: break
+            
+            replacement = '#CR#```#CR#%s#CR#```#CR#' % m.group(1).replace('\n', '#CR#').replace(' ', '#SPACE#') 
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+            pos = m.start(0) + len(replacement)
         
         # strip all unnecessary spaces
-        ret = re.sub(ur'(?musi)>\s+', ur'>', ret)
-        ret = re.sub(ur'(?musi)\s+<', ur'<', ret)
+        #ret = re.sub(ur'(?musi)>\s+', ur'>', ret)
+        #ret = re.sub(ur'(?musi)\s+<', ur'<', ret)
+        ret = re.sub(ur'\s+', ur' ', ret)
 
         # convert <hx> to #
         for i in range(1, 5):
@@ -140,9 +153,43 @@ Commands:
         # convert <p> to paragraphs
         ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
         
+        # convert strike-through
+        ret = re.sub(ur'(?musi)<s>(.*?)</s>', ur'~~\1~~', ret)
+
+        # convert italics
+        ret = re.sub(ur'(?musi)<em>(.*?)</em>', ur'_\1_', ret)
+
+        # convert <strong>
+        ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
+        
+        # convert <blockquote>
+        #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
+        pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
+        pos = 1
+        while True:
+            # pos-1 because we want to include the last > we've inserted in the previous loop.
+            # without this we might miss occurrences
+            m = pattern.search(ret, pos - 1)
+            
+            if not m: break
+            
+            replacement = '%s\n\n' % re.sub(ur'(?musi)^\s*', ur'> ', m.group(1)) 
+            
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+            
+            pos = m.start(0) + len(replacement)
+
+        # convert <pre>
+        #ret = re.sub(ur'(?musi)<pre>\s*(.*?)\s*</pre>', ur'\n```\n\1\n```\n', ret)
+
+        # add line break before bullet points
         ret = re.sub(ur'\s*<li>', ur'\n', ret)
+        # add line break after block of bullet points
+        # (only if not nested into another block) 
+        ret = re.sub(ur'\s*</ul>(?!\s*</li>)', ur'\n', ret)
 
         ret = re.sub(ur'#SPACE#', ur' ', ret)
+        ret = re.sub(ur'#CR#', ur'\n', ret)
         
         # remove remaining tags
         ret = re.sub(ur'<[^>]*>', ur' ', ret)

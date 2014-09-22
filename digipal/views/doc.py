@@ -106,6 +106,9 @@ def preprocess_markdown(md, request):
             line = '    ' + line
         new_lines.append(line) 
     ret = '\n'.join(new_lines)
+
+    # ~~test~~ => -test-
+    ret = re.sub(ur'(?musi)~~(.*?)~~', ur'<del>\1</del>', ret)
     
     # convert link to another .md file 
     # e.g. [See the other test document](test2.md)

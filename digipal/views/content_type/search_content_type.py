@@ -885,7 +885,7 @@ class QuerySetAsList(list):
     
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.template.defaultfilters import slugify
-def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid=None, other_choices=[]):
+def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid=None, other_choices=[], is_key_id=False):
     ''' Returns a choice field from a set of values
         If is_model_choice_field is True a forms.ModelChoiceField is returned, 
         otherwise a forms.ChoiceField is returned.
@@ -914,9 +914,13 @@ def get_form_field_from_queryset(values, label, is_model_choice_field=False, aid
             **options
         )
     else:
+        if is_key_id:
+            choices = [(d.id, d) for d in values]
+        else:
+            choices = [(d, d) for d in values]
         ret = forms.ChoiceField(
             #choices = [('', 'Date')] + [(d, d) for d in list(Hand.objects.all().filter(assigned_date__isnull=False).values_list('assigned_date__date', flat=True).order_by('assigned_date__sort_order').distinct())],
-            choices = [('', label)] + other_choices + [(d, d) for d in values],
+            choices = [('', label)] + other_choices + choices,
             initial = label,
             **options
         )

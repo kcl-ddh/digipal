@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from os.path import isdir
 import os
-import shlex
-import subprocess
 import re
 from optparse import make_option
 import utils  
-from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
-from digipal.models import Text
-from digipal.models import HistoricalItem, ItemPart
-from django.db.models import Q
 from digipal.models import *
 
 class Command(BaseCommand):
@@ -21,7 +14,7 @@ Digipal documentation tools.
 Commands:
 
   html2md PATH
-                        Converts a html file to a md file 
+                        Returns Markdown output from a HTML file located at PATH 
     """
     
     args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'

@@ -840,8 +840,6 @@ def delete(request, image_id, graph_id):
                 data.update({'errors': {}})
                 data['errors'].update({'exception': 'Annotation does not exist'})
             else:
-                if annotation.graph:
-                    annotation.graph.delete()
                 annotation.delete()
 
     except Exception as e:

@@ -1,4 +1,4 @@
-from digipal.models import Annotation
+from digipal.models import Annotation, Graph
 from django.db.models.signals import post_delete
 from django.db import transaction
 
@@ -11,8 +11,14 @@ from django.db import transaction
 @transaction.atomic
 def post_delete_annotation(sender, **kwargs):
     annotation = kwargs['instance']
-    if annotation and annotation.graph:
-        annotation.graph.delete()
+    
+    try:
+        if annotation and annotation.graph:
+            annotation.graph.delete()
+    except Graph.DoesNotExist, e:
+        # The graph has already been deleted.
+        # This shouldn't happen but we just ignore it.
+        pass
 
 def init_signals():
     post_delete.connect(post_delete_annotation, sender=Annotation, dispatch_uid="digipal.signals.annotation.post_delete")

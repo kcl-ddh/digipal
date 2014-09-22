@@ -211,16 +211,18 @@ Commands:
             Returns href if not found.
         '''
         import digipal
+        
         ret = href
-        file_name = href
-        file_name = re.sub(ur'[#?].*$', '', file_name).strip('/')
-        file_name = re.sub(ur'^.*/', '', file_name).lower()
-        start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
-        for root, dirs, files in os.walk(start_path):
-            for file in files: 
-                if re.sub(ur'.md$', '', file).lower() == file_name:
-                    ret = os.path.join(root, file).replace('\\', '/')
-                    ret = '/doc/digipal/%s' % ret[len(start_path):].strip('/')
-                    break
+        if 'confluence.dighum' in href.lower():
+            file_name = href
+            file_name = re.sub(ur'[#?].*$', '', file_name).strip('/')
+            file_name = re.sub(ur'^.*/', '', file_name).lower()
+            start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
+            for root, dirs, files in os.walk(start_path):
+                for file in files: 
+                    if re.sub(ur'.md$', '', file).lower() == file_name:
+                        ret = os.path.join(root, file).replace('\\', '/')
+                        ret = '/doc/digipal/%s' % ret[len(start_path):].strip('/')
+                        break
         return ret
     

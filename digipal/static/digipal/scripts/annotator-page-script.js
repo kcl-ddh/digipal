@@ -30,7 +30,6 @@ function AnnotatorLoader() {
 		select_elements.chosen();
 		self.switch_annotations();
 		self.toolbar_position();
-		self.set_settings(self.digipal_settings); // setting settings
 
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			if (annotator.isAdmin == "False") {
@@ -41,7 +40,12 @@ function AnnotatorLoader() {
 				annotator.selectFeature.deactivate();
 				annotator.selectFeature.activate();
 			}
+			self.set_settings(self.digipal_settings); // setting settings
+
 			hide_allographs_from_url();
+			// loading annotations through URL (if there are)
+			self.load_temporary_vector();
+			self.load_stored_vector();
 		});
 	};
 
@@ -157,11 +161,13 @@ function AnnotatorLoader() {
 			self.boxes_on_click($(this).is(':checked'));
 		});
 
+		/*
 		if (boxes_on_click.is(':checked')) {
 			annotator.boxes_on_click = true;
 			self.digipal_settings.boxes_on_click = true;
 			localStorage.setItem('self.digipal_settings', JSON.stringify(self.digipal_settings));
 		}
+		*/
 
 		var star = new Star();
 		var selectedCollection = star.getCurrentCollection();
@@ -216,10 +222,6 @@ function AnnotatorLoader() {
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 		self.toolbar_position();
-
-		// loading annotations through URL (if there are)
-		self.load_temporary_vector();
-		self.load_stored_vector();
 
 		$('#toolbar div').tooltip({
 			container: 'body',
@@ -879,7 +881,7 @@ function AnnotatorLoader() {
 			annotator.toolbar.enable_annotation_tools();
 		} else {
 			multiple_boxes.attr('disabled', false);
-			boxes_on_click.attr('checked', true).trigger('change');
+			//boxes_on_click.attr('checked', true).trigger('change');
 			annotator.annotating = false;
 			self.digipal_settings.annotating = false;
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
@@ -1026,12 +1028,11 @@ function AnnotatorLoader() {
 		if (is_checked) {
 			annotator.boxes_on_click = true;
 			self.digipal_settings.boxes_on_click = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		} else {
 			annotator.boxes_on_click = false;
 			self.digipal_settings.boxes_on_click = false;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		}
+		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
 	// sets options to select multiple vectors

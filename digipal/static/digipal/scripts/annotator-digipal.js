@@ -2117,7 +2117,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var a = $('<input type="text">');
 		a.css('width', '100%');
 		var title = $('.name_temporary_annotation').val();
-		var desc = $('.textarea_temporary_annotation').html();
+		var desc = $('.editor_active').html();
 		if (desc) {
 			desc.replace('contenteditable="true"', '');
 		}

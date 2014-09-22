@@ -390,14 +390,13 @@ function AnnotatorLoader() {
 				}
 
 			}
-
 			annotator.map.zoomToExtent(extent);
 			$('.dialog_annotations').attr('contenteditable', false);
 			if ($('.dialog_annotations').length) {
 				var title = geo_json.title;
 				var desc = unescape(geo_json.desc);
 				$('.name_temporary_annotation').val(title);
-				$('.textarea_temporary_annotation').html(desc).
+				$('.jquery-notebook.editor').html(desc).
 				attr('contenteditable', false).
 				attr('title', 'Click to edit').
 				addClass("noteditable").tooltip({

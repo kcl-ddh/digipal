@@ -679,9 +679,9 @@
 			}
 
 			if (!$(".loading-div").length) {
-
+				var images = selectedItems.length == 1 ? "image" : "images";
 				loading_div.html('<h2>Removing images</h2>');
-				loading_div.append("<p>You are about to remove " + selectedItems.length + " images. Continue?");
+				loading_div.append("<p>You are about to remove " + selectedItems.length + " " + images + ". Continue?");
 				loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
 				background.append(loading_div);
 				$('body').append(background);
@@ -841,12 +841,14 @@
 			var _collections = JSON.parse(localStorage.getItem('collections')),
 				_basket;
 
+			var selectedCollection = localStorage.getItem('selectedCollection');
 			var list, type, new_list = [];
 
 			$.each(_collections, function(index, value) {
 				if (value.id == selectedCollection) {
 					_basket = value;
 					_basket['name'] = index;
+					_basket.id = value.id;
 				}
 			});
 

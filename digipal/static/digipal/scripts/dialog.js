@@ -166,7 +166,7 @@ function Dialog() {
 
                     if (summary) {
                         summary_element.show();
-                        summary_element.css('bottom', '98%');
+                        summary_element.css('bottom', '90%');
                     }
 
                     myModal.find('.modal-body').css("max-height", "");

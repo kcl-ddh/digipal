@@ -1496,19 +1496,19 @@ class StewartRecordAdmin(reversion.VersionAdmin):
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_match') + '?ids=' + ','.join(selected) )
+        return HttpResponseRedirect(reverse('stewart_match') + '?ids=' + ','.join(selected) )
     match_hands.short_description = 'Match with DigiPal hand records'
     
     def merge_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?ids=' + ','.join(selected) )
+        return HttpResponseRedirect(reverse('stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
     
     def merge_matched_simulation(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('digipal.views.admin.stewart.stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
+        return HttpResponseRedirect(reverse('stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
     merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
     
 class RequestLogFilterEmpty(admin.SimpleListFilter):

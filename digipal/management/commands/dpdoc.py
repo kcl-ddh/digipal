@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from os.path import isdir
 import os
-import shlex
-import subprocess
 import re
 from optparse import make_option
 import utils  
-from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
-from digipal.models import Text
-from digipal.models import HistoricalItem, ItemPart
-from django.db.models import Q
 from digipal.models import *
 
 class Command(BaseCommand):
@@ -21,7 +14,7 @@ Digipal documentation tools.
 Commands:
 
   html2md PATH
-                        Converts a html file to a md file 
+                        Returns Markdown output from a HTML file located at PATH 
     """
     
     args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
@@ -162,21 +155,31 @@ Commands:
         # convert <strong>
         ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
         
+        # convert <a href="">
+        #ret = re.sub(ur'(?musi)<a>(.*?)</a>', ur'[]()', ret)
+        pattern = re.compile(ur'(?musi)<a.*?href="([^"]*)".*?>(.*?)</a>')
+        pos = 1
+        while True:
+            m = pattern.search(ret, pos - 1)
+            if not m: break
+            
+            # if this is a link to a confluence page, convert it to a local link
+            href = self.get_local_doc_url(m.group(1))
+            
+            replacement = '[%s](%s)' % (m.group(2), href) 
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+            pos = m.start(0) + len(replacement)
+
         # convert <blockquote>
         #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
         pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
         pos = 1
         while True:
-            # pos-1 because we want to include the last > we've inserted in the previous loop.
-            # without this we might miss occurrences
             m = pattern.search(ret, pos - 1)
-            
             if not m: break
             
             replacement = '%s\n\n' % re.sub(ur'(?musi)^\s*', ur'> ', m.group(1)) 
-            
             ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-            
             pos = m.start(0) + len(replacement)
 
         # convert <pre>
@@ -195,3 +198,24 @@ Commands:
         ret = re.sub(ur'<[^>]*>', ur' ', ret)
 
         print ret.encode('utf8', 'ignore')
+
+    def get_local_doc_url(self, href):
+        '''Returns the url of a local MD with the same name as in href.
+            Returns href if not found.
+        '''
+        import digipal
+        
+        ret = href
+        if 'confluence.dighum' in href.lower():
+            file_name = href
+            file_name = re.sub(ur'[#?].*$', '', file_name).strip('/')
+            file_name = re.sub(ur'^.*/', '', file_name).lower()
+            start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
+            for root, dirs, files in os.walk(start_path):
+                for file in files: 
+                    if re.sub(ur'.md$', '', file).lower() == file_name:
+                        ret = os.path.join(root, file).replace('\\', '/')
+                        ret = '/doc/digipal/%s' % ret[len(start_path):].strip('/')
+                        break
+        return ret
+    

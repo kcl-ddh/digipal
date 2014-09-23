@@ -2,18 +2,61 @@
 {% load i18n admin_urls admin_static admin_modify %}
 
 {% block extrahead %}{{ block.super }}
-<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-{{ media }}
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {{ media }}
+    <script type="text/javascript">
+        (function($) {
+            $(function() {
+                $('form input').on('keyup change click', function() {
+                    $input = $(this);
+                    console.log($input.val());
+                });
+            });
+        })(jQuery);
+    </script>
 {% endblock %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+{% block extrastyle %}
+    {{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+    <style>
+        label.field-required {font-weight: bold !important;}
+    </style>
+{% endblock %}
 
 {% block coltype %}colM{% endblock %}
 
 {% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
 
-{% block content %}<div id="content-main">
 
-    FORM TBC
+{% block content %}
+
+<h1>New Item Part</h1>
+
+<div id="content-main">
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {% for fieldset in form %}
+            <fieldset class="module aligned">            
+                {% for field in fieldset %}
+                    {% if forloop.counter0 %}
+                        <div class="form-row">
+                            <div>
+                                <label for="field-{{ field.key }}" class="{% if field.required %}field-required{% endif %}">
+                                    {{ field.label }}
+                                </label>
+                                <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" />
+                            </div>
+                        </div>
+                    {% else %}
+                        <h2>{{ field }}</h2>
+                    {% endif %}
+                {% endfor %}
+            </fieldset>
+        {% endfor %}
+        <input type="submit" value="Submit" />
+    </form>    
+
+</div>
 
 {% endblock%}

@@ -338,6 +338,8 @@ function Scenario() {
                 casper.then(function() {
                     var common_features = AnnotatorTasks.get.common_features(feature, feature2);
                     var areFeaturesChecked = casper.evaluate(function(common_features) {
+                        console.log(annotator.selectedAnnotations.length);
+                        console.log(common_features.length, $('.features_box:checked').length || "null");
                         return common_features.length === $('.features_box:checked').length;
                     }, common_features);
 

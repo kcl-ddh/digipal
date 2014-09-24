@@ -1449,7 +1449,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 					if (data != "False") {
 						data = data.sort(function(x, y) {
-							if (x.hand > y.hand) return 1;
+							if (x.hand < y.hand)
+								return -1;
+							if (x.hand > y.hand)
+								return 1;
 							return 0;
 						});
 						var j = 0;

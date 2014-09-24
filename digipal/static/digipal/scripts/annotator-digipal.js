@@ -2372,7 +2372,7 @@ function load_data(selectedFeature, dialog, callback) {
 				var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
 				targets.hide();
 				if (callback) {
-					callback();
+					return callback();
 				}
 			}
 			content_type = 'allograph';

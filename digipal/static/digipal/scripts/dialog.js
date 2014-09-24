@@ -64,8 +64,8 @@ function Dialog() {
                     selector = modal_features;
                     if (callback) {
                         callback(selector);
-                        events(selector);
                     }
+                    events(selector);
                 }
 
             });
@@ -79,6 +79,7 @@ function Dialog() {
             if (callback) {
                 callback(selector);
             }
+            events(selector);
         }
 
     };
@@ -102,9 +103,10 @@ function Dialog() {
         /* updates dialog when changing allograph */
 
         var allograph_form = selector.find('.allograph_form');
-        allograph_form.on('change', function() {
+        allograph_form.unbind('change').on('change', function() {
             update_onChange($(this).val(), selector);
         });
+
 
         selector.find('.close').click(function() {
             hide();

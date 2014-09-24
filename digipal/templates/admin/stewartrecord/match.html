@@ -167,6 +167,7 @@ tr.section_last td {border-bottom: 3px solid #DDDDDD}
                                                 {{ dhand.item_part }}{% if dhand.num %}, {{ dhand.num }}{% endif %}
                                                 {% if dhand.id %}- <a href="/admin/digipal/hand/{{ dhand.id }}">view</a>{% endif %}
                                                 {{ dhand.label }}
+                                                {% if dhand.legacy_id %} (leg id: #{{ dhand.legacy_id }}){% endif %}
                                             {% else %}
                                                 Select another Hand record<br/>
                                             {% endif %}

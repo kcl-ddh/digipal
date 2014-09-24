@@ -331,6 +331,23 @@ class HistoricalItemGneussFilter(SimpleListFilter):
         if self.value() == 'no':
             return queryset.exclude(catalogue_numbers__source__label='G.')
 
+# class HandMatchedFilter(SimpleListFilter):
+#     title = ('matched with Stewart Hand')
+# 
+#     parameter_name = ('mwsh')
+# 
+#     def lookups(self, request, model_admin):
+#         return (
+#             ('yes', ('Matched')),
+#             ('no', ('Not matched')),
+#         )   
+# 
+#     def queryset(self, request, queryset):
+#         if self.value() == 'yes':
+#             return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
+#         if self.value() == 'no':
+#             return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
+
 class HandItempPartFilter(SimpleListFilter):
     title = ('numbers of ItemParts')
 
@@ -819,14 +836,14 @@ class HandAdmin(reversion.VersionAdmin):
     form = HandForm
 
     filter_horizontal = ['images']
-    list_display = ['item_part', 'num', 'label', 'script', 'scribe',
+    list_display = ['id', 'legacy_id', 'scragg', 'item_part', 'num', 'label', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = list_display
-    search_fields = ['id', 'label', 'num', 
+    search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = [HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter, HandImageNumberFilter]
+    list_filter = ['latin_only', HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter, HandImageNumberFilter]
     
     fieldsets = fieldsets_hand
 

@@ -2809,7 +2809,7 @@ class StewartRecord(models.Model):
             if rtype == 'h':
                 hand = Hand.objects.get(id=rid)
             if rtype == 'ip':
-                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000', name="Hand")
+                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000', label="Hand")
                 hand.internal_note = (hand.internal_note or '') + '\nNew Hand created from Brookes record #%s' % self.id
                 hand.save()
             

@@ -3,6 +3,8 @@
 
 {% block extrahead %}{{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"/>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui.min.js" type="text/javascript"></script>
     {{ media }}
     <script type="text/javascript">
         (function($) {
@@ -11,6 +13,20 @@
                     $input = $(this);
                     console.log($input.val());
                 });
+
+                {% for fieldset in form %}
+                    {% for field in fieldset %}
+                    	// {{ field.key }}
+                    	{% if field.list_json %}
+                    		$('#field-{{ field.key }}').autocomplete({source: {{ field.list_json|safe }} });
+                    	{% endif %}
+                    {% endfor %}
+                {% endfor %}
+                
+                // TODO: validation of the form
+                // required fields
+                // format for repo
+                
             });
         })(jQuery);
     </script>
@@ -37,7 +53,7 @@
     <form action="" method="post">
         {% csrf_token %}
         {% for fieldset in form %}
-            <fieldset class="module aligned">            
+            <fieldset class="module aligned">
                 {% for field in fieldset %}
                     {% if forloop.counter0 %}
                         <div class="form-row">

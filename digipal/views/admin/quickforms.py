@@ -31,6 +31,8 @@ class NewItemPartForm(forms.Form):
 
 @staff_member_required
 def add_itempart_view(request):
+    from digipal.models import ItemPart, HistoricalItem, CurrentItem, Repository, Place, ItemPartItem
+    
     fieldset = [
                  ['Current Item', 
                     {'key': 'shelfmark', 'label': 'Shelfmark', 'required': True},
@@ -41,19 +43,42 @@ def add_itempart_view(request):
                 ],
                  ['Historical Item',
                     {'key': 'cat_num', 'label': 'Catalogue Number'},
-                    {'key': 'hi_name', 'label': 'Name'},
+                    {'key': 'hi_name', 'label': 'Name', 'list': [hi.name for hi in HistoricalItem.objects.all()]},
                 ]
             ]
     
     context = {'form': fieldset}
     
+    import json
+    from digipal.utils import sorted_natural
+    for group in fieldset:
+        for field in group:
+            if isinstance(field, dict):
+                if 'list' in field:
+                    field['list_json'] = json.dumps(sorted_natural(list(set([n for n in field['list'] if n]))))
+                    print field['list_json']
+    
     if request.method == "POST":
-        from digipal.models import ItemPart, HistoricalItem, CurrentItem, Repository, Place
+        # current item
+        current_item = None
+        #current_item = CurrentItem.get_or_create(shelfmark=request.REQUEST.get('shelfmark', ''), repository=request.REQUEST.get('repository', ''))
+
         # create the new records
-        itempart = ItemPart(locus=request.REQUEST.get('locus', ''))
+        itempart = ItemPart(locus=request.REQUEST.get('locus', ''), current_item=current_item)
+
         itempart.save()
+
+        # historical item
+        historical_item = HistoricalItem.get_or_create(name=request.REQUEST.get('hi_name', ''), cat_num=request.REQUEST.get('cat_num', ''))
+        
+        if historical_item:
+            # item part
+            ItemPartItem(item_part=itempart, historical_item=historical_item).save()
+        
         # TODO: redirect to the edit form
         # TODO: add a confirmation message
         pass        
 
     return render(request, 'admin/digipal/add_itempart.html', context)
+
+ 

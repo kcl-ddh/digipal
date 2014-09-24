@@ -31,6 +31,10 @@
                     <dd>{{ result.label }}</dd>
                     <dt>Manuscript</dt>
                     <dd><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></dd>
+                    {% if result.locus %}
+                        <dt>Locus</dt>
+                        <dd>{{ result.locus }}</dd>
+                    {% endif %}
                     <dt>Script</dt>
                     <dd>
                         {% if result.script %}
@@ -55,6 +59,19 @@
                     <dd>
                         {{ result.assigned_place }}
                     </dd>
+                    {% if result.scragg or result.ker %}
+                        <dt>Catalogue Number</dt>
+                        {% if result.scragg %}
+                            <dd>
+                                Scragg {{ result.scragg }}
+                            </dd>
+                        {% endif %}
+                        {% if result.ker %}
+                            <dd>
+                                Ker {{ result.ker }}
+                            </dd>
+                        {% endif %}
+                    {% endif %}
                 </dl>
             </div>
 

@@ -72,7 +72,7 @@ def stewart_match(request, url=None):
         
     context['item_parts'] = ItemPart.objects.all().order_by('display_label')
     
-    context['all_hands'] = Hand.objects.all().select_related('assigned_date', 'assigned_place')
+    context['all_hands'] = Hand.objects.filter(latin_only=False).select_related('assigned_date', 'assigned_place')
         
     for record in context['records']:
         
@@ -163,7 +163,7 @@ def get_best_matches(record):
             documents = ItemPart.objects.filter(Q(historical_items__catalogue_numbers__source=Source.get_source_from_keyword(source_dp)) & \
                                                 Q(historical_items__catalogue_numbers__number__in=document_ids)).distinct()
             for doc in documents: record.documents[doc.id] = doc
-            hands = Hand.objects.filter(Q(images__item_part__in=documents) | Q(item_part__in=documents)).distinct().order_by('id')
+            hands = Hand.objects.filter(latin_only=False).filter(Q(images__item_part__in=documents) | Q(item_part__in=documents)).distinct().order_by('id')
             for hand in hands:
                 add_matching_hand_to_result(ret, record, hand, source.upper()[0])
             

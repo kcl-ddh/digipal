@@ -2809,7 +2809,7 @@ class StewartRecord(models.Model):
             if rtype == 'h':
                 hand = Hand.objects.get(id=rid)
             if rtype == 'ip':
-                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000')
+                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000', name="Hand")
                 hand.internal_note = (hand.internal_note or '') + '\nNew Hand created from Brookes record #%s' % self.id
                 hand.save()
             
@@ -2844,9 +2844,9 @@ class StewartRecord(models.Model):
             # scragg
             hand.set_description(Source.get_source_from_keyword('scragg').name, self.contents)
             # eel
-            hand.set_description('Early English Laws Project', self.eel)
+            hand.set_description(Source.get_source_from_keyword('eel').name, self.eel)
             # em1060-1220
-            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
+            hand.set_description(Source.get_source_from_keyword('english manuscripts').name, self.em)
 
             # 3. Related objects
 

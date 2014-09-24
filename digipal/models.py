@@ -2846,7 +2846,7 @@ class StewartRecord(models.Model):
             # eel
             hand.set_description('Early English Laws Project', self.eel)
             # em1060-1220
-            hand.set_description(Source.get_source_from_keyword('english manuscripts 1060'), self.em)
+            hand.set_description('English Manuscripts 1060-1220 Project', self.em)
 
             # 3. Related objects
 

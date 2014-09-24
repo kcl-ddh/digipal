@@ -31,23 +31,23 @@ class NewItemPartForm(forms.Form):
 
 @staff_member_required
 def add_itempart_view(request):
-    from digipal.models import ItemPart, HistoricalItem, CurrentItem, Repository, Place, ItemPartItem
+    from digipal.models import ItemPart, HistoricalItem, CurrentItem, Repository, Place, ItemPartItem, CatalogueNumber
     
     fieldset = [
                  ['Current Item', 
-                    {'key': 'shelfmark', 'label': 'Shelfmark', 'required': True},
-                    {'key': 'repository', 'label': 'Repository', 'required': True},
+                    {'key': 'shelfmark', 'label': 'Shelfmark', 'required': True, 'list': [ci.shelfmark for ci in CurrentItem.objects.all()], 'eg': 'Cotton Domitian vii'},
+                    {'key': 'repository', 'label': 'Repository', 'required': True, 'list': [u'%s, %s' % (repo.place, repo.name) for repo in Repository.objects.all()], 'eg': 'London, British Library'},
                 ],
                  ['Locus', 
-                    {'key': 'locus', 'label': 'Locus'},
+                    {'key': 'locus', 'label': 'Locus', 'eg': 'fols. 15–45'},
                 ],
                  ['Historical Item',
-                    {'key': 'cat_num', 'label': 'Catalogue Number'},
-                    {'key': 'hi_name', 'label': 'Name', 'list': [hi.name for hi in HistoricalItem.objects.all()]},
+                    {'key': 'cat_num', 'label': 'Catalogue Number', 'list': [unicode(cn) for cn in CatalogueNumber.objects.all()], 'eg': 'K. 190'},
+                    {'key': 'hi_name', 'label': 'Name', 'list': [hi.name for hi in HistoricalItem.objects.all()], 'eg': 'Durham Liber Vitae'},
                 ]
             ]
     
-    context = {'form': fieldset}
+    context = {'form': fieldset, 'title': 'Add Item Part'}
     
     import json
     from digipal.utils import sorted_natural
@@ -55,13 +55,11 @@ def add_itempart_view(request):
         for field in group:
             if isinstance(field, dict):
                 if 'list' in field:
-                    field['list_json'] = json.dumps(sorted_natural(list(set([n for n in field['list'] if n]))))
-                    print field['list_json']
+                    field['list_json'] = json.dumps(sorted_natural(list(set([n for n in field['list'] if n])), True))
     
     if request.method == "POST":
         # current item
-        current_item = None
-        #current_item = CurrentItem.get_or_create(shelfmark=request.REQUEST.get('shelfmark', ''), repository=request.REQUEST.get('repository', ''))
+        current_item = CurrentItem.get_or_create(shelfmark=request.REQUEST.get('shelfmark', ''), repository=request.REQUEST.get('repository', ''))
 
         # create the new records
         itempart = ItemPart(locus=request.REQUEST.get('locus', ''), current_item=current_item)
@@ -75,8 +73,15 @@ def add_itempart_view(request):
             # item part
             ItemPartItem(item_part=itempart, historical_item=historical_item).save()
         
-        # TODO: redirect to the edit form
-        # TODO: add a confirmation message
+        # add a confirmation message
+        from django.contrib import messages
+        messages.add_message(request, messages.SUCCESS, 'The item part was added successfully. You may edit it again below.')
+        
+        # redirect to the edit form
+        from django.http import HttpResponseRedirect
+        from django.core.urlresolvers import reverse
+        return HttpResponseRedirect(reverse('admin:digipal_itempart_change', args=(itempart.id,)))
+        
         pass        
 
     return render(request, 'admin/digipal/add_itempart.html', context)

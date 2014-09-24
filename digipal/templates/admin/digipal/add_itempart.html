@@ -9,11 +9,6 @@
     <script type="text/javascript">
         (function($) {
             $(function() {
-                $('form input').on('keyup change click', function() {
-                    $input = $(this);
-                    console.log($input.val());
-                });
-
                 {% for fieldset in form %}
                     {% for field in fieldset %}
                     	// {{ field.key }}
@@ -23,10 +18,20 @@
                     {% endfor %}
                 {% endfor %}
                 
-                // TODO: validation of the form
-                // required fields
-                // format for repo
-                
+                $('#quickform input').on('change keyup', function() {
+                    $(this).toggleClass('invalid', false);
+                });
+
+                // highligh required fields if then are empty
+                $('#quickform').on('submit', function() {
+                    var $form = $(this);
+                    $form.find('.field-required input').each(function() {
+                        var $input = $(this);
+                        var is_empty = (!$input.val().trim());
+                        $input.toggleClass('invalid', is_empty);
+                    });
+                    return false;
+                });
             });
         })(jQuery);
     </script>
@@ -35,7 +40,8 @@
 {% block extrastyle %}
     {{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
     <style>
-        label.field-required {font-weight: bold !important;}
+        .field-required label {font-weight: bold !important;}
+        input.invalid { background-color: pink; }
     </style>
 {% endblock %}
 
@@ -46,22 +52,22 @@
 
 {% block content %}
 
-<h1>New Item Part</h1>
-
 <div id="content-main">
 
-    <form action="" method="post">
+    <form id="quickform" action="" method="post">
         {% csrf_token %}
         {% for fieldset in form %}
             <fieldset class="module aligned">
                 {% for field in fieldset %}
                     {% if forloop.counter0 %}
                         <div class="form-row">
-                            <div>
-                                <label for="field-{{ field.key }}" class="{% if field.required %}field-required{% endif %}">
+                            <div class="{% if field.required %}field-required{% endif %}">
+                                <label for="field-{{ field.key }}">
                                     {{ field.label }}
                                 </label>
-                                <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" />
+                                <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" 
+                                    {% if field.eg %}placeholder="e.g. {{ field.eg }}"{% endif %}
+                                    />
                             </div>
                         </div>
                     {% else %}

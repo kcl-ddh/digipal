@@ -1,0 +1,84 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"/>
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui.min.js" type="text/javascript"></script>
+    {{ media }}
+    <script type="text/javascript">
+        (function($) {
+            $(function() {
+                {% for fieldset in form %}
+                    {% for field in fieldset %}
+                    	// {{ field.key }}
+                    	{% if field.list_json %}
+                    		$('#field-{{ field.key }}').autocomplete({source: {{ field.list_json|safe }} });
+                    	{% endif %}
+                    {% endfor %}
+                {% endfor %}
+                
+                $('#quickform input').on('change keyup', function() {
+                    $(this).toggleClass('invalid', false);
+                });
+
+                // highligh required fields if then are empty
+                $('#quickform').on('submit', function() {
+                    var $form = $(this);
+                    $form.find('.field-required input').each(function() {
+                        var $input = $(this);
+                        var is_empty = (!$input.val().trim());
+                        $input.toggleClass('invalid', is_empty);
+                    });
+                    return false;
+                });
+            });
+        })(jQuery);
+    </script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+    <style>
+        .field-required label {font-weight: bold !important;}
+        input.invalid { background-color: pink; }
+    </style>
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
+
+
+{% block content %}
+
+<div id="content-main">
+
+    <form id="quickform" action="" method="post">
+        {% csrf_token %}
+        {% for fieldset in form %}
+            <fieldset class="module aligned">
+                {% for field in fieldset %}
+                    {% if forloop.counter0 %}
+                        <div class="form-row">
+                            <div class="{% if field.required %}field-required{% endif %}">
+                                <label for="field-{{ field.key }}">
+                                    {{ field.label }}
+                                </label>
+                                <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" 
+                                    {% if field.eg %}placeholder="e.g. {{ field.eg }}"{% endif %}
+                                    />
+                            </div>
+                        </div>
+                    {% else %}
+                        <h2>{{ field }}</h2>
+                    {% endif %}
+                {% endfor %}
+            </fieldset>
+        {% endfor %}
+        <input type="submit" value="Submit" />
+    </form>    
+
+</div>
+
+{% endblock%}

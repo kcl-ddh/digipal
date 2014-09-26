@@ -573,6 +573,27 @@ class HistoricalItem(models.Model):
         
         return ret
 
+    @classmethod
+    def get_or_create(cls, name, cat_num):
+        name = name.strip()
+        cat_num = cat_num.strip()
+        cat_num = CatalogueNumber.get_or_create(cat_num)
+        his = HistoricalItem.objects.all()
+        ret = None
+        if name:
+            his = his.filter(name__iexact=name)
+        if cat_num:
+            his = his.filter(catalogue_number=cat_num)
+        if his.count() == 1:
+            ret = his[0]
+        if his.count() == 0:
+            ret = HistoricalItem(name=name, historical_item_type=HistoricalItemType.objects.first())
+            ret.save()
+            if cat_num:
+                ret.catalogue_numbers.append(cat_num)
+
+        return ret
+
 class Source(models.Model):
     name = models.CharField(max_length=128, unique=True)
     label = models.CharField(max_length=12, unique=True, blank=True,
@@ -620,6 +641,21 @@ class Source(models.Model):
         
         return ret
 
+    @classmethod
+    def get_or_create(cls, name):
+        ret = None
+
+        name = name or ''
+        name = name.strip()
+        if name:
+            ret = cls.get_source_from_keyword(name, none_if_not_found=True)
+            if ret is None:
+                # not found create it
+                ret = Source(name=name, label=name)
+                ret.save()
+                    
+        return ret
+
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
     historical_item = models.ForeignKey(HistoricalItem,
@@ -643,6 +679,31 @@ class CatalogueNumber(models.Model):
     def __unicode__(self):
         return get_list_as_string(self.source, ' ', self.number)
 
+    @classmethod
+    def get_or_create(cls, cat_num):
+        ret = None
+        
+        parts = [p.strip() for p in cat_num.strip().split(' ', 1)]
+        if len(parts) == 2:
+            source, number = parts
+        else:
+            source = None
+            number = parts[0]
+        
+        source = Source.get_or_create(source)
+
+        cns = CatalogueNumber.objects.filter(number__iexact=number, historical_item__isnull=False)
+        if source:
+            cns = cns.filter(source=source)
+        
+        if cns.count() == 0:
+            if source:
+                ret = CatalogueNumber(number=number, source=source)
+                ret.save()
+        if cns.count() == 1:
+            ret = cns[0]
+        
+        return ret
 
 # Manuscripts in legacy db
 class Collation(models.Model):
@@ -879,6 +940,20 @@ class Place(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+    @classmethod
+    def get_or_create(cls, name):
+        ret = None
+        
+        name = name.strip()
+        places = Place.objects.filter(name__iexact=name)
+        if places.count():
+            ret = places[0]
+        else:
+            ret = Place(name=name)
+            ret.save()
+        
+        return ret
+
 class OwnerType(models.Model):
     name = models.CharField(max_length=256)
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -952,6 +1027,20 @@ class Repository(models.Model):
     def is_media_private(self):
         return self.get_media_permission().is_private
 
+    @classmethod
+    def get_or_create(cls, city_comma_name):
+        ret = None
+        parts = [p.strip() for p in city_comma_name.split(',', 1)]
+        if len(parts) == 2:
+            city, name = parts
+            place = Place.get_or_create(city)
+            repos = Repository.objects.filter(name__iexact=name, place=place)
+            if repos.count():
+                ret = repos[0]
+            else:
+                ret = Repository(name=name, place=place)
+                ret.save()
+        return ret
 
 class CurrentItem(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
@@ -979,7 +1068,19 @@ class CurrentItem(models.Model):
         return self.itempart_set.all().count()
     get_part_count.short_description = 'Parts'
     get_part_count.allow_tags = False
-
+    
+    @classmethod
+    def get_or_create(cls, shelfmark, repository):
+        shelfmark = shelfmark.strip()
+        repository = repository.strip()
+        repository = Repository.get_or_create(repository)
+        items = CurrentItem.objects.filter(shelfmark__iexact=shelfmark, repository=repository)
+        if items.count():
+            ret = items[0]
+        else:
+            ret = CurrentItem(shelfmark=shelfmark, repository=repository)
+            ret.save()
+        return ret
 
 # OwnerText in legacy db
 class Person(models.Model):
@@ -2708,7 +2809,7 @@ class StewartRecord(models.Model):
             if rtype == 'h':
                 hand = Hand.objects.get(id=rid)
             if rtype == 'ip':
-                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000')
+                hand = Hand(item_part=ItemPart.objects.get(id=rid), num='10000', label="Hand")
                 hand.internal_note = (hand.internal_note or '') + '\nNew Hand created from Brookes record #%s' % self.id
                 hand.save()
             
@@ -2743,9 +2844,9 @@ class StewartRecord(models.Model):
             # scragg
             hand.set_description(Source.get_source_from_keyword('scragg').name, self.contents)
             # eel
-            hand.set_description('Early English Laws Project', self.eel)
+            hand.set_description(Source.get_source_from_keyword('eel').name, self.eel)
             # em1060-1220
-            hand.set_description(Source.get_source_from_keyword('english manuscripts 1060'), self.em)
+            hand.set_description(Source.get_source_from_keyword('english manuscripts').name, self.em)
 
             # 3. Related objects
 

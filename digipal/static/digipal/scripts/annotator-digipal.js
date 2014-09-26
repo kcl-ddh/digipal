@@ -1448,7 +1448,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					var s = '';
 
 					if (data != "False") {
-						data = data.sort();
+						data = data.sort(function(x, y) {
+							if (x.hand < y.hand)
+								return -1;
+							if (x.hand > y.hand)
+								return 1;
+							return 0;
+						});
 						var j = 0;
 						var data_hand;
 						if (data.length === 1) {
@@ -2117,7 +2123,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var a = $('<input type="text">');
 		a.css('width', '100%');
 		var title = $('.name_temporary_annotation').val();
-		var desc = $('.textarea_temporary_annotation').html();
+		var desc = $('.editor_active').html();
 		if (desc) {
 			desc.replace('contenteditable="true"', '');
 		}
@@ -2372,7 +2378,7 @@ function load_data(selectedFeature, dialog, callback) {
 				var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
 				targets.hide();
 				if (callback) {
-					callback();
+					return callback();
 				}
 			}
 			content_type = 'allograph';
@@ -2538,7 +2544,7 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-			if (!aspects.length || !components.length) {
+			if (!aspects.length) {
 				$('[data-target="#aspects_tab"]').hide();
 			} else {
 				$('[data-target="#aspects_tab"]').show();

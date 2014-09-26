@@ -47,7 +47,15 @@ In the same folder of that created by the previous command, create a folder and 
 	- digipal_django_debug.log
 
 ### Installing Requirements
-Using PIP:
+Using PIP
+
+Before installing the requirements, please make sure you have the following packages already installed:
+- python-dev
+- postgresql-9.3
+- postgresql-server-dev-9.3
+- libmysqlclient-dev
+
+After that, run in the terminal the following command:
 
     pip install -r requirements.txt
 

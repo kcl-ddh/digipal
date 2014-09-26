@@ -17,7 +17,6 @@ django-tinymce==1.5.2
 filebrowser-safe==0.3.4
 grappelli-safe==0.2.21
 html5lib==1.0b3
-mercurial==2.6
 psycopg2==2.4.5
 pyelasticsearch==0.6
 pytz==2013b

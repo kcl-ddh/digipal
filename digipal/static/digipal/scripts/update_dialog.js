@@ -60,7 +60,7 @@ function update_dialog(prefix, data, selectedAnnotations, callback, cache) {
 					var title = '';
 					var ann;
 					for (var k = 0; k < f.length; k++) {
-						var graph = cache.graphs[f];
+						var graph = cache.graphs[f[k]];
 						var features_graph = graph.features;
 						for (var j = 0; j < features_graph.length; j++) {
 							if (features_graph[j].component_id == component_id && features_graph[j].feature.indexOf(features[idx].name) >= 0) {

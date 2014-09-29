@@ -1,6 +1,6 @@
 # DigiPal
 
-###### Digital Resource for and Database of Paleography, Manuscripts and Diplomatic.
+###### Digital Resource for and Database of Palaeography, Manuscripts and Diplomatic.
 ----
 
 ## Content

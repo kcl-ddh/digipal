@@ -219,11 +219,11 @@ function EditGraphsSearch() {
     var refresh = function(data, image_id) {
         var allographs = $.extend(true, {}, data);
 
-        var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
+        var aspects_list = load_aspects(allographs.aspects, data.graph_id, cache);
 
         if (self.selectedAnnotations.length > 1) {
-            allographs.allographs.components = common_components(self.selectedAnnotations, cache, allographs.allographs.components);
-            allographs.allographs.aspects = common_components(self.selectedAnnotations, cache, allographs.allographs.aspects, 'aspects');
+            allographs.components = common_components(self.selectedAnnotations, cache, allographs.components);
+            allographs.aspects = common_components(self.selectedAnnotations, cache, allographs.aspects, 'aspects');
         }
 
         var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];

@@ -2269,58 +2269,70 @@ function show_url_allograph(dialog, annotation, button) {
 
 		var settings = loader.digipal_settings;
 		allograph_url += '&settings=' + annotator.utils.Base64.encode(JSON.stringify(settings));
+		var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
+		var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
+		var scopes = 'https://www.googleapis.com/auth/plus.me';
 
-		gapi.client.load('urlshortener', 'v1', function() {
+	    	gapi.client.setApiKey(apiKey);
 
-			var request = gapi.client.urlshortener.url.insert({
-				'resource': {
-					'longUrl': allograph_url
-				}
+
+	    	function checkAuth(callback) {
+  			gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, callback);
+		}
+		
+		checkAuth(function(){
+			gapi.client.load('urlshortener', 'v1', function() {
+
+				var request = gapi.client.urlshortener.url.insert({
+					'resource': {
+						'longUrl': allograph_url
+					}
+				});
+
+
+				var resp = request.execute(function(resp) {
+					if (resp.error) {
+						throw new Error('Got error in requesting short url');
+					} else {
+						$('#url_allograph_gif').fadeOut().remove();
+						a.attr('value', resp.id);
+						a.attr('title', 'Copy link to annotation and share it');
+						button.data('url', resp.id);
+						var p = $('<div>');
+						p.css('text-align', 'right');
+						p.css('margin-top', '0.34em');
+						url.append(a);
+
+						p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
+						p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
+
+						url.append(p);
+						dialog.prepend(url);
+						$("[data-toggle='tooltip']").tooltip();
+						var long_url_button = $('#long_url');
+						long_url_button.on('click', function() {
+							if (url.data('url-type') == 'short') {
+								a.attr('value', 'http://' + allograph_url);
+								button.data('url', 'http://' + allograph_url);
+								url.data('url-type', 'long');
+								long_url_button.text('Short URL?');
+								long_url_button.data('original-title', 'Show short URL');
+							} else {
+								a.attr('value', resp.id);
+								button.data('url', resp.id);
+								url.data('url-type', 'short');
+								long_url_button.text('Long URL?');
+								long_url_button.data('original-title', 'Show long URL');
+							}
+						});
+
+						$('#close_div_url').on('click', function() {
+							remove_url_div();
+						});
+					}
+				});
+
 			});
-
-
-			var resp = request.execute(function(resp) {
-				if (resp.error) {
-					throw new Error('Got error in requesting short url');
-				} else {
-					$('#url_allograph_gif').fadeOut().remove();
-					a.attr('value', resp.id);
-					a.attr('title', 'Copy link to annotation and share it');
-					button.data('url', resp.id);
-					var p = $('<div>');
-					p.css('text-align', 'right');
-					p.css('margin-top', '0.34em');
-					url.append(a);
-
-					p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
-					p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
-
-					url.append(p);
-					dialog.prepend(url);
-					$("[data-toggle='tooltip']").tooltip();
-					var long_url_button = $('#long_url');
-					long_url_button.on('click', function() {
-						if (url.data('url-type') == 'short') {
-							a.attr('value', 'http://' + allograph_url);
-							button.data('url', 'http://' + allograph_url);
-							url.data('url-type', 'long');
-							long_url_button.text('Short URL?');
-							long_url_button.data('original-title', 'Show short URL');
-						} else {
-							a.attr('value', resp.id);
-							button.data('url', resp.id);
-							url.data('url-type', 'short');
-							long_url_button.text('Long URL?');
-							long_url_button.data('original-title', 'Show long URL');
-						}
-					});
-
-					$('#close_div_url').on('click', function() {
-						remove_url_div();
-					});
-				}
-			});
-
 		});
 
 	} else {

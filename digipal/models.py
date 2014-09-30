@@ -612,7 +612,7 @@ class Source(models.Model):
 
     def get_authors_long(self):
         ''' Used by the front-end to display the authors of the source '''
-        return self.name.title()
+        return self.name
 
     def get_display_reference(self):
         ''' Used by the front-end to display the source as a reference '''

@@ -14,20 +14,6 @@ from django import forms
 from digipal.models import HistoricalItem, CurrentItem, Repository, Place
 
 from digipal.utils import sorted_natural
-class NewItemPartForm(forms.Form):
-    
-#     historical_item = get_form_field_from_queryset(HistoricalItem.objects.all(), 'New Historical Item', is_key_id=True)
-#     current_item = get_form_field_from_queryset(CurrentItem.objects.all(), 'New shelfmark', is_key_id=True)
-#     repo = get_form_field_from_queryset(Repository.objects.all(), 'New repository', is_key_id=True)
-#     repo_place = get_form_field_from_queryset(Place.objects.all(), 'New place', is_key_id=True)
-
-    shelfmark = forms.CharField(max_length=64)
-    repository = forms.CharField(max_length=64)
-
-    locus = forms.CharField(max_length=64)
-
-    cat_num = forms.CharField(max_length=64)
-    name = forms.CharField(max_length=64)
 
 @staff_member_required
 def add_itempart_view(request):
@@ -38,7 +24,7 @@ def add_itempart_view(request):
                     {'key': 'shelfmark', 'label': 'Shelfmark', 'required': True, 'list': [ci.shelfmark for ci in CurrentItem.objects.all()], 'eg': 'Cotton Domitian vii'},
                     {'key': 'repository', 'label': 'Repository', 'required': True, 'list': [u'%s, %s' % (repo.place, repo.name) for repo in Repository.objects.all()], 'eg': 'London, British Library'},
                 ],
-                 ['Locus', 
+                 ['Item Part', 
                     {'key': 'locus', 'label': 'Locus', 'eg': 'fols. 15–45'},
                 ],
                  ['Historical Item',

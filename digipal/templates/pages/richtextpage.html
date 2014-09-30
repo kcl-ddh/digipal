@@ -5,26 +5,42 @@
 {% block main %}
 
     {{ block.super }}
-    
     <div class="row">
-    
-        <div class='col-xs-12 col-sm-4 col-md-3 hidden-xs pull-right'>
-        
+
+
+        <div class="pull-right col-xs-12 col-sm-4 col-md-3 hidden-xs">
             <ul id="aboutMenu" class="nav nav-tabs nav-stacked">
                 {% for pages in page_branch %}
                     {% if pages.has_children_in_menu and pages.is_current_or_ascendant %}
                         <li {% if pages == page %}class='active'{%endif%}><a href="{{pages.get_absolute_url}}">{{pages}}</a></li>
                         {% for p in pages.children.values|sort %}
-                            {% if p.title == page.title %}
-                                <li class="active"><a>{{p.title}}</a></li>
-                            {% else %}
-                                <li><a href="/{{ p.slug }}">{{p.title}}</a></li>
+                            {% if p.in_menus %}
+                                {% if p.title == page.title %}
+                                    <li class="active"><a>{{p.title}}</a></li>
+                                {% else %}
+                                    <li><a href="/{{ p.slug }}">{{p.title}}</a></li>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                     {% endif %}
                 {% endfor %}
             </ul>
-            
+
+            <br>
+            {% if page.children.count > 0 %}
+            <h5>{{page.title}}</h5>
+            <ul class="nav nav-tabs nav-stacked">
+                {% for pg in page.children.values|sort %}
+                    {% if pg.in_menus %}
+                        {% if pg.title == page.title %}
+                            <li class="active"><a>{{pg.title}}</a></li>
+                        {% else %}
+                            <li><a href="/{{ pg.slug }}">{{pg.title}}</a></li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            {% endif %}
         </div>
         
         <div class='col-xs-12 col-sm-8 justified left-panel'>

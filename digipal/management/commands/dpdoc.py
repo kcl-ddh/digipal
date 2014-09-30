@@ -15,6 +15,10 @@ Commands:
 
   html2md PATH
                         Returns Markdown output from a HTML file located at PATH 
+
+  md2cms PATH --filter FILTER
+                        Create or update CMS pages from .md files
+                        Only process the .md files found under   
     """
     
     args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
@@ -40,6 +44,11 @@ Commands:
             dest='table',
             default='',
             help='Name of the table to backup'),
+        make_option('--filter',
+            action='store',
+            dest='filter',
+            default='',
+            help='Filter'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -57,6 +66,10 @@ Commands:
         command = args[0]
         
         known_command = False
+        
+        if command == 'md2cms':
+            known_command = True
+            self.md2cms()
 
         if command == 'html2md':
             known_command = True
@@ -198,6 +211,10 @@ Commands:
         ret = re.sub(ur'<[^>]*>', ur' ', ret)
 
         print ret.encode('utf8', 'ignore')
+
+    def md2cms(self):
+        print self.options
+        pass
 
     def get_local_doc_url(self, href):
         '''Returns the url of a local MD with the same name as in href.

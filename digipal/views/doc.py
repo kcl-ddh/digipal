@@ -123,18 +123,9 @@ def preprocess_markdown(md, request):
     
     return ret
 
-def get_doc_absolute_path(relative_path):
-    path = relative_path.strip('/')
-    parts = path.split('/')
-
-    if len(parts) <= 1:
-        raise Http404('Documentation page not found (path not specified)')
-        
+def get_doc_root_path(app_name):
     import os
 
-    app_name = parts[0]
-    search_path = '/'.join(parts[1:])
-    
     module = None
     
     from django.utils import importlib
@@ -143,7 +134,25 @@ def get_doc_absolute_path(relative_path):
     except ImportError:
         raise Http404('Documentation page not found (no app with name "%s")' % app_name)
 
-    file_path = os.path.join(unicode(module.__path__[0]), 'doc', unicode(search_path + '.md'))
+    ret = os.path.join(unicode(module.__path__[0]), 'doc')
+    
+    return ret    
+
+def get_doc_absolute_path(relative_path):
+    path = relative_path.strip('/')
+    parts = path.split('/')
+    
+    if len(parts) <= 1:
+        raise Http404('Documentation page not found (path not specified)')
+        
+    import os
+
+    app_name = parts[0]
+    search_path = '/'.join(parts[1:])
+
+    root_path = get_doc_root_path(app_name)
+    
+    file_path = os.path.join(root_path, unicode(search_path + '.md'))
     
     if not os.path.exists(file_path):
         raise Http404('Documentation page not found (no doc with path "%s")' % path)

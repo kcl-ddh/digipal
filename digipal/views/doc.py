@@ -34,6 +34,10 @@ def get_doc_from_md(md, request=None):
         m = re.search(pattern, md)
         if m:
             ret['title'] = m.group(1)
+            # If the doc starts with a main title, we remove it 
+            # as it will be preserved in the CMS Page title
+            # Without this, the title would appear twice on the site.
+            md = re.sub(ur'(?musi)^\s*#\s.*?$', '', md) 
             break
     
     # convert the document to HTML
@@ -303,6 +307,8 @@ def get_md_from_html(html_file_path):
     
     # remove remaining tags
     ret = re.sub(ur'<[^>]*>', ur' ', ret)
+    
+    ret = u'# %s\n%s' % (title, ret)
 
     info['md'] = ret
     info['title'] = title

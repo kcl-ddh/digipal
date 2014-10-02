@@ -4,8 +4,9 @@ from django.conf import settings
 import os
 import re
 from optparse import make_option
-import utils  
+from digipal import utils  
 from digipal.models import *
+from digipal.utils import get_cms_page_from_title
 
 class Command(BaseCommand):
     help = """
@@ -79,160 +80,70 @@ Commands:
             raise CommandError('Unknown command: "%s".' % command)
     
     def html2md(self):
-        from digipal.utils import read_file
-        
         if len(self.args) < 2:
             print 'ERROR: missing path. Check help.'
             exit()
             
         path = self.args[1]
         
-        html = read_file(path)
-        
-        # convert to md
-        from bs4 import BeautifulSoup
-        soup = BeautifulSoup(html)
-        soup = soup.body
-        
-        # remove any line breaks within the <ul>s
-        for tag in soup.find_all('ul'):
-            tag_markup = unicode(tag)
-            tag_markup = re.sub(ur'(?musi)<p>|</p>' , ur' ', tag_markup)
-            tag_markup = re.sub(ur'(?musi)\s+' , ur' ', tag_markup)
-            tag.replace_with(BeautifulSoup(tag_markup).ul)
+        from digipal.views import doc
+        from django.utils.text import slugify
 
-        # images
-        # <img src="./collections_files/col-management.png">
-        # ![](/digipal/static/doc/col-management.png?raw=true)
-        # copy the image file
-        # convert the tag
-        import digipal
-        import shutil
-        static_path = os.path.join(digipal.__path__[0], 'static/doc')
-        for tag in soup.find_all('img'):
-            file_name = re.sub('.*?([^/?]*)($|\?|#)', ur'\1', tag['src'])
-            img_src = os.path.join(os.path.dirname(path), tag['src'])
-            img_dst = os.path.join(static_path, file_name)
-            imgmd = '![](/static/doc/%s?raw=true)' % file_name
-            tag.replace_with(imgmd)
-            shutil.copyfile(img_src, img_dst)
-        
-        # convert <li>s
-        for tag in soup.find_all('li'):
-            prefix = ''
-            for parent in tag.parents:
-                if parent.name in ('ul', 'ol'):
-                    if not prefix:
-                        if parent.name == 'ul':
-                            prefix = '* '
-                        if parent.name == 'ol':
-                            prefix = '%s. ' % (len([s for s in tag.previous_siblings if s.name == 'li']) + 1)
-                    else:
-                        prefix = '#SPACE#' + prefix
-            for tag_str in tag.strings:
-                tag_str.insert_before(prefix)
-                break
-        
-        # serialise into a string
-        ret = unicode(soup)
-
-        # Preserve the spaces and line breaks in <pre> tags
-        pattern = re.compile(ur'(?musi)<pre>(.*?)</pre>')
-        pos = 1
-        while True:
-            m = pattern.search(ret, pos - 1)
-            if not m: break
+        for path in utils.get_all_files_under(path, file_types='f', filters=self.options['filter'], extensions=['html', 'htm'], can_return_root=True):
+            info = doc.get_md_from_html(path)
+            target = os.path.join(doc.get_doc_root_path('digipal'), slugify(info['title']))+'.md'
+            if 'confluence-workbox' in target:
+                continue
+            utils.write_file(target, info['md'])
+            print '%s\n  => %s' % (path, target)
+            for f in info['files']:
+                print '   + %s' % f 
             
-            replacement = '#CR#```#CR#%s#CR#```#CR#' % m.group(1).replace('\n', '#CR#').replace(' ', '#SPACE#') 
-            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-            pos = m.start(0) + len(replacement)
-        
-        # strip all unnecessary spaces
-        #ret = re.sub(ur'(?musi)>\s+', ur'>', ret)
-        #ret = re.sub(ur'(?musi)\s+<', ur'<', ret)
-        ret = re.sub(ur'\s+', ur' ', ret)
+            #self.update_cms_page(doc_slug, slug, html)
 
-        # convert <hx> to #
-        for i in range(1, 5):
-            ret = re.sub(ur'<h%s>(.*?)</h%s>' % (i, i), ur'\n%s \1\n' % ('#' * i,), ret)
-        
-        # convert <p> to paragraphs
-        ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
-        
-        # convert strike-through
-        ret = re.sub(ur'(?musi)<s>(.*?)</s>', ur'~~\1~~', ret)
-
-        # convert italics
-        ret = re.sub(ur'(?musi)<em>(.*?)</em>', ur'_\1_', ret)
-
-        # convert <strong>
-        ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
-        
-        # convert <a href="">
-        #ret = re.sub(ur'(?musi)<a>(.*?)</a>', ur'[]()', ret)
-        pattern = re.compile(ur'(?musi)<a.*?href="([^"]*)".*?>(.*?)</a>')
-        pos = 1
-        while True:
-            m = pattern.search(ret, pos - 1)
-            if not m: break
-            
-            # if this is a link to a confluence page, convert it to a local link
-            href = self.get_local_doc_url(m.group(1))
-            
-            replacement = '[%s](%s)' % (m.group(2), href) 
-            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-            pos = m.start(0) + len(replacement)
-
-        # convert <blockquote>
-        #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
-        pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
-        pos = 1
-        while True:
-            m = pattern.search(ret, pos - 1)
-            if not m: break
-            
-            replacement = '%s\n\n' % re.sub(ur'(?musi)^\s*', ur'> ', m.group(1)) 
-            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-            pos = m.start(0) + len(replacement)
-
-        # convert <pre>
-        #ret = re.sub(ur'(?musi)<pre>\s*(.*?)\s*</pre>', ur'\n```\n\1\n```\n', ret)
-
-        # add line break before bullet points
-        ret = re.sub(ur'\s*<li>', ur'\n', ret)
-        # add line break after block of bullet points
-        # (only if not nested into another block) 
-        ret = re.sub(ur'\s*</ul>(?!\s*</li>)', ur'\n', ret)
-
-        ret = re.sub(ur'#SPACE#', ur' ', ret)
-        ret = re.sub(ur'#CR#', ur'\n', ret)
-        
-        # remove remaining tags
-        ret = re.sub(ur'<[^>]*>', ur' ', ret)
-
-        print ret.encode('utf8', 'ignore')
+        #print ret.encode('utf8', 'ignore')
 
     def md2cms(self):
-        print self.options
-        pass
-
-    def get_local_doc_url(self, href):
-        '''Returns the url of a local MD with the same name as in href.
-            Returns href if not found.
-        '''
-        import digipal
+        from digipal.views import doc
         
-        ret = href
-        if 'confluence.dighum' in href.lower():
-            file_name = href
-            file_name = re.sub(ur'[#?].*$', '', file_name).strip('/')
-            file_name = re.sub(ur'^.*/', '', file_name).lower()
-            start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
-            for root, dirs, files in os.walk(start_path):
-                for file in files: 
-                    if re.sub(ur'.md$', '', file).lower() == file_name:
-                        ret = os.path.join(root, file).replace('\\', '/')
-                        ret = '/doc/digipal/%s' % ret[len(start_path):].strip('/')
-                        break
-        return ret
+        doc_slug = 'doc'
+        self.update_cms_page(doc_slug, draft=True)
+        
+        for path in utils.get_all_files_under(doc.get_doc_root_path('digipal'), file_types='f', filters=self.options['filter'], extensions='md', can_return_root=True):
+            print path
+            info = doc.get_doc_from_md(utils.read_file(path))
+            page = None
+            if info:
+                page = self.update_cms_page(info['title'], info['content'], doc_slug)
+            if page:
+                print '  => # %s (%s)' % (page.id, page.slug)
+
+    def update_cms_page(self, title=None, content='', parent_title=None, draft=False):
+        if not title:
+            title = 'Untitled'
+        
+        from mezzanine.pages.models import Page, RichTextPage
+        
+        page = get_cms_page_from_title(title)
+        
+        in_menus = [2,3]
+        
+        # create the page
+        from mezzanine.core.models import CONTENT_STATUS_PUBLISHED, CONTENT_STATUS_DRAFT
+        
+        if not page:
+            parent_page = get_cms_page_from_title(parent_title)
+            page = RichTextPage(title=title, content_model='richtextpage', parent=parent_page, content=content, status=CONTENT_STATUS_PUBLISHED)
+            page.save()
+        else:
+            # Can't find an easy way to edit page.richtextpage.content, so let's write directly to the DB!
+            from django.db import connection
+            cursor = connection.cursor()
+            cursor.execute('''update pages_richtextpage set content = %s where page_ptr_id = %s''', [content, page.id])
+            
+        page.status = CONTENT_STATUS_DRAFT if draft else CONTENT_STATUS_PUBLISHED
+        page.in_menus = in_menus
+        page.save()
+        
+        return page
     

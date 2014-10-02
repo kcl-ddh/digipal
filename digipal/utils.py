@@ -592,33 +592,48 @@ def get_range_from_date(str):
         
     return ret
 
-def get_all_files_under(root, dir_only=False, filters=[]):
+def get_all_files_under(root, file_types='fd', filters=[], extensions=[], direct_children=False, can_return_root=False):
     '''Returns a list of absolute paths to all the files under root.
         root is an absolute path
-        dir_only = True to return only directories
-        filters = a list of keywords to filter the result
+        file_types = types of files to return: f for files, d for directories
+        extensions = only files with those extension will be returned
+        filters = only files with those keywords anywhere in the path will be returned
     '''
     import os
     ret = []
+    root = root.rstrip(os.path.sep)
     to_process = [root]
+    
+    filters = get_dict_from_string(filters)
+    extensions = get_dict_from_string(extensions)
     
     while to_process:
         path = to_process.pop(0)
-        isdir = os.path.isdir(path)
-        if not dir_only or isdir:
-            if not filters or os.path.basename(path) in filters:
-                if path != root:
-                    ret.append(path)
-        if isdir:
+        file_type = 'd' if os.path.isdir(path) else 'f'
+        if (file_type in file_types) and \
+            (can_return_root or path != root) and \
+            (not filters or any([filter.lower() in path.lower() for filter in filters])) and \
+            (not extensions or any([path.endswith('.' + ext.strip('.')) for ext in extensions])):
+                ret.append(path)
+        
+        if file_type == 'd' and (path == root or not direct_children):
             for file_name in os.listdir(path):
                 to_process.append(os.path.join(path, file_name))
     return ret
 
-def get_cms_url_from_slug(slug):
-    from mezzanine.pages.models import Page as MPage 
-    for page in MPage.objects.filter(slug__iendswith='how-to-use-digipal'):
+def get_cms_page_from_title(title):
+    from mezzanine.pages.models import Page as MPage
+    from django.utils.text import slugify 
+    for page in MPage.objects.filter(slug__iendswith=slugify(unicode(title))):
+        return page
+    return None
+
+def get_cms_url_from_slug(title):
+    page = get_cms_page_from_title(title)
+    if page:
         return page.get_absolute_url()
-    return u'/%s' % slug
+    from django.utils.text import slugify
+    return u'/%s' % slugify(unicode(title))
 
 def remove_param_from_request(request, key):
     ret = request
@@ -637,3 +652,18 @@ def read_file(filepath):
     f.close()
     
     return ret
+
+def get_dict_from_string(string, sep=','):
+    '''Return an array of string
+        If the input is already an array, return it as is
+        If the input is a string, split it around the commas 
+    '''
+    ret = []
+    if string:
+        if isinstance(string, basestring):
+            ret = string.split(sep)
+        if isinstance(string, list) or isinstance(string, tuple):
+            ret = string
+    
+    return ret
+    

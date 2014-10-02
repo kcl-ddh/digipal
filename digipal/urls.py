@@ -42,7 +42,7 @@ urlpatterns = patterns('',
 
     url(r'^blog/search/$', 'mezzanine.core.views.search'),
 
-    url(r'^doc/(?P<path>.*)$', 'digipal.views.doc.doc_view'),
+    #url(r'^doc/(?P<path>.*)$', 'digipal.views.doc.doc_view'),
 )
 
 if settings.LIGHTBOX:

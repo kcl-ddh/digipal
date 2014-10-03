@@ -221,7 +221,7 @@ def get_md_from_html(html_file_path):
     # convert to HTML DOM
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html)
-
+    
     # extract the main title
     title = 'untitled'
     if soup.head and soup.head.title:
@@ -290,6 +290,7 @@ def get_md_from_html(html_file_path):
         replacement = '#CR#```#CR#%s#CR#```#CR#' % m.group(1).replace('\n', '#CR#').replace(' ', '#SPACE#') 
         ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
         pos = m.start(0) + len(replacement)
+        
     
     # strip all unnecessary spaces
     #ret = re.sub(ur'(?musi)>\s+', ur'>', ret)
@@ -306,10 +307,10 @@ def get_md_from_html(html_file_path):
         
         # convert strike-through
         ret = re.sub(ur'(?musi)<s>(.*?)</s>', ur'~~\1~~', ret)
-    
+        
         # convert italics
         ret = re.sub(ur'(?musi)<em>(.*?)</em>', ur'_\1_', ret)
-    
+        
         # convert <strong>
         ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
         
@@ -321,13 +322,15 @@ def get_md_from_html(html_file_path):
             m = pattern.search(ret, pos - 1)
             if not m: break
             
-            # if this is a link to a confluence page, convert it to a local link
-            href = get_local_doc_url(m.group(1))
-            
-            replacement = '[%s](%s)' % (m.group(2), href) 
+            replacement = ''
+            if m.group(2):
+                # if this is a link to a confluence page, convert it to a local link
+                href = get_local_doc_url(m.group(1))
+                replacement = '[%s](%s)' % (m.group(2), href) 
+                
             ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
             pos = m.start(0) + len(replacement)
-    
+            
         # convert <blockquote>
         #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
         pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
@@ -353,7 +356,7 @@ def get_md_from_html(html_file_path):
         ret = re.sub(ur'#CR#', ur'\n', ret)
         
         # remove remaining tags
-        ret = re.sub(ur'<[^>]*>', ur' ', ret)
+        ret = re.sub(ur'<[^>]*>', ur'', ret)
         
         ret = u'# %s\n%s' % (title, ret)
 
@@ -367,18 +370,23 @@ def get_local_doc_url(href):
         Returns href if not found.
     '''
     import digipal, os
-    
+    from django.utils.text import slugify
+
     ret = href
     if 'confluence.dighum' in href.lower():
-        file_name = href
+        import urllib
+        file_name = urllib.unquote_plus(href)
         file_name = re.sub(ur'[#?].*$', '', file_name).strip('/')
         file_name = re.sub(ur'^.*/', '', file_name).lower()
+        file_name = slugify(unicode(file_name))
         start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
+        print start_path, file_name
         for root, dirs, files in os.walk(start_path):
             for file in files: 
-                if re.sub(ur'.md$', '', file).lower() == file_name:
+                print file
+                if slugify(unicode(re.sub(ur'.md$', '', file))) == file_name:
                     ret = os.path.join(root, file).replace('\\', '/')
-                    ret = '/doc/digipal/%s' % ret[len(start_path):].strip('/')
+                    ret = '/digipal/doc/%s' % ret[len(start_path):].strip('/')
                     break
     return ret
 

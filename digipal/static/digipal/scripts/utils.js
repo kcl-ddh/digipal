@@ -160,6 +160,19 @@
                 interval: 8000
             })
         }
+        
+        // fancybox
+        if ($.fn.fancybox) {
+            // add a <a class="fancybox"> around the images which have no link around them.
+            $(".mddoc img").each(function () {
+                var $img = $(this);
+                if ($img.parent().prop('tagName') != 'A') {
+                    $img.wrap('<a class="fancybox" rel="group" href="'+$img.attr('src')+'" ></a>')
+                };
+            });
+            // enable fancybox on the .fancybox elements
+            $(".fancybox").fancybox();
+        }
     });
 })(jQuery);
 

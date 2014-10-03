@@ -114,7 +114,8 @@ Commands:
             info = doc.get_doc_from_md(utils.read_file(path))
             page = None
             if info:
-                page = self.update_cms_page(info['title'], info['content'], doc_slug)
+                content = u'<div class="mddoc">%s</div>' % info['content']
+                page = self.update_cms_page(info['title'], content, doc_slug)
             if page:
                 print '  => # %s (%s)' % (page.id, page.slug)
 

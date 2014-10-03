@@ -3,6 +3,25 @@ from django.template import RequestContext
 from django.http import Http404
 import re
 
+'''
+TODO:
+
+HTML -> MD
+
+   get the big images 
+   table of conent
+
+md -> HTML
+
+    
+
+render
+    
+    headings with font size proportional to level
+    image zoom
+    image legend 
+'''
+
 def doc_view(request, path):
     template = 'digipal/doc_page.html'
     context = {}
@@ -37,7 +56,9 @@ def get_doc_from_md(md, request=None):
             # If the doc starts with a main title, we remove it 
             # as it will be preserved in the CMS Page title
             # Without this, the title would appear twice on the site.
-            md = re.sub(ur'(?musi)^\s*#\s.*?$', '', md) 
+            md = re.sub(ur'(?usi)^\s*', '', md) 
+            md = re.sub(ur'(?usi)\s*$', '', md) 
+            md = re.sub(ur'(?ui)^#\s+[^\n\r]*', '', md) 
             break
     
     # convert the document to HTML
@@ -164,6 +185,30 @@ def get_doc_absolute_path(relative_path):
     
     return file_path
 
+def test_bs4():
+    s = '''
+    <ul>
+        <li><strong>item 1</strong>: definition</li>
+        <li>item 2: definition</li>
+    </ul>
+    '''
+    print s
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(s)
+    
+    for tag in soup.find_all('li'):
+        #print tag
+        tag.insert(0, '# ')
+        pass
+    
+    s = unicode(soup)
+    
+    print '-' * 80
+    
+    print s
+    
+    exit()
+
 def get_md_from_html(html_file_path):
     info = {'files': [], 'md': '', 'title': ''}
     from digipal.utils import read_file
@@ -227,12 +272,13 @@ def get_md_from_html(html_file_path):
                         prefix = '%s. ' % (len([s for s in tag.previous_siblings if s.name == 'li']) + 1)
                 else:
                     prefix = '#SPACE#' + prefix
-        for tag_str in tag.strings:
-            tag_str.insert_before(prefix)
-            break
+        if prefix:
+            tag.insert(0, prefix)
     
     # serialise into a string
     ret = unicode(soup)
+    
+    #print ret.encode('utf-8', 'ignore')
 
     # Preserve the spaces and line breaks in <pre> tags
     pattern = re.compile(ur'(?musi)<pre>(.*?)</pre>')
@@ -252,63 +298,64 @@ def get_md_from_html(html_file_path):
 
     # convert <hx> to #
     for i in range(1, 5):
-        ret = re.sub(ur'<h%s>(.*?)</h%s>' % (i, i), ur'\n%s \1\n' % ('#' * i,), ret)
-    
-    # convert <p> to paragraphs
-    ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
-    
-    # convert strike-through
-    ret = re.sub(ur'(?musi)<s>(.*?)</s>', ur'~~\1~~', ret)
-
-    # convert italics
-    ret = re.sub(ur'(?musi)<em>(.*?)</em>', ur'_\1_', ret)
-
-    # convert <strong>
-    ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
-    
-    # convert <a href="">
-    #ret = re.sub(ur'(?musi)<a>(.*?)</a>', ur'[]()', ret)
-    pattern = re.compile(ur'(?musi)<a.*?href="([^"]*)".*?>(.*?)</a>')
-    pos = 1
-    while True:
-        m = pattern.search(ret, pos - 1)
-        if not m: break
+        ret = re.sub(ur'(?musi)<h%s[^>]*>(.*?)</h%s>' % (i, i), ur'\n%s \1\n' % ('#' * i,), ret)
         
-        # if this is a link to a confluence page, convert it to a local link
-        href = get_local_doc_url(m.group(1))
+    if 1:    
+        # convert <p> to paragraphs
+        ret = re.sub(ur'(?musi)<p>(.*?)</p>\s*', ur'\1\n\n', ret)
         
-        replacement = '[%s](%s)' % (m.group(2), href) 
-        ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-        pos = m.start(0) + len(replacement)
-
-    # convert <blockquote>
-    #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
-    pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
-    pos = 1
-    while True:
-        m = pattern.search(ret, pos - 1)
-        if not m: break
+        # convert strike-through
+        ret = re.sub(ur'(?musi)<s>(.*?)</s>', ur'~~\1~~', ret)
+    
+        # convert italics
+        ret = re.sub(ur'(?musi)<em>(.*?)</em>', ur'_\1_', ret)
+    
+        # convert <strong>
+        ret = re.sub(ur'(?musi)<strong>(.*?)</strong>', ur'**\1**', ret)
         
-        replacement = '%s\n\n' % re.sub(ur'(?musi)^\s*', ur'> ', m.group(1)) 
-        ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
-        pos = m.start(0) + len(replacement)
-
-    # convert <pre>
-    #ret = re.sub(ur'(?musi)<pre>\s*(.*?)\s*</pre>', ur'\n```\n\1\n```\n', ret)
-
-    # add line break before bullet points
-    ret = re.sub(ur'\s*<li>', ur'\n', ret)
-    # add line break after block of bullet points
-    # (only if not nested into another block) 
-    ret = re.sub(ur'\s*</ul>(?!\s*</li>)', ur'\n', ret)
-
-    ret = re.sub(ur'#SPACE#', ur' ', ret)
-    ret = re.sub(ur'#CR#', ur'\n', ret)
+        # convert <a href="">
+        #ret = re.sub(ur'(?musi)<a>(.*?)</a>', ur'[]()', ret)
+        pattern = re.compile(ur'(?musi)<a.*?href="([^"]*)".*?>(.*?)</a>')
+        pos = 1
+        while True:
+            m = pattern.search(ret, pos - 1)
+            if not m: break
+            
+            # if this is a link to a confluence page, convert it to a local link
+            href = get_local_doc_url(m.group(1))
+            
+            replacement = '[%s](%s)' % (m.group(2), href) 
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+            pos = m.start(0) + len(replacement)
     
-    # remove remaining tags
-    ret = re.sub(ur'<[^>]*>', ur' ', ret)
+        # convert <blockquote>
+        #ret = re.sub(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>', ur'\n> \1\n', ret)
+        pattern = re.compile(ur'(?musi)<blockquote>\s*(.*?)\s*</blockquote>')
+        pos = 1
+        while True:
+            m = pattern.search(ret, pos - 1)
+            if not m: break
+            
+            replacement = '%s\n\n' % re.sub(ur'(?musi)^\s*', ur'> ', m.group(1)) 
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+            pos = m.start(0) + len(replacement)
     
-    ret = u'# %s\n%s' % (title, ret)
+        # convert <pre>
+        #ret = re.sub(ur'(?musi)<pre>\s*(.*?)\s*</pre>', ur'\n```\n\1\n```\n', ret)
+    
+        # add line break before bullet points
+        ret = re.sub(ur'\s*<li>', ur'\n', ret)
+        # add line break after block of bullet points
+        # (only if not nested into another block) 
+        ret = re.sub(ur'\s*</ul>(?!\s*</li>)', ur'\n\n', ret)
+        
+        ret = re.sub(ur'#SPACE#', ur' ', ret)
+        ret = re.sub(ur'#CR#', ur'\n', ret)
+        
+        # remove remaining tags
+        ret = re.sub(ur'<[^>]*>', ur' ', ret)
+        
+        ret = u'# %s\n%s' % (title, ret)
 
     info['md'] = ret
     info['title'] = title

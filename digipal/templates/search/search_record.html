@@ -111,8 +111,7 @@
                     <li class="{% if result_type == type.key %}active{% else %}{% if type.count == 0 %}disabled{% endif %}{% endif %}">
                         <a
                             href='{% filter add_query_params:request.META.QUERY_STRING %}?result_type={{ type.key }}{% endfilter %}'
-                            data-toggle="tab"
-                            {% if type.count > -1 %}data-target="#{{ type.key }}"{% endif %}
+                            {% if type.count > -1 %}data-toggle="tab" data-target="#{{ type.key }}"{% endif %}
                         >
                             {{ type.label }}
                             {% if type.count > -1 %}

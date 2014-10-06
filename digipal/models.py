@@ -386,7 +386,7 @@ class Owner(models.Model):
         return ret
     
     def get_owned_item(self):
-        ret = self.itempart_set.first() or self.historicalitem_set.first() or self.currentitem_set.first()
+        ret = self.itempart_set.first() or self.historicalitem_set.first() or self.current_items.first()
         return ret
 
     def __unicode__(self):

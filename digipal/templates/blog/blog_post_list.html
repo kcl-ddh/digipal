@@ -136,7 +136,7 @@
                <i class='glyphicon glyphicon-tag'></i>
                 {% spaceless %}
                 {% for tag in blog_post.keyword_list %}
-                <a href="{% url "blog_post_list_tag" tag.slug %}" class="tag">{{ tag }}</a>
+                    <a href="{% url "blog_post_list_tag" tag.slug %}" class="tag">{{ tag }}</a>{% if not forloop.last %}, {% endif %}
                 {% endfor %}
                 {% endspaceless %}
             </li>

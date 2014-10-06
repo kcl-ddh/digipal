@@ -137,7 +137,7 @@ Options:
         ''' returns the absolute path to all the index folders 
         (optionally filtered by --if command line option)'''
         from digipal.utils import get_all_files_under
-        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, fitlers=self.get_filtered_indexes())
+        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
         return ret
 
     def info(self, options):

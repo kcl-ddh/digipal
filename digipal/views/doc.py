@@ -135,17 +135,38 @@ def preprocess_markdown(md, request):
     # ~~test~~ => -test-
     ret = re.sub(ur'(?musi)~~(.*?)~~', ur'<del>\1</del>', ret)
     
+    
     # convert link to another .md file 
     # e.g. [See the other test document](test2.md)
     # => [See the other test document](test2)
-    link_prefix = ''
-    if request:
-        request_path = request.META['PATH_INFO']
-        if request_path[-1] == '/':
-            link_prefix = '../'
+#     link_prefix = ''
+#     if request:
+#         request_path = request.META['PATH_INFO']
+#         if request_path[-1] == '/':
+#             link_prefix = '../'
+#     
+#     # we preserve the fragment (#...)
+#     ret = re.sub(ur'\]\(([^)]+).md/?(#?[^)]*)\)', ur'](%s\1\2)' % link_prefix, ret)
     
-    # we preserve the fragment (#...)
-    ret = re.sub(ur'\]\(([^)]+).md/?(#?[^)]*)\)', ur'](%s\1\2)' % link_prefix, ret)
+    pattern = re.compile(ur'\]\(([^)]+).md\b')
+    pos = 1
+    while True:
+        m = pattern.search(ret, pos)
+        if not m: break
+        
+        replacement = ''
+        from digipal import utils
+        end_slug = re.sub(ur'^/.*/', '', m.group(1))
+        page = utils.get_cms_page_from_title(end_slug)
+        print end_slug
+        if page:
+            replacement = '](/%s/' % page.slug.strip('/')
+            print replacement
+            
+        if replacement:
+            ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
+        
+        pos = m.start(0) + len(replacement) + 1
     
     return ret
 

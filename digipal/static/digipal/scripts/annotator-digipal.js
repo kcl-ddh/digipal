@@ -2269,9 +2269,12 @@ function show_url_allograph(dialog, annotation, button) {
 
 		var settings = loader.digipal_settings;
 		allograph_url += '&settings=' + annotator.utils.Base64.encode(JSON.stringify(settings));
-		var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
-		var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
-		var scopes = 'https://www.googleapis.com/auth/plus.me';
+//		var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
+//		var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
+//		var scopes = 'https://www.googleapis.com/auth/plus.me';
+        var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
+        var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
+        var scopes = 'https://www.googleapis.com/auth/plus.me';
 
 	    	gapi.client.setApiKey(apiKey);
 

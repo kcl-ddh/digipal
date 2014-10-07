@@ -158,10 +158,10 @@ def preprocess_markdown(md, request):
         from digipal import utils
         end_slug = re.sub(ur'^/.*/', '', m.group(1))
         page = utils.get_cms_page_from_title(end_slug)
-        print end_slug
+        #print end_slug
         if page:
             replacement = '](/%s/' % page.slug.strip('/')
-            print replacement
+            #print replacement
             
         if replacement:
             ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
@@ -271,7 +271,7 @@ def get_md_from_html(html_file_path):
     # convert the tag
     import digipal
     import shutil
-    static_path = os.path.join(digipal.__path__[0], 'static/doc')
+    static_path = os.path.join(digipal.__path__[0], 'static', 'doc')
     for tag in soup.find_all('img'):
         file_name = re.sub('.*?([^/?]*)($|\?|#)', ur'\1', tag['src'])
         img_src = os.path.join(os.path.dirname(path), tag['src'])
@@ -401,10 +401,10 @@ def get_local_doc_url(href):
         file_name = re.sub(ur'^.*/', '', file_name).lower()
         file_name = slugify(unicode(file_name))
         start_path = os.path.abspath(os.path.join(digipal.__path__[0], 'doc'))
-        print start_path, file_name
+        #print start_path, file_name
         for root, dirs, files in os.walk(start_path):
             for file in files: 
-                print file
+                #print file
                 if slugify(unicode(re.sub(ur'.md$', '', file))) == file_name:
                     ret = os.path.join(root, file).replace('\\', '/')
                     ret = '/digipal/doc/%s' % ret[len(start_path):].strip('/')

@@ -59,5 +59,7 @@ DigiPal is open source and you are free to customise it as you wish. A lot of th
 ## Upgrading your version of DigiPal
 (link to upgrading documentation)
 
+_Giancarlo Buomprisco and Geoffroy Noel_
+
  
 

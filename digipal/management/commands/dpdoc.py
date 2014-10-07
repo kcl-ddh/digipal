@@ -136,14 +136,14 @@ Commands:
             parent_page = get_cms_page_from_title(parent_title)
             page = RichTextPage(title=title, content_model='richtextpage', parent=parent_page, content=content, status=CONTENT_STATUS_PUBLISHED)
             page.save()
+            page.status = CONTENT_STATUS_DRAFT if draft else CONTENT_STATUS_PUBLISHED
+            page.in_menus = in_menus
         else:
             # Can't find an easy way to edit page.richtextpage.content, so let's write directly to the DB!
             from django.db import connection
             cursor = connection.cursor()
             cursor.execute('''update pages_richtextpage set content = %s where page_ptr_id = %s''', [content, page.id])
             
-        page.status = CONTENT_STATUS_DRAFT if draft else CONTENT_STATUS_PUBLISHED
-        page.in_menus = in_menus
         page.save()
         
         return page

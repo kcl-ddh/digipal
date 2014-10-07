@@ -77,4 +77,7 @@ IMAGE_SERVER_ORIGINALS_ROOT = 'originals'
 IMAGE_SERVER_UPLOAD_EXTENSIONS = ('.jp2', '.jpg', '.tif', '.bmp', '.jpeg')
 IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
 ```
- 
+ 
+
+_Giancarlo Buomprisco _
+

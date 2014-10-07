@@ -83,5 +83,7 @@ On the form itself you will see different types of fields:
 
 The last sections of the forms often contain expandable links to related records. This usually happens when the current record can have more than one connection to other record types. The above screen shot shows the bottom of the Image form we saw earlier. It is a list of connections between the current Folio Image and the Hands which wrote on that folio. There is only one hand defined here: the 'Main hand'. Clicking this hand entry will show a form to edit the record or a drop down to select the related Hand record. You can remove the connection by clicking the cross near the right border. If you want to define one more hand just click on the second entry called 'Hand-Image Relationship #2' and select a Hand in the drop down. You can also click the plus sign as explained above to add the hand record if it not yet in the database.
 
+_Geoffroy Noel_
+
  
 

@@ -169,5 +169,9 @@ The result printed will be:
 
 {   **"count"**: 1,   **"errors"**: [],   **"results"**: [      {         **"aspects"**: [],         **"created"**: "2012-05-22 13:08:37.072243+00:00",         **"idiograph__id"**: 51,         **"modified"**: "2013-05-02 10:19:22.364557+00:00",         **"group"**: null,         **"idiograph"**: "e. DigiPal Scribe 3. Saec. xi1/4",         **"parts"**: [],         **"display_label"**: "e. DigiPal Scribe 3. Saec. xi1/4. Hand 1 (fols. 70\u201396)",         **"str"**: "e. DigiPal Scribe 3. Saec. xi1/4. Hand 1 (fols. 70\u201396)",         **"id"**: 234,         **"annotation__id"**: null,         **"hand"**: "Hand 1 (fols. 70\u201396)",         **"annotation"**: null,         **"hand__id"**: 636,         **"graph_components"**: []      }   ],   **"success"**: true} 
 
+_Giancarlo Buomprisco_
+
+__
+
  
 

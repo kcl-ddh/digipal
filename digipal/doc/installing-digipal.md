@@ -121,5 +121,5 @@ python manage.py runserver
 ```
 Run you browser at the address [http://](http://localhost:8000/)[localhost:8000](http://localhost:8000/)
 
- 
+_Giancarlo Buomprisco _
 

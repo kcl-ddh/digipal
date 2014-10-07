@@ -104,4 +104,11 @@ This option serves to filter the list of allographs to annotate the image.
 * **Move down**: Shift + down arrow
 * **Highlight/Un-highlight unsaved annotations: **u
 
- 
+ 
+
+_Debora Matos_
+
+ 
+
+ 
+

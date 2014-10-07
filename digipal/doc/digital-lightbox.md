@@ -116,7 +116,7 @@ To import a saved session,  click on the menu entry "Load saved session", and 
  * the workspace is zoomed in or out
  * the image is rotated
 
- 
+_Giancarlo Buomprisco_
 
  
 

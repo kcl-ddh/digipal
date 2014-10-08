@@ -1,7 +1,6 @@
 # Copyright and Permissions
  
-## Copyright and Permissions
-The DigiPal project includes a wide range of content, all of which is Copyright © but some of which is available under 'open' licences. Please read the following carefully. Any enquiries should be addressed to digipal @ kcl.ac.uk. In all cases the DigiPal project should be cited (see [How to Cite DigiPal](/digipal/doc/citing-digipal.md)).
+## The DigiPal project includes a wide range of content, all of which is Copyright © but some of which is available under 'open' licences. Please read the following carefully. Any enquiries should be addressed to digipal @ kcl.ac.uk. In all cases the DigiPal project should be cited (see [How to Cite DigiPal](/digipal/doc/citing-digipal.md)).
 
 ### DigiPal Data
 [![](/static/doc/88x31.png?raw=true)](http://creativecommons.org/licenses/by/4.0/) Unless otherwise specified, the data in _DigiPal: Digital Database and Resource for Palaeography, Manuscripts and Diplomatic_ by [the DigiPal Project Team](http://digipal.eu/about/project-team/) is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/). Permissions beyond the scope of this license may be available at [http://www.digipal.eu/about/copyright-and-permissions/](http://www.digipal.eu/about/copyright-and-permissions/).

@@ -1,8 +1,6 @@
 # Collection
  
-# Collections
-Collections are a quick way to collect and store images such as pages and annotations which are possible to find across the whole website. It is possible to create as many collections as you want, share them to others, create printable views, or send them to the Digital Lightbox.
-
+# Collections are a quick way to collect and store images such as pages and annotations which are possible to find across the whole website. It is possible to create as many collections as you want, share them to others, create printable views, or send them to the Digital Lightbox.
 A few things about Collections:
 
 

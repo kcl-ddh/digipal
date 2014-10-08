@@ -96,7 +96,7 @@ def postprocess_markdown(html, request):
         if not m: break
         
         anchor_name = slugify(m.group(2).strip())
-        replacement = ur'%s<a href="#%s" name="%s">%s</a>%s' % (m.group(1), anchor_name, anchor_name, m.group(2), m.group(3)) 
+        replacement = ur'%s<a href="#%s" id="%s">%s</a>%s' % (m.group(1), anchor_name, anchor_name, m.group(2), m.group(3)) 
         
         ret = ret[:m.start(0)] + replacement + ret[m.end(0):]
         

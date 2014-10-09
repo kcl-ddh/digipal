@@ -252,7 +252,9 @@ th[data-sort]:hover{
     /* display: inline; */
     /* margin-right: 1em; */
     /* text-align: center; */
-    height: 100px;
+    /* height: 100px; */
+    float: left;
+    padding: 0.4em;
     /* vertical-align: top; */
 }
 
@@ -286,11 +288,15 @@ th[data-sort]:hover{
 }
 
 .grid-images{
-    margin-bottom: 2em;
     border-bottom: 1px dashed #dadada;
-    padding-bottom: 2em;
+    /*
+    margin-bottom: 1em;
+    padding-bottom: 1em;
+    */
+    /*
     float: left;
     clear: both;
+    */
 }
 
 .grid-image img:hover{

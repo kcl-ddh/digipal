@@ -45,12 +45,8 @@
 
 .disabled{
     color: #999;
-    cursor: default;
 }
 
-.disabled:hover{
-    color: #999;
-}
 
 .selected-collection img{
     box-shadow: 0px 0px 25px 8px yellow;
@@ -253,9 +249,13 @@ th[data-sort]:hover{
 }
 
 .grid-image{
-    display: inline;
-    margin-right: 1em;
-    text-align: center;
+    /* display: inline; */
+    /* margin-right: 1em; */
+    /* text-align: center; */
+    /* height: 100px; */
+    float: left;
+    padding: 0.4em;
+    /* vertical-align: top; */
 }
 
 .grid-image .manuscript-number{
@@ -271,9 +271,10 @@ th[data-sort]:hover{
 .manuscript-number{
     font-size: 10px;
     position: relative;
-    bottom: 2.5em;
-    left:1em;
-    margin: 1em;
+    bottom: 1em;
+    right: 1em;
+    /* left:1em; */
+    /* margin: 1em; */
 }
 
 #manuscripts-index{
@@ -287,9 +288,15 @@ th[data-sort]:hover{
 }
 
 .grid-images{
-    margin-bottom: 2em;
     border-bottom: 1px dashed #dadada;
-    padding-bottom: 2em;
+    /*
+    margin-bottom: 1em;
+    padding-bottom: 1em;
+    */
+    /*
+    float: left;
+    clear: both;
+    */
 }
 
 .grid-image img:hover{

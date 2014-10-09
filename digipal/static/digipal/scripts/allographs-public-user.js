@@ -1,5 +1,5 @@
 function PublicAllograhs() {
-	_self = this;
+	var _self = this;
 
 	this.selectedAnnotations = [];
 
@@ -17,7 +17,6 @@ function PublicAllograhs() {
 	this.to_annotator = function(annotation_id) {
 		if (typeof annotator !== 'undefined') {
 			var tab = $('a[data-target="#annotator"]');
-			tab.tab('show');
 			annotator.selectFeatureByIdAndZoom(annotation_id);
 			var select_allograph = $('#panelImageBox');
 			var annotation_graph;
@@ -30,6 +29,20 @@ function PublicAllograhs() {
 			}
 			select_allograph.find('.allograph_form').val(getKeyFromObjField(annotation_graph, 'hidden_allograph'));
 			$('select').trigger('liszt:updated');
+			tab.tab('show');
+		}
+	};
+
+	this.to_lightbox = function() {
+		var graphs = [];
+		var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+		for (var i = 0; i < _self.selectedAnnotations.length; i++) {
+			if (add_to_lightbox($(this), 'annotation', _self.selectedAnnotations[i], false)) {
+				var element = $('[data-graph="' + _self.selectedAnnotations[i] + '"]');
+				if (!element.find('.starred-image').length) {
+					element.append(star);
+				}
+			}
 		}
 	};
 
@@ -62,7 +75,7 @@ function PublicAllograhs() {
 
 		});
 
-		annotation_li.find('a').click(function(event) {
+		annotation_li.find('a').on('click', function(event) {
 			var id = $(this).parent('.annotation_li').data('graph');
 			_self.to_annotator(id);
 
@@ -79,7 +92,7 @@ function PublicAllograhs() {
 		});
 
 		var deselect_all = $('.deselect_all');
-		deselect_all.click(function() {
+		deselect_all.on('click', function() {
 			var key = $(this).data('key');
 			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var checkboxes = ul.find('.annotation_li');
@@ -92,7 +105,7 @@ function PublicAllograhs() {
 		});
 
 		var select_all = $('.select_all');
-		select_all.click(function() {
+		select_all.on('click', function() {
 			var key = $(this).data('key');
 			var ul = $('.list-allographs[data-key="' + key + '"]');
 			var checkboxes = ul.find('.annotation_li');
@@ -109,23 +122,14 @@ function PublicAllograhs() {
 
 		var to_lightbox = $('.to_lightbox');
 
-		to_lightbox.click(function() {
-			var graphs = [];
-			var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
-			for (var i = 0; i < _self.selectedAnnotations.length; i++) {
-				if (add_to_lightbox($(this), 'annotation', _self.selectedAnnotations[i], false)) {
-					var element = $('[data-graph="' + _self.selectedAnnotations[i] + '"]');
-					if (!element.find('.starred-image').length) {
-						element.append(star);
-					}
-				}
-			}
+		to_lightbox.on('click', function() {
+			_self.to_lightbox();
 		});
 
 	};
 }
+var publicAllograhs = new PublicAllograhs();
 
 $(document).ready(function() {
-	var publicAllograhs = new PublicAllograhs();
 	publicAllograhs.init();
 });

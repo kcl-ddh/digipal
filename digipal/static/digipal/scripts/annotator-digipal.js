@@ -691,7 +691,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				selectedFeature = annotator.selectedFeature;
 			}
 
-			var to_lightbox = $('.to_lightbox');
+			var to_lightbox = $('.ui-dialog').find('.to_lightbox');
 
 			to_lightbox.unbind().on('click', function() {
 				var type;
@@ -925,9 +925,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 							$('#panelImageBox .hand_form').val('------');
 							$('select').trigger("liszt:updated");
 							annotator.editorial.activate();
-							dialog.find("#components_tab").add(dialog.find("#aspects_tab")).addClass('disabled');
 							dialog.find('#notes_tab').tab('show');
-
+							var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
+							targets.hide();
 						} else if (annotator.selectedFeature.contentAnnotation) {
 							notes += "<div style='height:95%;width:100%;' class='textarea_temporary_annotation form-control' placeholder='Describe annotation ...'></div>";
 							dialog.find('#notes_tab').html(notes);
@@ -938,6 +938,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 								$(this).parent('li').addClass('disabled');
 							});
 							$("[data-target='#notes_tab']").tab('show');
+
+							var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
+							targets.hide();
 
 						}
 						dialog.find("[data-target='#components_tab']").add(dialog.find("[data-target='#aspects_tab']")).each(function() {
@@ -978,6 +981,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 						if (annotator.selectedFeature.hasOwnProperty('contentAnnotation')) {
 							$('.textarea_temporary_annotation').html(annotator.selectedFeature.contentAnnotation).focus();
 						}
+						var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
+						targets.hide();
 						callback();
 					}
 				}
@@ -987,6 +992,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					});
 					$("[data-target='#notes_tab']").tab('show');
 				}
+
 			}
 			self.updateFeatureSelect.init(dialog, selectedFeature, callback);
 
@@ -1442,7 +1448,13 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					var s = '';
 
 					if (data != "False") {
-						data = data.sort();
+						data = data.sort(function(x, y) {
+							if (x.hand < y.hand)
+								return -1;
+							if (x.hand > y.hand)
+								return 1;
+							return 0;
+						});
 						var j = 0;
 						var data_hand;
 						if (data.length === 1) {
@@ -2111,7 +2123,7 @@ function show_url_allograph(dialog, annotation, button) {
 		var a = $('<input type="text">');
 		a.css('width', '100%');
 		var title = $('.name_temporary_annotation').val();
-		var desc = $('.textarea_temporary_annotation').html();
+		var desc = $('.editor_active').html();
 		if (desc) {
 			desc.replace('contenteditable="true"', '');
 		}
@@ -2257,58 +2269,73 @@ function show_url_allograph(dialog, annotation, button) {
 
 		var settings = loader.digipal_settings;
 		allograph_url += '&settings=' + annotator.utils.Base64.encode(JSON.stringify(settings));
+//		var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
+//		var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
+//		var scopes = 'https://www.googleapis.com/auth/plus.me';
+        var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
+        var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
+        var scopes = 'https://www.googleapis.com/auth/plus.me';
 
-		gapi.client.load('urlshortener', 'v1', function() {
+	    	gapi.client.setApiKey(apiKey);
 
-			var request = gapi.client.urlshortener.url.insert({
-				'resource': {
-					'longUrl': allograph_url
-				}
+
+	    	function checkAuth(callback) {
+  			gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, callback);
+		}
+		
+		checkAuth(function(){
+			gapi.client.load('urlshortener', 'v1', function() {
+
+				var request = gapi.client.urlshortener.url.insert({
+					'resource': {
+						'longUrl': allograph_url
+					}
+				});
+
+
+				var resp = request.execute(function(resp) {
+					if (resp.error) {
+						throw new Error('Got error in requesting short url');
+					} else {
+						$('#url_allograph_gif').fadeOut().remove();
+						a.attr('value', resp.id);
+						a.attr('title', 'Copy link to annotation and share it');
+						button.data('url', resp.id);
+						var p = $('<div>');
+						p.css('text-align', 'right');
+						p.css('margin-top', '0.34em');
+						url.append(a);
+
+						p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
+						p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
+
+						url.append(p);
+						dialog.prepend(url);
+						$("[data-toggle='tooltip']").tooltip();
+						var long_url_button = $('#long_url');
+						long_url_button.on('click', function() {
+							if (url.data('url-type') == 'short') {
+								a.attr('value', 'http://' + allograph_url);
+								button.data('url', 'http://' + allograph_url);
+								url.data('url-type', 'long');
+								long_url_button.text('Short URL?');
+								long_url_button.data('original-title', 'Show short URL');
+							} else {
+								a.attr('value', resp.id);
+								button.data('url', resp.id);
+								url.data('url-type', 'short');
+								long_url_button.text('Long URL?');
+								long_url_button.data('original-title', 'Show long URL');
+							}
+						});
+
+						$('#close_div_url').on('click', function() {
+							remove_url_div();
+						});
+					}
+				});
+
 			});
-
-
-			var resp = request.execute(function(resp) {
-				if (resp.error) {
-					throw new Error('Got error in requesting short url');
-				} else {
-					$('#url_allograph_gif').fadeOut().remove();
-					a.attr('value', resp.id);
-					a.attr('title', 'Copy link to annotation and share it');
-					button.data('url', resp.id);
-					var p = $('<div>');
-					p.css('text-align', 'right');
-					p.css('margin-top', '0.34em');
-					url.append(a);
-
-					p.append("<button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Display long url' style='font-size: 12px;' class='btn btn-default btn-xs' id='long_url'>Long URL?</button> ");
-					p.append(" <button data-container='body' data-placement='bottom' data-toggle='tooltip' title='Hide URL' style='font-size: 12px;' class='btn btn-default btn-xs' id='close_div_url'><span class='glyphicon glyphicon-remove'></span></button>");
-
-					url.append(p);
-					dialog.prepend(url);
-					$("[data-toggle='tooltip']").tooltip();
-					var long_url_button = $('#long_url');
-					long_url_button.on('click', function() {
-						if (url.data('url-type') == 'short') {
-							a.attr('value', 'http://' + allograph_url);
-							button.data('url', 'http://' + allograph_url);
-							url.data('url-type', 'long');
-							long_url_button.text('Short URL?');
-							long_url_button.data('original-title', 'Show short URL');
-						} else {
-							a.attr('value', resp.id);
-							button.data('url', resp.id);
-							url.data('url-type', 'short');
-							long_url_button.text('Long URL?');
-							long_url_button.data('original-title', 'Show long URL');
-						}
-					});
-
-					$('#close_div_url').on('click', function() {
-						remove_url_div();
-					});
-				}
-			});
-
 		});
 
 	} else {
@@ -2363,10 +2390,11 @@ function load_data(selectedFeature, dialog, callback) {
 		if (can_edit) {
 			if (!allograph) {
 				dialog.find('#components_tab').html('<p class="component_labels">Choose an allograph from the dropdown</p>');
+				var targets = $('[data-target="#components_tab"]').add($('[data-target="#aspects_tab"]')).add($("[data-target='#notes_tab']"));
+				targets.hide();
 				if (callback) {
-					callback();
+					return callback();
 				}
-				return false;
 			}
 			content_type = 'allograph';
 			url = 'old/' + content_type + '/' + allograph + '/';
@@ -2375,10 +2403,10 @@ function load_data(selectedFeature, dialog, callback) {
 				refresh_dialog(dialog, data[0], selectedFeature, callback);
 			});
 		} else {
+			refresh_features_dialog(selectedFeature, dialog);
 			if (callback) {
 				callback();
 			}
-			return false;
 		}
 	} else {
 
@@ -2471,6 +2499,12 @@ function refresh_features_dialog(data, dialog) {
 		$('.public_text_dialog_div').html(data.user_note);
 	}
 
+	if ($.isEmptyObject(data) || data && data.components && !data.components.length) {
+		dialog.find('#components_tab').hide();
+		$('[data-target="#components_tab"]').hide();
+		$('[data-target="#notes_tab"]').tab('show');
+	}
+
 	var aspects = "<ul>";
 	if (data.hasOwnProperty('aspects') && data.aspects.length) {
 		for (var i = 0; i < data.aspects.length; i++) {
@@ -2519,12 +2553,16 @@ function refresh_dialog(dialog, data, selectedFeature, callback) {
 
 			var cache = annotator.cacheAnnotations.cache;
 			var aspects_list = load_aspects(annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects, data.graph_id, cache);
+			var aspects = annotator.cacheAnnotations.cache.allographs[data.allograph_id].aspects;
+			var components = annotator.cacheAnnotations.cache.allographs[data.allograph_id].components;
 
 			setNotes(selectedFeature, dialog.find('#notes_tab'));
 			dialog.find('#components_tab').html(s);
 			dialog.find('#aspects_tab').html(aspects_list);
-			if (!aspects_list.length) {
+			if (!aspects.length) {
 				$('[data-target="#aspects_tab"]').hide();
+			} else {
+				$('[data-target="#aspects_tab"]').show();
 			}
 			var check_all = $('.check_all');
 			check_all.click(function(event) {

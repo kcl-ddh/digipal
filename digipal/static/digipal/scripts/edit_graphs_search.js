@@ -219,11 +219,11 @@ function EditGraphsSearch() {
     var refresh = function(data, image_id) {
         var allographs = $.extend(true, {}, data);
 
-        var aspects_list = load_aspects(allographs.allographs.aspects, data.graph_id, cache);
+        var aspects_list = load_aspects(allographs.aspects, data.graph_id, cache);
 
         if (self.selectedAnnotations.length > 1) {
-            allographs.allographs.components = common_components(self.selectedAnnotations, cache, allographs.allographs.components);
-            allographs.allographs.aspects = common_components(self.selectedAnnotations, cache, allographs.allographs.aspects, 'aspects');
+            allographs.components = common_components(self.selectedAnnotations, cache, allographs.components);
+            allographs.aspects = common_components(self.selectedAnnotations, cache, allographs.aspects, 'aspects');
         }
 
         var selectedAnnotation = self.selectedAnnotations[self.selectedAnnotations.length - 1];
@@ -231,12 +231,10 @@ function EditGraphsSearch() {
 
         if (!self.dialog) {
             /* creating dialog */
-            dialog(image_id, {
-                summary: false
-            }, function(dialog_instance) {
+            dialog(image_id, {}, function(dialog_instance) {
                 self.dialog = dialog_instance;
 
-                self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
+                self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s, string_summary) {
 
                     /* fill container content */
                     self.dialog.selector.find('#features_container').html(s);
@@ -247,6 +245,7 @@ function EditGraphsSearch() {
 
                     var select_hand = self.dialog.selector.find('.hand_form');
                     var checkboxes = self.dialog.selector.find('.features_box');
+                    var summary = $('#summary');
 
                     rewriteHands(select_hand, graph.hands);
                     detect_common_features(self.selectedAnnotations, checkboxes, cache);
@@ -262,6 +261,7 @@ function EditGraphsSearch() {
                     self.dialog.set_label(allograph_label);
                     self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
                     self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                    summary.html(string_summary);
                     /* applying delete event to selected feature */
                     var delete_button = self.dialog.selector.find('#delete');
                     delete_button.click(function(event) {
@@ -325,11 +325,11 @@ function EditGraphsSearch() {
 
                     $('select').trigger('liszt:updated');
 
-                });
+                }, cache);
             });
         } else {
 
-            self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s) {
+            self.dialog.update(self.constants.PREFIX, allographs, self.selectedAnnotations, function(s, string_summary) {
 
                 /* fill container content */
                 self.dialog.selector.find('#features_container').html(s);
@@ -338,11 +338,12 @@ function EditGraphsSearch() {
                 setNotes(data, self.dialog.selector.find('#dialog_notes'));
                 var select_hand = self.dialog.selector.find('.hand_form');
                 var checkboxes = self.dialog.selector.find('.features_box');
+                var summary = $('#summary');
                 rewriteHands(select_hand, graph.hands);
                 detect_common_features(self.selectedAnnotations, checkboxes, cache);
                 common_allographs(self.selectedAnnotations, cache, graph);
                 self.dialog.selector.find('#dialog_aspects').html(aspects_list);
-
+                summary.html(string_summary);
                 /* setting dialog label */
                 var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                 self.dialog.set_label(allograph_label);
@@ -362,7 +363,7 @@ function EditGraphsSearch() {
                 // GN - rotation prototype - to be reviewed
                 self.annotation_editor.set_graphids(self.selectedAnnotations);
 
-            });
+            }, cache);
         }
     };
 
@@ -472,17 +473,17 @@ function EditGraphsSearch() {
             var panel = ul.parent();
             panel.find('.to_lightbox').attr('disabled', false);
             var annotations = ul.find('[data-graph]').find('.img-frame').not('.graph_active').parent().parent();
-            for (var i = 0; i < annotations.length; i++) {
-                load_graph($(annotations[i]));
-            }
+            load_graph($(annotations[i][0]));
         },
 
         toggle_all: function(button) {
             var graphs_elements = button.next().find('a[data-graph]');
             if (!button.data('checked')) {
-                graphs_elements.click();
                 button.data('checked', true);
+                graphs_elements.click();
             } else {
+                button.data('checked', false);
+
                 var graphs = [];
 
                 $.each(graphs_elements, function() {
@@ -501,7 +502,7 @@ function EditGraphsSearch() {
                     self.dialog.hide();
                 }
 
-                button.data('checked', false);
+                graphs_elements.click();
             }
         },
 
@@ -513,9 +514,11 @@ function EditGraphsSearch() {
     var rewriteHands = function(select_hand, hands) {
         /* rewriting hands select */
         var string_hand_select = '<option>------</option>';
-        for (var h = 0; h < hands.length; h++) {
-            string_hand_select += '<option value="' + hands[h].id + '">' +
-                hands[h].label + '</option>';
+        if (hands.length) {
+            for (var h = 0; h < hands.length; h++) {
+                string_hand_select += '<option value="' + hands[h].id + '">' +
+                    hands[h].label + '</option>';
+            }
         }
 
         select_hand.html(string_hand_select);

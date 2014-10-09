@@ -6,7 +6,7 @@ jQuery(function($){
         $(this).next().click(function(){
             var value = $(this).parent().children('select:first').attr('value');
             var link = ($(this).prev().attr('href')+'../'+value+'/');
-            console.log(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
+            //console.log(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
             var win = window.open(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
             win.focus();
             return false;

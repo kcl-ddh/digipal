@@ -57,11 +57,11 @@
 
 #summary{
     position: relative;
-    right: 40.3%;
+    right: 40%;
     font-size:12px;
     z-index:500;
     width: 40%;
-    bottom: 98%;
+    bottom: 98.5%;
     border: 1px solid #ccc;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;

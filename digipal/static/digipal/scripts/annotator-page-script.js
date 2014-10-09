@@ -30,7 +30,6 @@ function AnnotatorLoader() {
 		select_elements.chosen();
 		self.switch_annotations();
 		self.toolbar_position();
-		self.set_settings(self.digipal_settings); // setting settings
 
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			if (annotator.isAdmin == "False") {
@@ -41,7 +40,12 @@ function AnnotatorLoader() {
 				annotator.selectFeature.deactivate();
 				annotator.selectFeature.activate();
 			}
+			self.set_settings(self.digipal_settings); // setting settings
+
 			hide_allographs_from_url();
+			// loading annotations through URL (if there are)
+			self.load_temporary_vector();
+			self.load_stored_vector();
 		});
 	};
 
@@ -157,11 +161,13 @@ function AnnotatorLoader() {
 			self.boxes_on_click($(this).is(':checked'));
 		});
 
+		/*
 		if (boxes_on_click.is(':checked')) {
 			annotator.boxes_on_click = true;
 			self.digipal_settings.boxes_on_click = true;
 			localStorage.setItem('self.digipal_settings', JSON.stringify(self.digipal_settings));
 		}
+		*/
 
 		var star = new Star();
 		var selectedCollection = star.getCurrentCollection();
@@ -216,10 +222,6 @@ function AnnotatorLoader() {
 		annotator.activateKeyboardShortcuts(); // calling keyboard events
 
 		self.toolbar_position();
-
-		// loading annotations through URL (if there are)
-		self.load_temporary_vector();
-		self.load_stored_vector();
 
 		$('#toolbar div').tooltip({
 			container: 'body',
@@ -388,14 +390,13 @@ function AnnotatorLoader() {
 				}
 
 			}
-
 			annotator.map.zoomToExtent(extent);
 			$('.dialog_annotations').attr('contenteditable', false);
 			if ($('.dialog_annotations').length) {
 				var title = geo_json.title;
 				var desc = unescape(geo_json.desc);
 				$('.name_temporary_annotation').val(title);
-				$('.textarea_temporary_annotation').html(desc).
+				$('.jquery-notebook.editor').html(desc).
 				attr('contenteditable', false).
 				attr('title', 'Click to edit').
 				addClass("noteditable").tooltip({
@@ -568,7 +569,7 @@ function AnnotatorLoader() {
 				if (annotator.cacheHiddenFilters.hands.length) {
 					checked_editorial = annotator.cacheHiddenFilters.hands.indexOf(hands[h].id.toString()) < 0 ? "checked" : "";
 				}
-				checkOutput += "<p data-annotation='" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
+				checkOutput += "<p data-annotation='hand_" + hands[h].id + "' class='paragraph_allograph_check' data-hand = '" + hands[h].id + "'>" +
 					"<input data-attribute='hand' " + checked_editorial + " value = '" + hands[h].id + "' class='checkVectors_hands' id='hand_input_" + hands[h].id + "' type='checkbox' /> <label for ='hand_input_" + hands[h].id + "' style='display:inline;'>" + hands[h].name + "</label></p>";
 			}
 			if (annotator.cacheHiddenFilters.hands.length) {
@@ -582,7 +583,6 @@ function AnnotatorLoader() {
 			checkOutput += "<input data-attribute='public' " + checked_public + " value = 'public' class='checkVectors_hands' id='public_filter' type='checkbox' />";
 			checkOutput += "<label for='public_filter' style='display:inline;'> Public Annotations</label></p>";
 		}
-
 		checkOutput += "</div></div>";
 		var switcherClone = $('.toggle-state-switch').clone();
 		var allographs_filter_box = $('#allographs_filtersBox');
@@ -658,7 +658,6 @@ function AnnotatorLoader() {
 			}
 
 		} else {
-			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.html(checkOutput).css('margin-right', '1px');
 			annotator.utils.removeDuplicate('.paragraph_allograph_check', 'data-annotation', false);
 			allographs_filter_box.dialog('open');
@@ -742,7 +741,6 @@ function AnnotatorLoader() {
 				}
 			});
 		}
-
 	};
 
 	// Filter the allograph by ontograph type.
@@ -882,7 +880,7 @@ function AnnotatorLoader() {
 			annotator.toolbar.enable_annotation_tools();
 		} else {
 			multiple_boxes.attr('disabled', false);
-			boxes_on_click.attr('checked', true).trigger('change');
+			//boxes_on_click.attr('checked', true).trigger('change');
 			annotator.annotating = false;
 			self.digipal_settings.annotating = false;
 			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
@@ -1029,12 +1027,11 @@ function AnnotatorLoader() {
 		if (is_checked) {
 			annotator.boxes_on_click = true;
 			self.digipal_settings.boxes_on_click = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		} else {
 			annotator.boxes_on_click = false;
 			self.digipal_settings.boxes_on_click = false;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 		}
+		localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
 	};
 
 	// sets options to select multiple vectors
@@ -1071,7 +1068,7 @@ function AnnotatorLoader() {
 				"z-index": 1000
 			});
 
-			if (input_toolbar_position.val() == 'Vertical') {
+			if (input_toolbar_position.val() == 'Vertical' || !input_toolbar_position.val()) {
 
 				if (annotator.isMobile()) {
 					toolbar.css({

@@ -213,7 +213,7 @@ function init_search_page(options) {
 
         // Clicking a tab displays its content
         // and we set the selected tab in a hidden form field
-        $('#result-types-switch a').click(function(e) {
+        $('#result-types-switch a[data-target]').click(function(e) {
             e.preventDefault();
             $('#searchform input[name=result_type]').val($(this).attr('data-target').replace('#', ''));
         });

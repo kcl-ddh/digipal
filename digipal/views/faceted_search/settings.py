@@ -163,9 +163,11 @@ FACETED_SEARCH = {
     #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
     #                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
     #                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
+                                #{'key': 'hand_script', 'label': 'Script of the Hand', 'label_col': 'Script', 'path': 'hand.script.name', 'viewable': True, 'search': True, 'type': 'code', 'count': True},
                                 {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.human_readable', 'viewable': True, 'type': 'code', 'count': True},
+                                {'key': 'hand_date', 'label': 'Hand Date', 'path': 'hand.assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                 {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation.thumbnail', 'viewable': True, 'type': 'code', 'link': True},
                                ],
@@ -173,8 +175,8 @@ FACETED_SEARCH = {
                                        'idiograph__allograph__character__ontograph__ontograph_type', 
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['is_described', 'repo_city', 'repo_place', 'hand_place', 'chartype', 'character', 'allograph'],
-                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_label', 'allograph', 'thumbnail'],
+                    'filter_order': ['hand_date', 'is_described', 'repo_city', 'repo_place', 'hand_place', 'chartype', 'character', 'allograph'],
+                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
@@ -192,6 +194,6 @@ graph_sample.update({
                     'key': 'graph_samples', 
                     'label': 'Graph (sample)',
                     'label_plural': 'Graphs (sample)',
-                    'django_filter': {'annotation__isnull': False, 'id__lt':1000},
+                    'django_filter': {'annotation__isnull': False, 'id__lt':20000},
                      })
 FACETED_SEARCH['types'].append(graph_sample)

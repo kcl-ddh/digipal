@@ -64,8 +64,8 @@ function Dialog() {
                     selector = modal_features;
                     if (callback) {
                         callback(selector);
-                        events(selector);
                     }
+                    events(selector);
                 }
 
             });
@@ -79,6 +79,7 @@ function Dialog() {
             if (callback) {
                 callback(selector);
             }
+            events(selector);
         }
 
     };
@@ -102,9 +103,10 @@ function Dialog() {
         /* updates dialog when changing allograph */
 
         var allograph_form = selector.find('.allograph_form');
-        allograph_form.on('change', function() {
+        allograph_form.unbind('change').on('change', function() {
             update_onChange($(this).val(), selector);
         });
+
 
         selector.find('.close').click(function() {
             hide();
@@ -166,7 +168,7 @@ function Dialog() {
 
                     if (summary) {
                         summary_element.show();
-                        summary_element.css('bottom', '98%');
+                        summary_element.css('bottom', '90%');
                     }
 
                     myModal.find('.modal-body').css("max-height", "");
@@ -269,7 +271,7 @@ function Dialog() {
     };
 
     var update_onChange = function(allograph, selector) {
-        var ABSOLUTE_URL = '/digipal/api/';
+        var ABSOLUTE_URL = '/digipal/api/old/';
         var PREFIX = 'search_';
         var content_type = 'allograph';
         var url = ABSOLUTE_URL + content_type + '/' + allograph;

@@ -508,7 +508,7 @@
 			s += "</div>";
 		}
 		if (data.annotations && data.annotations.length) {
-			s += "<div id='annotations-grid' class='panel'>";
+			s += "<div id='annotations-grid' class='panel col-md-12-no'>";
 			s += "<h2>Graphs (" + data.annotations.length + ")</h2>";
 			for (var i = 0; i < data.annotations.length; i++) {
 
@@ -516,9 +516,10 @@
 					if (attrs.sorting !== 'no-group') {
 						s += "<h3>" + data.annotations[i][attrs.sorting] + "</h3>";
 					}
-					s += "<div class='grid-images'>";
+					s += "<div class='grid-images row'>";
 				}
 
+				//s += "<div data-toggle='tooltip' title='" + data.annotations[i][11] + "' class='grid-image col-md-1' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
 				s += "<div data-toggle='tooltip' title='" + data.annotations[i][11] + "' class='grid-image' data-graph='" + data.annotations[i][1] + "'><span class='manuscript-number'>" + manuscripts[data.annotations[i][14]] + "</span>" + data.annotations[i][0] + "</div>";
 
 				if (!data.annotations[i + 1] || (data.annotations[i][attrs.sorting] !== data.annotations[i + 1][attrs.sorting])) {
@@ -529,7 +530,7 @@
 		}
 
 		if (data.images && data.images.length) {
-			s += "<div id='images-grid' class='panel'>";
+			s += "<div id='images-grid' class='panel col-md-12-no'>";
 			s += "<h2>Manuscript Images (" + data.images.length + ")</h2>";
 			for (var i = 0; i < data.images.length; i++) {
 
@@ -537,9 +538,10 @@
 					if (!attrs.sorting == 'no-group') {
 						s += "<h3>" + data.images[i][2] + "</h3>";
 					}
-					s += "<div class='grid-images'>";
+					s += "<div class='grid-images row'>";
 				}
 
+				//s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' data-placement='right' class='grid-image col-md-1' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 				s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' data-placement='right' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
 				if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
@@ -550,7 +552,7 @@
 		}
 
 		if (data.editorial && data.editorial.length) {
-			s += "<div id='editorial-grid' class='panel'>";
+			s += "<div id='editorial-grid' class='panel col-md-12-no'>";
 			s += "<h2>Editorial Annotations (" + data.editorial.length + ")</h2>";
 			for (var i = 0; i < data.editorial.length; i++) {
 				editorialCache[data.editorial[i][2]] = data.editorial[i][4];
@@ -558,9 +560,10 @@
 					if (!attrs.sorting == 'no-group') {
 						s += "<h3>" + data.editorial[i][3] + "</h3>";
 					}
-					s += "<div class='grid-images'>";
+					s += "<div class='grid-images row col-md-12-no'>";
 				}
 
+				//s += "<div class='grid-image col-md-1' data-graph='" + data.editorial[i][2] + "'>" + data.editorial[i][0] + "</div>";
 				s += "<div class='grid-image' data-graph='" + data.editorial[i][2] + "'>" + data.editorial[i][0] + "</div>";
 
 				if (!data.editorial[i + 1] || (data.editorial[i][3] !== data.editorial[i + 1][3]) && (!attrs.sorting == 'no-group')) {
@@ -679,9 +682,9 @@
 			}
 
 			if (!$(".loading-div").length) {
-
+				var images = selectedItems.length == 1 ? "image" : "images";
 				loading_div.html('<h2>Removing images</h2>');
-				loading_div.append("<p>You are about to remove " + selectedItems.length + " images. Continue?");
+				loading_div.append("<p>You are about to remove " + selectedItems.length + " " + images + ". Continue?");
 				loading_div.append("<p><button class='btn btn-success btn-sm' id='remove_images_from_collection'>Remove</button> <button class='btn btn-danger btn-sm' id='cancel'>Cancel</button></p>");
 				background.append(loading_div);
 				$('body').append(background);
@@ -841,12 +844,14 @@
 			var _collections = JSON.parse(localStorage.getItem('collections')),
 				_basket;
 
+			var selectedCollection = localStorage.getItem('selectedCollection');
 			var list, type, new_list = [];
 
 			$.each(_collections, function(index, value) {
 				if (value.id == selectedCollection) {
 					_basket = value;
 					_basket['name'] = index;
+					_basket.id = value.id;
 				}
 			});
 
@@ -988,6 +993,7 @@
 					$('[data-target="#' + tab[0] + '"]').tab('show');
 				}
 				$('[media="print"]').attr('media', 'screen, print');
+				$('*').unbind();
 			}
 			if (grouping.length && tab == 'grid') {
 				displayGrid(cache, {

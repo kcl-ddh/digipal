@@ -152,6 +152,10 @@
     padding:1%;
 }
 
+.olPopup {
+    min-width: 100px;
+}
+
 .olPopup a {
     color: #fff !important;
 }
@@ -731,4 +735,9 @@ path {
 
 .align-right {
     text-align: right;
+}
+
+.jquery-notebook iframe {
+    width:260px !important;
+    height: 230px !important;
 }

@@ -12,7 +12,7 @@
 {% block record_tabs %}
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.description %}{% else %}disabled{% endif %}">
+    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
         <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
     </li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
@@ -31,6 +31,10 @@
                     <dd>{{ result.label }}</dd>
                     <dt>Manuscript</dt>
                     <dd><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></dd>
+                    {% if result.locus %}
+                        <dt>Locus</dt>
+                        <dd>{{ result.locus }}</dd>
+                    {% endif %}
                     <dt>Script</dt>
                     <dd>
                         {% if result.script %}
@@ -55,6 +59,19 @@
                     <dd>
                         {{ result.assigned_place }}
                     </dd>
+                    {% if result.scragg or result.ker %}
+                        <dt>Catalogue Number</dt>
+                        {% if result.scragg %}
+                            <dd>
+                                Scragg {{ result.scragg }}
+                            </dd>
+                        {% endif %}
+                        {% if result.ker %}
+                            <dd>
+                                Ker {{ result.ker }}
+                            </dd>
+                        {% endif %}
+                    {% endif %}
                 </dl>
             </div>
 

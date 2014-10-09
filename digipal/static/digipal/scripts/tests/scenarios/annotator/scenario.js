@@ -38,7 +38,8 @@ function Scenario() {
             casper.echo('Running Annotator Scenario 1', 'PARAMETER');
 
             if (AnnotatorTasks.tabs.current() !== '#annotator') {
-                AnnotatorTasks.tabs.switch('annotator');
+                AnnotatorTasks.tabs.
+                switch ('annotator');
             }
 
             casper.evaluate(function() {
@@ -66,7 +67,8 @@ function Scenario() {
             var feature = AnnotatorTasks.get.random_vector(features);
             console.log('Graph selected:' + feature.graph);
             casper.then(function() {
-                AnnotatorTasks.do.select(feature.graph, function() {
+                AnnotatorTasks.do .
+                select(feature.graph, function() {
                     casper.test.assertExists('.dialog_annotations', 'The dialog is loaded');
                     casper.test.assertVisible('.dialog_annotations', 'the dialog is visible on the page');
                     casper.wait(1000, function() {
@@ -74,7 +76,7 @@ function Scenario() {
                         AnnotatorTasks.tests.dialogMatchesCache(features_selected);
                         var labels = casper.evaluate(function() {
                             var dialog_label = $('.allograph_label').text();
-                            var form_allograph_label = $('#panelImageBox .allograph_form option:selected').text();
+                            var form_allograph_label = $('#annotator .allograph_form option:selected').text();
                             return {
                                 'dialog_label': dialog_label,
                                 'form_allograph_label': form_allograph_label
@@ -99,7 +101,8 @@ function Scenario() {
             casper.echo('Running Annotator Scenario 2', 'PARAMETER');
 
             var actions = function(feature) {
-                AnnotatorTasks.do.select(feature.id, function() {
+                AnnotatorTasks.do .
+                select(feature.id, function() {
                     casper.wait(1000, function() {
                         var features_selected = AnnotatorTasks.dialog.getSelectedFeatures();
                         AnnotatorTasks.tests.dialogMatchesCache(features_selected);
@@ -110,9 +113,11 @@ function Scenario() {
             var feature = AnnotatorTasks.get.random_vector(self.features);
 
             casper.then(function() {
-                AnnotatorTasks.do.annotate(feature.id, true, function() {
+                AnnotatorTasks.do .
+                annotate(feature.id, true, function() {
                     AnnotatorTasks.dialog.close();
-                    AnnotatorTasks.do.unselect();
+                    AnnotatorTasks.do .
+                    unselect();
                 });
             });
 
@@ -123,18 +128,20 @@ function Scenario() {
             });
 
             casper.then(function() {
-                casper.echo('Reloading page ...');
+                casper.echo('Reloading page...');
                 casper.reload(function() {
                     actions(feature);
                 });
             });
 
             casper.then(function() {
-                casper.echo('Reloading page ...');
+                casper.echo('Reloading page...');
                 casper.reload(function() {
-                    AnnotatorTasks.do.annotate(null, true, function() {
+                    AnnotatorTasks.do .
+                    annotate(null, true, function() {
                         AnnotatorTasks.dialog.close();
-                        AnnotatorTasks.do.unselect();
+                        AnnotatorTasks.do .
+                        unselect();
                     });
                 });
             });
@@ -152,7 +159,8 @@ function Scenario() {
             casper.echo('Running Annotator Scenario 3', 'PARAMETER');
             var feature = AnnotatorTasks.get.random_vector(self.features);
             var allograph_id = feature.allograph_id;
-            AnnotatorTasks.do.select(feature.id, function() {
+            AnnotatorTasks.do .
+            select(feature.id, function() {
 
                 casper.then(function() {
                     casper.click('.number-allographs');
@@ -201,7 +209,8 @@ function Scenario() {
         this.Scenario4 = function() {
             casper.echo('Running Annotator Scenario 4', 'PARAMETER');
 
-            AnnotatorTasks.do.unselect();
+            AnnotatorTasks.do .
+            unselect();
 
             var isMultipleSelected = casper.evaluate(function() {
                 return annotator.multiple_annotations;
@@ -229,17 +238,21 @@ function Scenario() {
             casper.then(function() {
                 while (feature.allograph_id !== feature2.allograph_id) {
                     feature2 = AnnotatorTasks.get.random_vector(self.features);
-                    AnnotatorTasks.do.select(feature2.id);
+                    AnnotatorTasks.do .
+                    select(feature2.id);
                 }
             });
 
             casper.then(function() {
-                AnnotatorTasks.do.unselect();
-                AnnotatorTasks.do.select(feature.id);
+                AnnotatorTasks.do .
+                unselect();
+                AnnotatorTasks.do .
+                select(feature.id);
             });
 
             casper.then(function() {
-                AnnotatorTasks.do.select(feature2.id);
+                AnnotatorTasks.do .
+                select(feature2.id);
             });
 
             casper.then(function() {
@@ -273,7 +286,8 @@ function Scenario() {
             casper.echo('Running Annotator Scenario 5', 'PARAMETER');
             var feature, feature2;
             AnnotatorTasks.options.multiple_annotations(false);
-            AnnotatorTasks.do.loadCache();
+            AnnotatorTasks.do .
+            loadCache();
 
             casper.then(function() {
                 console.log('Enabling multiple annotations option');
@@ -285,26 +299,32 @@ function Scenario() {
             });
 
             casper.then(function() {
-                AnnotatorTasks.do.unselect();
+                AnnotatorTasks.do .
+                unselect();
                 casper.then(function() {
                     feature = AnnotatorTasks.get.random_vector(self.features);
                     feature2 = AnnotatorTasks.get.random_vector(self.features);
 
-                    AnnotatorTasks.do.select(feature.id);
-                    AnnotatorTasks.do.select(feature2.id);
+                    AnnotatorTasks.do .
+                    select(feature.id);
+                    AnnotatorTasks.do .
+                    select(feature2.id);
 
                     casper.echo('Looking for different allographs with common components...');
                     while (feature.allograph_id !== feature2.allograph_id && !AnnotatorTasks.get.common_components(feature, feature2).length) {
                         (function() {
                             feature2 = AnnotatorTasks.get.random_vector(self.features);
-                            AnnotatorTasks.do.unselect();
+                            AnnotatorTasks.do .
+                            unselect();
 
                             casper.then(function() {
-                                AnnotatorTasks.do.select(feature.id);
+                                AnnotatorTasks.do .
+                                select(feature.id);
                             });
 
                             casper.then(function() {
-                                AnnotatorTasks.do.select(feature2.id);
+                                AnnotatorTasks.do .
+                                select(feature2.id);
                             });
                         })();
                     }
@@ -318,19 +338,24 @@ function Scenario() {
                 casper.then(function() {
                     var common_features = AnnotatorTasks.get.common_features(feature, feature2);
                     var areFeaturesChecked = casper.evaluate(function(common_features) {
+                        console.log(annotator.selectedAnnotations.length);
+                        console.log(common_features.length, $('.features_box:checked').length || "null");
                         return common_features.length === $('.features_box:checked').length;
                     }, common_features);
 
                     casper.test.assert(areFeaturesChecked, 'The number of common features coincides with the number of checkboxes checked');
 
-                    AnnotatorTasks.do.unselect();
+                    AnnotatorTasks.do .
+                    unselect();
 
                     casper.wait(500, function() {
-                        AnnotatorTasks.do.annotate(feature.id, true);
+                        AnnotatorTasks.do .
+                        annotate(feature.id, true);
                     });
 
                     casper.wait(500, function() {
-                        AnnotatorTasks.do.annotate(feature2.id, true);
+                        AnnotatorTasks.do .
+                        annotate(feature2.id, true);
                     });
 
                     casper.wait(500, function() {
@@ -345,22 +370,28 @@ function Scenario() {
         this.Scenario6 = function() {
             casper.echo('Running Annotator Scenario 6', 'PARAMETER');
             casper.echo('Unselecting all annotations...');
-            AnnotatorTasks.do.unselect();
+            AnnotatorTasks.do .
+            unselect();
             feature = AnnotatorTasks.get.random_vector(self.features);
-            AnnotatorTasks.do.select(feature.id, function() {
+            AnnotatorTasks.do .
+            select(feature.id, function() {
                 casper.echo('Generating url for graph ' + feature.id + '...');
-                AnnotatorTasks.do.generateUrl(function() {
-                    AnnotatorTasks.do.unselect();
+                AnnotatorTasks.do .
+                generateUrl(function() {
+                    AnnotatorTasks.do .
+                    unselect();
                     AnnotatorTasks.options.clickOption('development_annotation');
-                    AnnotatorTasks.do.annotate(null, false, function() {
+                    AnnotatorTasks.do .
+                    annotate(null, false, function() {
                         casper.test.assertExists('.dialog_annotations', 'The dialog has been loaded');
                         casper.test.assertExists('.name_temporary_annotation', 'Input temporary annotation loaded');
-                        casper.test.assertExists('.textarea_temporary_annotation', 'Textarea temporary annotation loaded');
+                        casper.test.assertExists('.public_text_dialog_div', 'Textarea temporary annotation loaded');
                         casper.fillSelectors('.ui-dialog', {
                             ".name_temporary_annotation": 'Name',
-                            ".textarea_temporary_annotation": "<b>Content</b>"
+                            ".public_text_dialog_div": "<b>Content</b>"
                         }, false);
-                        AnnotatorTasks.do.generateUrl();
+                        AnnotatorTasks.do .
+                        generateUrl();
                     }, false);
                 });
             });
@@ -368,13 +399,15 @@ function Scenario() {
 
         this.Scenario7 = function() {
             console.log('Activating editorial annotations');
-            AnnotatorTasks.do.unselect();
+            AnnotatorTasks.do .
+            unselect();
             AnnotatorTasks.options.clickOption('multiple_annotations');
             AnnotatorTasks.options.clickOption('development_annotation');
             casper.evaluate(function() {
                 annotator.editorial.activate();
             });
-            AnnotatorTasks.do.annotate(null, false, function() {
+            AnnotatorTasks.do .
+            annotate(null, false, function() {
                 casper.then(function() {
                     casper.wait(800, function() {
                         casper.test.assertExists('#internal_note', 'The internal note textarea exists');
@@ -384,8 +417,10 @@ function Scenario() {
                             $('#display_note').html('Display Note');
                         });
 
-                        AnnotatorTasks.do.save(function() {
-                            AnnotatorTasks.do.unselect();
+                        AnnotatorTasks.do .
+                        save(function() {
+                            AnnotatorTasks.do .
+                            unselect();
                             /*
                             AnnotatorTasks.do.select(vector_id, function() {
                                 var values = casper.evaluate(function() {

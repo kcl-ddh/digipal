@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load i18n future mezzanine_tags blog_tags keyword_tags disqus_tags pagination_tags html_escape %}
+
+{% block meta_title %}{{ doc.title }} | Doc{% endblock %}
+{% block title %}{{ doc.title }} | Doc{% endblock %}
+
+{% block main %}
+
+    <div class="digipal-doc">
+
+    {{ doc.toc }}
+
+    {{ doc.content }}
+    
+    </div>
+    
+{% endblock %}

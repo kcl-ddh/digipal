@@ -18,6 +18,10 @@ Supported elements:
     margin-top: 1em;
 }
 
+.tei-title{
+    font-style: italic;
+}
+
 .tei-title.tei-a-level__m{
     font-style: italic;
 }

@@ -1,4 +1,4 @@
-$(document).ready(function($) {
+jQuery(document).ready(function($) {
 
 	/*
 
@@ -433,7 +433,7 @@ $(document).ready(function($) {
 					$('#ajax_loader2').fadeIn();
 				},
 				success: function(data) {
-					console.log(data);
+					//console.log(data);
 					if (!data['errors']) {
 						var scribe = $('#id_scribe').val()
 						$.main.load_idiographs(scribe);
@@ -448,7 +448,7 @@ $(document).ready(function($) {
 					allograph = null;
 				},
 				error: function(data) {
-					console.log(data);
+					//console.log(data);
 					$($(".window").find('p')[0]).html('Error during transaction');
 				}
 			});

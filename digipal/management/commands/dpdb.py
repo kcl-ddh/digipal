@@ -67,6 +67,9 @@ Commands:
   merge_frg
                           Merge Fragments (ScandiPal) 
 
+  version
+                          show the version of the digipal code
+
   build
                           show the build number and the build date from the database
 
@@ -104,6 +107,10 @@ Commands:
             help='Dry run, don\'t change any data.'),
         )
     
+    def show_version(self):
+        import digipal
+        print 'DigiPal version %s' % digipal.__version__
+
     def merge_frg(self):
         '''
         * Merge the Fragments
@@ -1249,6 +1256,10 @@ Commands:
         if command == 'tables':
             known_command = True
             self.showTables(options)
+        
+        if command == 'version':
+            known_command = True
+            self.show_version()
         
         if command == 'cleanlocus':
             known_command = True

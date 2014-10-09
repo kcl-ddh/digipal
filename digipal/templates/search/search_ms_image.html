@@ -8,14 +8,14 @@
 
 {% block main %}
     <div class="page-header">
-        <h1>Manuscript Images 
-            ({{ images.count }})
+        <h1>Manuscript Images
+            ({{ images|length }})
         </h1>
     </div>
 
     <form id='searchform' class="form-inline panel" action='.'>
         <div class="row">
-            <div class="col-xs-12 col-sm-1">
+            <div class="col-xs-12 col-sm-1 top-1-em">
                 <b>Filter by</b>
             </div>
             <div class="col-xs-12 col-sm-7">
@@ -23,7 +23,7 @@
                     {{ image_search_form.as_ul }}
                 </ul>
             </div>
-            <div class="col-xs-12 col-sm-2">
+            <div class="col-xs-12 col-sm-2 top-1-em">
                 <input class="sticky" type='hidden' name="view" value='{{ view }}' />
                 <input type='submit' value='Filter Images' class='btn btn-primary'/>
             </div>
@@ -54,7 +54,7 @@
 
         <div class="col-xs-12 col-sm-8">
             {% autopaginate images page_size as images_on_this_page %}
-            
+
             {% dp_pagination_with_size_for page_obj %}
         </div>
 

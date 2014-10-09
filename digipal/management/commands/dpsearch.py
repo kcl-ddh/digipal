@@ -137,7 +137,7 @@ Options:
         ''' returns the absolute path to all the index folders 
         (optionally filtered by --if command line option)'''
         from digipal.utils import get_all_files_under
-        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, True, self.get_filtered_indexes())
+        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
         return ret
 
     def info(self, options):
@@ -163,7 +163,7 @@ Options:
         
         # basic filesystem info
         from digipal.utils import get_all_files_under
-        for file in get_all_files_under(path, False):
+        for file in get_all_files_under(path, file_types='f'):
             ret['size'] += os.path.getsize(file)
             ret['date'] = max(ret['date'], os.path.getmtime(file))
             

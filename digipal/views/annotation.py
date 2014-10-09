@@ -504,6 +504,7 @@ def image_copyright(request, image_id):
 
 def images_lightbox(request, collection_name):
     data = {}
+    from digipal.templatetags import html_escape
     if 'data' in request.GET and request.GET.get('data', ''):
         graphs = json.loads(request.GET.get('data', ''))
         if 'annotations' in graphs:
@@ -525,7 +526,8 @@ def images_lightbox(request, collection_name):
                         place_name = 'Unknown'
                         date = 'Unknown'
                     full_size = u'<img alt="%s" src="%s" />' % (annotation.graph, annotation.get_cutout_url(True, True))
-                    annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
+                    #annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
+                    annotations.append([html_escape.annotation_img(annotation), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                 except:
                     continue
             data['annotations'] = annotations
@@ -534,7 +536,8 @@ def images_lightbox(request, collection_name):
             images_list = list(Image.objects.filter(id__in=graphs['images']))
             images_list.sort(key=lambda t: graphs['images'].index(t.id))
             for image in images_list:
-                images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                #images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                images.append([html_escape.iip_img(image, height=100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
             data['images'] = images
         if 'editorial' in graphs:
             editorial_annotations = []

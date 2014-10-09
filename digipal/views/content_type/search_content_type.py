@@ -469,7 +469,7 @@ class SearchContentType(object):
         
         #settings.suggestions_index = None
         
-        if not getattr(settings, 'suggestions_index', None):
+        if not getattr(settings, 'suggestions_index_canonical', None):
             chrono('load:')
             path = self.get_autocomplete_path()
             if path:
@@ -482,7 +482,7 @@ class SearchContentType(object):
                     settings.suggestions_index_canonical = utils.remove_accents(settings.suggestions_index)
             chrono(':load')
             
-        if not settings.suggestions_index:
+        if not settings.suggestions_index_canonical:
             return ret
         
         if query and limit > 0:

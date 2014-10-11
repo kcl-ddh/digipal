@@ -17,10 +17,20 @@
 
 ## 1. About
 
-The Digital Resource for Palaeography (DigiPal) is a project funded by the European Research Council that brings digital technology to bear on scholarly discussion of medieval handwriting. At its heart will be hundreds of newly-commissioned photographs of eleventh-century Anglo-Saxon script from the major manuscript collections in the world, with detailed descriptions of the handwriting, the textual content, and the wider manuscript or documentary context.
+The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) was a project funded by the European Research Council to bring digital technology to bear on scholarly discussion of medieval handwriting. A large part of this work has been the development of a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. To date it is being used for the following material:
+- Writing in Old English from the eleventh century (DigiPal)
+- Fragments of manuscripts from Scandinavia written in the eleventh century (ScandiPal)
+- Fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
+- Inscriptions in Greek, Latin and both from the province of Thracia (InsPal)
+- Inscriptions on medieval coins in the Bibliothèque Nationale de France (PIM)
+- The palaeography and codicology of the Exon Domesday Book (Exon Domesday/The Conqueror's Commissioners)
+- Twelfth-century cursive charters from Scotland (Models of Authority)
+
+The DigiPal Project formally ended on 30 September 2014, but the code is still being updated and extended as part of the follow-on projects listed above.
 
 See further http://digipal.eu/
 
+_The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751._
 ----
 
 ## 2. DigiPal Technologies Stack

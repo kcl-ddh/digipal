@@ -17,10 +17,10 @@
 
 ## 1. About
 
-The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) was a project funded by the European Research Council to bring digital technology to bear on scholarly discussion of medieval handwriting. A large part of this work has been the development of a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. To date it is being used for the following material:
+The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) was a project funded by the European Research Council to bring digital technology to bear on scholarly discussion of medieval handwriting. A large part of this work has been the development of a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. This GitHub repository presents the code for that framework. To date it is being used for the following material:
 - Writing in Old English from the eleventh century (DigiPal)
 - Fragments of manuscripts from Scandinavia written in the eleventh century (ScandiPal)
-- Fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
+- The decoration and script of fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
 - Inscriptions in Greek, Latin and both from the province of Thracia (InsPal)
 - Inscriptions on medieval coins in the Bibliothèque Nationale de France (PIM)
 - The palaeography and codicology of the Exon Domesday Book (Exon Domesday/The Conqueror's Commissioners)

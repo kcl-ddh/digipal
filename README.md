@@ -31,6 +31,7 @@ The DigiPal Project formally ended on 30 September 2014, but the code is still b
 See further http://digipal.eu/
 
 _The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751._
+
 ----
 
 ## 2. DigiPal Technologies Stack

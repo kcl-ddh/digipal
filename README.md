@@ -17,4 +17,4 @@ See further http://www.digipal.eu/
 
 _The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751._
 
-Documentation for web site users, database editors, project owners and developers is available on the [DigiPal web site](http://www.digipal.eu/help/), for the latest version please visit the [doc folder on GitHub](https://github.com/kcl-ddh/digipal/tree/master/digipal/doc).
+Documentation for web site users, database editors, project owners and developers is available on the [Help section of the DigiPal web site](http://www.digipal.eu/help/), for the latest version please visit the [doc folder on GitHub](https://github.com/kcl-ddh/digipal/tree/master/digipal/doc).

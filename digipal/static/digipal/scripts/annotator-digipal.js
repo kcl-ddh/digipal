@@ -2272,14 +2272,15 @@ function show_url_allograph(dialog, annotation, button) {
 //		var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
 //		var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
 //		var scopes = 'https://www.googleapis.com/auth/plus.me';
-        var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
-        var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
+        //var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
+        //var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
+		var clientId = '263516768894-quol4bvq8159mvr9543f7l99e20g2l63.apps.googleusercontent.com';
+		var apiKey = 'AIzaSyBb6ZqeymC7YLwx4fVsqL2KAWz4x_dh-jk';
         var scopes = 'https://www.googleapis.com/auth/plus.me';
 
-	    	gapi.client.setApiKey(apiKey);
+    	gapi.client.setApiKey(apiKey);
 
-
-	    	function checkAuth(callback) {
+	    function checkAuth(callback) {
   			gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, callback);
 		}
 		

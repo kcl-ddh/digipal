@@ -111,6 +111,10 @@ Commands:
                 c = utils.fix_sequences(options.get('db'), True)
                 self.log('%s sequences fixed' % c)
 
+        if command == 'import_moa_charters':
+            known_command = True
+            self.import_moa_charters()
+
         if command == 'copy':
             known_command = True
             self.migrateRecords(options)
@@ -1051,6 +1055,96 @@ Commands:
         if not self.is_dry_run():
             for hand in modified_hands:
                 hand.save()
+
+    
+    @transaction.atomic
+    def import_moa_charters(self):
+        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+
+        options = self.options
+
+        csv_path = options.get('src', '')
+        if not csv_path:
+            raise CommandError('Please provide the path to a source CSV file with --src=PATH .')
+
+        import csv
+        
+        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source
+        
+        with open(csv_path, 'rb') as csvfile:
+            csvreader = csv.reader(csvfile)
+            
+            # TODO: Split source: Document 1/4/1 (Chrs. David I, no. 16)
+            # => (POMS, Document 1/4/1) + (Chrs. David I, no. 16)
+            # TODO: manually review and correct the repo name and place as the values are sometimes missing or conflated
+            
+            # Create POMS source
+            poms_source_data = {'name': 'Prosopography of Medieval Scotland', 'label': 'POMS'}
+            poms_sources = Source.objects.filter(label='POMS')
+            if poms_sources.count():
+                poms_source = poms_sources[0]
+            else:
+                poms_source = Source(**poms_source_data)
+                poms_source.save()
+            
+            # Create the MS for each line in the CSV
+            columns = None
+            records = []
+            c = 0
+            stats = {}
+            line_index = 0
+            for line in csvreader:
+                line_index += 1
+                line = [v.decode('latin-1') for v in line]
+                if not columns:
+                    columns = line
+                    continue
+                
+                rec = dict(zip(columns, line))
+                
+                print rec
+                
+                # create the repo
+                repos = Repository.objects.filter(name=rec['Repository'])
+                if not repos.count():
+                    place = Place(name=rec['Repository'])
+                    place.save()
+                    repo = Repository(name=rec['Repository'], place=place)
+                    repo.save()
+                else:
+                    repo = repos[0]
+                    
+                # create the CurrentItem
+                if not rec['Shelfmark']:
+                    rec['Shelfmark'] = 'Missing Shelfmark (%s)' % rec['POMS reference']
+                
+                cis = CurrentItem.objects.filter(shelfmark=rec['Shelfmark'])
+                if not cis.count():
+                    ci = CurrentItem(shelfmark=rec['Shelfmark'], repository=repo)
+                    ci.save()
+                    
+                    # create the ItemPart
+                    ip = ItemPart(current_item=ci, locus='face')
+                    ip.save()
+                    
+                    # create the HistoricalItem
+                    hi = HistoricalItem(historical_item_type_id=1, date=rec['Date'])
+                    hi.save()
+                    
+                    # create the Cat Num
+                    if rec['POMS reference']:
+                        CatalogueNumber(source=poms_source, historical_item=hi, number=rec['POMS reference'], url=rec['POMS URL']).save()
+                    else:
+                        print 'WARNING: catalogue number missing (line %s)' % line_index
+                else:
+                    ci = cis[0]                
+                    
+                break
+                            
+#                 records.append(rec)
+#                 c += 1
+            
+        #raise Exception('ROLLBACK')
 
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

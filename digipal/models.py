@@ -662,7 +662,8 @@ class CatalogueNumber(models.Model):
             related_name='catalogue_numbers', blank=True, null=True)
     text = models.ForeignKey('Text', related_name='catalogue_numbers', blank=True, null=True)
     source = models.ForeignKey(Source)
-    number = models.CharField(max_length=32)
+    number = models.CharField(max_length=100)
+    url = models.URLField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

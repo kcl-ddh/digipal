@@ -25,12 +25,14 @@
                 // highligh required fields if then are empty
                 $('#quickform').on('submit', function() {
                     var $form = $(this);
+                    var invalid = false;
                     $form.find('.field-required input').each(function() {
                         var $input = $(this);
                         var is_empty = (!$input.val().trim());
                         $input.toggleClass('invalid', is_empty);
+                        invalid = is_empty;
                     });
-                    return false;
+                    return !invalid;
                 });
             });
         })(jQuery);

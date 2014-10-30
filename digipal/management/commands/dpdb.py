@@ -364,7 +364,7 @@ Commands:
         tables.sort()
         
         con.enter_transaction_management()
-        con.managed()
+        #con.managed()
         con.disable_constraint_checking()
 
         c = 0

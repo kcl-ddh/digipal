@@ -3,6 +3,8 @@ from optparse import OptionParser
 import os, sys, re
 import subprocess
 
+import repo_cfg as config
+
 class ExecutionError(Exception):
     
     def __init__(self, title, message):
@@ -66,7 +68,7 @@ def get_hg_folder_name():
     return ret
 
 def process_commands():
-    dir = os.getcwd()
+    original_dir = os.getcwd()
     
     #parent_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
     #os.chdir(parent_dir)
@@ -74,7 +76,7 @@ def process_commands():
     try:
         process_commands_main_dir()
     finally:
-        os.chdir(dir)
+        os.chdir(original_dir)
         
 def process_commands_main_dir():
     parser = OptionParser()
@@ -91,7 +93,8 @@ def process_commands_main_dir():
 
     if len(args):
         command = args[0]
-        dir = os.getcwd()
+        original_dir = os.getcwd()
+        github_dir = os.path.dirname(config.__file__)
         
         if command == 'st':
             known_command = True
@@ -100,7 +103,8 @@ def process_commands_main_dir():
                 out = {}
 
                 # GIT
-                os.chdir('digipal_github/digipal')
+                #print globals()
+                os.chdir(github_dir)
                 system('git status', '', False, '', out)
                 
                 branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
@@ -112,23 +116,24 @@ def process_commands_main_dir():
                 
                 print 'digipal: %s ' % (status,)
                 
-                os.chdir(dir)
-                
-                # HG          
-                system('hg sum', '', False, '', out)
-                
-                branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
-                parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
-                modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
-                has_local_change = (len(modified) != len(out['output']))                  
-
-                status = '%s, %s' % (branch, parent)
-                if has_local_change:
-                    status += ' (%s)' % 'LOCAL CHANGES'
-                
-                print 'digipal_django: %s ' % (status,)
+                if not config.SELF_CONTAINED:
+                    os.chdir(original_dir)
+                    
+                    # HG          
+                    system('hg sum', '', False, '', out)
+                    
+                    branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
+                    parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
+                    modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
+                    has_local_change = (len(modified) != len(out['output']))                  
+    
+                    status = '%s, %s' % (branch, parent)
+                    if has_local_change:
+                        status += ' (%s)' % 'LOCAL CHANGES'
+                    
+                    print 'digipal_django: %s ' % (status,)
             finally:
-                os.chdir(dir)          
+                os.chdir(original_dir)          
         
         if command == 'diff':
             known_command = True
@@ -141,12 +146,12 @@ def process_commands_main_dir():
                 run_shell_command(['git', 'diff'])
                 
 #                 print '> Diff iipimage'
-#                 os.chdir(dir)
+#                 os.chdir(original_dir)
 #                 os.chdir('iipimage')
 #                 run_shell_command(['git', 'diff'])
                 
             finally:
-                os.chdir(dir)
+                os.chdir(original_dir)
             
         if command == 'cs':
             known_command = True
@@ -175,29 +180,29 @@ def process_commands_main_dir():
 
                 validation_git = r'(?i)error:'
                 print '> Pull digipal'
-                os.chdir('digipal_github')
-                os.chdir('digipal')
+                os.chdir(github_dir)
                 git_status_info = {}
                 system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
                 branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])
                 
                 system('git pull', validation_git)
-                os.chdir(dir)
-                
-                print '> Pull main'
-                validation_hg = r'(?i)error:|abort:'
-                system('hg pull', validation_hg)
-                # This would cause and 'abort: uncommitted local changes'
-                # in the frequent case where .hgsubstate is not up to date.
-                #system('hg update -c', validation_hg)
-                if os.name != 'nt':
-                    # we always respond 'r' to the question:
-                    # subrepository sources for digipal differ (in checked out version)
-                    # use (l)ocal source (e0fc331) or (r)emote source (69a5d41)?
-                    system('echo r | hg update', validation_hg)
-                else:
-                    system('hg update', validation_hg)
+                os.chdir(original_dir)
 
+                if not config.SELF_CONTAINED:                
+                    print '> Pull main'
+                    validation_hg = r'(?i)error:|abort:'
+                    system('hg pull', validation_hg)
+                    # This would cause and 'abort: uncommitted local changes'
+                    # in the frequent case where .hgsubstate is not up to date.
+                    #system('hg update -c', validation_hg)
+                    if os.name != 'nt':
+                        # we always respond 'r' to the question:
+                        # subrepository sources for digipal differ (in checked out version)
+                        # use (l)ocal source (e0fc331) or (r)emote source (69a5d41)?
+                        system('echo r | hg update', validation_hg)
+                    else:
+                        system('hg update', validation_hg)
+    
                 project_folder = get_hg_folder_name()
 
                 if os.name != 'nt':
@@ -241,7 +246,7 @@ def process_commands_main_dir():
                 print e.title
 
             finally:
-                os.chdir(dir)
+                os.chdir(original_dir)
 
     if not known_command:
         show_help()

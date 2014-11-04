@@ -115,6 +115,10 @@ Commands:
             known_command = True
             self.import_moa_charters()
 
+        if command == 'update_derived_fields':
+            self.update_derived_fields()
+            known_command = True
+
         if command == 'copy':
             known_command = True
             self.migrateRecords(options)
@@ -1056,6 +1060,14 @@ Commands:
             for hand in modified_hands:
                 hand.save()
 
+    def update_derived_fields(self):
+        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source
+        for r in HistoricalItem.objects.all():
+            r.save()
+        for r in ItemPart.objects.all():
+            r.save()
+        for r in CurrentItem.objects.all():
+            r.save()
     
     @transaction.atomic
     def import_moa_charters(self):
@@ -1139,7 +1151,7 @@ Commands:
                 else:
                     ci = cis[0]                
                     
-                break
+                #break
                             
 #                 records.append(rec)
 #                 c += 1

@@ -1186,11 +1186,11 @@ class ImageAdmin(reversion.VersionAdmin):
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 
-            'get_status_label', 'annotation_status', 'get_annotations_count', 'media_permission', 'created', 'modified',
-            'iipimage']
+            'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
+            'get_iipimage_field']
     list_display_links = ['id', 'display_label', 
-            'annotation_status', 'media_permission', 'created', 'modified',
-            'iipimage']
+            'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
+            'get_iipimage_field']
     search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage', 'annotation_status__name']
 
@@ -1207,6 +1207,12 @@ class ImageAdmin(reversion.VersionAdmin):
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
+    
+    def get_iipimage_field(self, obj):
+        from django.template.defaultfilters import truncatechars
+        return u'<span title="%s">%s</span>' % (obj.iipimage, truncatechars(obj.iipimage, 15))
+    get_iipimage_field.short_description = 'file'
+    get_iipimage_field.allow_tags = True
     
     def get_changelist(self, request, **kwargs):
         ''' Override this function in order to enforce a sort order on the folio number and side'''
@@ -1258,8 +1264,16 @@ class ImageAdmin(reversion.VersionAdmin):
         if obj.item_part is None:
             ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
         return ret
-    get_status_label.short_description = 'Status'
+    get_status_label.short_description = 'Hands'
     get_status_label.allow_tags = True 
+    
+    def get_media_permission_field(self, obj):
+        return obj.media_permission
+    get_media_permission_field.short_description = 'Permission' 
+
+    def get_annotation_status_field(self, obj):
+        return obj.annotation_status
+    get_annotation_status_field.short_description = 'Status' 
 
     def get_locus_label(self, obj):
         return obj.get_locus_label()

@@ -210,8 +210,8 @@ def process_commands_main_dir():
                     if has_sudo: print '\t(with sudo)'
                     sudo = ''
                     if has_sudo and not options.automatic: sudo = 'sudo '
-                    system('%schown www-data:digipal -R .' % sudo)
-                    system('%schown gnoel:digipal -R .hg' % sudo)
+                    system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
+                    system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
                     system('%schmod 570 -R .' % sudo)
                     dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))

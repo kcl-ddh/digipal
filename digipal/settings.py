@@ -319,7 +319,7 @@ PACKAGE_NAME_GRAPPELLI = 'grappelli_safe'
 # DigiPal Applications
 INSTALLED_APPS = INSTALLED_APPS + (
         'digipal',
-        'haystack',
+        #'haystack',
         #'legacy',
         'reversion',
         'south',
@@ -443,15 +443,15 @@ SEARCH_HELP_PAGE_SLUG = 'how-to-use-digipal'
 SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
 
 # Haystack
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-    },
+# HAYSTACK_CONNECTIONS = {
+#     'default': {
+#         'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
+#     },
 #     'whoosh': {
 #         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
 #         'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
 #     },
-}
+#}
 
 #########################
 # OPTIONAL APPLICATIONS #

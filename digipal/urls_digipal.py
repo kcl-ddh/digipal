@@ -2,9 +2,6 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from mezzanine.core.views import direct_to_template
 #from views.facet import facet_search
-#from haystack.forms import FacetedSearchForm
-#from haystack.query import SearchQuerySet
-#from haystack.views import FacetedSearchView
 
 urlpatterns = patterns('digipal.views.annotation',
     (r'^page/(?P<image_id>\d+)/$', 'image'),

@@ -339,6 +339,11 @@ class Reference(models.Model):
         return get_list_as_string(self.name, '', self.name_index)
 
 
+# class OwnerManager(models.Manager):
+#     def get_queryset(self):
+#         #return super(OwnerManager, self).get_queryset()
+#         return super(OwnerManager, self).get_queryset().select_related('repository', 'person', 'institution').prefetch_related('itempart_set', 'historicalitem_set', 'current_items')
+
 # MsOwners in legacy db
 # GN: this is actually an Ownership table
 class Owner(models.Model):
@@ -363,6 +368,7 @@ class Owner(models.Model):
         help_text='`Repository` actually represents the institution, person or library owning the item.')
 
     date = models.CharField(max_length=128)
+    display_label = models.CharField(max_length=250, blank=True, null=False, default='')
     evidence = models.TextField()
     rebound = models.NullBooleanField()
     annotated = models.NullBooleanField()
@@ -373,6 +379,8 @@ class Owner(models.Model):
 
     class Meta:
         ordering = ['date']
+
+    #objects = OwnerManager()
 
     @property
     def content_object(self):
@@ -389,12 +397,11 @@ class Owner(models.Model):
         ret = self.itempart_set.first() or self.historicalitem_set.first() or self.current_items.first()
         return ret
 
-    def __unicode__(self):
-        #return u'%s: %s. %s' % (self.content_type, self.content_object,
-        #        self.date)
-        #return get_list_as_string(self.content_type, ': ', self.content_object,
-        #        '. ', self.date)
-        #return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
+    def save(self, *args, **kwargs):
+        self.display_label = self.compute_display_label()
+        super(Owner, self).save(*args, **kwargs)
+
+    def compute_display_label(self):
         ret = u''
         
         item = self.get_owned_item()
@@ -411,6 +418,14 @@ class Owner(models.Model):
             ret += u' in \'%s\'' % self.date
             
         return ret
+
+    def __unicode__(self):
+        return self.display_label
+        #return u'%s: %s. %s' % (self.content_type, self.content_object,
+        #        self.date)
+        #return get_list_as_string(self.content_type, ': ', self.content_object,
+        #        '. ', self.date)
+        #return u'%s in %s (%s)' % (self.content_object, self.date, self.content_type)
 
 # DateText in legacy db
 class Date(models.Model):

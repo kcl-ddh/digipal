@@ -5,9 +5,6 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from models import Allograph, Hand, Status, Character, Feature, Component, Aspect, Repository, Scribe, Place, Date, HistoricalItem, Institution, Component, Feature
 from models import Script, CurrentItem
-from haystack.forms import FacetedSearchForm
-from haystack.query import SearchQuerySet
-from haystack.inputs import Exact, AutoQuery
 import urllib2
 
 class OnlyScribe(forms.Form):
@@ -229,61 +226,3 @@ class SearchPageForm(forms.Form):
         widget=HiddenInput()
     )
 
-
-class FacetForm(FacetedSearchForm):
-    """ Faceting """
-    # TODO: do kwargs from FacetView.build_form arrive here as self.kwarg?
-    q = forms.CharField(
-    label='',
-    required=False,
-    error_messages={'required': 'Please enter at least one search term'},
-    widget=TextInput(attrs={
-        'class':'textEntry',
-        'required': 'required',
-        'placeholder': 'Enter search terms'}))
-
-    # TODO add fields based on searchqueryset?
-
-    def search(self):
-        """
-        This method is called upon form submission
-        Remember that 'data' is a QueryDict, and its items() method is specific
-
-        """
-        cleaned_facets = list()
-        # faceting expects fieldnames in fieldname_exact:value format
-        # we never want these keys in our facet function
-        to_exclude = (
-            'q',
-            'page',
-            'csrfmiddlewaretoken',
-            "")
-        combined = list
-        if self.data:
-            for each in self.data.lists():
-                if each[0] not in to_exclude:
-                    for remainder in each[1]:
-                        cleaned_facets.append(each[0] + "_exact:" + remainder)
-            self.selected_facets = list(set(cleaned_facets))
-
-        sqs = super(FacetedSearchForm, self).search()
-
-        if not self.is_valid():
-            # invalid / no search term, or initial GET, return all results
-            sqs = self.searchqueryset.all()
-            for facet in self.selected_facets:
-                sqs = sqs.narrow(facet)
-        else:
-            sqs = self.searchqueryset
-            # narrow by each selected facet
-            for facet in self.selected_facets:
-                sqs = sqs.narrow(facet)
-            # perform auto-query using search term if it exists
-            if self.cleaned_data.get('q'):
-                sqs = sqs.filter(content=AutoQuery(self.cleaned_data['q']))
-            # TODO: see if we can convert available facet dicts to OrderedDict
-            # and sort them however we want
-        if self.load_all:
-            sqs = sqs.load_all()
-        # return sqs to FacetView.extra_context
-        return sqs

@@ -1337,7 +1337,8 @@ class RegionAdmin(reversion.VersionAdmin):
 class RepositoryAdmin(reversion.VersionAdmin):
     form = RepositoryForm
 
-    inlines = [CurrentItemInline]
+    # disabled as too slow, see JIRA https://jira.dighum.kcl.ac.uk/browse/DIGIPAL-643
+    #inlines = [CurrentItemInline]
     list_display = ['name', 'short_name', 'place', 'created', 'modified']
     list_display_links = ['name', 'short_name', 'place', 'created', 'modified']
     search_fields = ['legacy_id', 'name', 'short_name', 'place__name']

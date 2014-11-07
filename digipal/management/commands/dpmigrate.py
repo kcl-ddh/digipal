@@ -1083,15 +1083,19 @@ Commands:
 
         import csv
         
-        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source, ItemPartItem
+        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source, ItemPartItem, Owner
         from digipal.utils import get_normalised_path
 
         # remove everything first
         from django.db import connection
         cursor = connection.cursor()
-        for model in [Repository, ItemPart, CurrentItem, HistoricalItem, Place, CatalogueNumber, Source, ItemPartItem]:
+        for model in [Repository, ItemPart, CurrentItem, HistoricalItem, Place, CatalogueNumber, Source, ItemPartItem, Owner, HistoricalItem.owners.through]:
             print 'Delete from %s' % model._meta.db_table
             cursor.execute('delete from %s' % model._meta.db_table)
+        cursor.execute('update digipal_image set item_part_id = null')
+        
+        unknown_place = Place(name='Unknown')
+        unknown_place.save()
         
         with open(csv_path, 'rb') as csvfile:
             csvreader = csv.reader(csvfile)
@@ -1116,6 +1120,10 @@ Commands:
             c = 0
             stats = {}
             line_index = 0
+            
+            image_paths = {}
+            unique_lines = {}
+            
             for line in csvreader:
                 line_index += 1
                 line = [v.decode('latin-1') for v in line]
@@ -1126,13 +1134,32 @@ Commands:
                 rec = dict(zip(columns, line))
                 
                 print line_index, rec['Shelfmark']
+
+                # report and skip duplicate CSV lines
+                line_key = '%s %s' % (rec['Repository'], rec['Shelfmark'])
+                if line_key in unique_lines:
+                    self.print_warning('WARNING: duplicate line in CSV (same repo+shelfmark)', indent=1, extra='%s, line %s and line %s' % (line_key, unique_lines[line_key], line_index))
+                    continue
+                else:
+                    unique_lines[line_key] = line_index
+                
+                # find duplicate image refs
+                if 0:
+                    image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
+                    # remove drive (e.g. Z/)
+                    image_path = re.sub(ur'^[^/]/', ur'', image_path)
+                    items = image_paths.get(image_path, [])
+                    items.append('%s %s' % (line_index, rec['Shelfmark']))
+                    image_paths[image_path] = items
+                    
+                    continue
                 
                 # create the repo
                 repos = Repository.objects.filter(name=rec['Repository'])
                 if not repos.count():
                     place = Place(name=rec['Repository'])
                     place.save()
-                    repo = Repository(name=rec['Repository'], place=place)
+                    repo = Repository(name=rec['Repository'], place=place, type_id=3)
                     repo.save()
                 else:
                     repo = repos[0]
@@ -1147,45 +1174,69 @@ Commands:
                     ci.save()
                     
                     # create the ItemPart
-                    ip = ItemPart(current_item=ci, locus='face')
+                    ip = ItemPart(current_item=ci, locus='')
                     ip.save()
                     
                     # create the HistoricalItem
                     hi = HistoricalItem(historical_item_type_id=1, date=rec['Date'])
                     hi.save()
                     ItemPartItem(historical_item=hi, item_part=ip).save()
+                    print '    IP #%s, HI #%s, CI #%s' % (ip.id, hi.id, ci.id)
+
+                    # add the historical archive as an owner (i.e repo)
+                    ha_name = rec['Historical archive'].strip()
+                    if ha_name:
+                        has = Repository.objects.filter(name=ha_name)
+                        if has.count() == 0:
+                            ha = Repository(name=ha_name, place=unknown_place, type_id=4)
+                            ha.save()
+                        else:
+                            ha = has[0]
+                            
+                        # add link b/w HI and Historical Archive
+                        ownership = Owner(repository=ha)
+                        ownership.save()
+                        hi.owners.add(ownership)
                     
                     # create the Cat Num
                     if import_cat_num:
                         if rec['POMS reference']:
                             CatalogueNumber(source=poms_source, historical_item=hi, number=(re.sub(ur'\s*\(.*', '', rec['POMS reference'])).strip(), url=rec['POMS URL']).save()
+                            # save the hi to refresh its labels
+                            hi.save()
                         else:
-                            print 'WARNING: catalogue number missing (line %s)' % line_index
+                            self.print_warning('catalogue number missing', indent=1, extra='(line %s)' % line_index)
+                            
                 else:
                     ci = cis[0]
+                    self.print_warning('Duplicate shelfmark', indent=1, extra='(line %s)' % line_index)
+                    ip = ci.itemparts_set.first()
                 
-                # link to the image record
+                # link to the image records
                 image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
                 # remove drive (e.g. Z/)
                 image_path = re.sub(ur'^[^/]/', ur'', image_path)
                 images = Image.objects.filter(iipimage__icontains=image_path).order_by('-width')
-                image = None
                 extra = '(%s)' % image_path
                 if images.count() == 0:
                     self.print_warning('WARNING: no image for this MS', indent=1, extra=extra)
+                if images.count() > 20:
+                    self.print_warning('WARNING: too many images associated with this MS', indent=1, extra=extra+', %s images' % images.count())
                 else:
-                    image = images[0]
-                if images.count() > 1:
-                    self.print_warning('WARNING: more than one image for this MS ', indent=1, extra=extra)
-                    # pick the biggest image
-                    if images[0].width == images[1].width:
-                        print '    with same width'
+                    for image in images: 
+                        print '    Image #%s connected to this MS' % image.id
+                        image.item_part = ip
+                        image.save()                    
                     
                 #break
                             
 #                 records.append(rec)
 #                 c += 1
             
+
+        for k, v in image_paths.iteritems():
+            if len(v) > 1:
+                print k, v
 
         self.print_warning_report()            
         #raise Exception('ROLLBACK')

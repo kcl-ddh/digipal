@@ -394,7 +394,9 @@ class Owner(models.Model):
         return ret
     
     def get_owned_item(self):
-        ret = self.itempart_set.first() or self.historicalitem_set.first() or self.current_items.first()
+        ret = None
+        if self.pk:
+            ret = self.itempart_set.first() or self.historicalitem_set.first() or self.current_items.first()
         return ret
 
     def save(self, *args, **kwargs):

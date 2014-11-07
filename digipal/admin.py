@@ -124,6 +124,7 @@ class ImageFilterDuplicateFilename(SimpleListFilter):
         return (
             ('1', ('has duplicate filename')),
             ('-1', ('has unique filename')),
+            ('2', ('has duplicate size')),
         )        
 
     def queryset(self, request, queryset):
@@ -134,6 +135,9 @@ class ImageFilterDuplicateFilename(SimpleListFilter):
             return queryset.filter(iipimage__in = duplicate_iipimages).distinct()
         if self.value() == '-1':
             return queryset.exclude(iipimage__in = duplicate_iipimages).distinct()
+        if self.value() == '2':
+            duplicate_iipimages = Image.objects.all().values_list('size').annotate(dcount=Count('size')).filter(dcount__gt=1).values_list('size', flat=True)
+            return queryset.filter(size__in = duplicate_iipimages).distinct()
 
 class ImageWithFeature(SimpleListFilter):
     title = ('Associated Features')
@@ -226,10 +230,11 @@ class RelatedObjectNumberFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('1p', ('One or more')),
-            ('2p', ('More than one')),
+            ('0', ('0')),
+            ('1', ('1')),
+            ('1p', ('1+')),
+            ('2p', ('2+')),
+            ('3p', ('3+')),
         )   
 
     def queryset(self, request, queryset):
@@ -243,6 +248,8 @@ class RelatedObjectNumberFilter(SimpleListFilter):
             return queryset.extra(where=[select % ' >= 1'])
         if self.value() == '2p':
             return queryset.extra(where=[select % ' > 1'])
+        if self.value() == '3p':
+            return queryset.extra(where=[select % ' > 2'])
 
 class ItemPartHasGroupGroupFilter(SimpleListFilter):
     title = ('Membership')
@@ -1187,7 +1194,7 @@ class ImageAdmin(reversion.VersionAdmin):
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 
             'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
-            'get_iipimage_field']
+            'size', 'get_iipimage_field']
     list_display_links = ['id', 'display_label', 
             'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
             'get_iipimage_field']
@@ -1198,12 +1205,12 @@ class ImageAdmin(reversion.VersionAdmin):
     
     list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
     
-    readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height')
+    readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height', 'size')
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
-                ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height')}),
+                ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height', 'size')}),
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
                 ) 
     inlines = [HandsInline]
@@ -1277,7 +1284,7 @@ class ImageAdmin(reversion.VersionAdmin):
 
     def get_locus_label(self, obj):
         return obj.get_locus_label()
-    get_locus_label.short_description = 'Locus' 
+    get_locus_label.short_description = 'Locus'
 
 class PersonAdmin(reversion.VersionAdmin):
     model = Person

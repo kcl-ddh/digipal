@@ -98,6 +98,11 @@ class Command(BaseCommand):
         originals
             list all the original images,
             Selection is made with the --filter option.
+    
+    Database Image records:
+    	
+    	update_dimensions
+    		Read the width and height and size of the images and save them in the database 
 
  Options:
 
@@ -255,6 +260,10 @@ class Command(BaseCommand):
 		if command == 'fetch':
 			known_command = True
 			self.fetch(*args, **options)
+			
+		if command == 'update_dimensions':
+			known_command = True
+			self.update_dimensions(*args)
 		
 		if command in ('list', 'upload', 'unstage', 'update', 'remove'):
 			known_command = True
@@ -359,6 +368,20 @@ class Command(BaseCommand):
 
 		if not known_command:
 			raise CommandError('Unknown command: "%s".' % command)
+	
+	def update_dimensions(self, *args):
+		options = self.options
+		root = get_image_path()
+		for file_info in self.get_all_files(root):
+			file_relative = file_info['path']
+			if options['filter'].lower() not in file_relative.lower():
+				continue
+			if file_info['disk']:
+				file_path = os.path.join(settings.IMAGE_SERVER_ROOT, file_info['image'].path())
+				if os.path.exists(file_path):
+					file_info['image'].size = os.path.getsize(file_path)
+			file_info['image'].dimensions()
+			file_info['image'].save()
 	
 	def fetch(self, *args, **options):
 		out_path = options['out_path']
@@ -523,13 +546,8 @@ class Command(BaseCommand):
  						status = 'CONVERSION ERROR: %s (command: %s)' % (ret_shell[0], ret_shell[1])
 	
 	def getNormalisedPath(self, path):
-		''' Turn the path and file names into something the image server won't complain about
-			Extension is preserved.'''
-		(file_base_name, extension) = os.path.splitext(path)
-		file_base_name = re.sub(r'(?i)[^a-z0-9\\/]', '_', file_base_name)
-		file_base_name = re.sub(r'_+', '_', file_base_name)
-		file_base_name = re.sub(r'_?(/|\\)_?', r'\1', file_base_name)
-		return file_base_name + extension
+		from digipal.utils import get_normalised_path
+		return get_normalised_path(path)
 
 	def is_verbose(self):
 		return self.options['verbosity'] >= 2

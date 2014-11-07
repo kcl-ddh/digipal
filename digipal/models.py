@@ -1454,7 +1454,7 @@ class Image(models.Model):
     image = models.ImageField(upload_to=settings.UPLOAD_IMAGES_URL, blank=True,
             null=True)
     iipimage = iipimage.fields.ImageField(upload_to=iipimage.storage.get_image_path,
-            blank=True, null=True, storage=iipimage.storage.image_storage)
+            blank=True, null=True, storage=iipimage.storage.image_storage, max_length=200)
 
     display_label = models.CharField(max_length=128)
     # optional the display label provided by the user
@@ -1476,6 +1476,11 @@ class Image(models.Model):
     # They are used internally as a cache for the dimensions.
     width = models.IntegerField(blank=False, null=False, default=0)
     height = models.IntegerField(blank=False, null=False, default=0)
+    # Size of the image file in bytes. 
+    # This field may contain 0 even if the record points to a valid image.
+    # This is because, unlike the height/width, the size cannot be obtained from the image server.
+    # It can only be populated by code having access to the file on disk/network.
+    size = models.IntegerField(blank=False, null=False, default=0)
     
     __original_iipimage = None
 
@@ -1603,6 +1608,7 @@ class Image(models.Model):
         if self.iipimage != self.__original_iipimage:
             self.height = 0
             self.width = 0
+            self.size = 0
             
         if self.iipimage and self.iipimage.name:
             self.iipimage.name = self.iipimage.name.replace('\\', '/')

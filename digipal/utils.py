@@ -666,4 +666,13 @@ def get_dict_from_string(string, sep=','):
             ret = string
     
     return ret
-    
+
+def get_normalised_path(path):
+    ''' Turn the path and file names into something the image server won't complain about
+        Extension is preserved.'''
+    import os
+    (file_base_name, extension) = os.path.splitext(path)
+    file_base_name = re.sub(r'(?i)[^a-z0-9\\/]', '_', file_base_name)
+    file_base_name = re.sub(r'_+', '_', file_base_name)
+    file_base_name = re.sub(r'_?(/|\\)_?', r'\1', file_base_name)
+    return file_base_name + extension

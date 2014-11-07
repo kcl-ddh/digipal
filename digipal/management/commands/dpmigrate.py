@@ -1075,13 +1075,23 @@ Commands:
 
         options = self.options
 
+        import_cat_num = True
+
         csv_path = options.get('src', '')
         if not csv_path:
             raise CommandError('Please provide the path to a source CSV file with --src=PATH .')
 
         import csv
         
-        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source
+        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source, ItemPartItem
+        from digipal.utils import get_normalised_path
+
+        # remove everything first
+        from django.db import connection
+        cursor = connection.cursor()
+        for model in [Repository, ItemPart, CurrentItem, HistoricalItem, Place, CatalogueNumber, Source, ItemPartItem]:
+            print 'Delete from %s' % model._meta.db_table
+            cursor.execute('delete from %s' % model._meta.db_table)
         
         with open(csv_path, 'rb') as csvfile:
             csvreader = csv.reader(csvfile)
@@ -1091,13 +1101,14 @@ Commands:
             # TODO: manually review and correct the repo name and place as the values are sometimes missing or conflated
             
             # Create POMS source
-            poms_source_data = {'name': 'Prosopography of Medieval Scotland', 'label': 'POMS'}
-            poms_sources = Source.objects.filter(label='POMS')
-            if poms_sources.count():
-                poms_source = poms_sources[0]
-            else:
-                poms_source = Source(**poms_source_data)
-                poms_source.save()
+            if import_cat_num:
+                poms_source_data = {'name': 'Prosopography of Medieval Scotland', 'label': 'POMS'}
+                poms_sources = Source.objects.filter(label='POMS')
+                if poms_sources.count():
+                    poms_source = poms_sources[0]
+                else:
+                    poms_source = Source(**poms_source_data)
+                    poms_source.save()
             
             # Create the MS for each line in the CSV
             columns = None
@@ -1114,7 +1125,7 @@ Commands:
                 
                 rec = dict(zip(columns, line))
                 
-                print rec
+                print line_index, rec['Shelfmark']
                 
                 # create the repo
                 repos = Repository.objects.filter(name=rec['Repository'])
@@ -1142,20 +1153,41 @@ Commands:
                     # create the HistoricalItem
                     hi = HistoricalItem(historical_item_type_id=1, date=rec['Date'])
                     hi.save()
+                    ItemPartItem(historical_item=hi, item_part=ip).save()
                     
                     # create the Cat Num
-                    if rec['POMS reference']:
-                        CatalogueNumber(source=poms_source, historical_item=hi, number=rec['POMS reference'], url=rec['POMS URL']).save()
-                    else:
-                        print 'WARNING: catalogue number missing (line %s)' % line_index
+                    if import_cat_num:
+                        if rec['POMS reference']:
+                            CatalogueNumber(source=poms_source, historical_item=hi, number=(re.sub(ur'\s*\(.*', '', rec['POMS reference'])).strip(), url=rec['POMS URL']).save()
+                        else:
+                            print 'WARNING: catalogue number missing (line %s)' % line_index
                 else:
-                    ci = cis[0]                
+                    ci = cis[0]
+                
+                # link to the image record
+                image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
+                # remove drive (e.g. Z/)
+                image_path = re.sub(ur'^[^/]/', ur'', image_path)
+                images = Image.objects.filter(iipimage__icontains=image_path).order_by('-width')
+                image = None
+                extra = '(%s)' % image_path
+                if images.count() == 0:
+                    self.print_warning('WARNING: no image for this MS', indent=1, extra=extra)
+                else:
+                    image = images[0]
+                if images.count() > 1:
+                    self.print_warning('WARNING: more than one image for this MS ', indent=1, extra=extra)
+                    # pick the biggest image
+                    if images[0].width == images[1].width:
+                        print '    with same width'
                     
                 #break
                             
 #                 records.append(rec)
 #                 c += 1
             
+
+        self.print_warning_report()            
         #raise Exception('ROLLBACK')
 
     def importStewart(self, options):

@@ -512,15 +512,30 @@ class HistoricalItemInline(admin.StackedInline):
 
 class HistoricalItemOwnerInline(admin.StackedInline):
     model = HistoricalItem.owners.through
+    verbose_name = "Ownership"
+    verbose_name_plural = "Ownerships"    
+
+class ItemPartOwnerInline(admin.StackedInline):
+    model = ItemPart.owners.through
+    verbose_name = "Ownership"
+    verbose_name_plural = "Ownerships"    
+
+class CurrentItemOwnerInline(admin.StackedInline):
+    model = CurrentItem.owners.through
+    verbose_name = "Ownership"
+    verbose_name_plural = "Ownerships"    
+
+class OwnerHistoricalItemInline(admin.StackedInline):
+    model = HistoricalItem.owners.through
     verbose_name = "Historical Item"
     verbose_name_plural = "Historical Items"    
 
-class CurrentItemOwnerInline(admin.StackedInline):
+class OwnerCurrentItemInline(admin.StackedInline):
     model = CurrentItem.owners.through
     verbose_name = "Current Item"
     verbose_name_plural = "Current Items"    
 
-class ItemPartOwnerInline(admin.StackedInline):
+class OwnerItemPartInline(admin.StackedInline):
     model = ItemPart.owners.through
     verbose_name = "Item Part"
     verbose_name_plural = "Item Parts"    
@@ -698,21 +713,23 @@ class CurrentItemAdmin(reversion.VersionAdmin):
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'repository', 'shelfmark', 'description')}),
-                ('Owners', {'fields': ('owners', )}),
                 ('Legacy', {'fields': ('legacy_id',)}),
                 ) 
 
-    inlines = [ItemPartInline]
+    inlines = [ItemPartInline, CurrentItemOwnerInline]
     filter_horizontal = ['owners']
 
 class DateEvidenceInline(admin.StackedInline):
     model = DateEvidence
-
+    
+class DateEvidenceInlineFromDate(admin.StackedInline):
+    model = DateEvidence
+    fk_name = 'date'
 
 class DateAdmin(reversion.VersionAdmin):
     model = Date
 
-    inlines = [DateEvidenceInline]
+    inlines = [DateEvidenceInlineFromDate]
     list_display = ['sort_order', 'date', 'created', 'modified']
     list_display_links = ['sort_order', 'date', 'created', 'modified']
     search_fields = ['date']
@@ -907,16 +924,17 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),
                 ('Classifications', {'fields': ('historical_item_type', 'historical_item_format', 'categories')}),
                 ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
-                ('Owners', {'fields': ('owners',)}),
+                #('Owners', {'fields': ('owners',)}),
                 ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),
                 ) 
     
     readonly_fields = ['catalogue_number', 'display_label']
     
     filter_horizontal = ['categories', 'owners']
-    inlines = [ItemPartItemInlineFromHistoricalItem, CatalogueNumberInline, CollationInline,
-            DecorationInline, DescriptionInline, ItemDateInline,
-            ItemOriginInline, ItemLayoutInline]
+    
+    inlines = [ItemPartItemInlineFromHistoricalItem, CatalogueNumberInline,
+            ItemDateInline, ItemOriginInline, HistoricalItemOwnerInline, 
+            CollationInline, DecorationInline, DescriptionInline, ItemLayoutInline]
 
 class HistoricalItemTypeAdmin(reversion.VersionAdmin):
     model = HistoricalItemType
@@ -1034,10 +1052,11 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('display_label', 'historical_label', 'type',)}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
                 ('It belongs (or belonged) to another part...', {'fields': ('group', 'group_locus')}),
-                ('Owners', {'fields': ('owners',)}),
+                ('Notes', {'fields': ('notes', )}),
+                #('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, PartLayoutInline, TextItemPartInline]
+    inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, ItemPartOwnerInline, PartLayoutInline, TextItemPartInline]
     
     # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
     # to update this field and resave the IP *after* the related models have been saved!
@@ -1108,7 +1127,7 @@ class OwnerAdmin(reversion.VersionAdmin):
                 ('legacy', {'fields': ('legacy_id',)}),
                 )
     
-    inlines = [HistoricalItemOwnerInline, ItemPartOwnerInline, CurrentItemOwnerInline]
+    inlines = [OwnerHistoricalItemInline, OwnerItemPartInline, OwnerCurrentItemInline]
     
     def get_content_type(self, obj):
         ret = unicode(obj.content_type)

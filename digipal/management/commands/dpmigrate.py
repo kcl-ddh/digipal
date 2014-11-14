@@ -115,6 +115,10 @@ Commands:
             known_command = True
             self.import_moa_charters()
 
+        if command == 'import_poms':
+            known_command = True
+            self.import_poms()
+
         if command == 'update_derived_fields':
             self.update_derived_fields()
             known_command = True
@@ -159,6 +163,280 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+
+    def import_poms(self):
+        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+        poms = connections['poms']
+        pc = poms.cursor()
+        pc.execute('''select *, la.name as la_name, so.id as so_id, ct.name as ct_name, pl.name as pl_name 
+from pomsapp_source so 
+left join pomsapp_charter ch on (so.id = ch.source_ptr_id)
+left join pomsapp_chartertype ct on (ch.chartertypekey_id = ct.id)
+left join pomsapp_place pl on (pl.id = ch.placefk_id)
+left join pomsapp_language la on (la.id = so.language_id)
+''')
+
+        '''
+       source_tradid = _Chrs. David I_, no. 90
+   duporignoncontemp = 0
+           to_season = None
+       from_modifier = cir
+                rght = 219
+        doctypenotes =
+      internal_notes =
+          updated_at = 2009-09-15 10:08:21+00:00
+          placefk_id = 1276
+          hammondext =
+                 lft = 218        
+        letterpatent = 0
+       updated_by_id = 3
+        ischirograph = 0
+          clean_name = Clunie, Perth and Kinross
+            eitheror = 0
+helper_keywordsearch = Clunie PER (Perthshire) 1276
+   chartertypekey_id = 2
+                  id = 1
+         articletext = None
+    util_topancestor = PER (Perthshire)
+      from_modifier2 =
+          from_month = 6
+           parent_id = 5
+              review = 0
+         language_id = 1
+          to_weekday = None
+        placedatedoc = Cluni
+         genericname = None
+                geom = 
+           from_year = 1140
+              to_day = None
+  helper_totfactoids = None
+        editedrecord = 0
+    helper_copydates = 1
+             tree_id = 4
+         to_modifier =
+        specificname = None
+      orignoncontemp = 0
+        has_firmdate = 1
+             undated = 0
+         description =
+         helper_name = None
+         origcontemp = 0
+     placedatemodern = Clunie (Stormont)
+        hammondnumb2 = 4
+        hammondnumb3 = 42
+            from_day = 14
+            firmdate = circa 14 June 1140
+             to_year = None
+            to_month = None
+         from_season = None
+    helper_daterange = None
+     has_firmdayonly = 0
+ grantor_category_id = 45
+        to_modifier2 =
+      duporigcontemp = 0
+             la_name = Latin
+               level = 1
+          created_at = 2009-09-03 15:26:52+00:00
+      helper_hammond = 1/4/42
+        probabledate =
+        from_weekday = None
+      helper_hnumber = 1/4/42
+  sourcefordataentry = _Chrs. David I_, no. 90
+       created_by_id = 3
+       hammondnumber = 1
+       source_ptr_id = 236
+               notes = None
+         datingnotes = About the same time as H1-4-37 & 38. See A.A.M. Duncan, 'The Foundation of St Andrews Cathedral Priory, 1140', 13.        
+        '''
+        
+        self.init_possible_sources()
+        
+        import digipal
+        from digipal.models import ItemPart
+        
+        print '> Load manuscripts from DigiPal...\n'
+        ips = {}
+        for ip in ItemPart.objects.filter(historical_items__id__gt=0).prefetch_related('historical_items__catalogue_number__source').select_related('current_item__repository__place'):
+            catnum = ip.historical_items.first().catalogue_numbers.first()
+            if catnum:
+                ips[catnum.number.strip().lower()] = ip
+        ips_found = {}
+        
+        print '%s records' % len(ips)
+            
+        print '\n> Import data from POMS database...\n'
+        self.stats = {'sources': {}}
+        for row in utils.dictfetchall(pc):
+#             for k, v in row.iteritems():
+#                 print '%20s = %s' % (k, v)
+            
+            docnum = ('document %s' % row['helper_hnumber']).lower().strip()
+            # find counterpart in DigiPal
+            if docnum and docnum in ips:
+                ips_found[docnum] = 1
+                self.import_poms_into_ip(row, ips[docnum])
+                
+        print '%s MS in DigiPal, %s matching a source in POMS' % (len(ips), len(ips_found))
+        for catnum in set(ips.keys()) - set(ips_found.keys()):
+            print '    %s not found in POMS' % catnum
+            
+        #for source in sorted(self.stats['sources'].keys()):
+        #    #print self.stats['sources'][source], source
+        
+        print self.print_warning_report()
+    
+    def import_poms_into_ip(self, row, ip):
+        docnum = ('document %s' % row['helper_hnumber']).lower().strip()
+        print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
+        
+        #ref = row['source_tradid']
+        #source = re.sub(',[^,]*$', '', ref).strip()
+        #self.stats['sources'][source] = self.stats['sources'].get(source, 0) + 1
+        
+        source, cat_num = self.get_source_and_num_from_poms_ref(row['source_tradid'])
+        if not source or not cat_num:
+            self.print_warning('Unrecognised reference', 1, '%s' % row['source_tradid'])
+            return
+        
+        # import the reference -> source
+        hi = ip.historical_item
+        print '    HI #%s.cat_num = (%s | %s)' % (hi.id, source , cat_num)
+        from digipal.models import CatalogueNumber, Language, HistoricalItemType
+        CatalogueNumber.objects.filter(historical_item=hi).exclude(source__label='POMS').delete()
+        hi.catalogue_numbers.add(CatalogueNumber(source=source, number=cat_num))
+        
+        # import Notes
+        ip.notes = row['notes']
+        ip.save()
+        
+        # import Language
+        if not row['la_name']:
+            self.print_warning('No language language', 1, '%s' % row['source_tradid'])
+        else:    
+            lg, created = Language.objects.get_or_create(name=row['la_name'])
+            print '    HI #%s.language = %s' % (hi.id, lg)
+            hi.language = lg
+        
+        # import Charter type
+        ct_name = row['ct_name'].strip()
+        if not ct_name:
+            self.print_warning('No charter type', 1, '%s' % row['source_tradid'])
+            ct_name = 'Charter'
+        
+        print '    HI #%s.type = %s' % (hi.id, ct_name)
+        hi.historical_item_type, created = HistoricalItemType.objects.get_or_create(name=ct_name)
+        
+        # import description
+        from digipal.models import Description, DateEvidence, Date, PlaceEvidence, Place
+        if row['description']:
+            print '    HI #%s.description = (%s | %s)' % (hi.id, source , row['description'][0:20])
+            desc, created = Description.objects.get_or_create(historical_item=hi, source__label='POMS')
+            desc.description = row['description'].strip()
+        else:
+            print '    Remove HI #%s.description = (%s)' % (hi.id, source)
+            Description.objects.filter(historical_item=hi, source__label='POMS').delete()
+            
+        # import dates
+#         if hi.date != row['firmdate']:
+#             self.print_warning('Dates are different', 1, 'hi.date = %s, so.firmdate = %s' % (hi.date, row['firmdate']))
+        DateEvidence.objects.filter(historical_item=hi).delete()
+        for field_name in ('firmdate', 'probabledate'):
+            if row[field_name]:
+                row[field_name] = row[field_name].strip()
+                evidence = None
+                if field_name.startswith('firm'):
+                    evidence = row['datingnotes']
+                    print '    HI #%s.date_evidence = (%s, %s)' % (hi.id, row[field_name], field_name)
+                    date = Date.objects.filter(date=row[field_name]).first()
+                    if not date:
+                        date = Date(date=row[field_name])
+                        # TODO: derive weight from string
+                        date.weight = 1100
+                        date.save()
+                DateEvidence(historical_item=hi, evidence=evidence, is_firm_date=(field_name.startswith('firm')), date=date).save()
+        
+        # imoprt places
+        PlaceEvidence.objects.filter(historical_item=hi).delete()
+        if 'placedatedoc' in row:
+            row['placedatedoc']
+            place, created = Place.objects.get_or_create(name=row['placedatemodern'] | row['placedatedoc'])
+            place.other_names = row['pl_name']
+            place.save()
+            print '    HI #%s.place_evidence = %s' % (hi.id, row['placedatedoc'])
+            PlaceEvidence(place=place, historical_item=hi, written_as=row['placedatedoc']).save()
+        else:
+            self.print_warning('No placedatedoc in POM', 1, '%s' % row['source_tradid'])
+
+        hi.save()
+
+        exit() 
+
+    def get_source_and_num_from_poms_ref(self, ref):
+        # '_Holy. Lib._, no. 11' => <Source: ?>, 'no. 11|'
+        ret = [None, '']
+        
+        ref = ref.strip()
+        
+        for source_label in self.possible_sources.keys():
+            if ref.lower().startswith(source_label.lower()):
+                ret = [self.possible_sources[source_label], ref[len(source_label):]]
+                ret[1] = ret[1].strip(' ,')
+        
+        return ret
+
+    def init_possible_sources(self):
+        ret = SortedDict()
+        
+        possible_sources = '''     
+        Ash, St Andrews
+        BL
+        Barrow, E. Fife Docs.
+        Barrow, Kinninmonth
+        Duncan, _SHR_ 37
+        Duncan, _SHR_ 78
+        NLS
+        Simpson, de Quincy
+        Stevenson, _Ills._
+        TNA
+        _A.B. Ill._, ii
+        _Annandale_
+        _Chrs. David I_
+        _Chrs. David I_
+        _Dunf. Reg._
+        _Durh. Rites_
+        _ESC_
+        _Holy. Lib._
+        _Inchaff. Chrs._
+        _Inchaff. Lib._
+        _Med. Papal Reps._
+        _Melr. Lib._
+        _N.B. Chrs._
+        _ND_
+        _RRS_, i
+        _RRS_, ii
+        _RRS_, iii
+        _SEA_, i
+        _St A. Lib._
+        '''
+        
+        # convert to a list sorted by length of name (longest first)
+        possible_sources = sorted([l.strip() for l in re.split(ur'\n', possible_sources) if l.strip()], key=lambda x: -len(x))
+        
+        from digipal.models import Source
+        
+        # convert to a sorted dict with reference to source record (create them if not there yet)
+        for label in possible_sources:
+            source, created = Source.objects.get_or_create(label_styled=label)
+            source.label = label.replace('_', '')
+            source.name = source.label
+            source.save()
+            
+            ret[label] = source
+        
+        self.possible_sources = ret
+        
+        return ret
+        
     @transaction.atomic
     def match_legacy_owners(self):
         # find a match for all the record in legacy.`ms owners`
@@ -1061,12 +1339,16 @@ Commands:
                 hand.save()
 
     def update_derived_fields(self):
-        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source
+        from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source, Owner
         for r in HistoricalItem.objects.all():
+            r.save()
+        for r in CurrentItem.objects.all():
             r.save()
         for r in ItemPart.objects.all():
             r.save()
-        for r in CurrentItem.objects.all():
+        for r in Image.objects.all():
+            r.save()
+        for r in Owner.objects.all():
             r.save()
     
     @transaction.atomic

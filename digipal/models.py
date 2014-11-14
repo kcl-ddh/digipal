@@ -374,8 +374,7 @@ class Owner(models.Model):
     annotated = models.NullBooleanField()
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
     class Meta:
         ordering = ['date']
@@ -612,9 +611,9 @@ class HistoricalItem(models.Model):
         return ret
 
 class Source(models.Model):
-    name = models.CharField(max_length=128, unique=True)
-    label = models.CharField(max_length=12, unique=True, blank=True,
-            null=True)
+    name = models.CharField(max_length=128, unique=True, help_text='Full reference of this source (e.g. British Library)')
+    label = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='A shorthand for the reference (e.g. BL)')
+    label_styled = models.CharField(max_length=30, blank=True, null=True, help_text='Styled version of the label, text between _underscores_ will be italicised')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -699,14 +698,18 @@ class CatalogueNumber(models.Model):
 
     @classmethod
     def get_or_create(cls, cat_num):
+        # cat_num is either a string 'SOURCE NUM' or a list/tuple ('SOURCE', 'NUM')
         ret = None
         
-        parts = [p.strip() for p in cat_num.strip().split(' ', 1)]
-        if len(parts) == 2:
-            source, number = parts
-        else:
-            source = None
-            number = parts[0]
+        if isinstance(cat_num, list) or isinstance(cat_num, tuple) and len(cat_num) == 2:
+            source, number = cat_num
+        else: 
+            parts = [p.strip() for p in cat_num.strip().split(' ', 1)]
+            if len(parts) == 2:
+                source, number = parts
+            else:
+                source = None
+                number = parts[0]
         
         source = Source.get_or_create(source)
 
@@ -936,7 +939,10 @@ class PlaceType(models.Model):
 # PlaceText in legacy db
 class Place(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
+    # modern name
     name = models.CharField(max_length=256)
+    # other name
+    other_names = models.CharField(max_length=256)
     eastings = models.FloatField(blank=True, null=True)
     northings = models.FloatField(blank=True, null=True)
     region = models.ForeignKey(Region, blank=True, null=True)
@@ -1267,6 +1273,7 @@ class ItemPart(models.Model):
             editable=False)
     type = models.ForeignKey(ItemPartType, null=True, blank=True)
     owners = models.ManyToManyField(Owner, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['display_label']
@@ -2022,11 +2029,19 @@ class Alphabet(models.Model):
 # DateEvidence in legacy db
 class DateEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand)
+    hand = models.ForeignKey(Hand, null=True)
+    historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', null=True)
     date = models.ForeignKey(Date, blank=True, null=True)
+    
+    # is this a firm date (i.e. undisputed)
+    is_firm_date = models.BooleanField(null=False, default=False)
+    # transcription of the date from a reference 
     date_description = models.CharField(max_length=128, blank=True, null=True)
+    # the bibliographical reference of the date
     reference = models.ForeignKey(Reference, blank=True, null=True)
+    # explanation for the date
     evidence = models.CharField(max_length=255, blank=True, null=True, default='')
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
@@ -2531,8 +2546,10 @@ class Annotation(models.Model):
 # PlaceEvidence in legacy db
 class PlaceEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand)
+    hand = models.ForeignKey(Hand, null=True)
+    historical_item = models.ForeignKey(HistoricalItem, null=True)
     place = models.ForeignKey(Place)
+    written_as = models.CharField(max_length=128, blank=True, null=True)
     place_description = models.CharField(max_length=128, blank=True, null=True)
     reference = models.ForeignKey(Reference)
     evidence = models.TextField()

@@ -942,7 +942,7 @@ class Place(models.Model):
     # modern name
     name = models.CharField(max_length=256)
     # other name
-    other_names = models.CharField(max_length=256)
+    other_names = models.CharField(max_length=256, blank=True, null=True)
     eastings = models.FloatField(blank=True, null=True)
     northings = models.FloatField(blank=True, null=True)
     region = models.ForeignKey(Region, blank=True, null=True)
@@ -2029,7 +2029,7 @@ class Alphabet(models.Model):
 # DateEvidence in legacy db
 class DateEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand, null=True)
+    hand = models.ForeignKey(Hand, blank=True, null=True)
     historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', null=True)
     date = models.ForeignKey(Date, blank=True, null=True)
     
@@ -2546,8 +2546,8 @@ class Annotation(models.Model):
 # PlaceEvidence in legacy db
 class PlaceEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand, null=True)
-    historical_item = models.ForeignKey(HistoricalItem, null=True)
+    hand = models.ForeignKey(Hand, blank=True, null=True)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
     place = models.ForeignKey(Place)
     written_as = models.CharField(max_length=128, blank=True, null=True)
     place_description = models.CharField(max_length=128, blank=True, null=True)

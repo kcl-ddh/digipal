@@ -165,6 +165,7 @@ Commands:
 
 
     def import_poms(self):
+        
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
         pc = poms.cursor()
@@ -327,7 +328,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         hi.historical_item_type, created = HistoricalItemType.objects.get_or_create(name=ct_name)
         
         # import description
-        from digipal.models import Description, DateEvidence, Date, PlaceEvidence, Place
+        from digipal.models import Description, DateEvidence, Date, PlaceEvidence, Place, Reference
         if row['description']:
             print '    HI #%s.description = (%s | %s)' % (hi.id, source , row['description'][0:20])
             desc, created = Description.objects.get_or_create(historical_item=hi, source__label='POMS')
@@ -347,29 +348,38 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 if field_name.startswith('firm'):
                     evidence = row['datingnotes']
                     print '    HI #%s.date_evidence = (%s, %s)' % (hi.id, row[field_name], field_name)
-                    date = Date.objects.filter(date=row[field_name]).first()
-                    if not date:
-                        date = Date(date=row[field_name])
-                        # TODO: derive weight from string
-                        date.weight = 1100
-                        date.save()
+                date = Date.objects.filter(date=row[field_name]).first()
+                if not date:
+                    date = Date(date=row[field_name])
+                    # TODO: derive weight from string
+                    date.weight = 1100
+                    date.save()
                 DateEvidence(historical_item=hi, evidence=evidence, is_firm_date=(field_name.startswith('firm')), date=date).save()
         
         # imoprt places
         PlaceEvidence.objects.filter(historical_item=hi).delete()
         if 'placedatedoc' in row:
-            row['placedatedoc']
-            place, created = Place.objects.get_or_create(name=row['placedatemodern'] | row['placedatedoc'])
+            place, created = Place.objects.get_or_create(name=row['placedatemodern'] or row['placedatedoc'])
             place.other_names = row['pl_name']
             place.save()
             print '    HI #%s.place_evidence = %s' % (hi.id, row['placedatedoc'])
-            PlaceEvidence(place=place, historical_item=hi, written_as=row['placedatedoc']).save()
+            reference, created = Reference.objects.get_or_create(name='Unspecified')
+            PlaceEvidence(place=place, historical_item=hi, written_as=row['placedatedoc'], reference=reference).save()
         else:
             self.print_warning('No placedatedoc in POM', 1, '%s' % row['source_tradid'])
 
         hi.save()
 
-        exit() 
+        # letterpattent
+        from digipal import utils as dputils
+        if row['letterpatent']:
+            dputils.add_keywords(ip, 'Letter Patent')
+        if row['origcontemp']:
+            dputils.add_keywords(ip, 'Original (contemporary)')
+        if row['orignoncontemp']:
+            dputils.add_keywords(ip, 'Original (non-contemporary)')
+
+        #exit() 
 
     def get_source_and_num_from_poms_ref(self, ref):
         # '_Holy. Lib._, no. 11' => <Source: ?>, 'no. 11|'

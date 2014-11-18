@@ -1038,13 +1038,13 @@ class ItemPartAdmin(reversion.VersionAdmin):
 
     # 'current_item', 'locus', 
     list_display = ['id', 'display_label', 'historical_label', 'type', 
-                    'get_image_count', 'get_part_count', 
+                    'get_image_count', 'get_part_count', 'keywords_string', 
                     'created', 'modified']
     list_display_links = list_display
     search_fields = ['locus', 'display_label',
             'historical_items__display_label', 'current_item__display_label',
             'subdivisions__display_label', 'group__display_label', 
-            'type__name']
+            'type__name', 'keywords_string', 'notes']
     list_filter = ('type', ItemPartImageNumberFilter, ItemPartMembersNumberFilter, ItemPartHasGroupGroupFilter)
     
     readonly_fields = ('display_label', 'historical_label')
@@ -1053,6 +1053,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus', 'pagination')}),
                 ('It belongs (or belonged) to another part...', {'fields': ('group', 'group_locus')}),
                 ('Notes', {'fields': ('notes', )}),
+                ('Keywords', {'fields': ('keywords',)}),
                 #('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
@@ -1213,12 +1214,13 @@ class ImageAdmin(reversion.VersionAdmin):
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 
             'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
-            'size', 'get_iipimage_field']
+            'keywords_string', 'get_iipimage_field']
     list_display_links = ['id', 'display_label', 
             'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
-            'get_iipimage_field']
+            'keywords_string', 'get_iipimage_field']
     search_fields = ['id', 'display_label', 'locus', 
-            'item_part__display_label', 'iipimage', 'annotation_status__name']
+            'item_part__display_label', 'iipimage', 'annotation_status__name', 
+            'keywords_string', 'internal_notes', 'transcription']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
     
@@ -1230,7 +1232,8 @@ class ImageAdmin(reversion.VersionAdmin):
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height', 'size')}),
-                ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')})
+                ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')}),
+                ('Keywords', {'fields': ('keywords',)}),
                 ) 
     inlines = [HandsInline]
     

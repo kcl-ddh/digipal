@@ -8,38 +8,24 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'DateEvidence.firm_date'
-        db.delete_column(u'digipal_dateevidence', 'firm_date_id')
-
-        # Adding field 'DateEvidence.historical_item'
-        db.add_column(u'digipal_dateevidence', 'historical_item',
-                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='date_evidences', null=True, to=orm['digipal.HistoricalItem']),
+        # Adding field 'ItemPart.keywords_string'
+        db.add_column(u'digipal_itempart', u'keywords_string',
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=500, blank=True),
                       keep_default=False)
 
-        # Adding field 'DateEvidence.is_firm_date'
-        db.add_column(u'digipal_dateevidence', 'is_firm_date',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'Image.keywords_string'
+        db.add_column(u'digipal_image', u'keywords_string',
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=500, blank=True),
                       keep_default=False)
 
-
-        # Changing field 'DateEvidence.hand'
-        db.alter_column(u'digipal_dateevidence', 'hand_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'], null=True))
 
     def backwards(self, orm):
-        # Adding field 'DateEvidence.firm_date'
-        db.add_column(u'digipal_dateevidence', 'firm_date',
-                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='firm_evidences', null=True, to=orm['digipal.Date'], blank=True),
-                      keep_default=False)
+        # Deleting field 'ItemPart.keywords_string'
+        db.delete_column(u'digipal_itempart', u'keywords_string')
 
-        # Deleting field 'DateEvidence.historical_item'
-        db.delete_column(u'digipal_dateevidence', 'historical_item_id')
+        # Deleting field 'Image.keywords_string'
+        db.delete_column(u'digipal_image', u'keywords_string')
 
-        # Deleting field 'DateEvidence.is_firm_date'
-        db.delete_column(u'digipal_dateevidence', 'is_firm_date')
-
-
-        # Changing field 'DateEvidence.hand'
-        db.alter_column(u'digipal_dateevidence', 'hand_id', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['digipal.Hand']))
 
     models = {
         u'auth.group': {
@@ -288,8 +274,8 @@ class Migration(SchemaMigration):
             'date': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Date']", 'null': 'True', 'blank': 'True'}),
             'date_description': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
             'evidence': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Hand']", 'null': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'date_evidences'", 'null': 'True', 'to': u"orm['digipal.HistoricalItem']"}),
+            'hand': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['digipal.Hand']", 'null': 'True', 'blank': 'True'}),
+            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'date_evidences'", 'null': 'True', 'to': u"orm['digipal.HistoricalItem']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_firm_date': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
@@ -489,7 +475,8 @@ class Migration(SchemaMigration):
             'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'internal_notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'item_part': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'images'", 'null': 'True', 'to': u"orm['digipal.ItemPart']"}),
-            'locus': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
+            u'keywords_string': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
+            'locus': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '64', 'blank': 'True'}),
             'media_permission': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['digipal.MediaPermission']", 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'size': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
@@ -546,6 +533,7 @@ class Migration(SchemaMigration):
             'group_locus': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
             'historical_items': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'item_parts'", 'symmetrical': 'False', 'through': u"orm['digipal.ItemPartItem']", 'to': u"orm['digipal.HistoricalItem']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'keywords_string': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
             'locus': ('django.db.models.fields.CharField', [], {'default': "'face'", 'max_length': '64', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -680,6 +668,7 @@ class Migration(SchemaMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'northings': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'other_names': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'region': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Region']", 'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.PlaceType']", 'null': 'True', 'blank': 'True'})
         },
@@ -687,13 +676,15 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['place']", 'object_name': 'PlaceEvidence'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'evidence': ('django.db.models.fields.TextField', [], {}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Hand']"}),
+            'hand': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['digipal.Hand']", 'null': 'True', 'blank': 'True'}),
+            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['digipal.HistoricalItem']", 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'place': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Place']"}),
             'place_description': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Reference']"})
+            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Reference']"}),
+            'written_as': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'})
         },
         u'digipal.placetype': {
             'Meta': {'ordering': "['name']", 'object_name': 'PlaceType'},

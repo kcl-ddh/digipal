@@ -16,7 +16,7 @@ import iipimage.storage
 from django.utils.html import conditional_escape, escape
 from tinymce.models import HTMLField
 from django.db import transaction
-
+from mezzanine.generic.fields import KeywordsField
 import logging
 dplog = logging.getLogger('digipal_debugger')
 
@@ -1268,12 +1268,15 @@ class ItemPart(models.Model):
             default=settings.ITEM_PART_DEFAULT_LOCUS, help_text='the location of this part in the Current Item')
     display_label = models.CharField(max_length=300)
     pagination = models.BooleanField(blank=False, null=False, default=False)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
     type = models.ForeignKey(ItemPartType, null=True, blank=True)
     owners = models.ManyToManyField(Owner, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+
+    keywords = KeywordsField(help_text='<br/>Comma separated list of keywords. Keywords are case sensitive and can contain spaces. Keywords can also be added or removed using the list above.')
+
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+            editable=False)
 
     class Meta:
         ordering = ['display_label']
@@ -1450,7 +1453,7 @@ class ImageAnnotationStatus(models.Model):
 class Image(models.Model):
     item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
 
-    locus = models.CharField(max_length=64)
+    locus = models.CharField(max_length=64, blank=True, null=False, default='')
     # r|v|vr|n=none|NULL=unspecified
     folio_side = models.CharField(max_length=4, blank=True, null=True)
     folio_number = models.CharField(max_length=8, blank=True, null=True)
@@ -1471,9 +1474,6 @@ class Image(models.Model):
     
     media_permission = models.ForeignKey(MediaPermission, null=True, blank=True, default=None,
             help_text='''This field determines if the image is publicly visible and the reason if not.''')
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
     
     transcription = models.TextField(blank=True, null=True)
     internal_notes = models.TextField(blank=True, null=True)
@@ -1490,7 +1490,12 @@ class Image(models.Model):
     # This is because, unlike the height/width, the size cannot be obtained from the image server.
     # It can only be populated by code having access to the file on disk/network.
     size = models.IntegerField(blank=False, null=False, default=0)
+
+    keywords = KeywordsField(help_text='<br/>Comma separated list of keywords. Keywords are case sensitive and can contain spaces. Keywords can also be added or removed using the list above.')
     
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
     __original_iipimage = None
 
     class Meta:
@@ -2029,8 +2034,8 @@ class Alphabet(models.Model):
 # DateEvidence in legacy db
 class DateEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand, blank=True, null=True)
-    historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', null=True)
+    hand = models.ForeignKey(Hand, blank=True, null=True, default=None)
+    historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', null=True, default=None)
     date = models.ForeignKey(Date, blank=True, null=True)
     
     # is this a firm date (i.e. undisputed)
@@ -2040,7 +2045,7 @@ class DateEvidence(models.Model):
     # the bibliographical reference of the date
     reference = models.ForeignKey(Reference, blank=True, null=True)
     # explanation for the date
-    evidence = models.CharField(max_length=255, blank=True, null=True, default='')
+    evidence = models.TextField(max_length=255, blank=True, null=True, default='')
     
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -2546,8 +2551,8 @@ class Annotation(models.Model):
 # PlaceEvidence in legacy db
 class PlaceEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
-    hand = models.ForeignKey(Hand, blank=True, null=True)
-    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
+    hand = models.ForeignKey(Hand, blank=True, null=True, default=None)
+    historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True, default=None)
     place = models.ForeignKey(Place)
     written_as = models.CharField(max_length=128, blank=True, null=True)
     place_description = models.CharField(max_length=128, blank=True, null=True)

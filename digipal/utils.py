@@ -653,7 +653,7 @@ def read_file(filepath):
     
     return ret
 
-def get_dict_from_string(string, sep=','):
+def get_dict_from_string(string, sep=',', keep_blanks=False):
     '''Return an array of string
         If the input is already an array, return it as is
         If the input is a string, split it around the commas 
@@ -664,6 +664,9 @@ def get_dict_from_string(string, sep=','):
             ret = string.split(sep)
         if isinstance(string, list) or isinstance(string, tuple):
             ret = string
+
+    if not keep_blanks:
+        ret = [r.strip() for r in ret]
     
     return ret
 
@@ -676,3 +679,38 @@ def get_normalised_path(path):
     file_base_name = re.sub(r'_+', '_', file_base_name)
     file_base_name = re.sub(r'_?(/|\\)_?', r'\1', file_base_name)
     return file_base_name + extension
+
+def add_keywords(obj, keywords='', remove=False):
+    # add or remove Mezzanine keywords on a model instance
+    # keywords is a comma separated list of keywords or an array
+    ret = False
+    keywords = get_dict_from_string(keywords)
+    
+    # read the keywords from the DB
+    from mezzanine.generic.models import Keyword, AssignedKeyword
+    existing_keywords = {}
+    for kw in Keyword.objects.extra(where=["lower(title) in (%s)" % ', '.join(["'%s'" % kw.lower() for kw in keywords])]):
+        existing_keywords[kw.title.lower()] = kw
+    
+    if remove:
+        # TODO
+        pass
+    else:
+        # add ids from assigned keywords
+        for kw in [ak.keyword for ak in obj.keywords.all()]:
+            existing_keywords[kw.title.lower()] = kw
+        # create missing keywords
+        for kw in keywords:
+            if kw.lower() not in existing_keywords:
+                print 'create %s' % kw
+                existing_keywords[kw.lower()] = Keyword(title=kw)
+                existing_keywords[kw.lower()].save()
+    
+        # now existing_keywords has all the requested keywords
+        # assign them to the object
+        from mezzanine.generic.fields import KeywordsField
+        for field in [f for f in obj._meta.virtual_fields if f.__class__ == KeywordsField]:
+            field.save_form_data(obj, u','.join([unicode(kw.id) for kw in existing_keywords.values()])) 
+
+    return ret
+

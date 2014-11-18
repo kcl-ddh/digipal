@@ -216,8 +216,13 @@ INSTALLED_APPS = (
         'mezzanine.twitter',
         'pagination',
         'tinymce',
+#        'taggit',
         #'mezzanine.mobile',
         )
+
+# SOUTH_MIGRATION_MODULES = {
+#     'taggit': 'taggit.south_migrations',
+# }
 
 ###############
 # MIDDLEWARES #

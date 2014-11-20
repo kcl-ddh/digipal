@@ -2,7 +2,7 @@ import json
 from digipal import utils
 
 #
-# See digipal-api.txt for the documentation about the request and response.
+# See /digipal/doc/http-api.md for the documentation about the request and response.
 #
 # Keep this code generic!
 #

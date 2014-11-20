@@ -588,7 +588,7 @@ ANNOTATOR_ZOOM_LEVELS = 7
 
 # Web API
 REJECT_HTTP_API_REQUESTS = False
-# See api/digipal-api.txt for instructions
+# See /digipal/doc/http-api.md for instructions
 API_PERMISSIONS = [['crud', 'ALL']]
 
 # Lightbox Settings

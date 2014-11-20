@@ -169,7 +169,7 @@ Commands:
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
         pc = poms.cursor()
-        pc.execute('''select *, la.name as la_name, so.id as so_id, ct.name as ct_name, pl.name as pl_name 
+        pc.execute('''select *, la.name as la_name, so.id as so_id, ct.name as ct_name, pl.name as pl_name, so.description as so_description 
 from pomsapp_source so 
 left join pomsapp_charter ch on (so.id = ch.source_ptr_id)
 left join pomsapp_chartertype ct on (ch.chartertypekey_id = ct.id)
@@ -329,10 +329,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         # import description
         from digipal.models import Description, DateEvidence, Date, PlaceEvidence, Place, Reference
-        if row['description']:
-            print '    HI #%s.description = (%s | %s)' % (hi.id, source , row['description'][0:20])
-            desc, created = Description.objects.get_or_create(historical_item=hi, source__label='POMS')
-            desc.description = row['description'].strip()
+        if row['so_description']:
+            from digipal.models import Source
+            print '    HI #%s.description = (%s | %s)' % (hi.id, source , row['so_description'][0:20].encode('ascii', 'ignore'))
+            desc, created = Description.objects.get_or_create(historical_item=hi, source=Source.objects.filter(label='POMS').first())
+            desc.description = row['so_description'].strip()
+            desc.save()
         else:
             print '    Remove HI #%s.description = (%s)' % (hi.id, source)
             Description.objects.filter(historical_item=hi, source__label='POMS').delete()
@@ -391,6 +393,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             if ref.lower().startswith(source_label.lower()):
                 ret = [self.possible_sources[source_label], ref[len(source_label):]]
                 ret[1] = ret[1].strip(' ,')
+                break
         
         return ret
 

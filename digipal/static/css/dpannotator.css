@@ -741,3 +741,16 @@ path {
     width:260px !important;
     height: 230px !important;
 }
+
+.jquery-notebook iframe {
+    width:260px !important;
+    height: 230px !important;
+}
+
+div.jquery-notebook p:first-child {
+    line-height: 22px;
+}
+
+#notes_tab div.jquery-notebook.editor {
+    height: 15em;
+}

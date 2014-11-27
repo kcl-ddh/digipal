@@ -560,7 +560,7 @@ class HistoricalItem(models.Model):
         return ret
 
     def set_catalogue_number(self):
-        cn = u'NOCATNO'
+        cn = u''
         if self.pk:
             cns = self.catalogue_numbers.all()
             if cns:
@@ -694,6 +694,17 @@ class CatalogueNumber(models.Model):
     def __unicode__(self):
         return get_list_as_string(self.source, ' ', self.number)
 
+    def save(self, *args, **kwargs):
+        super(CatalogueNumber, self).save(*args, **kwargs)
+        # save the associated HI (to recalculate HI.catalogue_number and HI.display_label)
+        if self.historical_item:
+            self.historical_item.save()
+        
+    def on_post_delete(self):
+        # save the associated HI (to recalculate HI.catalogue_number and HI.display_label)
+        if self.historical_item:
+            self.historical_item.save()
+
     @classmethod
     def get_or_create(cls, cat_num):
         ret = None
@@ -719,6 +730,12 @@ class CatalogueNumber(models.Model):
             ret = cns[0]
         
         return ret
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+@receiver(post_delete, sender=CatalogueNumber, dispatch_uid='cataloguenumber_delete_signal')
+def cataloguenumber_delete_signal(sender, instance, using, **kwargs):
+    instance.on_post_delete()
 
 # Manuscripts in legacy db
 class Collation(models.Model):

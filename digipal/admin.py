@@ -37,6 +37,35 @@ dplog = logging.getLogger( 'digipal_debugger')
 #                       #
 #########################
 
+class RelatedObjectNumberFilter(SimpleListFilter):
+    title = ('Number of Related Objects')
+    parameter_name = ('n')
+    
+    related_table = 'digipal_image'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    this_key = 'id'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', ('None')),
+            ('1', ('One')),
+            ('1p', ('One or more')),
+            ('2p', ('More than one')),
+        )   
+
+    def queryset(self, request, queryset):
+        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
+        select += ur'%s )'
+        if self.value() == '0':
+            return queryset.extra(where=[select % ' = 0'])
+        if self.value() == '1':
+            return queryset.extra(where=[select % ' = 1'])
+        if self.value() == '1p':
+            return queryset.extra(where=[select % ' >= 1'])
+        if self.value() == '2p':
+            return queryset.extra(where=[select % ' > 1'])
+
 class ImageAnnotationNumber(SimpleListFilter):
     title = ('Annotations')
 
@@ -197,6 +226,15 @@ class DescriptionFilter(SimpleListFilter):
             return k
 
 
+class HistoricalCatalogueNumberFilter(RelatedObjectNumberFilter):
+    title = ('Number of catalogue numbers')
+
+    parameter_name = ('ncn')
+
+    related_table = 'digipal_cataloguenumber'
+    foreign_key = 'historical_item_id'
+    this_table = 'digipal_historicalitem'
+    
 class HistoricalItemDescriptionFilter(SimpleListFilter):
     title = ('To Fix or Check')
 
@@ -918,7 +956,8 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     list_display_links = list_display
     list_filter = ['historical_item_type', 'historical_item_format', 
                    HistoricalItemDescriptionFilter, HistoricalItemKerFilter, 
-                   HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter]
+                   HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter, 
+                   HistoricalCatalogueNumberFilter]
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),

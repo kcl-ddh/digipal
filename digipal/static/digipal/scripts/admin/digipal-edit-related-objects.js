@@ -4,16 +4,22 @@ jQuery(function($){
     $("select ~ a.add-another").each(function(){
         $(this).after("&nbsp;\x3Ca class='changelink' href='#'\x3E\x3C/a\x3E");
         $(this).next().click(function(){
-            var value = $(this).parent().children('select:first').attr('value');
-            var link = ($(this).prev().attr('href')+'../'+value+'/');
-            //console.log(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
-            var win = window.open(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
-            win.focus();
+            // get the value of the first selected option in the preceding select element
+            //value = $(this).parent().children('select:first').attr('value');
+            // better selector that will work with both a single select element or a dual 'pour-over' select widget.
+            var value = $(this).parent().find('select :selected:last').val();
+            if (value) {
+                var link = ($(this).prev().attr('href')+'../'+value+'/');
+                //console.log(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
+                var win = window.open(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
+                win.focus();
+            }
             return false;
         });
     });
 
     // this is for one to many inlines
+    // TODO: make it work with new version of Django
     $("span.delete").each(function(){
         var inputFK = $(this).parent().nextAll('input').filter(function(index){return ($(this).attr("id").match(/-id$/) );}).eq(0);
         if (inputFK != null) {

@@ -53,6 +53,7 @@ FACETED_SEARCH = {
                     'key': 'images', 
                     'label': 'Image',
                     'model': 'digipal.models.Image',
+                    'django_filter': {'item_part__isnull': False},
                     'fields': [
                                
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},

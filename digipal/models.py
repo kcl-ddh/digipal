@@ -1468,7 +1468,7 @@ class ImageAnnotationStatus(models.Model):
 
 # This is an image of a part of an item-part
 class Image(models.Model):
-    item_part = models.ForeignKey(ItemPart, related_name='images', null=True)
+    item_part = models.ForeignKey(ItemPart, related_name='images', null=True, blank=True, default=None)
 
     locus = models.CharField(max_length=64, blank=True, null=False, default='')
     # r|v|vr|n=none|NULL=unspecified

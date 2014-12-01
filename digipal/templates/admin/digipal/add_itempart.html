@@ -4,7 +4,8 @@
 {% block extrahead %}{{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"/>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui.min.js" type="text/javascript"></script>
+    {% comment %}<script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui.min.js" type="text/javascript"></script>{% endcomment %}
+    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/jquery-ui.min.js" type="text/javascript"></script>
     {{ media }}
     <script type="text/javascript">
         (function($) {

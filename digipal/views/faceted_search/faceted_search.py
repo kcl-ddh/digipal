@@ -761,7 +761,7 @@ def populate_index(ct, index):
     from whoosh.writing import BufferedWriter
     #writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
-    writer = None
+    writer = index.writer()
     
     print '\tadd records to index'
     c = rcs.count()

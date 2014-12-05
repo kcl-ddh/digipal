@@ -65,6 +65,10 @@
         margin: 1em;
         border: 1px solid black;
     }
+    
+    input.wide-input, select.wide-input {
+        width: 25em;
+    }
 
 </style>
 
@@ -197,6 +201,56 @@
 		    				The folio side will be set from the side found in the file name. e.g. ff.49v => Verso
 		    			</td>
 		    		</tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="locus_regex_set" id="locus_regex_set_id" value="1" checked="checked" />
+                            <label for="locus_regex_set_id">Generate Locus from file name</label>
+                        </td>
+                        <td>
+                            <p>Generate the locus from the file name according to a regular expression.</p>
+                            <p>Example: Expression = 'my_file_(\d+)\.jp2', Locus = 'page \1'. If file name = 'my_file_20.jp2' the locus will be 'page 20'.</p>
+                            <table>
+                                <tr>
+                                    <td>
+	                                    Matching expression: 
+	                                </td>
+	                                <td>
+	                                   <input type="text" name="locus_regex" value="gb_exc_ms3500_(.*)\.jp2"  class="wide-input" />
+	                                </td>
+	                            </tr>
+                                <tr>
+                                    <td>
+                                        Locus: 
+                                    </td>
+                                    <td>
+                                        <input type="text" name="locus_result" value="[\1]"  class="wide-input" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Try it on: 
+                                    </td>
+                                    <td>
+                                        <select name="locus_example" class="wide-input">
+                                            {% for folio in folios %}
+                                                <option value="{{ folio.id }}"  class="wide-input">{{ folio.iipimage }}</option>    
+                                            {% endfor %}
+                                            
+                                        </select
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Result: 
+                                    </td>
+                                    <td id="locus-example-result">
+                                        
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
                     {% if 0 %}
     		    		<tr>
     		    			<td>

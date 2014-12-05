@@ -86,5 +86,32 @@ jQuery(document).ready(function($) {
         
     });
     
+    $('input[name=locus_regex], input[name=locus_result], select[name=locus_example]').on('change keyup', function() {
+        var regexp = $('input[name=locus_regex]').val();
+        var result = $('input[name=locus_result]').val();
+        var example = $('select[name=locus_example] option:checked').text();
+        var message = 'WARNING: No match found.';
+        
+        try {
+            regexp = RegExp(regexp, 'i');
+            
+            var matches = regexp.exec(example);
+            
+            if (matches) {
+                for (var i in matches) {
+                    result = result.replace('\\'+i, matches[i]);
+                }
+                message = result;
+            }
+            
+        } catch (err) {
+            if (err.name === 'SyntaxError') {
+                message = 'WARNING: ' + err.message;
+            }
+        }
+        
+        $('#locus-example-result').html(message.replace('<', '&lt;').replace('>', '&gt;'));
+    });
+    
     refresh_links();    
 });

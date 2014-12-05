@@ -8,21 +8,35 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        pass
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # If this migration fails in your environment, do the following:
+        #    1. comment the lines between this one and the next function (def backwards(self, orm):))
+        #    2. save the file
+        #    3. run python manage.py dbshell from the command line
+        #    4. enter the following instructions
+        #        alter table digipal_component_features add column set_by_default boolean NOT NULL;
+        #        alter table digipal_component_features add column created timestamp with time zone NOT NULL;
+        #        alter table digipal_component_features add column modified timestamp with time zone NOT NULL;
+        #        \q
+        #    5. run the migration again: python manage.py migrate
+        #    6. revert your change to this file: git checkout migrations/0039_auto__add_field_componentfeature_set_by_default__add_field_componentfe.py
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
         # Adding field 'ComponentFeature.set_by_default'
         db.add_column('digipal_component_features', 'set_by_default',
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
-
+ 
         # Adding field 'ComponentFeature.created'
         db.add_column('digipal_component_features', 'created',
                       self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, default=datetime.datetime(2000, 1, 1, 0, 0), blank=True),
                       keep_default=False)
-
+ 
         # Adding field 'ComponentFeature.modified'
         db.add_column('digipal_component_features', 'modified',
                       self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, default=datetime.datetime(2000, 1, 1, 0, 0), blank=True),
                       keep_default=False)
-
 
     def backwards(self, orm):
         # Deleting field 'ComponentFeature.set_by_default'

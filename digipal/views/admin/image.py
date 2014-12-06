@@ -268,6 +268,7 @@ def image_bulk_edit(request, url=None):
                                 result = result.replace(r'\%s' % gi, group)
                             if result:
                                 folio.locus = result
+                                modified = True
                 if str(request.POST.get('hand_set', '0')) == '1':
                     if handid == '-2':
                         if folio.item_part:

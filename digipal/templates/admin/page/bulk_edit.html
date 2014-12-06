@@ -203,7 +203,7 @@
 		    		</tr>
                     <tr>
                         <td>
-                            <input type="checkbox" name="locus_regex_set" id="locus_regex_set_id" value="1" checked="checked" />
+                            <input type="checkbox" name="locus_regex_set" id="locus_regex_set_id" value="1" />
                             <label for="locus_regex_set_id">Generate Locus from file name</label>
                         </td>
                         <td>
@@ -215,7 +215,7 @@
 	                                    Matching expression: 
 	                                </td>
 	                                <td>
-	                                   <input type="text" name="locus_regex" value="gb_exc_ms3500_(.*)\.jp2"  class="wide-input" />
+	                                   <input type="text" name="locus_regex" value="{{ request.REQUEST.locus_regex|default:"gb_exc_ms3500_(.*)\.jp2" }}"  class="wide-input" />
 	                                </td>
 	                            </tr>
                                 <tr>
@@ -223,7 +223,7 @@
                                         Locus: 
                                     </td>
                                     <td>
-                                        <input type="text" name="locus_result" value="[\1]"  class="wide-input" />
+                                        <input type="text" name="locus_result" value="{{ request.REQUEST.locus_result|default:"[\1]" }}"  class="wide-input" />
                                     </td>
                                 </tr>
                                 <tr>

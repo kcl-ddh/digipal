@@ -256,9 +256,21 @@ def image_bulk_edit(request, url=None):
                 if str(request.POST.get('unarchived_set', '0')) == '1':
                     folio.archived = False
                     modified = True
+                if str(request.POST.get('locus_regex_set', '0')) == '1':
+                    regex = request.POST.get('locus_regex', '')
+                    result = request.POST.get('locus_result', '')
+                    if regex and result:
+                        matches = re.search(regex, '%s' % folio.iipimage)
+                        if matches:
+                            gi = 0
+                            for group in matches.groups():
+                                gi += 1
+                                result = result.replace(r'\%s' % gi, group)
+                            if result:
+                                folio.locus = result
                 if str(request.POST.get('hand_set', '0')) == '1':
                     if handid == '-2':
-                        if folio.item_part:                                
+                        if folio.item_part:
                             hand = Hand(item_part=folio.item_part, num=1, label='Default Hand')
                             hand.save()
                             handid = hand.id

@@ -10,6 +10,7 @@ urlpatterns += patterns('digipal.views.admin.stewart',
     url(r'digipal/stewartrecord/import', 'stewart_import', name='stewart_import'),
 )
 
-urlpatterns += patterns('digipal.views.admin.quickforms',
-    (r'digipal/itempart/add/?', 'add_itempart_view'),
-)
+if getattr(settings, 'USE_ITEM_PART_QUICK_ADD_FORM'):
+    urlpatterns += patterns('digipal.views.admin.quickforms',
+        (r'digipal/itempart/add/?', 'add_itempart_view'),
+    )

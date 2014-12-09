@@ -23,7 +23,7 @@
                     $(this).toggleClass('invalid', false);
                 });
 
-                // highligh required fields if then are empty
+                // highligh required fields if they are empty
                 $('#quickform').on('submit', function() {
                     var $form = $(this);
                     var invalid = false;
@@ -52,7 +52,6 @@
 
 {% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
 
-
 {% block content %}
 
 <div id="content-main">
@@ -80,7 +79,7 @@
             </fieldset>
         {% endfor %}
         <input type="submit" value="Submit" />
-    </form>    
+    </form>
 
 </div>
 

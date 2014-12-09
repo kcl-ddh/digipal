@@ -532,6 +532,11 @@ UNSPECIFIED_MEDIA_PERMISSION_MESSAGE = '''<p>A full image of this page is not ye
     available. For further details see <a href="/about/acknowledgements-image-rights/">Acknowledgements and Image
     Rights</a>.</p>'''
 
+# ADMIN CUSTOMISATIONS
+# If True a custom and simplified form to add a new Item Part record will be used
+# Typically found at /admin/digipal/itempart/add/ 
+USE_ITEM_PART_QUICK_ADD_FORM = True
+
 ADMIN_FORCE_HTTPS = False
 
 # We add blogpost to OWNABLE_MODELS_ALL_EDITABLE

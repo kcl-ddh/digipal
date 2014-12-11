@@ -94,7 +94,11 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         original_dir = os.getcwd()
-        github_dir = os.path.dirname(config.__file__)
+        github_dir = 'digipal_github/digipal/digipal'
+        if not os.path.exists(github_dir + '/repo_cfg.py'):
+            github_dir = os.path.dirname(config.__file__)
+        
+        print 'GitHub folder: %s' % github_dir
         
         if command == 'st':
             known_command = True
@@ -131,7 +135,7 @@ def process_commands_main_dir():
                     if has_local_change:
                         status += ' (%s)' % 'LOCAL CHANGES'
                     
-                    print 'digipal_django: %s ' % (status,)
+                    print 'Mercurial: %s ' % (status, )
             finally:
                 os.chdir(original_dir)          
         
@@ -161,6 +165,9 @@ def process_commands_main_dir():
         if command == 'pull':
             known_command = True
             try:
+                project_folder = get_hg_folder_name()
+                print 'Main app folder: %' % project_folder
+
                 has_sudo = get_terminal_username() == 'gnoel'
                 print '> check configuration (symlinks, repo branches, etc.)'
 #                 if not os.path.exists('iipimage') and os.path.exists('django-iipimage'):
@@ -179,7 +186,7 @@ def process_commands_main_dir():
                             system('rm -r %s' % path)
 
                 validation_git = r'(?i)error:'
-                print '> Pull digipal'
+                print '> Pull digipal (%s)' % github_dir
                 os.chdir(github_dir)
                 git_status_info = {}
                 system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
@@ -188,7 +195,7 @@ def process_commands_main_dir():
                 system('git pull', validation_git)
                 os.chdir(original_dir)
 
-                if not config.SELF_CONTAINED:                
+                if not config.SELF_CONTAINED:
                     print '> Pull main'
                     validation_hg = r'(?i)error:|abort:'
                     system('hg pull', validation_hg)
@@ -203,8 +210,6 @@ def process_commands_main_dir():
                     else:
                         system('hg update', validation_hg)
     
-                project_folder = get_hg_folder_name()
-
                 if os.name != 'nt':
                     print '> fix permissions'
                     if has_sudo: print '\t(with sudo)'

@@ -166,7 +166,7 @@ def process_commands_main_dir():
             known_command = True
             try:
                 project_folder = get_hg_folder_name()
-                print 'Main app folder: %' % project_folder
+                print 'Main app folder: %s' % project_folder
 
                 has_sudo = get_terminal_username() == 'gnoel'
                 print '> check configuration (symlinks, repo branches, etc.)'

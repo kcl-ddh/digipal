@@ -76,20 +76,22 @@
             <div id="contentNav">
                 {% if settings.SITE_TITLE %}
                     <a class="logo pull-left" href="/">
-                        {% if settings.BANNER_LOGO_HTML %}
-                            {{ settings.BANNER_LOGO_HTML|safe }}
-                        {% else %}
-                            <div id="logo">
-                                <div id='logo_words'>
-                                    <span id="digi">Digi</span><span id="pal">Pal</span>
-                                </div>
-                                <div id="trt" class='hidden-sm hidden-xs'></div>
-                                <div id='div-logo-desc' class='hidden-sm hidden-xs'>
-                                    <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
-                                    <span class="logo-desc">Manuscript Studies and Diplomatic</span>
-                                </div>
-                            </div>
-                        {% endif %}
+                        {% block logo %}
+	                        {% if settings.BANNER_LOGO_HTML %}
+	                            {{ settings.BANNER_LOGO_HTML|safe }}
+	                        {% else %}
+	                            <div id="logo">
+	                                <div id='logo_words'>
+	                                    <span id="digi">Digi</span><span id="pal">Pal</span>
+	                                </div>
+	                                <div id="trt" class='hidden-sm hidden-xs'></div>
+	                                <div id='div-logo-desc' class='hidden-sm hidden-xs'>
+	                                    <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
+	                                    <span class="logo-desc">Manuscript Studies and Diplomatic</span>
+	                                </div>
+	                            </div>
+	                        {% endif %}
+                        {% endblock %}
                     </a>
                 {% endif %}
                 {% block logo_right %}

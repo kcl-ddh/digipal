@@ -1251,7 +1251,7 @@ class ImageAdmin(reversion.VersionAdmin):
     change_list_template = 'admin/digipal/change_list.html'
     
     # temporary
-    list_per_page = 100000
+    #list_per_page = 100000
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'get_thumbnail', 

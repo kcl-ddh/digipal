@@ -714,3 +714,36 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
+def read_all_lines_from_csv(file_path):
+    '''
+        Read a CSV file and returns an array where
+        each entry correspond to a line in the file.
+        It is assumed that the first line of the CSV
+        contains the headings.
+        Each entry in the returned array is a dictionary
+        where the keys are the column headings and the
+        values in the corresponding line in the file.
+    '''
+    ret = []
+    
+    import csv
+    csv_path = file_path
+    line_index = 0
+    with open(csv_path, 'rb') as csvfile:
+        csvreader = csv.reader(csvfile)
+        
+        columns = None
+        
+        for line in csvreader:
+            line_index += 1
+            line = [v.decode('latin-1') for v in line]
+            if not columns:
+                columns = [re.sub(ur'[^a-z]', '', c.lower()) for c in line]
+                continue
+            
+            rec = dict(zip(columns, line))
+            rec['_line_index'] = line_index
+        
+            ret.append(rec)
+    
+    return ret

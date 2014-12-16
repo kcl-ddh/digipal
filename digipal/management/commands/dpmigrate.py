@@ -177,6 +177,36 @@ Commands:
             raise CommandError('Unknown command: "%s".' % command)
 
     @transaction.atomic
+    def convert_exon_folio_numbers(self):
+        from digipal import utils as dputils
+        lines = dputils.read_all_lines_from_csv(self.options['src'])
+        
+        from digipal.models import Image
+        images = Image.objects.all()
+        
+        for line in lines:
+            if not line: continue
+            new_number = line['barnesellisfol']
+            old_number = line['olderfol']
+            
+            print old_number, new_number
+            
+            #folio = '%s%s' % (old_number)
+            for image in images:
+                new_locus = re.sub(ur'\b%s(r|v)\b' % old_number, r'%s\1' % new_number, image.locus)
+                if image.locus != new_locus:
+                    image.new_locus = new_locus
+                    print '    #%4s: %4s -> %4s' % (image.id, image.locus, image.new_locus)
+
+        for image in images:
+            if getattr(image, 'new_locus', None):
+                print image.locus, image.new_locus
+                image.locus = image.new_locus
+                image.save()
+        
+        return True
+
+    @transaction.atomic
     def import_pim(self):
         from digipal.models import Image, Hand, ItemPart, CurrentItem, Source, CatalogueNumber, HistoricalItem, ItemPartItem
         import csv

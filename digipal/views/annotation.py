@@ -285,29 +285,30 @@ def get_allograph(request, graph_id):
     data = {'id': allograph_id}
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
-def image_vectors(request, image_id):
-    """Returns a JSON of all the vectors for the requested image."""
-    # Order the graph by the left edge to ensure that an openlayer feature
-    # contained in another will be created later and therefore remain on top.
-    # Otherwise nested graphs may not be selectable because they are covered
-    # by their parent.
-
-    annotation_list = list(Annotation.objects.filter(image=image_id))
-    annotation_list = sorted(annotation_list, key=lambda a: a.get_coordinates()[0][0])
-
-    data = SortedDict()
-
-    for a in annotation_list:
-        # TODO: suspicious call to eval. Should call json.loads() instead - GN
-        if a.graph:
-            data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
-        else:
-            data[a.id] = ast.literal_eval(a.geo_json.strip())
-
-    if request:
-        return HttpResponse(json.dumps(data), mimetype='application/json')
-    else:
-        return json.dumps(data)
+# GN: dec 14, commented out as it is seems to be no longer used
+# def image_vectors(request, image_id):
+#     """Returns a JSON of all the vectors for the requested image."""
+#     # Order the graph by the left edge to ensure that an openlayer feature
+#     # contained in another will be created later and therefore remain on top.
+#     # Otherwise nested graphs may not be selectable because they are covered
+#     # by their parent.
+# 
+#     annotation_list = list(Annotation.objects.filter(image=image_id))
+#     annotation_list = sorted(annotation_list, key=lambda a: a.get_coordinates()[0][0])
+# 
+#     data = SortedDict()
+# 
+#     for a in annotation_list:
+#         # TODO: suspicious call to eval. Should call json.loads() instead - GN
+#         if a.graph:
+#             data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
+#         else:
+#             data[a.id] = ast.literal_eval(a.geo_json.strip())
+# 
+#     if request:
+#         return HttpResponse(json.dumps(data), mimetype='application/json')
+#     else:
+#         return json.dumps(data)
 
 def get_vector(request, image_id, graph):
     annotation = Annotation.objects.get(graph=graph)
@@ -316,80 +317,181 @@ def get_vector(request, image_id, graph):
     data['id'] = annotation.id
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
+# def image_annotations(request, image_id, annotations_page=True, hand=False):
+#     """Returns a JSON of all the annotations for the requested image."""
+#     
+#     can_edit = has_edit_permission(request, Annotation)
+# 
+#     if annotations_page:
+#         annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
+#     else:
+#         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
+#     annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
+# 
+#     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
+#     if not can_edit:
+#         editorial_annotations = editorial_annotations.editorial().publicly_visible()
+#     editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
+# 
+#     vectors = json.loads(image_vectors(False, image_id))
+# 
+#     #annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit).order_by('').distinct()
+# 
+#     data = {}
+#     hands = []
+#     for a in annotation_list_with_graph:
+#         data[a.id] = {}
+#         data[a.id]['vector_id'] = a.vector_id
+#         data[a.id]['status_id'] = a.status_id
+#         data[a.id]['image_id'] = a.image.id
+#         data[a.id]['hidden_hand'] = a.graph.hand.id
+#         data[a.id]['character'] = a.graph.idiograph.allograph.character.name
+#         data[a.id]['hand'] = a.graph.hand_id
+#         data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
+#         data[a.id]['allograph_id'] = a.graph.idiograph.allograph.id
+#         features_list = json.loads(get_features(a.graph.id, True))
+#         data[a.id]['num_features'] = len(features_list[0]['features'])
+#         data[a.id]['features'] = features_list
+#         if unicode(a.graph.id) in vectors:
+#             data[a.id]['geo_json'] = vectors[unicode(a.graph.id)]['geometry']
+# 
+#         data[a.id]['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
+#         a.graph.idiograph.allograph.name)
+# 
+#         data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
+#         data[a.id]['graph'] = '%s' % (a.graph.id)
+#         hand = a.graph.hand.label
+#         hands.append(a.graph.hand.id)
+# 
+#         data[a.id]['display_note'] = a.display_note
+#         data[a.id]['internal_note'] = a.internal_note
+# 
+#         gc_list = GraphComponent.objects.filter(graph=a.graph)
+# 
+#         if gc_list:
+#             data[a.id]['features'] = []
+# 
+#             for gc in gc_list:
+#                 for f in gc.features.all():
+#                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
+#                         f.id))
+# 
+#         """
+#         if a.before:
+#             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
+# 
+#         if a.after:
+#             data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
+#         """
+#     for e in editorial_annotations:
+#         data[e.id] = {}
+#         data[e.id]['geo_json'] = vectors[unicode(e.id)]['geometry']
+#         data[e.id]['status_id'] = e.status_id
+#         data[e.id]['image_id'] = e.image.id
+#         data[e.id]['display_note'] = e.display_note
+#         data[e.id]['internal_note'] = e.internal_note
+#         data[e.id]['vector_id'] = e.vector_id
+#         data[e.id]['id'] = unicode(e.id)
+#         data[e.id]['is_editorial'] = True
+# 
+#     if annotations_page:
+#         return HttpResponse(json.dumps(data), mimetype='application/json')
+#     else:
+#         return data
+
+
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
     
     can_edit = has_edit_permission(request, Annotation)
 
     if annotations_page:
-        annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
+        annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph()
     else:
-        annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
+        annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph()
     annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
+    annotation_list_with_graph = annotation_list_with_graph.select_related('image', 'graph', 'graph__hand', 'graph__idiograph__allograph__character').prefetch_related('graph__graph_components__features', 'graph__graph_components__component').distinct()
 
     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
     if not can_edit:
         editorial_annotations = editorial_annotations.editorial().publicly_visible()
     editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
 
-    vectors = json.loads(image_vectors(False, image_id))
-
-    data = {}
-    hands = []
+    annotations = []
+    an = {}
+    #hands = []
     for a in annotation_list_with_graph:
-        data[a.id] = {}
-        data[a.id]['vector_id'] = a.vector_id
-        data[a.id]['status_id'] = a.status_id
-        data[a.id]['image_id'] = a.image.id
-        data[a.id]['hidden_hand'] = a.graph.hand.id
-        data[a.id]['character'] = a.graph.idiograph.allograph.character.name
-        data[a.id]['hand'] = a.graph.hand_id
-        data[a.id]['character_id'] = a.graph.idiograph.allograph.character.id
-        data[a.id]['allograph_id'] = a.graph.idiograph.allograph.id
+        an = {}
+        annotations.append(an)
+        an['vector_id'] = a.vector_id
+        an['status_id'] = a.status_id
+        an['image_id'] = a.image.id
+        an['hidden_hand'] = a.graph.hand.id
+        an['character'] = a.graph.idiograph.allograph.character.name
+        an['hand'] = a.graph.hand_id
+        an['character_id'] = a.graph.idiograph.allograph.character.id
+        an['allograph_id'] = a.graph.idiograph.allograph.id
+        # GN: very inefficient, this call makes at least one DB query per annotation.
+        # TODO: optimise to a single query for all annotations.
         features_list = json.loads(get_features(a.graph.id, True))
-        data[a.id]['num_features'] = len(features_list[0]['features'])
-        data[a.id]['features'] = features_list
-        if unicode(a.graph.id) in vectors:
-            data[a.id]['geo_json'] = vectors[unicode(a.graph.id)]['geometry']
+        an['num_features'] = len(features_list[0]['features'])
+        an['features'] = features_list
+        geo = a.get_geo_json_as_dict().get('geometry', None)
+        if geo:
+            an['geo_json'] = geo
 
-        data[a.id]['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
+        an['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
         a.graph.idiograph.allograph.name)
 
-        data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
-        data[a.id]['graph'] = '%s' % (a.graph.id)
-        hand = a.graph.hand.label
-        hands.append(a.graph.hand.id)
+        an['feature'] = '%s' % (a.graph.idiograph.allograph)
+        an['graph'] = '%s' % (a.graph.id)
+        #hand = a.graph.hand.label
+        #hands.append(a.graph.hand.id)
 
-        data[a.id]['display_note'] = a.display_note
-        data[a.id]['internal_note'] = a.internal_note
+        an['display_note'] = a.display_note
+        an['internal_note'] = a.internal_note
+        an['id'] = unicode(a.id)
 
-        gc_list = GraphComponent.objects.filter(graph=a.graph)
+        #gc_list = GraphComponent.objects.filter(graph=a.graph)
+        gc_list = a.graph.graph_components.all()
 
         if gc_list:
-            data[a.id]['features'] = []
+            an['features'] = []
 
             for gc in gc_list:
                 for f in gc.features.all():
-                    data[a.id]['features'].append('%d::%d' % (gc.component.id,
-                        f.id))
+                    an['features'].append('%d::%d' % (gc.component.id, f.id))
 
         """
         if a.before:
-            data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
+            an['before'] = '%d::%s' % (a.before.id, a.before.name)
 
         if a.after:
-            data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
+            an['after'] = '%d::%s' % (a.after.id, a.after.name)
         """
+        
     for e in editorial_annotations:
-        data[e.id] = {}
-        data[e.id]['geo_json'] = vectors[unicode(e.id)]['geometry']
-        data[e.id]['status_id'] = e.status_id
-        data[e.id]['image_id'] = e.image.id
-        data[e.id]['display_note'] = e.display_note
-        data[e.id]['internal_note'] = e.internal_note
-        data[e.id]['vector_id'] = e.vector_id
-        data[e.id]['id'] = unicode(e.id)
-        data[e.id]['is_editorial'] = True
+        an = {}
+        annotations.append(an)
+        #an['geo_json'] = vectors[unicode(e.id)]['geometry']
+        geo = e.get_geo_json_as_dict().get('geometry', None)
+        if geo:
+            an['geo_json'] = geo
+        an['status_id'] = e.status_id
+        an['image_id'] = e.image.id
+        an['display_note'] = e.display_note
+        an['internal_note'] = e.internal_note
+        an['vector_id'] = e.vector_id
+        an['id'] = unicode(e.id)
+        an['is_editorial'] = True
+
+    # convert to dict
+    data = {}
+    for an in annotations:
+        data[an['id']] = an
+        an['display_order'] = 0
+        if 'geo_json' in an and 'coordinates' in an['geo_json']:
+            an['display_order'] = min([float(point[0]) for point in an['geo_json']['coordinates'][0]])
 
     if annotations_page:
         return HttpResponse(json.dumps(data), mimetype='application/json')

@@ -475,7 +475,7 @@ fieldsets_hand = (
 class GraphForm(forms.ModelForm):
 
     class Meta:
-        model = Graph    
+        model = Graph
 
     def __init__(self, *args, **kwargs):
         # Don't look into other pages for possible grouping graphs.

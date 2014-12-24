@@ -323,6 +323,7 @@ PACKAGE_NAME_GRAPPELLI = 'grappelli_safe'
 
 # DigiPal Applications
 INSTALLED_APPS = INSTALLED_APPS + (
+        'digipal_text',
         'digipal',
         #'haystack',
         #'legacy',

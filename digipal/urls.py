@@ -15,7 +15,10 @@ init_signals()
 
 statistic = count()
 
-urlpatterns = patterns('',
+# TODO: find a better way to import those urls. We don't want digipal -> digipal_text
+urlpatterns = patterns('', ('^', include('digipal_text.urls')))
+
+urlpatterns += patterns('',
     url(r'^admin/', include('digipal.urls_admin')),
     url(r'^admin/', include(admin.site.urls)),
 
@@ -61,4 +64,3 @@ if settings.DEBUG:
 # FOR PAGES, SO URLPATTERNS ADDED BELOW ``mezzanine.urls``
 # WILL NEVER BE MATCHED!
 urlpatterns += patterns('', ('^', include('mezzanine.urls')))
-

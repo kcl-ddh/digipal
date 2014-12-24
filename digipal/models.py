@@ -18,6 +18,7 @@ from tinymce.models import HTMLField
 from django.db import transaction
 from mezzanine.generic.fields import KeywordsField
 import logging
+from django.utils.text import slugify
 dplog = logging.getLogger('digipal_debugger')
 
 from patches import iipimage_patches, admin_patches, whoosh_patches
@@ -68,6 +69,26 @@ def get_list_as_string(*parts):
             ret += waiting_sep + item_str
             waiting_sep = sep
     return ret
+
+class NameModel(models.Model):
+    '''
+        An abstract model that contains just a name, a created and modified field.
+    '''
+    name = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    slug = models.SlugField(max_length=100, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        abstract = True
+        ordering = ['name']
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(unicode(self.name))
+        super(NameModel, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
 
 class MediaPermission(models.Model):
     label = models.CharField(max_length=64, blank=False, null=False,

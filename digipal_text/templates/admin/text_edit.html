@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static html_escape %}
+
+{% block title %}{{ item_part }}{% endblock %}
+
+{% block extrahead %}
+
+    {{ block.super }}
+    
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/editor/editor.css"/>
+    
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="context-div">
+    
+        <div class="panel" id="panel-heading">
+	        <h1>
+	            <select name="content_type">
+	                {% for type in content_types %}
+	                    <option value="../{{ type.slug }}/"
+	                        {% if type = text_content_xml.text_content.type %}selected="selected"{% endif %}
+	                    >
+	                        {{ type.name }}
+	                    </option>
+	                {% endfor %}
+	            </select>
+	            {{ item_part }}
+	        </h1>
+            <div class="message">&nbsp;</div>
+        </div>
+        
+        <div class="panel" id="panel-editor">
+            <div id="text-area">
+            </div>
+        </div>
+        
+        <div class="panel" id="panel-viewer" >
+            <div id="image-list">
+                <input type="text" name="image_filter" />
+                <br/>
+                <select name="image_selector" size="10" style="height:auto">
+                    {% for image in item_part.images.all %}
+                        <option value="{% iip_url image.iipimage height=400 %}">{{ image.locus }} (#{{ image.id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="image-viewer">
+            </div>
+        </div>
+        
+    </div>
+    
+{% endblock %} 
+
+{% block footer %}
+    <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/editor/editor.js"></script>
+    
+    {{ block.super }}
+{% endblock %}

@@ -111,7 +111,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			});
 		}
 	};
-
+	
 	/*
 		* function load_annotations
 		@parameter callback
@@ -157,7 +157,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 				var id = annotations[i]['id'];
 				var is_editorial = annotations[i]['is_editorial'];
 				if (graph || is_editorial) {
-					f.feature = allograph;
+					f.display_order = annotations[i]['display_order'];
+				    f.feature = allograph;
 					f.character_id = character_id;
 					f.graph = graph;
 					f.character = character;
@@ -180,6 +181,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 					features.push(f);
 				}
 			}
+			
+			// sort the features by display order so smaller boxes are not blocked under bigger ones
+			features.sort(function(a, b) { return a.display_order - b.display_order; });
 
 			// adds all the vectors to the vector layer
 			layer.addFeatures(features);
@@ -1810,7 +1814,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 		annotator.cacheAnnotations.clear();
 		$('.dialog_annotations').parent().remove();
 		var request = $.getJSON(annotator.absolute_image_url + 'annotations/', function(data) {
-			annotator.annotations = data;
+            annotator.annotations = data;
 		});
 		var div = $('<div>');
 		div.attr('class', 'loading-div');

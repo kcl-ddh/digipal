@@ -56,6 +56,11 @@ Commands:
   match_owners
                         Match owner relationships from legacy DB into DigiPal
                         
+  import_pim
+                        Import PIM images from the CSV
+  
+  convert_exon_folio_numbers
+                        Convert the folio numbers to the new system
 """
     
     args = 'hand'
@@ -100,6 +105,10 @@ Commands:
         
         known_command = False
 
+        if command == 'convert_exon_folio_numbers':
+            known_command = True
+            self.convert_exon_folio_numbers()
+        
         if command == 'match_owners':
             known_command = True
             self.match_legacy_owners()
@@ -114,6 +123,10 @@ Commands:
         if command == 'import_moa_charters':
             known_command = True
             self.import_moa_charters()
+
+        if command == 'import_pim':
+            known_command = True
+            self.import_pim()
 
         if command == 'import_poms':
             known_command = True
@@ -163,7 +176,122 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+    @transaction.atomic
+    def convert_exon_folio_numbers(self):
+        from digipal import utils as dputils
+        lines = dputils.read_all_lines_from_csv(self.options['src'])
+        
+        from digipal.models import Image
+        images = Image.objects.all()
+        
+        for line in lines:
+            if not line: continue
+            new_number = line['barnesellisfol']
+            old_number = line['olderfol']
+            
+            print old_number, new_number
+            
+            #folio = '%s%s' % (old_number)
+            for image in images:
+                new_locus = re.sub(ur'\b%s(r|v)\b' % old_number, r'%s\1' % new_number, image.locus)
+                if image.locus != new_locus:
+                    image.new_locus = new_locus
+                    print '    #%4s: %4s -> %4s' % (image.id, image.locus, image.new_locus)
 
+        for image in images:
+            if getattr(image, 'new_locus', None):
+                print image.locus, image.new_locus
+                image.locus = image.new_locus
+                image.save()
+        
+        return True
+
+    @transaction.atomic
+    def import_pim(self):
+        from digipal.models import Image, Hand, ItemPart, CurrentItem, Source, CatalogueNumber, HistoricalItem, ItemPartItem
+        import csv
+        
+        # load the CSV
+        '''
+        [u'nnb', u'cote', u'localisation', u'dr', u'rfbibtrsorsbaisbuis', 
+        u'anciennecollection', u'rfanciennecollection', u'numrodacquisition', 
+        u'poids', u'idphotos', u'rfbibprou', u'atelier', u'',  u'rgion', 
+        u'autoritmettrice', u'montaire', u'imitation', u'mtal']
+        '''
+        
+        images = {}
+        for image in Image.objects.all():
+            images[re.sub(ur'^.*/([^./]*)\.jp2$', ur'\1', str(image.iipimage))] = image
+        
+        # create the source
+        prou_source, created = Source.objects.get_or_create(name='Prou')
+
+        csv_path = self.options['src']
+        line_index = 0
+        with open(csv_path, 'rb') as csvfile:
+            csvreader = csv.reader(csvfile)
+            
+            columns = None
+            
+            for line in csvreader:
+                line_index += 1
+                line = [v.decode('latin-1') for v in line]
+                if not columns:
+                    columns = [re.sub(ur'[^a-z]', '', c.lower()) for c in line]
+                    continue
+                
+                rec = dict(zip(columns, line))
+
+                # find the image
+                idphoto = re.sub('\D', '_', rec['idphotos'].strip())
+                if not idphoto:
+                    print 'No photo id (line %s)' % line_index
+                else:
+                    image = images.get(idphoto, None)
+                    #print image
+                    #print rec
+                    if not image:
+                        print 'No matching image %s (line %s)' % (idphoto, line_index)
+                    else:
+                        # set the side
+                        image.locus = rec['dr']
+                        
+                        # create the CI
+                        ci, created = CurrentItem.objects.get_or_create(shelfmark='MER-%s' % rec['cote'].strip(), repository_id=2)
+                        
+                        # create the IP
+                        ip, created = ItemPart.objects.get_or_create(current_item=ci)
+                        ip.locus = ''
+                        ip.save()
+
+                        # link the image to the IP
+                        image.item_part = ip
+                        image.save()
+
+                        # create the Hand
+                        hand, created = Hand.objects.get_or_create(label='Unknown', item_part=ip, scribe_id=1, num=1)
+
+                        # add the Hand to the Image
+                        hand.images.add(image)
+                        
+                        # add a HI
+                        hi = ip.historical_item
+                        if not hi:
+                            hi = HistoricalItem(historical_item_type_id=1)
+                            hi.save()
+                            ItemPartItem(historical_item=hi, item_part=ip).save()
+                        
+                        # add the cat num
+                        prou_number = rec['rfbibprou'].strip()
+                        if prou_number:
+                            hand, created = CatalogueNumber.objects.get_or_create(historical_item=hi, source=prou_source, number=prou_number)
+                            # regen label
+                            hi.save()
+                        
+        raise Exception('Rollback')
+        
+        #return ret
+        
     def import_poms(self):
         
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

@@ -2818,7 +2818,7 @@ class StewartRecord(models.Model):
                     related_object = related_model(**query)
                     
                     if related_model == Date:
-                        from digipal.utils import get_range_from_date
+                        from utils import get_range_from_date
                         rng = get_range_from_date(value.strip())
                         related_object.min_weight = rng[0]
                         related_object.max_weight = rng[1]

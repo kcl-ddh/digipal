@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.db.models import Count
 from django import forms
@@ -23,454 +22,38 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
         CarouselItem, ApiTransform
+from django.conf import settings
 import reversion
 import django_admin_customisations
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
+import admin_filters
+import admin_inlines
+import admin_forms
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
-#########################
-#                       #
-#   Advanced Filters    #
-#                       #
-#########################
+class DigiPalModelAdmin(reversion.VersionAdmin):
+    '''
+        An extension of DigiPalModelAdmin (itself an extension of ModelAdmin)
+        which:
+            * hides inlines from the change form when they get too large (i.e too slow to display in a reasonable time).
+                threshold can be defined in local_settings.py::ADMIN_INLINE_HIDE_SIZE
+                default threshold is 100
+    '''
+    def get_inline_instances(self, request, *args, **kwargs):
+        ret = super(DigiPalModelAdmin, self).get_inline_instances(request, *args, **kwargs)
+        threshold = getattr(settings, 'ADMIN_INLINE_HIDE_SIZE', 100)
+        ret = [inline for inline in ret if inline.get_queryset(request).count() < threshold]
+        return ret
 
-class RelatedObjectNumberFilter(SimpleListFilter):
-    title = ('Number of Related Objects')
-    parameter_name = ('n')
-    
-    related_table = 'digipal_image'
-    foreign_key = 'item_part_id'
-    this_table = 'digipal_itempart'
-    this_key = 'id'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('None')),
-            ('1', ('One')),
-            ('1p', ('One or more')),
-            ('2p', ('More than one')),
-        )   
-
-    def queryset(self, request, queryset):
-        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
-        select += ur'%s )'
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '1p':
-            return queryset.extra(where=[select % ' >= 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
-
-class ImageAnnotationNumber(SimpleListFilter):
-    title = ('Annotations')
-
-    parameter_name = ('Annot')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('1', ('At least five annotations')),
-            ('2', ('Fewer than five annotations')),
-            ('3', ('At least one annotation')),
-            ('0', ('No annotation')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() == '0':
-            return queryset.exclude(annotation__id__gt=0)
-        if self.value() == '3':
-            return queryset.filter(annotation__id__gt=0).distinct()
-        if self.value() == '1':
-            return queryset.annotate(num_annot = Count('annotation__image__item_part')).exclude(num_annot__lt = 5)
-        if self.value() == '2':
-            return queryset.annotate(num_annot = Count('annotation__image__item_part')).filter(num_annot__lt = 5)
-            
-
-class ImageFilterNoItemPart(SimpleListFilter):
-    title = 'Item Part'
-
-    parameter_name = ('item_part')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('with', ('With Item Part')),
-            ('without', ('Without Item Part')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() == 'with':
-            return queryset.filter(item_part_id__gt = 0).distinct()
-        if self.value() == 'without':
-            return queryset.exclude(item_part_id__gt = 0).distinct()
-
-class GraphFilterNoAnnotation(SimpleListFilter):
-    title = 'Annotation'
-
-    parameter_name = ('annotation')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('with', ('With annotation')),
-            ('without', ('Annotation is missing')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() == 'with':
-            return queryset.filter(annotation__isnull = False).distinct()
-        if self.value() == 'without':
-            return queryset.filter(annotation__isnull = True).distinct()
-
-class ImageFilterDuplicateShelfmark(SimpleListFilter):
-    title = 'Duplicate Shelfmark'
-
-    parameter_name = ('dup')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('1', ('has duplicate shelfmark')),
-            ('-1', ('has unique shelfmark')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() in ['1', '-1']:
-            all_duplicates_ids = Image.get_duplicates_from_ids().keys()
-        
-        if self.value() == '1':
-            return queryset.filter(id__in = all_duplicates_ids).distinct()
-        if self.value() == '-1':
-            return queryset.exclude(id__in = all_duplicates_ids).distinct()
-
-class ImageFilterDuplicateFilename(SimpleListFilter):
-    title = 'Duplicate Image File'
-
-    parameter_name = ('dupfn')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('1', ('has duplicate filename')),
-            ('-1', ('has unique filename')),
-            ('2', ('has duplicate size')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() in ['-1', '1']:
-            duplicate_iipimages = Image.objects.all().values_list('iipimage').annotate(dcount=Count('iipimage')).filter(dcount__gt=1).values_list('iipimage', flat=True)
-        
-        if self.value() == '1':
-            return queryset.filter(iipimage__in = duplicate_iipimages).distinct()
-        if self.value() == '-1':
-            return queryset.exclude(iipimage__in = duplicate_iipimages).distinct()
-        if self.value() == '2':
-            duplicate_iipimages = Image.objects.all().values_list('size').annotate(dcount=Count('size')).filter(dcount__gt=1).values_list('size', flat=True)
-            return queryset.filter(size__in = duplicate_iipimages).distinct()
-
-class ImageWithFeature(SimpleListFilter):
-    title = ('Associated Features')
-
-    parameter_name = ('WithFeat')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Has feature(s)')),
-            ('no', ('No features')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.filter(annotation__graph__graph_components__features__id__gt = 0).distinct()
-        if self.value() == 'no':
-            return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
-           
-class ImageWithHand(SimpleListFilter):
-    title = ('Associated Hand')
-
-    parameter_name = ('WithHand')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Has Hand(s)')),
-            ('no', ('No Hand')),
-        )        
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.filter(hands__id__gt=0).distinct()
-        if self.value() == 'no':
-            return queryset.exclude(hands__id__gt=0).distinct()
-           
-
-class DescriptionFilter(SimpleListFilter):
-    title = ('To Fix or Check')
-
-    parameter_name = ('toFixOrCheck')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('toFix', ('Needs to be fixed')),
-            ('toCheck', ('Needs to be checked')),
-            ('goodlikethis', ('No needs to be checked or fixed')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'toFix':
-            return queryset.filter(description__contains = "FIX")
-        if self.value() == 'toCheck':
-            return queryset.filter(description__contains = "CHECK")
-        if self.value() == 'goodlikethis':
-            q = queryset.exclude(description__contains = "CHECK")
-            k = q.exclude(description__contains = "FIX")
-            return k
-
-
-class HistoricalCatalogueNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of catalogue numbers')
-
-    parameter_name = ('ncn')
-
-    related_table = 'digipal_cataloguenumber'
-    foreign_key = 'historical_item_id'
-    this_table = 'digipal_historicalitem'
-    
-class HistoricalItemDescriptionFilter(SimpleListFilter):
-    title = ('To Fix or Check')
-
-    parameter_name = ('toFixOrCheck')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('toFix', ('Needs to be fixed')),
-            ('toCheck', ('Needs to be checked')),
-            ('goodlikethis', ('No needs to be checked or fixed')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'toFix':
-            return queryset.filter(description__description__contains = "FIX")
-        if self.value() == 'toCheck':
-            return queryset.filter(description__description__contains = "CHECK")
-        if self.value() == 'goodlikethis':
-            q = queryset.exclude(description__description__contains = "CHECK")
-            k = q.exclude(description__description__contains = "FIX")
-            return k
-
-class RelatedObjectNumberFilter(SimpleListFilter):
-    title = ('Number of Related Objects')
-    parameter_name = ('n')
-    
-    related_table = 'digipal_image'
-    foreign_key = 'item_part_id'
-    this_table = 'digipal_itempart'
-    this_key = 'id'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('0')),
-            ('1', ('1')),
-            ('1p', ('1+')),
-            ('2p', ('2+')),
-            ('3p', ('3+')),
-        )   
-
-    def queryset(self, request, queryset):
-        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
-        select += ur'%s )'
-        if self.value() == '0':
-            return queryset.extra(where=[select % ' = 0'])
-        if self.value() == '1':
-            return queryset.extra(where=[select % ' = 1'])
-        if self.value() == '1p':
-            return queryset.extra(where=[select % ' >= 1'])
-        if self.value() == '2p':
-            return queryset.extra(where=[select % ' > 1'])
-        if self.value() == '3p':
-            return queryset.extra(where=[select % ' > 2'])
-
-class ItemPartHasGroupGroupFilter(SimpleListFilter):
-    title = ('Membership')
-
-    parameter_name = ('hg')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('0', ('not part of a group')),
-            ('1', ('part of a group')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == '1':
-            return queryset.filter(group__isnull = False)
-        if self.value() == '0':
-            return queryset.filter(group__isnull = True)
-
-class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of parts')
-
-    parameter_name = ('np')
-
-    related_table = 'digipal_itempart'
-    foreign_key = 'group_id'
-    this_table = 'digipal_itempart'
-    
-class ItemPartImageNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of Images')
-
-    parameter_name = ('ni')
-
-    related_table = 'digipal_image'
-    foreign_key = 'item_part_id'
-    this_table = 'digipal_itempart'
-    
-class CurrentItemPartNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of Parts')
-
-    parameter_name = ('ci_nip')
-
-    related_table = 'digipal_itempart'
-    foreign_key = 'current_item_id'
-    this_table = 'digipal_currentitem'
-
-class HistoricalItemItemPartNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of Parts')
-
-    parameter_name = ('hi_nip')
-
-    related_table = 'digipal_itempartitem'
-    foreign_key = 'historical_item_id'
-    this_table = 'digipal_historicalitem'
-
-class HistoricalItemKerFilter(SimpleListFilter):
-    title = ('Ker')
-
-    parameter_name = ('ker')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Contains Ker')),
-            ('no', ('Not contains Ker')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.filter(description__description__contains = "Ker")
-        if self.value() == 'no':
-            return queryset.exclude(description__description__contains = "Ker")
-
-class HistoricalItemGneussFilter(SimpleListFilter):
-    title = ('Gneuss')
-
-    parameter_name = ('gneuss')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Contains Gneuss Number')),
-            ('no', ('Not contains Gneuss Number')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.filter(catalogue_numbers__source__label='G.')
-        if self.value() == 'no':
-            return queryset.exclude(catalogue_numbers__source__label='G.')
-
-# class HandMatchedFilter(SimpleListFilter):
-#     title = ('matched with Stewart Hand')
-# 
-#     parameter_name = ('mwsh')
-# 
-#     def lookups(self, request, model_admin):
-#         return (
-#             ('yes', ('Matched')),
-#             ('no', ('Not matched')),
-#         )   
-# 
-#     def queryset(self, request, queryset):
-#         if self.value() == 'yes':
-#             return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
-#         if self.value() == 'no':
-#             return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
-
-class HandItempPartFilter(SimpleListFilter):
-    title = ('numbers of ItemParts')
-
-    parameter_name = ('morethanoneItemPart')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Has more than one Item Part')),
-            ('no', ('Has not more than one Item Part')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).filter(num_itemparts__gt='1'))
-        if self.value() == 'no':
-            return Hand.objects.filter(item_part__historical_items__in = HistoricalItem.objects.annotate(num_itemparts= Count('itempart')).exclude(num_itemparts__gt='1'))
-
-class HandGlossNumFilter(SimpleListFilter):
-    title = ('number of Glossing Hands')
-
-    parameter_name = ('glosshandwithnum')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Has Num. Glossing hands')),
-            ('no', ('Not has Num. Glossing hands')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return Hand.objects.filter(gloss_only=True).filter(num_glosses__isnull=False)
-        if self.value() == 'no':
-            return Hand.objects.filter(gloss_only=True).filter(num_glosses__isnull=True)
-
-class HandGlossTextFilter(SimpleListFilter):
-    title = ('has Glossing Text')
-
-    parameter_name = ('glosshandwithtext')
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', ('Has Glossed Text')),
-            ('no', ('Not has Glossed text')),
-        )   
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=False)
-        if self.value() == 'no':
-            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True) 
-
-class HandImageNumberFilter(RelatedObjectNumberFilter):
-    title = ('Number of images')
-
-    parameter_name = ('ni')
-
-    related_table = 'digipal_hand_images'
-    foreign_key = 'hand_id'
-    this_table = 'digipal_hand'
-    
 
 #########################
 #                       #
 #        Forms          #
 #                       #
 #########################
-
-fieldsets_hand = (
-            #(None, {'fields': ('num', )}),
-            ('Item Part and Scribe', {'fields': ('item_part', 'scribe')}),
-            ('Labels and notes', {'fields': ('label', 'num', 'display_note', 'internal_note', 'comments')}),
-            ('Images', {'fields': ('images',)}),
-            ('Other Catalogues', {'fields': ('legacy_id', 'ker', 'scragg', 'em_title')}),
-            ('Place and Date', {'fields': ('assigned_place', 'assigned_date')}),
-            ('Gloss', {'fields': ('glossed_text', 'num_glossing_hands', 'num_glosses', 'gloss_only')}),
-            ('Appearance and other properties', {'fields': ('script', 'appearance', 'relevant', 'latin_only', 'latin_style', 'scribble_only', 'imitative', 'membra_disjecta')}),
-            ('Brookes Database', {'fields': ('stewart_record', 'selected_locus', 'locus', 'surrogates')}),
-            ) 
 
 class GraphForm(forms.ModelForm):
 
@@ -528,76 +111,13 @@ class RepositoryForm(forms.ModelForm):
         super(RepositoryForm, self).__init__(*args, **kwargs)
         self.fields['media_permission'].empty_label = '%s' % Repository.get_default_media_permission()
 
-
-#########################
-#                       #
-#        Inlines        #
-#                       #
-#########################
-
-
-class OwnerInline(admin.StackedInline):
-    model = Owner
-
-class PlaceInline(admin.StackedInline):
-    model = Place
-
-class CurrentItemInline(admin.StackedInline):
-    model = CurrentItem
-
-class HistoricalItemInline(admin.StackedInline):
-    model = HistoricalItem
-
-class HistoricalItemOwnerInline(admin.StackedInline):
-    model = HistoricalItem.owners.through
-    verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
-
-class ItemPartOwnerInline(admin.StackedInline):
-    model = ItemPart.owners.through
-    verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
-
-class CurrentItemOwnerInline(admin.StackedInline):
-    model = CurrentItem.owners.through
-    verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
-
-class OwnerHistoricalItemInline(admin.StackedInline):
-    model = HistoricalItem.owners.through
-    verbose_name = "Historical Item"
-    verbose_name_plural = "Historical Items"    
-
-class OwnerCurrentItemInline(admin.StackedInline):
-    model = CurrentItem.owners.through
-    verbose_name = "Current Item"
-    verbose_name_plural = "Current Items"    
-
-class OwnerItemPartInline(admin.StackedInline):
-    model = ItemPart.owners.through
-    verbose_name = "Item Part"
-    verbose_name_plural = "Item Parts"    
-
-class AllographComponentInline(admin.StackedInline):
-    model = AllographComponent
-
-    filter_horizontal = ['features']
-
-class IdiographInline(admin.StackedInline):
-    model = Idiograph
-
-    filter_horizontal = ['aspects']
-
-class TextItemPartInline(admin.StackedInline):
-    model = TextItemPart
-
 #########################
 #                       #
 #     Model Admins      #
 #                       #
 #########################
 
-class AllographAdmin(reversion.VersionAdmin):
+class AllographAdmin(DigiPalModelAdmin):
     model = Allograph
 
     search_fields = ['name', 'character__name']
@@ -607,9 +127,9 @@ class AllographAdmin(reversion.VersionAdmin):
     list_editable = ['hidden']
 
     filter_horizontal = ['aspects']
-    inlines = [AllographComponentInline, IdiographInline]
+    inlines = [admin_inlines.AllographComponentInline, admin_inlines.IdiographInline]
 
-class AlphabetAdmin(reversion.VersionAdmin):
+class AlphabetAdmin(DigiPalModelAdmin):
     model = Alphabet
 
     filter_horizontal = ['ontographs', 'hands']
@@ -618,7 +138,7 @@ class AlphabetAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class AnnotationAdmin(reversion.VersionAdmin):
+class AnnotationAdmin(DigiPalModelAdmin):
     model = Annotation
 
     list_display = ['author', 'image', 'status', 'before', 'graph', 'after',
@@ -631,7 +151,7 @@ class AnnotationAdmin(reversion.VersionAdmin):
 
     readonly_fields = ('graph',)
 
-class AppearanceAdmin(reversion.VersionAdmin):
+class AppearanceAdmin(DigiPalModelAdmin):
     model = Appearance
 
     list_display = ['text', 'sort_order', 'created', 'modified']
@@ -639,7 +159,7 @@ class AppearanceAdmin(reversion.VersionAdmin):
     search_fields = ['text', 'description']
 
 
-class AspectAdmin(reversion.VersionAdmin):
+class AspectAdmin(DigiPalModelAdmin):
     model = Aspect
 
     filter_horizontal = ['features']
@@ -648,7 +168,7 @@ class AspectAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class CatalogueNumberAdmin(reversion.VersionAdmin):
+class CatalogueNumberAdmin(DigiPalModelAdmin):
     model = CatalogueNumber
 
     list_display = ['historical_item', 'source', 'number', 'created',
@@ -658,7 +178,7 @@ class CatalogueNumberAdmin(reversion.VersionAdmin):
     search_fields = ['source__name', 'number']
 
 
-class CategoryAdmin(reversion.VersionAdmin):
+class CategoryAdmin(DigiPalModelAdmin):
     model = Category
 
     list_display = ['name', 'sort_order', 'created', 'modified']
@@ -666,13 +186,7 @@ class CategoryAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class AllographInline(admin.StackedInline):
-    model = Allograph
-
-    filter_horizontal = ['aspects']
-
-
-class CharacterFormAdmin(reversion.VersionAdmin):
+class CharacterFormAdmin(DigiPalModelAdmin):
     model = CharacterForm
 
     list_display = ['id', 'name']
@@ -680,18 +194,18 @@ class CharacterFormAdmin(reversion.VersionAdmin):
 
     search_fields = ['name', 'id']
 
-class CharacterAdmin(reversion.VersionAdmin):
+class CharacterAdmin(DigiPalModelAdmin):
     model = Character
 
     filter_horizontal = ['components']
-    inlines = [AllographInline]
+    inlines = [admin_inlines.AllographInline]
     list_display = ['name', 'unicode_point', 'form', 'created', 'modified']
     list_display_links = ['name', 'unicode_point', 'form', 'created',
             'modified']
     search_fields = ['name', 'form__name']
 
 
-class CollationAdmin(reversion.VersionAdmin):
+class CollationAdmin(DigiPalModelAdmin):
     model = Collation
 
     list_display = ['historical_item', 'fragment', 'leaves', 'front_flyleaves',
@@ -701,7 +215,7 @@ class CollationAdmin(reversion.VersionAdmin):
             'created', 'modified']
 
 
-class ComponentAdmin(reversion.VersionAdmin):
+class ComponentAdmin(DigiPalModelAdmin):
     model = Component
 
     filter_horizontal = ['features']
@@ -709,7 +223,7 @@ class ComponentAdmin(reversion.VersionAdmin):
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
-class ComponentFeatureAdmin(reversion.VersionAdmin):
+class ComponentFeatureAdmin(DigiPalModelAdmin):
     model = ComponentFeature
     
     list_display = ['id', 'component', 'feature', 'set_by_default', 'created', 'modified']
@@ -717,7 +231,7 @@ class ComponentFeatureAdmin(reversion.VersionAdmin):
     list_editable = ['set_by_default']
     search_fields = ['component__name', 'feature__name']
 
-class CountyAdmin(reversion.VersionAdmin):
+class CountyAdmin(DigiPalModelAdmin):
     model = County
 
     list_display = ['name', 'created', 'modified']
@@ -725,27 +239,17 @@ class CountyAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class ItemPartInline(admin.StackedInline):
-    model = ItemPart
-
 class ItemPartItemInline(StackedDynamicInlineAdmin):
+    extra = 3
     model = ItemPartItem
 
-class ItemPartItemInlineFromHistoricalItem(ItemPartItemInline):
-    verbose_name = 'Item Part'
-    verbose_name_plural = 'Item Parts'
-
-class ItemPartItemInlineFromItemPart(ItemPartItemInline):
-    verbose_name = 'Historical Item'
-    verbose_name_plural = 'Historical Items'
-
-class CurrentItemAdmin(reversion.VersionAdmin):
+class CurrentItemAdmin(DigiPalModelAdmin):
     model = CurrentItem
 
     list_display = ['id', 'display_label', 'repository', 'shelfmark', 'get_part_count', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
-    list_filter = ['repository', CurrentItemPartNumberFilter]
+    list_filter = ['repository', admin_filters.CurrentItemPartNumberFilter]
     
     readonly_fields = ('display_label',)
     
@@ -754,26 +258,19 @@ class CurrentItemAdmin(reversion.VersionAdmin):
                 ('Legacy', {'fields': ('legacy_id',)}),
                 ) 
 
-    inlines = [ItemPartInline, CurrentItemOwnerInline]
+    inlines = [admin_inlines.ItemPartInline, admin_inlines.CurrentItemOwnerInline]
     filter_horizontal = ['owners']
 
-class DateEvidenceInline(admin.StackedInline):
-    model = DateEvidence
-    
-class DateEvidenceInlineFromDate(admin.StackedInline):
-    model = DateEvidence
-    fk_name = 'date'
-
-class DateAdmin(reversion.VersionAdmin):
+class DateAdmin(DigiPalModelAdmin):
     model = Date
 
-    inlines = [DateEvidenceInlineFromDate]
+    inlines = [admin_inlines.DateEvidenceInlineFromDate]
     list_display = ['sort_order', 'date', 'created', 'modified']
     list_display_links = ['sort_order', 'date', 'created', 'modified']
     search_fields = ['date']
 
 
-class DateEvidenceAdmin(reversion.VersionAdmin):
+class DateEvidenceAdmin(DigiPalModelAdmin):
     model = DateEvidence
 
     list_display = ['hand', 'date', 'reference', 'created', 'modified']
@@ -781,7 +278,7 @@ class DateEvidenceAdmin(reversion.VersionAdmin):
     search_fields = ['date_description']
 
 
-class DecorationAdmin(reversion.VersionAdmin):
+class DecorationAdmin(DigiPalModelAdmin):
     model = Decoration
 
     list_display = ['historical_item', 'illustrated', 'decorated',
@@ -791,15 +288,15 @@ class DecorationAdmin(reversion.VersionAdmin):
     search_fields = ['description']
 
 
-class DescriptionAdmin(reversion.VersionAdmin):
+class DescriptionAdmin(DigiPalModelAdmin):
     model = Description
 
     list_display = ['historical_item', 'source', 'created', 'modified', 'description']
     list_display_links = ['historical_item', 'source', 'created', 'modified']
     search_fields = ['description']
-    list_filter = [DescriptionFilter]
+    list_filter = [admin_filters.DescriptionFilter]
 
-class FeatureAdmin(reversion.VersionAdmin):
+class FeatureAdmin(DigiPalModelAdmin):
     model = Feature
 
     list_display = ['name', 'created', 'modified']
@@ -807,7 +304,7 @@ class FeatureAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class FormatAdmin(reversion.VersionAdmin):
+class FormatAdmin(DigiPalModelAdmin):
     model = Format
 
     list_display = ['name', 'created', 'modified']
@@ -815,29 +312,22 @@ class FormatAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class GraphComponentInline(admin.StackedInline):
-    model = GraphComponent
-
-    filter_horizontal = ['features']
-
-
-class GraphAdmin(reversion.VersionAdmin):
+class GraphAdmin(DigiPalModelAdmin):
     form = GraphForm
     model = Graph
 
     filter_horizontal = ['aspects']
-    inlines = [GraphComponentInline]
+    inlines = [admin_inlines.GraphComponentInline]
     list_display = ['id', 'hand', 'idiograph', 'created', 'modified']
     list_display_links = list_display
 
-    list_filter = [GraphFilterNoAnnotation]
+    list_filter = [admin_filters.GraphFilterNoAnnotation]
 
     actions = ['action_update_group']
 
     def action_update_group(self, request, queryset):
         #from django.http import HttpResponseRedirect
         #graphs = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        from digipal.models import Graph
         graphs = Graph.objects.filter(annotation__isnull=False).select_related('annotation')
         for graph in graphs:
             graph.annotation.set_graph_group()
@@ -845,7 +335,7 @@ class GraphAdmin(reversion.VersionAdmin):
     action_update_group.short_description = 'Update nestings'
 
 
-class HairAdmin(reversion.VersionAdmin):
+class HairAdmin(DigiPalModelAdmin):
     model = Hair
 
     list_display = ['label', 'created', 'modified']
@@ -853,49 +343,9 @@ class HairAdmin(reversion.VersionAdmin):
     search_fields = ['label']
 
 
-class PlaceEvidenceInline(admin.StackedInline):
-    model = PlaceEvidence
-
-
-class ProportionInline(admin.StackedInline):
-    model = Proportion
-
-class HandDescriptionInline(admin.StackedInline):
-    model = HandDescription
-
-class HandFilterSurrogates(admin.SimpleListFilter):
-    title = 'Surrogates'
-    parameter_name = 'surrogates'
-    
-    def lookups(self, request, model_admin):
-        return (
-                    ('1', 'with surrogates'),
-                    ('0', 'without surrogates'),
-                )
-    
-    def queryset(self, request, queryset):
-        from django.db.models import Q
-        q = Q(surrogates__isnull=True) | Q(surrogates__exact='')
-        if self.value() == '0':
-            return queryset.filter(q)
-        if self.value() == '1':
-            return queryset.exclude(q)
-
-class HandForm(forms.ModelForm):
-    class Meta:
-        model = Hand
-    label = forms.CharField(widget=forms.TextInput(attrs={'class': 'vTextField'}))
-
-    # On the hand form we only show the Images connected to the associated Item Part 
-    def __init__(self, *args, **kwargs):
-        hand = kwargs.get('instance', None)
-        super(HandForm, self).__init__(*args, **kwargs)
-        if hand:
-            self.fields['images']._set_queryset(Image.objects.filter(item_part=hand.item_part))
-
-class HandAdmin(reversion.VersionAdmin):
+class HandAdmin(DigiPalModelAdmin):
     model = Hand
-    form = HandForm
+    form = admin_forms.HandForm
 
     filter_horizontal = ['images']
     list_display = ['id', 'legacy_id', 'scragg', 'item_part', 'num', 'label', 'script', 'scribe',
@@ -905,49 +355,13 @@ class HandAdmin(reversion.VersionAdmin):
     search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = ['latin_only', HandItempPartFilter, HandFilterSurrogates, HandGlossNumFilter, HandGlossTextFilter, HandImageNumberFilter]
+    list_filter = ['latin_only', admin_filters.HandItempPartFilter, admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter, admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
     
-    fieldsets = fieldsets_hand
+    fieldsets = admin_forms.fieldsets_hand
 
-    inlines = [HandDescriptionInline, DateEvidenceInline, PlaceEvidenceInline, ProportionInline]
+    inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline, admin_inlines.PlaceEvidenceInline, admin_inlines.ProportionInline]
     
-class CatalogueNumberInline(admin.StackedInline):
-    model = CatalogueNumber
-
-
-class CategoryInline(admin.StackedInline):
-    model = Category
-
-
-class CollationInline(admin.StackedInline):
-    model = Collation
-
-
-class DecorationInline(admin.StackedInline):
-    model = Decoration
-
-
-class DescriptionInline(admin.StackedInline):
-    model = Description
-
-
-class ItemDateInline(admin.StackedInline):
-    model = HistoricalItemDate
-
-
-class ItemOriginInline(admin.StackedInline):
-    model = ItemOrigin
-
-
-class PartLayoutInline(admin.StackedInline):
-    model = Layout
-    exclude = ('historical_item', )
-
-class ItemLayoutInline(admin.StackedInline):
-    model = Layout
-    exclude = ('item_part', )
-
-class HistoricalItemAdmin(reversion.VersionAdmin):
+class HistoricalItemAdmin(DigiPalModelAdmin):
     model = HistoricalItem
 
     search_fields = ['id', 'catalogue_number', 'date', 'name']
@@ -955,9 +369,9 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
     list_filter = ['historical_item_type', 'historical_item_format', 
-                   HistoricalItemDescriptionFilter, HistoricalItemKerFilter, 
-                   HistoricalItemGneussFilter, HistoricalItemItemPartNumberFilter, 
-                   HistoricalCatalogueNumberFilter]
+                   admin_filters.HistoricalItemDescriptionFilter, admin_filters.HistoricalItemKerFilter, 
+                   admin_filters.HistoricalItemGneussFilter, admin_filters.HistoricalItemItemPartNumberFilter, 
+                   admin_filters.HistoricalCatalogueNumberFilter]
     
     fieldsets = (
                 (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),
@@ -971,11 +385,11 @@ class HistoricalItemAdmin(reversion.VersionAdmin):
     
     filter_horizontal = ['categories', 'owners']
     
-    inlines = [ItemPartItemInlineFromHistoricalItem, CatalogueNumberInline,
-            ItemDateInline, ItemOriginInline, HistoricalItemOwnerInline, 
-            CollationInline, DecorationInline, DescriptionInline, ItemLayoutInline]
+    inlines = [admin_inlines.ItemPartItemInlineFromHistoricalItem, admin_inlines.CatalogueNumberInline,
+            admin_inlines.ItemDateInline, admin_inlines.ItemOriginInline, admin_inlines.HistoricalItemOwnerInline, 
+            admin_inlines.CollationInline, admin_inlines.DecorationInline, admin_inlines.DescriptionInline, admin_inlines.ItemLayoutInline]
 
-class HistoricalItemTypeAdmin(reversion.VersionAdmin):
+class HistoricalItemTypeAdmin(DigiPalModelAdmin):
     model = HistoricalItemType
 
     list_display = ['name', 'created', 'modified']
@@ -983,36 +397,20 @@ class HistoricalItemTypeAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class GraphInline(admin.StackedInline):
-    model = Graph
-
-    filter_horizontal = ['aspects']
-
-
-class IdiographComponentInline(admin.StackedInline):
-    model = IdiographComponent
-
-    filter_horizontal = ['features']
-
-
-class IdiographAdmin(reversion.VersionAdmin):
+class IdiographAdmin(DigiPalModelAdmin):
     model = Idiograph
 
     filter_horizontal = ['aspects']
-    inlines = [IdiographComponentInline, GraphInline]
+    inlines = [admin_inlines.IdiographComponentInline, admin_inlines.GraphInline]
     list_display = ['allograph', 'scribe', 'created', 'modified']
     list_display_links = ['allograph', 'scribe', 'created', 'modified']
     search_fields = ['allograph__name']
 
 
-class ScribeInline(admin.StackedInline):
-    model = Scribe
-
-
-class InstitutionAdmin(reversion.VersionAdmin):
+class InstitutionAdmin(DigiPalModelAdmin):
     model = Institution
 
-    inlines = [OwnerInline, ScribeInline]
+    inlines = [admin_inlines.OwnerInline, admin_inlines.ScribeInline]
     list_display = ['institution_type', 'name', 'founder', 'place', 'created',
             'modified']
     list_display_links = ['institution_type', 'name', 'founder', 'place',
@@ -1020,14 +418,14 @@ class InstitutionAdmin(reversion.VersionAdmin):
     search_fields = ['name', 'place__name']
 
 
-class InstitutionTypeAdmin(reversion.VersionAdmin):
+class InstitutionTypeAdmin(DigiPalModelAdmin):
     model = InstitutionType
 
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
-class ItemDateAdmin(reversion.VersionAdmin):
+class ItemDateAdmin(DigiPalModelAdmin):
     model = HistoricalItemDate
 
     list_display = ['historical_item', 'date', 'created', 'modified']
@@ -1035,7 +433,7 @@ class ItemDateAdmin(reversion.VersionAdmin):
     search_fields = ['evidence']
 
 
-class ItemOriginAdmin(reversion.VersionAdmin):
+class ItemOriginAdmin(DigiPalModelAdmin):
     model = ItemOrigin
 
     list_display = ['content_type', 'content_object', 'historical_item',
@@ -1044,23 +442,9 @@ class ItemOriginAdmin(reversion.VersionAdmin):
             'created', 'modified']
     search_fields = ['evidence']
 
-
-class HandInline(StackedDynamicInlineAdmin):
-    model = Hand
-    form = HandForm
-
-    filter_horizontal = ['images']
-    
-    fieldsets = fieldsets_hand
-
-
-class ImageInline(admin.StackedInline):
-    model = Image
-
-    exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number']
-
 class ItemSubPartInline(StackedDynamicInlineAdmin):
     model = ItemPart
+    extra = 3
     
     verbose_name = 'Item Part'
     verbose_name_plural = 'Sub-parts In This Group'
@@ -1072,7 +456,7 @@ class ItemSubPartInline(StackedDynamicInlineAdmin):
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
                 ) 
 
-class ItemPartAdmin(reversion.VersionAdmin):
+class ItemPartAdmin(DigiPalModelAdmin):
     model = ItemPart
 
     # 'current_item', 'locus', 
@@ -1084,7 +468,7 @@ class ItemPartAdmin(reversion.VersionAdmin):
             'historical_items__display_label', 'current_item__display_label',
             'subdivisions__display_label', 'group__display_label', 
             'type__name', 'keywords_string', 'notes']
-    list_filter = ('type', ItemPartImageNumberFilter, ItemPartMembersNumberFilter, ItemPartHasGroupGroupFilter)
+    list_filter = ('type', admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
     
     readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
@@ -1096,7 +480,12 @@ class ItemPartAdmin(reversion.VersionAdmin):
                 #('Owners', {'fields': ('owners',)}),
                 ) 
     filter_horizontal = ['owners']
-    inlines = [ItemPartItemInlineFromItemPart, ItemSubPartInline, HandInline, ImageInline, ItemPartOwnerInline, PartLayoutInline, TextItemPartInline]
+    inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
+
+    def get_inline_instances(self, request, *args, **kwargs):
+        ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)
+        ret = [inline for inline in ret if inline.get_queryset(request).count() < 20]
+        return ret
     
     # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
     # to update this field and resave the IP *after* the related models have been saved!
@@ -1109,14 +498,14 @@ class ItemPartAdmin(reversion.VersionAdmin):
         obj._update_display_label_and_save()
         return super(ItemPartAdmin, self).response_change(request, obj, *args, **kwargs)
 
-class ItemPartTypeAdmin(reversion.VersionAdmin):
+class ItemPartTypeAdmin(DigiPalModelAdmin):
     model = ItemPartType
 
     list_display = ['name', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['name']
 
-class LanguageAdmin(reversion.VersionAdmin):
+class LanguageAdmin(DigiPalModelAdmin):
     model = Language
 
     list_display = ['name', 'created', 'modified']
@@ -1124,7 +513,7 @@ class LanguageAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class LatinStyleAdmin(reversion.VersionAdmin):
+class LatinStyleAdmin(DigiPalModelAdmin):
     model = LatinStyle
 
     list_display = ['style', 'created', 'modified']
@@ -1132,7 +521,7 @@ class LatinStyleAdmin(reversion.VersionAdmin):
     search_fields = ['style']
 
 
-class LayoutAdmin(reversion.VersionAdmin):
+class LayoutAdmin(DigiPalModelAdmin):
     model = Layout
 
     list_display = ['historical_item', 'created', 'modified']
@@ -1140,16 +529,16 @@ class LayoutAdmin(reversion.VersionAdmin):
     search_fields = ['comments']
 
 
-class MeasurementAdmin(reversion.VersionAdmin):
+class MeasurementAdmin(DigiPalModelAdmin):
     model = Measurement
 
-    inlines = [ProportionInline]
+    inlines = [admin_inlines.ProportionInline]
     list_display = ['label', 'created', 'modified']
     list_display_links = ['label', 'created', 'modified']
     search_fields = ['label']
 
 
-class OwnerAdmin(reversion.VersionAdmin):
+class OwnerAdmin(DigiPalModelAdmin):
     model = Owner
 
     list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date', 
@@ -1167,7 +556,7 @@ class OwnerAdmin(reversion.VersionAdmin):
                 ('legacy', {'fields': ('legacy_id',)}),
                 )
     
-    inlines = [OwnerHistoricalItemInline, OwnerItemPartInline, OwnerCurrentItemInline]
+    inlines = [admin_inlines.OwnerHistoricalItemInline, admin_inlines.OwnerItemPartInline, admin_inlines.OwnerCurrentItemInline]
     
     def get_content_type(self, obj):
         ret = unicode(obj.content_type)
@@ -1184,19 +573,14 @@ class OwnerAdmin(reversion.VersionAdmin):
     get_content_object.short_description = 'Owner'
         
     
-class OwnerTypeAdmin(reversion.VersionAdmin):
+class OwnerTypeAdmin(DigiPalModelAdmin):
     model = OwnerType
 
     list_display = ['id', 'name']
     list_display_links = list_display
     search_fields = ['name']
 
-class CharacterInline(admin.StackedInline):
-    model = Character
-
-    filter_horizontal = ['components']
-
-class OntographAdmin(reversion.VersionAdmin):
+class OntographAdmin(DigiPalModelAdmin):
     model = Ontograph
 
     list_display = ['name', 'ontograph_type', 'sort_order', 'nesting_level', 'created', 'modified']
@@ -1205,28 +589,14 @@ class OntographAdmin(reversion.VersionAdmin):
     list_filter = ['ontograph_type', 'nesting_level']
     search_fields = ['name', 'ontograph_type']
 
-    inlines = [CharacterInline]
+    inlines = [admin_inlines.CharacterInline]
 
-class OntographTypeAdmin(reversion.VersionAdmin):
+class OntographTypeAdmin(DigiPalModelAdmin):
     model = OntographType
 
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
-
-# This class is used to only display the Hand linked to the Item Part
-# on an Image form.
-class HandsInlineForm(forms.ModelForm):
-    class Meta:
-        model = Hand.images.through
- 
-    def __init__(self, *args, **kwargs):
-        object = kwargs.get('parent_object', None)
-        if object:
-            kwargs.pop('parent_object')
-        super(HandsInlineForm, self).__init__(*args, **kwargs)
-        if object:
-            self.fields['hand']._set_queryset(Hand.objects.filter(item_part=object.item_part))
 
 # This class is only defined to pass a reference to the current Hand to HandsInlineForm
 class HandsInlineFormSet(forms.models.BaseInlineFormSet):
@@ -1234,19 +604,14 @@ class HandsInlineFormSet(forms.models.BaseInlineFormSet):
         kwargs['parent_object'] = self.instance
         return super(HandsInlineFormSet, self)._construct_form(i, **kwargs)
 
-class HandsInline(admin.StackedInline):
-    model = Hand.images.through
-    form = HandsInlineForm
-    formset = HandsInlineFormSet
-
-class ImageAnnotationStatusAdmin(reversion.VersionAdmin):
+class ImageAnnotationStatusAdmin(DigiPalModelAdmin):
     model = ImageAnnotationStatus
 
     list_display = ['name', 'created', 'modified']
     list_display_links = list_display
     search_fields = ['name']
 
-class ImageAdmin(reversion.VersionAdmin):
+class ImageAdmin(DigiPalModelAdmin):
     form = ImageForm
     change_list_template = 'admin/digipal/change_list.html'
     
@@ -1266,7 +631,8 @@ class ImageAdmin(reversion.VersionAdmin):
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
     
-    list_filter = ['annotation_status', 'media_permission__label', ImageAnnotationNumber, ImageWithFeature, ImageWithHand, ImageFilterNoItemPart, ImageFilterDuplicateShelfmark, ImageFilterDuplicateFilename]
+    list_filter = ['annotation_status', 'media_permission__label', admin_filters.ImageAnnotationNumber, admin_filters.ImageWithFeature, admin_filters.ImageWithHand, 
+                    admin_filters.ImageFilterNoItemPart, admin_filters.ImageFilterDuplicateShelfmark, admin_filters.ImageFilterDuplicateFilename]
     
     readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height', 'size')
     
@@ -1277,8 +643,8 @@ class ImageAdmin(reversion.VersionAdmin):
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')}),
                 ('Keywords', {'fields': ('keywords',)}),
                 ) 
-    inlines = [HandsInline]
-    
+    inlines = [admin_inlines.HandsInline]
+
     def get_iipimage_field(self, obj):
         from django.template.defaultfilters import truncatechars
         return u'<span title="%s">%s</span>' % (obj.iipimage, truncatechars(obj.iipimage, 15))
@@ -1292,7 +658,7 @@ class ImageAdmin(reversion.VersionAdmin):
         class SortedChangeList(ChangeList):
             def get_query_set(self, *args, **kwargs):
                 qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
-                return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands')
+                return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands').select_related('item_part')
                  
         if request.GET.get('o'):
             return ChangeList
@@ -1305,7 +671,7 @@ class ImageAdmin(reversion.VersionAdmin):
     get_annotations_count.short_description = '#ann.'
     
     def get_thumbnail(self, image):
-        from digipal.templatetags.html_escape import iip_img_a
+        from templatetags.html_escape import iip_img_a
         return iip_img_a(image, width=70, cls='img-expand', lazy=True)
     get_thumbnail.short_description = 'Thumbnail'
     get_thumbnail.allow_tags = True 
@@ -1316,7 +682,6 @@ class ImageAdmin(reversion.VersionAdmin):
     action_regen_display_label.short_description = 'Regenerate display labels'
 
     def action_find_nested_annotations(self, request, queryset):
-        from digipal.models import Annotation
         for annotation in Annotation.objects.filter(image__in=queryset).order_by('image__id'):
             annotation.set_graph_group()
     action_find_nested_annotations.short_description = 'Find nested annotations'
@@ -1350,19 +715,16 @@ class ImageAdmin(reversion.VersionAdmin):
         return obj.get_locus_label()
     get_locus_label.short_description = 'Locus'
 
-class PersonAdmin(reversion.VersionAdmin):
+class PersonAdmin(DigiPalModelAdmin):
     model = Person
 
-    inlines = [OwnerInline]
+    inlines = [admin_inlines.OwnerInline]
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
 
-class InstitutionInline(admin.StackedInline):
-    model = Institution
-
-class PlaceTypeAdmin(reversion.VersionAdmin):
+class PlaceTypeAdmin(DigiPalModelAdmin):
     model = PlaceType
 
     list_display = ['name', 'created', 'modified']
@@ -1370,7 +732,7 @@ class PlaceTypeAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class PlaceAdmin(reversion.VersionAdmin):
+class PlaceAdmin(DigiPalModelAdmin):
     model = Place
 
     list_display = ['name', 'type', 'region', 'current_county', 'historical_county', 'created', 'modified']
@@ -1384,9 +746,9 @@ class PlaceAdmin(reversion.VersionAdmin):
                 ('Coordinates', {'fields': ('eastings', 'northings')}),
                 ('Legacy', {'fields': ('legacy_id',)}),
                 ) 
-    inlines = [InstitutionInline, PlaceEvidenceInline]
+    inlines = [admin_inlines.InstitutionInline, admin_inlines.PlaceEvidenceInline]
 
-class PlaceEvidenceAdmin(reversion.VersionAdmin):
+class PlaceEvidenceAdmin(DigiPalModelAdmin):
     model = PlaceEvidence
 
     list_display = ['hand', 'place', 'reference', 'created', 'modified']
@@ -1394,7 +756,7 @@ class PlaceEvidenceAdmin(reversion.VersionAdmin):
     search_fields = ['place_description', 'evidence']
 
 
-class ProportionAdmin(reversion.VersionAdmin):
+class ProportionAdmin(DigiPalModelAdmin):
     model = Proportion
 
     list_display = ['hand', 'measurement', 'created', 'modified']
@@ -1402,7 +764,7 @@ class ProportionAdmin(reversion.VersionAdmin):
     search_fields = ['description']
 
 
-class ReferenceAdmin(reversion.VersionAdmin):
+class ReferenceAdmin(DigiPalModelAdmin):
     model = Reference
 
     list_display = ['name', 'name_index', 'legacy_reference', 'created',
@@ -1412,14 +774,14 @@ class ReferenceAdmin(reversion.VersionAdmin):
     search_fields = ['name']
 
 
-class RegionAdmin(reversion.VersionAdmin):
+class RegionAdmin(DigiPalModelAdmin):
     model = Region
 
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
-class RepositoryAdmin(reversion.VersionAdmin):
+class RepositoryAdmin(DigiPalModelAdmin):
     form = RepositoryForm
 
     # disabled as too slow, see JIRA https://jira.dighum.kcl.ac.uk/browse/DIGIPAL-643
@@ -1430,33 +792,27 @@ class RepositoryAdmin(reversion.VersionAdmin):
     list_filter = ['media_permission__label']
 
 
-class ScribeAdmin(reversion.VersionAdmin):
+class ScribeAdmin(DigiPalModelAdmin):
     model = Scribe
 
     filter_horizontal = ['reference']
-    inlines = [HandInline, IdiographInline]
+    inlines = [admin_inlines.HandInline, admin_inlines.IdiographInline]
     list_display = ['name', 'date', 'scriptorium', 'created', 'modified']
     list_display_links = ['name', 'date', 'scriptorium', 'created', 'modified']
     search_fields = ['legacy_id', 'name', 'date']
 
 
-class ScriptComponentInline(admin.StackedInline):
-    model = ScriptComponent
-
-    filter_horizontal = ['features']
-
-
-class ScriptAdmin(reversion.VersionAdmin):
+class ScriptAdmin(DigiPalModelAdmin):
     model = Script
 
     filter_horizontal = ['allographs']
-    inlines = [ScriptComponentInline]
+    inlines = [admin_inlines.ScriptComponentInline]
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
     search_fields = ['name']
 
 
-class SourceAdmin(reversion.VersionAdmin):
+class SourceAdmin(DigiPalModelAdmin):
     model = Source
 
     list_display = ['label', 'priority', 'name', 'created', 'modified']
@@ -1466,14 +822,14 @@ class SourceAdmin(reversion.VersionAdmin):
 
     search_fields = ['name', 'label', 'priority']
 
-class StatusAdmin(reversion.VersionAdmin):
+class StatusAdmin(DigiPalModelAdmin):
     model = Status
 
     list_display = ['name', 'created', 'modified']
     list_display_links = ['name', 'created', 'modified']
 
 
-class LogEntryAdmin(reversion.VersionAdmin):
+class LogEntryAdmin(DigiPalModelAdmin):
     list_display = ['action_time', 'user', 'content_type', 'change_message',
             'is_addition', 'is_change', 'is_deletion']
     list_filter = ['action_time', 'user', 'content_type']
@@ -1491,11 +847,11 @@ class LogEntryAdmin(reversion.VersionAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-class MediaPermissionAdmin(reversion.VersionAdmin):
+class MediaPermissionAdmin(DigiPalModelAdmin):
     list_display = ['label', 'display_message', 'is_private']
     ordering = ['label']
 
-class TextAdmin(reversion.VersionAdmin):
+class TextAdmin(DigiPalModelAdmin):
     model = Text
     
     list_display = ['name', 'date', 'created', 'modified']
@@ -1503,9 +859,9 @@ class TextAdmin(reversion.VersionAdmin):
     search_fields = ['name']
     ordering = ['name']
     
-    inlines = [TextItemPartInline, CatalogueNumberInline, DescriptionInline]
+    inlines = [admin_inlines.TextItemPartInline, admin_inlines.CatalogueNumberInline, admin_inlines.DescriptionInline]
 
-class CarouselItemAdmin(reversion.VersionAdmin):
+class CarouselItemAdmin(DigiPalModelAdmin):
     model = CarouselItem
     
     list_display = ['title', 'sort_order', 'created', 'modified']
@@ -1531,48 +887,12 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
             from django.db.models import Q
             return queryset.filter(Q(matched_hands__isnull=True) | Q(matched_hands__exact='')).distinct()
 
-class StewartRecordFilterLegacy(admin.SimpleListFilter):
-    title = 'Legacy'
-    parameter_name = 'legacy'
-    
-    def lookups(self, request, model_admin):
-        return (
-                    ('1', 'has legacy id'),
-                    ('0', 'no legacy id'),
-                )
-    
-    def queryset(self, request, queryset):
-        from django.db.models import Q
-        q = Q(stokes_db__isnull=True) | Q(stokes_db__exact='')
-        if self.value() == '0':
-            return queryset.filter(q)
-        if self.value() == '1':
-            return queryset.exclude(q)
-
-class StewartRecordFilterMerged(admin.SimpleListFilter):
-    title = 'Already Merged'
-    parameter_name = 'merged'
-    
-    def lookups(self, request, model_admin):
-        return (
-                    ('1', 'yes'),
-                    ('0', 'no'),
-                )
-    
-    def queryset(self, request, queryset):
-        from django.db.models import Q
-        q = Q(import_messages__isnull=True) | Q(import_messages__exact='')
-        if self.value() == '0':
-            return queryset.filter(q)
-        if self.value() == '1':
-            return queryset.exclude(q)
-
-class StewartRecordAdmin(reversion.VersionAdmin):
+class StewartRecordAdmin(DigiPalModelAdmin):
     model = StewartRecord
     
     list_display = ['id', 'field_hands', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
-    list_filter = [StewartRecordFilterMatched, StewartRecordFilterLegacy, StewartRecordFilterMerged]
+    list_filter = [StewartRecordFilterMatched, admin_filters.StewartRecordFilterLegacy, admin_filters.StewartRecordFilterMerged]
     search_fields = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     
     actions = ['match_hands', 'merge_matched_simulation', 'merge_matched']
@@ -1614,22 +934,6 @@ class StewartRecordAdmin(reversion.VersionAdmin):
         return HttpResponseRedirect(reverse('stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
     merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
     
-class RequestLogFilterEmpty(admin.SimpleListFilter):
-    title = 'Result size'
-    parameter_name = 'result_size'
-    
-    def lookups(self, request, model_admin):
-        return (
-                    ('0', 'empty'),
-                    ('1', 'not empty'),
-                )
-    
-    def queryset(self, request, queryset):
-        if self.value() == '1':
-            return queryset.filter(result_count__gt=0).distinct()
-        if self.value() == '0':
-            return queryset.filter(result_count=0).distinct()
-
 class RequestLogAdmin(admin.ModelAdmin):
     model = RequestLog
     list_display = ['id', 'request_hyperlink', 'field_terms', 'result_count', 'created']
@@ -1637,8 +941,8 @@ class RequestLogAdmin(admin.ModelAdmin):
     search_fields = ['id', 'request', 'result_count', 'created']
     ordering = ['-id']
 
-    list_filter = [RequestLogFilterEmpty]
-
+    list_filter = [admin_filters.RequestLogFilterEmpty]
+    
     def field_terms(self, record):
         return re.sub('^.*terms=([^&#?]*).*$', r'\1', record.request)
     field_terms.short_description = 'Terms'
@@ -1649,7 +953,7 @@ class RequestLogAdmin(admin.ModelAdmin):
     request_hyperlink.short_description = 'Request'
     request_hyperlink.allow_tags = True
 
-class ApiTransformAdmin(reversion.VersionAdmin):
+class ApiTransformAdmin(DigiPalModelAdmin):
     model = ApiTransform
 
     list_display = ['id', 'title', 'slug', 'modified', 'created']

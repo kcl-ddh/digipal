@@ -144,6 +144,14 @@ def update_query_string(url, updates, url_wins=False):
     
     return ret
 
+def get_str_from_call_stack():
+    ret = ''
+    import traceback, re
+    tb = traceback.extract_stack()
+    #ret = '; '.join(['%s (%s:%s)' % (call[2], re.sub(ur'^.*[\\/]([^/\\]+)\.py$', ur'\1', call[0]), call[1]) for call in tb])
+    ret = '; '.join(['%s (%s:%s)' % (call[2], call[0], call[1]) for call in tb])
+    return ret
+
 def urlencode(dict, doseq=0):
     ''' This is a unicode-compatible wrapper around urllib.urlencode()
         See http://stackoverflow.com/questions/3121186/error-with-urlencode-in-python

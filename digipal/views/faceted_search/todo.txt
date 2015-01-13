@@ -122,3 +122,31 @@ allograph.hidden
 	[Done] Hide from graph list on the Hand annotation tab
 	[Done] Don't show in the search filters
 	[Done] Don't return in the search results
+
+	
+	
+- change form slow:
+
+itempartadmin on EXON:
+    StackedDynamicInlineAdmin are slower because they allocate 20 form for each inline (20s)
+        Rendering by the browser is also slow because of so many forms
+    Even stackedInline are very slow, they run too many identical queries (7s)
+    
+    keywords <django.forms.fields.CharField object at 0x0000000004F049E8> <mezzanine.generic.fields.KeywordsField: keywords>
+    
+    annotation_status <django.forms.models.ModelChoiceField object at 0x000000000503A8D0>
+    
+    SELECT "django_site"."id", "django_site"."domain", "django_site"."name" FROM "django_site" WHERE UPPER("django_site"."domain"::text) = UPPER(%s)
+    SELECT "generic_keyword"."id", "generic_keyword"."site_id", "generic_keyword"."title", "generic_keyword"."slug" FROM "generic_keyword" WHERE "generic_keyword"."site_id" = %s  ORDER BY "generic_keyword"."title" ASC
+    SELECT "generic_assignedkeyword"."id", "generic_assignedkeyword"."_order", "generic_assignedkeyword"."keyword_id", "generic_assignedkeyword"."content_type_id", "generic_assignedkeyword"."object_pk", "generic_keyword"."id", "generic_keyword"."site_id", "generic_keyword"."title", "generic_keyword"."slug" FROM "generic_assignedkeyword" INNER JOIN "generic_keyword" ON ( "generic_assignedkeyword"."keyword_id" = "generic_keyword"."id" ) WHERE ("generic_assignedkeyword"."object_pk" = %s  AND "generic_assignedkeyword"."content_type_id" = %s ) ORDER BY "generic_assignedkeyword"."_order" ASC
+
+    
+class InlineModelAdmin(BaseModelAdmin):
+    
+EXON:Hand change form rendering is very slow in Chrome/Opera:
+In SelectFilter2.js:
+window.SelectFilter = {
+    init:     
+    
+    => due to the 1500 images in the dual list box
+    

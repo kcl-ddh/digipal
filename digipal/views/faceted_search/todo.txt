@@ -150,3 +150,6 @@ window.SelectFilter = {
     
     => due to the 1500 images in the dual list box
     
+jQuery(el).detach().appendTo(jQuery(el2)); console.log('h2');
+
+https://code.djangoproject.com/ticket/15220

@@ -1,0 +1,33 @@
+TODO
+    
+    create simple MultiText and TextView classes
+    WriteTextView
+    TextView:
+        read text from database (create if not there)
+        display it
+    create dummy text, three pages long
+    show only one panel with transcription
+    show tinymce
+    auto-save
+    mark-up
+        gaps
+        deletion
+    mark-up records
+        person
+        place
+        Q: should we use an intermediary record to represent any type of entity? There are some commonalities among rec types such as normalised name, name before and after conquest, etc. 
+        Or do we link directly to a Person/Place record?
+        Q: what about the distinction between identified entity and occurrence of an entity name?
+    mark-up divisions
+        page
+        division
+        entry
+    
+    Upload text from file
+
+    show address selector
+    
+    Switch edit/view
+    Layout switches
+    
+    

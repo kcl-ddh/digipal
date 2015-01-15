@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load html_escape %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
+{% endblock %}
+
+{% block main %}
+
+<h1>Editor prototype</h1>
+
+<div id="text-viewer">
+    <div class="message">&nbsp;</div>
+    <div class="panels">
+        <div class="ui-layout-center">Center</div>
+        <div class="ui-layout-north">North</div>
+        <div class="ui-layout-south">South</div>
+        <div class="ui-layout-east">East</div>
+        <div class="ui-layout-west">West</div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {% comment %}
+    <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery-ui-1.9.1.custom.min.js"></script>
+    {% endcomment %}
+    <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/viewer.js"></script>
+{% endblock %}
+

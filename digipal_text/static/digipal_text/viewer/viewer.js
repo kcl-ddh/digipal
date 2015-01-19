@@ -1,7 +1,10 @@
 jQuery(document).ready(function($) {
 
-    var panelset = $('#text-viewer').panelset();
-    panelset.registerPanel(new Panel($('.ui-layout-center')))
+    var panelset = new PanelSet();
+    panelset.setLayout($('#text-viewer .panels'));
+    panelset.setMessageBox($('#text-viewer .message'));
+    panelset.registerPanel(new PanelTextWrite($('.ui-layout-center')));
+    panelset.ready();
     
     /*
     function tinymce_ready(ted) {

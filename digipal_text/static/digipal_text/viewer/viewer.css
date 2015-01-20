@@ -1,6 +1,6 @@
 #main_body_container { width: 100%; }
 
-div.message {
+div.message-box {
     border: 1px solid lightgrey;
     border-radius: 10px;
     margin: 0.5em;
@@ -9,13 +9,13 @@ div.message {
     background-color: white;
 }
 
-div.message.message-error {
+div.message-box.message-error {
     color: pink;
 }
-div.message.message-warning {
+div.message-box.message-warning {
     color: orange;
 }
-div.message.message-info {
+div.message-box.message-info {
     color: green;
 }
 

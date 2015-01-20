@@ -1,0 +1,13 @@
+
+@font-face {
+    font-family: 'junicode';
+    src: url('../junicode/Junicode.eot?#iefix') format('embedded-opentype'),  url('../junicode/Junicode.woff') format('woff'), url('../junicode/Junicode.ttf')  format('truetype'), url('../junicode/Junicode.svg#Junicode') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+#tinymce {
+    font-family: junicode, arial, sans-serif;
+    font-size: 16px;
+}
+

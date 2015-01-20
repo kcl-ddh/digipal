@@ -4,13 +4,14 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/junicode/junicode.css"/>
 {% endblock %}
 
 {% block main %}
 
 <h1>Editor prototype</h1>
 
-<div id="text-viewer">
+<div id="text-viewer" class="junicode">
     <div class="message">&nbsp;</div>
     <div class="panels">
         <div class="ui-layout-center">Center</div>

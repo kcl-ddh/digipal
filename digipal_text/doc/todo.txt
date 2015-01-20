@@ -2,10 +2,11 @@ TODO
     
     [DONE] WriteTextView
     [DONE] show tinymce
-    Junicode
+    [DONE] Junicode
     TextView:
         read text from database (create if not there)
         display it
+    
     show only one panel with transcription
     create dummy text, three pages long
     auto-save
@@ -23,13 +24,28 @@ TODO
         Or do we link directly to a Person/Place record?
         Q: what about the distinction between identified entity and occurrence of an entity name?
     
+    
     Upload text from file
 
     ? show address selector
     
     Switch edit/view
-    Layout switches
     
+    Text
     
-    create simple MultiText and TextView classes
+    Image
+
+    Panels
+        switch the type of view:
+            translation
+            transcription
+            image
+            navigator
     
+    Layout
+        Layout switches
+        [DONE] relative size of the panels. e.g. 50% split centre and south
+        Improve the layout so if the set ratios are preserved even when resizing the browser window
+        (Re)design:
+            decide if the layout is completely managed by the viewer
+            would be nice if west is on the left of south: that would require to nest one layout inside another

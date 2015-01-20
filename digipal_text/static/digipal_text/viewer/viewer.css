@@ -23,7 +23,46 @@ span.message-time {
     padding: 0.3em;
 }
 
+#text-viewer-panel {
+    display: none;
+}
 
+.ui-layout-pane {
+    padding: 0 !important;
+}
+
+/* Less tall navbar */
+
+.text-viewer-panel .navbar-nav > li > a {
+    padding-bottom: 0;
+    padding-top: 3px;
+}
+
+.text-viewer-panel .navbar {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    min-height: 0px;
+}
+
+.text-viewer-panel .chzn-container {
+    width: 10em !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+
+.text-viewer-panel .chzn-container-single .chzn-single {
+    font-size: 10px;
+}
+
+/* fixes */
+/* right nav on each panel overflows to the right, reduced BS margin-right */
+.text-viewer-panel .navbar-nav.navbar-right:last-child {
+    margin-right: -6px;
+}
+
+.text-viewer-panel .dropdown-menu .glyphicon {
+    padding-right: 0.4em;
+}
 
 /*
 #container input.sbm-change {float: left;}

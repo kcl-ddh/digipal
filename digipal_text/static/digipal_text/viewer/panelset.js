@@ -3,9 +3,10 @@
     //
     // PanelSet
     //
-    PanelSet = function() {
+    PanelSet = function($root) {
         this.panels = [];
-        this.$root = null;
+        this.$root = $root;
+        this.$panelset = null;
         this.layout = null;
         this.$messageBox = null;
         
@@ -13,9 +14,9 @@
             this.panels.push(panel);
         };
 
-        this.setLayout = function($root) {
-            this.$root = $root;
-            this.layout = $root.layout({ 
+        this.setLayout = function($panelset) {
+            this.$panelset = $panelset;
+            this.layout = $panelset.layout({ 
                 applyDefaultStyles: true,
                 closable: true,
                 resizable: true,
@@ -24,6 +25,14 @@
             });
         };
         
+        // Change the relative size of the panel
+        // panelLocation: west|north|south|east
+        // size: a ratio. e.g. 1/2.0 for half the full length
+        this.setPanelSize = function(panelLocation, size) {
+            var fullLength = this.$panelset[(panelLocation == 'east' || panelLocation == 'west') ? 'width': 'height']();
+            this.layout.sizePane(panelLocation, size * fullLength);
+        }
+
         this.setMessageBox = function($messageBox) {
             this.$messageBox = $messageBox;
         };
@@ -31,7 +40,7 @@
         this.setExpandButton = function($expandButton) {
             this.$expandButton = $expandButton;
             var me = this;
-            this.$expandButton.on('click', function() { me.$root.css('height', $(window).height()); return true; });
+            this.$expandButton.on('click', function() { me.$panelset.css('height', $(window).height()); return true; });
         };
 
         this._resize = function(refreshLayout) {
@@ -45,7 +54,7 @@
 //            console.log(this.$root.offset().top);
 //            console.log($(document).scrollTop());
 //            console.log(this.$messageBox.outerHeight());
-            this.$root.css('height', height - this.$messageBox.outerHeight());
+            this.$panelset.css('height', height - this.$messageBox.outerHeight());
             
             if (refreshLayout && this.layout) {
                 this.layout.resizeAll();
@@ -78,6 +87,11 @@
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
     Panel = function($root) {
         this.$root = $root;
+        
+        var $panelHtml = $('#text-viewer-panel').clone();
+        $panelHtml.attr('id', '');
+        this.$root.html($panelHtml);
+        this.$root.find('select').chosen();
     };
     
     PanelText = function($root) {
@@ -104,6 +118,14 @@
         });
     }
     
+    PanelImage = function($root) {
+        Panel.call(this, $root);
+    };
+    
+    PanelNavigator = function($root) {
+        Panel.call(this, $root);
+    };
+
     // These are external init steps for JSLayout
     function initLayoutAddOns() {
         //

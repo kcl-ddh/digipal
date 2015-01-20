@@ -17,24 +17,74 @@
 	    <span class="message-content">&nbsp;</span>
     </div>
     <div class="panels">
-        <div class="ui-layout-center">Center</div>
+        <div class="ui-layout-center">Text</div>
         <div class="ui-layout-north">North</div>
-        <div class="ui-layout-south">South</div>
-        <div class="ui-layout-east">East</div>
-        <div class="ui-layout-west">West</div>
+        <div class="ui-layout-south">Images</div>
+        {# <div class="ui-layout-east">East</div> #}
+        <div class="ui-layout-west">Navigator</div>
     </div>
+</div>
+
+<div id="text-viewer-panel" class="text-viewer-panel">
+    <nav class="navbar navbar-default">
+            <ul class="nav navbar-nav navbar-left">
+		        <li class="dropdown dropdown-location">
+		            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+		              <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+		              <span class="caret"></span>
+		            </a>
+		            <ul class="dropdown-menu" role="menu">
+		                <li><a href="#folio"><span class="glyphicon glyphicon-file" aria-hidden="true"></span>Folio</a></li>
+                        <li><a href="#section"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>Section</a></li>
+		                <li><a href="#entry"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>Entry</a></li>
+		            </ul>
+		        </li>
+                <li>
+                    <select name="location" class="">
+                        <option value="1r">1r</option>
+                        <option value="1v">1v</option>
+                    </select>
+                </li>
+	       </ul>
+	
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown dropdown-content-type">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#transcription"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>Transcription</a></li>
+                        <li><a href="#translation"><span class="glyphicon glyphicon-resize-horizontal" aria-hidden="true"></span>Translation</a></li>
+                        <li><a href="#images"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span>Images</a></li>
+                        <li><a href="#navigator"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>Navigator</a></li>
+                    </ul>
+                </li>
+           </ul>
+    </nav>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super }}
-    {% comment %}
-    <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery-ui-1.9.1.custom.min.js"></script>
-    {% endcomment %}
     <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
-    <script src="{{ STATIC_URL }}digipal_text/viewer/viewer.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script>
+        jQuery(document).ready(function($) {
+            var panelset = new PanelSet($('#text-viewer'));
+            panelset.setLayout($('#text-viewer .panels'));
+            panelset.setMessageBox($('#text-viewer .message-box'));
+            panelset.setExpandButton($('#text-viewer .message-box a'));
+            panelset.registerPanel(new PanelTextWrite($('.ui-layout-center')));
+            panelset.registerPanel(new PanelImage($('.ui-layout-south')));
+            panelset.registerPanel(new PanelNavigator($('.ui-layout-west')));
+            panelset.ready();
+            panelset.setPanelSize('west', 1/5.0);
+            panelset.setPanelSize('south', 1/3.0);
+            panelset.setPanelSize('north', 1/3.0);
+        });
+    </script>
 {% endblock %}

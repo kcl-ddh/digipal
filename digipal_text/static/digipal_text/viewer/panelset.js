@@ -16,12 +16,19 @@
 
         this.setLayout = function($panelset) {
             this.$panelset = $panelset;
+            var me = this;
+            var resize = function() { me._resizePanels(); };
             this.layout = $panelset.layout({ 
                 applyDefaultStyles: true,
                 closable: true,
                 resizable: true,
                 slidable: true,
                 livePaneResizing: true,
+                onopen: resize,
+                onclose: resize,
+                onshow: resize,
+                onhide: resize,
+                onresize: resize
             });
         };
         
@@ -29,8 +36,13 @@
         // panelLocation: west|north|south|east
         // size: a ratio. e.g. 1/2.0 for half the full length
         this.setPanelSize = function(panelLocation, size) {
-            var fullLength = this.$panelset[(panelLocation == 'east' || panelLocation == 'west') ? 'width': 'height']();
-            this.layout.sizePane(panelLocation, size * fullLength);
+            if (size == 0) {
+                this.layout.close(panelLocation);
+            } else {
+                var fullLength = this.$panelset[(panelLocation == 'east' || panelLocation == 'west') ? 'width': 'height']();
+                this.layout.open(panelLocation);
+                this.layout.sizePane(panelLocation, size * fullLength);
+            }
         }
 
         this.setMessageBox = function($messageBox) {
@@ -59,7 +71,15 @@
             if (refreshLayout && this.layout) {
                 this.layout.resizeAll();
             }
+            
+            this._resizePanels();
         };
+        
+        this._resizePanels = function() {
+            for (var i in this.panels) {
+                this.panels[i].onResize();
+            }
+        }
 
         this.initEvents = function() {
             
@@ -91,24 +111,46 @@
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.attr('id', '');
         this.$root.html($panelHtml);
+        
         this.$root.find('select').chosen();
+        
+        this.$content = this.$root.find('.panel-content');
+        
+        this.onResize = function () {
+        };
     };
     
     PanelText = function($root) {
         Panel.call(this, $root);
     };
 
+    window.text_area_number = 0;
+    
     PanelTextWrite = function($root) {
         PanelText.call(this, $root);
         
+        this.onResize = function () {
+            if (this.tinymce) {
+                var $el = this.$root.find('iframe');
+                var height = this.$root.innerHeight() - ($el.offset().top - $root.offset().top);
+                $el.height(height+'px');
+            }
+        };
+
         this.initTinyMCE();
     };
     
     PanelTextWrite.prototype.initTinyMCE = function() {
-        this.$root.append('<div id="text-area"></div>');
+        window.text_area_number += 1;
+        var divid = 'text-area-' + window.text_area_number;
+        this.$content.append('<div id="'+ divid + '"></div>');
+        var me = this;
         tinyMCE.init({
-            selector: "#text-area",
-            /* init_instance_callback: tinymce_ready, */
+            selector: '#' + divid,
+            init_instance_callback: function() {
+                me.tinymce = tinyMCE.get(divid); 
+                me.onResize();
+                },
             plugins: ["paste"],
             toolbar: "undo redo", 
             menubar : false,
@@ -116,6 +158,7 @@
             height: '15em',
             content_css : "/static/digipal_text/viewer/tinymce.css"
         });
+        
     }
     
     PanelImage = function($root) {

@@ -49,3 +49,5 @@ TODO
         (Re)design:
             decide if the layout is completely managed by the viewer
             would be nice if west is on the left of south: that would require to nest one layout inside another
+        BUG: when you close the south pane the iframe managed by the nested tinymce will loose the content of its head and body.
+        

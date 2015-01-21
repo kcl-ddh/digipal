@@ -27,8 +27,15 @@ span.message-time {
     display: none;
 }
 
+.panel-content {
+}
+
 .ui-layout-pane {
     padding: 0 !important;
+}
+
+.text-viewer-panel {
+    height: 100%;
 }
 
 /* Less tall navbar */

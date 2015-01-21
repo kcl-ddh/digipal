@@ -1,4 +1,24 @@
 (function($) {
+
+    function callApi(url, onSuccess, requestData) {
+        // See http://stackoverflow.com/questions/9956255.
+        // This tricks prevents caching of the fragment by the browser.
+        // Without this if you move away from the page and then click back
+        // it will show only the last Ajax response instead of the full HTML page.
+        url = url ? url : '';
+        var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
+        
+        $.get(url_ajax, requestData)
+            .success(function(data) {
+                if (onSuccess) {
+                    onSuccess(data);
+                    //set_message(data.message, data.status);
+                }
+            })
+            .fail(function(data) {
+            });
+    }
+
     
     //
     // PanelSet
@@ -12,6 +32,12 @@
         
         this.registerPanel = function(panel) {
             this.panels.push(panel);
+            panel.setItemPartid(this.itemPartid);
+        };
+        
+        this.setItemPartid = function(itemPartid) {
+            // e.g. '/itemparts/1/'
+            this.itemPartid = itemPartid;
         };
 
         this.setLayout = function($panelset) {
@@ -96,6 +122,9 @@
         
         this.ready = function() {
             this.initEvents();
+            for (var i in this.panels) {
+                this.panels[i].componentIsReady('panelset');
+            }
         };
         
     };
@@ -107,17 +136,71 @@
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
     Panel = function($root) {
         this.$root = $root;
+        this.contentType = null;
+        this.dirty = false;
         
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.attr('id', '');
         this.$root.html($panelHtml);
         
+        this.$locationSelect = this.$root.find('select[name=location]');
         this.$root.find('select').chosen();
         
         this.$content = this.$root.find('.panel-content');
         
         this.onResize = function () {
         };
+        
+        this.unreadyComponents = ['panelset'];
+        
+        this.componentIsReady = function(component) {
+            var index = $.inArray(component, this.unreadyComponents);
+            if (index > -1) {
+                this.unreadyComponents.splice(index, 1);
+            }
+            if (this.unreadyComponents.length == 0) {
+                this._ready();
+            } 
+        }
+        
+        this._ready = function(readyComponent) {
+            var me = this;
+            this.$locationSelect.on('change', function() {me.loadContent();});
+            this.loadContent();
+            this.onResize();
+
+            setInterval(function() {
+                me.saveContent();
+            }, 1000);
+        };
+
+        this.loadContent = function() {
+            this.$content.html('DUMMY CONTENT');
+        };
+        
+        this.setItemPartid = function(itemPartid) {
+            // e.g. '/itemparts/1/'
+            this.itemPartid = itemPartid;
+        };
+
+        this.getContentAddress = function() {
+            return '/digipal/manuscripts/' + this.itemPartid + '/texts/' + this.getContentType() + '/' + this.getLocationType() + '/' + this.getLocation() + '/';
+        };
+        
+        this.getContentType = function() {
+            return 'transcription';
+        };
+        
+        this.getLocationType = function() {
+            return 'folio';
+        };
+
+        this.getLocation = function() {
+            return this.$locationSelect.val();
+        };
+                
+        this.saveContent = function() {
+        }
     };
     
     PanelText = function($root) {
@@ -129,6 +212,19 @@
     PanelTextWrite = function($root) {
         PanelText.call(this, $root);
         
+        this.unreadyComponents.push('tinymce');
+        
+        this.loadContent = function() {
+            // load the content with the API
+            var me = this;
+            callApi(
+                this.getContentAddress(), 
+                function(data) {
+                    me.tinymce.setContent(data.content); 
+                } 
+            );
+        };
+
         this.onResize = function () {
             if (this.tinymce) {
                 var $el = this.$root.find('iframe');
@@ -137,6 +233,20 @@
             }
         };
 
+        this.saveContent = function() {
+            var me = this;
+            if (this.tinymce.isDirty()) {
+                this.tinymce.isNotDirty = true;
+                callApi(
+                    this.getContentAddress(), 
+                    function(data) {
+                        //me.tinymce.setContent(data.content); 
+                    },
+                    {'content': me.tinymce.getContent()}
+                );
+            }
+        }
+        
         this.initTinyMCE();
     };
     
@@ -148,8 +258,8 @@
         tinyMCE.init({
             selector: '#' + divid,
             init_instance_callback: function() {
-                me.tinymce = tinyMCE.get(divid); 
-                me.onResize();
+                me.tinymce = tinyMCE.get(divid);
+                me.componentIsReady('tinymce');
                 },
             plugins: ["paste"],
             toolbar: "undo redo", 

@@ -43,7 +43,7 @@
            </ul>
 
             <ul class="nav navbar-nav pull-left">
-                <li class="dropdown dropdown-location pull-left">
+                <li class="dropdown dropdown-location-type pull-left">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                       <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                       <span class="caret"></span>
@@ -79,6 +79,7 @@
     <script>
         jQuery(document).ready(function($) {
             var panelset = new PanelSet($('#text-viewer'));
+            panelset.setItemPartid('{{ item_partid }}');
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));

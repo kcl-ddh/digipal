@@ -3,20 +3,63 @@ TODO
     [DONE] WriteTextView
     [DONE] show tinymce
     [DONE] Junicode
-    TextView:
+    [DONE] Basic TextWrite:
         read text from database (create if not there)
         display it
+    [DONE] show only one panel with transcription
+    [DONE] auto-save
     
-    show only one panel with transcription
-    create dummy text, three pages long
-    auto-save
-    mark-up
+    1. ** Dynamically create the views based on the content types
+        generic constructor of a panel
+        update content type drop down
+        react to changes in the drop down
+    
+    * mark up clauses
+        Add new controls to the toolbar
+            type
+            input box
+
+    * Structure
+        mark up pagination
+        extract entry numbers and starting points
+        enable navigation using location dropdown
+        fragment the text
+        * mark-up divisions
+            page
+            division
+            entry
+            
+    * mark-up
         gaps
         deletion
-    mark-up divisions
-        page
-        division
-        entry
+    
+    More efficient saving:
+        if saving is long, the save requests may overlap
+            => don't send another request if one is not back yet 
+            => make sure we save only when 1.5 secs inactivity on the keyboard
+    
+    Show status bar at the bottom of each panel:
+        html
+        dynamic resize
+        function to show message
+        time of the message
+        duration of the request
+        truncate the message to make it fit in the available space
+        icon to show the message in full
+    
+    Fix auto save bug: completing a line does not trigger a new save event
+
+    Fix the slug in the admin:
+        the slug should be read only
+        for the moment we always update the slug automatically on save
+        
+    in the future we may want to 
+        make the slug input writable
+        keep the slug as it is even when the name changes 
+        but if the slug is blanked (or add an icon for that) we reset it.
+    
+    create dummy text, three pages long
+
     ? mark-up records
         person
         place
@@ -42,12 +85,30 @@ TODO
             image
             navigator
     
-    Layout
+    Presentation
+        Fix the panelset being a few pixels too tall
         Layout switches
+        Put the digipal style sheets back
+            put them back
+            fix the banner/nav
         [DONE] relative size of the panels. e.g. 50% split centre and south
         Improve the layout so if the set ratios are preserved even when resizing the browser window
         (Re)design:
             decide if the layout is completely managed by the viewer
             would be nice if west is on the left of south: that would require to nest one layout inside another
         BUG: when you close the south pane the iframe managed by the nested tinymce will loose the content of its head and body.
-        
+    
+    Performance
+        The full Exon translation (experiment with FireFox):
+            can be added with tinymce, pasted from Word it will strip almost all styles and keep minimal HTML
+            pasting takes a long time (~20s) but it is decent given the size of the text however it freezes the browser and we can get javascript performance warnings
+            the size is 310KB
+            loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds 
+            sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
+    
+    What if you edit the same text in different panels?
+    
+    Let panels from different browser tabs communicate
+        synchronise position
+        edition + refresh views, etc.
+    

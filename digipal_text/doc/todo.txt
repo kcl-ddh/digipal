@@ -9,11 +9,11 @@ TODO
     [DONE] show only one panel with transcription
     [DONE] auto-save
     
-    1. ** Dynamically create the views based on the content types
+    [DONE] 1. ** Dynamically create the views based on the content types
         [DONE] generic constructor of a panel
         [DONE] update content type drop down
         [DONE] react to changes in the drop down
-        load the transcription or translation
+        [DONE] load the transcription or translation
     
     * mark up clauses
         Add new controls to the toolbar
@@ -49,15 +49,6 @@ TODO
         icon to show the message in full
     
     Fix auto save bug: completing a line does not trigger a new save event
-
-    Fix the slug in the admin:
-        the slug should be read only
-        for the moment we always update the slug automatically on save
-        
-    in the future we may want to 
-        make the slug input writable
-        keep the slug as it is even when the name changes 
-        but if the slug is blanked (or add an icon for that) we reset it.
     
     create dummy text, three pages long
 
@@ -68,25 +59,22 @@ TODO
         Or do we link directly to a Person/Place record?
         Q: what about the distinction between identified entity and occurrence of an entity name?
     
-    
-    Upload text from file
 
-    ? show address selector
-    
     Switch edit/view
     
     Text
     
     Image
 
-    Panels
-        switch the type of view:
-            translation
-            transcription
-            image
-            navigator
+    Bug
+        Make sure we can't save the content before it is loaded
+        What if you edit the same text in different panels?
+        Fix the slug in the admin:
+            the slug should be read only
+            for the moment we always update the slug automatically on save
     
     Presentation
+        resizing a panel doesn't work smoothly when the mouse goes over TinyMCE
         Fix the panelset being a few pixels too tall
         Layout switches
         Put the digipal style sheets back
@@ -107,9 +95,13 @@ TODO
             loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds 
             sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
     
-    What if you edit the same text in different panels?
-    
-    Let panels from different browser tabs communicate
-        synchronise position
-        edition + refresh views, etc.
+    Maybe
+        ? show address selector
+        Let panels from different browser tabs communicate
+            synchronise position
+            edition + refresh views, etc.
+        Name tables in the admin: in the future we may want to 
+            make the slug input writable
+            keep the slug as it is even when the name changes 
+            but if the slug is blanked (or add an icon for that) we reset it.
     

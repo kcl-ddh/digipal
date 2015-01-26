@@ -74,12 +74,7 @@
             var height = window_height - this.$root.offset().top + $(document).scrollTop();
             height = (height < 1) ? 0 : height;
             height = (height > window_height) ? window_height : height;
-//            console.log('----');
-//            console.log(window_height);
-//            console.log(this.$root.offset().top);
-//            console.log($(document).scrollTop());
-//            console.log(this.$messageBox.outerHeight());
-            this.$panelset.css('height', height - this.$messageBox.outerHeight());
+            this.$panelset.css('height', height - this.$messageBox.outerHeight(true));
             
             if (refreshLayout && this.layout) {
                 this.layout.resizeAll();
@@ -195,7 +190,7 @@
         };
         
         this.getContentType = function() {
-            return 'transcription';
+            return this.contentType;
         };
         
         this.getLocationType = function() {

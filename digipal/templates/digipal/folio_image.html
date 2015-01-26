@@ -12,13 +12,15 @@
 <div class='col-md-{{ img_col|default:3 }} col-xs-12 centered'>
     <div class="panel">
         <p class='annotations_count_images'>
-            {% if image.annotation_set.all.publicly_visible.count %}
-                <a href='{{image.get_absolute_url }}'>
-            {% endif %}
-                    <span class="label label-default">{{ image.annotation_set.all.publicly_visible.count  }} {{ "Annotation"|plural:image.annotation_set.all.publicly_visible.count }}</span>
-            {% if image.annotation_set.all.publicly_visible.count %}
-                </a>
-            {% endif %}
+            {% with annotation_count=image.annotation_set.all.publicly_visible.count %}
+                {% if annotation_count %}
+                    <a href='{{image.get_absolute_url }}'>
+                {% endif %}
+                        <span class="label label-default">{{ annotation_count  }} {{ "Annotation"|plural:annotation_count }}</span>
+                {% if annotation_count %}
+                    </a>
+                {% endif %}
+            {% endwith %}
 
             {% if image.hands.all.count %}
                 <a href='{{image.get_absolute_url }}hands'>

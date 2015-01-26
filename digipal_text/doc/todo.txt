@@ -10,9 +10,10 @@ TODO
     [DONE] auto-save
     
     1. ** Dynamically create the views based on the content types
-        generic constructor of a panel
-        update content type drop down
-        react to changes in the drop down
+        [DONE] generic constructor of a panel
+        [DONE] update content type drop down
+        [DONE] react to changes in the drop down
+        load the transcription or translation
     
     * mark up clauses
         Add new controls to the toolbar

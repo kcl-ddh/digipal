@@ -1,38 +1,25 @@
 (function($) {
 
-    function callApi(url, onSuccess, requestData) {
-        // See http://stackoverflow.com/questions/9956255.
-        // This tricks prevents caching of the fragment by the browser.
-        // Without this if you move away from the page and then click back
-        // it will show only the last Ajax response instead of the full HTML page.
-        url = url ? url : '';
-        var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
-        
-        $.get(url_ajax, requestData)
-            .success(function(data) {
-                if (onSuccess) {
-                    onSuccess(data);
-                    //set_message(data.message, data.status);
-                }
-            })
-            .fail(function(data) {
-            });
-    }
-
+    TextViewer = window.TextViewer || {};
     
     //
     // PanelSet
     //
-    PanelSet = function($root) {
+    var PanelSet = TextViewer.PanelSet = function($root) {
         this.panels = [];
         this.$root = $root;
         this.$panelset = null;
         this.layout = null;
         this.$messageBox = null;
+        this.isReady = false;
         
         this.registerPanel = function(panel) {
             this.panels.push(panel);
+            panel.panelSet = this;
             panel.setItemPartid(this.itemPartid);
+            if (this.isReady) {
+                panel.componentIsReady('panelset');
+            }
         };
         
         this.setItemPartid = function(itemPartid) {
@@ -125,19 +112,22 @@
             for (var i in this.panels) {
                 this.panels[i].componentIsReady('panelset');
             }
+            this.isReady = true;
         };
         
     };
+    
     
     //
     // Panel: a Panel managed by the panelset
     // Usage:
     //    var panelset = $('#text-viewer').panelset();
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
-    Panel = function($root) {
+    var Panel = TextViewer.Panel = function($root, contentType) {
         this.$root = $root;
         this.contentType = null;
         this.dirty = false;
+        this.contentType = contentType;
         
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.attr('id', '');
@@ -150,7 +140,7 @@
         
         this.onResize = function () {
         };
-        
+                
         this.unreadyComponents = ['panelset'];
         
         this.componentIsReady = function(component) {
@@ -168,10 +158,27 @@
             this.$locationSelect.on('change', function() {me.loadContent();});
             this.loadContent();
             this.onResize();
+            
+            this.initDropDown('content-type', this.contentType);
 
             setInterval(function() {
                 me.saveContent();
             }, 1000);
+        };
+        
+        this.initDropDown = function(selector, selection) {
+            // we initialise the icon of the bootstrap drop down
+            var $dropdown = this.$root.find('.dropdown-'+selector);
+            var newValue = $dropdown.find('a[href=#'+selection+'] span')[0].outerHTML;
+            var me = this;
+            $dropdown.find('.dropdown-toggle span:first').replaceWith(newValue);
+            
+            $dropdown.find('.dropdown-menu a').on('click', function() {
+                var href = $(this).attr('href');
+                var contentType = href.substr(1, href.length - 1);
+                me.panelSet.registerPanel(new TextViewer['Panel'+$(this).data('class')](me.$root, contentType));
+                return false;
+            });
         };
 
         this.loadContent = function() {
@@ -203,21 +210,30 @@
         }
     };
     
-    PanelText = function($root) {
-        Panel.call(this, $root);
+    Panel.create = function(contentType, selector, write) {
+        var panelType = contentType.toUpperCase().substr(0, 1) + contentType.substr(1, contentType.length - 1);
+        if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
+            panelType = 'Text';
+        }
+        var ret = new TextViewer['Panel'+panelType+(write ? 'Write': '')]($(selector), contentType);
+        return ret;
+    };
+    
+    var PanelText = TextViewer.PanelText = function($root, contentType) {
+        TextViewer.Panel.call(this, $root, contentType);
     };
 
-    window.text_area_number = 0;
+    TextViewer.textAreaNumber = 0;
     
-    PanelTextWrite = function($root) {
-        PanelText.call(this, $root);
+    var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType) {
+        TextViewer.PanelText.call(this, $root, contentType);
         
         this.unreadyComponents.push('tinymce');
         
         this.loadContent = function() {
             // load the content with the API
             var me = this;
-            callApi(
+            TextViewer.callApi(
                 this.getContentAddress(), 
                 function(data) {
                     me.tinymce.setContent(data.content); 
@@ -227,6 +243,7 @@
 
         this.onResize = function () {
             if (this.tinymce) {
+                // resize tinmyce to take the remaining height in the panel
                 var $el = this.$root.find('iframe');
                 var height = this.$root.innerHeight() - ($el.offset().top - $root.offset().top);
                 $el.height(height+'px');
@@ -237,7 +254,7 @@
             var me = this;
             if (this.tinymce.isDirty()) {
                 this.tinymce.isNotDirty = true;
-                callApi(
+                TextViewer.callApi(
                     this.getContentAddress(), 
                     function(data) {
                         //me.tinymce.setContent(data.content); 
@@ -245,39 +262,61 @@
                     {'content': me.tinymce.getContent()}
                 );
             }
-        }
+        };
+        
+
+        this.initTinyMCE = function() {
+            TextViewer.textAreaNumber += 1;
+            var divid = 'text-area-' + TextViewer.textAreaNumber;
+            this.$content.append('<div id="'+ divid + '"></div>');
+            var me = this;
+            tinyMCE.init({
+                selector: '#' + divid,
+                init_instance_callback: function() {
+                    me.tinymce = tinyMCE.get(divid);
+                    me.componentIsReady('tinymce');
+                    },
+                plugins: ["paste"],
+                toolbar: "undo redo", 
+                menubar : false,
+                statusbar: false,
+                height: '15em',
+                content_css : "/static/digipal_text/viewer/tinymce.css"
+            });
+            
+        };
         
         this.initTinyMCE();
     };
-    
-    PanelTextWrite.prototype.initTinyMCE = function() {
-        window.text_area_number += 1;
-        var divid = 'text-area-' + window.text_area_number;
-        this.$content.append('<div id="'+ divid + '"></div>');
-        var me = this;
-        tinyMCE.init({
-            selector: '#' + divid,
-            init_instance_callback: function() {
-                me.tinymce = tinyMCE.get(divid);
-                me.componentIsReady('tinymce');
-                },
-            plugins: ["paste"],
-            toolbar: "undo redo", 
-            menubar : false,
-            statusbar: false,
-            height: '15em',
-            content_css : "/static/digipal_text/viewer/tinymce.css"
-        });
         
+    var PanelImage = TextViewer.PanelImage = function($root, contentType) {
+        TextViewer.Panel.call(this, $root, contentType);
+    };
+    
+    var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
+        TextViewer.Panel.call(this, $root, contentType);
+    };
+        
+    // UTILITIES
+
+    TextViewer.callApi = function(url, onSuccess, requestData) {
+        // See http://stackoverflow.com/questions/9956255.
+        // This tricks prevents caching of the fragment by the browser.
+        // Without this if you move away from the page and then click back
+        // it will show only the last Ajax response instead of the full HTML page.
+        url = url ? url : '';
+        var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
+        
+        $.get(url_ajax, requestData)
+            .success(function(data) {
+                if (onSuccess) {
+                    onSuccess(data);
+                    //set_message(data.message, data.status);
+                }
+            })
+            .fail(function(data) {
+            });
     }
-    
-    PanelImage = function($root) {
-        Panel.call(this, $root);
-    };
-    
-    PanelNavigator = function($root) {
-        Panel.call(this, $root);
-    };
 
     // These are external init steps for JSLayout
     function initLayoutAddOns() {

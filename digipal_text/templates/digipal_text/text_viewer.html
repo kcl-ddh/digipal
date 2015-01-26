@@ -34,10 +34,10 @@
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="#transcription"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>Transcription</a></li>
-                        <li><a href="#translation"><span class="glyphicon glyphicon-resize-horizontal" aria-hidden="true"></span>Translation</a></li>
-                        <li><a href="#images"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span>Images</a></li>
-                        <li><a href="#navigator"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>Navigator</a></li>
+                        <li><a href="#transcription" data-class="TextWrite"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>Transcription</a></li>
+                        <li><a href="#translation" data-class="TextWrite"><span class="glyphicon glyphicon-resize-horizontal" aria-hidden="true"></span>Translation</a></li>
+                        <li><a href="#image" data-class="Image"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span>Images</a></li>
+                        <li><a href="#navigator" data-class="Navigator"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>Navigator</a></li>
                     </ul>
                 </li>
            </ul>
@@ -78,14 +78,14 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script>
         jQuery(document).ready(function($) {
-            var panelset = new PanelSet($('#text-viewer'));
+            var panelset = new TextViewer.PanelSet($('#text-viewer'));
             panelset.setItemPartid('{{ item_partid }}');
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            panelset.registerPanel(new PanelTextWrite($('.ui-layout-center')));
-            panelset.registerPanel(new PanelImage($('.ui-layout-south')));
-            panelset.registerPanel(new PanelNavigator($('.ui-layout-west')));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
+            panelset.registerPanel(TextViewer.Panel.create('navigator', '.ui-layout-west'));
             panelset.ready();
             panelset.setPanelSize('west', 0);
             panelset.setPanelSize('south', 0);

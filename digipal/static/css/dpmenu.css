@@ -1,16 +1,11 @@
 /* menu and header */
 
 
-.navbar .nav > li > a:hover {
+.site-nav.navbar .nav > li > a:hover {
     background: url('/static/digipal/images/nav_hover.png');
 }
-.responsive-li-small {
-    font-size: 88%;
-    margin:1%;
-    padding: 1.5% !important;
-}
 
-.navbar-collapse{
+.site-nav .navbar-collapse{
     clear: both;
     float:left;
     width:100%;
@@ -30,7 +25,7 @@
     cursor: pointer;
 }
 
-.navbar{
+.site-nav.navbar{
     padding:0%;
     padding-bottom: 0%;
     margin:0;
@@ -40,14 +35,7 @@
     background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
 }
 
-.logo{
-    padding-left: 4%;
-    line-height: 2;
-    background: url('/static/digipal/images/banner_bg.png') no-repeat scroll left 0 transparent;
-}
-
-
-.navbar .nav > li {
+.site-nav.navbar .nav > li {
     background: url('/static/digipal/images/nav_li.png')100% 50% no-repeat;
     padding-right: 0;
     display: inline;
@@ -56,16 +44,30 @@
     height: 32px !important;
 }
 
-.navbar .nav > li:last-child {
+.site-nav.navbar .nav > li:last-child {
     background: none;
 }
 
-.navbar-collapse {
+.site-nav .navbar-collapse {
     max-height: none;
 }
 
+
+.responsive-li-small {
+    font-size: 88%;
+    margin:1%;
+    padding: 1.5% !important;
+}
+
+.logo{
+    padding-left: 4%;
+    line-height: 2;
+    background: url('/static/digipal/images/banner_bg.png') no-repeat scroll left 0 transparent;
+}
+
+
 @media (min-width: 837px) and (max-width: 1200px){
-    .navbar .nav > li > a{
+    .site-nav.navbar .nav > li > a{
         font-size: 0.85em;
         line-height: 1.5;
         padding: 10px 15px 10px 15px !important;
@@ -82,7 +84,7 @@
 }
 
 @media (min-width: 767px) and (max-width: 837px){
-    .navbar .nav > li > a{
+    .site-nav.navbar .nav > li > a{
         font-size: 0.74em;
         line-height: 1.5;
         padding: 10px 15px 10px 15px !important;
@@ -145,11 +147,11 @@
         color: #fff !important;
     }
 
-    .navbar .nav > li > a {
+    .site-nav.navbar .nav > li > a {
         line-height: 2 !important;
     }
 
-    .navbar-collapse {
+    .site-nav .navbar-collapse {
         background: none !important;
         margin-top: 2%;
     }
@@ -166,7 +168,7 @@
         right: 0;
     }
 
-    .logo, .navbar{
+    .site-nav .logo, .site-nav.navbar{
         background: none;
     }
 
@@ -186,9 +188,7 @@
 
 }
 
-
-
-.navbar .nav > li > a {
+.site-nav.navbar .nav > li > a {
     border: 0 none;
     text-decoration: none;
     color: #fff;
@@ -199,12 +199,12 @@
     height: 32px;
 }
 
-.navbar .nav > li > a:hover, .navbar .nav > li > a:focus {
+.site-nav.navbar .nav > li > a:hover, .site-nav.navbar .nav > li > a:focus {
     background: url('/static/digipal/images/nav_hover.png');
     color: #fff;
 }
 
-.navbar .nav > .active > a, .navbar .nav > .active > a:hover, .navbar .nav > .active > a:focus{
+.site-nav.navbar .nav > .active > a, .site-nav.navbar .nav > .active > a:hover, .site-nav.navbar .nav > .active > a:focus{
     background: url('/static/digipal/images/nav_hover.png');
     color: #fff;
 }
@@ -351,7 +351,7 @@ GN: commented this after upgrading to typeahead 0.10 out as the underlying
     width: 100%;
 }
 
-.navbar-toggle {
+.site-nav .navbar-toggle {
     background-color: #a1514d;
     border-color: #904845;
     color: #fff;
@@ -362,7 +362,7 @@ GN: commented this after upgrading to typeahead 0.10 out as the underlying
     background-color: #fff;
 }
 
-.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+.site-nav .navbar-default .navbar-toggle:hover, .site-nav .navbar-default .navbar-toggle:focus {
     background-color: #eee;
 }
 

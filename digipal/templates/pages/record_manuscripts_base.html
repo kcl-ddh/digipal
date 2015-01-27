@@ -22,6 +22,8 @@
         <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
     <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+    <li class="{% if tabid = "texts" %}active in{% endif %} {% if item_part.text_contents.count > 0 %}{% else %}disabled{% endif %}">
+        <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ item_part.text_contents.count }})</a></li>
 {% endblock %}
 
 {% block details %}
@@ -147,6 +149,25 @@
                     </ul>
                 {% else %}
                     {% include "digipal/empty_tab.html" with type="hand" %}
+                {% endif %}
+            </div>
+
+            <div class='tab-pane fade {% if tabid = "texts" %}active in{% endif %}' id='texts'>
+                {% if item_part.text_contents.count %}
+                    <ul class="list-group">
+                        {% for text_content in item_part.text_contents.all %}
+                            <li class="list-group-item">
+                                <a href="{{ text_content.get_absolute_url }}">
+                                    {{ text_content.type }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    {% include "digipal/empty_tab.html" with type="hand" %}
+                {% endif %}
+                {% if can_edit %}
+                    <p><a href="view/">Edit the Texts</a></p>
                 {% endif %}
             </div>
 

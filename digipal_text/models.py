@@ -30,7 +30,14 @@ class TextContent(models.Model):
         return ', '.join([l.name for l in self.languages.all()])
         
     def __unicode__(self):
-        return '%s %s (%s)' % (self.type, self.item_part, self.get_string_from_languages())
+        ret = '%s %s' % (self.type, self.item_part)
+        languages = self.get_string_from_languages()
+        if languages:
+            ret +=  ' (%s)' % languages
+        return ret
+    
+    def get_absolute_url(self):
+        return '%stexts/view/' % self.item_part.get_absolute_url()
 
 class TextContentXMLStatus(digipal.models.NameModel):
     pass

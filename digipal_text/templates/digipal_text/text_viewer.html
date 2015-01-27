@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load html_escape %}
 
+{% block meta_title %}{{ item_part.display_label }}: Texts{% endblock %}
+
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
@@ -9,7 +11,7 @@
 
 {% block main %}
 
-<h1>{{ item_part }}</h1>
+<h1><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a>: Texts</h1>
 
 <div id="text-viewer">
     <div class="message-box">
@@ -42,7 +44,7 @@
                 </li>
            </ul>
 
-            <ul class="nav navbar-nav pull-left">
+           <ul class="nav navbar-nav pull-left">
                 <li class="dropdown dropdown-location-type pull-left">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                       <span class="glyphicon glyphicon-file" aria-hidden="true"></span>

@@ -23,13 +23,15 @@
                 {% endif %}
             {% endwith %}
 
-            {% if image.hands.all.count %}
-                <a href='{{image.get_absolute_url }}hands'>
-            {% endif %}
-                    <span class="label label-default" >{{ image.hands.all.count }} {{ "Hand"|plural:image.hands.all.count }}</span>
-            {% if image.hands.all.count %}
-                </a>
-            {% endif %}
+            {% with hand_count=image.hands.all.count %}
+                {% if hand_count %}
+                    <a href='{{image.get_absolute_url }}hands'>
+                {% endif %}
+                        <span class="label label-default" >{{ hand_count }} {{ "Hand"|plural:hand_count }}</span>
+                {% if hand_count %}
+                    </a>
+                {% endif %}
+            {% endwith %}
         </p>
 
         {% spaceless %}

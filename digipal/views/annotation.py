@@ -205,7 +205,7 @@ def image(request, image_id):
 
     is_admin = has_edit_permission(request, Image)
 
-    images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id), True)
+    images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set'), True)
     #annotations_count = image.annotation_set.all().values('graph').count()
     #annotations = image.annotation_set.all()
     annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(is_admin).select_related('graph__hand', 'graph__idiograph__allograph')

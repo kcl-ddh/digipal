@@ -12,7 +12,8 @@
 <div class='col-md-{{ img_col|default:3 }} col-xs-12 centered'>
     <div class="panel">
         <p class='annotations_count_images'>
-            {% with annotation_count=image.annotation_set.all.publicly_visible.count %}
+            {# {% with annotation_count=image.annotation_set.all.publicly_visible.count %} #}
+            {% with annotation_count=image.get_annotation_count %}
                 {% if annotation_count %}
                     <a href='{{image.get_absolute_url }}'>
                 {% endif %}

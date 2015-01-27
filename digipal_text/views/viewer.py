@@ -27,7 +27,8 @@ dplog = logging.getLogger( 'digipal_debugger')
 
 def text_viewer_view(request, item_partid=0):
     
-    context = {'item_partid': item_partid}    
+    from digipal.models import ItemPart
+    context = {'item_partid': item_partid, 'item_part': ItemPart.objects.filter(id=item_partid).first()}    
     
     return render(request, 'digipal_text/text_viewer.html', context)
 

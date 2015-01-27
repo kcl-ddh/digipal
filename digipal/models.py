@@ -1555,6 +1555,10 @@ class Image(models.Model):
                 ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
         return ret
 
+    def get_annotation_count(self):
+        '''returns only annotations which have either a graph or a display note'''
+        return len([1 for an in self.annotation_set.all() if an.is_publicly_visible])
+
     def get_repository(self):
         ret = None
         if self.item_part and self.item_part.current_item and self.item_part.current_item:
@@ -2245,6 +2249,10 @@ class Annotation(models.Model):
     def is_editorial(self):
         '''Returns True only if the annotation has no graph attached to it'''
         return bool(self.graph)
+    
+    @property
+    def is_publicly_visible(self):
+        return self.display_note or self.graph_id
     
     def get_geo_json_as_dict(self, geo_json_str=None):
         import json

@@ -1,26 +1,47 @@
 TODO
+
+    BOTH
+
+    . read only mode 
     
-    [DONE] WriteTextView
-    [DONE] show tinymce
-    [DONE] Junicode
-    [DONE] Basic TextWrite:
-        read text from database (create if not there)
-        display it
-    [DONE] show only one panel with transcription
-    [DONE] auto-save
-    
-    [DONE] 1. ** Dynamically create the views based on the content types
-        [DONE] generic constructor of a panel
-        [DONE] update content type drop down
-        [DONE] react to changes in the drop down
-        [DONE] load the transcription or translation
-    
+    2. save/backup button
+
     * mark up clauses
         Add new controls to the toolbar
             type
             input box
 
-    * Structure
+    1. Show status bar at the bottom of each panel:
+        html
+        dynamic resize
+        function to show message
+        time of the message
+        duration of the request
+        truncate the message to make it fit in the available space
+        icon to show the message in full
+
+    ** mark-up
+        gaps
+        deletion
+
+    More efficient saving:
+        if saving is long, the save requests may overlap
+            => don't send another request if one is not back yet 
+            => make sure we save only when 1.5 secs inactivity on the keyboard
+    
+    MOFA
+
+    ** Fix auto save bug: completing a line does not trigger a new save event
+    
+    EXON
+    
+    Split long texts into small parts
+        splitting
+        display one piece
+        pull locations from database
+        location change
+    
+    ** Structure
         mark up pagination
         extract entry numbers and starting points
         enable navigation using location dropdown
@@ -29,27 +50,12 @@ TODO
             page
             division
             entry
-            
-    * mark-up
-        gaps
-        deletion
     
-    More efficient saving:
-        if saving is long, the save requests may overlap
-            => don't send another request if one is not back yet 
-            => make sure we save only when 1.5 secs inactivity on the keyboard
-    
-    Show status bar at the bottom of each panel:
-        html
-        dynamic resize
-        function to show message
-        time of the message
-        duration of the request
-        truncate the message to make it fit in the available space
-        icon to show the message in full
-    
-    Fix auto save bug: completing a line does not trigger a new save event
-    
+    Attach information to an entry
+        people
+        places
+        etc.
+
     create dummy text, three pages long
 
     ? mark-up records
@@ -104,4 +110,19 @@ TODO
             make the slug input writable
             keep the slug as it is even when the name changes 
             but if the slug is blanked (or add an icon for that) we reset it.
+DONE
+
+    [DONE] WriteTextView
+    [DONE] show tinymce
+    [DONE] Junicode
+    [DONE] Basic TextWrite:
+        read text from database (create if not there)
+        display it
+    [DONE] show only one panel with transcription
+    [DONE] auto-save
     
+    [DONE] 1. ** Dynamically create the views based on the content types
+        [DONE] generic constructor of a panel
+        [DONE] update content type drop down
+        [DONE] react to changes in the drop down
+        [DONE] load the transcription or translation

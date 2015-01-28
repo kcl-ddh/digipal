@@ -619,12 +619,14 @@ class ImageAdmin(DigiPalModelAdmin):
     #list_per_page = 100000
 
     exclude = ['image', 'caption']
-    list_display = ['id', 'display_label', 'get_thumbnail', 
+    list_display = ['id', 'display_label', 'locus', 'get_thumbnail', 
             'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
             'keywords_string', 'get_iipimage_field']
     list_display_links = ['id', 'display_label', 
             'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
             'keywords_string', 'get_iipimage_field']
+    list_editable = ['locus']
+    
     search_fields = ['id', 'display_label', 'locus', 
             'item_part__display_label', 'iipimage', 'annotation_status__name', 
             'keywords_string', 'internal_notes', 'transcription']

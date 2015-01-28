@@ -63,9 +63,16 @@
                     </select>
                 </li>
 	       </ul>
+	       
     </nav>
     
     <div class="panel-content">
+    </div>
+    
+    <div class="panel-status">
+        <span class="status"></span>
+        <span class="message"></span>
+        <span class="time pull-right"></span>
     </div>
     
 </div>
@@ -85,13 +92,14 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-west', true));
             panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
-            panelset.registerPanel(TextViewer.Panel.create('navigator', '.ui-layout-west'));
             panelset.ready();
+            panelset.setPanelSize('west', 0.5);
+            panelset.setPanelSize('south', 0.5);
             panelset.setPanelSize('west', 0);
-            panelset.setPanelSize('south', 0);
-            //panelset.setPanelSize('south', 1/2.0);
+            //panelset.setPanelSize('south', 0);
         });
     </script>
 {% endblock %}

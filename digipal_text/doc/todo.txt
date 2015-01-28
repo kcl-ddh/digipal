@@ -29,6 +29,15 @@ TODO
             => don't send another request if one is not back yet 
             => make sure we save only when 1.5 secs inactivity on the keyboard
     
+    * Image panel
+        [DONE] load image
+        [DONE] fit to width
+        scroll only the content
+        [DONE] load locations
+        [DONE] change location
+        layout selection (width fit, height fit, best fit)
+        auto-zoom
+    
     MOFA
 
     ** Fix auto save bug: completing a line does not trigger a new save event
@@ -68,16 +77,13 @@ TODO
 
     Switch edit/view
     
-    Text
-    
-    Image
-
     Bug
         Make sure we can't save the content before it is loaded
         What if you edit the same text in different panels?
         Fix the slug in the admin:
             the slug should be read only
             for the moment we always update the slug automatically on save
+        TinyMCE will not work well (setContent and editing mode fails) when the panel is collapse at the time of the loading
     
     Presentation
         resizing a panel doesn't work smoothly when the mouse goes over TinyMCE
@@ -110,6 +116,9 @@ TODO
             make the slug input writable
             keep the slug as it is even when the name changes 
             but if the slug is blanked (or add an icon for that) we reset it.
+        Generalise API:
+            query for the list of locations and this can be handled by the custom function on server side
+
 DONE
 
     [DONE] WriteTextView

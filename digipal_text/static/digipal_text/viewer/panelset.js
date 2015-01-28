@@ -151,7 +151,7 @@
         this._ready = function(readyComponent) {
             var me = this;
             this.$locationSelect.on('change', function() {me.loadContent();});
-            this.loadContent();
+            this.loadContent(true);
             this.onResize();
             
             this.initDropDown('content-type', this.contentType);
@@ -176,7 +176,7 @@
             });
         };
 
-        this.loadContent = function() {
+        this.loadContent = function(loadLocations) {
             this.$content.html('DUMMY CONTENT');
         };
         
@@ -218,6 +218,9 @@
         TextViewer.Panel.call(this, $root, contentType);
     };
 
+    //
+    // PanelTextWrite
+    //
     TextViewer.textAreaNumber = 0;
     
     var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType) {
@@ -225,7 +228,7 @@
         
         this.unreadyComponents.push('tinymce');
         
-        this.loadContent = function() {
+        this.loadContent = function(loadLocations) {
             // load the content with the API
             var me = this;
             TextViewer.callApi(
@@ -284,10 +287,41 @@
         this.initTinyMCE();
     };
         
+    //
+    // PanelImage
+    //
     var PanelImage = TextViewer.PanelImage = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
+        
+        this.loadContent = function(loadLocations) {
+            // load the content with the API
+            var me = this;
+            TextViewer.callApi(
+                this.getContentAddress(), 
+                function(data) {
+                    me.$content.html(data.content);
+                    if (data.locations) {
+                        me.$locationSelect.empty();
+                        for (var i in data.locations) {
+                            me.$locationSelect.append('<option value="'+data.locations[i]+'">'+data.locations[i]+'</option>');
+                        }
+                        me.$locationSelect.trigger('liszt:updated');
+                    }
+                },
+                {
+                    'layout': 'width',
+                    'width': me.$content.width(),
+                    'height': me.$content.height(),
+                    'load_locations': loadLocations ? 1 : 0,
+                    
+                }
+            );
+        };
     };
     
+    //
+    // PanelNavigator
+    //
     var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     };

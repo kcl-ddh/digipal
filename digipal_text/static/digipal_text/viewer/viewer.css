@@ -28,6 +28,8 @@ span.message-time {
 }
 
 .panel-content {
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .ui-layout-pane {
@@ -69,6 +71,13 @@ span.message-time {
 
 .text-viewer-panel .dropdown-menu .glyphicon {
     padding-right: 0.4em;
+}
+
+
+
+.status-bar {
+    min-height: 2em;
+    background-color: #f8f8f8;
 }
 
 /*

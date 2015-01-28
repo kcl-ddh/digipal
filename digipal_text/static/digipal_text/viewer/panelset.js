@@ -132,8 +132,13 @@
         this.$root.find('select').chosen();
         
         this.$content = this.$root.find('.panel-content');
+        this.$statusBar = this.$root.find('.status-bar');
         
         this.onResize = function () {
+            // resize content to take the remaining height in the panel
+            var height = this.$root.innerHeight() - (this.$content.offset().top - $root.offset().top) - this.$statusBar.outerHeight(true);
+            this.$content.css('max-height', height+'px');
+            this.$content.height(height+'px');
         };
                 
         this.unreadyComponents = ['panelset'];
@@ -239,11 +244,15 @@
             );
         };
 
+        // TODO: fix with 'proper' prototype inheritance
+        this.baseOnResize = this.onResize;
         this.onResize = function () {
+            this.baseOnResize();
             if (this.tinymce) {
                 // resize tinmyce to take the remaining height in the panel
                 var $el = this.$root.find('iframe');
-                var height = this.$root.innerHeight() - ($el.offset().top - $root.offset().top);
+                //var height = this.$root.innerHeight() - ($el.offset().top - $root.offset().top);
+                var height = this.$content.innerHeight();
                 $el.height(height+'px');
             }
         };

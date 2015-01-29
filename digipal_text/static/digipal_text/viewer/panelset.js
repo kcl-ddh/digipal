@@ -243,11 +243,9 @@
     
     Panel.create = function(contentType, selector, write) {
         var panelType = contentType.toUpperCase().substr(0, 1) + contentType.substr(1, contentType.length - 1);
-        if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
-            panelType = 'Text';
-        }
-        var ret = new TextViewer['Panel'+panelType+(write ? 'Write': '')]($(selector), contentType);
-        return ret;
+        //if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
+        var constructor = TextViewer['Panel'+panelType+(write ? 'Write': '')] || TextViewer['PanelText'+(write ? 'Write': '')];
+        return new constructor($(selector), contentType);
     };
     
     var PanelText = TextViewer.PanelText = function($root, contentType) {
@@ -283,8 +281,8 @@
             if (this.tinymce) {
                 // resize tinmyce to take the remaining height in the panel
                 var $el = this.$root.find('iframe');
-                //var height = this.$root.innerHeight() - ($el.offset().top - $root.offset().top);
-                var height = this.$content.innerHeight();
+                var height = this.$content.innerHeight() - ($el.offset().top - this.$content.offset().top);
+                //var height = this.$content.innerHeight();
                 $el.height(height+'px');
             }
         };

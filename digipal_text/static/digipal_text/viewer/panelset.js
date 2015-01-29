@@ -140,6 +140,12 @@
             this.$content.css('max-height', height+'px');
             this.$content.height(height+'px');
         };
+        
+        this.setMessage = function(message, status) {
+            // status = success|info|warning|error
+            this.$statusBar.find('.message').html(message);
+            this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
+        }
                 
         this.unreadyComponents = ['panelset'];
         
@@ -234,12 +240,15 @@
         this.unreadyComponents.push('tinymce');
         
         this.loadContent = function(loadLocations) {
+            this.setMessage('loading content...');
+            
             // load the content with the API
             var me = this;
             TextViewer.callApi(
                 this.getContentAddress(), 
                 function(data) {
                     me.tinymce.setContent(data.content); 
+                    me.setMessage('content loaded', 'success');
                 } 
             );
         };
@@ -278,6 +287,7 @@
             this.$content.append('<div id="'+ divid + '"></div>');
             var me = this;
             tinyMCE.init({
+                skin : 'lightgray',
                 selector: '#' + divid,
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
@@ -354,6 +364,15 @@
             })
             .fail(function(data) {
             });
+    }
+    
+    TextViewer.getStrFromTime = function(date) {
+        date = date || new Date();
+        var parts = [date.getHours(), date.getMinutes(), date.getSeconds()];
+        for (var i in parts) {
+            if ((i > 0) && (parts[i] < 10)) {parts[i] = '0' + parts[i]};
+        }
+        return parts.join(':');
     }
 
     // These are external init steps for JSLayout

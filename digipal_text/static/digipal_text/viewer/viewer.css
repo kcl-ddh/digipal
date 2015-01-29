@@ -19,9 +19,26 @@ div.message-box.message-info {
     color: green;
 }
 
+.status-bar {
+    padding: 0.3em;
+    border-top: 1px solid lightgrey;
+    font-size: 12px;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+.status-bar span {
+    /* padding-left: 0.3em; */
+}
+
+.mce-tinymce.mce-container.mce-panel {
+    border: 0px !important;
+}
+
+/*
 span.message-time {
     padding: 0.3em;
 }
+*/
 
 #text-viewer-panel {
     display: none;

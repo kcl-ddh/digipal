@@ -186,11 +186,38 @@
                 return false;
             });
         };
+        
+        /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations) {
-            this.$content.html('DUMMY CONTENT');
+            this.setMessage('Loading content...');
+            this.loadContentCustom(loadLocations);
         };
         
+        this.loadContentCustom = function(loadLocations) {
+            this.$content.html('Generic Panel Content');
+            this.onContentLoaded();
+        };
+        
+        this.onContentLoaded = function() {
+            this.setMessage('Content loaded.', 'success');
+        };
+        
+        /* SAVING CONTENT */
+        
+        this.saveContent = function() {
+            this.saveContentCustom();
+        }
+        
+        this.saveContentCustom = function() {
+        }
+        
+        this.onContentSaved = function() {
+            this.setMessage('Content saved.', 'success');
+        }
+
+        /* -------------- */
+
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -212,8 +239,6 @@
             return this.$locationSelect.val();
         };
                 
-        this.saveContent = function() {
-        }
     };
     
     Panel.create = function(contentType, selector, write) {
@@ -239,17 +264,15 @@
         
         this.unreadyComponents.push('tinymce');
         
-        this.loadContent = function(loadLocations) {
-            this.setMessage('loading content...');
-            
+        this.loadContentCustom = function(loadLocations) {
             // load the content with the API
             var me = this;
             TextViewer.callApi(
                 this.getContentAddress(), 
                 function(data) {
-                    me.tinymce.setContent(data.content); 
-                    me.setMessage('content loaded', 'success');
-                } 
+                    me.tinymce.setContent(data.content);
+                    me.onContentLoaded();
+                }
             );
         };
 
@@ -266,14 +289,16 @@
             }
         };
 
-        this.saveContent = function() {
+        this.saveContentCustom = function() {
             var me = this;
             if (this.tinymce.isDirty()) {
+                this.setMessage('Saving content...');
                 this.tinymce.isNotDirty = true;
                 TextViewer.callApi(
                     this.getContentAddress(), 
                     function(data) {
-                        //me.tinymce.setContent(data.content); 
+                        //me.tinymce.setContent(data.content);
+                        me.onContentSaved();
                     },
                     {'content': me.tinymce.getContent()}
                 );
@@ -287,7 +312,7 @@
             this.$content.append('<div id="'+ divid + '"></div>');
             var me = this;
             tinyMCE.init({
-                skin : 'lightgray',
+                skin : 'digipal',
                 selector: '#' + divid,
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
@@ -312,13 +337,13 @@
     var PanelImage = TextViewer.PanelImage = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
         
-        this.loadContent = function(loadLocations) {
+        this.loadContentCustom = function(loadLocations) {
             // load the content with the API
             var me = this;
             TextViewer.callApi(
                 this.getContentAddress(), 
                 function(data) {
-                    me.$content.html(data.content);
+                    me.$content.html(data.content).find('img').load(function() {me.onContentLoaded();});
                     if (data.locations) {
                         me.$locationSelect.empty();
                         for (var i in data.locations) {

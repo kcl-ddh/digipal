@@ -57,6 +57,10 @@ span.message-time {
     height: 100%;
 }
 
+.text-viewer-panel .navbar-default {
+    border-width: 0 0 1px 0;
+}
+
 /* Less tall navbar */
 
 .text-viewer-panel .navbar-nav > li > a {

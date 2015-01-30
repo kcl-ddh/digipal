@@ -151,7 +151,7 @@
             annotator.image_id = {{ image.id }};
             annotator.hands = {{ hands_list|safe }};
             annotator.absolute_image_url = '{{ image.get_absolute_url }}';
-            annotator.url_annotations = '{{ image.get_absolute_url }}annotations';
+            annotator.url_annotations = '{{ image.get_absolute_url }}annotations/';
             no_image_reason = false;
             var _toolbar = $('#panelImageBox');
             var toolbar_position = _toolbar.offset().top;

@@ -1,5 +1,8 @@
 TODO
 
+http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
+http://localhost/digipal/manuscripts/199/texts/view/
+
 BOTH
 
     . read only mode 
@@ -21,8 +24,11 @@ BOTH
             => make sure we save only when 1.5 secs inactivity on the keyboard
 
     Image Panel
-        layout selection (width fit, height fit, best fit)
-        auto-zoom
+        zoom inset on click 
+            OR zoomify
+        !!Bypass image size quota:
+            Zoomify?
+            Open Layer?
         
     Addressability
         Expose and resolve URL leading directly to translation or transcription
@@ -101,6 +107,8 @@ Performance
         sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
 
 Maybe
+    Image Panel
+        layout selection (width fit, height fit, best fit)
     ? show address selector
     Let panels from different browser tabs communicate
         synchronise position

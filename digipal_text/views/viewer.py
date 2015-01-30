@@ -77,19 +77,33 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     return {'content': content}
 
 def text_api_view_image(request, item_partid, content_type, location_type, location):
+    '''
+        location = an identifier for the image. Relative to the item part
+                    '#1000' => image with id = 1000
+                    '1r'    => image with locus = 1r attached to selected item part
+    '''
     ret = {}
     
     from digipal.templatetags.html_escape import iip_img
     from digipal.models import Image
     
+    # return the locus of the images under this item part
+    # return #ID for images which have no locus
     if utils.get_int(request.REQUEST.get('load_locations', 0)):
-        ret['locations'] = ['%s' % v for v in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', flat=True)]
+        ret['locations'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
         
-    image = Image.objects.filter(item_part_id=item_partid, locus=location).first()
+    # find the image
+    image = None
+    if location:
+        imageid = re.sub(ur'^#(\d+)$', ur'\1', location)
+        if imageid and imageid != location:
+            image = Image.objects.filter(id=imageid).first()
+        else:
+            image = Image.objects.filter(item_part_id=item_partid, locus=location).first()
     if not image:
-        # load any image
         image = Image.objects.filter(item_part_id=item_partid).first()
     
+    # image dimensions
     options = {}
     layout = request.REQUEST.get('layout', '')
     if layout == 'width':

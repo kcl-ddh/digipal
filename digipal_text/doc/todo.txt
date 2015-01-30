@@ -62,54 +62,58 @@ EXON
         Q: should we use an intermediary record to represent any type of entity? There are some commonalities among rec types such as normalised name, name before and after conquest, etc. 
         Or do we link directly to a Person/Place record?
         Q: what about the distinction between identified entity and occurrence of an entity name?
-    
 
+PUBLIC VIEW
+
+    ***** DON'T SHOW THE FULL SIZE VERSION OF THE IMAGE!
     Switch edit/view
+
+BUGS
     
-    Bug
-        Make sure we can't save the content before it is loaded
-        What if you edit the same text in different panels?
-        Fix the slug in the admin:
-            the slug should be read only
-            for the moment we always update the slug automatically on save
-        TinyMCE will not work well (setContent and editing mode fails) when the panel is collapse at the time of the loading
+    Make sure we can't save the content before it is loaded
+    What if you edit the same text in different panels?
+    Fix the slug in the admin:
+        the slug should be read only
+        for the moment we always update the slug automatically on save
+    TinyMCE will not work well (setContent and editing mode fails) when the panel is collapse at the time of the loading
+
     
-    Presentation
-        resizing a panel doesn't work smoothly when the mouse goes over TinyMCE
-        Fix the panelset being a few pixels too tall
-        Layout switches
-        Put the digipal style sheets back
-            put them back
-            fix the banner/nav
-        [DONE] relative size of the panels. e.g. 50% split centre and south
-        Improve the layout so if the set ratios are preserved even when resizing the browser window
-        (Re)design:
-            decide if the layout is completely managed by the viewer
-            would be nice if west is on the left of south: that would require to nest one layout inside another
-        BUG: when you close the south pane the iframe managed by the nested tinymce will loose the content of its head and body.
+Presentation
+    resizing a panel doesn't work smoothly when the mouse goes over TinyMCE
+    Fix the panelset being a few pixels too tall
+    Layout switches
+    Put the digipal style sheets back
+        put them back
+        fix the banner/nav
+    [DONE] relative size of the panels. e.g. 50% split centre and south
+    Improve the layout so if the set ratios are preserved even when resizing the browser window
+    (Re)design:
+        decide if the layout is completely managed by the viewer
+        would be nice if west is on the left of south: that would require to nest one layout inside another
+    BUG: when you close the south pane the iframe managed by the nested tinymce will loose the content of its head and body.
     
-    Performance
-        The full Exon translation (experiment with FireFox):
-            can be added with tinymce, pasted from Word it will strip almost all styles and keep minimal HTML
-            pasting takes a long time (~20s) but it is decent given the size of the text however it freezes the browser and we can get javascript performance warnings
-            the size is 310KB
-            loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds 
-            sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
-    
-    Maybe
-        ? show address selector
-        Let panels from different browser tabs communicate
-            synchronise position
-            edition + refresh views, etc.
-        Name tables in the admin: in the future we may want to 
-            make the slug input writable
-            keep the slug as it is even when the name changes 
-            but if the slug is blanked (or add an icon for that) we reset it.
-        Generalise API:
-            query for the list of locations and this can be handled by the custom function on server side
-        Show status bar at the bottom of each panel:
-            duration of the request
-            icon to show the message in full
+Performance
+    The full Exon translation (experiment with FireFox):
+        can be added with tinymce, pasted from Word it will strip almost all styles and keep minimal HTML
+        pasting takes a long time (~20s) but it is decent given the size of the text however it freezes the browser and we can get javascript performance warnings
+        the size is 310KB
+        loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds 
+        sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
+
+Maybe
+    ? show address selector
+    Let panels from different browser tabs communicate
+        synchronise position
+        edition + refresh views, etc.
+    Name tables in the admin: in the future we may want to 
+        make the slug input writable
+        keep the slug as it is even when the name changes 
+        but if the slug is blanked (or add an icon for that) we reset it.
+    Generalise API:
+        query for the list of locations and this can be handled by the custom function on server side
+    Show status bar at the bottom of each panel:
+        duration of the request
+        icon to show the message in full
 
 DONE
 

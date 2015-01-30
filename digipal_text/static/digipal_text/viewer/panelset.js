@@ -20,7 +20,6 @@
             if (this.isReady) {
                 panel.componentIsReady('panelset');
             }
-            console.log(this.panels);
         };
         
         this.unRegisterPanel = function(panel) {
@@ -246,7 +245,7 @@
         };
 
         this.getContentAddress = function() {
-            return '/digipal/manuscripts/' + this.itemPartid + '/texts/' + this.getContentType() + '/' + this.getLocationType() + '/' + this.getLocation() + '/';
+            return '/digipal/manuscripts/' + this.itemPartid + '/texts/' + this.getContentType() + '/' + this.getLocationType() + '/' + encodeURIComponent(this.getLocation()) + '/';
         };
         
         this.getContentType = function() {
@@ -437,14 +436,12 @@
                 if (!$d.data(s))
                     $d.disableSelection().data(s, true);
             }
-            //console.log('$.layout.disableTextSelection');
         };
         $.layout.enableTextSelection = function(){
             var $d  = $(document)
             ,   s   = 'textSelectionDisabled';
             if ($.fn.enableSelection && $d.data(s))
                 $d.enableSelection().data(s, false);
-            //console.log('$.layout.enableTextSelection');
         };
     
         $(".ui-layout-resizer")

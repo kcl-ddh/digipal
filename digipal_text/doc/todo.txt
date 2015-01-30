@@ -1,6 +1,6 @@
 TODO
 
-    BOTH
+BOTH
 
     . read only mode 
     
@@ -11,17 +11,6 @@ TODO
             type
             input box
 
-    1. Show status bar at the bottom of each panel:
-        [DONE] html
-        CSS
-        dynamic resize
-        function to show message
-        show message
-        time of the message
-        duration of the request
-        truncate the message to make it fit in the available space
-        icon to show the message in full
-
     ** mark-up
         gaps
         deletion
@@ -30,21 +19,19 @@ TODO
         if saving is long, the save requests may overlap
             => don't send another request if one is not back yet 
             => make sure we save only when 1.5 secs inactivity on the keyboard
-    
-    * Image panel
-        [DONE] load image
-        [DONE] fit to width
-        scroll only the content
-        [DONE] load locations
-        [DONE] change location
+
+    Image Panel
         layout selection (width fit, height fit, best fit)
         auto-zoom
+        
+    Addressability
+        Expose and resolve URL leading directly to translation or transcription
     
-    MOFA
+MOFA
 
     ** Fix auto save bug: completing a line does not trigger a new save event
     
-    EXON
+EXON
     
     Split long texts into small parts
         splitting
@@ -120,9 +107,20 @@ TODO
             but if the slug is blanked (or add an icon for that) we reset it.
         Generalise API:
             query for the list of locations and this can be handled by the custom function on server side
+        Show status bar at the bottom of each panel:
+            duration of the request
+            icon to show the message in full
 
 DONE
 
+    [DONE] Show status bar at the bottom of each panel:
+        [DONE] html
+        [DONE] CSS
+        [DONE] dynamic resize
+        [DONE] function to show message
+        [DONE] show message
+        [DONE] time of the message
+        [DONE] truncate the message to make it fit in the available space
     [DONE] WriteTextView
     [DONE] show tinymce
     [DONE] Junicode
@@ -137,3 +135,10 @@ DONE
         [DONE] update content type drop down
         [DONE] react to changes in the drop down
         [DONE] load the transcription or translation
+    [DONE] Basic Image panel
+        [DONE] load image
+        [DONE] fit to width
+        [DONE] scroll only the content
+        [DONE] load locations
+        [DONE] change location
+        

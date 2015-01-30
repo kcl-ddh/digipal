@@ -20,6 +20,15 @@
             if (this.isReady) {
                 panel.componentIsReady('panelset');
             }
+            console.log(this.panels);
+        };
+        
+        this.unRegisterPanel = function(panel) {
+            for (var i in this.panels) {
+                if (this.panels[i] == panel) {
+                    this.panels.splice(i, 1);
+                }
+            }
         };
         
         this.setItemPartid = function(itemPartid) {
@@ -120,6 +129,14 @@
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
     var Panel = TextViewer.Panel = function($root, contentType) {
         this.$root = $root;
+        
+        // we set a ref from the root element to its panel 
+        // so we can clean up things properly when the panel is replaced
+        if ($root[0].textViewerPanel) {
+            $root[0].textViewerPanel.onDestroy();
+        }
+        this.$root[0].textViewerPanel = this;
+        
         this.contentType = null;
         this.dirty = false;
         this.contentType = contentType;
@@ -134,6 +151,11 @@
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
         
+        this.onDestroy = function() {
+            // destructor, the place to remove any resource and detach event handlers
+            this.panelSet.unRegisterPanel(this);
+        };
+        
         this.onResize = function () {
             // resize content to take the remaining height in the panel
             var height = this.$root.innerHeight() - (this.$content.offset().top - $root.offset().top) - this.$statusBar.outerHeight(true);
@@ -145,7 +167,7 @@
             // status = success|info|warning|error
             this.$statusBar.find('.message').html(message);
             this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
-        }
+        };
                 
         this.unreadyComponents = ['panelset'];
         
@@ -157,7 +179,7 @@
             if (this.unreadyComponents.length == 0) {
                 this._ready();
             } 
-        }
+        };
         
         this._ready = function(readyComponent) {
             var me = this;
@@ -238,7 +260,7 @@
         this.getLocation = function() {
             return this.$locationSelect.val();
         };
-                
+        
     };
     
     Panel.create = function(contentType, selector, write) {

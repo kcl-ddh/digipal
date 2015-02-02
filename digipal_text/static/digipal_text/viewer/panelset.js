@@ -164,7 +164,7 @@
         
         this.setMessage = function(message, status) {
             // status = success|info|warning|error
-            this.$statusBar.find('.message').html(message);
+            this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
             this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
         };
                 
@@ -233,8 +233,12 @@
         this.saveContentCustom = function() {
         }
         
-        this.onContentSaved = function() {
-            this.setMessage('Content saved.', 'success');
+        this.onContentSaved = function(data) {
+            if (data.error) {
+                this.setMessage('Error saving content: '+data.error, 'error');
+            } else {
+                this.setMessage('Content saved.', 'success');
+            }
         }
 
         /* -------------- */
@@ -317,7 +321,7 @@
                     this.getContentAddress(), 
                     function(data) {
                         //me.tinymce.setContent(data.content);
-                        me.onContentSaved();
+                        me.onContentSaved(data);
                     },
                     {'content': me.tinymce.getContent()}
                 );
@@ -399,15 +403,15 @@
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
         
-        $.get(url_ajax, requestData)
+        var ret = $.get(url_ajax, requestData)
             .success(function(data) {
                 if (onSuccess) {
                     onSuccess(data);
                     //set_message(data.message, data.status);
                 }
-            })
-            .fail(function(data) {
             });
+        
+        return ret;
     }
     
     TextViewer.getStrFromTime = function(date) {

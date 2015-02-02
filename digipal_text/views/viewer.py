@@ -51,11 +51,11 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     text_content_xml = None
     
-    print 'content type %s' % content_type_record
+    #print 'content type %s' % content_type_record
     from digipal.models import ItemPart
     item_part = ItemPart.objects.filter(id=item_partid).first()
     if item_part:
-        print 'item_part %s' % item_part
+        #print 'item_part %s' % item_part
         # get or create the TextContent
         from digipal_text.models import TextContent, TextContentXML
         text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)

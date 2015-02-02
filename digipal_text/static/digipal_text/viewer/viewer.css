@@ -40,6 +40,10 @@ span.message-time {
 }
 */
 
+span.message-error {
+    color: red;
+}
+
 #text-viewer-panel {
     display: none;
 }

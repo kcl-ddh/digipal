@@ -229,18 +229,22 @@ function init_search_page(options) {
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
         // TODO: error management
-        $('body').on('click', '#search-ajax-fragment a:not([data-target])', function() {
-            var $a = $(this);
+        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target])', function() {
+            var $element = $(this);
 
+            var page_url = dputils.get_page_url($(location).attr('href'));
+            // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
+            var url = this.hasAttribute('href') ? this.href : page_url + '?' + $element.parents('form').serialize();
+            
             // check if the href is for this page
-            if (dputils.get_page_url($(location).attr('href')) !== dputils.get_page_url(this.href)) return true;
+            if (page_url !== dputils.get_page_url(url)) return true;
 
             $("#search-ajax-fragment").stop().animate({
                 'background-color': 'white',
                 opacity: 0.50,
                 'border': 'none'
             }, 500);
-            var url = $a.attr('href');
+            
             // See http://stackoverflow.com/questions/9956255.
             // This tricks prevents caching of the fragment by the browser.
             // Without this if you move away from the page and then click back

@@ -89,6 +89,7 @@
                 ret = ret.replace(/\?.*$/gi, '');
                 ret = ret.replace(/#.*$/gi, '');
                 ret = ret.replace(/\/$/gi, '');
+                ret += '/';
                 return ret;
             }
         }

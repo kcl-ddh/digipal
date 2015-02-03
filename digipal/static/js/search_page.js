@@ -235,6 +235,7 @@ function init_search_page(options) {
             var page_url = dputils.get_page_url($(location).attr('href'));
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
             var url = this.hasAttribute('href') ? this.href : page_url + '?' + $element.parents('form').serialize();
+            var $focus_selector = $element.data('focus');
             
             // check if the href is for this page
             if (page_url !== dputils.get_page_url(url)) return true;
@@ -267,6 +268,10 @@ function init_search_page(options) {
                     init_suggestions();
                     if ($.fn.tooltip) {
                         $fragment.find('[data-toggle="tooltip"]').tooltip();
+                    }
+                    if ($focus_selector) {
+                        var v = $($focus_selector).val();
+                        $($focus_selector).val('').val(v).focus();
                     }
                 })
                 .fail(function(data) {

@@ -69,7 +69,7 @@
                                             {% if facet.id %}id="{{ facet.id }}"{% endif %}
                                         >
                                         <span class="input-group-btn">
-                                            <button class="btn btn-default" type="submit">Go</button>
+                                            <button class="btn btn-default" type="submit" {% if facet.id %}data-focus="#{{ facet.id }}"{% endif %}>Go</button>
                                         </span>
                                     </div>
                                     {% if facet.type == 'date' %}

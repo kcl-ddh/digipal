@@ -20,10 +20,10 @@
     </div>
     <div class="panels">
         <div class="ui-layout-center">Text</div>
-        {# <div class="ui-layout-north">North</div> #}
-        <div class="ui-layout-south">Images</div>
-        {# <div class="ui-layout-east">East</div> #}
-        <div class="ui-layout-west">Navigator</div>
+        <div class="ui-layout-north">North</div>
+        {# <div class="ui-layout-south">Images</div> #}
+        <div class="ui-layout-east">East</div>
+        {# <div class="ui-layout-west">Navigator</div> #}
     </div>
 </div>
 
@@ -93,12 +93,14 @@
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
             panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
-            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-west', true));
-            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
-            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
+            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
+            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             panelset.ready();
-            panelset.setPanelSize('west', 0.5);
-            panelset.setPanelSize('south', 0.5);
+            //panelset.setPanelSize('west', 0.5);
+            //panelset.setPanelSize('south', 0.5);
+            panelset.setPanelSize('north', 0.5);
+            panelset.setPanelSize('east', 0.5);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);
         });

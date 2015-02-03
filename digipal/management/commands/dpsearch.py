@@ -142,6 +142,8 @@ Options:
 
     def info(self, options):
         for dir in self.get_all_dirs_under_index_path():
+            if not os.path.isdir(dir):
+                continue
             from datetime import datetime
             dir_rel = os.path.relpath(dir, settings.SEARCH_INDEX_PATH)
             print '-' * 78

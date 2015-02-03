@@ -30,10 +30,12 @@ class TextContent(models.Model):
         return ', '.join([l.name for l in self.languages.all()])
         
     def __unicode__(self):
-        ret = '%s %s' % (self.type, self.item_part)
+        info = self.type
         languages = self.get_string_from_languages()
         if languages:
-            ret +=  ' (%s)' % languages
+            info +=  ', %s' % languages
+        
+        ret = '%s (%s)' % (self.item_part, info)
         return ret
     
     def get_absolute_url(self):

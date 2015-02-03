@@ -41,7 +41,6 @@ class FacetedModel(object):
     fields = property(get_fields)
     
     def get_model(self):
-        ret = None
         path = self.options['model'].split('.')
         ret = __import__('.'.join(path[:-1]))
         for part in path[1:]:
@@ -743,12 +742,12 @@ def get_whoosh_field_type(field, sortable=False):
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'short_text':
         # A few words.
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=sortable)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'boolean':
         # A few words.
         ret = NUMERIC(stored=True, sortable=sortable)
     else:
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1) | CharsetFilter(accent_map), stored=True, sortable=sortable)
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
         
     return ret
     

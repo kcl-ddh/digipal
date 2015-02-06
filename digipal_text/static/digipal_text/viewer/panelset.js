@@ -171,10 +171,12 @@
         this.unreadyComponents = ['panelset'];
         
         this.componentIsReady = function(component) {
+            // we remove the component from the waiting list
             var index = $.inArray(component, this.unreadyComponents);
             if (index > -1) {
                 this.unreadyComponents.splice(index, 1);
             }
+            // if the waiting list is empty, we call _ready()
             if (this.unreadyComponents.length == 0) {
                 this._ready();
             } 
@@ -291,10 +293,11 @@
             // load the content with the API
             var me = this;
             TextViewer.callApi(
-                this.getContentAddress(), 
+                this.getContentAddress(),
                 function(data) {
                     me.tinymce.setContent(data.content);
                     me.onContentLoaded();
+                    me.tinymce.isNotDirty = true;
                 }
             );
         };
@@ -327,7 +330,6 @@
                 );
             }
         };
-        
 
         this.initTinyMCE = function() {
             TextViewer.textAreaNumber += 1;
@@ -340,9 +342,52 @@
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
-                    },
-                plugins: ["paste"],
-                toolbar: "undo redo", 
+
+                    /*
+                    me.tinymce.on('keydown', function(e) {
+                        if (e.keyCode == 8) {
+                            e.preventDefault();
+                            var sel = me.tinymce.selection;
+                            var b = sel.getBookmark();
+                            var $p = $(sel.getNode());
+                            var $parent = $p.parent();
+                            if ($parent.prop('tagName') == 'P') {
+                                var pos = $parent.html().indexOf($p[0].outerHTML);
+                                if (pos == 0) {
+                                    // do we have a p before the parent?
+                                    $prev = $p.prev();
+                                    if ($prev.prop('tagName') == 'P') {
+                                        // we have a p before this p, let's merge them
+                                        $prev.append($p.html());
+                                        $p.remove();
+                                        return false;
+                                    }
+                                }
+                            }
+                            
+                            var i = 10;
+                            var i2 = i + 3;
+                        }
+                        return true;
+                    });
+                    */
+                },
+//                setup : function(ed) {
+//                    ed.onPaste.add(function(ed, e) {
+//                        // TODO: move the code to the plug in as a tinymce command.
+//                        // convert all the Ps into DIVs
+//                        ed.setContent(ed.getContent().replace(/<\/?p/g, '<div'));
+//                    });
+//                },
+                plugins: ['paste', 'code', 'panelset'],
+                toolbar: 'undo redo | psexpansion | psclear | code ',
+                paste_word_valid_elements: "i,em",
+                paste_postprocess: function(plugin, args) {
+                    //args.node is a temporary div surrounding the content that will be inserted
+                    //console.log($(args.node).html());
+                    //$(args.node).html($(args.node).html().replace(/<(\/?)p/g, '<$1div'));
+                    //console.log($(args.node).html());
+                },
                 menubar : false,
                 statusbar: false,
                 height: '15em',
@@ -392,6 +437,11 @@
     var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     };
+    
+    // PanelXmlelement
+    var PanelXmlelementWrite = TextViewer.PanelXmlelementWrite = function($root, contentType) {
+        TextViewer.Panel.call(this, $root, contentType);
+    }
         
     // UTILITIES
 

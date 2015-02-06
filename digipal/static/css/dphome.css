@@ -143,12 +143,12 @@
     right: 2%;
 }
 
-.glyphicon-chevron-right{
+.carousel-control .glyphicon-chevron-right{
     top: 5% !important;
     left: 22% !important;
 }
 
-.glyphicon-chevron-left{
+.carousel-control .glyphicon-chevron-left{
     top: 10% !important;
     left:20% !important;
 }

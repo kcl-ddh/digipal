@@ -3,25 +3,63 @@ TODO
 http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 http://localhost/digipal/manuscripts/199/texts/view/
 
+XML-HTML -> XML
+
+    <span data-dpt="tag" data-dpt-attr1="val1">content</span>
+    
+    ->
+    
+    <tag attr1="val1">content</tag>
+
+XML
+
+    H<expan>enry</expan>
+        () H<expan abbrev="">enry</expan>
+        Different from TEI
+    
+
 BOTH
 
-    . read only mode 
-    
-    2. save/backup button
-
-    * mark up clauses
-        Add new controls to the toolbar
-            type
-            input box
-
-    ** mark-up
-        gaps
+    mark-up
+        expansion
+            [DONE]add button & mark up selection
+            keep surrounding spaces out of the markup
+            icon
+        supplied
         deletion
+        clauses
+            drop-down
+        
+        show the mark up
+            basic styling
+    
+    saving
+        saving bug
+            don't count loading as a modification of the text
+            detect all changes in the content
+        regular saving
+            avoid simultaneous savings
+            avoid too frequent savings
+        () backup button
+            add a new table: TextContentXMLBackup
+            add a button to save to this table
+            auto-save before large operations
+    
+    visualisation of the markups
+            line breaks
+            
+    conversion of the format to html
+        ()
+        italics
+        |
+        <>
+        and back
+        
+    Document the editor in Confluence
 
     More efficient saving:
-        if saving is long, the save requests may overlap
-            => don't send another request if one is not back yet 
-            => make sure we save only when 1.5 secs inactivity on the keyboard
+
+    . read only mode 
 
     Image Panel
         zoom inset on click 

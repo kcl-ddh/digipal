@@ -11,3 +11,34 @@
     font-size: 16px;
 }
 
+p[data-dpt], span[data-dpt], div[data-dpt] {
+    
+}
+
+/* 
+TODO: Generate this CSS dynamically with Python
+Use a config file for the editor buttons/elements
+Generate a hash key from it and use it in the query string to force reload when the styles have changed
+ 
+*/
+
+span[data-dpt=expan] {
+    border-bottom: 2px solid green;
+    border-left: 2px solid green;
+    border-right: 2px solid green;
+}
+
+span[data-dpt=expan]:before {
+    content: "( )";
+    font-size: 70%;
+    margin-top: -0.9em;
+    position: absolute;
+    color: green;
+}
+
+br {
+    content: "\23CE" !important;
+    display: block  !important;
+    margin-bottom: 1.5em !important;
+    
+}

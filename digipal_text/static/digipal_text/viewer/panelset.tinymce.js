@@ -37,6 +37,16 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
+    // Add a button that opens a window
+    editor.addButton('pssave', {
+        /*text: '',*/
+        tooltip: 'Save',
+        icon: 'save',
+        onclick: function() {
+            $(editor.editorContainer).trigger('pssave');
+        }
+    });
+    
     // Expansion
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
     editor.addButton('psexpansion', {

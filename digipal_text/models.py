@@ -68,6 +68,10 @@ class TextContentXML(models.Model):
         # convert 7 into tironian sign
         content = re.sub(ur'\b7\b', u'\u204a', content)
 
+        # convert | into line break
+        content = re.sub(ur'\|+', u'<br/>', content)
+        content = re.sub(ur'(<br\s*/?>\s*)+', u'<br/>', content)
+
         self.content = content
 
 # Assign get_absolute_url() and get_admin_url() for all models 

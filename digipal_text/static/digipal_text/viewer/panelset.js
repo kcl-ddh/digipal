@@ -299,9 +299,15 @@
             $(this.tinymce.editorContainer).on('psconvert', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(true);
+                me.saveContentCustom(true, true);
             });
             
+            $(this.tinymce.editorContainer).on('pssave', function() {
+                // mark up the content
+                // TODO: make sure the editor is read-only until we come back
+                me.saveContentCustom(true);
+            });
+
             return ret;
         };
         
@@ -331,9 +337,9 @@
             }
         };
 
-        this.saveContentCustom = function(autoMarkup) {
+        this.saveContentCustom = function(forceSave, autoMarkup) {
             var me = this;
-            if (this.tinymce.isDirty() || autoMarkup) {
+            if (this.tinymce.isDirty() || forceSave) {
                 this.setMessage('Saving content...');
                 this.tinymce.isNotDirty = true;
                 TextViewer.callApi(
@@ -400,7 +406,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'undo redo | psexpansion pssupplied | psclause | psclear | psconvert | code ',
+                toolbar: 'undo redo | psexpansion pssupplied | psclause | psclear | pssave psconvert | code ',
                 paste_word_valid_elements: 'i,em',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

@@ -25,6 +25,17 @@ var PanelSetPlugIn = function(editor, url) {
             editor.insertContent('<br/>');
         }
     });
+
+    // Add a button that opens a window
+    editor.addButton('psconvert', {
+        /*text: '\u267B',*/
+        text: '\u27F4',
+        tooltip: 'Auto mark-up',
+        icon: false,
+        onclick: function() {
+            
+        }
+    });
     
     // Expansion
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
@@ -42,6 +53,25 @@ var PanelSetPlugIn = function(editor, url) {
             
             // TODO: keep spaces outside the newly created span
             editor.selection.setContent('<span data-dpt="expan" data-dpt-cat="chars">' + sel_cont + '</span>');
+        }
+    });
+
+    // Expansion
+    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
+    editor.addButton('pssupplied', {
+        text: '\u271A',
+        tooltip: 'Supplied text',
+        icon: false,
+        onclick: function() {
+            if (editor.selection.isCollapsed()) return;
+            var parents = getSelectionParents();
+            if (parents[0] !== parents[1]) return;
+            var sel_cont = editor.selection.getContent();
+            if (sel_cont.match(/^\s*$/g)) return;
+            if (sel_cont.match(/</g)) return;
+            
+            // TODO: keep spaces outside the newly created span
+            editor.selection.setContent('<span data-dpt="supplied" data-dpt-cat="chars">' + sel_cont + '</span>');
         }
     });
 

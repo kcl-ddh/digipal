@@ -65,9 +65,13 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not text_content_xml:
         raise Exception('Content not found')
     
+    convert = request.REQUEST.get('convert', 0)
     content = request.REQUEST.get('content', None)
     if content:
         text_content_xml.content = content
+        if convert:
+            text_content_xml.convert()
+            content = text_content_xml.content
         text_content_xml.save()
     else:
         content = text_content_xml.content

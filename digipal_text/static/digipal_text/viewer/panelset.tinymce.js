@@ -1,4 +1,4 @@
-tinymce.PluginManager.add('panelset', function(editor, url) {
+var PanelSetPlugIn = function(editor, url) {
     
     function getSelectionParents() {
         var parents = [];
@@ -41,8 +41,8 @@ tinymce.PluginManager.add('panelset', function(editor, url) {
         }
     });
 
-    // Expansion
-    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
+    // Clear the markup
+    // Clear digipal elements within or directly above the selection 
     editor.addButton('psclear', {
         text: '\u274C',
         tooltip: 'Clear Markup',
@@ -71,6 +71,32 @@ tinymce.PluginManager.add('panelset', function(editor, url) {
             }
         }
     });
+    
+    // Clauses
+    editor.addButton('psclause', function() {
+        var items = [{text: 'Address', value: 'address'}, {text: 'Disposition', value: 'disposition'}, {text: 'Witnesses', value: 'witnesses'}];
+    
+        return {
+            type: 'listbox',
+            text: 'Clause',
+            tooltip: 'Clause',
+            values: items,
+            fixedWidth: true,
+            onclick: function(e) {
+                if (e.target.tagName !== 'BUTTON') {
+                    if (editor.selection.isCollapsed()) return;
+                    var parents = getSelectionParents();
+                    if (parents[0] !== parents[1]) return;
+                    var sel_cont = editor.selection.getContent();
+                    if (sel_cont.match(/^\s*$/g)) return;
+                    //if (sel_cont.match(/</g)) return;
+                    
+                    // TODO: keep spaces outside the newly created span
+                    editor.selection.setContent('<span data-dpt="clause" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
+                }
+            }
+        };
+    });
 
     // Paragraph merger
     editor.addButton('psparagraph', {
@@ -95,4 +121,6 @@ tinymce.PluginManager.add('panelset', function(editor, url) {
         }
     });
     
-});
+};
+
+tinymce.PluginManager.add('panelset', PanelSetPlugIn);

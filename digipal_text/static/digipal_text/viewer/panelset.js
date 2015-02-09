@@ -380,7 +380,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'undo redo | psexpansion | psclear | code ',
+                toolbar: 'undo redo | psexpansion | psclause | psclear | code ',
                 paste_word_valid_elements: "i,em",
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

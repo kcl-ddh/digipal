@@ -20,15 +20,18 @@ XML
 
 BOTH
 
+    fix undo redo!
+
     mark-up
         expansion
             [DONE]add button & mark up selection
             keep surrounding spaces out of the markup
-            icon
+            [DONE] icon
         supplied
         deletion
         clauses
             drop-down
+        clear
         
         show the mark up
             basic styling

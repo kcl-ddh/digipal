@@ -22,10 +22,14 @@ Generate a hash key from it and use it in the query string to force reload when 
  
 */
 
+span[data-dpt] {
+    border-bottom: 2px solid;
+    border-left: 2px solid;
+    border-right: 2px solid;
+}
+
 span[data-dpt=expan] {
-    border-bottom: 2px solid green;
-    border-left: 2px solid green;
-    border-right: 2px solid green;
+    border-color: green;
 }
 
 span[data-dpt=expan]:before {
@@ -34,6 +38,30 @@ span[data-dpt=expan]:before {
     margin-top: -0.9em;
     position: absolute;
     color: green;
+}
+
+span[data-dpt=clause] {
+    border-color: blue;
+}
+
+span[data-dpt=clause]:before {
+    content: "Clause";
+    font-size: 70%;
+    margin-top: -0.9em;
+    position: absolute;
+    color: blue;
+}
+
+span[data-dpt-type=witnesses]:before {
+    content: "Witnesses";
+}
+
+span[data-dpt-type=disposition]:before {
+    content: "Disposition";
+}
+
+span[data-dpt-type=address]:before {
+    content: "Address";
 }
 
 br {

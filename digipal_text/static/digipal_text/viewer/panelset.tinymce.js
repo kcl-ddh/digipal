@@ -1,5 +1,9 @@
 var PanelSetPlugIn = function(editor, url) {
     
+    this.dpmup = {
+            'psexpansion': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
+    };
+    
     function getSelectionParents() {
         var parents = [];
         for (var i in [0, 1]) {
@@ -37,7 +41,7 @@ var PanelSetPlugIn = function(editor, url) {
             if (sel_cont.match(/</g)) return;
             
             // TODO: keep spaces outside the newly created span
-            editor.selection.setContent('<span data-dpt="expan">' + sel_cont + '</span>');
+            editor.selection.setContent('<span data-dpt="expan" data-dpt-cat="chars">' + sel_cont + '</span>');
         }
     });
 
@@ -92,7 +96,7 @@ var PanelSetPlugIn = function(editor, url) {
                     //if (sel_cont.match(/</g)) return;
                     
                     // TODO: keep spaces outside the newly created span
-                    editor.selection.setContent('<span data-dpt="clause" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
+                    editor.selection.setContent('<span data-dpt="clause"  data-dpt-cat="words" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
                 }
             }
         };

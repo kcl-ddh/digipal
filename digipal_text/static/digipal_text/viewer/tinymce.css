@@ -22,34 +22,67 @@ Generate a hash key from it and use it in the query string to force reload when 
  
 */
 
+/* General */
+
 span[data-dpt] {
+    padding: 2px;
+    /*
     border-bottom: 2px solid;
     border-left: 2px solid;
     border-right: 2px solid;
+    padding: 2px;
+    */
 }
 
-span[data-dpt=expan] {
-    border-color: green;
+span[data-dpt]:before {
+    color: blue;
+    content: "???";
+    font-family: "Arial Black",Gadget,sans-serif;
+    font-size: 70%;
+    font-weight: bold;
+    margin-top: -0.8em;
+    position: absolute;
 }
+
+/*
+span[data-dpt] > span[data-dpt] {
+    padding: 1px;
+}
+*/
+
+/* Categories */
+
+span[data-dpt-cat=chars] {
+    background-color: rgba(0,255,0,0.25);
+}
+
+span[data-dpt-cat=words] {
+    background-color: rgba(0,0,255,0.1);
+}
+
+span[data-dpt-cat=chars]:before {
+    font-size: 70%;
+    color: green;
+    font-weight: normal;
+}
+
+/* Particular Elements */
 
 span[data-dpt=expan]:before {
     content: "( )";
-    font-size: 70%;
-    margin-top: -0.9em;
-    position: absolute;
-    color: green;
 }
 
+/*
 span[data-dpt=clause] {
     border-color: blue;
 }
+*/
 
 span[data-dpt=clause]:before {
     content: "Clause";
-    font-size: 70%;
-    margin-top: -0.9em;
-    position: absolute;
+    /*
     color: blue;
+    */
 }
 
 span[data-dpt-type=witnesses]:before {
@@ -64,9 +97,11 @@ span[data-dpt-type=address]:before {
     content: "Address";
 }
 
+/*
 br {
     content: "\23CE" !important;
     display: block  !important;
     margin-bottom: 1.5em !important;
     
 }
+*/

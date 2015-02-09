@@ -40,7 +40,7 @@ span[data-dpt]:before {
     font-family: "Arial Black",Gadget,sans-serif;
     font-size: 70%;
     font-weight: bold;
-    margin-top: -0.75em;
+    margin-top: -0.6em;
     position: absolute;
 }
 
@@ -74,7 +74,6 @@ span[data-dpt=expan]:before {
 
 span[data-dpt=supplied]:before {
     content: "\271A";
-    font-size: 90%;
 }
 
 /*

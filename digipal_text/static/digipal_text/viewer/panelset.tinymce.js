@@ -33,7 +33,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Auto mark-up',
         icon: false,
         onclick: function() {
-            
+            $(editor.editorContainer).trigger('psconvert');
         }
     });
     
@@ -56,8 +56,7 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
 
-    // Expansion
-    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
+    // Supplied
     editor.addButton('pssupplied', {
         text: '\u271A',
         tooltip: 'Supplied text',

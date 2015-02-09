@@ -182,7 +182,7 @@
             } 
         };
         
-        this._ready = function(readyComponent) {
+        this._ready = function() {
             var me = this;
             this.$locationSelect.on('change', function() {me.loadContent();});
             this.loadContent(true);
@@ -289,6 +289,22 @@
         
         this.unreadyComponents.push('tinymce');
         
+        //$(editor.editorContainer).trigger('psconvert');
+        // TODO: fix with 'proper' prototype inheritance
+        this._baseReady = this._ready;
+        this._ready = function() {
+            var ret = this._baseReady();
+            var me = this;
+            
+            $(this.tinymce.editorContainer).on('psconvert', function() {
+                // mark up the content
+                // TODO: make sure the editor is read-only until we come back
+                me.saveContentCustom(true);
+            });
+            
+            return ret;
+        };
+        
         this.loadContentCustom = function(loadLocations) {
             // load the content with the API
             var me = this;
@@ -315,9 +331,9 @@
             }
         };
 
-        this.saveContentCustom = function() {
+        this.saveContentCustom = function(autoMarkup) {
             var me = this;
-            if (this.tinymce.isDirty()) {
+            if (this.tinymce.isDirty() || autoMarkup) {
                 this.setMessage('Saving content...');
                 this.tinymce.isNotDirty = true;
                 TextViewer.callApi(
@@ -325,8 +341,12 @@
                     function(data) {
                         //me.tinymce.setContent(data.content);
                         me.onContentSaved(data);
+                        if (autoMarkup) {
+                            me.tinymce.setContent(data.content);
+                            me.tinymce.isNotDirty = true;
+                        }
                     },
-                    {'content': me.tinymce.getContent()}
+                    {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0}
                 );
             }
         };
@@ -381,7 +401,7 @@
 //                },
                 plugins: ['paste', 'code', 'panelset'],
                 toolbar: 'undo redo | psexpansion pssupplied | psclause | psclear | psconvert | code ',
-                paste_word_valid_elements: "i,em",
+                paste_word_valid_elements: 'i,em',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
                     //console.log($(args.node).html());

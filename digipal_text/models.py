@@ -52,6 +52,23 @@ class TextContentXML(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+    
+    # TODO: make this function overridable
+    def convert(self):
+        content = self.content
+        
+        print repr(content)
+        
+        # convert () into expansions
+        content = re.sub(ur'\(([^)<>]{1,50})\)', ur'<span data-dpt="expan" data-dpt-cat="chars">\1</span>', content)
+
+        # convert <> into supplied
+        content = re.sub(ur'&lt;(.*?)&gt;', ur'<span data-dpt="supplied" data-dpt-cat="chars">\1</span>', content)
+        
+        # convert 7 into tironian sign
+        content = re.sub(ur'\b7\b', u'\u204a', content)
+
+        self.content = content
 
 # Assign get_absolute_url() and get_admin_url() for all models 
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID

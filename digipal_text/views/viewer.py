@@ -47,7 +47,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
     
     import json
     return HttpResponse(json.dumps(response), mimetype='application/json')
-    
+
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     text_content_xml = None
     
@@ -65,13 +65,19 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not text_content_xml:
         raise Exception('Content not found')
     
-    convert = request.REQUEST.get('convert', 0)
     content = request.REQUEST.get('content', None)
+    convert = utils.get_int_from_request_var(request, 'convert')
+    save_copy = utils.get_int_from_request_var(request, 'save_copy')
+    
     if content:
         text_content_xml.content = content
         if convert:
             text_content_xml.convert()
             content = text_content_xml.content
+        if save_copy:
+            print '#' * 80
+            print repr(save_copy)
+            text_content_xml.save_copy()
         text_content_xml.save()
     else:
         content = text_content_xml.content

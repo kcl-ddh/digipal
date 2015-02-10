@@ -44,6 +44,12 @@ class TextContent(models.Model):
 class TextContentXMLStatus(digipal.models.NameModel):
     pass
 
+class TextContentXMLCopy(models.Model):
+    source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
+    content = models.BinaryField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
 class TextContentXML(models.Model):
     status = models.ForeignKey('TextContentXMLStatus', blank=True, null=True, related_name='text_content_xmls')
     text_content = models.ForeignKey('TextContent', blank=True, null=True, related_name='text_content_xmls')
@@ -52,6 +58,13 @@ class TextContentXML(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+    
+    def save_copy(self):
+        import zlib
+        content = zlib.compress(self.content.encode('utf-8'), 9)
+        copy = TextContentXMLCopy(source=self, content=content)
+        copy.save()
+        return copy
     
     # TODO: make this function overridable
     def convert(self):

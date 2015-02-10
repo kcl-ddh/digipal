@@ -421,6 +421,9 @@ def get_int(obj, default=0):
         ret = default
     return ret
 
+def get_int_from_request_var(request, var_name, default=0):
+    return get_int(request.REQUEST.get(var_name, default))
+
 MAX_DATE_RANGE = [-5000, 5000]
 
 def is_max_date_range(rng):

@@ -305,7 +305,7 @@
             $(this.tinymce.editorContainer).on('pssave', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(true);
+                me.saveContentCustom(true, false, true);
             });
 
             return ret;
@@ -337,7 +337,7 @@
             }
         };
 
-        this.saveContentCustom = function(forceSave, autoMarkup) {
+        this.saveContentCustom = function(forceSave, autoMarkup, saveCopy) {
             var me = this;
             if (this.tinymce.isDirty() || forceSave) {
                 this.setMessage('Saving content...');
@@ -352,7 +352,7 @@
                             me.tinymce.isNotDirty = true;
                         }
                     },
-                    {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0}
+                    {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0, 'save_copy': saveCopy ? 1 : 0}
                 );
             }
         };

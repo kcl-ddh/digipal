@@ -89,6 +89,10 @@ span[data-dpt=clause]:before {
     */
 }
 
+span[data-dpt=del]:before {
+    content: "Deleted";
+}
+
 span[data-dpt-type=witnesses]:before {
     content: "Witnesses";
 }

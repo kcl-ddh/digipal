@@ -406,7 +406,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'undo redo | psexpansion pssupplied | psclause | psclear | pssave psconvert | code ',
+                toolbar: 'undo redo | psexpansion pssupplied psdel | psclause | psclear | pssave psconvert | code ',
                 paste_word_valid_elements: 'i,em',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

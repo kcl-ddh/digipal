@@ -20,11 +20,13 @@ XML
 
 BOTH
 
+    BRs?
+
     More efficient saving:
 
     fix undo/redo!
     
-    conversion of the format to html
+    [DONE] conversion of the format to html
         ()
         italics
         |
@@ -32,12 +34,12 @@ BOTH
         and back
         Tironian mark
 
-    mark-up
+    [DONE] mark-up
         [DONE] expansion
             [DONE]add button & mark up selection
             [DONE] icon
-        supplied
-        deletion
+        [DONE] supplied
+        [DONE] deletion
         [DONE] clauses
             drop-down
         [DONE] clear

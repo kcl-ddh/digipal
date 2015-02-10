@@ -36,7 +36,7 @@ var PanelSetPlugIn = function(editor, url) {
             $(editor.editorContainer).trigger('psconvert');
         }
     });
-    
+
     // Add a button that opens a window
     editor.addButton('pssave', {
         /*text: '',*/
@@ -81,6 +81,27 @@ var PanelSetPlugIn = function(editor, url) {
             
             // TODO: keep spaces outside the newly created span
             editor.selection.setContent('<span data-dpt="supplied" data-dpt-cat="chars">' + sel_cont + '</span>');
+        }
+    });
+
+    // Supplied
+    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html
+    editor.addButton('psdel', {
+        /* text: '\u271A', */
+        tooltip: 'Deleted',
+        icon: 'strikethrough',
+        onclick: function() {
+            if (editor.selection.isCollapsed()) return;
+            var parents = getSelectionParents();
+            if (parents[0] !== parents[1]) return;
+            var sel_cont = editor.selection.getContent();
+            /*
+            if (sel_cont.match(/^\s*$/g)) return;
+            if (sel_cont.match(/</g)) return;
+            */
+            
+            // TODO: keep spaces outside the newly created span
+            editor.selection.setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
         }
     });
 

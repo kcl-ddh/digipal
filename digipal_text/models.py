@@ -46,9 +46,30 @@ class TextContentXMLStatus(digipal.models.NameModel):
 
 class TextContentXMLCopy(models.Model):
     source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
+    ahash = models.CharField(max_length=100, blank=True, null=True)
     content = models.BinaryField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    @classmethod
+    def create_from_content_xml(cls, content_xml):
+        '''Save a compressed copy of this content into the Copy table.
+            If this is the same as an existing copy, do nothing and return that one.
+        '''
+        import hashlib
+        content = content_xml.content.encode('utf-8')
+        ahash = hashlib.sha224(content).hexdigest()
+        
+        # do nothing if the last copy is the same as this one
+        copy = cls.objects.filter(ahash=ahash, source=content_xml).first()
+        if not copy:
+            # create a compressed copy
+            import zlib
+            content = zlib.compress(content, 9)
+            copy = TextContentXMLCopy(source=content_xml, content=content, ahash=ahash)
+            copy.save()
+        
+        return copy
 
 class TextContentXML(models.Model):
     status = models.ForeignKey('TextContentXMLStatus', blank=True, null=True, related_name='text_content_xmls')
@@ -60,12 +81,9 @@ class TextContentXML(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     
     def save_copy(self):
-        import zlib
-        content = zlib.compress(self.content.encode('utf-8'), 9)
-        copy = TextContentXMLCopy(source=self, content=content)
-        copy.save()
-        return copy
-    
+        '''Save a compressed copy of this content into the Copy table'''
+        TextContentXMLCopy.create_from_content_xml(self)
+        
     # TODO: make this function overridable
     def convert(self):
         content = self.content

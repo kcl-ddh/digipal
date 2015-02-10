@@ -75,8 +75,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             text_content_xml.convert()
             content = text_content_xml.content
         if save_copy:
-            print '#' * 80
-            print repr(save_copy)
             text_content_xml.save_copy()
         text_content_xml.save()
     else:

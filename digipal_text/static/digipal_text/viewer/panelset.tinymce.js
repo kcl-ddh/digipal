@@ -1,7 +1,7 @@
 var PanelSetPlugIn = function(editor, url) {
     
     this.dpmup = {
-            'psexpansion': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
+        'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
     };
     
     function beforeChange() {
@@ -65,22 +65,41 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
+    function addSpan(options) {
+        // options
+        //  tag: element name
+        //  attributes: {'name': 'val'}
+        //  conditions: {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}
+        //  processing: {'keep_spaces': false}
+        options.conditions = options.conditions || {};
+        $.extend(options.conditions, {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false});
+        var conds = options.conditions;
+        if ((conds.collapsed !== undefined) && (conds.collapsed !== editor.selection.isCollapsed())) return;
+        var parents = getSelectionParents();
+        if ((conds.overlap !== undefined) && (conds.overlap !== (parents[0] !== parents[1]))) return;
+        var sel_cont = editor.selection.getContent();
+        if ((conds.blank !== undefined) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
+        if ((conds.isparent !== undefined) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
+        
+        // TODO: keep spaces outside the newly created span
+        options.attributes = options.attributes || {};
+        var attrStr = '';
+        for (var k in options.attributes) {
+            attrStr += ' data-dpt-'+k+'="'+options.attributes[k]+'"';
+        };
+        
+        var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
+        setContent(parts[1] + '<span data-dpt="' + options.tag + '" ' + attrStr + '">' + parts[2] + '</span>' + parts[3]);
+    }
+    
     // Expansion
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
-    editor.addButton('psexpansion', {
+    editor.addButton('psex', {
         text: '()',
         tooltip: 'Expansion of abbreviation',
         icon: false,
         onclick: function() {
-            if (editor.selection.isCollapsed()) return;
-            var parents = getSelectionParents();
-            if (parents[0] !== parents[1]) return;
-            var sel_cont = editor.selection.getContent();
-            if (sel_cont.match(/^\s*$/g)) return;
-            if (sel_cont.match(/</g)) return;
-            
-            // TODO: keep spaces outside the newly created span
-            setContent('<span data-dpt="expan" data-dpt-cat="chars">' + sel_cont + '</span>');
+            addSpan({'tag': 'ex', 'attributes': {'cat': 'chars'}});
         }
     });
 
@@ -90,15 +109,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Supplied text',
         icon: false,
         onclick: function() {
-            if (editor.selection.isCollapsed()) return;
-            var parents = getSelectionParents();
-            if (parents[0] !== parents[1]) return;
-            var sel_cont = editor.selection.getContent();
-            if (sel_cont.match(/^\s*$/g)) return;
-            if (sel_cont.match(/</g)) return;
-            
-            // TODO: keep spaces outside the newly created span
-            setContent('<span data-dpt="supplied" data-dpt-cat="chars">' + sel_cont + '</span>');
+            addSpan({'tag': 'supplied', 'attributes': {'cat': 'chars'}});
         }
     });
 

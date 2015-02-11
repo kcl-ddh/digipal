@@ -19,12 +19,18 @@ XML
 
 BOTH
 
-    BRs?
+    fix undo/redo!
+    
+    Pipes
+        auto-markup: convert them into span
+        key press: convert them into span
+        display spans as pipe (content)
+            as line break as well (toggle it on/off)
 
     More efficient saving:
 
-    fix undo/redo!
-    
+    Keep surrounding spaces out of some of the markup (e.g. expansion)
+
     [DONE] conversion of the format to html
         ()
         italics
@@ -46,10 +52,6 @@ BOTH
         [DONE] show the mark up
             basic styling
 
-        keep surrounding spaces out of some of the the markup (e.g. expansion)
-
-        line breaks
-    
     saving
         saving bug
             don't count loading as a modification of the text

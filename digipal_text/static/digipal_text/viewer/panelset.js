@@ -394,6 +394,7 @@
                     me.componentIsReady('tinymce');
                     
                     var setDirty = function() {
+                        console.log('SET DIRTY MCE EVENT');
                         me.setDirty();
                     };
                     me.tinymce.on('redo', setDirty);
@@ -438,7 +439,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psexpansion pssupplied psdel | code ',
+                toolbar: 'psclear undo redo pssave | psconvert | psclause | psex pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

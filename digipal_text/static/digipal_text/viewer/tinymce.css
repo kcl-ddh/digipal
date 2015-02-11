@@ -68,7 +68,7 @@ span[data-dpt-cat=chars]:before {
 
 /* Particular Elements */
 
-span[data-dpt=expan]:before {
+span[data-dpt=ex]:before {
     content: "( )";
 }
 

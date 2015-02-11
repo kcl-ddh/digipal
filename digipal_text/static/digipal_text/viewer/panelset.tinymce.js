@@ -4,6 +4,24 @@ var PanelSetPlugIn = function(editor, url) {
             'psexpansion': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
     };
     
+    function beforeChange() {
+        //editor.undoManager.add();
+    }
+    
+    function afterChange(cancel) {
+        if (!cancel) {
+            editor.undoManager.add();
+            //editor.undoManager.redo();
+        }
+    }
+    
+    function setContent(content) {
+        beforeChange();
+        //editor.undoManager.transact(function () { editor.selection.setContent(content); });
+        editor.selection.setContent(content);
+        afterChange();
+    }
+    
     function getSelectionParents() {
         var parents = [];
         for (var i in [0, 1]) {
@@ -62,7 +80,7 @@ var PanelSetPlugIn = function(editor, url) {
             if (sel_cont.match(/</g)) return;
             
             // TODO: keep spaces outside the newly created span
-            editor.selection.setContent('<span data-dpt="expan" data-dpt-cat="chars">' + sel_cont + '</span>');
+            setContent('<span data-dpt="expan" data-dpt-cat="chars">' + sel_cont + '</span>');
         }
     });
 
@@ -80,7 +98,7 @@ var PanelSetPlugIn = function(editor, url) {
             if (sel_cont.match(/</g)) return;
             
             // TODO: keep spaces outside the newly created span
-            editor.selection.setContent('<span data-dpt="supplied" data-dpt-cat="chars">' + sel_cont + '</span>');
+            setContent('<span data-dpt="supplied" data-dpt-cat="chars">' + sel_cont + '</span>');
         }
     });
 
@@ -101,7 +119,7 @@ var PanelSetPlugIn = function(editor, url) {
             */
             
             // TODO: keep spaces outside the newly created span
-            editor.selection.setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
+            setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
         }
     });
 
@@ -115,14 +133,19 @@ var PanelSetPlugIn = function(editor, url) {
             // remove parent tags
             // TODO: don't remove non data-dpt?
             var parents = getSelectionParents();
+            
+            var changed = false;
+            
+            beforeChange();
+
             $(parents).each(function (index, parent) {
                 // don't remove second parent if same as first
                 if ((index == 0) || (parents[0] !== parents[1])) {
-                    console.log('remove');
-                    console.log(parent);
                     // make sure we remove only data-dpt parents and not any parent element
                     var $panelset_parent = $(parent).closest('[data-dpt]');
                     $panelset_parent.replaceWith($panelset_parent.html());
+                    // TODO: not exact... $panelset_parent can be empty
+                    changed = true;
                 }
             });
             
@@ -132,7 +155,10 @@ var PanelSetPlugIn = function(editor, url) {
                 sel_cont = sel_cont.replace(/<[^>]*>/g, '');
                 editor.selection.setContent(sel_cont);
                 //ed.selection.moveToBookmark(bm);
+                changed = true;
             }
+            
+            afterChange(!changed);
         }
     });
     
@@ -156,7 +182,7 @@ var PanelSetPlugIn = function(editor, url) {
                     //if (sel_cont.match(/</g)) return;
                     
                     // TODO: keep spaces outside the newly created span
-                    editor.selection.setContent('<span data-dpt="clause"  data-dpt-cat="words" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
+                    setContent('<span data-dpt="clause"  data-dpt-cat="words" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
                 }
             }
         };

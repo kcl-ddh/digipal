@@ -137,7 +137,6 @@
         this.$root[0].textViewerPanel = this;
         
         this.contentType = null;
-        this.dirty = false;
         this.contentType = contentType;
         
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -319,7 +318,9 @@
                 function(data) {
                     me.tinymce.setContent(data.content);
                     me.onContentLoaded();
-                    me.tinymce.isNotDirty = true;
+                    me.tinymce.undoManager.clear();
+                    //me.tinymce.undoManager.add();
+                    me.setNotDirty();
                 }
             );
         };
@@ -336,12 +337,34 @@
                 $el.height(height+'px');
             }
         };
+        
+        this.isDirty = function() {
+            var ret = (this.getContentHash() !== this.lastSavedHash);
+            if (ret) {
+                console.log('IS DIRTY!');
+            }
+            return ret;
+        }
+
+        this.setNotDirty = function() {
+            this.lastSavedHash = this.getContentHash();
+        }
+
+        this.setDirty = function() {
+            var d = new Date();
+            this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
+        }
+
+        this.getContentHash = function() {
+            return this.tinymce.getContent().length;
+        }
 
         this.saveContentCustom = function(forceSave, autoMarkup, saveCopy) {
             var me = this;
-            if (this.tinymce.isDirty() || forceSave) {
+            if (this.isDirty() || forceSave) {
+                this.setNotDirty();
+                console.log('SAVING');
                 this.setMessage('Saving content...');
-                this.tinymce.isNotDirty = true;
                 TextViewer.callApi(
                     this.getContentAddress(), 
                     function(data) {
@@ -349,8 +372,9 @@
                         me.onContentSaved(data);
                         if (autoMarkup) {
                             me.tinymce.setContent(data.content);
-                            me.tinymce.isNotDirty = true;
+                            me.setNotDirty();
                         }
+                        console.log('SAVED');
                     },
                     {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0, 'save_copy': saveCopy ? 1 : 0}
                 );
@@ -368,6 +392,14 @@
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
+                    
+                    var setDirty = function() {
+                        me.setDirty();
+                    };
+                    me.tinymce.on('redo', setDirty);
+                    me.tinymce.on('undo', setDirty);
+                    me.tinymce.on('addUndo', setDirty);
+                    me.tinymce.undoManager.add();
 
                     /*
                     me.tinymce.on('keydown', function(e) {
@@ -406,7 +438,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'undo redo | psexpansion pssupplied psdel | psclause | psclear | pssave psconvert | code ',
+                toolbar: 'psclear undo redo pssave | psconvert | psclause | psexpansion pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

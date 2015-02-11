@@ -16,7 +16,6 @@ XML
     H<expan>enry</expan>
         () H<expan abbrev="">enry</expan>
         Different from TEI
-    
 
 BOTH
 
@@ -58,10 +57,9 @@ BOTH
         regular saving
             avoid simultaneous savings
             avoid too frequent savings
-        () backup button
+        [DONE] backup button
             add a new table: TextContentXMLBackup
             add a button to save to this table
-            auto-save before large operations
             
     Document the editor in Confluence
 
@@ -145,6 +143,7 @@ Presentation
 Improvements
     Panel asks for location list and types. Populate and show controls accordingly (e.g. Text may not want to display it at this stage, Image only shows locations not types).
     Status messages should come from the server?
+    auto-save before large operations
     
 Performance
     The full Exon translation (experiment with FireFox):

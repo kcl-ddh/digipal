@@ -27,8 +27,6 @@ BOTH
         display spans as pipe (content)
             as line break as well (toggle it on/off)
 
-    More efficient saving:
-
     Keep surrounding spaces out of some of the markup (e.g. expansion)
 
     [DONE] conversion of the format to html
@@ -53,12 +51,27 @@ BOTH
             basic styling
 
     saving
-        saving bug
-            don't count loading as a modification of the text
-            detect all changes in the content
+        saving bugs
+            requirements:
+                don't count loading as a modification of the text
+                don't save too many times
+                save all changes
+            
+            method:
+                use on change event on tinmyce
+                    => not triggered until the cursor is moved out of the current line
+                        e.g. append chars at the end of a line => nothing, move cursor up => triggered
+                        => we may miss changes if the user closes the tab after writing
+                compare the size of the content every x seconds
+                    => it won't catch modifications which preserve the same length
+                    => not the most efficient as we have to get the content each time that's extra processing
+                use both
+                    => save is triggered twice
+            
         regular saving
             avoid simultaneous savings
             avoid too frequent savings
+            
         [DONE] backup button
             add a new table: TextContentXMLBackup
             add a button to save to this table

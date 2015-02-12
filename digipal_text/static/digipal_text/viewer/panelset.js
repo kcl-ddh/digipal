@@ -319,7 +319,7 @@
                     me.tinymce.setContent(data.content);
                     me.onContentLoaded();
                     me.tinymce.undoManager.clear();
-                    //me.tinymce.undoManager.add();
+                    me.tinymce.undoManager.add();
                     me.setNotDirty();
                 }
             );
@@ -353,10 +353,13 @@
         this.setDirty = function() {
             var d = new Date();
             this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
+            console.log('SET DIRTY MCE EVENT');
         }
 
         this.getContentHash = function() {
-            return this.tinymce.getContent().length;
+            var ret = this.tinymce.getContent();
+            return ret;
+            //return ret.length + ret;
         }
 
         this.saveContentCustom = function(forceSave, autoMarkup, saveCopy) {
@@ -394,13 +397,15 @@
                     me.componentIsReady('tinymce');
                     
                     var setDirty = function() {
-                        console.log('SET DIRTY MCE EVENT');
-                        me.setDirty();
+                        //me.setDirty();
                     };
+                    /*
                     me.tinymce.on('redo', setDirty);
                     me.tinymce.on('undo', setDirty);
                     me.tinymce.on('addUndo', setDirty);
                     me.tinymce.undoManager.add();
+                    */
+                    me.tinymce.on('change', setDirty);
 
                     /*
                     me.tinymce.on('keydown', function(e) {

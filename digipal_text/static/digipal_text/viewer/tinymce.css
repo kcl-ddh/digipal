@@ -66,6 +66,16 @@ span[data-dpt-cat=chars]:before {
     font-weight: bold;
 }
 
+span[data-dpt=lb]:before {
+    content: '';
+}
+
+span[data-dpt=lb] {
+    color: brown;
+    font-weight: bold;
+}
+
+
 /* Particular Elements */
 
 span[data-dpt=ex]:before {

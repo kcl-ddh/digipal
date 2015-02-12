@@ -104,7 +104,7 @@ class TextContentXML(models.Model):
         print repr(content)
         
         # convert () into expansions
-        content = re.sub(ur'\(([^)<>]{1,50})\)', ur'<span data-dpt="expan" data-dpt-cat="chars">\1</span>', content)
+        content = re.sub(ur'\(([^)<>]{1,50})\)', ur'<span data-dpt="ex" data-dpt-cat="chars">\1</span>', content)
 
         # convert <> into supplied
         content = re.sub(ur'&lt;(.*?)&gt;', ur'<span data-dpt="supplied" data-dpt-cat="chars">\1</span>', content)
@@ -112,9 +112,9 @@ class TextContentXML(models.Model):
         # convert 7 into tironian sign
         content = re.sub(ur'\b7\b', u'\u204a', content)
 
-        # convert | into line break
-        content = re.sub(ur'\|+', u'<br/>', content)
-        content = re.sub(ur'(<br\s*/?>\s*)+', u'<br/>', content)
+        # convert | into spans
+        content = re.sub(ur'\|+', u'<span data-dpt="lb" data-dpt-cat="sep">|</span>', content)
+        #content = re.sub(ur'(<br\s*/?>\s*)+', u'<br/>', content)
 
         self.content = content
 

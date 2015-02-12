@@ -66,6 +66,16 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         raise Exception('Content not found')
     
     content = request.REQUEST.get('content', None)
+    
+    # we make a copy if the new content removes 10% of the content
+    # this might be due to a bug in the UI
+    from django.utils.html import strip_tags
+    #if not re.search(ur'\w', strip_tags(content)):
+    if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
+        print 'Auto copy (blank content)'
+        text_content_xml.save_copy()
+        
+    # now save the new content
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
     
@@ -74,6 +84,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         if convert:
             text_content_xml.convert()
             content = text_content_xml.content
+        # make a copy if user asked for it
         if save_copy:
             text_content_xml.save_copy()
         text_content_xml.save()

@@ -70,6 +70,19 @@ class TextContentXMLCopy(models.Model):
             copy.save()
         
         return copy
+    
+    def get_uncompressed_content(self):
+        ret = None
+        if self.content and len(self.content) > 1:
+            import zlib
+            ret = zlib.decompress(self.content)
+        return ret
+    
+    def restore(self):
+        # first make a copy of the existing one
+        self.source.save_copy()
+        self.source.content = self.get_uncompressed_content()
+        self.source.save()
 
 class TextContentXML(models.Model):
     status = models.ForeignKey('TextContentXMLStatus', blank=True, null=True, related_name='text_content_xmls')

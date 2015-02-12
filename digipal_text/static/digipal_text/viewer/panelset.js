@@ -120,7 +120,6 @@
         
     };
     
-    
     //
     // Panel: a Panel managed by the panelset
     // Usage:
@@ -227,11 +226,11 @@
         
         /* SAVING CONTENT */
         
-        this.saveContent = function() {
-            this.saveContentCustom();
+        this.saveContent = function(synced) {
+            this.saveContentCustom(synced);
         }
         
-        this.saveContentCustom = function() {
+        this.saveContentCustom = function(synced) {
         }
         
         this.onContentSaved = function(data) {
@@ -298,15 +297,26 @@
             $(this.tinymce.editorContainer).on('psconvert', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(true, true);
+                me.saveContentCustom(false, true, true);
             });
             
             $(this.tinymce.editorContainer).on('pssave', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(true, false, true);
+                me.saveContentCustom(false, true, false, true);
             });
 
+            // make sure we save the content if tinymce looses focus or we close the tab/window
+            this.tinymce.on('blur', function() {
+                console.log('ON BLUR');
+                me.saveContent();
+            });
+
+            $(window).bind('beforeunload', function() {
+                console.log('BEFORE CLOSE TAB/WIN');
+                me.saveContent(true);
+            });
+            
             return ret;
         };
         
@@ -316,11 +326,15 @@
             TextViewer.callApi(
                 this.getContentAddress(),
                 function(data) {
-                    me.tinymce.setContent(data.content);
-                    me.onContentLoaded();
-                    me.tinymce.undoManager.clear();
-                    me.tinymce.undoManager.add();
-                    me.setNotDirty();
+                    if (data.content !== undefined) {
+                        me.tinymce.setContent(data.content);
+                        me.onContentLoaded();
+                        me.tinymce.undoManager.clear();
+                        me.tinymce.undoManager.add();
+                        me.setNotDirty();
+                    } else {
+                        me.setMessage('ERROR: no content received from server.');
+                    }
                 }
             );
         };
@@ -362,7 +376,7 @@
             //return ret.length + ret;
         }
 
-        this.saveContentCustom = function(forceSave, autoMarkup, saveCopy) {
+        this.saveContentCustom = function(synced, forceSave, autoMarkup, saveCopy) {
             var me = this;
             if (this.isDirty() || forceSave) {
                 this.setNotDirty();
@@ -379,7 +393,8 @@
                         }
                         console.log('SAVED');
                     },
-                    {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0, 'save_copy': saveCopy ? 1 : 0}
+                    {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0, 'save_copy': saveCopy ? 1 : 0},
+                    synced
                 );
             }
         };
@@ -396,16 +411,7 @@
                     me.tinymce = tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
                     
-                    var setDirty = function() {
-                        //me.setDirty();
-                    };
-                    /*
-                    me.tinymce.on('redo', setDirty);
-                    me.tinymce.on('undo', setDirty);
-                    me.tinymce.on('addUndo', setDirty);
-                    me.tinymce.undoManager.add();
-                    */
-                    me.tinymce.on('change', setDirty);
+                    //me.tinymce.on('change', setDirty);
 
                     /*
                     me.tinymce.on('keydown', function(e) {
@@ -489,7 +495,6 @@
                     'width': me.$content.width(),
                     'height': me.$content.height(),
                     'load_locations': loadLocations ? 1 : 0,
-                    
                 }
             );
         };
@@ -509,7 +514,7 @@
         
     // UTILITIES
 
-    TextViewer.callApi = function(url, onSuccess, requestData) {
+    TextViewer.callApi = function(url, onSuccess, requestData, synced) {
         // See http://stackoverflow.com/questions/9956255.
         // This tricks prevents caching of the fragment by the browser.
         // Without this if you move away from the page and then click back
@@ -517,7 +522,7 @@
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
         
-        var ret = $.get(url_ajax, requestData)
+        var ret = $.get({url: url_ajax, data: requestData, async: (synced ? false : true)})
             .success(function(data) {
                 if (onSuccess) {
                     onSuccess(data);

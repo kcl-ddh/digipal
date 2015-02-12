@@ -84,7 +84,7 @@
     {{ block.super }}
     <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
     {# TODO: include min on production #}
-    <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.tinymce.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -95,16 +95,16 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
+            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
-            //panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
-            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
+            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
             panelset.ready();
             //panelset.setPanelSize('west', 0.5);
             panelset.setPanelSize('south', 0);
-            panelset.setPanelSize('north', 0);
-            panelset.setPanelSize('east', 0);
+            panelset.setPanelSize('north', 0.5);
+            panelset.setPanelSize('east', 0.5);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);
         });

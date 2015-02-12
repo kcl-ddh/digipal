@@ -190,7 +190,7 @@
 
             setInterval(function() {
                 me.saveContent();
-            }, 1000);
+            }, 2500);
         };
         
         this.initDropDown = function(selector, selection) {
@@ -308,13 +308,11 @@
 
             // make sure we save the content if tinymce looses focus or we close the tab/window
             this.tinymce.on('blur', function() {
-                console.log('ON BLUR');
                 me.saveContent();
             });
 
             $(window).bind('beforeunload', function() {
-                console.log('BEFORE CLOSE TAB/WIN');
-                me.saveContent(true);
+                me.saveContentCustom(true);
             });
             
             return ret;
@@ -354,9 +352,6 @@
         
         this.isDirty = function() {
             var ret = (this.getContentHash() !== this.lastSavedHash);
-            if (ret) {
-                console.log('IS DIRTY!');
-            }
             return ret;
         }
 
@@ -367,7 +362,6 @@
         this.setDirty = function() {
             var d = new Date();
             this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
-            console.log('SET DIRTY MCE EVENT');
         }
 
         this.getContentHash = function() {
@@ -380,7 +374,6 @@
             var me = this;
             if (this.isDirty() || forceSave) {
                 this.setNotDirty();
-                console.log('SAVING');
                 this.setMessage('Saving content...');
                 TextViewer.callApi(
                     this.getContentAddress(), 
@@ -391,7 +384,6 @@
                             me.tinymce.setContent(data.content);
                             me.setNotDirty();
                         }
-                        console.log('SAVED');
                     },
                     {'content': me.tinymce.getContent(), 'convert': autoMarkup ? 1 : 0, 'save_copy': saveCopy ? 1 : 0},
                     synced
@@ -522,13 +514,13 @@
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
         
-        var ret = $.get({url: url_ajax, data: requestData, async: (synced ? false : true)})
-            .success(function(data) {
-                if (onSuccess) {
-                    onSuccess(data);
-                    //set_message(data.message, data.status);
-                }
-            });
+        var getData = {
+            url: url_ajax, 
+            data: requestData, 
+            async: (synced ? false : true), 
+            success: onSuccess
+        };
+        var ret = $.ajax(getData);
         
         return ret;
     }

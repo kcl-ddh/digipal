@@ -71,7 +71,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # this might be due to a bug in the UI
     from django.utils.html import strip_tags
     #if not re.search(ur'\w', strip_tags(content)):
-    if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
+
+    if (content is not None) and text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
         print 'Auto copy (blank content)'
         text_content_xml.save_copy()
         
@@ -79,7 +80,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
     
-    if content:
+    if content is not None:
         text_content_xml.content = content
         if convert:
             text_content_xml.convert()

@@ -345,7 +345,6 @@
                 // resize tinmyce to take the remaining height in the panel
                 var $el = this.$root.find('iframe');
                 var height = this.$content.innerHeight() - ($el.offset().top - this.$content.offset().top);
-                //var height = this.$content.innerHeight();
                 $el.height(height+'px');
             }
         };

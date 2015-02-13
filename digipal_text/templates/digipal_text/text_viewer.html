@@ -7,6 +7,14 @@
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/junicode/junicode.css"/>
+    {% comment %} 
+        Trick: TinyMCE will load this later dynamically 
+        but that happens AFTER our resize calculate the height of the button bar
+        which is unstyled yet and therefore too tall and shrinks the iframe.
+        The solution is to force a load of the stylesheet here so the computation 
+        is accurate.
+    {% endcomment %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/tinymce/skins/digipal/skin.min.css"/>
 {% endblock %}
 
 {% block main %}
@@ -100,10 +108,10 @@
             panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
             panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
-            panelset.ready();
             //panelset.setPanelSize('west', 0.5);
+            panelset.ready();
             panelset.setPanelSize('south', 0);
-            panelset.setPanelSize('north', 0.5);
+            panelset.setPanelSize('north', 0.4);
             panelset.setPanelSize('east', 0.5);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);

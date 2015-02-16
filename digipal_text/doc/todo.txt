@@ -44,6 +44,10 @@ EXON
 
     Upload text
     
+    Clean up pasted text:
+        <p style="margin-bottom: 0cm;">&nbsp;</p>
+        <span style="text-decoration: line-through;">of these</span> 
+    
     customise 
         the buttons
         the conversion of the notations (), [] etc.

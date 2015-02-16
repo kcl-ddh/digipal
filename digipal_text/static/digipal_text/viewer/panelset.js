@@ -574,6 +574,8 @@
     
     initLayoutAddOns();
     
+    // TODO: move to dputils.js
+    
     // See https://docs.djangoproject.com/en/1.7/ref/contrib/csrf/#ajax
     // This allows us to POST with Ajax
     function csrfSafeMethod(method) {

@@ -103,7 +103,7 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
+            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
             panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
@@ -111,7 +111,7 @@
             //panelset.setPanelSize('west', 0.5);
             panelset.ready();
             panelset.setPanelSize('south', 0);
-            panelset.setPanelSize('north', 0.4);
+            //panelset.setPanelSize('north', 0.4);
             panelset.setPanelSize('east', 0.5);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);

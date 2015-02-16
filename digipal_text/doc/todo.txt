@@ -19,64 +19,12 @@ XML
 
 BOTH
 
-    fix undo/redo!
-    
     Pipes
         auto-markup: convert them into span
         key press: convert them into span
         display spans as pipe (content)
             as line break as well (toggle it on/off)
 
-    Keep surrounding spaces out of some of the markup (e.g. expansion)
-
-    [DONE] conversion of the format to html
-        ()
-        italics
-        |
-        <>
-        and back
-        Tironian mark
-
-    [DONE] mark-up
-        [DONE] expansion
-            [DONE]add button & mark up selection
-            [DONE] icon
-        [DONE] supplied
-        [DONE] deletion
-        [DONE] clauses
-            drop-down
-        [DONE] clear
-        
-        [DONE] show the mark up
-            basic styling
-
-    saving
-        saving bugs
-            requirements:
-                don't count loading as a modification of the text
-                don't save too many times
-                save all changes
-            
-            method:
-                use on change event on tinmyce
-                    => not triggered until the cursor is moved out of the current line
-                        e.g. append chars at the end of a line => nothing, move cursor up => triggered
-                        => we may miss changes if the user closes the tab after writing
-                compare the size of the content every x seconds
-                    => it won't catch modifications which preserve the same length
-                    => not the most efficient as we have to get the content each time that's extra processing
-                use both
-                    => save is triggered twice
-            
-        regular saving
-            avoid simultaneous savings
-            avoid too frequent savings
-            
-        [DONE] backup button
-            add a new table: TextContentXMLBackup
-            add a button to save to this table
-            
-    Document the editor in Confluence
 
     () . read only mode 
 
@@ -92,32 +40,40 @@ BOTH
     
 MOFA
 
-    ** Fix auto save bug: completing a line does not trigger a new save event
-    
 EXON
+
+    Upload text
     
+    customise 
+        the buttons
+        the conversion of the notations (), [] etc.
+        
+
     Split long texts into small parts
-        splitting
-        display one piece
+        mark up scheme
+            entry
+            folio
+            section
+        splitting by entry
         pull locations from database
+        display one piece
         location change
     
-    ** Structure
-        mark up pagination
-        extract entry numbers and starting points
-        enable navigation using location dropdown
-        fragment the text
-        * mark-up divisions
-            page
-            division
-            entry
+    Mark up
+        entry
+        folio
+            automate the sequence update in case of change
     
-    Attach information to an entry
+    Search
+        show hits
+        go to specific location
+        
+    Sync images and text
+    
+    () Attach information to an entry
         people
         places
         etc.
-
-    create dummy text, three pages long
 
     ? mark-up records
         person
@@ -159,6 +115,33 @@ Improvements
     Panel asks for location list and types. Populate and show controls accordingly (e.g. Text may not want to display it at this stage, Image only shows locations not types).
     Status messages should come from the server?
     auto-save before large operations
+
+    saving
+        saving bugs
+            requirements:
+                don't count loading as a modification of the text
+                don't save too many times
+                save all changes
+            
+            method:
+                use on change event on tinmyce
+                    => not triggered until the cursor is moved out of the current line
+                        e.g. append chars at the end of a line => nothing, move cursor up => triggered
+                        => we may miss changes if the user closes the tab after writing
+                compare the size of the content every x seconds
+                    => it won't catch modifications which preserve the same length
+                    => not the most efficient as we have to get the content each time that's extra processing
+                use both
+                    => save is triggered twice
+            
+        regular saving
+            avoid simultaneous savings
+            avoid too frequent savings
+            
+        [DONE] backup button
+            add a new table: TextContentXMLBackup
+            add a button to save to this table
+            
     
 Performance
     The full Exon translation (experiment with FireFox):
@@ -216,3 +199,35 @@ DONE
         [DONE] load locations
         [DONE] change location
         
+    [DONE] fix undo/redo!
+    
+    [DONE] Keep surrounding spaces out of some of the markup (e.g. expansion)
+
+    [DONE] conversion of the format to html
+        ()
+        italics
+        |
+        <>
+        and back
+        Tironian mark
+
+    [DONE] mark-up
+        [DONE] expansion
+            [DONE]add button & mark up selection
+            [DONE] icon
+        [DONE] supplied
+        [DONE] deletion
+        [DONE] clauses
+            drop-down
+        [DONE] clear
+        
+        [DONE] show the mark up
+            basic styling
+    [DONE] Document the editor in Confluence
+
+    
+[a]
+(Char, Char, Char)
+[(Bool, Char)]
+([a], [a])
+

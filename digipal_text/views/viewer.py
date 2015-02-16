@@ -73,7 +73,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     #if not re.search(ur'\w', strip_tags(content)):
 
     if (content is not None) and text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
-        print 'Auto copy (blank content)'
+        print 'Auto copy (smaller content)'
         text_content_xml.save_copy()
         
     # now save the new content

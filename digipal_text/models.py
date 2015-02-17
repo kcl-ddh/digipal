@@ -12,6 +12,7 @@ from django.db import transaction
 from mezzanine.generic.fields import KeywordsField
 import logging
 import digipal.models
+from django.contrib.auth.models import User
 dplog = logging.getLogger('digipal_debugger')
 
 class TextContentType(digipal.models.NameModel):
@@ -48,6 +49,7 @@ class TextContentXMLCopy(models.Model):
     source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
     ahash = models.CharField(max_length=100, blank=True, null=True)
     content = models.BinaryField(blank=True, null=True)
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 

@@ -19,6 +19,9 @@ XML
 
 BOTH
 
+    Save the name of the last person to save the text
+    Save the person in the backup as well 
+
     Pipes
         auto-markup: convert them into span
         key press: convert them into span

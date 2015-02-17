@@ -85,6 +85,16 @@ class TextContentTypeAdmin(reversion.VersionAdmin):
 class TextContentXMLAdmin(reversion.VersionAdmin):
     model = TextContentXML
 
+    list_display = ['id', 'text_content', 'status', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'text_content__item_part__display_label']
+    list_filter = ['status', 'text_content__languages', 'text_content__type']
+    
+#     fieldsets = (
+#             (None, {'fields': ('item_part', 'text', 'type', 'languages')}),
+#             ('Actions', {'fields': ('action_edit', )}),
+#             )
+
 class TextContentXMLStatusAdmin(reversion.VersionAdmin):
     model = TextContentXMLStatus
 

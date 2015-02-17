@@ -78,6 +78,19 @@ span[data-dpt=lb] {
 
 /* Particular Elements */
 
+span[data-dpt=location] {
+    background-color: rgba(255,100,0,0.35);
+}
+
+span[data-dpt=location]:before {
+    color: rgb(155,50,0);
+    content: "location";
+}
+
+span[data-dpt=location][data-dpt-loctype=entry]:before {
+    content: "Entry";
+}
+
 span[data-dpt=ex]:before {
     content: "( )";
 }

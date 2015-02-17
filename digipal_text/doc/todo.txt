@@ -44,14 +44,11 @@ EXON
 
     Upload text
     
-    Clean up pasted text:
-        <p style="margin-bottom: 0cm;">&nbsp;</p>
-        <span style="text-decoration: line-through;">of these</span> 
-    
     customise 
         the buttons
         the conversion of the notations (), [] etc.
-        
+            [DONE] <p style="margin-bottom: 0cm;">&nbsp;</p>
+            [DONE] <span style="text-decoration: line-through;">of these</span> 
 
     Split long texts into small parts
         mark up scheme
@@ -67,13 +64,13 @@ EXON
         entry
         folio
             automate the sequence update in case of change
+          
+    Sync images and text
     
     Search
         show hits
         go to specific location
         
-    Sync images and text
-    
     () Attach information to an entry
         people
         places

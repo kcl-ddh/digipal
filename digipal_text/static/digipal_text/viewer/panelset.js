@@ -567,9 +567,15 @@
                 $d.enableSelection().data(s, false);
         };
     
-        $(".ui-layout-resizer")
-        .disableSelection() // affects only the resizer element
-        .on('mousedown', $.layout.disableTextSelection ); // affects entire document
+        var $lrs = $(".ui-layout-resizer");
+        
+        // affects only the resizer element
+        // TODO: GN - had to add this condition otherwise the function call fails.
+        if ($.fn.disableSelection) {
+            $lrs.disableSelection();
+        }
+        
+        $lrs.on('mousedown', $.layout.disableTextSelection ); // affects entire document
     };
     
     initLayoutAddOns();

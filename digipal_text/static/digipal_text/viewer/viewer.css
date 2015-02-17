@@ -143,3 +143,7 @@ div#side-panel {
     float: left;
 }
 */
+
+.glyphicon.glyphicon-entry:before {
+    content: "\25BC";
+}

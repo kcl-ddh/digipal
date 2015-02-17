@@ -188,24 +188,39 @@
             
             this.initDropDown('content-type', this.contentType);
 
+            this.$root.find('.dropdown-location-type .dropdown-menu a').on('click', function() {
+                me.onSelectLocationType();
+                return false;
+            });
+
             setInterval(function() {
                 me.saveContent();
             }, 2500);
         };
         
         this.initDropDown = function(selector, selection) {
-            // we initialise the icon of the bootstrap drop down
-            var $dropdown = this.$root.find('.dropdown-'+selector);
-            var newValue = $dropdown.find('a[href=#'+selection+'] span')[0].outerHTML;
-            var me = this;
-            $dropdown.find('.dropdown-toggle span:first').replaceWith(newValue);
+            this.selectDropDown(selector, selection);
             
+            var me = this;
+            var $dropdown = this.$root.find('.dropdown-'+selector);
             $dropdown.find('.dropdown-menu a').on('click', function() {
                 var href = $(this).attr('href');
                 var contentType = href.substr(1, href.length - 1);
                 me.panelSet.registerPanel(new TextViewer['Panel'+$(this).data('class')](me.$root, contentType));
                 return false;
             });
+        };
+        
+        this.getBSDropDownValue = function(selector) {
+            return $dropdown = this.$root.find('.dropdown-'+selector).data('value');
+        }
+        
+        this.selectDropDown = function(selector, selection) {
+            // we initialise the icon of the bootstrap drop down
+            var $dropdown = this.$root.find('.dropdown-'+selector);
+            var newValue = $dropdown.find('a[href=#'+selection+'] span')[0].outerHTML;
+            $dropdown.find('.dropdown-toggle span:first').replaceWith(newValue);
+            $dropdown.parent().data('value', selection);
         };
         
         /* LOADING CONTENT */
@@ -243,6 +258,41 @@
 
         /* -------------- */
 
+        this.updateLocations = function(locations) {
+            // Update the location drop downs from a list of locations
+            // received from the server.
+
+            if (locations) {
+                // save the locations
+                this.locations = locations;
+
+                // only show the available location types
+                this.$root.find('.dropdown-location-type ul li').hide();
+                
+                for (var j in locations) {
+                    this.$root.find('.dropdown-location-type ul li a[href=#'+j+']').parent().show();
+                }
+                
+                // select the first location type
+                for (var j in locations) {
+                    selectDropDown = this.selectDropDown('location-type', j);
+                    break;
+                }
+                
+                this.onSelectLocationType();
+            }
+        };
+
+        this.onSelectLocationType = function() {
+            // update the list of locations
+            this.$locationSelect.empty();
+            var locations = this.getBSDropDownValue('location-type');
+            for (var i in locations) {
+                this.$locationSelect.append('<option value="'+locations[j][i]+'">'+locations[j][i]+'</option>');
+            }
+            this.$locationSelect.trigger('liszt:updated');
+        };
+        
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -330,6 +380,7 @@
                         me.tinymce.undoManager.clear();
                         me.tinymce.undoManager.add();
                         me.setNotDirty();
+                        me.updateLocations(data.locations);
                     } else {
                         me.setMessage('ERROR: no content received from server.');
                     }
@@ -481,13 +532,8 @@
                 this.getContentAddress(), 
                 function(data) {
                     me.$content.html(data.content).find('img').load(function() {me.onContentLoaded();});
-                    if (data.locations) {
-                        me.$locationSelect.empty();
-                        for (var i in data.locations) {
-                            me.$locationSelect.append('<option value="'+data.locations[i]+'">'+data.locations[i]+'</option>');
-                        }
-                        me.$locationSelect.trigger('liszt:updated');
-                    }
+                    // TODO: move this to Panel
+                    me.updateLocations(data.locations);
                 },
                 {
                     'layout': 'width',

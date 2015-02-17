@@ -49,6 +49,8 @@ def text_api_view(request, item_partid, content_type, location_type, location):
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
+    ret = {}
+    
     text_content_xml = None
     
     #print 'content type %s' % content_type_record
@@ -65,6 +67,15 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not text_content_xml:
         raise Exception('Content not found')
     
+    # return the locus of the entries
+    if utils.get_int_from_request_var(request, 'load_locations'):
+        ret['locations'] = {'entry': []}
+        for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
+            ret['locations']['entry'].append(entry)
+        from digipal.models import Image
+        ret['locations']['folio'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+    
+    # is new content sent by the user to be saved?
     content = request.REQUEST.get('content', None)
     
     # we make a copy if the new content removes 10% of the content
@@ -88,13 +99,19 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         # make a copy if user asked for it
         if save_copy:
             text_content_xml.save_copy()
-        text_content_xml.save()
+        print 'save'
+        ##text_content_xml.save()
     else:
         content = text_content_xml.content
         if content is None:
             content = ''
+        else:
+            # fetch the particular section
+            content = 'TEST'
     
-    return {'content': content}
+    ret['content'] = content
+    
+    return ret
 
 def text_api_view_image(request, item_partid, content_type, location_type, location):
     '''
@@ -110,7 +127,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # return the locus of the images under this item part
     # return #ID for images which have no locus
     if utils.get_int(request.REQUEST.get('load_locations', 0)):
-        ret['locations'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+        ret['locations'] = {'folio': ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]}
         
     # find the image
     image = None

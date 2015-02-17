@@ -45,7 +45,9 @@ MOFA
 
 EXON
 
-    Upload text
+    [DONE] Upload text
+    
+    
     
     customise 
         the buttons
@@ -54,11 +56,11 @@ EXON
             [DONE] <span style="text-decoration: line-through;">of these</span> 
 
     Split long texts into small parts
-        mark up scheme
+        [DONE] mark up scheme
             entry
             folio
             section
-        splitting by entry
+        [DONE] splitting by entry
         pull locations from database
         display one piece
         location change

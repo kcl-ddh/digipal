@@ -188,8 +188,15 @@
             
             this.initDropDown('content-type', this.contentType);
 
+            // TODO: unbind events on the top bar
+            // TODO: create JS wrapper around crapy BS drop downs
             this.$root.find('.dropdown-location-type .dropdown-menu a').on('click', function() {
+                var selection = $(this).attr('href');
+                selection = selection.substring(1, selection.length - 1);
+                $(this).parents('.dropdown:first').data('value', selection);
+                
                 me.onSelectLocationType();
+                
                 return false;
             });
 
@@ -212,7 +219,19 @@
         };
         
         this.getBSDropDownValue = function(selector) {
-            return $dropdown = this.$root.find('.dropdown-'+selector).data('value');
+            var $dropdown = this.$root.find('.dropdown-'+selector);
+            var ret = $dropdown.data('value');
+            if (!ret) {
+                // no value set so let's lok into the href of the firstvisible a elements
+                // int he options list
+                ret = $dropdown.find('.dropdown-menu a:visible:first').attr('href');
+                if (ret) {
+                    ret = ret.substr(1, ret.length - 1);
+                } else {
+                    ret = '';
+                }
+            }
+            return ret;
         }
         
         this.selectDropDown = function(selector, selection) {
@@ -286,9 +305,9 @@
         this.onSelectLocationType = function() {
             // update the list of locations
             this.$locationSelect.empty();
-            var locations = this.getBSDropDownValue('location-type');
-            for (var i in locations) {
-                this.$locationSelect.append('<option value="'+locations[j][i]+'">'+locations[j][i]+'</option>');
+            var locationType = this.getBSDropDownValue('location-type');
+            for (var i in this.locations[locationType]) {
+                this.$locationSelect.append('<option value="'+this.locations[locationType][i]+'">'+locations[locationType][i]+'</option>');
             }
             this.$locationSelect.trigger('liszt:updated');
         };

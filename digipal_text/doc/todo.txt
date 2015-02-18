@@ -43,6 +43,13 @@ BOTH
     
 MOFA
 
+EXON Progress
+
+    Points for the meeting
+        Manual Review of the mark-up and segmentation
+            Easy export of the XML for review
+            Export of the entry numbers
+
 EXON
 
     !!!
@@ -50,11 +57,10 @@ EXON
             flat structure: p and no divs
             p at the top level
             locations within ps
-            
-    Manual Review
-        Easy export of the XML for review
-        Export of the entry numbers
-            
+    
+    If select 520, show 520, 520a1, ...
+        e.g. 210a exists but 170a not
+    
     Bug with segmentation
         4 hides under 14a1 is interpreted as an entry number
         Search for 4 

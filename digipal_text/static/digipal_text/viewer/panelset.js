@@ -143,6 +143,7 @@
         this.$root.html($panelHtml);
         
         this.$locationSelect = this.$root.find('select[name=location]');
+        this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$root.find('select').chosen();
         
         this.$content = this.$root.find('.panel-content');
@@ -182,22 +183,17 @@
         
         this._ready = function() {
             var me = this;
-            this.$locationSelect.on('change', function() {me.loadContent();});
-            this.loadContent(true);
-            this.onResize();
             
             this.initDropDown('content-type', this.contentType);
 
-            // TODO: unbind events on the top bar
-            // TODO: create JS wrapper around crapy BS drop downs
-            this.$root.find('.dropdown-location-type .dropdown-menu a').on('click', function() {
-                var selection = $(this).attr('href');
-                selection = selection.substring(1, selection.length - 1);
-                $(this).parents('.dropdown:first').data('value', selection);
-                
-                me.onSelectLocationType();
-                
-                return false;
+            this.$locationSelect.on('change', function() {me.loadContent();});
+            
+            this.loadContent(true);
+            
+            this.onResize();
+            
+            this.$locationTypes.dpbsdropdown({
+                onSelect: function($el, key) { console.log('['); me.onSelectLocationType(key); console.log(']'); },
             });
 
             setInterval(function() {
@@ -286,28 +282,25 @@
                 this.locations = locations;
 
                 // only show the available location types
-                this.$root.find('.dropdown-location-type ul li').hide();
-                
+                var locationTypes = [];
                 for (var j in locations) {
-                    this.$root.find('.dropdown-location-type ul li a[href=#'+j+']').parent().show();
+                    locationTypes.push(j);
                 }
                 
-                // select the first location type
-                for (var j in locations) {
-                    selectDropDown = this.selectDropDown('location-type', j);
-                    break;
-                }
+                this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
+                this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
                 
-                this.onSelectLocationType();
+                this.onSelectLocationType(locationTypes[0]);
             }
         };
 
-        this.onSelectLocationType = function() {
+        this.onSelectLocationType = function(locationType) {
             // update the list of locations
             this.$locationSelect.empty();
-            var locationType = this.getBSDropDownValue('location-type');
-            for (var i in this.locations[locationType]) {
-                this.$locationSelect.append('<option value="'+this.locations[locationType][i]+'">'+locations[locationType][i]+'</option>');
+            if (this.locations && this.locations[locationType]) {
+                for (var i in this.locations[locationType]) {
+                    this.$locationSelect.append('<option value="'+this.locations[locationType][i]+'">'+this.locations[locationType][i]+'</option>');
+                }
             }
             this.$locationSelect.trigger('liszt:updated');
         };
@@ -326,7 +319,7 @@
         };
         
         this.getLocationType = function() {
-            return 'folio';
+            return this.$locationTypes.dpbsdropdown('getOption');
         };
 
         this.getLocation = function() {

@@ -31,7 +31,7 @@
         {# <div class="ui-layout-west">Navigator</div> #}
         <div class="ui-layout-center">Text</div>
         <div class="ui-layout-east">East</div>
-        <div class="ui-layout-south">Images</div>
+        {# <div class="ui-layout-south">Images</div> #}
     </div>
 </div>
 
@@ -39,31 +39,13 @@
     <nav class="navbar navbar-default">
             <ul class="nav navbar-nav pull-left">
                 <li class="dropdown dropdown-content-type">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#transcription" data-class="TextWrite"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>Transcription</a></li>
-                        <li><a href="#translation" data-class="TextWrite"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>Translation</a></li>
-                        <li><a href="#image" data-class="Image"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span>Images</a></li>
-                        {# <li><a href="#xmlelement" data-class="XmlelementWrite"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>Markup</a></li> #}
-                        {# <li><a href="#navigator" data-class="Navigator"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>Navigator</a></li> #}
-                    </ul>
+                    {% include "bootstrap/dropdown.html" with options=dd_content_types %}
                 </li>
            </ul>
 
            <ul class="nav navbar-nav pull-left">
                 <li class="dropdown dropdown-location-type pull-left">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                      <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
-                      <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#folio"><span class="glyphicon glyphicon-file" aria-hidden="true"></span>Folio</a></li>
-                        <li><a href="#section"><span class="glyphicon glyphicon-text-color" aria-hidden="true"></span>Section</a></li>
-                        <li><a href="#entry"><span class="glyphicon glyphicon-entry" aria-hidden="true"></span>Entry</a></li>
-                    </ul>
+                    {% include "bootstrap/dropdown.html" with options=dd_location_types %}
                 </li>
                 <li class="pull-left">
                     <select name="location" class="">
@@ -93,6 +75,7 @@
     <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
     {# TODO: include min on production #}
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.tinymce.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
@@ -103,16 +86,18 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
+            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             //panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
             panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
-            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
+            //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
             //panelset.setPanelSize('west', 0.5);
             panelset.ready();
-            panelset.setPanelSize('south', 0);
-            //panelset.setPanelSize('north', 0.4);
-            panelset.setPanelSize('east', 0.8);
+            //panelset.setPanelSize('south', 0);
+            panelset.setPanelSize('north', 0.4);
+            panelset.setPanelSize('east', 0.5);
+            //panelset.setPanelSize('center', 0);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);
         });

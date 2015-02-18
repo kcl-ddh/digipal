@@ -45,9 +45,24 @@ MOFA
 
 EXON
 
+    !!!
+        enforce structure:
+            flat structure: p and no divs
+            p at the top level
+            locations within ps
+            
+    Manual Review
+        Easy export of the XML for review
+        Export of the entry numbers
+            
+    Bug with segmentation
+        4 hides under 14a1 is interpreted as an entry number
+        Search for 4 
+
     [DONE] Upload text
     
-    
+    Improve the loading of the locations:
+        request and refresh the locations each time the location type is changed
     
     customise 
         the buttons

@@ -20,6 +20,19 @@ def text_viewer_view(request, item_partid=0):
     from digipal.models import ItemPart
     context = {'item_partid': item_partid, 'item_part': ItemPart.objects.filter(id=item_partid).first()}
     
+    # Define the content of content type and location type drop downs
+    # on top of each panel
+    context['dd_content_types'] = [
+        {'key': 'transcription', 'label': 'Transcription', 'icon': 'align-left', 'attrs': [['data-class', 'TextWrite']]},
+        {'key': 'translation', 'label': 'Translation', 'icon': 'indent-left', 'attrs': [['data-class', 'TextWrite']]},
+        {'key': 'image', 'label': 'Image', 'icon': 'picture', 'attrs': [['data-class', 'Image']]},
+    ]
+    context['dd_location_types'] = [
+        {'key': 'section', 'label': 'Section', 'icon': 'section'},
+        {'key': 'folio', 'label': 'Folio', 'icon': 'file'},
+        {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
+    ]
+    
     return render(request, 'digipal_text/text_viewer.html', context)
 
 def text_api_view(request, item_partid, content_type, location_type, location):
@@ -106,8 +119,15 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         if content is None:
             content = ''
         else:
-            # fetch the particular section
-            content = 'TEST'
+            # extract the requested fragment
+            # TODO: !!! test type of location
+            # ASSUMES: root > p > span
+            # ASSUME order of the attributes in the span (OK)
+            match = re.search(ur'(?musi)(<p>\s*<span data-dpt="location"\s+data-dpt-loctype="entry"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p><span data-dpt="location"\s+data-dpt-loctype="entry"', content)
+            if match:
+                content = match.group(1)
+            else: 
+                content = 'Location not found: %s %s' % (location_type, location)
     
     ret['content'] = content
     

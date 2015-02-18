@@ -1,0 +1,20 @@
+{% comment %}
+    Display a Bootstrap drop down
+    
+    Usage: {% include "bootstrap/dropdown.html" with options=OPTIONS %}
+    Where:
+        OPTIONS is a list of options with the following structure:
+            [
+                {'key': 'my-option1', 'label': 'My First Option', 'icon': 'align-left', 'attrs': [['attr-name', 'attr-value']]},
+                [...]
+            ]
+{% endcomment %}
+<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="glyphicon glyphicon-{{ options.0.icon }}" aria-hidden="true" data-value="{{ options.0.key }}"></span>
+    <span class="caret"></span>
+</a>
+<ul class="dropdown-menu" role="menu">
+    {% for option in options %}
+        <li><a href="#{{ option.key }}" {% for attr in attrs %} {{attr.0}}="{{attr.1}}" {% endfor %} ><span class="glyphicon glyphicon-{{ option.icon }}" aria-hidden="true"></span>{{ option.label }}</a></li>
+    {% endfor %}
+</ul>

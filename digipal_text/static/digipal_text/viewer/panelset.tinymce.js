@@ -72,14 +72,14 @@ var PanelSetPlugIn = function(editor, url) {
         //  conditions: {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}
         //  processing: {'keep_spaces': false}
         options.conditions = options.conditions || {};
-        $.extend(options.conditions, {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false});
+        options.conditions = $.extend({'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}, options.conditions);
         var conds = options.conditions;
-        if ((conds.collapsed !== undefined) && (conds.collapsed !== editor.selection.isCollapsed())) return;
+        if ((conds.collapsed !== null) && (conds.collapsed !== editor.selection.isCollapsed())) return;
         var parents = getSelectionParents();
-        if ((conds.overlap !== undefined) && (conds.overlap !== (parents[0] !== parents[1]))) return;
+        if ((conds.overlap !== null) && (conds.overlap !== (parents[0] !== parents[1]))) return;
         var sel_cont = editor.selection.getContent();
-        if ((conds.blank !== undefined) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
-        if ((conds.isparent !== undefined) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
+        if ((conds.blank !== null) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
+        if ((conds.isparent !== null) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
         
         // TODO: keep spaces outside the newly created span
         options.attributes = options.attributes || {};
@@ -120,17 +120,20 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Deleted',
         icon: 'strikethrough',
         onclick: function() {
+            /*
             if (editor.selection.isCollapsed()) return;
             var parents = getSelectionParents();
             if (parents[0] !== parents[1]) return;
             var sel_cont = editor.selection.getContent();
+            */
             /*
             if (sel_cont.match(/^\s*$/g)) return;
             if (sel_cont.match(/</g)) return;
             */
             
             // TODO: keep spaces outside the newly created span
-            setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
+            addSpan({'tag': 'del', 'attributes': {'cat': 'words'}, 'conditions': {'isparent': null}});
+            //setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
         }
     });
 

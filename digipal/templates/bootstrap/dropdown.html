@@ -15,6 +15,6 @@
 </a>
 <ul class="dropdown-menu" role="menu">
     {% for option in options %}
-        <li><a href="#{{ option.key }}" {% for attr in attrs %} {{attr.0}}="{{attr.1}}" {% endfor %} ><span class="glyphicon glyphicon-{{ option.icon }}" aria-hidden="true"></span>{{ option.label }}</a></li>
+        <li><a href="#{{ option.key }}" {% for attr in option.attrs %} {{attr.0}}="{{attr.1}}" {% endfor %} ><span class="glyphicon glyphicon-{{ option.icon }}" aria-hidden="true"></span>{{ option.label }}</a></li>
     {% endfor %}
 </ul>

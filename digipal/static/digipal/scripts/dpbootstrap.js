@@ -6,10 +6,10 @@
  *      
  *      $mydropdown.dpbsdropdown({onSelect: onSelect});
  *      
- *      $mydropdown.dpbsdropdown('getOption');
+ *      var currentOption = $mydropdown.dpbsdropdown('getOption');
  *      $mydropdown.dpbsdropdown('setOption', 'option-key');
  *      
- *      // return the plug in instance
+ *      // return the plug-in instance
  *      $mydropdown.dpbsdropdown();
  *      
  *      // This call will keep the same plug in instance and update its opts
@@ -42,7 +42,7 @@
         },
         
         init: function() {
-            this.setOption();
+            this.setOption(undefined, true);
             var me = this;
             
             // when the user clicks an option we select it
@@ -56,10 +56,12 @@
             });
         },
         
-        setOption: function(key) {
+        setOption: function(key, silent) {
             // select the option from its key
             // if key is not provided, leave the selection as it is
             // if no selection yet, select the first visible option
+            // If the key has changed and silent is not true, 
+            // the 'onSelect' user callback is triggered
             key = key || this.getOption();
             
             if (key && key.length > 1 && key[0] == '#') {
@@ -73,9 +75,15 @@
                 this.$el.find('.dropdown-toggle span:first').replaceWith(newValue);
                 this.$el.parent().data('value', key);
                 
-                // call callback
-                this.opts.onSelect(this.$el, key);
+                // call the user callback
+                if (!silent) this.onSelect();
             }
+        },
+        
+        onSelect: function() {
+            var key = this.getOption();
+            console.log('Callback ('+this.$el.attr('class')+') key = '+ key);
+            this.opts.onSelect(this.$el, key, this.$el.find('a[href="#'+key+'"]'));
         },
         
         getOption: function() {

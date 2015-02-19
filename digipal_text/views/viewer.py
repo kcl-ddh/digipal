@@ -123,7 +123,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             # TODO: !!! test type of location
             # ASSUMES: root > p > span
             # ASSUME order of the attributes in the span (OK)
-            match = re.search(ur'(?musi)(<p>\s*<span data-dpt="location"\s+data-dpt-loctype="entry"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p><span data-dpt="location"\s+data-dpt-loctype="entry"', content)
+            match = re.search(ur'(?musi)(<p>\s*<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p><span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"', content)
             if match:
                 content = match.group(1)
             else: 

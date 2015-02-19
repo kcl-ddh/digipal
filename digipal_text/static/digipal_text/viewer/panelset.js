@@ -135,19 +135,24 @@
         }
         this.$root[0].textViewerPanel = this;
         
-        this.contentType = null;
         this.contentType = contentType;
         
+        // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.attr('id', '');
         this.$root.html($panelHtml);
         
-        this.$locationSelect = this.$root.find('select[name=location]');
+        // assign controls to member variables
+        this.$contentTypes = this.$root.find('.dropdown-content-type');
+        
         this.$locationTypes = this.$root.find('.dropdown-location-type');
+        this.$locationSelect = this.$root.find('select[name=location]');
         this.$root.find('select').chosen();
         
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
+        
+        // METHODS
         
         this.onDestroy = function() {
             // destructor, the place to remove any resource and detach event handlers
@@ -184,59 +189,29 @@
         this._ready = function() {
             var me = this;
             
-            this.initDropDown('content-type', this.contentType);
+            this.$contentTypes.dpbsdropdown({
+                onSelect: function($el, key, $a) {
+                    // the user has selected another view/content type -> we replace this panel
+                    me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key));
+                },
+            });
+            this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
 
-            this.$locationSelect.on('change', function() {me.loadContent();});
-            
             this.loadContent(true);
             
             this.onResize();
 
-            // TODO: restore this
-//            this.$locationTypes.dpbsdropdown({
-//                onSelect: function($el, key) { console.log('['); me.onSelectLocationType(key); console.log(']'); },
-//            });
+            this.$locationTypes.dpbsdropdown({
+                onSelect: function($el, key) { me.onSelectLocationType(key); },
+            });
+            // fire onSelect event as we want to refresh the list of locations
+            //this.$locationTypes.dpbsdropdown('onSelect');
+
+            this.$locationSelect.on('change', function() {me.loadContent();});
 
             setInterval(function() {
                 me.saveContent();
             }, 2500);
-        };
-        
-        this.initDropDown = function(selector, selection) {
-            this.selectDropDown(selector, selection);
-            
-            var me = this;
-            var $dropdown = this.$root.find('.dropdown-'+selector);
-            $dropdown.find('.dropdown-menu a').on('click', function() {
-                var href = $(this).attr('href');
-                var contentType = href.substr(1, href.length - 1);
-                me.panelSet.registerPanel(new TextViewer['Panel'+$(this).data('class')](me.$root, contentType));
-                return false;
-            });
-        };
-        
-        this.getBSDropDownValue = function(selector) {
-            var $dropdown = this.$root.find('.dropdown-'+selector);
-            var ret = $dropdown.data('value');
-            if (!ret) {
-                // no value set so let's lok into the href of the firstvisible a elements
-                // int he options list
-                ret = $dropdown.find('.dropdown-menu a:visible:first').attr('href');
-                if (ret) {
-                    ret = ret.substr(1, ret.length - 1);
-                } else {
-                    ret = '';
-                }
-            }
-            return ret;
-        }
-        
-        this.selectDropDown = function(selector, selection) {
-            // we initialise the icon of the bootstrap drop down
-            var $dropdown = this.$root.find('.dropdown-'+selector);
-            var newValue = $dropdown.find('a[href=#'+selection+'] span')[0].outerHTML;
-            $dropdown.find('.dropdown-toggle span:first').replaceWith(newValue);
-            $dropdown.parent().data('value', selection);
         };
         
         /* LOADING CONTENT */
@@ -288,14 +263,8 @@
                     locationTypes.push(j);
                 }
                 
-                
-                // TODO: restore this
-                /*
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                 this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                */
-                
-                this.onSelectLocationType(locationTypes[0]);
             }
         };
 
@@ -324,9 +293,7 @@
         };
         
         this.getLocationType = function() {
-            // TODO: restore this
-            //return this.$locationTypes.dpbsdropdown('getOption');
-            return 'entry';
+            return this.$locationTypes.dpbsdropdown('getOption');
         };
 
         this.getLocation = function() {

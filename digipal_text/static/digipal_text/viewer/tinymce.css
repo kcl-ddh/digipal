@@ -84,11 +84,15 @@ span[data-dpt=location] {
 
 span[data-dpt=location]:before {
     color: rgb(155,50,0);
-    content: "location";
+    content: "Location";
 }
 
 span[data-dpt=location][data-dpt-loctype=entry]:before {
     content: "Entry";
+}
+
+span[data-dpt=location][data-dpt-loctype=locus]:before {
+    content: "Locus";
 }
 
 span[data-dpt=ex]:before {

@@ -497,7 +497,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css"
+                content_css : "/static/digipal_text/viewer/tinymce.css?v=1"
             });
             
         };

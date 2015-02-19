@@ -82,9 +82,9 @@ EXON
             folio
             section
         [DONE] splitting by entry
-        pull locations from database
-        display one piece
-        location change
+        [DONE] pull locations from database
+        [DONE] display one piece
+        [DONE] location change
     
     Mark up
         entry

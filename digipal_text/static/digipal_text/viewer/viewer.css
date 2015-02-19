@@ -107,6 +107,13 @@ span.message-error {
     background-color: #f8f8f8;
 }
 
+/* Reduce Tinymce drop down width */
+
+.mce-btn-group .mce-menubtn.mce-fixed-width span {
+    width: auto;
+}
+
+
 /*
 #container input.sbm-change {float: left;}
 #context-div ul {margin-left: 2em;}

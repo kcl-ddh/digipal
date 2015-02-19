@@ -172,6 +172,24 @@ var PanelSetPlugIn = function(editor, url) {
             afterChange(!changed);
         }
     });
+
+    // Clauses
+    editor.addButton('pslocation', function() {
+        var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}, {text: 'Section', value: 'section'}];
+    
+        return {
+            type: 'listbox',
+            text: 'Location',
+            tooltip: 'Location',
+            values: items,
+            fixedWidth: true,
+            onclick: function(e) {
+                if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+                    addSpan({'tag': 'location', 'attributes': {'cat': 'words', 'type': e.control.settings.value}});
+                }
+            }
+        };
+    });
     
     // Clauses
     editor.addButton('psclause', function() {
@@ -184,16 +202,8 @@ var PanelSetPlugIn = function(editor, url) {
             values: items,
             fixedWidth: true,
             onclick: function(e) {
-                if (e.target.tagName !== 'BUTTON') {
-                    if (editor.selection.isCollapsed()) return;
-                    var parents = getSelectionParents();
-                    if (parents[0] !== parents[1]) return;
-                    var sel_cont = editor.selection.getContent();
-                    if (sel_cont.match(/^\s*$/g)) return;
-                    //if (sel_cont.match(/</g)) return;
-                    
-                    // TODO: keep spaces outside the newly created span
-                    setContent('<span data-dpt="clause"  data-dpt-cat="words" data-dpt-type="'+e.control.settings.value+'">' + sel_cont + '</span>');
+                if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+                    addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': e.control.settings.value}});
                 }
             }
         };

@@ -191,10 +191,11 @@
             this.loadContent(true);
             
             this.onResize();
-            
-            this.$locationTypes.dpbsdropdown({
-                onSelect: function($el, key) { console.log('['); me.onSelectLocationType(key); console.log(']'); },
-            });
+
+            // TODO: restore this
+//            this.$locationTypes.dpbsdropdown({
+//                onSelect: function($el, key) { console.log('['); me.onSelectLocationType(key); console.log(']'); },
+//            });
 
             setInterval(function() {
                 me.saveContent();
@@ -287,8 +288,12 @@
                     locationTypes.push(j);
                 }
                 
+                
+                // TODO: restore this
+                /*
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                 this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
+                */
                 
                 this.onSelectLocationType(locationTypes[0]);
             }
@@ -319,7 +324,9 @@
         };
         
         this.getLocationType = function() {
-            return this.$locationTypes.dpbsdropdown('getOption');
+            // TODO: restore this
+            //return this.$locationTypes.dpbsdropdown('getOption');
+            return 'entry';
         };
 
         this.getLocation = function() {
@@ -512,7 +519,7 @@
 //                    });
 //                },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psex pssupplied psdel | code ',
+                toolbar: 'psclear undo redo pssave | psconvert | psclause | pslocation | psex pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

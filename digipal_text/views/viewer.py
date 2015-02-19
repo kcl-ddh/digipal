@@ -29,7 +29,7 @@ def text_viewer_view(request, item_partid=0):
     ]
     context['dd_location_types'] = [
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
-        {'key': 'folio', 'label': 'Folio', 'icon': 'file'},
+        {'key': 'locus', 'label': 'Locus', 'icon': 'file'},
         {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
     ]
     
@@ -86,7 +86,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
             ret['locations']['entry'].append(entry)
         from digipal.models import Image
-        ret['locations']['folio'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
     
     # is new content sent by the user to be saved?
     content = request.REQUEST.get('content', None)
@@ -103,9 +103,10 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if content is not None:
         # replace requested fragment
         print len(text_content_xml.content)
-        content = re.sub(ur'(?musi)<p>\s*<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?(<p><span data-dpt="location"\s+data-dpt-loctype="'+location_type+'")', content+ur'\1', text_content_xml.content)
-        if content != text_content_xml.content:
-            print len(content)
+        #content = re.sub(ur'(?musi)<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?(<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'")', content+ur'\1', text_content_xml.content)
+        extent = get_fragment_extent(text_content_xml, location_type, location)
+        if extent:
+            content = text_content_xml.content[0:extent[0]]+content+text_content_xml.content[extent[1]:]
     
             if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
                 print 'Auto copy (smaller content)'
@@ -131,14 +132,40 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             # TODO: !!! test type of location
             # ASSUMES: root > p > span
             # ASSUME order of the attributes in the span (OK)
-            match = re.search(ur'(?musi)(<p>\s*<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p><span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"', content)
-            if match:
-                content = match.group(1)
+            #match = re.search(ur'(?musi)(<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"', content)
+            extent = get_fragment_extent(text_content_xml, location_type, location)
+            if extent:
+                content = text_content_xml.content[extent[0]:extent[1]]
+                #content = match.group(1)
+                
             else: 
                 content = 'Location not found: %s %s' % (location_type, location)
     
     ret['content'] = content
     
+    return ret
+
+def get_fragment_extent(text_content_xml, location_type, location):
+    ret = None
+    
+    content = text_content_xml.content
+    
+    # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
+    
+    span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
+    print span0
+    if span0 > -1:
+        span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
+        print span1
+        if span1 > -1:
+            p0 = content.rfind('<p>', 0, span0)
+            print p0
+            if p0 > -1:
+                p1 = content.find('</p>', span1)
+                print p1
+                
+                ret = [p0, p1]
+
     return ret
 
 def text_api_view_image(request, item_partid, content_type, location_type, location):
@@ -155,7 +182,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # return the locus of the images under this item part
     # return #ID for images which have no locus
     if utils.get_int(request.REQUEST.get('load_locations', 0)):
-        ret['locations'] = {'folio': ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]}
+        ret['locations'] = {'locus': ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]}
         
     # find the image
     image = None

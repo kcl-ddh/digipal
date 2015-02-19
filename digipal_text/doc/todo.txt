@@ -53,6 +53,7 @@ EXON Progress
 EXON
     
     1. folio numbers
+        load/save folio text
         sync with images
         drop down to say if we want to sync of not
     [DONE] 2. save changes

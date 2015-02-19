@@ -96,24 +96,32 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     from django.utils.html import strip_tags
     #if not re.search(ur'\w', strip_tags(content)):
 
-    if (content is not None) and text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
-        print 'Auto copy (smaller content)'
-        text_content_xml.save_copy()
-        
     # now save the new content
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
     
     if content is not None:
-        text_content_xml.content = content
-        if convert:
-            text_content_xml.convert()
-            content = text_content_xml.content
-        # make a copy if user asked for it
-        if save_copy:
-            text_content_xml.save_copy()
-        print 'save'
-        ##text_content_xml.save()
+        # replace requested fragment
+        print len(text_content_xml.content)
+        content = re.sub(ur'(?musi)<p>\s*<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?(<p><span data-dpt="location"\s+data-dpt-loctype="'+location_type+'")', content+ur'\1', text_content_xml.content)
+        if content != text_content_xml.content:
+            print len(content)
+    
+            if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
+                print 'Auto copy (smaller content)'
+                text_content_xml.save_copy()
+                
+            # set the new content
+            text_content_xml.content = content
+            
+            if convert:
+                text_content_xml.convert()
+                content = text_content_xml.content
+            # make a copy if user asked for it
+            if save_copy:
+                text_content_xml.save_copy()
+            print 'save'
+            text_content_xml.save()
     else:
         content = text_content_xml.content
         if content is None:

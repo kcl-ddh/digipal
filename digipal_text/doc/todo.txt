@@ -51,6 +51,14 @@ EXON Progress
             Export of the entry numbers
 
 EXON
+    
+    1. folio numbers
+        sync with images
+        drop down to say if we want to sync of not
+    [DONE] 2. save changes
+    3. pg down, ...
+    4. show snippets on search results
+
 
     !!!
         enforce structure:

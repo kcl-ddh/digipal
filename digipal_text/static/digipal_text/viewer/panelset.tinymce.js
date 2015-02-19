@@ -113,27 +113,14 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
 
-    // Supplied
+    // Deleted
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html
     editor.addButton('psdel', {
         /* text: '\u271A', */
         tooltip: 'Deleted',
         icon: 'strikethrough',
         onclick: function() {
-            /*
-            if (editor.selection.isCollapsed()) return;
-            var parents = getSelectionParents();
-            if (parents[0] !== parents[1]) return;
-            var sel_cont = editor.selection.getContent();
-            */
-            /*
-            if (sel_cont.match(/^\s*$/g)) return;
-            if (sel_cont.match(/</g)) return;
-            */
-            
-            // TODO: keep spaces outside the newly created span
             addSpan({'tag': 'del', 'attributes': {'cat': 'words'}, 'conditions': {'isparent': null}});
-            //setContent('<span data-dpt="del" data-dpt-cat="words">' + sel_cont + '</span>');
         }
     });
 

@@ -85,6 +85,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['message'] = 'Content not found'
         ret['status'] = 'error' 
         return ret
+
+    record_content = text_content_xml.content or ''
     
     # 2. Load the list of possible location types and locations
     # return the locus of the entries
@@ -94,7 +96,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['locations'] = SortedDict()
         
         # whole
-        ret['locations']['whole'] = []
+        if len(record_content) <= max_fragment_size:
+            ret['locations']['whole'] = []
         
         # entry
         ret['locations']['entry'] = []
@@ -123,8 +126,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
-    
-    record_content = text_content_xml.content or ''
     
     extent = get_fragment_extent(record_content, location_type, location)
     ret['message'] = ''

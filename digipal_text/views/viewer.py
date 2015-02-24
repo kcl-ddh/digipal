@@ -83,18 +83,23 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     
     # return the locus of the entries
     if utils.get_int_from_request_var(request, 'load_locations'):
-        ret['locations'] = {'entry': []}
+        # whole
+        ret['locations'] = {'whole': []}
+        # entry
+        ret['locations']['entry'] = []
         if text_content_xml.content:
             for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
                 ret['locations']['entry'].append(entry)
+        if not ret['locations']['entry']: del ret['locations']['entry']
+            
+        # locus
         from digipal.models import Image
         ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+        if not ret['locations']['locus']: del ret['locations']['locus']
     
     # is new content sent by the user to be saved?
     content = request.REQUEST.get('content', None)
     
-    # we make a copy if the new content removes 10% of the content
-    # this might be due to a bug in the UI
     from django.utils.html import strip_tags
     #if not re.search(ur'\w', strip_tags(content)):
 
@@ -113,6 +118,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         else:
             content = text_content_xml.content[0:extent[0]]+content+text_content_xml.content[extent[1]:]
     
+            # we make a copy if the new content removes 10% of the content
+            # this might be due to a bug in the UI
             if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
                 print 'Auto copy (smaller content)'
                 text_content_xml.save_copy()

@@ -266,11 +266,27 @@
         /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations) {
-            // make sure no saving happens from now on
-            // until the content is loaded
-            this.loadedLocation = null;
-            this.loadContentCustom(loadLocations);
+            if (this.loadedLocation != this.getContentAddress()) {
+                this.setValid(false);
+                // make sure no saving happens from now on
+                // until the content is loaded
+                this.loadedLocation = null;
+                this.loadContentCustom(loadLocations);
+            }
         };
+        
+        this.setValid = function(isValid) {
+            //this.tinymce.setContent('');
+            var $mask = this.$root.find('.mask');
+            if ($mask.length == 0) {
+                // TODO: move this HTML to the template.
+                // Not good practice to create it with JS
+                this.$content.prepend('<div class="mask"></div>');
+                $mask = this.$root.find('.mask');
+            }
+
+            $mask.css('height', isValid ? '0' : '100%');
+        }
         
         this.loadContentCustom = function(loadLocations) {
             // NEVER CALL THIS FUNCTION DIRECTLY
@@ -283,6 +299,7 @@
             //this.setMessage('Content loaded.', 'success');
             this.loadedLocation = loadedLocation;
             this.setNotDirty();
+            this.setValid(true);
         };
         
         /* SAVING CONTENT */
@@ -459,6 +476,7 @@
             );
         };
 
+        
         // TODO: fix with 'proper' prototype inheritance
         this.baseOnResize = this.onResize;
         this.onResize = function () {

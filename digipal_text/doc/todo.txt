@@ -19,6 +19,10 @@ XML
 
 BOTH
 
+    invalid location or error
+        reset the content of the panel, prevent edition
+
+
     Save the name of the last person to save the text
     Save the person in the backup as well 
 

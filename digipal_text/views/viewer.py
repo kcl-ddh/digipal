@@ -65,9 +65,12 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
+    max_fragment_size = 1000
+    
     text_content_xml = None
     
     #print 'content type %s' % content_type_record
+    # 1. Fetch or Create the necessary DB records to hold this text
     from digipal.models import ItemPart
     item_part = ItemPart.objects.filter(id=item_partid).first()
     if item_part:
@@ -79,12 +82,20 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
     
     if not text_content_xml:
-        raise Exception('Content not found')
+        ret['message'] = 'Content not found'
+        ret['status'] = 'error' 
+        return ret
     
+    # 2. Load the list of possible location types and locations
     # return the locus of the entries
-    if utils.get_int_from_request_var(request, 'load_locations'):
+    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
         # whole
-        ret['locations'] = {'whole': []}
+        from django.utils.datastructures import SortedDict 
+        ret['locations'] = SortedDict()
+        
+        # whole
+        ret['locations']['whole'] = []
+        
         # entry
         ret['locations']['entry'] = []
         if text_content_xml.content:
@@ -97,93 +108,109 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
         if not ret['locations']['locus']: del ret['locations']['locus']
     
-    # is new content sent by the user to be saved?
-    content = request.REQUEST.get('content', None)
+    # resolve 'default' location request 
+    if location_type == 'default':
+        # grab the first available location
+        for ltype in ret['locations'].keys():
+            print 'Resolved default location'
+            location_type = ltype
+            location = ''
+            if ret['locations'][ltype]:
+                location = ret['locations'][ltype][0]
+        
+    # 3. Save the user fragment
+    new_fragment = request.REQUEST.get('content', None)
     
-    from django.utils.html import strip_tags
-    #if not re.search(ur'\w', strip_tags(content)):
-
-    # now save the new content
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
     
-    if content is not None:
-        # replace requested fragment
-        print len(text_content_xml.content)
-        #content = re.sub(ur'(?musi)<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?(<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'")', content+ur'\1', text_content_xml.content)
-        extent = get_fragment_extent(text_content_xml, location_type, location)
-        if not extent:
-            ret['message'] = 'Location not found: %s %s' % (location_type, location)
-            ret['status'] = 'error'
-        else:
-            content = text_content_xml.content[0:extent[0]]+content+text_content_xml.content[extent[1]:]
+    record_content = text_content_xml.content or ''
+    
+    extent = get_fragment_extent(record_content, location_type, location)
+    ret['message'] = ''
+    if extent:
+        # make sure we compare with None, as '' is a different case
+        if new_fragment is not None:
+            ret['message'] = 'Content saved'
+
+            # insert user fragment
+            len_previous_record_content = len(record_content)
+            record_content = record_content[0:extent[0]]+new_fragment+record_content[extent[1]:]
     
             # we make a copy if the new content removes 10% of the content
             # this might be due to a bug in the UI
-            if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
+            if len(record_content) < (0.9 * len_previous_record_content):
                 print 'Auto copy (smaller content)'
                 text_content_xml.save_copy()
                 
             # set the new content
-            text_content_xml.content = content
+            text_content_xml.content = record_content
             
+            # auto-markup
             if convert:
                 text_content_xml.convert()
-                content = text_content_xml.content
+                record_content = text_content_xml.content
+                ret['message'] = 'Content converted and saved'
+            
             # make a copy if user asked for it
             if save_copy:
                 text_content_xml.save_copy()
-            ret['message'] = 'Content saved'
+                ret['message'] = 'Content backed up'
+            
+            # save the new content
             text_content_xml.save()
+            
+            # update the extent
+            # note that extent can fail now if the user has remove the marker for the current location
+            extent = get_fragment_extent(record_content, location_type, location)
+
+    # 4. now the loading part (we do it in any case, even if saved first)
+    if not extent:
+        if ret['message']:
+            ret['message'] += ' then '
+        ret['message'] += 'location not found: %s %s' % (location_type, location)
+        ret['status'] = 'error'
     else:
-        content = text_content_xml.content
-        if content is None:
-            content = ''
-            if location_type == 'whole':
-                ret['message'] = 'Content loaded (empty)'
-            else:
-                ret['status'] = 'error'
-                ret['message'] = 'Location not found: %s %s' % (location_type, location)
+        if (extent[1] - extent[0]) > max_fragment_size:
+            if ret['message']:
+                ret['message'] += ' then '
+            ret['message'] += 'text too long (> %s bytes)' % (max_fragment_size)
+            ret['status'] = 'error'
         else:
-            # extract the requested fragment
-            # TODO: !!! test type of location
-            # ASSUMES: root > p > span
-            # ASSUME order of the attributes in the span (OK)
-            #match = re.search(ur'(?musi)(<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?)<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"', content)
-            extent = get_fragment_extent(text_content_xml, location_type, location)
-            if extent:
-                content = text_content_xml.content[extent[0]:extent[1]]
+            ret['content'] = record_content[extent[0]:extent[1]]
+            if new_fragment is None:
                 ret['message'] = 'Content loaded'
-                #content = match.group(1)
-            else: 
-                content = ''
-                ret['message'] = 'Location not found: %s %s' % (location_type, location)
-                ret['status'] = 'error'
-    
-    ret['content'] = content
-    
+
+    # we return the location of the returned fragment
+    # this may not be the same as the requested location
+    # e.g. if the requested location is 'default' we resolve it
+    ret['location_type'] = location_type
+    ret['location'] = location
+        
     return ret
 
-def get_fragment_extent(text_content_xml, location_type, location):
+def get_fragment_extent(content, location_type, location):
     ret = None
     
-    content = text_content_xml.content
+    content = content or ''
     
-    # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
-    
-    span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
-    print span0
-    if span0 > -1:
-        span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
-        print span1
-        if span1 > -1:
+    if location_type == 'whole':
+        ret = [0, len(content)]
+    else:
+        # extract the requested fragment
+        # ASSUMES: root > p > span
+        # ASSUME order of the attributes in the span (OK)
+        # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
+        span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
+        if span0 > -1:
             p0 = content.rfind('<p>', 0, span0)
-            print p0
             if p0 > -1:
-                p1 = content.find('</p>', span1)
-                print p1
-                
-                ret = [p0, p1]
+                span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
+                if span1 == -1:
+                    ret = [p0, len(content)]
+                else:
+                    p1 = content.find('</p>', span1)
+                    ret = [p0, p1]
 
     return ret
 

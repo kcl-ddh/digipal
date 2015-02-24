@@ -422,7 +422,6 @@
         
         this.unreadyComponents.push('tinymce');
         
-        //$(editor.editorContainer).trigger('psconvert');
         // TODO: fix with 'proper' prototype inheritance
         this._baseReady = this._ready;
         this._ready = function() {

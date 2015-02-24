@@ -469,6 +469,7 @@ class FacetedModel(object):
 
             #ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            ret.fragmenter.charlimit = None
             #ret = s.search(q, groupedby=facets, limit=1000000)
             #ret = s.search(q, sortedby=sortedby, limit=1000000)
             #ret = s.search(q, limit=1000000)
@@ -494,6 +495,17 @@ class FacetedModel(object):
             hand_filters.chrono('whoosh.paginate:')
             # paginate
             self.ids = ret
+            
+            # get highlights from the hits
+            for hit in ret:
+                print '- ' * 20
+                print hit['id']
+                
+                if self.key == 'texts':
+                    text = self.get_model().objects.get(id=hit['id'])
+                    if text.content:
+                        print repr(hit.highlights('text_content', top=100))
+            
             self.paginator = Paginator(ret, self.get_page_size(request))
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1

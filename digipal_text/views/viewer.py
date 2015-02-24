@@ -28,9 +28,10 @@ def text_viewer_view(request, item_partid=0):
         {'key': 'image', 'label': 'Image', 'icon': 'picture', 'attrs': [['data-class', 'Image']]},
     ]
     context['dd_location_types'] = [
-        {'key': 'section', 'label': 'Section', 'icon': 'section'},
+        {'key': 'whole', 'label': 'Whole text', 'icon': 'book'},
         {'key': 'locus', 'label': 'Locus', 'icon': 'file'},
         {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
+        {'key': 'section', 'label': 'Section', 'icon': 'section'},
     ]
     
     return render(request, 'digipal_text/text_viewer.html', context)
@@ -83,8 +84,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # return the locus of the entries
     if utils.get_int_from_request_var(request, 'load_locations'):
         ret['locations'] = {'entry': []}
-        for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
-            ret['locations']['entry'].append(entry)
+        if text_content_xml.content:
+            for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
+                ret['locations']['entry'].append(entry)
         from digipal.models import Image
         ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
     
@@ -105,7 +107,10 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         print len(text_content_xml.content)
         #content = re.sub(ur'(?musi)<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'"\s*>' + re.escape(location) + ur'</span>.*?</p>.*?(<p>.*?<span data-dpt="location"\s+data-dpt-loctype="'+location_type+'")', content+ur'\1', text_content_xml.content)
         extent = get_fragment_extent(text_content_xml, location_type, location)
-        if extent:
+        if not extent:
+            ret['message'] = 'Location not found: %s %s' % (location_type, location)
+            ret['status'] = 'error'
+        else:
             content = text_content_xml.content[0:extent[0]]+content+text_content_xml.content[extent[1]:]
     
             if text_content_xml.content and (len(content) < 0.9 * len(text_content_xml.content)):
@@ -121,12 +126,17 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             # make a copy if user asked for it
             if save_copy:
                 text_content_xml.save_copy()
-            print 'save'
+            ret['message'] = 'Content saved'
             text_content_xml.save()
     else:
         content = text_content_xml.content
         if content is None:
             content = ''
+            if location_type == 'whole':
+                ret['message'] = 'Content loaded (empty)'
+            else:
+                ret['status'] = 'error'
+                ret['message'] = 'Location not found: %s %s' % (location_type, location)
         else:
             # extract the requested fragment
             # TODO: !!! test type of location
@@ -136,10 +146,12 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             extent = get_fragment_extent(text_content_xml, location_type, location)
             if extent:
                 content = text_content_xml.content[extent[0]:extent[1]]
+                ret['message'] = 'Content loaded'
                 #content = match.group(1)
-                
             else: 
-                content = 'Location not found: %s %s' % (location_type, location)
+                content = ''
+                ret['message'] = 'Location not found: %s %s' % (location_type, location)
+                ret['status'] = 'error'
     
     ret['content'] = content
     

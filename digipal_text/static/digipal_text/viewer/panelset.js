@@ -120,11 +120,13 @@
         
     };
     
-    //
+    /////////////////////////////////////////////////////////////////////////
     // Panel: a Panel managed by the panelset
     // Usage:
     //    var panelset = $('#text-viewer').panelset();
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
+    //
+    /////////////////////////////////////////////////////////////////////////
     var Panel = TextViewer.Panel = function($root, contentType) {
         this.$root = $root;
         
@@ -152,11 +154,44 @@
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
         
+        // loaded is the location of the last successfully loaded text fragment
+        // content cannot be saved unless it has been loaded properly
+        // This is to avoid a loading error from erasing conent.
+        // On a load error the location may still be valid and the next
+        // attempt to save will overwrite the fragment.
+        this.loadedLocation = null;
+        
         // METHODS
+        
+        this.callApi = function(title, url, onSuccess, requestData, synced) {
+            var me = this;
+            var onComplete = function(jqXHR, textStatus) {
+                if (textStatus !== 'success') {
+                    me.setMessage('Error during '+title+' (status: '+textStatus+')', 'error');
+                }
+            };
+            var onSuccessWrapper = function(data, textStatus, jqXHR) {
+                data.status = data.status || 'success';
+                data.message = data.message || 'done ('+title+').';
+                if (data.locations) {
+                    me.updateLocations(data.locations);
+                }
+                if (data.status === 'success') {
+                    onSuccess(data, textStatus, jqXHR);
+                }
+                me.setMessage(data.message, data.status);
+            };
+            this.setMessage(title+'...', 'info');
+            var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
+            return ret;
+        } 
         
         this.onDestroy = function() {
             // destructor, the place to remove any resource and detach event handlers
             this.panelSet.unRegisterPanel(this);
+            // prevent ghost saves (e.g. detached panel still listens to unload events)
+            this.setNotDirty();
+            this.loadedLocation = null;
         };
         
         this.onResize = function () {
@@ -207,47 +242,91 @@
             // fire onSelect event as we want to refresh the list of locations
             //this.$locationTypes.dpbsdropdown('onSelect');
 
-            this.$locationSelect.on('change', function() {me.loadContent();});
+            this.$locationSelect.on('change', function() {
+                me.loadContent();
+            });
 
             setInterval(function() {
                 me.saveContent();
             }, 2500);
         };
         
+        /*
+         * Loading and saving
+         * 
+         * General rules about when the content should be saved:
+         *      at regular interval (this class)
+         *      when the editor loses the focus (subclass)
+         *      before the window/tab/document is closed (subclass)
+         * but
+         *      only if the content has been changed (this.isDirty() and this.getContentHash())
+         *      only if the content has been loaded properly (this.loadedLocation <> null)
+         */
+        
         /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations) {
-            this.setMessage('Loading content...');
+            // make sure no saving happens from now on
+            // until the content is loaded
+            this.loadedLocation = null;
             this.loadContentCustom(loadLocations);
         };
         
         this.loadContentCustom = function(loadLocations) {
+            // NEVER CALL THIS FUNCTION DIRECTLY
+            // ONLY loadContent() can call it
             this.$content.html('Generic Panel Content');
             this.onContentLoaded();
         };
         
-        this.onContentLoaded = function() {
-            this.setMessage('Content loaded.', 'success');
+        this.onContentLoaded = function(loadedLocation) {
+            //this.setMessage('Content loaded.', 'success');
+            this.loadedLocation = loadedLocation;
+            this.setNotDirty();
         };
         
         /* SAVING CONTENT */
         
-        this.saveContent = function(synced) {
-            this.saveContentCustom(synced);
+        this.saveContent = function(options) {
+            options = options || {};
+            if (this.loadedLocation && (this.isDirty() || options.forceSave)) {
+                console.log('SAVE '+this.getContentAddress());
+                this.setNotDirty();
+                this.saveContentCustom(options);
+            }
         }
         
-        this.saveContentCustom = function(synced) {
+        this.saveContentCustom = function(options) {
+            // NEVER CALL THIS FUNCTION DIRECTLY
+            // ONLY saveContent() can call it
         }
         
         this.onContentSaved = function(data) {
-            if (data.error) {
-                this.setMessage('Error saving content: '+data.error, 'error');
-            } else {
-                this.setMessage('Content saved.', 'success');
-            }
         }
 
         /* -------------- */
+        
+        this.isDirty = function() {
+            var ret = (this.getContentHash() !== this.lastSavedHash);
+            return ret;
+        }
+
+        this.setNotDirty = function() {
+            this.lastSavedHash = this.getContentHash();
+        }
+
+        this.setDirty = function() {
+            var d = new Date();
+            this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
+        }
+        
+        this.getContentHash = function() {
+            var ret = null;
+            return ret;
+            //return ret.length + ret;
+        }
+        
+        // Address / Locations
 
         this.updateLocations = function(locations) {
             // Update the location drop downs from a list of locations
@@ -271,12 +350,15 @@
         this.onSelectLocationType = function(locationType) {
             // update the list of locations
             this.$locationSelect.empty();
+            var empty = true;
             if (this.locations && this.locations[locationType]) {
                 for (var i in this.locations[locationType]) {
                     this.$locationSelect.append('<option value="'+this.locations[locationType][i]+'">'+this.locations[locationType][i]+'</option>');
+                    empty = false;
                 }
             }
             this.$locationSelect.trigger('liszt:updated');
+            this.$locationSelect.next().toggle(!empty);
         };
         
         this.setItemPartid = function(itemPartid) {
@@ -333,13 +415,13 @@
             $(this.tinymce.editorContainer).on('psconvert', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(false, true, true);
+                me.saveContent({forceSave: true, autoMarkup: true});
             });
             
             $(this.tinymce.editorContainer).on('pssave', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
-                me.saveContentCustom(false, true, false, true);
+                me.saveContent({forceSave: true, saveCopy: true});
             });
 
             // make sure we save the content if tinymce looses focus or we close the tab/window
@@ -348,7 +430,7 @@
             });
 
             $(window).bind('beforeunload', function() {
-                me.saveContentCustom(true);
+                me.saveContent({synced: true});
             });
             
             return ret;
@@ -357,18 +439,18 @@
         this.loadContentCustom = function(loadLocations) {
             // load the content with the API
             var me = this;
-            TextViewer.callApi(
-                this.getContentAddress(),
+            var loadedLocation = this.getContentAddress();
+            this.callApi(
+                'loading content',
+                loadedLocation,
                 function(data) {
                     if (data.content !== undefined) {
                         me.tinymce.setContent(data.content);
-                        me.onContentLoaded();
                         me.tinymce.undoManager.clear();
                         me.tinymce.undoManager.add();
-                        me.setNotDirty();
-                        me.updateLocations(data.locations);
+                        me.onContentLoaded(loadedLocation);
                     } else {
-                        me.setMessage('ERROR: no content received from server.');
+                        //me.setMessage('ERROR: no content received from server.');
                     }
                 },
                 {
@@ -389,50 +471,35 @@
             }
         };
         
-        this.isDirty = function() {
-            var ret = (this.getContentHash() !== this.lastSavedHash);
-            return ret;
-        }
-
-        this.setNotDirty = function() {
-            this.lastSavedHash = this.getContentHash();
-        }
-
-        this.setDirty = function() {
-            var d = new Date();
-            this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
-        }
-
         this.getContentHash = function() {
             var ret = this.tinymce.getContent();
             return ret;
             //return ret.length + ret;
         }
 
-        this.saveContentCustom = function(synced, forceSave, autoMarkup, saveCopy) {
+        this.saveContentCustom = function(options) {
+            // options:
+            // synced, autoMarkup, saveCopy
             var me = this;
-            if (this.isDirty() || forceSave) {
-                this.setNotDirty();
-                this.setMessage('Saving content...');
-                TextViewer.callApi(
-                    this.getContentAddress(), 
-                    function(data) {
-                        //me.tinymce.setContent(data.content);
-                        me.onContentSaved(data);
-                        if (autoMarkup) {
-                            me.tinymce.setContent(data.content);
-                            me.setNotDirty();
-                        }
-                    },
-                    {
-                        'content': me.tinymce.getContent(), 
-                        'convert': autoMarkup ? 1 : 0, 
-                        'save_copy': saveCopy ? 1 : 0,
-                        'post': 1,
-                    },
-                    synced
+            this.callApi(
+                'saving content',
+                this.getContentAddress(), 
+                function(data) {
+                    //me.tinymce.setContent(data.content);
+                    me.onContentSaved(data);
+                    if (options.autoMarkup) {
+                        me.tinymce.setContent(data.content);
+                        me.setNotDirty();
+                    }
+                },
+                {
+                    'content': me.tinymce.getContent(), 
+                    'convert': options.autoMarkup ? 1 : 0, 
+                    'save_copy': options.saveCopy ? 1 : 0,
+                    'post': 1,
+                },
+                options.synced
                 );
-            }
         };
 
         this.initTinyMCE = function() {
@@ -514,12 +581,12 @@
         this.loadContentCustom = function(loadLocations) {
             // load the content with the API
             var me = this;
-            TextViewer.callApi(
-                this.getContentAddress(), 
+            var loadedLocation = this.getContentAddress()
+            this.callApi(
+                'loading image',
+                loadedLocation, 
                 function(data) {
-                    me.$content.html(data.content).find('img').load(function() {me.onContentLoaded();});
-                    // TODO: move this to Panel
-                    me.updateLocations(data.locations);
+                    me.$content.html(data.content).find('img').load(function() {me.onContentLoaded(loadedLocation);});
                 },
                 {
                     'layout': 'width',
@@ -545,7 +612,7 @@
         
     // UTILITIES
 
-    TextViewer.callApi = function(url, onSuccess, requestData, synced) {
+    TextViewer.callApi = function(url, onSuccess, onComplete, requestData, synced) {
         // See http://stackoverflow.com/questions/9956255.
         // This tricks prevents caching of the fragment by the browser.
         // Without this if you move away from the page and then click back
@@ -557,6 +624,7 @@
             url: url_ajax, 
             data: requestData, 
             async: (synced ? false : true), 
+            complete: onComplete,
             success: onSuccess
         };
         if (requestData && requestData.post) {

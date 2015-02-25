@@ -44,10 +44,10 @@
         </ul>
 
         <ul class="nav navbar-nav pull-left">
-            <li class="dropdown dropdown-location-type pull-left">
+            <li class="dropdown dropdown-location-type pull-left dphidden">
                 {% include "bootstrap/dropdown.html" with options=dd_location_types %}
             </li>
-            <li class="pull-left">
+            <li class="dropdown-location pull-left dphidden">
                 <select name="location" class="">
                     <option value="1r">1r</option>
                     <option value="1v">1v</option>

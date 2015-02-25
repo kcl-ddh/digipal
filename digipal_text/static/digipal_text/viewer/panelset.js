@@ -392,11 +392,19 @@
         };
         
         this.getLocationType = function() {
-            return this.$locationTypes.dpbsdropdown('getOption');
+            var ret = 'default';
+            if (this.$locationTypes.is(':visible')) {
+                ret = this.$locationTypes.dpbsdropdown('getOption');
+            }
+            return ret;
         };
 
         this.getLocation = function() {
-            return this.$locationSelect.val();
+            var ret = '';
+            if (this.$locationSelect.next().is(':visible')) {
+                ret = this.$locationSelect.val();
+            }
+            return ret;
         };
         
     };

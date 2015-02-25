@@ -114,12 +114,14 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # resolve 'default' location request 
     if location_type == 'default':
         # grab the first available location
+        print ret['locations'].keys()
         for ltype in ret['locations'].keys():
             print 'Resolved default location'
             location_type = ltype
             location = ''
             if ret['locations'][ltype]:
                 location = ret['locations'][ltype][0]
+            break
         
     # 3. Save the user fragment
     new_fragment = request.REQUEST.get('content', None)

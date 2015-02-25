@@ -172,3 +172,7 @@ div#side-panel {
 .glyphicon.glyphicon-section:before {
     content: "\00A7";
 }
+
+.dphidden {
+    display: none !important;
+}

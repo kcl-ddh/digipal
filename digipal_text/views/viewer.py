@@ -76,10 +76,11 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if item_part:
         #print 'item_part %s' % item_part
         # get or create the TextContent
-        from digipal_text.models import TextContent, TextContentXML
-        text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
-        # get or create the TextContentXML
-        text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
+        with transaction.atomic():
+            from digipal_text.models import TextContent, TextContentXML
+            text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
+            # get or create the TextContentXML
+            text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
     
     if not text_content_xml:
         ret['message'] = 'Content not found'
@@ -116,7 +117,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         # grab the first available location
         print ret['locations'].keys()
         for ltype in ret['locations'].keys():
-            print 'Resolved default location'
             location_type = ltype
             location = ''
             if ret['locations'][ltype]:

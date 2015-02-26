@@ -307,7 +307,7 @@
         this.saveContent = function(options) {
             options = options || {};
             if (this.loadedAddress && (this.isDirty() || options.forceSave)) {
-                console.log('SAVE '+this.getContentAddress());
+                console.log('SAVE '+this.loadedAddress);
                 this.setNotDirty();
                 this.saveContentCustom(options);
             }
@@ -540,7 +540,7 @@
             var me = this;
             this.callApi(
                 'saving content',
-                this.getContentAddress(), 
+                this.loadAddress, 
                 function(data) {
                     //me.tinymce.setContent(data.content);
                     me.onContentSaved(data);

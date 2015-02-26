@@ -111,11 +111,11 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         from digipal.models import Image
         ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
         if not ret['locations']['locus']: del ret['locations']['locus']
+
     
     # resolve 'default' location request 
     if location_type == 'default':
         # grab the first available location
-        print ret['locations'].keys()
         for ltype in ret['locations'].keys():
             location_type = ltype
             location = ''

@@ -176,3 +176,12 @@ div#side-panel {
 li.dphidden {
     display: none;
 }
+
+.navbar-nav > li.dropdown > ul.dropdown-menu.dpbs-clicked {
+    display: none;
+}
+
+li.bsdp-selected a {
+    font-weight: bold;
+}
+

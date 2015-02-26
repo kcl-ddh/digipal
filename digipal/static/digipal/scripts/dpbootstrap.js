@@ -45,12 +45,23 @@
             this.setOption(undefined, true);
             var me = this;
             
+            // bit of a trick to make sure the drop down closes
+            // when the user click an item
+            // see counterpart in click event below
+            this.$el.on('mouseenter', function () {
+                me.$el.find('ul').removeClass('dpbs-clicked');
+            });
+            
             // when the user clicks an option we select it
             // and we close the drop down
             this.$el.find('ul li a').on('click', function() { 
                 me.setOption($(this).attr('href'));
+                $(this).blur();
                 
+                // That won't work because of mezzanine hacks
                 //me.$el.find('.dropdown-toggle').dropdown('toggle');
+                // Close the drop down
+                $(this).closest('ul').addClass('dpbs-clicked');
                 
                 return false;
             });
@@ -70,9 +81,15 @@
             
             currentOption = this.$el.parent().data('value');
             if (currentOption != key) {
-                // set the selected option
-                var newValue = this.$el.find('a[href=#'+key+'] span')[0].outerHTML;
-                this.$el.find('.dropdown-toggle span:first').replaceWith(newValue);
+                var $selectedA = this.$el.find('a[href=#'+key+']');
+                // Replace the dropdown heading label by the selected option
+                this.$el.find('.dropdown-toggle span:first').replaceWith($selectedA.find('span')[0].outerHTML);
+                
+                // Highlight the selected option
+                $selectedA.closest('ul').find('li').removeClass('bsdp-selected');
+                $selectedA.closest('li').addClass('bsdp-selected');
+                                
+                // save the selected value in the parent data-value attribute
                 this.$el.parent().data('value', key);
                 
                 // call the user callback
@@ -82,7 +99,7 @@
         
         onSelect: function() {
             var key = this.getOption();
-            console.log('Callback ('+this.$el.attr('class')+') key = '+ key);
+            //console.log('Callback ('+this.$el.attr('class')+') key = '+ key);
             this.opts.onSelect(this.$el, key, this.$el.find('a[href="#'+key+'"]'));
         },
         

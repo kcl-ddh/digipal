@@ -382,17 +382,16 @@
 
         this.onSelectLocationType = function(locationType) {
             // update the list of locations
-            this.$locationSelect.empty();
-            var empty = true;
+            var htmlstr = '';
             if (this.locations && this.locations[locationType]) {
-                for (var i in this.locations[locationType]) {
-                    this.$locationSelect.append('<option value="'+this.locations[locationType][i]+'">'+this.locations[locationType][i]+'</option>');
-                    empty = false;
-                }
+                $(this.locations[locationType]).each(function (index, value) {
+                    htmlstr += '<option value="'+value+'">'+value+'</option>';
+                });
             }
+            this.$locationSelect.html(htmlstr);
             this.$locationSelect.trigger('liszt:updated');
-            this.$locationSelect.closest('li').toggle(!empty);
-            if (empty) { this.loadContent(); };
+            this.$locationSelect.closest('li').show(htmlstr ? true : false);
+            if (!htmlstr) { this.loadContent(); };
         };
         
         this.setItemPartid = function(itemPartid) {

@@ -65,7 +65,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
-    max_fragment_size = 1000
+    max_fragment_size = 10000
     
     text_content_xml = None
     

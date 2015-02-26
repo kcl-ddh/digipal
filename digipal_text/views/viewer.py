@@ -113,16 +113,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         if not ret['locations']['locus']: del ret['locations']['locus']
 
     
-    # resolve 'default' location request 
-    if location_type == 'default':
-        # grab the first available location
-        for ltype in ret['locations'].keys():
-            location_type = ltype
-            location = ''
-            if ret['locations'][ltype]:
-                location = ret['locations'][ltype][0]
-            break
-        
+    # resolve 'default' location request
+    location_type, location = resolve_default_location(location_type, location, ret)
+            
     # 3. Save the user fragment
     new_fragment = request.REQUEST.get('content', None)
     
@@ -192,6 +185,18 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         
     return ret
 
+def resolve_default_location(location_type, location, response): 
+    if location_type == 'default':
+        locations = response['locations']
+        # grab the first available location
+        for ltype in locations.keys():
+            location_type = ltype
+            location = ''
+            if locations[ltype]:
+                location = locations[ltype][0]
+            break
+    return location_type, location
+
 def get_fragment_extent(content, location_type, location):
     ret = None
     
@@ -230,8 +235,11 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     
     # return the locus of the images under this item part
     # return #ID for images which have no locus
-    if utils.get_int(request.REQUEST.get('load_locations', 0)):
+    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
         ret['locations'] = {'locus': ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]}
+
+    # resolve 'default' location request
+    location_type, location = resolve_default_location(location_type, location, ret)
         
     # find the image
     image = None
@@ -250,6 +258,12 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     if layout == 'width':
         options['width'] = request.REQUEST.get('width', '100')
     
+    # we return the location of the returned fragment
+    # this may not be the same as the requested location
+    # e.g. if the requested location is 'default' we resolve it
+    ret['location_type'] = location_type
+    ret['location'] = location
+
     ret['content'] = iip_img(image, **options)
     
     return ret

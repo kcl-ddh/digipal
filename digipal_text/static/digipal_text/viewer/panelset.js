@@ -390,7 +390,7 @@
             }
             this.$locationSelect.html(htmlstr);
             this.$locationSelect.trigger('liszt:updated');
-            this.$locationSelect.closest('li').show(htmlstr ? true : false);
+            this.$locationSelect.closest('li').toggle(htmlstr ? true : false);
             if (!htmlstr) { this.loadContent(); };
         };
         
@@ -540,7 +540,7 @@
             var me = this;
             this.callApi(
                 'saving content',
-                this.loadAddress, 
+                this.loadedAddress, 
                 function(data) {
                     //me.tinymce.setContent(data.content);
                     me.onContentSaved(data);

@@ -2,9 +2,11 @@
 
     TextViewer = window.TextViewer || {};
     
+    //////////////////////////////////////////////////////////////////////
     //
     // PanelSet
     //
+    //////////////////////////////////////////////////////////////////////
     var PanelSet = TextViewer.PanelSet = function($root) {
         this.panels = [];
         this.$root = $root;
@@ -121,7 +123,10 @@
     };
     
     /////////////////////////////////////////////////////////////////////////
-    // Panel: a Panel managed by the panelset
+    // Panel: an abstract Panel managed by the panelset
+    // This is the base class for all specific panel types (e.g. text, image)
+    // It provides some basic behaviour for auto-resizing, loading/saving content
+    //
     // Usage:
     //    var panelset = $('#text-viewer').panelset();
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
@@ -159,7 +164,7 @@
         // This is to avoid a loading error from erasing conent.
         // On a load error the location may still be valid and the next
         // attempt to save will overwrite the fragment.
-        this.loadedLocation = null;
+        this.loadedAddress = null;
         
         // METHODS
         
@@ -191,7 +196,7 @@
             this.panelSet.unRegisterPanel(this);
             // prevent ghost saves (e.g. detached panel still listens to unload events)
             this.setNotDirty();
-            this.loadedLocation = null;
+            this.loadedAddress = null;
         };
         
         this.onResize = function () {
@@ -260,53 +265,48 @@
          *      before the window/tab/document is closed (subclass)
          * but
          *      only if the content has been changed (this.isDirty() and this.getContentHash())
-         *      only if the content has been loaded properly (this.loadedLocation <> null)
+         *      only if the content has been loaded properly (this.loadedAddress <> null)
          */
         
         /* LOADING CONTENT */
 
-        this.loadContent = function(loadLocations) {
-            if (this.loadedLocation != this.getContentAddress()) {
+        this.loadContent = function(loadLocations, address) {
+            address = address || this.getContentAddress();
+            
+            if (this.loadedAddress != address) {
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
-                this.loadedLocation = null;
-                this.loadContentCustom(loadLocations);
+                this.loadedAddress = null;
+                this.loadContentCustom(loadLocations, address);
             }
         };
         
-        this.setValid = function(isValid) {
-            //this.tinymce.setContent('');
-            var $mask = this.$root.find('.mask');
-            if ($mask.length == 0) {
-                // TODO: move this HTML to the template.
-                // Not good practice to create it with JS
-                this.$content.prepend('<div class="mask"></div>');
-                $mask = this.$root.find('.mask');
-            }
-
-            $mask.css('height', isValid ? '0' : '100%');
-        }
-        
-        this.loadContentCustom = function(loadLocations) {
+        this.loadContentCustom = function(loadLocations, address) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY loadContent() can call it
             this.$content.html('Generic Panel Content');
             this.onContentLoaded();
         };
         
-        this.onContentLoaded = function(loadedLocation) {
+        this.onContentLoaded = function(data) {
             //this.setMessage('Content loaded.', 'success');
-            this.loadedLocation = loadedLocation;
+            // TODO: update the current selections in the location dds
+            // TODO: make sure no event is triggered while doing that
+            
+            this.loadedAddress = this.getContentAddress(data.location_type, data.location);
             this.setNotDirty();
             this.setValid(true);
+            
+            // update the location drop downs
+            this.setLocationTypeAndLocation(data.location_type, data.location);
         };
         
         /* SAVING CONTENT */
         
         this.saveContent = function(options) {
             options = options || {};
-            if (this.loadedLocation && (this.isDirty() || options.forceSave)) {
+            if (this.loadedAddress && (this.isDirty() || options.forceSave)) {
                 console.log('SAVE '+this.getContentAddress());
                 this.setNotDirty();
                 this.saveContentCustom(options);
@@ -323,6 +323,21 @@
 
         /* -------------- */
         
+        this.setValid = function(isValid) {
+            // tells us if the content is invalid
+            // if it is invalid we have to block editing
+            // visually inform the user the content is not valid.
+            var $mask = this.$root.find('.mask');
+            if ($mask.length == 0) {
+                // TODO: move this HTML to the template.
+                // Not good practice to create it with JS
+                this.$content.prepend('<div class="mask"></div>');
+                $mask = this.$root.find('.mask');
+            }
+
+            $mask.css('height', isValid ? '0' : '100%');
+        }
+
         this.isDirty = function() {
             var ret = (this.getContentHash() !== this.lastSavedHash);
             return ret;
@@ -361,6 +376,7 @@
                 
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                 this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
+                this.$locationTypes.closest('li').show();
             }
         };
 
@@ -375,7 +391,8 @@
                 }
             }
             this.$locationSelect.trigger('liszt:updated');
-            this.$locationSelect.next().toggle(!empty);
+            this.$locationSelect.closest('li').toggle(!empty);
+            if (empty) { this.loadContent(); };
         };
         
         this.setItemPartid = function(itemPartid) {
@@ -383,12 +400,22 @@
             this.itemPartid = itemPartid;
         };
 
-        this.getContentAddress = function() {
-            return '/digipal/manuscripts/' + this.itemPartid + '/texts/' + this.getContentType() + '/' + this.getLocationType() + '/' + encodeURIComponent(this.getLocation()) + '/';
+        this.getContentAddress = function(locationType, location) {
+            return '/digipal/manuscripts/' + this.itemPartid + '/texts/' + this.getContentType() + '/' + (locationType || this.getLocationType()) + '/' + encodeURIComponent((location === undefined) ? this.getLocation() : location) + '/';
         };
         
         this.getContentType = function() {
             return this.contentType;
+        };
+
+        this.setLocationTypeAndLocation = function(locationType, location) {
+            // this may trigger a content load
+            this.$locationTypes.dpbsdropdown('setOption', locationType);
+            if (this.$locationSelect.val() != location) {
+                this.$locationSelect.val(location);
+                this.$locationSelect.trigger('liszt:updated');
+                this.$locationSelect.trigger('change');
+            }
         };
         
         this.getLocationType = function() {
@@ -416,13 +443,20 @@
         return new constructor($(selector), contentType);
     };
     
+    //////////////////////////////////////////////////////////////////////
+    //
+    // PanelText
+    //
+    //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     };
 
+    //////////////////////////////////////////////////////////////////////
     //
     // PanelTextWrite
     //
+    //////////////////////////////////////////////////////////////////////
     TextViewer.textAreaNumber = 0;
     
     var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType) {
@@ -460,19 +494,18 @@
             return ret;
         };
         
-        this.loadContentCustom = function(loadLocations) {
+        this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
             var me = this;
-            var loadedLocation = this.getContentAddress();
             this.callApi(
                 'loading content',
-                loadedLocation,
+                address,
                 function(data) {
                     if (data.content !== undefined) {
                         me.tinymce.setContent(data.content);
                         me.tinymce.undoManager.clear();
                         me.tinymce.undoManager.add();
-                        me.onContentLoaded(loadedLocation);
+                        me.onContentLoaded(data);
                     } else {
                         //me.setMessage('ERROR: no content received from server.');
                     }
@@ -597,21 +630,24 @@
         this.initTinyMCE();
     };
         
+    //////////////////////////////////////////////////////////////////////
     //
     // PanelImage
     //
+    //////////////////////////////////////////////////////////////////////
     var PanelImage = TextViewer.PanelImage = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
         
-        this.loadContentCustom = function(loadLocations) {
+        this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
             var me = this;
-            var loadedLocation = this.getContentAddress()
             this.callApi(
                 'loading image',
-                loadedLocation, 
+                address, 
                 function(data) {
-                    me.$content.html(data.content).find('img').load(function() {me.onContentLoaded(loadedLocation);});
+                    me.$content.html(data.content).find('img').load(function() {
+                        me.onContentLoaded(data);
+                    });
                 },
                 {
                     'layout': 'width',
@@ -623,20 +659,29 @@
         };
     };
     
+    //////////////////////////////////////////////////////////////////////
     //
     // PanelNavigator
     //
+    //////////////////////////////////////////////////////////////////////
     var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     };
     
+    //////////////////////////////////////////////////////////////////////
+    //
     // PanelXmlelement
+    //
+    //////////////////////////////////////////////////////////////////////
     var PanelXmlelementWrite = TextViewer.PanelXmlelementWrite = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     }
         
-    // UTILITIES
-
+    //////////////////////////////////////////////////////////////////////
+    //
+    // Utilities
+    //
+    //////////////////////////////////////////////////////////////////////
     TextViewer.callApi = function(url, onSuccess, onComplete, requestData, synced) {
         // See http://stackoverflow.com/questions/9956255.
         // This tricks prevents caching of the fragment by the browser.

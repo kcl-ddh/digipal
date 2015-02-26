@@ -173,6 +173,6 @@ div#side-panel {
     content: "\00A7";
 }
 
-.dphidden {
-    display: none !important;
+li.dphidden {
+    display: none;
 }

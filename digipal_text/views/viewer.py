@@ -101,17 +101,12 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             ret['locations']['whole'] = []
         
         # entry
-        ret['locations']['entry'] = []
-        if text_content_xml.content:
-            for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="entry">)([^<]+)', text_content_xml.content):
-                ret['locations']['entry'].append(entry)
-        if not ret['locations']['entry']: del ret['locations']['entry']
-            
-        # locus
-        from digipal.models import Image
-        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
-        if not ret['locations']['locus']: del ret['locations']['locus']
-
+        for ltype in ['entry', 'locus']:
+            ret['locations'][ltype] = []
+            if text_content_xml.content:
+                for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="'+ltype+'">)([^<]+)', text_content_xml.content):
+                    ret['locations'][ltype].append(entry)
+            if not ret['locations'][ltype]: del ret['locations'][ltype]
     
     # resolve 'default' location request
     location_type, location = resolve_default_location(location_type, location, ret)

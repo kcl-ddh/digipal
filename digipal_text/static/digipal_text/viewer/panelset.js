@@ -32,6 +32,12 @@
             }
         };
         
+        this.onPanelContentLoaded = function(panel, locationType, location) {
+            for (var i in this.panels) {
+                this.panels[i].syncLocationWith(panel, locationType, location);
+            }
+        };
+        
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -143,6 +149,8 @@
         this.$root[0].textViewerPanel = this;
         
         this.contentType = contentType;
+        
+        this.panelSet = null;
         
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -256,6 +264,12 @@
             }, 2500);
         };
         
+        this.syncLocationWith = function(panel, locationType, location) {
+            if ((panel !== this) && (this.getLocationType() === 'sync') && (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase())) {
+                this.loadContent(false, this.getContentAddress(locationType, location));
+            }
+        };
+        
         /*
          * Loading and saving
          * 
@@ -300,6 +314,9 @@
             
             // update the location drop downs
             this.setLocationTypeAndLocation(data.location_type, data.location);
+            
+            // send signal to other panels so they can sync themselves
+            this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
         };
         
         /* SAVING CONTENT */
@@ -363,8 +380,10 @@
         this.updateLocations = function(locations) {
             // Update the location drop downs from a list of locations
             // received from the server.
-
+            
             if (locations) {
+                locations['sync'] = ['Transcription', 'Translation', 'Image']
+                
                 // save the locations
                 this.locations = locations;
 
@@ -409,11 +428,13 @@
 
         this.setLocationTypeAndLocation = function(locationType, location) {
             // this may trigger a content load
-            this.$locationTypes.dpbsdropdown('setOption', locationType);
-            if (this.$locationSelect.val() != location) {
-                this.$locationSelect.val(location);
-                this.$locationSelect.trigger('liszt:updated');
-                this.$locationSelect.trigger('change');
+            if (this.getLocationType() !== 'sync') {
+                this.$locationTypes.dpbsdropdown('setOption', locationType);
+                if (this.$locationSelect.val() != location) {
+                    this.$locationSelect.val(location);
+                    this.$locationSelect.trigger('liszt:updated');
+                    this.$locationSelect.trigger('change');
+                }
             }
         };
         

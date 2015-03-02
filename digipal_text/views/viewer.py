@@ -10,6 +10,7 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
 from django.http import Http404
 from digipal import utils
+from django.utils.datastructures import SortedDict 
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -32,6 +33,7 @@ def text_viewer_view(request, item_partid=0):
         {'key': 'locus', 'label': 'Locus', 'icon': 'file'},
         {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
+        {'key': 'sync', 'label': 'Synchronise with', 'icon': 'magnet'},
     ]
     
     return render(request, 'digipal_text/text_viewer.html', context)
@@ -93,7 +95,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # return the locus of the entries
     if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
         # whole
-        from django.utils.datastructures import SortedDict 
         ret['locations'] = SortedDict()
         
         # whole
@@ -231,7 +232,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # return the locus of the images under this item part
     # return #ID for images which have no locus
     if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
-        ret['locations'] = {'locus': ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]}
+        ret['locations'] = SortedDict()
+        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
 
     # resolve 'default' location request
     location_type, location = resolve_default_location(location_type, location, ret)

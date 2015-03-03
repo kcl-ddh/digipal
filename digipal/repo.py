@@ -94,8 +94,12 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         original_dir = os.getcwd()
-        github_dir = 'digipal_github/digipal/digipal'
-        if not os.path.exists(github_dir + '/repo_cfg.py'):
+        github_dir = ''
+        for ghpath in ['digipal_github/digipal/digipal', 'digipal_github/digipal']:
+            if os.path.exists(ghpath + '/repo_cfg.py'):
+                github_dir = ghpath
+                break
+        if not github_dir:
             github_dir = os.path.dirname(config.__file__)
         
         print 'GitHub folder: %s' % github_dir

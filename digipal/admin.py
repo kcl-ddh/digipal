@@ -468,7 +468,7 @@ class ItemPartAdmin(DigiPalModelAdmin):
             'historical_items__display_label', 'current_item__display_label',
             'subdivisions__display_label', 'group__display_label', 
             'type__name', 'keywords_string', 'notes']
-    list_filter = ('type', admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
+    list_filter = ('type', admin_filters.ItemPartHIFilter, admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
     
     readonly_fields = ('display_label', 'historical_label')
     fieldsets = (

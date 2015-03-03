@@ -280,6 +280,15 @@ class ItemPartHasGroupGroupFilter(SimpleListFilter):
         if self.value() == '0':
             return queryset.filter(group__isnull = True)
 
+class ItemPartHIFilter(RelatedObjectNumberFilter):
+    title = ('Number of H.I.')
+
+    parameter_name = ('hi')
+
+    related_table = 'digipal_itempartitem'
+    foreign_key = 'item_part_id'
+    this_table = 'digipal_itempart'
+    
 class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of parts')
 

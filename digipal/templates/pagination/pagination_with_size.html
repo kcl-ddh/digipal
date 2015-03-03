@@ -3,7 +3,7 @@
     <div class="btn-group pagination-group">
         <div class="btn-group">
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-    	       {{ page_size }} / pages
+                {{ page_size }} / pages
                <span class="caret"></span>
             </button>
             <input type="hidden" name="pgs" value="{{ page_size }}"/>
@@ -14,5 +14,5 @@
             </ul>
         </div>
         {% include "pagination/pagination.html" %}
-    </div>                                        
+    </div>
 {% endif %}

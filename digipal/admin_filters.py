@@ -79,6 +79,23 @@ class ImageAnnotationNumber(SimpleListFilter):
             return queryset.annotate(num_annot = Count('annotation__image__item_part')).filter(num_annot__lt = 5)
             
 
+class ImageLocus(SimpleListFilter):
+    title = 'Locus'
+
+    parameter_name = ('locus')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('with', ('With locus')),
+            ('without', ('Without Locus')),
+        )        
+
+    def queryset(self, request, queryset):
+        if self.value() == 'with':
+            return queryset.filter(locus__gt='').distinct()
+        if self.value() == 'without':
+            return queryset.exclude(locus__gt='').distinct()
+
 class ImageFilterNoItemPart(SimpleListFilter):
     title = 'Item Part'
 

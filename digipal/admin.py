@@ -633,7 +633,7 @@ class ImageAdmin(DigiPalModelAdmin):
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
     
-    list_filter = ['annotation_status', 'media_permission__label', admin_filters.ImageAnnotationNumber, admin_filters.ImageWithFeature, admin_filters.ImageWithHand, 
+    list_filter = ['annotation_status', 'media_permission__label', admin_filters.ImageLocus, admin_filters.ImageAnnotationNumber, admin_filters.ImageWithFeature, admin_filters.ImageWithHand, 
                     admin_filters.ImageFilterNoItemPart, admin_filters.ImageFilterDuplicateShelfmark, admin_filters.ImageFilterDuplicateFilename]
     
     readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height', 'size')

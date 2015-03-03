@@ -70,7 +70,7 @@ class ImageAnnotationNumber(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == '0':
-            return queryset.exclude(annotation__id__gt=0)
+            return queryset.filter(annotation__isnull=True)
         if self.value() == '3':
             return queryset.filter(annotation__id__gt=0).distinct()
         if self.value() == '1':
@@ -94,7 +94,7 @@ class ImageFilterNoItemPart(SimpleListFilter):
         if self.value() == 'with':
             return queryset.filter(item_part_id__gt = 0).distinct()
         if self.value() == 'without':
-            return queryset.exclude(item_part_id__gt = 0).distinct()
+            return queryset.filter(item_part__isnull = True).distinct()
 
 class GraphFilterNoAnnotation(SimpleListFilter):
     title = 'Annotation'

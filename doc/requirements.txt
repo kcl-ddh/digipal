@@ -1,5 +1,12 @@
+#
+# Run the following command to install all the python packages
+# used by the DigiPal framework
+#
+# pip install -r requirements
+#
+
 BeautifulSoup==3.2.1
--e git+git://github.com/Gbuomprisco/Digital-Lightbox
+git+git://github.com/Gbuomprisco/Digital-Lightbox
 Django==1.6.5
 Mezzanine==3.1.5
 # if it fails, try 'sudo apt-get install python-dev', then run again
@@ -10,8 +17,8 @@ disqus-python==0.4.2
 django-appconf==0.6
 django-compress==1.0.1
 django-compressor==1.4
--e git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
--e git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
+git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
+git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
 django-reversion==1.8.4
 django-tinymce==1.5.3
 feedparser==5.1.3

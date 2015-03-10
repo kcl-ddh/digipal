@@ -24,10 +24,10 @@ Although any DB may be used, we recommend to use PostgresQL, since no other DB h
 
 DATABASES = {
     'default': {
-        'ENGINE': '',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'digipal',
+        'USER': 'app_digipal',
+        'PASSWORD': 'dppsqlpass',
         'HOST': '',
         'PORT': '',
     }

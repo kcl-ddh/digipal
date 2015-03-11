@@ -9,6 +9,13 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
+IMAGE_SERVER_HOST = 'iip-lcl'
+IMAGE_SERVER_ROOT = '/home/digipal/images/'
+
+IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
+IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
+IMAGE_SERVER_URL  = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
+
 MANAGERS = ADMINS
 STATICFILES_DIRS = (
         # Put strings here, like '/home/html/static' or 'C:/www/django/static'.

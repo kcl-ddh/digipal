@@ -191,6 +191,7 @@
     {% endif %}
 {% endblock main %}
 {% block extra_js %}
+    {{ block.super }}
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/query_sorter.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/forms.reset.js"></script>
@@ -210,6 +211,7 @@
     {% endif %}
 {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
+    {{ block.super }}
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css">
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
 {% endblock %}

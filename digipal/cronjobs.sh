@@ -13,5 +13,6 @@ fi
 
 # Reindexing
 python manage.py dpsearch index
+python manage.py dpsearch index_facets
 
 deactivate

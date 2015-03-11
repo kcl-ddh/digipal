@@ -686,3 +686,7 @@ a[data-toggle="pill"]{
     color: #333;
     background-color: #F5F5F5;
 }
+
+.dp-small {
+    font-size: small;
+}

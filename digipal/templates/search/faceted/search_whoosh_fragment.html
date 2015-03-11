@@ -3,8 +3,9 @@
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
     <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
-        <span class="label label-info pull-top" data-toggle="tooltip" title="This is a new and experimental search interface">Beta</span>
+        <span class="dp-small pull-right"><a href="/digipal/search/" data-toggle="tooltip" title="Go to the Advanced Search page">Advanced Search</a></span>
     </h1>
+    
     
     <div class="panel faceted-summary">
         You are searching for: {{ summary }}

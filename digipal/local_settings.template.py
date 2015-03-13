@@ -9,6 +9,10 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
+# Remove this line to work with JP2 format
+# Note that it requires a kakadu license for commercial applications
+IMAGE_SERVER_EXT = 'tif'
+
 IMAGE_SERVER_HOST = 'iip-lcl'
 IMAGE_SERVER_ROOT = '/home/digipal/images/'
 

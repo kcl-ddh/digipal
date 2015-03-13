@@ -13,7 +13,7 @@ ADMINS = (
 # Note that it requires a kakadu license for commercial applications
 IMAGE_SERVER_EXT = 'tif'
 
-IMAGE_SERVER_HOST = 'iip-lcl'
+IMAGE_SERVER_HOST = 'localhost:8081'
 IMAGE_SERVER_ROOT = '/home/digipal/images/'
 
 IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'

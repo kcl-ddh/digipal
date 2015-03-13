@@ -63,7 +63,7 @@ RUN cp digipal/local_settings.template.py digipal/local_settings.py
 RUN /etc/init.d/postgresql start &&\
         python manage.py syncdb --noinput &&\
         python manage.py migrate &&\
-        python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json &&\
+        python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
         python manage.py dpsearch index_facets
 

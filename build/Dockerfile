@@ -4,9 +4,11 @@
 #
 # Then run the container like this:
 #
-# docker run -t -i -p 8080:8080 -p 8081:8081 digipal/framework
+# docker run -t -i -p 8080:8080 -p 8081:8081 -p 2222:22 digipal/framework
 #
 # Now you can browse to http://localhost:8080/ from your host machine
+# Note that this version is for local use only, not for production.
+# You can use it to try out DigiPal or to start your own research.
 #
 
 FROM ubuntu:latest
@@ -97,7 +99,20 @@ WORKDIR /home/digipal
 # Port for image server
 EXPOSE 8081
 
-# Port for ssh
+########################
+# SSH
+
+# Allow ssh as root with password 'root'
+RUN mkdir /var/run/sshd
+RUN echo 'root:root' | chpasswd
+RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 EXPOSE 22
 
 ########################
@@ -108,6 +123,7 @@ RUN echo "" > startup.sh
 RUN echo "/etc/init.d/postgresql start" >> startup.sh
 RUN echo "nohup python manage.py runserver 0.0.0.0:$DP_WS_PORT &" >> startup.sh
 RUN echo "/etc/init.d/lighttpd start" >> startup.sh
+RUN echo "/etc/init.d/ssh start" >> startup.sh
 RUN echo "/bin/bash" >> startup.sh
 
 CMD ["/bin/bash", "startup.sh"]

@@ -90,12 +90,15 @@ WORKDIR /root/iipsrv
 RUN ./autogen.sh && ./configure && make && cp src/iipsrv.fcgi /etc/lighttpd/
 
 # configure web+image server
-RUN cp /home/digipal/build/lighttpd-iipsrv.conf >> /etc/lighttpd/lighttpd.conf
+RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
 
 WORKDIR /home/digipal
 
 # Port for image server
 EXPOSE 8081
+
+# Port for ssh
+EXPOSE 22
 
 ########################
 # START-UP

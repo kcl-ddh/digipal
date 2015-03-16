@@ -13,8 +13,6 @@
 
 FROM ubuntu:latest
 
-# WORK IN PROGRESS...
-
 ENV DP_WS_PORT 8080
 
 RUN apt-get update

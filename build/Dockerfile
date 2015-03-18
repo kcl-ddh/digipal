@@ -100,6 +100,8 @@ EXPOSE 8081
 ########################
 # SSH
 
+RUN apt-get -y install openssh-server
+
 # Allow ssh as root with password 'root'
 RUN mkdir /var/run/sshd
 RUN echo 'root:root' | chpasswd

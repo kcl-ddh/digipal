@@ -1,4 +1,7 @@
 # Configuring DigiPal
+
+Update (18/03/15): Docker is now the recommended way to install the DigiPal framework on your machine. The documentation below is therefore superceded by those found on the [DigiPal Docker page](https://registry.hub.docker.com/u/gnoelddh/digipal/).
+
  These below are the basic requirements to configure DigiPal and make it work correctly. All the optional configurations are available in the local_settings.py file you can find in the DigiPal project folder.
 
 ### Database

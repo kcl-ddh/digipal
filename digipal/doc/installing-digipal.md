@@ -1,4 +1,6 @@
 # Installing DigiPal
+
+Update (18/03/15): Docker is now the recommended way to install the DigiPal framework on your machine. The documentation below is therefore superceded by those found on the [DigiPal Docker page](https://registry.hub.docker.com/u/gnoelddh/digipal/).
  
 ## Installing DigiPal
 Installing DigiPal is an advanced task doable by developers/experienced users only, as it requires certain software installed and some basic knowledge to set it up. Those without the require experience, should try installing the [virtual machine](/digipal/doc/virtual-machine.md) instead.

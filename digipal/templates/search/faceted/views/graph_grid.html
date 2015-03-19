@@ -5,7 +5,7 @@
     <div class="col-md-12">
         {% for record in result %}
             
-            <a href="{{ record.get_absolute_url }}">
+            <a href="{{ record.annotation.get_absolute_url }}">
                 {% annotation_img record.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
             </a>
             

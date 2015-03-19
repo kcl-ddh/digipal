@@ -250,7 +250,8 @@ def img(src, *args, **kwargs):
     more = ''
     style = ''
     
-    #print kwargs 
+    #print kwargs
+    #print src
 
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])

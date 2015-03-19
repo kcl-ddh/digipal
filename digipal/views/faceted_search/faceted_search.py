@@ -498,10 +498,10 @@ class FacetedModel(object):
             
             # get highlights from the hits
             for hit in ret:
-                print '- ' * 20
-                print hit['id']
+                #print '- ' * 20
+                #print hit['id']
                 
-                if self.key == 'texts':
+                if 0 and self.key == 'texts':
                     text = self.get_model().objects.get(id=hit['id'])
                     if text.content:
                         print repr(hit.highlights('text_content', top=100))

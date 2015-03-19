@@ -2291,8 +2291,10 @@ class Annotation(models.Model):
     def get_absolute_url(self):
         ret = '/'
         # TODO: change to ID instead of vector id!
-        if self.image and self.vector_id:
-            ret = u'/digipal/page/%s/?vector_id=%s' % (self.image.id, self.vector_id)
+#         if self.image and self.vector_id:
+#             ret = u'/digipal/page/%s/?vector_id=%s' % (self.image.id, self.vector_id)
+        if self.image and self.graph:
+            ret = u'/digipal/page/%s/?graph=%s' % (self.image.id, self.graph.id)
         return ret
     
     def get_coordinates(self, geo_json_str=None, y_from_top=False, rotated=False):

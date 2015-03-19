@@ -407,7 +407,8 @@ IMAGE_SERVER_THUMBNAIL = 'http://%s%s?FIF=%s&amp;RST=*&amp;HEI=35&amp;CVT=JPG'
 IMAGE_SERVER_THUMBNAIL_HEIGHT = 35
 IMAGE_SERVER_RGN = 'http://%s%s?FIF=%s&%s&RGN=%0.6f,%0.6f,%0.6f,%0.6f&CVT=JPEG'
 IMAGE_SERVER_EXT = 'jp2'
-
+# Set this to 1.0 if you are using IIPSrv >= 1.0
+IMAGE_SERVER_VERSION = 0.9
 
 # DJANGO-IIPIMAGE
 

@@ -139,6 +139,7 @@ class AlphabetAdmin(DigiPalModelAdmin):
 
 
 class AnnotationAdmin(DigiPalModelAdmin):
+    change_list_template = 'admin/digipal/change_list.html'
     model = Annotation
 
     list_display = ['author', 'image', 'status', 'before', 'graph', 'after',

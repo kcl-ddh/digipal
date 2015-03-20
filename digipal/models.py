@@ -2546,9 +2546,15 @@ class Annotation(models.Model):
                 max_len = min(max_lens[1], max_lens[0] + float(max_lens[1] - max_lens[0]) / float(dims[longest_dim]) * ret['frame_dims'][longest_dim] * 1.25)
         factor = min(1.0, max_len / float(max(ret['frame_dims'])))
         
+        # Diff btw IIPSrv 0.9 and 1.0. In 1.0, the WID is always the output WID.
+        # Previosuly it was applied before RGN!
+        wid = int(factor * dims[0])
+        if settings.IMAGE_SERVER_VERSION >= 1.0:
+            wid = ret['dims'][0] * factor
+        
         ret['url'] = settings.IMAGE_SERVER_RGN % \
             (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH, self.image.path(), 
-            'WID=%d' % (int(factor * dims[0]),), 
+            'WID=%d' % wid, 
             ps[0][0] / dims[0], 
             ps[0][1] / dims[1],
             ret['dims'][0] / dims[0],
@@ -2588,7 +2594,9 @@ class Annotation(models.Model):
         return ret
     
     def thumbnail(self):
-        return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
+        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
+        from templatetags.html_escape import annotation_img
+        return annotation_img(self, lazy=1)
 
     def thumbnail_with_link(self):
         return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))

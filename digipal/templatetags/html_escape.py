@@ -218,6 +218,7 @@ def annotation_img(annotation, *args, **kwargs):
     ret = u''
     if annotation:
         info = annotation.get_cutout_url_info(fixlen=kwargs.get('fixlen', None))
+        print info
         #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:

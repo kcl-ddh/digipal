@@ -1,5 +1,7 @@
 var PanelSetPlugIn = function(editor, url) {
     
+    var $ = jQuery;
+    
     this.dpmup = {
         'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
     };
@@ -199,6 +201,45 @@ var PanelSetPlugIn = function(editor, url) {
         };
     });
 
+    // H1
+    editor.addButton('psh1', {
+        text: 'H1',
+        tooltip: 'Heading 1',
+        /* icon: 'strikethrough', */
+        onclick: function() {
+            addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '1'}});
+        }
+    });
+
+    // H2
+    editor.addButton('psh2', {
+        text: 'H2',
+        tooltip: 'Heading 2',
+        /* icon: 'strikethrough', */
+        onclick: function() {
+            addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '2'}});
+        }
+    });
+
+    
+    // Heading
+//    editor.addButton('psheading', function() {
+//        var items = [{text: 'Heading 1', value: 'h1'}, {text: 'Heading 2', value: 'h2'}];
+//    
+//        return {
+//            type: 'listbox',
+//            text: 'Heading',
+//            tooltip: 'Heading',
+//            values: items,
+//            fixedWidth: true,
+//            onclick: function(e) {
+//                if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+//                    addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'type': e.control.settings.value}});
+//                }
+//            }
+//        };
+//    });
+    
     // Paragraph merger
     editor.addButton('psparagraph', {
         text: 'Merge Paragraphs',

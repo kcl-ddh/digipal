@@ -95,3 +95,10 @@ Supported elements:
     font-size: smaller;
 }
 
+
+/* New scheme */
+
+span[data-dpt=heading][data-dpt-level='1'] {
+    font-weight: normal;
+    font-size: 18px;
+}

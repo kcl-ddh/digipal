@@ -1,4 +1,20 @@
+
+
 TODO
+
+1. upload images
+    . need to create ssh connection
+    . port issue: 2222 -> 22 on b2d doesn't work, windows not listening to 2222
+    . b2d listening for 2222
+    => VB port mapping not working OR b2d blocking port.
+    . same with 8081, used to work though
+        . removing port from VB is effective immediately, but not when adding
+        . port still not available after saving then starting machine or powering it down and restarting
+        
+2. convert images to compatible format
+3. check manual upload format
+4. pack up the VM & move it to the server
+5. send instructions on how to download and use it
 
 http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 http://localhost/digipal/manuscripts/199/texts/view/

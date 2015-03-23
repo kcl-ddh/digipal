@@ -2046,7 +2046,12 @@ Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, s
 class HandDescription(models.Model):
     hand = models.ForeignKey(Hand, related_name="descriptions", blank=True, null=True)
     source = models.ForeignKey(Source, related_name="hand_descriptions", blank=True, null=True)
+    
     description = models.TextField(help_text='''This field accepts TEI elements.''')
+    
+    label = models.CharField(max_length=64, blank=True, null=True,
+        help_text='''A label assigned to this hand by a source. E.g. 'Alpha' (for source 'FLight').''')
+    
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)

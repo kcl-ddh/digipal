@@ -642,7 +642,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css?v=1"
+                content_css : "/static/digipal_text/viewer/tinymce.css?v=2"
             });
             
         };

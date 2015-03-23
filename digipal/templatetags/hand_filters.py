@@ -107,6 +107,17 @@ def tei(value):
     "Convert TEI field into XML"
     import re
     
+    # TODO: convert tei_old into tei into new format (see function below)
+    
+    value = mark_safe(value)
+    
+    return value
+
+@register.filter
+def tei_old(value):
+    "Convert TEI field into XML"
+    import re
+    
     # tei text transform
     value = re.sub(ur'(<title level="a">)(.*?)(</title>)', ur"'\1\2\3'", value)
 

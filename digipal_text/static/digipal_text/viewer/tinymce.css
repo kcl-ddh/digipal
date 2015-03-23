@@ -132,11 +132,10 @@ span[data-dpt-type=address]:before {
     content: "Address";
 }
 
-/*
-br {
-    content: "\23CE" !important;
-    display: block  !important;
-    margin-bottom: 1.5em !important;
-    
+span[data-dpt=heading][data-dpt-level='1']:before {
+    content: "H1";
 }
-*/
+
+span[data-dpt=heading][data-dpt-level='2']:before {
+    content: "H2";
+}

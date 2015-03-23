@@ -356,11 +356,14 @@ class HandAdmin(DigiPalModelAdmin):
     search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num', 
             'em_title', 'label', 'item_part__display_label', 
             'display_note', 'internal_note']
-    list_filter = ['latin_only', admin_filters.HandItempPartFilter, admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter, admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
+    list_filter = ['latin_only', admin_filters.HandItempPartFilter, 
+                    admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter, 
+                    admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
     
     fieldsets = admin_forms.fieldsets_hand
 
-    inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline, admin_inlines.PlaceEvidenceInline, admin_inlines.ProportionInline]
+    inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline, 
+                admin_inlines.PlaceEvidenceInline, admin_inlines.ProportionInline]
     
 class HistoricalItemAdmin(DigiPalModelAdmin):
     model = HistoricalItem

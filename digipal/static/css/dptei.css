@@ -102,3 +102,16 @@ span[data-dpt=heading][data-dpt-level='1'] {
     font-weight: normal;
     font-size: 18px;
 }
+
+span.locus-not-found {
+    background-color: pink;
+}
+
+span.locus-not-found:before {
+    content: "?";
+    font-family: "Arial Black",Gadget,sans-serif;
+    font-size: 100%;
+    font-weight: bold;
+    margin-top: -0.9em;
+    position: absolute;
+}

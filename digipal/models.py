@@ -2059,6 +2059,35 @@ class HandDescription(models.Model):
     class Meta:
         ordering = ['hand', 'source__priority']
 
+    def get_description_html(self, editorial_view=False):
+        '''Returns the description field with additional XML mark-up based on the format
+            If editorial_view is True, additional info is provided such as unfound loci.
+        '''
+        ret = self.description
+        
+        loci = {}
+        for im in self.hand.item_part.images.all():
+            loci[im.locus.lower()] = im.get_absolute_url()
+        
+        # locus -> reference to an image
+        # e.g. 452r7 -> <a href="/digipal/image/<ID>">452r7</a>
+        pattern = re.compile(ur'(?<!OF\s)\b(\d{1,4}(r|v))[^\s;,\]<]*')
+        pos = 0
+        while True:
+            match = pattern.search(ret, pos)
+            if not match: break
+            locus = match.group(1).lower()
+            link = loci.get(locus, '')
+            replacement = match.group(0)
+            if link:
+                replacement = '<a href="%s">%s</a>' % (link, match.group(0))
+            elif editorial_view:
+                replacement = '<span class="locus-not-found" title="No image record with this locus" data-toggle="tooltip">%s</span>' % (match.group(0))
+            ret = ret[0:match.start(0)] + replacement + ret[match.end(0):]
+            pos = match.start(0) + len(replacement)
+            
+        return ret
+
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.hand, ' ', self.source)

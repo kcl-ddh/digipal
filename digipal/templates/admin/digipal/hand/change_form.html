@@ -4,6 +4,11 @@
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/tinymce/skins/digipal/skin.min.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
+    <style type="text/css">
+        div.mce-fullscreen {
+            z-index: 1300;
+        }
+    </style>
 {% endblock %}
 
 {% block javascripts %}
@@ -20,8 +25,8 @@
                         //me.tinymce = tinyMCE.get(divid);
                         //me.componentIsReady('tinymce');
                     },
-                    plugins: ['paste', 'code', 'panelset'],
-                    toolbar: 'psclear undo redo | psh1 psh2 | code ',
+                    plugins: ['paste', 'code', 'panelset', 'fullscreen'],
+                    toolbar: 'psclear undo redo | psh1 psh2 | fullscreen code',
                     paste_word_valid_elements: 'yo',
                     paste_postprocess: function(plugin, args) {
                         //args.node is a temporary div surrounding the content that will be inserted

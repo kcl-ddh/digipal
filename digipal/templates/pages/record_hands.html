@@ -82,7 +82,7 @@
                     </h3>
                     <p>
                         {% filter tag_phrase_terms:terms %}
-                            {{ description.description|tei }}
+                            {{ description|hand_description:request }}
                         {% endfilter %}
                     </p>
                 {% empty %}

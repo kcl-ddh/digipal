@@ -103,18 +103,14 @@ def richfield(val):
 # TEI conversion
 
 @register.filter
-def tei(value):
+def hand_description(description, request=None):
     "Convert TEI field into XML"
-    import re
-    
+
     # TODO: convert tei_old into tei into new format (see function below)
-    
-    value = mark_safe(value)
-    
-    return value
+    return mark_safe(description.get_description_html(request and request.user and request.user.is_staff))
 
 @register.filter
-def tei_old(value):
+def tei(value):
     "Convert TEI field into XML"
     import re
     

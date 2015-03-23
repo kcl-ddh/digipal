@@ -29,7 +29,7 @@ fieldsets_hand = (
             #(None, {'fields': ('num', )}),
             ('Item Part and Scribe', {'fields': ('item_part', 'scribe')}),
             ('Labels and notes', {'fields': ('label', 'num', 'display_note', 'internal_note', 'comments')}),
-            ('Images', {'fields': ('images',)}),
+            ('Images', {'fields': ('images', 'image_from_desc')}),
             ('Other Catalogues', {'fields': ('legacy_id', 'ker', 'scragg', 'em_title')}),
             ('Place and Date', {'fields': ('assigned_place', 'assigned_date')}),
             ('Gloss', {'fields': ('glossed_text', 'num_glossing_hands', 'num_glosses', 'gloss_only')}),
@@ -61,13 +61,14 @@ class HandForm(forms.ModelForm):
     class Meta:
         model = Hand
     label = forms.CharField(widget=forms.TextInput(attrs={'class': 'vTextField'}))
+    image_from_desc = forms.BooleanField(label='Reset from Stints', help_text='Tick this to reset the above image selection from the stints marked-up in the hand descriptions.', required=False)
 
     # On the hand form we only show the Images connected to the associated Item Part 
     def __init__(self, *args, **kwargs):
         hand = kwargs.get('instance', None)
         super(HandForm, self).__init__(*args, **kwargs)
         if hand:
-            self.fields['images']._set_queryset(Image.objects.filter(item_part=hand.item_part))
+            self.fields['images']._set_queryset(Image.sort_query_set_by_locus(Image.objects.filter(item_part=hand.item_part), True))
 
 # ----------------------------------------------------------------
 

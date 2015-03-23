@@ -132,10 +132,18 @@ span[data-dpt-type=address]:before {
     content: "Address";
 }
 
+span[data-dpt=heading] {
+    text-decoration: underline;
+}
+
 span[data-dpt=heading][data-dpt-level='1']:before {
     content: "H1";
 }
 
 span[data-dpt=heading][data-dpt-level='2']:before {
     content: "H2";
+}
+
+span[data-dpt=stint]:before {
+    content: "Stint";
 }

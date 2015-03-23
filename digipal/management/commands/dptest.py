@@ -66,6 +66,24 @@ Commands:
         command = args[0]
         
         known_command = False
+        
+        if command == 'stint':
+            from digipal.utils import expand_folio_range
+            cases = [
+                    ['140r20-1v2', ['140r', '140v', '141r', '141v']],
+                    ['149v20-50v2', ['149v', '150r', '150v']],
+                    ['149v20-51r2', ['149v', '150r', '150v', '151r']],
+                    ['277r1-8', ['277r']],
+                    ['277v1', ['277v']],
+                ]
+            for case in cases:
+                result = expand_folio_range(case[0])
+                if ';'.join(result) != ';'.join(case[1]):
+                    print '[FAIL] %s' % case[0]
+                    print '\t got : %s' % result
+                    print '\t want: %s' % case[1]
+                else:
+                    print '[PASS] %s' % case[0]
 
         if command == 'max_date_range':
             known_command = True

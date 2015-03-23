@@ -2041,6 +2041,23 @@ class Hand(models.Model):
 
             self.descriptions.add(hand_description)
 
+    def _update_images_from_stints(self):
+        # get the hand descriptions
+        loci = []
+        for desc in self.descriptions.all().order_by('source__priority'):
+            for stint_range in desc.get_stints_ranges():
+                print stint_range
+                # expand the stint range (e.g. 363v14-4r18) into loci (-> 363v...364r)
+                from digipal.utils import expand_folio_range
+                loci.extend(expand_folio_range(stint_range))
+            if loci: break
+        #
+        images = Image.objects.filter(locus__in=loci)
+        # reset the images
+        self.images.clear()
+        # 
+        self.images.add(*images)
+
 Hand.images.through.__unicode__ = lambda self: u'%s in %s' % (self.hand.label, self.image.display_label)
 
 class HandDescription(models.Model):
@@ -2058,6 +2075,9 @@ class HandDescription(models.Model):
 
     class Meta:
         ordering = ['hand', 'source__priority']
+
+    def get_stints_ranges(self):
+        return re.findall(ur'<span[^>]+data-dpt="stint"[^>]+>([^<]+)</span>', self.description or '')
 
     def get_description_html(self, editorial_view=False):
         '''Returns the description field with additional XML mark-up based on the format
@@ -2087,7 +2107,7 @@ class HandDescription(models.Model):
             pos = match.start(0) + len(replacement)
             
         return ret
-
+    
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.hand, ' ', self.source)

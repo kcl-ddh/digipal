@@ -20,6 +20,7 @@ var PanelSetPlugIn = function(editor, url) {
     function setContent(content) {
         beforeChange();
         //editor.undoManager.transact(function () { editor.selection.setContent(content); });
+        content = content.replace(/<p>\s*(&nbsp;)?\s*<\/p>/g, '');
         editor.selection.setContent(content);
         afterChange();
     }
@@ -67,7 +68,7 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
-    function addSpan(options) {
+    function addSpan(options, isDiv) {
         // options
         //  tag: element name
         //  attributes: {'name': 'val'}
@@ -91,7 +92,9 @@ var PanelSetPlugIn = function(editor, url) {
         };
         
         var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
-        setContent(parts[1] + '<span data-dpt="' + options.tag + '" ' + attrStr + '">' + parts[2] + '</span>' + parts[3]);
+        
+        var tag = isDiv ? 'div' : 'span';
+        setContent(parts[1] + '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '">' + parts[2] + '</'+tag+'>' + parts[3]);
     }
     
     // Expansion
@@ -149,22 +152,26 @@ var PanelSetPlugIn = function(editor, url) {
                     $panelset_parent.replaceWith($panelset_parent.html());
                     // TODO: not exact... $panelset_parent can be empty
                     changed = true;
+                    afterChange(!changed);
                 }
             });
             
             if (!editor.selection.isCollapsed()) {
                 // TODO: remove all the data-dpt elements inside the selection
-                var sel_cont = editor.selection.getContent();
-                sel_cont = sel_cont.replace(/<[^>]*>/g, '');
-                editor.selection.setContent(sel_cont);
-                //ed.selection.moveToBookmark(bm);
+//                var sel_cont = editor.selection.getContent();
+//                sel_cont = sel_cont.replace(/<[^>]*>/g, '');
+//                editor.selection.setContent(sel_cont);
+                var $selection = $('<div>'+editor.selection.getContent()+'</div>');
+                $selection.find('[data-dpt]').each(function (i, el) {
+                    $(el).replaceWith($(el).html());
+                });
+                
+                setContent($selection.html());
                 changed = true;
             }
-            
-            afterChange(!changed);
         }
     });
-
+    
     // Clauses
     editor.addButton('pslocation', function() {
         var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}, {text: 'Section', value: 'section'}];
@@ -220,7 +227,35 @@ var PanelSetPlugIn = function(editor, url) {
             addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '2'}});
         }
     });
+    
+    // Stints
+    editor.addButton('psstints', {
+        text: 'Stints',
+        tooltip: 'Folio range for one or more stints by this hand only. e.g. 350v20-1r13',
+        /* icon: 'strikethrough', */
+        onclick: function() {
+            if (!editor.selection.isCollapsed()) {
+                var sel_cont = editor.selection.getContent();
+                sel_cont = sel_cont.replace(/(OF\s*)?\b(\d{1,4}(r|v))[^\s;,\]<]*/g, 
+                            function($0, $1){
+                                return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="words">'+$0+'</span>';
+                            }
+                        );
 
+                setContent(sel_cont);
+            }
+            //addSpan({'tag': 'stint', 'attributes': {'cat': 'words'}});
+        }
+    });
+    
+//    editor.addButton('psstints', {
+//        text: 'Stints',
+//        tooltip: 'A block containing stints ranges.',
+//        /* icon: 'strikethrough', */
+//        onclick: function() {
+//            addSpan({'tag': 'stints', 'attributes': {'cat': 'paragraphs'}, 'conditions': {'isparent': null}}, true);
+//        }
+//    });
     
     // Heading
 //    editor.addButton('psheading', function() {

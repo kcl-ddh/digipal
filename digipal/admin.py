@@ -365,6 +365,13 @@ class HandAdmin(DigiPalModelAdmin):
     inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline, 
                 admin_inlines.PlaceEvidenceInline, admin_inlines.ProportionInline]
     
+    def response_change(self, request, obj, *args, **kwargs):
+        image_from_desc = request.REQUEST.get('image_from_desc', False)
+        if image_from_desc:
+            obj._update_images_from_stints()
+#         obj._update_display_label_and_save()
+        return super(HandAdmin, self).response_change(request, obj, *args, **kwargs)
+    
 class HistoricalItemAdmin(DigiPalModelAdmin):
     model = HistoricalItem
 

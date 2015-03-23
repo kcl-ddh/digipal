@@ -758,3 +758,41 @@ def read_all_lines_from_csv(file_path):
             ret.append(rec)
     
     return ret
+
+def expand_folio_range(frange):
+    '''
+        Returns an array of locus from a folio range expression
+        If the expression is not valid it return []
+        E.g.
+        input: '140r20-1r2'
+        output: ['140r', '140v', '141r']
+    '''
+    ret = []
+
+    import re
+    match = re.match(ur'(\d+)(r|v)(\d+)?(?:-(?:(\d+)(r|v))?(\d+)?)?', frange)
+    if match:
+        # frange = '140r20-1r2'
+        # match.groups() = ('140', 'r', '20', '1', 'v', '2')
+        
+        # => fs = [140, 1]
+        fs = [match.group(1), match.group(4)]
+        if fs[1] is None:
+            fs[1] = fs[0]
+        # => fs = [140, 141]
+        fs[1] = fs[0][0:(len(fs[0]) - len(fs[1]))] + fs[1]
+        fs = [int(f) for f in fs]
+        
+        # => ret = [140r, 140v, 141r, 141v]
+        for f in range(fs[0], fs[1] + 1):
+            ret.append('%sr' % f)
+            ret.append('%sv' % f)
+            
+        # => ret = [140r, 140v, 141r]
+        if match.group(2) == 'v':
+            ret.pop(0)
+        s = match.group(5) or match.group(2)
+        if s == 'r':
+            ret.pop()
+    
+    return ret

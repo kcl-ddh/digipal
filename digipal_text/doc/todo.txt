@@ -1,4 +1,92 @@
+[DONE] 1. find structure in form
+[DONE] 2. map structure to DP data model
+    Hand
+    HandDescription
+        +Label
+        Description
+    Stint?
+[DONE] 3. modify DP data model
+    + HandDescription.label
+[DONE] 3.1 Add tinymce to admin
+[DONE] 3.2 Paste text from word and remove all elements
+4. mark-up text
+    [DONE] Formatting & Structure
+        [DONE] H1/H2/H3
+    + improve the H1
+        + auto mark-up with button
+        render as h4
+        generate the number automatically
+    Fields
+        Idiosyncrasies
+        [DONE] Stints
+        + prevent double markup
+    Soft References
+        Scribe/Hand
+        Graph
+            auto mark-up with button when text is pasted
+            render in italics and bold?
+        ? allograph
+        () component
+        () feature
+        () CF
+        ? Stint
+4.5. display links on front end
+4.6. Assign images to hand based on the stints locations
+[DONE] 5. locus: automatic detection
+[DONE] 6. display description on front end
+7. Convert DigiPal & co data to the new format
+    Data
+        Hand.ker/... -> HandDescription.Label
+        Description:
+            TEI -> new XML format
+            make sure all the TEI elements are supported and have a button
+    Forms (admin)
+    Display
 
+description ->? stints -> image-hand
+
+
+Scribe/Hand
+    Project ID
+        1
+    EXON ID
+        U-1
+    Flight’s siglum
+        alpha
+    Locations
+        Content (= General description of the locations)
+            Found only in Wiltshire geld accounts.
+            /
+            Only Devon entries.
+        Stints
+            Flight
+                175 (+1)
+            || Stint
+                Location: e.g. 29v14-16 (Q.6) or 263r1-4r20 (Q.54) or 37v3-19; 38r1-7 (Q.7)
+                Note: Very similar to 'iota' + Identified by Webber (1989, p.12) as 'zeta'
+    Main idiosyncrasies
+        v-shaped cauda in e and q; -us suspension detached from letter on top of which is supposed to be; finishing strokes on baseline r and s. 
+    Other relevant info
+        Very few stints, but some are rather long. F found on margin next to beginning of each entry. Not exclusive to this scribe (quires 48-54)
+        
+        Probably author of unidentified stint on 61v18-20 [OF287v]
+        /
+        No use of round d; no use of et nota; frequent erasures, corrections and insertions
+        /
+        No use of ampersand; frequent erasures and corrections. Probably author of unidentified stint on 373r3-14 [OF11rv]
+        
+        5 full pages (20 lines each).
+        
+        Second part of line 13 and lines 14 and 15 are clearly the work of ‘eta’. The first (10) words may initially seem the work of a different hand, but after detailed analysis they seem to be by ‘eta’: overlines; e-cauda; ampersand; shapes of a, t; tail of g is uncommon, but occasionally found in ‘eta’ (520r1 and 4, 522v12). Gallows mark by ‘mu’ however.
+    Identified?
+    
+    
+    
+        
+
+        
+        http://localhost/admin/digipal/hand/2/
+        http://severedheads.bandcamp.com/album/cuisine-w-piscatorial
 
 TODO
 

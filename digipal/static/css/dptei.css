@@ -115,3 +115,8 @@ span.locus-not-found:before {
     margin-top: -0.9em;
     position: absolute;
 }
+
+span[data-dpt-model=character] {
+    font-weight: bold;
+    font-style: italic;
+}

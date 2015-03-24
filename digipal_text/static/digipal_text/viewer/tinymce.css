@@ -60,6 +60,14 @@ span[data-dpt-cat=words] {
     background-color: rgba(0,0,255,0.15);
 }
 
+span[data-dpt=record] {
+    background-color: rgba(255, 176, 0, 0.35);
+}
+
+span[data-dpt=record]:before {
+    color: OrangeRed ;
+}
+    
 span[data-dpt-cat=chars]:before {
     font-size: 70%;
     color: green;
@@ -147,3 +155,16 @@ span[data-dpt=heading][data-dpt-level='2']:before {
 span[data-dpt=stint]:before {
     content: "Stint";
 }
+
+span[data-dpt=record][data-dpt-model=hand]:before {
+    content: "Hand";
+}
+
+span[data-dpt=record][data-dpt-model=graph]:before {
+    content: "Annotation";
+}
+
+span[data-dpt=record][data-dpt-model=character]:before {
+    content: "Character";
+}
+

@@ -2046,7 +2046,6 @@ class Hand(models.Model):
         loci = []
         for desc in self.descriptions.all().order_by('source__priority'):
             for stint_range in desc.get_stints_ranges():
-                print stint_range
                 # expand the stint range (e.g. 363v14-4r18) into loci (-> 363v...364r)
                 from digipal.utils import expand_folio_range
                 loci.extend(expand_folio_range(stint_range))
@@ -2089,24 +2088,62 @@ class HandDescription(models.Model):
         for im in self.hand.item_part.images.all():
             loci[im.locus.lower()] = im.get_absolute_url()
         
+        hands = {}
+        for hand in self.hand.item_part.hands.all().prefetch_related('descriptions'):
+            for desc in hand.descriptions.all().order_by('-source__priority'):
+                if desc.label:
+                    hands[desc.label.lower()] = hand.get_absolute_url()
+            if hand.label:
+                hands[hand.label.lower()] = hand.get_absolute_url()
+        
+        print hands
+
+        def replace_references(content, apattern, labels, content_type):
+            pattern = re.compile(apattern)
+            pos = 0
+            while True:
+                match = pattern.search(content, pos)
+                if not match: break
+                
+                label = match.group(1).lower()
+                
+                replacement = ''
+                
+                if 'model="graph"' in apattern:
+                    matchid = re.match(ur'#(\d+)', label)
+                    if matchid:
+                        from digipal.templatetags.html_escape import annotation_img
+                        #replacement = annotation_img(annotation,  [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0])
+                        annotation = Annotation.objects.filter(graph__id=matchid.group(1)).first()
+                        replacement = '<a href="%s">%s</a>' % (annotation.get_absolute_url(), annotation_img(annotation))
+
+                if not replacement:
+                    replacement = match.group(0)
+                    link = labels.get(label, '')
+                    if link:
+                        replacement = '<a href="%s">%s</a>' % (link, match.group(0))
+                    elif editorial_view:
+                        replacement = '<span class="locus-not-found" title="%s not found" data-toggle="tooltip">%s</span>' % (content_type, replacement)
+                        
+                content = content[0:match.start(0)] + replacement + content[match.end(0):]
+                pos = match.start(0) + len(replacement)
+            return content
+
         # locus -> reference to an image
         # e.g. 452r7 -> <a href="/digipal/image/<ID>">452r7</a>
-        pattern = re.compile(ur'(?<!OF\s)\b(\d{1,4}(r|v))[^\s;,\]<]*')
-        pos = 0
-        while True:
-            match = pattern.search(ret, pos)
-            if not match: break
-            locus = match.group(1).lower()
-            link = loci.get(locus, '')
-            replacement = match.group(0)
-            if link:
-                replacement = '<a href="%s">%s</a>' % (link, match.group(0))
-            elif editorial_view:
-                replacement = '<span class="locus-not-found" title="No image record with this locus" data-toggle="tooltip">%s</span>' % (match.group(0))
-            ret = ret[0:match.start(0)] + replacement + ret[match.end(0):]
-            pos = match.start(0) + len(replacement)
-            
+        ret = replace_references(ret, ur'(?<!OF\s)\b(\d{1,4}(r|v))[^\s;,\]<]*', loci, 'Image')
+        
+        # <span data-dpt-model="hand" data-dpt="record">theta</span>
+        ret = replace_references(ret, ur'(?:<span[^>]*data-dpt-model="hand"[^>]*>)([^<]+)(?:</span>)', hands, 'Hand')
+
+        # <span data-dpt-model="graph" data-dpt="record">#10</span>
+        ret = replace_references(ret, ur'(?:<span[^>]*data-dpt-model="graph"[^>]*>)([^<]+)(?:</span>)', {}, 'Annotation')
+
         return ret
+    
+    def save(self, *args, **kwargs):
+        self.description = re.sub('<p>&nbsp;</p>', '', self.description)
+        return super(HandDescription, self).save(*args, **kwargs)
     
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)

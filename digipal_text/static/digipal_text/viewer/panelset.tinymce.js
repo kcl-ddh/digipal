@@ -94,7 +94,8 @@ var PanelSetPlugIn = function(editor, url) {
         var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
         
         var tag = isDiv ? 'div' : 'span';
-        setContent(parts[1] + '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '">' + parts[2] + '</'+tag+'>' + parts[3]);
+        var newContent = parts[1] + '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '>' + parts[2] + '</'+tag+'>' + parts[3];
+        setContent(newContent);
     }
     
     // Expansion
@@ -214,7 +215,13 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Heading 1',
         /* icon: 'strikethrough', */
         onclick: function() {
-            addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '1'}});
+            var sel_cont = editor.selection.getContent();
+            if (sel_cont.indexOf('</p>') > -1) {
+                sel_cont = sel_cont.replace(/>(\d+\.?\s+[^<]{3,65})<\/p/gi, '><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">$1</span></p');
+                setContent(sel_cont);
+            } else {
+                addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '1'}});
+            }
         }
     });
 
@@ -228,23 +235,62 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
+    // Hand
+    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html
+    editor.addButton('pshand', {
+        text: 'Hand',
+        tooltip: 'The name of a hand. e.g. alpha',
+        onclick: function() {
+            addSpan({'tag': 'record', 'attributes': {'model': 'hand'}});
+        }
+    });
+
+    // Hand
+    // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html
+    editor.addButton('psgraph', {
+        text: 'Annotation',
+        tooltip: 'The ID of an annotation to include in the description. e.g. #101 to include Annotation 101.',
+        onclick: function() {
+            addSpan({'tag': 'record', 'attributes': {'model': 'graph'}});
+        }
+    });
+
     // Stints
-    editor.addButton('psstints', {
-        text: 'Stints',
-        tooltip: 'Folio range for one or more stints by this hand only. e.g. 350v20-1r13',
-        /* icon: 'strikethrough', */
+    editor.addButton('psstint', {
+        text: 'Stint',
+        tooltip: 'Folio range(s) for one or more stints by this hand only. e.g. 350v20-1r13',
         onclick: function() {
             if (!editor.selection.isCollapsed()) {
                 var sel_cont = editor.selection.getContent();
                 sel_cont = sel_cont.replace(/(OF\s*)?\b(\d{1,4}(r|v))[^\s;,\]<]*/g, 
                             function($0, $1){
-                                return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="words">'+$0+'</span>';
+                                return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="chars">'+$0+'</span>';
                             }
                         );
-
                 setContent(sel_cont);
             }
-            //addSpan({'tag': 'stint', 'attributes': {'cat': 'words'}});
+        }
+    });
+    
+    editor.addButton('pscharacter', {
+        text: 'Character',
+        tooltip: 'A character. e.g. b',
+        onclick: function() {
+            if (!editor.selection.isCollapsed()) {
+                var sel_cont = editor.selection.getContent();
+                if (sel_cont.indexOf('</p>') > -1) {
+                    var l = 0;
+                    while (true) {
+                        l = sel_cont.length;
+                        sel_cont = sel_cont.replace(/(>[^<]*\s|>)([bcdefghjklmnopqrstuvwxyz]|Gallow'?s mark|et nota|e cauda)\b(?!<\/span)/gi, '$1<span data-dpt="record" data-dpt-model="character">$2</span>');
+                        if (l == sel_cont.length) break;
+                    }
+                    
+                    setContent(sel_cont);
+                } else {
+                    addSpan({'tag': 'record', 'attributes': {'model': 'character'}});
+                }
+            }
         }
     });
     

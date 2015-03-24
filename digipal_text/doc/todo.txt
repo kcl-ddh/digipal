@@ -29,7 +29,7 @@ Insert the annotations in the desc.
         [DONE] Stints
         + prevent double markup
     Soft References
-        !Scribe/Hand
+        [DONE] Scribe/Hand
         !!Graph
             auto mark-up with button when text is pasted
             render in italics and bold?
@@ -56,7 +56,7 @@ Scribe/Hand
         1
     EXON ID
         U-1
-    Flight’s siglum
+    Flightï¿½s siglum
         alpha
     Locations
         Content (= General description of the locations)
@@ -82,7 +82,7 @@ Scribe/Hand
         
         5 full pages (20 lines each).
         
-        Second part of line 13 and lines 14 and 15 are clearly the work of ‘eta’. The first (10) words may initially seem the work of a different hand, but after detailed analysis they seem to be by ‘eta’: overlines; e-cauda; ampersand; shapes of a, t; tail of g is uncommon, but occasionally found in ‘eta’ (520r1 and 4, 522v12). Gallows mark by ‘mu’ however.
+        Second part of line 13 and lines 14 and 15 are clearly the work of ï¿½etaï¿½. The first (10) words may initially seem the work of a different hand, but after detailed analysis they seem to be by ï¿½etaï¿½: overlines; e-cauda; ampersand; shapes of a, t; tail of g is uncommon, but occasionally found in ï¿½etaï¿½ (520r1 and 4, 522v12). Gallows mark by ï¿½muï¿½ however.
     Identified?
     
     

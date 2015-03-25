@@ -2096,7 +2096,7 @@ class HandDescription(models.Model):
             if hand.label:
                 hands[hand.label.lower()] = hand.get_absolute_url()
         
-        print hands
+        #print hands
 
         def replace_references(content, apattern, labels, content_type):
             pattern = re.compile(apattern)
@@ -2138,6 +2138,10 @@ class HandDescription(models.Model):
 
         # <span data-dpt-model="graph" data-dpt="record">#10</span>
         ret = replace_references(ret, ur'(?:<span[^>]*data-dpt-model="graph"[^>]*>)([^<]+)(?:</span>)', {}, 'Annotation')
+
+        link = ur'/digipal/search/facets/?sort=locus&hand_label=%s&character=\2&img_is_public=1&page=1&result_type=graphs&view=list' % self.hand.label
+        ret = re.sub(ur'(<span[^>]*data-dpt-model="character"[^>]*>)([^<]+)(</span>)', ur'<a href="' + link + ur'">\1\2\3</a>', ret)
+        #/digipal/search/facets/?sort=locus&hand_label=iota&character=s&img_is_public=1&page=1&%40xp_result_type=1&result_type=graphs&view=list
 
         return ret
     

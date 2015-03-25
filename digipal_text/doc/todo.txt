@@ -1,10 +1,4 @@
-Deploy to STG
-Add Hands
-Add descriptions
-Mark them up
-Add the I-H rels
-Annotated a few hands
-Insert the annotations in the desc.
+
 
 [DONE] 1. find structure in form
 [DONE] 2. map structure to DP data model
@@ -21,31 +15,28 @@ Insert the annotations in the desc.
     [DONE] Formatting & Structure
         [DONE] H1/H2/H3
     + improve the H1
-        ! auto mark-up with button
-        render as h4
-        generate the number automatically
+        [DONE] auto mark-up with button
+        () render as h4
+        () generate the number automatically
     Fields
-        !Idiosyncrasies
+        () Idiosyncrasies
         [DONE] Stints
-        + prevent double markup
+        ! prevent double markup
     Soft References
         [DONE] Scribe/Hand
-        !!Graph
-            auto mark-up with button when text is pasted
-            render in italics and bold?
-        ? allograph
-        () component
-        () feature
-        () CF
-4.5. display links on front end
+    [DONE] Render char in italics and bold?
+[DONE] 4.5. display links on front end
 [DONE] 4.6. Assign images to hand based on the stints locations
 [DONE] 5. locus: automatic detection
 [DONE] 6. display description on front end
+Search menu links to faceted search page 
+[DONE] Convert characters to link to search page
+Add missing detectable characters
 7. Convert DigiPal & co data to the new format
     Data
-        Hand.ker/... -> HandDescription.Label
-        Description:
-            TEI -> new XML format
+        [LATER] Hand.ker/... -> HandDescription.Label
+        !! Description:
+            conversion script TEI -> new XML format
             make sure all the TEI elements are supported and have a button
     Forms (admin)
     Display

@@ -189,7 +189,7 @@ FACETED_SEARCH = {
                                 {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.human_readable', 'path_result': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                 {'key': 'hand_place', 'label': 'Medieval Place', 'path': 'hand.assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
-                                {'key': 'hand_label', 'label': 'Hand', 'path': 'hand.label', 'search': True, 'viewable': True, 'type': 'title'},
+                                {'key': 'hand_label', 'label': 'Hand', 'path': 'hand.label', 'search': True, 'viewable': True, 'type': 'title', 'count': True},
                                 {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
     #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
     #                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
@@ -203,7 +203,8 @@ FACETED_SEARCH = {
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation.thumbnail', 'viewable': True, 'type': 'code', 'link': True},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place', 
-                                       'idiograph__allograph__character__ontograph__ontograph_type', 
+                                       'idiograph__allograph__character__ontograph__ontograph_type',
+                                       'hand__assigned_place',
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
                     'filter_order': ['hand_date', 'is_described', 'repo_city', 'repo_place', 'hand_place', 'chartype', 'character', 'allograph'],
@@ -228,3 +229,7 @@ graph_sample.update({
                     'django_filter': {'annotation__isnull': False, 'id__lt':20000},
                      })
 FACETED_SEARCH['types'].append(graph_sample)
+
+FACETED_SEARCH['type_keys'] = {}
+for t in FACETED_SEARCH['types']:
+    FACETED_SEARCH['type_keys'][t['key']] = t

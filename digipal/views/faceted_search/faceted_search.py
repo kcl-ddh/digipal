@@ -593,8 +593,8 @@ class FacetedModel(object):
         
 def get_types():
     ''' Returns a list of FacetModel instance generated from either 
-        settings.py::FACETED_SETTINGS 
-        or the local settings.py::CONTENT_TYPES
+        settings.py::FACETED_SEARCH 
+        or the local settings.py::FACETED_SEARCH
     '''
     from django.conf import settings
     ret = getattr(settings, 'FACETED_SEARCH', None)

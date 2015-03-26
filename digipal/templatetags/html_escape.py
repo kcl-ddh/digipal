@@ -250,9 +250,6 @@ def img(src, *args, **kwargs):
     more = ''
     style = ''
     
-    #print kwargs
-    #print src
-
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
 
@@ -444,3 +441,4 @@ def record_field(content_type, record, field):
         {% record_field object field %}
     '''
     return content_type.get_record_field_html(record, field)
+

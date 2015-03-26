@@ -796,3 +796,23 @@ def expand_folio_range(frange):
             ret.pop()
     
     return ret
+
+def is_model_visible(model, request):
+    # Returns True if <model> is visible to the user
+    # See setting.py:MODELS_PUBLIC and MODELS_PRIVATE
+    # If request is not provided we assume public user
+    if not model: return False
+    
+    # resolve model -> string
+    from django.db.models.base import ModelBase
+    if isinstance(model, ModelBase):
+        model = model.__class__.__name__
+    
+    model = ('%s' % model).lower()
+    model = model.split('.')[-1]
+    
+    from django.conf import settings
+    ret = (model in settings.MODELS_PUBLIC) or (request and request.user and request.user.is_staff and (model in settings.MODELS_PRIVATE))
+    
+    return ret
+    

@@ -591,7 +591,7 @@ class FacetedModel(object):
                     ret = [9, 18, 30, 90]
         return ret
         
-def get_types():
+def get_types(request):
     ''' Returns a list of FacetModel instance generated from either 
         settings.py::FACETED_SEARCH 
         or the local settings.py::FACETED_SEARCH
@@ -602,7 +602,8 @@ def get_types():
         import settings as faceted_settings
         ret = faceted_settings.FACETED_SEARCH
         
-    ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get('disabled', False)]
+    from digipal.utils import is_model_visible
+    ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get('disabled', False) and is_model_visible(ct['model'], request)]
     
     return ret
 
@@ -619,7 +620,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context = {'tabid': tabid}
     
     # select the content type 
-    cts = get_types()
+    cts = get_types(request)
     context['result_type'] = cts[0]
     ct_key = request.REQUEST.get('result_type', context['result_type'].key)
     for ct in cts:

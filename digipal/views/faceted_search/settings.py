@@ -19,6 +19,8 @@ FACETED_SEARCH = {
 
                 {
                     #'disabled': True,
+                    # if private is True, the type is visible to editors only
+                    #'private': False,
                     'key': 'manuscripts', 
                     'label': 'Manuscript',
                     'model': 'digipal.models.ItemPart',

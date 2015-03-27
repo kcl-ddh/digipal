@@ -1678,20 +1678,27 @@ class Image(models.Model):
         '''
         self.folio_number = None
         self.folio_side = None
+        self.locus = self.locus.strip()
         if self.locus:
             m = re.search(ur'(\d+)', self.locus[::-1])
             if m:
                 self.folio_number = m.group(1)[::-1]
+            else:
+                if 'seal' in self.locus:
+                    self.folio_number = 'x'
 
             locus = u'%s' % self.locus
-            locus = locus.replace('face', 'recto')
-            locus = locus.replace('dorse', 'verso')
-            locus = locus.replace('recto', 'r')
-            locus = locus.replace('verso', 'v')
+            locus = re.sub(ur'(?i)face', 'recto', locus)
+            locus = re.sub(ur'(?i)dorse', 'verso', locus)
+            locus = re.sub(ur'(?i)recto', 'r', locus)
+            locus = re.sub(ur'(?i)verso', 'v', locus)
 
             m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', locus[::-1])
             if m:
                 self.folio_side = m.group(1)[::-1]
+        else:
+            # that way unset locus are displayed below set locus
+            self.folio_number = 'y'
 
     def path(self):
         """Returns the path of the image on the image server. The server path

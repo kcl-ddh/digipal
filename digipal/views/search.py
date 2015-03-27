@@ -127,11 +127,10 @@ def search_ms_image_view(request):
     # not sufficient, see JIRA #552
     #images = Image.sort_query_set_by_locus(images)
     
-    images = list(images.order_by('id'))
-    from digipal.utils import natural_sort_key
-    images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
-
-    context['images'] = images
+    #images = list(images.order_by('id'))
+    #from digipal.utils import natural_sort_key
+    #images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
+    context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
 
     image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form

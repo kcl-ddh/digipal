@@ -145,10 +145,16 @@ class FacetedModel(object):
                     
                     # get unique values
                     model, path = self.get_model_from_field(field)
+                    sort_function = field.get('sort_fct', None)
                     value_rankings[None] = u''
                     for record in model.objects.all().order_by('id'):
                         value = self.get_record_field_whoosh(record, {'path': path})
-                        v = value or u''
+                        
+                        v = value
+                        if sort_function:
+                            v = sort_function(record)
+                        v = v or u''
+                        
                         value_rankings[value] = v
 
                     # convert dates to numbers
@@ -675,7 +681,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
 def rebuild_index(index_filter=[]):
     ''' Rebuild the indexes which key is in index_filter. All if index_filter is empty'''
-    for ct in get_types():
+    for ct in get_types(True):
         if not index_filter or ct.key in index_filter:
             index = create_index_schema(ct)
             if index:

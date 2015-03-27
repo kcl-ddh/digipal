@@ -801,6 +801,9 @@ def is_model_visible(model, request):
     # Returns True if <model> is visible to the user
     # See setting.py:MODELS_PUBLIC and MODELS_PRIVATE
     # If request is not provided we assume public user
+    if request == True:
+        return True
+    
     if not model: return False
     
     # resolve model -> string

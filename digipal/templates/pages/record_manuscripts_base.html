@@ -20,10 +20,14 @@
         <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
     <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
-    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
-    <li class="{% if tabid = "texts" %}active in{% endif %} {% if item_part.text_contents.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ item_part.text_contents.count }})</a></li>
+    {% if cansee.hand %}
+	    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+    {% endif %}
+    {% if cansee.textcontentxml %}
+	    <li class="{% if tabid = "texts" %}active in{% endif %} {% if item_part.text_contents.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ item_part.text_contents.count }})</a></li>
+	{% endif %}
 {% endblock %}
 
 {% block details %}

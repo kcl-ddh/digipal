@@ -599,17 +599,9 @@ REJECT_HTTP_API_REQUESTS = False
 API_PERMISSIONS = [['crud', 'ALL']]
 
 # Models Exposure
-# List of models we want to hide from the public
-# e.g. itempart (make sure it is lowercase)
-MODELS_PUBLIC = ['itempart', 'image', 'graph', 'hand', 'scribe']
-MODELS_PRIVATE = ['itempart', 'image', 'graph', 'hand', 'scribe']
-
-# customisations of the faceted search
-# from customisations.digipal.views.faceted_search.settings import FACETED_SEARCH 
-# 
-# MODELS_PUBLIC = ['itempart', 'image']
-# MODELS_PRIVATE = ['itempart', 'image', 'graph', 'textcontentxml', 'hand', 'scribe']
-
+# List of models we want to show to everyone and to staff respectively
+MODELS_PUBLIC = ['itempart', 'image', 'graph', 'hand', 'scribe'] # 'textcontentxml'
+MODELS_PRIVATE = ['itempart', 'image', 'graph', 'hand', 'scribe'] # 'textcontentxml'
 
 # Lightbox Settings
 LIGHTBOX = False

@@ -1,3 +1,5 @@
+import re
+
 FACETED_SEARCH = {
     'types': [
                 # label = the label displayed on the screen
@@ -150,6 +152,7 @@ FACETED_SEARCH = {
                     'key': 'texts', 
                     'label': 'Text',
                     'model': 'digipal_text.models.TextContentXML',
+                    'condition': lambda r: r.content and re.search('[a-z]', r.content),
                     'fields': [
                                
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},

@@ -1,3 +1,6 @@
+! text not shown on opera: http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
+! V-scrollbar appears next to the image
+
 
 
 [DONE] 1. find structure in form

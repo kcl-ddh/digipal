@@ -95,6 +95,11 @@ class TextContentXML(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     
+    def get_length(self):
+        if not self.content:
+            return 0
+        return len(self.content)
+    
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''
         TextContentXMLCopy.create_from_content_xml(self)

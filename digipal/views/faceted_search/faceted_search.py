@@ -795,7 +795,12 @@ def populate_index(ct, index):
     #settings.DEV_SERVER = True
     chrono('scan+index:')
     chrono('iterator:')
+    
+    record_condition = ct.get_option('condition', None)
+    
     for record in rcs.iterator():
+        if record_condition and not record_condition(record):
+            continue
     #for record in rcs:
         if (i % commit_size) == 0:
             # we have to commit every x document otherwise the memory saturates on the VM

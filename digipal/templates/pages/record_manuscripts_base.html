@@ -92,8 +92,20 @@
                             <dd>{{ item_part.historical_item.name }} </dd>
                         {% endif %}
                         
-                        <dt>Catalogue Numbers</dt>
-                        <dd>{{ item_part.historical_item.catalogue_number|default:'Unspecified' }}</dd>
+                        {% if item_part.historical_item.catalogue_number %}
+                            <dt>Catalogue Numbers</dt>
+                            {% for catnum in item_part.historical_item.catalogue_numbers.all %}
+                                <dd>
+                                    {% if catnum.url %}
+                                        <a href="{{ catnum.url }}">
+                                    {% endif %}
+                                            {{ catnum }}
+                                    {% if catnum.url %}
+                                        </a>
+                                    {% endif %}
+                                </dd>
+                            {% endfor %}
+                        {% endif %}
                         
                         <dt>Format</dt>
                         <dd>{{ item_part.historical_item.historical_item_format|default:'Unspecified' }}</dd>

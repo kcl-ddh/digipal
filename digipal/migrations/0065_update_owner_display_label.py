@@ -4,15 +4,51 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 
+class Owner(object):
+
+    def __init__(self, orm_owner):
+        self.o = orm_owner
+
+    def compute_display_label(self):
+        ret = u''
+
+        item = self.get_owned_item()
+        if item:
+            ret += u'\'%s\'' % item.display_label
+        else:
+            ret += u'?'
+
+        ret += u' owned by '
+
+        content_object = self.content_object
+        ret += u' \'%s\' ' % (content_object.name or content_object.short_name)
+
+        if self.o.date:
+            ret += u' in \'%s\'' % self.o.date
+
+        return ret
+
+    def get_owned_item(self):
+        ret = None
+        if self.o.pk:
+            ret = self.o.itempart_set.first() or self.o.historicalitem_set.first() or self.o.current_items.first()
+        return ret
+
+    @property
+    def content_object(self):
+        return self.o.institution or self.o.person or self.o.repository
+
 class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
-        from digipal.models import Owner
-        for owner in Owner.objects.all():
-            owner.save()
-
+        #from digipal.models import Owner
+        for owner in orm['digipal.Owner'].objects.all():
+            owner = Owner(owner)
+            owner.o.display_label = owner.compute_display_label()
+            owner.o.save()
+            
     def backwards(self, orm):
         "Write your backwards methods here."
 

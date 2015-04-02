@@ -42,10 +42,48 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
                 threshold can be defined in local_settings.py::ADMIN_INLINE_HIDE_SIZE
                 default threshold is 100
     '''
+    
+    @classmethod
+    def get_related_records_count(cls, record, related_model):
+        '''Return a query set with all the instances of related_model linking to record'''
+        ret = 0
+        if not record: return ret
+        
+        model = record.__class__
+        
+#         for rel_obj in model._meta.get_all_related_objects():
+#             if rel_obj.model.__name__ == related_model.__name__:
+#                 ret = getattr(record, rel_obj.get_accessor_name())
+                
+        for field_name in model._meta.get_all_field_names():
+            field = model._meta.get_field_by_name(field_name)[0]
+            get_accessor_name = getattr(field, 'get_accessor_name', None)
+            if get_accessor_name:
+                field_name = get_accessor_name()
+
+            field = getattr(record, field_name, None)
+#             if field is None:
+#                 raise Exception('%s #%s . %s not found' % (record.__class__, record.pk, field_name))
+            
+            if field and related_model in [getattr(field, 'through', ''), getattr(field, 'model', '')]:
+                ret = field.count()
+                break
+
+            #print model._meta.get_all_related_objects()
+            #raise Exception('%s #%s has no related model %s' % (record.__class__, record.pk, related_model))
+        
+#         print related_model, ret
+        
+        return ret
+    
     def get_inline_instances(self, request, *args, **kwargs):
         ret = super(DigiPalModelAdmin, self).get_inline_instances(request, *args, **kwargs)
         threshold = getattr(settings, 'ADMIN_INLINE_HIDE_SIZE', 100)
-        ret = [inline for inline in ret if inline.get_queryset(request).count() < threshold]
+        
+        instance = args[0] if len(args) else None
+        
+        ret = [inline for inline in ret if self.get_related_records_count(instance, inline.model) < threshold]
+        
         return ret
 
 
@@ -493,10 +531,10 @@ class ItemPartAdmin(DigiPalModelAdmin):
     filter_horizontal = ['owners']
     inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
 
-    def get_inline_instances(self, request, *args, **kwargs):
-        ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)
-        ret = [inline for inline in ret if inline.get_queryset(request).count() < 20]
-        return ret
+#     def get_inline_instances(self, request, *args, **kwargs):
+#         ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)
+#         ret = [inline for inline in ret if inline.get_queryset(request).count() < 20]
+#         return ret
     
     # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
     # to update this field and resave the IP *after* the related models have been saved!

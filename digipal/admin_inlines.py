@@ -214,15 +214,15 @@ class ScribeInline(DigiPalInline):
 class ImageInline(DigiPalInline):
     model = Image
     
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(ImageInline, self).formfield_for_dbfield(db_field, **kwargs)
-        print db_field.name, repr(formfield), repr(db_field)
-        #if db_field.name in ['annotation_status']:
-        if hasattr(formfield, 'choices'):
-            print 'HERE'
-            # dirty trick so queryset is evaluated and cached in .choices
-            formfield.choices = formfield.choices
-        return formfield
+#     def formfield_for_dbfield(self, db_field, **kwargs):
+#         formfield = super(ImageInline, self).formfield_for_dbfield(db_field, **kwargs)
+#         #print db_field.name, repr(formfield), repr(db_field)
+#         #if db_field.name in ['annotation_status']:
+#         if hasattr(formfield, 'choices'):
+#             #print 'HERE'
+#             # dirty trick so queryset is evaluated and cached in .choices
+#             formfield.choices = formfield.choices
+#         return formfield
     
     # removed keywords as it generates too many queries (one per form in the formset) 
     exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number', 'width', 'height', 'size', 'keywords']

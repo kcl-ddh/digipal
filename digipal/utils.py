@@ -818,4 +818,25 @@ def is_model_visible(model, request):
     ret = (model in settings.MODELS_PUBLIC) or (request and request.user and request.user.is_staff and (model in settings.MODELS_PRIVATE))
     
     return ret
+
+def convert_xml_to_html(xml):
+    ret = xml
+    
+    # todo:
+    # () 4. add buttons to editor
+    # () 5. display notes at the bottom of the desc
+    
+    ret = re.sub(ur'<c>', ur'<span data-dpt="record" data-dpt-model="character">', ret)
+    
+    for el in re.findall(ur'(?ui)<[^>]+>', xml):
+        if re.search(ur'(?ui)</?(p|div|span)\b', el): continue
+        
+        nel = el
+        nel = re.sub(ur'(?ui)([^\s>]+)(\s*=\s*")', ur'data-dpt-\1\2', nel)
+        nel = re.sub(ur'(?ui)</([^\s>]+)', ur'</span', nel)
+        nel = re.sub(ur'(?ui)<([^/\s>]+)', ur'<span data-dpt="\1"', nel)
+        
+        ret = ret.replace(el, nel)
+    
+    return ret
     

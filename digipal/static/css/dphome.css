@@ -153,3 +153,41 @@
     left:20% !important;
 }
 
+/* ? */
+
+.home-page-listings ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.home-page-listings ul li {
+    border-bottom: 1px dotted #efefef;
+    min-height: 5em;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl {
+    margin-top: 1em;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl dt {
+    min-height: 5em;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.home-page-listings dl dd {
+    border-bottom: 1px dotted #efefef;
+    margin-top: -3.5em;
+    min-height: 3.5em;
+    margin-bottom: 0;
+}
+
+.home-page-listings .legend {
+    font-size: smaller;
+}
+

@@ -1,7 +1,8 @@
 /* TEI conversion 
 
 Supported elements:
-	c, foreign, div, title[@level=m], hi[@rend=sup], list[@type=ordered|bulleted|simple|], item
+    c, foreign, div, title[@level=m], hi[@rend=sup], list[@type=ordered|bulleted|simple|], item
+    c, foreign, hi[@rend=sup], hi[@rend=smallcap], title
 
 */
 
@@ -9,7 +10,7 @@ Supported elements:
     font-weight: bold;
 }
 
-.tei-foreign{
+.tei-foreign, span[data-dpt=foreign] {
     font-style: italic;
 }
 
@@ -18,21 +19,21 @@ Supported elements:
     margin-top: 1em;
 }
 
-.tei-title{
+.tei-title, span[data-dpt=title] {
     font-style: italic;
 }
 
-.tei-title.tei-a-level__m{
-    font-style: italic;
-}
-
-.tei-title.tei-a-level__m{
-    font-style: italic;
-}
-
-.tei-hi.tei-a-rend__sup{
+.tei-hi.tei-a-rend__sup, span[data-dpt-rend=sup] {
     vertical-align: super;
-    font-size: smaller;
+    font-size: smaller; 
+}
+
+.tei-hi.tei-a-rend__sup, span[data-dpt-rend=smallcap] {
+    /*
+    text-transform: uppercase;
+    font-size: small;
+    */
+    font-variant: small-caps; 
 }
 
 .tei-list {
@@ -56,45 +57,6 @@ Supported elements:
 .tei-item {
     display: list-item;
 }
-
-/* ? */
-
-.home-page-listings ul {
-    list-style-type: none;
-    padding: 0px;
-    margin: 0px;
-}
-
-.home-page-listings ul li {
-    border-bottom: 1px dotted #efefef;
-    min-height: 5em;
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-.home-page-listings dl {
-    margin-top: 1em;
-    margin-bottom: 0;
-}
-
-.home-page-listings dl dt {
-    min-height: 5em;
-    font-weight: normal;
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-.home-page-listings dl dd {
-    border-bottom: 1px dotted #efefef;
-    margin-top: -3.5em;
-    min-height: 3.5em;
-    margin-bottom: 0;
-}
-
-.home-page-listings .legend {
-    font-size: smaller;
-}
-
 
 /* New scheme */
 

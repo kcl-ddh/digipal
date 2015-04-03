@@ -26,6 +26,7 @@ Generate a hash key from it and use it in the query string to force reload when 
 
 span[data-dpt] {
     padding: 2px;
+    background-color: rgba(255,255,0,0.35);
     /*
     border-bottom: 2px solid;
     border-left: 2px solid;
@@ -168,3 +169,28 @@ span[data-dpt=record][data-dpt-model=character]:before {
     content: "Character";
 }
 
+/* TEI */
+
+span[data-dpt=foreign]:before {
+    content: "Foreign";
+}
+
+span[data-dpt=title]:before {
+    content: "Title";
+}
+
+span[data-dpt=note]:before {
+    content: "Note";
+}
+
+span[data-dpt=hi]:before {
+    content: "HI ?";
+}
+
+span[data-dpt=hi][data-dpt-rend=sup]:before {
+    content: "HI:supp";
+}
+
+span[data-dpt=hi][data-dpt-rend=smallcap]:before {
+    content: "HI:SC";
+}

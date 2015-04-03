@@ -2146,9 +2146,16 @@ class HandDescription(models.Model):
         # <span data-dpt-model="graph" data-dpt="record">#10</span>
         ret = replace_references(ret, ur'(?:<span[^>]*data-dpt-model="graph"[^>]*>)([^<]+)(?:</span>)', {}, 'Annotation')
 
-        link = ur'/digipal/search/facets/?sort=locus&hand_label=%s&character=\2&img_is_public=1&page=1&result_type=graphs&view=list' % self.hand.label
-        ret = re.sub(ur'(<span[^>]*data-dpt-model="character"[^>]*>)([^<]+)(</span>)', ur'<a href="' + link + ur'">\1\2\3</a>', ret)
-        #/digipal/search/facets/?sort=locus&hand_label=iota&character=s&img_is_public=1&page=1&%40xp_result_type=1&result_type=graphs&view=list
+        ip = self.hand.item_part
+        if ip:
+            {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+            {'key': 'repo_place', 'label': 'Repository Place', 'path': 'annotation.image.item_part.current_item.repository.human_readable', 'path_result': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+            {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+    
+            # char
+            link = ur'/digipal/search/facets/?sort=locus&hand_label=%s&repo_city=%s&repo_place=%s&shelfmark=%s&character=\2&img_is_public=1&page=1&result_type=graphs&view=list' % (self.hand.label, ip.current_item.repository.place.name, ip.current_item.repository.human_readable(), ip.current_item.shelfmark)
+            ret = re.sub(ur'(<span[^>]*data-dpt-model="character"[^>]*>)([^<]+)(</span>)', ur'<a href="' + link + ur'">\1\2\3</a>', ret)
+            #/digipal/search/facets/?sort=locus&hand_label=iota&character=s&img_is_public=1&page=1&%40xp_result_type=1&result_type=graphs&view=list
 
         return ret
     

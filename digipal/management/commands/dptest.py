@@ -66,6 +66,55 @@ Commands:
         command = args[0]
         
         known_command = False
+
+        if command == 'hd':
+            # 8546 </c> [1145, 1145, 1145, 1231, 1231, 1231, 1231, 1231, 1231, 1231]
+            # 894 </foreign> [1145, 1231, 1231, 1225, 1225, 1225, 1225, 1225, 1225, 1225]
+            # 13 </hi> [1226, 1226, 1226, 1226, 1226, 1226, 1226, 1226, 1226, 598]
+            # 38 </note> [1227, 548, 13, 18, 21, 598, 604, 619, 621, 659]
+            # 39 </title> [1227, 1227, 548, 13, 18, 21, 598, 604, 619, 619]
+            # 2 <c/> [875, 408]
+            # 8546 <c> [1145, 1145, 1145, 1231, 1231, 1231, 1231, 1231, 1231, 1231]
+            # 894 <foreign> [1145, 1231, 1231, 1225, 1225, 1225, 1225, 1225, 1225, 1225]
+            # 1 <hi rend="smallcap" > [1226]
+            # 8 <hi rend="smallcap"> [1226, 1226, 1226, 1226, 1226, 1226, 1226, 1226]
+            # 2 <hi rend="sup"> [598, 736]
+            # 2 <hi> [853, 853]
+            # 1 <note place="bottom" n="1"> [331]
+            # 1 <note place="bottom" n="15"> [777]
+            # 3 <note place="bottom" n="16"> [817, 1065, 1188]
+            # 3 <title level="m" > [659, 887, 336]
+            # 36 <title level="m"> [1227, 1227, 548, 13, 18, 21, 598, 604, 619, 619]
+            
+            els = {} 
+            
+            # hand description element list
+            from digipal.models import HandDescription
+            for hd in HandDescription.objects.all():
+                desc = hd.description
+                if desc and len(desc) > 0:
+                    #print hd.id, len(desc)
+                    for el in re.findall(ur'(?ui)<[^>]+>', desc):
+                        v = els.get(el, [])
+                        v.append(hd.hand.id)
+                        els[el] = v
+        
+            for el in sorted(els.keys()):
+                print len(els[el]), el, els[el][0:10]
+
+        if command == 'chd':
+            # convert hand desc from xml to html
+            from digipal.models import HandDescription
+            from digipal.utils import convert_xml_to_html
+            for hd in HandDescription.objects.all():
+                #if hd.hand.id != 1226: continue 
+                print '-' * 80
+                print hd.id, hd.hand.id
+                print repr(hd.description)
+                print '- ' * 40
+                hd.description = convert_xml_to_html(hd.description)
+                hd.save()
+                print repr(hd.description)
         
         if command == 'stint':
             from digipal.utils import expand_folio_range

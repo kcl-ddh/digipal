@@ -116,6 +116,7 @@ FACETED_SEARCH = {
                     'key': 'hands', 
                     'label': 'Hand',
                     'model': 'digipal.models.Hand',
+                    #'condition': lambda r: max([len(d.description or '') for d in r.descriptions.all()] or [0]) > 2,
                     'fields': [
                                
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
@@ -212,7 +213,7 @@ FACETED_SEARCH = {
                                        'hand__assigned_place',
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['hand_date', 'is_described', 'repo_city', 'repo_place', 'hand_place', 'chartype', 'character', 'allograph'],
+                    'filter_order': ['hand_date', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character', 'allograph'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],

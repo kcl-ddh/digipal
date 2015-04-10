@@ -67,7 +67,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
     
     # we didn't find a custom function for this content type
     if response is None:
-        response = {'content': '', 'error': 'Invalid Content Type (%s)' % content_type}
+        response = {'status': 'error', 'message': 'Invalid Content Type (%s)' % content_type}
     
     import json
     return HttpResponse(json.dumps(response), mimetype='application/json')

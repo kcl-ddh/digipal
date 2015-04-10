@@ -1,3 +1,21 @@
+1. implement PanelText
+    display text fragment
+    rendering
+        add buttons to show/hide parts of the mark-up
+            clauses
+            expansions
+            deleted
+            by default: plain text with deletion struck, expansions in italics and supplied in [].
+        add button to see all markups with labels (like write mode)
+            only for editors
+            by default
+2. show it by default
+3. add a pencil button to switch to write view
+    only for editors
+4. add a status drop down
+    for editors only
+    save immediately
+
 ! text not shown on opera: http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 ! V-scrollbar appears next to the image
 

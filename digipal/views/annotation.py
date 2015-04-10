@@ -197,12 +197,16 @@ def allograph_features(request, allograph_id):
 
 def image(request, image_id):
     """Returns a image annotation form."""
+    
+    from digipal.utils import request_invisible_model
+    request_invisible_model('image', request, 'Image') 
+
     try:
         image = Image.objects.get(id=image_id)
     except Image.DoesNotExist:
         return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
                               context_instance=RequestContext(request))
-
+        
     is_admin = has_edit_permission(request, Image)
 
     images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set'), True)
@@ -257,11 +261,12 @@ def image(request, image_id):
     zoom_levels = settings.ANNOTATOR_ZOOM_LEVELS
 
     from digipal.models import OntographType
+    from digipal.utils import is_model_visible
+    
     context = {
                'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
-               #'image_link': image_link, 'annotations': annotations_count,
                'image_link': image_link, 'annotations': annotations.count(),
                'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
@@ -269,9 +274,13 @@ def image(request, image_id):
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
                'zoom_levels': zoom_levels,
-               'repositories': Repository.objects.filter(currentitem__itempart__images=image_id)
+               'repositories': Repository.objects.filter(currentitem__itempart__images=image_id),
+               # hide all annotations and all annotation tools from the user
+               'hide_annotations': int(not is_model_visible('graph', request)),
                }
 
+    context['annotations_switch_initial'] =  1 - int(context['hide_annotations'] or ((request.REQUEST.get('annotations', 'true')).strip().lower() in ['0', 'false']))
+    
     if vector_id:
         context['vector_id'] = vector_id
 

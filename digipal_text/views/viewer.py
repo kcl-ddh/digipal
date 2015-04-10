@@ -8,7 +8,6 @@ from django.utils.safestring import mark_safe
 from django.core import urlresolvers
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
-from django.http import Http404
 from digipal import utils
 from django.utils.datastructures import SortedDict 
 
@@ -17,6 +16,10 @@ dplog = logging.getLogger( 'digipal_debugger')
 
 
 def text_viewer_view(request, item_partid=0):
+    
+    from digipal.utils import is_model_visible
+    if not is_model_visible('textcontentxml', request):
+        raise Http404('Text view not enabled')
     
     from digipal.models import ItemPart
     context = {'item_partid': item_partid, 'item_part': ItemPart.objects.filter(id=item_partid).first()}
@@ -39,6 +42,11 @@ def text_viewer_view(request, item_partid=0):
     return render(request, 'digipal_text/text_viewer.html', context)
 
 def text_api_view(request, item_partid, content_type, location_type, location):
+    
+    from digipal.utils import is_model_visible
+    if not is_model_visible('textcontentxml', request):
+        raise Http404('Text view not enabled')
+
     response = None
     
     # delegate to a custom function if it exists

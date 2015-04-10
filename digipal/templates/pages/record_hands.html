@@ -15,10 +15,14 @@
     <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
         <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
     </li>
-    <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ result.images.count }})</a></li>
-    <li class="{% if tabid = "graphs" %}active in{% endif %} {% if result.graphs.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}graphs/" data-address-bar="1" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+    {% if cansee.image %}
+	    <li class="{% if tabid = "pages" %}active in{% endif %} {% if result.images.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ result.images.count }})</a></li>
+    {% endif %}
+    {% if cansee.graph %}
+	    <li class="{% if tabid = "graphs" %}active in{% endif %} {% if result.graphs.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ result.get_absolute_url }}graphs/" data-address-bar="1" data-target="#graphs" data-toggle="tab">Graphs ({{ result.graphs.count }})</a></li>
+    {% endif %}
 {% endblock %}
 
 {% block details %}
@@ -91,13 +95,17 @@
                 {% endfor %}
             </div>
 
-            {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
+            {% if cansee.image %}
+                {% include "pages/tab_images.html" with images=result.images.all full_label=1 %}
+            {% endif %}
 
             {% include "digipal/add_to_collection.html" %}
 
-            <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
-                {% include "digipal/annotations.html" %}
-            </div>
+            {% if cansee.graph %}
+	            <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
+	                {% include "digipal/annotations.html" %}
+	            </div>
+            {% endif %}
 
         </div>
     </div>

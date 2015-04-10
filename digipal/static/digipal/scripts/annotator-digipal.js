@@ -210,6 +210,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 			if (callback) {
 				$('#toolbar').fadeIn();
+				
+		        if (self.hide_annotations) {
+		            self.toolbar.toggle_tools(['.olControlDrawFeaturePolygon']);
+		        }
 
 				callback(data); // calling all events on elements after all annotations get loaded
 			}
@@ -1562,64 +1566,33 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
 	this.toolbar = {
 
-		disable_annotation_tools: function() {
-			var editorial, delete_icon, edit;
-
-			if ($('.olControlEditorialFeature').length) {
-				editorial = $('.olControlEditorialFeature');
-			} else {
-				$('.olControlEditorialFeatureItemActive');
-			}
-
-			var save_icon = $('.olControlSaveFeaturesItemInactive');
-
-			if ($('.olControlDeleteFeature').length) {
-				delete_icon = $('.olControlDeleteFeature');
-			} else {
-				delete_icon = $('.olControlDeleteFeatureItemActive');
-			}
-
-			if ($('.olControlTransformFeature').length) {
-				edit = $('.olControlTransformFeature');
-			} else {
-				edit = $('.olControlTransformFeatureItemActive');
-			}
-
-			editorial.fadeOut();
-			delete_icon.fadeOut();
-			save_icon.fadeOut();
-			edit.fadeOut();
-		},
-
-		enable_annotation_tools: function() {
-
-			var editorial, delete_icon, edit;
-
-			if ($('.olControlEditorialFeature').length) {
-				editorial = $('.olControlEditorialFeature');
-			} else {
-				$('.olControlEditorialFeatureItemActive');
-			}
-
-			var save_icon = $('.olControlSaveFeatures');
-
-			if ($('.olControlDeleteFeature').length) {
-				delete_icon = $('.olControlDeleteFeature');
-			} else {
-				delete_icon = $('.olControlDeleteFeatureItemActive');
-			}
-
-			if ($('.olControlTransformFeatureItemInactive').length) {
-				edit = $('.olControlTransformFeatureItem');
-			} else {
-				edit = $('.olControlTransformFeatureItemActive');
-			}
-
-			editorial.fadeIn();
-			delete_icon.fadeIn();
-			save_icon.fadeIn();
-			edit.fadeIn();
-		}
+	    toggle_tools: function(toolnames, enable) {
+	        var classes = '';
+	        for (i in toolnames) {
+	            if (toolnames[i].substring(0,1) === '.') {
+	                classes += ',' + toolnames[i];
+	            } else {
+    	            classes += ',.olControl'+toolnames[i]+'Feature';
+                    classes += ',.olControl'+toolnames[i]+'Features';
+    	            classes += ',.olControl'+toolnames[i]+'FeatureItemActive';
+                    classes += ',.olControl'+toolnames[i]+'FeatureItemInactive';
+                    classes += ',.olControl'+toolnames[i]+'FeaturesItemActive';
+                    classes += ',.olControl'+toolnames[i]+'FeaturesItemInactive';
+	            }
+	        }
+	        if (classes) {
+	            classes = classes.substring(1);
+	            if (enable) {
+	                $(classes).fadeIn();
+	            } else {
+	                $(classes).fadeOut();
+	            }
+	        }
+	    },
+	
+	    toggle_annotation_tools: function(enable) {
+	        this.toggle_tools(['Editorial', 'Save', 'Delete', 'Transform'], enable);
+	    },
 	};
 
 

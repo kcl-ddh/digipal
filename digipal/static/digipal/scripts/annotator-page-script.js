@@ -30,7 +30,11 @@ function AnnotatorLoader() {
 		select_elements.chosen();
 		self.switch_annotations();
 		self.toolbar_position();
-
+		
+		if (annotator.hide_annotations) {
+		    $('#panelImageBox').hide();
+		}
+		
 		annotator.load_annotations(function() { // once annotations get loaded ...
 			if (annotator.isAdmin == "False") {
 				filterDropdowns();
@@ -711,10 +715,9 @@ function AnnotatorLoader() {
 			restoreFullscreenPositions();
 		});
 
-		if (typeof get_annotations != "undefined" && get_annotations == "false") {
-			switcher.bootstrapSwitch('toggleState');
-		}
-
+	    if (!annotator.annotations_switch_initial) { 
+	        switcher.bootstrapSwitch('toggleState'); 
+	    }
 	};
 
 	// shows settings window
@@ -874,19 +877,15 @@ function AnnotatorLoader() {
 		if (checkbox) {
 			multiple_boxes.attr('disabled', 'disabled').attr('checked', false);
 			annotator.allow_multiple_dialogs = false;
-			annotator.annotating = true;
-			self.digipal_settings.annotating = true;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-			annotator.toolbar.enable_annotation_tools();
 		} else {
 			multiple_boxes.attr('disabled', false);
 			//boxes_on_click.attr('checked', true).trigger('change');
-			annotator.annotating = false;
-			self.digipal_settings.annotating = false;
-			localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
-			annotator.toolbar.disable_annotation_tools();
 		}
-
+		
+        annotator.annotating = checkbox;
+        self.digipal_settings.annotating = checkbox;
+        localStorage.setItem('digipal_settings', JSON.stringify(self.digipal_settings));
+        annotator.toolbar.toggle_annotation_tools(checkbox);
 	};
 
 	// updated allographs counter of selected allograph according to the allographs select

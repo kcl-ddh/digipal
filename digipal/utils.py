@@ -801,6 +801,7 @@ def is_model_visible(model, request):
     # Returns True if <model> is visible to the user
     # See setting.py:MODELS_PUBLIC and MODELS_PRIVATE
     # If request is not provided we assume public user
+    
     if request == True:
         return True
     
@@ -809,8 +810,8 @@ def is_model_visible(model, request):
     # resolve model -> string
     from django.db.models.base import ModelBase
     if isinstance(model, ModelBase):
-        model = model.__class__.__name__
-    
+        model = model.__name__
+        
     model = ('%s' % model).lower()
     model = model.split('.')[-1]
     
@@ -818,6 +819,15 @@ def is_model_visible(model, request):
     ret = (model in settings.MODELS_PUBLIC) or (request and request.user and request.user.is_staff and (model in settings.MODELS_PRIVATE))
     
     return ret
+
+def request_invisible_model(model, request, model_label=None):
+    # Raise 404 if the model is not visible
+    if not is_model_visible(model, request):
+        from django.http import Http404
+        options = []
+        if model_label:
+            options.append('%s view not enabled' % model_label)
+        raise Http404(*options)
 
 def convert_xml_to_html(xml):
     ret = xml

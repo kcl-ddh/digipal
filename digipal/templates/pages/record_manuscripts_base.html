@@ -18,8 +18,10 @@
         <a href="{{ item_part.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
     <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
-    <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
+    {% if cansee.image %}
+	    <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
+    {% endif %}
     {% if cansee.hand %}
 	    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
 	        <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
@@ -180,7 +182,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    {% include "digipal/empty_tab.html" with type="hand" %}
+                    {% include "digipal/empty_tab.html" with type="text" %}
                 {% endif %}
                 {% if can_edit %}
                     <p><a href="view/">Edit the Texts</a></p>

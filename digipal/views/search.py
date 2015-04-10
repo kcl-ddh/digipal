@@ -4,7 +4,7 @@ from django.db.models import Q
 import json
 from digipal.models import *
 from digipal.forms import SearchPageForm
-
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from digipal.templatetags import hand_filters
@@ -12,13 +12,14 @@ from digipal.templatetags import hand_filters
 import logging
 dplog = logging.getLogger('digipal_debugger')
 
-def get_search_types():
+def get_search_types(request=None):
     from content_type.search_hands import SearchHands
     from content_type.search_manuscripts import SearchManuscripts
     from content_type.search_scribes import SearchScribes
     from content_type.search_graphs import SearchGraphs
     search_hands = SearchHands()
-    ret = [SearchManuscripts(), search_hands, SearchScribes(), SearchGraphs(search_hands)]
+    from digipal.utils import is_model_visible
+    ret = [search_model for search_model in [SearchManuscripts(), search_hands, SearchScribes(), SearchGraphs(search_hands)] if is_model_visible(search_model.get_model(), request or True)]
     
     return ret
 
@@ -48,6 +49,12 @@ def record_view(request, content_type='', objectid='', tabid=''):
     
     for type in context['types']:
         if type.key == content_type:
+            
+            # Hide if not set as visible in settings.py
+            from digipal.utils import request_invisible_model
+            request_invisible_model(type.get_model(), request, content_type)
+            
+            # Now find templates and populate context
             context['id'] = objectid
             from django.core.exceptions import ObjectDoesNotExist
             try:
@@ -66,7 +73,7 @@ def record_view(request, content_type='', objectid='', tabid=''):
 def index_view(request, content_type=''):
     context = {}
     
-    types = get_search_types()
+    types = get_search_types(request)
     
     # search & sort
     from datetime import datetime
@@ -93,6 +100,11 @@ def index_view(request, content_type=''):
     return render_to_response(template, context, context_instance=RequestContext(request))
 
 def search_ms_image_view(request):
+    '''View for the Browse Image page'''
+    
+    from digipal.utils import request_invisible_model
+    request_invisible_model('image', request, 'Image')
+    
     images = Image.objects.all()
     
     from digipal.forms import FilterManuscriptsImages
@@ -277,7 +289,7 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
             context['submitted'] = True
     
     context['can_edit'] = has_edit_permission(request, Hand)
-    context['types'] = get_search_types()
+    context['types'] = get_search_types(request)
     
     context['annotation_mode'] = request.GET.get('am', '1')
 
@@ -305,7 +317,13 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
-        context['search_type_defaulted'] = context['search_type'] or context['types'][0].key
+        
+        context['search_type_defaulted'] = context['search_type']
+        if not context['search_type_defaulted']:
+            if context['types']:
+                context['search_type_defaulted'] = context['types'][0].key
+            else:
+                context['search_type_defaulted'] = '?'
         
         has_result = False
         

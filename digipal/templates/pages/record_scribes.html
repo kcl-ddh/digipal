@@ -16,12 +16,16 @@
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ scribe.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
-    <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
-    </li>
-    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
-        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ pages|length }})</a>
-    </li>
+    {% if cansee.hand %}
+	    <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
+	    </li>
+    {% endif %}
+    {% if cansee.image %}
+	    <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
+	        <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ pages|length }})</a>
+	    </li>
+    {% endif %}
     <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if scribe.idiographs.all.distinct.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}idiographs/" data-address-bar="1" data-target="#idiographs" data-toggle="tab">Idiographs ({{ scribe.idiographs.all.distinct.count }}) </a>
     </li>
@@ -42,52 +46,57 @@
                 </dl>
             </div>
 
-            <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
-                {% if scribe.hands.count %}
-                    <table class="table table-condensed">
-                        <tr>
-                            <th>Item Part</th>
-                            <th>Hand</th>
-                        </tr>
-                        {% for hand in scribe.hands.all %}
-                            <tr>
-                                <td><a href="{{ hand.item_part.get_absolute_url }}">{{hand.item_part}}</a></td>
-                                <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% else %}
-                    {% include "digipal/empty_tab.html" with type="hand" %}
-                {% endif %}
-            </div>
-            <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
-                {% if pages %}
-                    <table class='table table-condensed'>
-                        <tr>
-                            <th>Page</th>
-                            <th>Hand</th>
-                            <th>Image</th>
-                        </tr>
-                        {% for page in pages %}
-                            <tr>
-                                <td>
-                                    <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
-                                </td>
-                                <td>
-                                    <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
-                                </td>
-                                <td>
-                                    <a href="{{ page.image.get_absolute_url }}">
-                                        {% iip_img page.image height=100 %}
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% else %}
-                    {% include "digipal/empty_tab.html" with type="page" %}
-                {% endif %}
-            </div>
+            {% if cansee.hand %}
+	            <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
+	                {% if scribe.hands.count %}
+	                    <table class="table table-condensed">
+	                        <tr>
+	                            <th>Item Part</th>
+	                            <th>Hand</th>
+	                        </tr>
+	                        {% for hand in scribe.hands.all %}
+	                            <tr>
+	                                <td><a href="{{ hand.item_part.get_absolute_url }}">{{hand.item_part}}</a></td>
+	                                <td><a href="{{ hand.get_absolute_url }}">{{hand}}</a></td>
+	                            </tr>
+	                        {% endfor %}
+	                    </table>
+	                {% else %}
+	                    {% include "digipal/empty_tab.html" with type="hand" %}
+	                {% endif %}
+	            </div>
+            {% endif %}
+            
+            {% if cansee.image %}
+	            <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
+	                {% if pages %}
+	                    <table class='table table-condensed'>
+	                        <tr>
+	                            <th>Page</th>
+	                            <th>Hand</th>
+	                            <th>Image</th>
+	                        </tr>
+	                        {% for page in pages %}
+	                            <tr>
+	                                <td>
+	                                    <a href="{{ page.image.get_absolute_url }}">{{ page.image }}</a>
+	                                </td>
+	                                <td>
+	                                    <a href="{{ page.hand.get_absolute_url }}">{{ page.hand }}</a>
+	                                </td>
+	                                <td>
+	                                    <a href="{{ page.image.get_absolute_url }}">
+	                                        {% iip_img page.image height=100 %}
+	                                    </a>
+	                                </td>
+	                            </tr>
+	                        {% endfor %}
+	                    </table>
+	                {% else %}
+	                    {% include "digipal/empty_tab.html" with type="page" %}
+	                {% endif %}
+	            </div>
+            {% endif %}
 
             <div class='tab-pane fade {% if tabid = 'idiographs' %}active in{% endif %}' id='idiographs'>
                 {% for idiograph in scribe.idiographs.all %}

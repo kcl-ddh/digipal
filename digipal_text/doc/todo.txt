@@ -1,7 +1,32 @@
 ! text not shown on opera: http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 ! V-scrollbar appears next to the image
 
+Set up live server for MOA
+MOA 66 - CT visibility
+     DP:    - Text
+     MOFA:  - Scribe, Hand, Graph
+     EXON:  - IP, Scribe, Graph
+     
+     Affects:
+        [DONE] Faceted
+        [DONE] Adv. Search
+        [DONE] Browser
+        Record vis
+            [DONT] IP
+            [DONE]  Tabs
+            [DONE] Images
+            [DONE]  Tabs
+            [DONE] Text
+            [DONE] Scribe
+            [DONE]  Tabs
+            [DONE] Hand
+            [DONE]  Tabs
+            Graph on the Image annotator page
+            [DONE]  Tabs
 
+Review Faceted search customisations
+    MOA
+    Exon
 
 [DONE] 1. find structure in form
 [DONE] 2. map structure to DP data model

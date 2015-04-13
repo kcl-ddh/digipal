@@ -54,7 +54,7 @@
                 </select>
             </li>
             {% if request.user.is_authenticated and statuses.count > 1 %}
-                <li class="dropdown-status pull-left dphidden2">
+                <li class="dropdown-status pull-left dphidden">
                     <select name="status" class="no-search">
                         {% for status in statuses %}
                             <option value="{{ status.id }}">{{ status.name }}</option>

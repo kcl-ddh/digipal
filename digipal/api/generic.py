@@ -143,12 +143,15 @@ class API(object):
         
         # find the model
         model = None
-        from digipal import models
-        for member in dir(models):
-            if member.lower() == content_type:
-                model = getattr(models, member)
-                if hasattr(model, '_meta'):
-                    break
+        from digipal import models as models1
+        # TODO: find a more generic way to include other apps than hard-coding the name here
+        from digipal_text import models as models2
+        for models in [models1, models2]:
+            for member in dir(models):
+                if member.lower() == content_type:
+                    model = getattr(models, member)
+                    if hasattr(model, '_meta'):
+                        break
         
         if not model:
             ret['success'] = False
@@ -162,7 +165,8 @@ class API(object):
                 filters['id__in'] = ids
             
             # filters in the query string
-            for filter, value in request.REQUEST.iteritems():
+            #for filter, value in request.REQUEST.iteritems():
+            for filter, value in get_request_params(request).iteritems():
                 if filter.startswith('_'):
                     # a conditional filter _FIELD__OP=VALUE
                     filter = filter[1:]
@@ -226,3 +230,15 @@ class API(object):
             ret = [int(v) for v in csv.split(',') if v]
         
         return ret
+
+def get_request_params(request):
+    '''Returns all parameters and values found in the request: GET, POST, PUT, etc
+        request.REQUEST only contains GET and POST
+    '''
+    from django.http import QueryDict
+    ret = {}
+    
+    ret = QueryDict(request.body).copy()
+    ret.update(request.REQUEST)
+    
+    return ret

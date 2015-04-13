@@ -162,10 +162,14 @@
         
         this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$locationSelect = this.$root.find('select[name=location]');
-        this.$root.find('select').chosen();
+        this.$root.find('select').each(function() {
+            $(this).chosen({disable_search: $(this).hasClass('no-search')});
+        });
         
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
+        
+        this.$statusSelect = this.$root.find('select[name=status]');
         
         // loaded is the location of the last successfully loaded text fragment
         // content cannot be saved unless it has been loaded properly
@@ -180,7 +184,7 @@
             var me = this;
             var onComplete = function(jqXHR, textStatus) {
                 if (textStatus !== 'success') {
-                    me.setMessage('Error during '+title+' (status: '+textStatus+')', 'error');
+                    me.setMessage('Error while '+title+' (status: '+textStatus+')', 'error');
                 }
             };
             var onSuccessWrapper = function(data, textStatus, jqXHR) {
@@ -254,6 +258,16 @@
             });
             // fire onSelect event as we want to refresh the list of locations
             //this.$locationTypes.dpbsdropdown('onSelect');
+            
+            this.$statusSelect.on('change', function() {
+                // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
+                var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
+                    'method': 'PUT', 
+                    '_text_content__item_part__id': me.itemPartid,
+                    '_text_content__type__slug': me.getContentType(),
+                    'status__id': $(this).val(),
+                });
+            });
 
             this.$locationSelect.on('change', function() {
                 me.loadContent();
@@ -314,6 +328,9 @@
             
             // update the location drop downs
             this.setLocationTypeAndLocation(data.location_type, data.location);
+
+            // update the status
+            this.setStatusSelect(data.content_status);
             
             // send signal to other panels so they can sync themselves
             this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
@@ -373,6 +390,17 @@
             var ret = null;
             return ret;
             //return ret.length + ret;
+        }
+        
+        // Content Status
+        this.setStatusSelect = function(contentStatus) {
+            if (contentStatus) {
+                // select the given status in the drop down
+                this.$statusSelect.val(contentStatus);
+                this.$statusSelect.trigger('liszt:updated');
+            }
+            // hide (chosen) select if no status supplied
+            this.$statusSelect.closest('li').toggle(!!contentStatus);
         }
         
         // Address / Locations
@@ -574,7 +602,7 @@
                     'content': me.tinymce.getContent(), 
                     'convert': options.autoMarkup ? 1 : 0, 
                     'save_copy': options.saveCopy ? 1 : 0,
-                    'post': 1,
+                    'method': 'POST',
                 },
                 options.synced
                 );
@@ -717,9 +745,9 @@
             complete: onComplete,
             success: onSuccess
         };
-        if (requestData && requestData.post) {
-            delete requestData.post;
-            getData.type = 'POST';
+        if (requestData && requestData.method) {
+            getData.type = requestData.method;
+            delete requestData.method;
         }
         var ret = $.ajax(getData);
         

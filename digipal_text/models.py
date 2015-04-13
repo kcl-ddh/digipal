@@ -43,7 +43,7 @@ class TextContent(models.Model):
         return '%stexts/view/' % self.item_part.get_absolute_url()
 
 class TextContentXMLStatus(digipal.models.NameModel):
-    pass
+    sort_order = models.IntegerField(blank=False, null=False, default=0, help_text='The order of this status in your workflow.')
 
 class TextContentXMLCopy(models.Model):
     source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
@@ -87,7 +87,7 @@ class TextContentXMLCopy(models.Model):
         self.source.save()
 
 class TextContentXML(models.Model):
-    status = models.ForeignKey('TextContentXMLStatus', blank=True, null=True, related_name='text_content_xmls')
+    status = models.ForeignKey('TextContentXMLStatus', blank=False, null=False, related_name='text_content_xmls')
     text_content = models.ForeignKey('TextContent', blank=True, null=True, related_name='text_content_xmls')
     content = models.TextField(blank=True, null=True)
     last_image = models.ForeignKey('digipal.Image', blank=True, null=True, related_name='text_content_xmls')

@@ -48,11 +48,20 @@
                 {% include "bootstrap/dropdown.html" with options=dd_location_types %}
             </li>
             <li class="dropdown-location pull-left dphidden">
-                <select name="location" class="">
+                <select name="location">
                     <option value="1r">1r</option>
                     <option value="1v">1v</option>
                 </select>
             </li>
+            {% if request.user.is_authenticated and statuses.count > 1 %}
+                <li class="dropdown-status pull-left dphidden2">
+                    <select name="status" class="no-search">
+                        {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                </li>
+            {% endif %}
 	    </ul>
 	       
     </nav>

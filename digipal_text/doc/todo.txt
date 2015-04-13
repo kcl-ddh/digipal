@@ -1,3 +1,7 @@
+Fix the layout bugs with the scroll bar appearing on the right of the image.
+
+() Fix slug
+
 1. implement PanelText
     display text fragment
     rendering
@@ -15,6 +19,7 @@
 4. add a status drop down
     for editors only
     save immediately
+5. add order to status table
 
 ! text not shown on opera: http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 ! V-scrollbar appears next to the image

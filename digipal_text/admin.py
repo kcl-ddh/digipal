@@ -98,6 +98,10 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
 class TextContentXMLStatusAdmin(reversion.VersionAdmin):
     model = TextContentXMLStatus
 
+    list_display = ['id', 'name', 'sort_order']
+    list_display_links = ['id', 'name']
+    list_editable = ['sort_order']
+
 admin.site.register(TextContent, TextContentAdmin)
 admin.site.register(TextContentType, TextContentTypeAdmin)
 admin.site.register(TextContentXML, TextContentXMLAdmin)

@@ -21,8 +21,9 @@ class APICustom(object):
             if get_accessor_name:
                 field_name = get_accessor_name()
 
-            value = request.REQUEST.get(field_name, QueryDict(request.body).get(field_name, None))
-
+            #value = request.REQUEST.get(field_name, QueryDict(request.body).get(field_name, None))
+            value = get_param_value_from_request(request, field_name)
+            
             # set the field value from the request or get it from the record
             if value is not None:
                 setattr(record, field_name, value)
@@ -46,9 +47,15 @@ class APICustom(object):
                 #print u'%20s\t%20s\t%s' % (field_name, field_type_name, unicode(value).encode('ascii', 'ignore'))
                 
                 # related object for a FK to another model (e.g. graph.annotation)
+                field_name_id = field_name+u'__id'
                 if isinstance(value, Model):
                     
-                    ret[field_name+u'__id'] = value.id if value is not None else None
+                    # TODO: support for setting a Null value
+                    value_id = get_param_value_from_request(request, field_name_id)
+                    if value_id is not None:
+                        setattr(record, field_name+'_id', value_id)
+                    
+                    ret[field_name_id] = value.id if value is not None else None
                     # optional expansion of the related object (e.g. @select=*image)
                     if expanded:
                         # TODO: call the custom processor
@@ -59,7 +66,7 @@ class APICustom(object):
                     if field_type_name in ['RelatedObject', 'ManyToManyField']:
                         if value is None:
                             # case where a graph has no annotation
-                            ret[field_name+u'__id'] = None
+                            ret[field_name_id] = None
                         else:
                             sub_result = []
                             for related_record in value.all():

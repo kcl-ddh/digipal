@@ -38,6 +38,7 @@ def text_viewer_view(request, item_partid=0):
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
         {'key': 'sync', 'label': 'Synchronise with', 'icon': 'magnet'},
     ]
+    context['statuses'] = TextContentXMLStatus.objects.all()
     
     return render(request, 'digipal_text/text_viewer.html', context)
 
@@ -52,13 +53,14 @@ def text_api_view(request, item_partid, content_type, location_type, location):
     # delegate to a custom function if it exists
     
     # Look up the content_type in the function name
-    # e.g. text_api_view_image
+    # e.g. content_type = image => text_api_view_image
     function = globals().get('text_api_view_' + content_type,  None)
     
-    # Look up the content_type in the TextContentType table
     if function:
         response = function(request, item_partid, content_type, location_type, location)
     else:
+        # Look up the content_type in the TextContentType table
+        # e.g. content_type = translation or transcription, we assume it must be a TextContentXML
         from digipal_text.models import TextContentType
         content_type_record = TextContentType.objects.filter(slug=content_type).first()
         
@@ -125,6 +127,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
+    
+    ret['content_status'] = text_content_xml.status.id
     
     extent = get_fragment_extent(record_content, location_type, location)
     ret['message'] = ''

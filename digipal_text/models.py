@@ -99,6 +99,12 @@ class TextContentXML(models.Model):
         if not self.content:
             return 0
         return len(self.content)
+
+    def save(self, *args, **kwargs):
+        # initialise the status if undefined
+        if not self.status_id:
+            self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
+        super(TextContentXML, self).save(*args, **kwargs)
     
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''
@@ -107,8 +113,6 @@ class TextContentXML(models.Model):
     # TODO: make this function overridable
     def convert(self):
         content = self.content
-        
-        print repr(content)
         
         # convert () into expansions
         content = re.sub(ur'\(([^)<>]{1,50})\)', ur'<span data-dpt="ex" data-dpt-cat="chars">\1</span>', content)

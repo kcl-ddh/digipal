@@ -38,7 +38,7 @@ def text_viewer_view(request, item_partid=0):
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
         {'key': 'sync', 'label': 'Synchronise with', 'icon': 'magnet'},
     ]
-    context['statuses'] = TextContentXMLStatus.objects.all()
+    context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
     
     return render(request, 'digipal_text/text_viewer.html', context)
 

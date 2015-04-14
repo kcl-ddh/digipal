@@ -10,9 +10,14 @@ class Migration(DataMigration):
         "Write your forwards methods here."
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
         
-        draft = orm['digipal_text.TextContentXMLStatus'](name='Draft', slug='draft', sort_order=10)
-        draft.save()
-        orm['digipal_text.TextContentXMLStatus'](name='Live', slug='live', sort_order=100).save()
+        draft, created = orm['digipal_text.TextContentXMLStatus'].objects.get_or_create(name='Draft', slug='draft')
+        if created:
+            draft.sort_order = 10
+            draft.save()
+        live, created = orm['digipal_text.TextContentXMLStatus'].objects.get_or_create(name='Live', slug='live')
+        if created:
+            live.sort_order = 100
+            live.save()
         
         for r in orm['digipal_text.TextContentXML'].objects.all():
             r.status = draft

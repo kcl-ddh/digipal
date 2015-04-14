@@ -16,10 +16,10 @@ Fix the layout bugs with the scroll bar appearing on the right of the image.
 2. show it by default
 3. add a pencil button to switch to write view
     only for editors
-4. add a status drop down
-    for editors only
-    save immediately
-5. add order to status table
+[DONE] 4. add a status drop down
+    [DONE] for editors only
+    [DONE] save immediately
+[DONE] 5. add order to status table
 
 ! text not shown on opera: http://localhost/digipal/manuscripts/553/texts/view/#text-viewer
 ! V-scrollbar appears next to the image
@@ -44,7 +44,7 @@ MOA 66 - CT visibility
             [DONE]  Tabs
             [DONE] Hand
             [DONE]  Tabs
-            Graph on the Image annotator page
+            [DONE] Graph on the Image annotator page
             [DONE]  Tabs
 
 Review Faceted search customisations

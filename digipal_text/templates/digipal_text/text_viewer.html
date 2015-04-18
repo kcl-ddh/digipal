@@ -86,7 +86,7 @@
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.tinymce.js"></script>
-    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script>
         jQuery(document).ready(function($) {
@@ -96,9 +96,9 @@
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
             panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
-            panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
+            panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center'));
             //panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
-            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
+            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east'));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
             //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
             //panelset.setPanelSize('west', 0.5);

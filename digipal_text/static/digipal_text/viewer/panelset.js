@@ -498,6 +498,27 @@
     //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
+        
+        this.loadContentCustom = function(loadLocations, address) {
+            // load the content with the API
+            var me = this;
+            this.callApi(
+                'loading content',
+                address,
+                function(data) {
+                    if (data.content !== undefined) {
+                        me.$content.html(data.content);
+                        me.onContentLoaded(data);
+                    } else {
+                        //me.setMessage('ERROR: no content received from server.');
+                    }
+                },
+                {
+                    'load_locations': loadLocations ? 1 : 0,
+                }
+            );
+        };
+        
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -541,29 +562,6 @@
             
             return ret;
         };
-        
-        this.loadContentCustom = function(loadLocations, address) {
-            // load the content with the API
-            var me = this;
-            this.callApi(
-                'loading content',
-                address,
-                function(data) {
-                    if (data.content !== undefined) {
-                        me.tinymce.setContent(data.content);
-                        me.tinymce.undoManager.clear();
-                        me.tinymce.undoManager.add();
-                        me.onContentLoaded(data);
-                    } else {
-                        //me.setMessage('ERROR: no content received from server.');
-                    }
-                },
-                {
-                    'load_locations': loadLocations ? 1 : 0,
-                }
-            );
-        };
-
         
         // TODO: fix with 'proper' prototype inheritance
         this.baseOnResize = this.onResize;
@@ -619,37 +617,6 @@
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
-                    
-                    //me.tinymce.on('change', setDirty);
-
-                    /*
-                    me.tinymce.on('keydown', function(e) {
-                        if (e.keyCode == 8) {
-                            e.preventDefault();
-                            var sel = me.tinymce.selection;
-                            var b = sel.getBookmark();
-                            var $p = $(sel.getNode());
-                            var $parent = $p.parent();
-                            if ($parent.prop('tagName') == 'P') {
-                                var pos = $parent.html().indexOf($p[0].outerHTML);
-                                if (pos == 0) {
-                                    // do we have a p before the parent?
-                                    $prev = $p.prev();
-                                    if ($prev.prop('tagName') == 'P') {
-                                        // we have a p before this p, let's merge them
-                                        $prev.append($p.html());
-                                        $p.remove();
-                                        return false;
-                                    }
-                                }
-                            }
-                            
-                            var i = 10;
-                            var i2 = i + 3;
-                        }
-                        return true;
-                    });
-                    */
                 },
 //                setup : function(ed) {
 //                    ed.onPaste.add(function(ed, e) {

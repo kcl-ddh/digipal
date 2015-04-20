@@ -27,8 +27,8 @@ def text_viewer_view(request, item_partid=0):
     # Define the content of content type and location type drop downs
     # on top of each panel
     context['dd_content_types'] = [
-        {'key': 'transcription', 'label': 'Transcription', 'icon': 'align-left', 'attrs': [['data-class', 'TextWrite']]},
-        {'key': 'translation', 'label': 'Translation', 'icon': 'indent-left', 'attrs': [['data-class', 'TextWrite']]},
+        {'key': 'transcription', 'label': 'Transcription', 'icon': 'align-left', 'attrs': [['data-class', 'Text']]},
+        {'key': 'translation', 'label': 'Translation', 'icon': 'indent-left', 'attrs': [['data-class', 'Text']]},
         {'key': 'image', 'label': 'Image', 'icon': 'picture', 'attrs': [['data-class', 'Image']]},
     ]
     context['dd_location_types'] = [

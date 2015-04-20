@@ -557,6 +557,8 @@
         };
         
     };
+    
+    PanelText.prototype = Panel;
 
     PanelText.prototype.onContentLoaded = function(data) {
         this.$content.html(data.content);
@@ -691,8 +693,11 @@
         this.initTinyMCE();
     };
 
+    PanelTextWrite.prototype = PanelText;
+
     PanelTextWrite.prototype.onContentLoaded = function(data) {
         this.tinymce.setContent(data.content);
+        this.tinymce.focus();
         this.tinymce.undoManager.clear();
         this.tinymce.undoManager.add();
         // We skip PanelText
@@ -705,7 +710,7 @@
     //
     //////////////////////////////////////////////////////////////////////
     var PanelImage = TextViewer.PanelImage = function($root, contentType) {
-        TextViewer.Panel.call(this, $root, contentType);
+        Panel.call(this, $root, contentType);
         
         this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
@@ -727,6 +732,8 @@
             );
         };
     };
+    
+    PanelImage.prototype = Panel;
     
     //////////////////////////////////////////////////////////////////////
     //

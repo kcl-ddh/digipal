@@ -12,9 +12,12 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
+@staff_member_required
+def instances_view(request, app_label):
+    context = {}
+    return render(request, 'admin/digipal/instances.html', context)
 
 @staff_member_required
-
 def context_view(request, app_label, model_name, object_id):
     from django.contrib.contenttypes.models import ContentType
     

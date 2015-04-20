@@ -37,23 +37,22 @@ import admin_forms
     with many foreign key drop downs. 
 '''
 
+def inline_formfield_for_dbfield(self, db_field, **kwargs):
+    formfield = super(DigiPalInline, self).formfield_for_dbfield(db_field, **kwargs)
+    if hasattr(formfield, 'choices'):
+        # dirty trick so queryset is evaluated and cached in .choices
+        formfield.choices = formfield.choices
+    return formfield
+
 class DigiPalInline(admin.StackedInline):
-    
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(DigiPalInline, self).formfield_for_dbfield(db_field, **kwargs)
-        if hasattr(formfield, 'choices'):
-            # dirty trick so queryset is evaluated and cached in .choices
-            formfield.choices = formfield.choices
-        return formfield
+    pass
+
+DigiPalInline.formfield_for_dbfield = inline_formfield_for_dbfield
 
 class DigiPalInlineDynamic(StackedDynamicInlineAdmin):
-    
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(DigiPalInlineDynamic, self).formfield_for_dbfield(db_field, **kwargs)
-        if hasattr(formfield, 'choices'):
-            # dirty trick so queryset is evaluated and cached in .choices
-            formfield.choices = formfield.choices
-        return formfield
+    pass
+
+DigiPalInlineDynamic.formfield_for_dbfield = inline_formfield_for_dbfield
 
 #########################
 #                       #
@@ -246,7 +245,9 @@ class CharacterInline(DigiPalInline):
 
     filter_horizontal = ['components']
 
-class HandsInline(DigiPalInline):
+# MOA-116: we don't use DigiPalInline as it overwrites the hand selection
+# done by admin_forms.HandsInlineForm and shows all hands instead.
+class HandsInline(admin.StackedInline):
     model = Hand.images.through
     form = admin_forms.HandsInlineForm
     formset = admin_forms.HandsInlineFormSet

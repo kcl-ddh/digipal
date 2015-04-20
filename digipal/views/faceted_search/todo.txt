@@ -1,4 +1,29 @@
+DP
+    Performance of the browse images
+    Image not showing properly on https://digipal-stg.cch.kcl.ac.uk/digipal/hands/1175/graphs/
+        http://digipal2-images.cch.kcl.ac.uk/iip.old/iipsrv.fcgi?FIF=jp2/admin-upload/8/81600510-5096-4d1e-a421-087414d2e7b7.jp2&WID=1287&RGN=0.390152,0.350057,0.038826,0.025419&CVT=JPEG
+        the full image shows well in the annotator
+        one annotation of a y shows well too
+        500 on the server:  
+            [Thu Apr 16 17:16:12 2015] [warn] [client 86.136.203.42] mod_fcgid: error reading data, FastCGI server closed connection
+            [Thu Apr 16 17:16:12 2015] [error] [client 86.136.203.42] Premature end of script headers: iipsrv.old.fcgi
+        Nothing in /vol/digipal2/webroot/images/logs/apache/iipsrv.log, why???
+        
+*** MOA - GO Live
+    Make sure the public users can't see texts which are still in draft mode:
+        how to that?
+EXON - 
+    new transcription
+    ** codicology
+    ** analysis
+
+Review the CT visibility on all the 9 instances
+Draft and Live are there twice
+
+-------------------------------------------------------------------------------
+
 Temporary todo for the faceted search
+
 
 JIRA 400: faceted search
     +

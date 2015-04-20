@@ -272,6 +272,7 @@
                     '_text_content__item_part__id': me.itemPartid,
                     '_text_content__type__slug': me.getContentType(),
                     'status__id': $(this).val(),
+                    '@select': 'id'
                 });
             });
 

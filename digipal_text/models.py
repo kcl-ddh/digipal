@@ -28,19 +28,19 @@ class TextContent(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     
     def get_string_from_languages(self):
-        return ', '.join([l.name for l in self.languages.all()])
+        return u', '.join([l.name for l in self.languages.all()])
         
     def __unicode__(self):
         info = self.type
         languages = self.get_string_from_languages()
         if languages:
-            info +=  ', %s' % languages
+            info +=  u', %s' % languages
         
-        ret = '%s (%s)' % (self.item_part, info)
+        ret = u'%s (%s)' % (self.item_part, info)
         return ret
     
     def get_absolute_url(self):
-        return '%stexts/view/' % self.item_part.get_absolute_url()
+        return u'%stexts/view/' % self.item_part.get_absolute_url()
 
 class TextContentXMLStatus(digipal.models.NameModel):
     sort_order = models.IntegerField(blank=False, null=False, default=0, help_text='The order of this status in your workflow.')
@@ -143,7 +143,7 @@ def set_additional_models_methods():
         if self._meta.module_name in ['currentitem']: 
             return None            
         webpath_key = getattr(self, 'webpath_key', plural(self._meta.module_name, 2))
-        ret = '/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
+        ret = u'/%s/%s/%s/' % (self._meta.app_label, webpath_key.lower(), self.id)
         return ret
 
     def model_get_admin_url(self):

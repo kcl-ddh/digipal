@@ -23,10 +23,12 @@ class APICustom(object):
 
             #value = request.REQUEST.get(field_name, QueryDict(request.body).get(field_name, None))
             value = get_param_value_from_request(request, field_name)
+            value_set = False
             
             # set the field value from the request or get it from the record
             if value is not None:
                 setattr(record, field_name, value)
+                value_set = True
             else:
                 try:
                     value = getattr(record, field_name)
@@ -38,12 +40,14 @@ class APICustom(object):
             field_type_name = type(field).__name__
 
             expanded = u'*'+field_name in fieldsets
-
-            if (field_name in ['id']) or \
-                len(fieldsets) == 0 or\
-                (field_name in fieldsets) or \
-                expanded:
-
+            
+            return_field = (field_name in ['id']) or \
+                    len(fieldsets) == 0 or\
+                    (field_name in fieldsets) or \
+                    expanded or value_set
+            
+            if (return_field or method in ['PUT', 'POST']):
+                
                 #print u'%20s\t%20s\t%s' % (field_name, field_type_name, unicode(value).encode('ascii', 'ignore'))
                 
                 # related object for a FK to another model (e.g. graph.annotation)
@@ -81,7 +85,8 @@ class APICustom(object):
                 if value_type_name not in cls.JSON_DATA_TYPES:
                     value = u'%s' % value
 
-                ret[field_name] = value
+                if return_field:
+                    ret[field_name] = value
 
         if method == 'PUT':
             record.save()

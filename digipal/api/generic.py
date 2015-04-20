@@ -166,7 +166,8 @@ class API(object):
             
             # filters in the query string
             #for filter, value in request.REQUEST.iteritems():
-            for filter, value in get_request_params(request).iteritems():
+            request_params = get_request_params(request)
+            for filter, value in request_params.iteritems():
                 if filter.startswith('_'):
                     # a conditional filter _FIELD__OP=VALUE
                     filter = filter[1:]
@@ -193,8 +194,7 @@ class API(object):
                 ret['success'] = False
                 ret['errors'] = u'Modification of a all records is not supported.'
             else:
-                # TODO: read from the request.body (in case of a PUT)
-                fieldsets = [f for f in request.GET.get('@select', '').split(',') if f]
+                fieldsets = [f for f in request_params.get('@select', '').split(',') if f]
                 
                 # generate the results
                 for record in records:

@@ -37,22 +37,22 @@ import admin_forms
     with many foreign key drop downs. 
 '''
 
-def inline_formfield_for_dbfield(self, db_field, **kwargs):
-    formfield = super(DigiPalInline, self).formfield_for_dbfield(db_field, **kwargs)
-    if hasattr(formfield, 'choices'):
-        # dirty trick so queryset is evaluated and cached in .choices
-        formfield.choices = formfield.choices
-    return formfield
 
 class DigiPalInline(admin.StackedInline):
-    pass
-
-DigiPalInline.formfield_for_dbfield = inline_formfield_for_dbfield
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super(DigiPalInline, self).formfield_for_dbfield(db_field, **kwargs)
+        if hasattr(formfield, 'choices'):
+            # dirty trick so queryset is evaluated and cached in .choices
+            formfield.choices = formfield.choices
+        return formfield
 
 class DigiPalInlineDynamic(StackedDynamicInlineAdmin):
-    pass
-
-DigiPalInlineDynamic.formfield_for_dbfield = inline_formfield_for_dbfield
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super(DigiPalInlineDynamic, self).formfield_for_dbfield(db_field, **kwargs)
+        if hasattr(formfield, 'choices'):
+            # dirty trick so queryset is evaluated and cached in .choices
+            formfield.choices = formfield.choices
+        return formfield
 
 #########################
 #                       #

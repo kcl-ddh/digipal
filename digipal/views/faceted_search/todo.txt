@@ -178,3 +178,33 @@ window.SelectFilter = {
 jQuery(el).detach().appendTo(jQuery(el2)); console.log('h2');
 
 https://code.djangoproject.com/ticket/15220
+
+Pb - 12:40, 20/04/15
+
+http://bca.alwaysdata.net/
+http://bca.alwaysdata.net/admin/
+
+=>
+
+Unhandled Exception
+
+An unhandled exception was thrown by the application.
+
+SSH
+
+=> 
+
+Access denied
+
+Restart App
+
+=> no app running
+
+Reset sh password through admin
+
+=>
+
+Can log in
+
+Site works (app running from 13:48)
+

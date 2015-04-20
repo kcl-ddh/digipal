@@ -152,12 +152,20 @@
         
         this.panelSet = null;
         
+        // loaded is the location of the last successfully loaded text fragment
+        // content cannot be saved unless it has been loaded properly
+        // This is to avoid a loading error from erasing conent.
+        // On a load error the location may still be valid and the next
+        // attempt to save will overwrite the fragment.
+        this.loadedAddress = null;
+
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.attr('id', '');
         this.$root.html($panelHtml);
         
-        // assign controls to member variables
+        // We create bindings for all the html controls on the panel
+        
         this.$contentTypes = this.$root.find('.dropdown-content-type');
         
         this.$locationTypes = this.$root.find('.dropdown-location-type');
@@ -171,12 +179,8 @@
         
         this.$statusSelect = this.$root.find('select[name=status]');
         
-        // loaded is the location of the last successfully loaded text fragment
-        // content cannot be saved unless it has been loaded properly
-        // This is to avoid a loading error from erasing conent.
-        // On a load error the location may still be valid and the next
-        // attempt to save will overwrite the fragment.
-        this.loadedAddress = null;
+        this.$toggleEdit = this.$root.find('.toggle-edit');
+        
         
         // METHODS
         
@@ -240,6 +244,8 @@
         
         this._ready = function() {
             var me = this;
+            
+            this.updateEditingModeIcon();
             
             this.$contentTypes.dpbsdropdown({
                 onSelect: function($el, key, $a) {
@@ -315,25 +321,6 @@
             // ONLY loadContent() can call it
             this.$content.html('Generic Panel Content');
             this.onContentLoaded();
-        };
-        
-        this.onContentLoaded = function(data) {
-            //this.setMessage('Content loaded.', 'success');
-            // TODO: update the current selections in the location dds
-            // TODO: make sure no event is triggered while doing that
-            
-            this.loadedAddress = this.getContentAddress(data.location_type, data.location);
-            this.setNotDirty();
-            this.setValid(true);
-            
-            // update the location drop downs
-            this.setLocationTypeAndLocation(data.location_type, data.location);
-
-            // update the status
-            this.setStatusSelect(data.content_status);
-            
-            // send signal to other panels so they can sync themselves
-            this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
         };
         
         /* SAVING CONTENT */
@@ -482,6 +469,53 @@
             return ret;
         };
         
+        this.getEditingMode = function() {
+            // returns:
+            //  undefined: no edit mode at all
+            //  true: editing
+            //  false: not editing
+            return undefined;
+        };
+        
+        this.updateEditingModeIcon = function() {
+            if (this.$toggleEdit) {
+                var mode = this.getEditingMode();
+                
+                this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
+                
+                this.$toggleEdit.find('a').toggleClass('active', (mode === true));
+                
+                this.$toggleEdit.find('a').attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
+                
+                this.$toggleEdit.find('a').tooltip();
+                
+                var me = this;
+                this.$toggleEdit.find('a').on('click', function() {
+                    me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType()));
+                    return false;
+                });
+            }
+        };
+        
+    };
+    
+    Panel.prototype.onContentLoaded = function(data) {
+        //this.setMessage('Content loaded.', 'success');
+        // TODO: update the current selections in the location dds
+        // TODO: make sure no event is triggered while doing that
+        
+        this.loadedAddress = this.getContentAddress(data.location_type, data.location);
+        this.setNotDirty();
+        this.setValid(true);
+        
+        // update the location drop downs
+        this.setLocationTypeAndLocation(data.location_type, data.location);
+
+        // update the status
+        this.setStatusSelect(data.content_status);
+        
+        // send signal to other panels so they can sync themselves
+        this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
     };
     
     Panel.create = function(contentType, selector, write) {
@@ -498,6 +532,10 @@
     //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
+
+        this.getEditingMode = function() {
+            return false;
+        };
         
         this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
@@ -507,7 +545,6 @@
                 address,
                 function(data) {
                     if (data.content !== undefined) {
-                        me.$content.html(data.content);
                         me.onContentLoaded(data);
                     } else {
                         //me.setMessage('ERROR: no content received from server.');
@@ -521,6 +558,11 @@
         
     };
 
+    PanelText.prototype.onContentLoaded = function(data) {
+        this.$content.html(data.content);
+        Panel.prototype.onContentLoaded.call(this, data);
+    };
+    
     //////////////////////////////////////////////////////////////////////
     //
     // PanelTextWrite
@@ -533,6 +575,10 @@
         
         this.unreadyComponents.push('tinymce');
         
+        this.getEditingMode = function() {
+            return true;
+        };
+
         // TODO: fix with 'proper' prototype inheritance
         this._baseReady = this._ready;
         this._ready = function() {
@@ -562,7 +608,7 @@
             
             return ret;
         };
-        
+
         // TODO: fix with 'proper' prototype inheritance
         this.baseOnResize = this.onResize;
         this.onResize = function () {
@@ -579,7 +625,7 @@
             var ret = this.tinymce.getContent();
             return ret;
             //return ret.length + ret;
-        }
+        };
 
         this.saveContentCustom = function(options) {
             // options:
@@ -644,7 +690,15 @@
         
         this.initTinyMCE();
     };
-        
+
+    PanelTextWrite.prototype.onContentLoaded = function(data) {
+        this.tinymce.setContent(data.content);
+        this.tinymce.undoManager.clear();
+        this.tinymce.undoManager.add();
+        // We skip PanelText
+        Panel.prototype.onContentLoaded.call(this, data);
+    };
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelImage

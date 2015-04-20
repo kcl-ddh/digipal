@@ -21,6 +21,7 @@
 
 <h1><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a>: Texts</h1>
 
+{# Template for the frame #}
 <div id="text-viewer">
     <div class="message-box">
         <a href="#text-viewer" style="float:left;" title="Expand" data-toggle="tooltip" data-placement="bottom"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a>
@@ -35,6 +36,7 @@
     </div>
 </div>
 
+{# Template for a panel within the frame #}
 <div id="text-viewer-panel" class="text-viewer-panel">
     <nav class="navbar navbar-default">
         <ul class="nav navbar-nav pull-left">
@@ -53,17 +55,27 @@
                     <option value="1v">1v</option>
                 </select>
             </li>
-            {% if request.user.is_authenticated and statuses.count > 1 %}
-                <li class="dropdown-status pull-left dphidden">
-                    <select name="status" class="no-search">
-                        {% for status in statuses %}
-                            <option value="{{ status.id }}">{{ status.name }}</option>
-                        {% endfor %}
-                    </select>
+        </ul>
+        
+        {% if request.user.is_authenticated %}
+            <ul class="nav navbar-nav pull-left">
+                <li class="toggle-edit pull-left dphidden">
+                    <a class="btn btn-default" title="Edit the text" data-toggle="tooltip" href="#toggle-edit" data-placement="bottom">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    </a>
                 </li>
-            {% endif %}
-	    </ul>
-	       
+                {% if statuses.count > 1 %}
+                    <li class="dropdown-status pull-left dphidden">
+                        <select name="status" class="no-search">
+                            {% for status in statuses %}
+                                <option value="{{ status.id }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                {% endif %}
+    	    </ul>
+        {% endif %}
+	    
     </nav>
     
     <div class="panel-content">
@@ -86,7 +98,8 @@
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.tinymce.js"></script>
-    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script>
+    {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script>
         jQuery(document).ready(function($) {
@@ -95,10 +108,10 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
-            panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center'));
+            ////panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
+            panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center', true));
             //panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
-            panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east'));
+            ////panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-east', true));
             //panelset.registerPanel(TextViewer.Panel.create('xmlelement', '.ui-layout-west', true));
             //panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-south'));
             //panelset.setPanelSize('west', 0.5);

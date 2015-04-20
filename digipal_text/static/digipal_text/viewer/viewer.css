@@ -185,3 +185,10 @@ li.bsdp-selected a {
     font-weight: bold;
 }
 
+/* Align the buttons in the panel navbar with the chosen drop downs */
+
+.text-viewer-panel ul.nav > li > a {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+

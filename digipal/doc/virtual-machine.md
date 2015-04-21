@@ -1,4 +1,6 @@
 # Virtual Machine
+ Update (21/04/15): Docker is now the recommended way to install the DigiPal framework on your machine. The documentation below is therefore superceded by those found on the [DigiPal Docker page](https://registry.hub.docker.com/u/gnoelddh/digipal/).
+
  DigiPal can be used in a local machine we provide which is ready to be used, without any further configuration required.
 
 To run the DigiPal VM, you will first need to download the file we provide, and then download a software called VirtualBox, freely downloadable at [https://www.virtualbox.org/](https://www.virtualbox.org/), which works on all the platforms. Please make sure to download the latest version. A minimum requirement for running the Virtual Machine is a laptop or desktop computer with minimum 4GB of memory and 2GB of free space available on disk.

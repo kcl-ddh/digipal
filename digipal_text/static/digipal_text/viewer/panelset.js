@@ -562,6 +562,7 @@
     PanelText.prototype = Panel;
 
     PanelText.prototype.onContentLoaded = function(data) {
+        this.$content.addClass('mce-content-body').addClass('preview');
         this.$content.html(data.content);
         Panel.prototype.onContentLoaded.call(this, data);
     };
@@ -686,7 +687,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css?v=2"
+                content_css : "/static/digipal_text/viewer/tinymce.css?v=3"
             });
             
         };

@@ -6,12 +6,12 @@
     font-style: normal;
 }
 
-#tinymce {
+.mce-content-body {
     font-family: junicode, arial, sans-serif;
-    font-size: 16px;
+    font-size: 17px;
 }
 
-p[data-dpt], span[data-dpt], div[data-dpt] {
+.mce-content-body p[data-dpt], .mce-content-body span[data-dpt], .mce-content-body div[data-dpt] {
     
 }
 
@@ -24,9 +24,19 @@ Generate a hash key from it and use it in the query string to force reload when 
 
 /* General */
 
-span[data-dpt] {
+div.mce-content-body.preview {
+    margin: 8px;
+}
+
+.mce-content-body p, .mce-content-body div {
+    line-height: 1.9;
+    color: rgb(5,5,5);
+}
+
+.mce-content-body span[data-dpt] {
     padding: 2px;
     background-color: rgba(255,255,0,0.35);
+    margin-right: 1px;
     /*
     border-bottom: 2px solid;
     border-left: 2px solid;
@@ -35,13 +45,18 @@ span[data-dpt] {
     */
 }
 
-span[data-dpt]:before {
+.preview.mce-content-body span[data-dpt] {
+    padding: 0px;
+    margin-right: 0px;
+}
+
+.mce-content-body span[data-dpt]:before {
     color: blue;
     content: "???";
     font-family: "Arial Black",Gadget,sans-serif;
     font-size: 70%;
     font-weight: bold;
-    margin-top: -0.6em;
+    margin-top: -0.7em;
     position: absolute;
 }
 
@@ -53,144 +68,230 @@ span[data-dpt] > span[data-dpt] {
 
 /* Categories */
 
-span[data-dpt-cat=chars] {
+.mce-content-body span[data-dpt-cat=chars] {
     background-color: rgba(0,255,0,0.25);
 }
 
-span[data-dpt-cat=words] {
+.mce-content-body span[data-dpt-cat=words] {
     background-color: rgba(0,0,255,0.15);
+    margin-right: 0.2em;
 }
 
-span[data-dpt=record] {
+.preview.mce-content-body span[data-dpt-cat=words] {
+    background-color: transparent;
+    /*border-bottom: 1px blue solid;*/
+}
+
+.mce-content-body span[data-dpt=record] {
     background-color: rgba(255, 176, 0, 0.35);
 }
 
-span[data-dpt=record]:before {
+.mce-content-body span[data-dpt=record]:before {
     color: OrangeRed ;
 }
     
-span[data-dpt-cat=chars]:before {
+.mce-content-body span[data-dpt-cat=chars]:before {
     font-size: 70%;
     color: green;
     font-weight: bold;
 }
 
-span[data-dpt=lb]:before {
+.mce-content-body span[data-dpt=lb]:before {
     content: '';
 }
 
-span[data-dpt=lb] {
+.mce-content-body span[data-dpt=lb] {
     color: brown;
     font-weight: bold;
 }
 
+.preview.mce-content-body span[data-dpt=lb] {
+    opacity: 0;
+    display: table-column;
+}
 
-/* Particular Elements */
+/* Transcription & Translation */
 
-span[data-dpt=location] {
+.mce-content-body span[data-dpt=location] {
     background-color: rgba(255,100,0,0.35);
 }
 
-span[data-dpt=location]:before {
+.mce-content-body span[data-dpt=location]:before {
     color: rgb(155,50,0);
     content: "Location";
 }
 
-span[data-dpt=location][data-dpt-loctype=entry]:before {
+.mce-content-body span[data-dpt=location][data-dpt-loctype=entry]:before {
     content: "Entry";
 }
 
-span[data-dpt=location][data-dpt-loctype=locus]:before {
+.mce-content-body span[data-dpt=location][data-dpt-loctype=locus]:before {
     content: "Locus";
 }
 
-span[data-dpt=ex]:before {
+.mce-content-body span[data-dpt=ex]:before {
     content: "( )";
 }
 
-span[data-dpt=supplied]:before {
+.preview.mce-content-body span[data-dpt=ex] {
+    background: transparent;
+    font-style: italic;
+}
+
+.preview.mce-content-body span[data-dpt=ex]:before {
+    font-size: 100%;
+    color: rgb(5,5,5);;
+    font-weight: normal;
+    content: "";
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+}
+.preview.mce-content-body span[data-dpt=ex]:after {
+    font-size: 100%;
+    color: rgb(5,5,5);;
+    font-weight: normal;
+    content: "";
+    position: relative;
+}
+
+.mce-content-body span[data-dpt=supplied]:before {
     content: "\271A";
 }
 
+.preview.mce-content-body span[data-dpt=supplied] {
+    background: transparent;
+}
+
+.preview.mce-content-body span[data-dpt=supplied]:before {
+    font-size: 100%;
+    color: rgb(5,5,5);;
+    font-weight: normal;
+    content: "(";
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+    content: "<";
+}
+.preview.mce-content-body span[data-dpt=supplied]:after {
+    font-size: 100%;
+    color: rgb(5,5,5);;
+    font-weight: normal;
+    content: ">";
+}
+
 /*
-span[data-dpt=clause] {
+.mce-content-body span[data-dpt=clause] {
     border-color: blue;
 }
 */
 
-span[data-dpt=clause]:before {
+.mce-content-body span[data-dpt=clause]:before {
     content: "Clause";
     /*
     color: blue;
     */
 }
 
-span[data-dpt=del]:before {
+/*
+.preview.mce-content-body span[data-dpt=clause]:before {
+    font-size: 100%;
+    font-weight: bold;
+    content: "{";
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+}
+*/
+
+.preview.mce-content-body span[data-dpt=clause]:after {
+    color: blue;
+    content: "}";
+    font-family: "Arial Black",Gadget,sans-serif;
+    font-size: 110%;
+    margin-left: 0.2em;
+    font-weight: normal;
+    margin-top: -0.1em;
+    position: relative;
+}
+
+.mce-content-body span[data-dpt=del]:before {
     content: "Deleted";
 }
 
-span[data-dpt-type=witnesses]:before {
+.preview.mce-content-body span[data-dpt=del]:before {
+    content: "";
+}
+
+.preview.mce-content-body span[data-dpt=del] {
+    text-decoration: line-through;
+}
+
+.mce-content-body span[data-dpt-type=witnesses]:before {
     content: "Witnesses";
 }
 
-span[data-dpt-type=disposition]:before {
+.mce-content-body span[data-dpt-type=disposition]:before {
     content: "Disposition";
 }
 
-span[data-dpt-type=address]:before {
+.mce-content-body span[data-dpt-type=address]:before {
     content: "Address";
 }
 
-span[data-dpt=heading] {
+/* Hand Descriptions */
+
+.mce-content-body span[data-dpt=heading] {
     text-decoration: underline;
 }
 
-span[data-dpt=heading][data-dpt-level='1']:before {
+.mce-content-body span[data-dpt=heading][data-dpt-level='1']:before {
     content: "H1";
 }
 
-span[data-dpt=heading][data-dpt-level='2']:before {
+.mce-content-body span[data-dpt=heading][data-dpt-level='2']:before {
     content: "H2";
 }
 
-span[data-dpt=stint]:before {
+.mce-content-body span[data-dpt=stint]:before {
     content: "Stint";
 }
 
-span[data-dpt=record][data-dpt-model=hand]:before {
+.mce-content-body span[data-dpt=record][data-dpt-model=hand]:before {
     content: "Hand";
 }
 
-span[data-dpt=record][data-dpt-model=graph]:before {
+.mce-content-body span[data-dpt=record][data-dpt-model=graph]:before {
     content: "Annotation";
 }
 
-span[data-dpt=record][data-dpt-model=character]:before {
+.mce-content-body span[data-dpt=record][data-dpt-model=character]:before {
     content: "Character";
 }
 
 /* TEI */
 
-span[data-dpt=foreign]:before {
+.mce-content-body span[data-dpt=foreign]:before {
     content: "Foreign";
 }
 
-span[data-dpt=title]:before {
+.mce-content-body span[data-dpt=title]:before {
     content: "Title";
 }
 
-span[data-dpt=note]:before {
+.mce-content-body span[data-dpt=note]:before {
     content: "Note";
 }
 
-span[data-dpt=hi]:before {
+.mce-content-body span[data-dpt=hi]:before {
     content: "HI ?";
 }
 
-span[data-dpt=hi][data-dpt-rend=sup]:before {
+.mce-content-body span[data-dpt=hi][data-dpt-rend=sup]:before {
     content: "HI:supp";
 }
 
-span[data-dpt=hi][data-dpt-rend=smallcap]:before {
+.mce-content-body span[data-dpt=hi][data-dpt-rend=smallcap]:before {
     content: "HI:SC";
 }
+

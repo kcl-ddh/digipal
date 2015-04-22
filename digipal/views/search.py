@@ -142,13 +142,18 @@ def search_ms_image_view(request):
     #images = list(images.order_by('id'))
     #from digipal.utils import natural_sort_key
     #images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
-    context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
+    #context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
+    
+    from django.db.models import Count
+    context['images'] = Image.sort_query_set_by_locus(images.select_related('item_part__current_item__repository__place').annotate(hand_count=Count('hands')))
 
     image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form
     context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, '', True, [image_search_form])
+    
+    ret = render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
 
-    return render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
+    return ret
 
 def search_record_view(request):
     # Rerouting to the blog/news search result page 

@@ -2186,7 +2186,7 @@ class Alphabet(models.Model):
 class DateEvidence(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     hand = models.ForeignKey(Hand, blank=True, null=True, default=None)
-    historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', null=True, default=None)
+    historical_item = models.ForeignKey('HistoricalItem', related_name='date_evidences', blank=True, null=True, default=None)
     date = models.ForeignKey(Date, blank=True, null=True)
     
     # is this a firm date (i.e. undisputed)

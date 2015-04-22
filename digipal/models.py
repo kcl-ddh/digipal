@@ -2139,6 +2139,8 @@ class HandDescription(models.Model):
         # locus -> reference to an image
         # e.g. 452r7 -> <a href="/digipal/image/<ID>">452r7</a>
         ret = replace_references(ret, ur'(?<!OF\s)\b(\d{1,4}(r|v))[^\s;,\]<]*', loci, 'Image')
+
+        ret = re.sub(ur'<span data-dpt="ref" data-dpt-target="([^"]+)">([^<]+)</span>', ur'<a href="\1">\2</a>', ret)
         
         # <span data-dpt-model="hand" data-dpt="record">theta</span>
         ret = replace_references(ret, ur'(?:<span[^>]*data-dpt-model="hand"[^>]*>)([^<]+)(?:</span>)', hands, 'Hand')

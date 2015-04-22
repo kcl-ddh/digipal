@@ -66,7 +66,7 @@ class SearchManuscripts(SearchContentType):
         super(SearchManuscripts, self).set_record_view_context(context, request)
         context['item_part'] = ItemPart.objects.get(id=context['id'])
         context['images'] = Image.sort_query_set_by_locus(context['item_part'].images.all().prefetch_related('hands', 'annotation_set'))
-        context['hands'] = context['item_part'].hands.all().order_by('item_part__current_item__repository__name', 'item_part__current_item__shelfmark', 'descriptions__description','id')
+        context['hands'] = context['item_part'].hands.all().order_by('num')
 
     def get_index_records(self):
         recs = super(SearchManuscripts, self).get_index_records()

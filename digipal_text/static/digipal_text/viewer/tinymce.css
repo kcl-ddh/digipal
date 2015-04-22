@@ -107,7 +107,8 @@ span[data-dpt] > span[data-dpt] {
 
 .preview.mce-content-body span[data-dpt=lb] {
     opacity: 0;
-    display: table-column;
+    /* Enable this to actually introduce a line break */
+    /* display: table-column; */
 }
 
 /* Transcription & Translation */
@@ -193,20 +194,18 @@ span[data-dpt] > span[data-dpt] {
     */
 }
 
-/*
 .preview.mce-content-body span[data-dpt=clause]:before {
     font-size: 100%;
     font-weight: bold;
-    content: "{";
+    content: "";
     font-family: junicode, arial, sans-serif;
     margin-top: 0px;
     position: relative;
 }
-*/
 
 .preview.mce-content-body span[data-dpt=clause]:after {
     color: blue;
-    content: "}";
+    content: "";
     font-family: "Arial Black",Gadget,sans-serif;
     font-size: 110%;
     margin-left: 0.2em;

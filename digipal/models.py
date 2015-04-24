@@ -2117,12 +2117,22 @@ class HandDescription(models.Model):
                 replacement = ''
                 
                 if 'model="graph"' in apattern:
+                    # The user grabs the id of graph on the front end
+                    # Click the 'Annotation' button. This marks up as 'graph'.
+                    #
+                    # <span data-dpt-model="graph" data-dpt="record">#10</span>
+                    #
+                    # We find the annotation with that graph ID
+                    #
                     matchid = re.match(ur'#(\d+)', label)
                     if matchid:
                         from digipal.templatetags.html_escape import annotation_img
                         #replacement = annotation_img(annotation,  [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0])
                         annotation = Annotation.objects.filter(graph__id=matchid.group(1)).first()
-                        replacement = '<a href="%s">%s</a>' % (annotation.get_absolute_url(), annotation_img(annotation))
+                        if annotation:
+                            replacement = '<a href="%s">%s</a>' % (annotation.get_absolute_url(), annotation_img(annotation))
+                        elif editorial_view:
+                            replacement = '<span class="locus-not-found" title="%s not found" data-toggle="tooltip">%s</span>' % (content_type, label)
 
                 if not replacement:
                     replacement = match.group(0)
@@ -2131,6 +2141,7 @@ class HandDescription(models.Model):
                         replacement = '<a href="%s">%s</a>' % (link, match.group(0))
                     elif editorial_view:
                         replacement = '<span class="locus-not-found" title="%s not found" data-toggle="tooltip">%s</span>' % (content_type, replacement)
+                        print replacement
                         
                 content = content[0:match.start(0)] + replacement + content[match.end(0):]
                 pos = match.start(0) + len(replacement)

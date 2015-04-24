@@ -21,7 +21,7 @@
           {% csrf_token %}
             <div id='scribe_header'>{{ scribeForm }} <img src='/static/digipal/images/ajax-loader-ball.gif' id ='ajax_loader' /></div>
             <div>
-              <label>Ideograph: </label> <span id='ideograph_selected'>Null (Defining new Ideograph)</span>
+              <label>Idiograph: </label> <span id='idiograph_selected'>Null (Defining new Idiograph)</span>
             </div>
             <div id="listElems">
               <div class="listElem">
@@ -51,7 +51,7 @@
     </div>
 
     <div class='column5' id='current_idiographs'>
-      <h1 class='header1'>Ideographs <span id='number_ideographs'></span></h1>
+      <h1 class='header1'>Idiographs <span id='number_idiographs'></span></h1>
       <div id='idiographs_container'></div>
     </div>
   </div>
@@ -59,7 +59,7 @@
 {% endblock %}
 
 </div>
-<script type="text/javascript" src = "{{ STATIC_URL }}admin/js/new_script_entry.js"></script>
+<script type="text/javascript" src = "{{ STATIC_URL }}admin/js/idiograph_editor.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
 <script type="text/javascript" src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 

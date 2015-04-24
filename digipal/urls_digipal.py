@@ -65,15 +65,9 @@ urlpatterns += patterns('',
     #url(r'^search/facets/$', FacetedSearchView(form_class=FacetedSearchForm, searchqueryset=sqs), name='haystack_search'),
 )
 
+# TODO: move this to urls_admin.py
 urlpatterns += patterns('digipal.views.admin.image',
     (r'admin/image/bulk_edit', 'image_bulk_edit'),
-    (r'admin/newscriptentry/$', 'newScriptEntry'),
-    (r'admin/newscriptentry/get_idiographs', 'get_idiographs'),
-    (r'admin/newscriptentry/get_allographs', 'get_allographs'),
-    (r'admin/newscriptentry/get_ideograph', 'get_ideograph'),
-    (r'admin/newscriptentry/save_idiograph', 'save_idiograph'),
-    (r'admin/newscriptentry/update_idiograph', 'update_idiograph'),
-    (r'admin/newscriptentry/delete_idiograph', 'delete_idiograph'),
 )
 
 if settings.DEBUG:

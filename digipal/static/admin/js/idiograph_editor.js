@@ -34,7 +34,7 @@ jQuery(document).ready(function($) {
 		features: $(
 			$.
 			default.features),
-		ideographSelected: null,
+		idiographSelected: null,
 
 		/*
 
@@ -94,7 +94,7 @@ jQuery(document).ready(function($) {
 			this.check_all();
 			this.uncheck_all();
 
-			// new ideograph
+			// new idiograph
 			$('#new_idiograph_Button').click(function() {
 				$.main.new_idiograph();
 			});
@@ -165,12 +165,12 @@ jQuery(document).ready(function($) {
 				s = '<p style="padding:1%;">No Idiographs for this scribe</p>';
 				i = 0;
 			}
-			$("#number_ideographs").html("(" + i + ")");
+			$("#number_idiographs").html("(" + i + ")");
 			var idiographs_div = $('#idiographs_container');
 			idiographs_div.html(s);
 			$('.idiograph_label').click(function() {
 				event.preventDefault();
-				$.main.select_ideograph($(this));
+				$.main.select_idiograph($(this));
 			});
 			$('.delete_idiograph').click(function(event) {
 				event.preventDefault();
@@ -179,7 +179,7 @@ jQuery(document).ready(function($) {
 			$('.view_idiograph').click(function(event) {
 				event.preventDefault();
 				event.stopPropagation();
-				$.main.select_ideograph($(this).parent('.idiograph_label'), true);
+				$.main.select_idiograph($(this).parent('.idiograph_label'), true);
 			});
 		},
 
@@ -190,8 +190,8 @@ jQuery(document).ready(function($) {
 
         */
 
-		load_components: function(allograph, ideograph_component) {
-			$.main.components.data('ideograph_component', ideograph_component);
+		load_components: function(allograph, idiograph_component) {
+			$.main.components.data('idiograph_component', idiograph_component);
 			var allographs = $.getJSON("get_allographs/", {
 				'allograph': allograph
 			});
@@ -313,41 +313,41 @@ jQuery(document).ready(function($) {
 
 		/*
         
-        Method to select an ideograph
+        Method to select an idiograph
 
         */
 
-		select_ideograph: function(ideograph, view) {
-			if (this.ideographSelected !== null) {
-				if (this.ideographSelected.data('has_features')) {
-					this.ideographSelected.css({
+		select_idiograph: function(idiograph, view) {
+			if (this.idiographSelected !== null) {
+				if (this.idiographSelected.data('has_features')) {
+					this.idiographSelected.css({
 						'background-color': 'hsl(76, 21%, 52%)',
 						'color': '#fff'
 					});
 				} else {
-					this.ideographSelected.css({
+					this.idiographSelected.css({
 						'background-color': '#fff',
 						'color': '#444'
 					});
 				}
 			}
-			this.ideographSelected = ideograph;
+			this.idiographSelected = idiograph;
 			$features = [];
-			$('#ideograph_selected').html(this.ideographSelected.find('span').text());
-			var id = this.ideographSelected.data('id');
-			this.ideographSelected.css({
+			$('#idiograph_selected').html(this.idiographSelected.find('span').text());
+			var id = this.idiographSelected.data('id');
+			this.idiographSelected.css({
 				'background-color': '#ddd',
 				'color': '#444'
 			});
-			var load_ideograph = $.getJSON('get_ideograph/', {
-				'ideograph': id
+			var load_idiograph = $.getJSON('get_idiograph/', {
+				'idiograph': id
 			});
-			load_ideograph.done(function(data) {
+			load_idiograph.done(function(data) {
 				var data = data[0];
 				var allograph = data['allograph_id'][0];
 				$features = data.components;
 				$.main.allographs.val(allograph).trigger('liszt:updated');
-				$.main.load_components(allograph, data.components.ideograph_component);
+				$.main.load_components(allograph, data.components.idiograph_component);
 				var n = 0;
 				for (var i = 0; i < data.components.length; i++) {
 					var features_length = data.components[i].features.length;
@@ -399,8 +399,8 @@ jQuery(document).ready(function($) {
 				},
 				success: function(data) {
 					if (!data['errors']) {
-						var num = parseInt($('#number_ideographs').text());
-						$('#number_ideographs').html(num + 1);
+						var num = parseInt($('#number_idiographs').text());
+						$('#number_idiographs').html(num + 1);
 						var scribe = $('#id_scribe').val()
 						$.main.load_idiographs(scribe);
 						$(".window").fadeOut().remove();
@@ -507,12 +507,12 @@ jQuery(document).ready(function($) {
 
 			if (!$(".window_idiographs").length) {
 				window_div = $('<div class="window_idiographs">').draggable();
-				label = $.main.ideographSelected.children('.span7').text();
+				label = $.main.idiographSelected.children('.span7').text();
 				$('body').append(window_div);
 
 			} else {
 				window_div = $(".window_idiographs");
-				label = $.main.ideographSelected.children('.span7').text();
+				label = $.main.idiographSelected.children('.span7').text();
 				window_div.fadeIn();
 			}
 
@@ -533,7 +533,7 @@ jQuery(document).ready(function($) {
 				window_save.attr('class', 'window');
 				var label_save;
 				var button_function;
-				if ($.main.ideographSelected) {
+				if ($.main.idiographSelected) {
 					label_save = "update";
 				} else {
 					label_save = "add";
@@ -553,8 +553,8 @@ jQuery(document).ready(function($) {
 				window_save.html(s);
 				$('#frmAnnotation').append(window_save);
 				$('#save').click(function() {
-					if ($.main.ideographSelected) {
-						$.main.update_idiograph($.main.ideographSelected);
+					if ($.main.idiographSelected) {
+						$.main.update_idiograph($.main.idiographSelected);
 					} else {
 						$.main.save_idiograph();
 					}
@@ -574,7 +574,7 @@ jQuery(document).ready(function($) {
 				window_delete.html(s);
 				$('#frmAnnotation').append(window_delete);
 				$('#delete').click(function() {
-					$.main.delete_idiograph($.main.ideographSelected);
+					$.main.delete_idiograph($.main.idiographSelected);
 				});
 				$('.close').click(function() {
 					window_delete.fadeOut().remove();
@@ -585,11 +585,11 @@ jQuery(document).ready(function($) {
 		new_idiograph: function() {
 			this.components.html('').trigger('liszt:updated');
 			this.allographs.val('').trigger('liszt:updated');
-			if (this.ideographSelected !== null) {
-				this.ideographSelected.css('background-color', '');
+			if (this.idiographSelected !== null) {
+				this.idiographSelected.css('background-color', '');
 			}
-			this.ideographSelected = null;
-			$('#ideograph_selected').html('Null (Defining new Ideograph)');
+			this.idiographSelected = null;
+			$('#idiograph_selected').html('Null (Defining new Idiograph)');
 			$('#features_container').html('');
 			$('#num_features').html('');
 			$features = [];

@@ -8,7 +8,7 @@
     Scribe: {{ scribe.name }}
     {% include "digipal/admin_edit.html" with instance=scribe %}
     {% if can_edit %}
-        <a class='admin-edit' href='/digipal/admin/newscriptentry?scribe={{scribe.id}}'>[Edit Ideographs]</a>
+        <a class='admin-edit' href='/digipal/admin/idiograph_editor?scribe={{scribe.id}}'>[Edit Idiographs]</a>
     {% endif %}
 {% endblock %}
 

@@ -56,7 +56,7 @@ $(document).ready(function() {
 
     init_suggestions();
 
-    // use bootstrap select to render the scop dropdown on the quick search
+    // use bootstrap select to render the scope dropdown on the quick search
     var $select = $('select[name="scp"]');
     if ($.fn.bootstrapSelect && $select.length) {
         $select.bootstrapSelect({
@@ -216,6 +216,13 @@ function init_search_page(options) {
         $('#result-types-switch a[data-target]').click(function(e) {
             e.preventDefault();
             $('#searchform input[name=result_type]').val($(this).attr('data-target').replace('#', ''));
+        });
+
+        // Update the result_type param in the query string when user
+        // clicks the link to go to faceted search from advanced search.
+        $('#link-faceted-search').click(function(e) {
+            var result_type = $('#searchform input[name=result_type]').val();
+            $(this).attr('href', $(this).attr('href') + '&result_type=' + result_type);
         });
 
         if (options && options.linked_fields) {

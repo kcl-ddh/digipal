@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% comment %}
+################################
+#    ADVANCED SEARCH RESULT    #
+################################
+{% endcomment%}
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
@@ -48,8 +53,8 @@
                             Show filters
                         {% endif %}
                     </a>
-                    <a class="pull-right" href="/digipal/search/facets/?terms={{ request.GET.terms|urlencode }}&amp;result_type={{ result_type|urlencode }}" 
-                        data-toggle="tooltip" title="Go to the Faceted Search page">
+                    <a class="pull-right" href="/digipal/search/facets/?terms={{ request.GET.terms|urlencode }}" 
+                        data-toggle="tooltip" title="Go to the Faceted Search page" id="link-faceted-search">
                         Faceted Search
                     </a>
             </div>

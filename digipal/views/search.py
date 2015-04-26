@@ -203,10 +203,14 @@ def search_record_view(request):
     if context.has_key('results'):
         # Tab Selection Logic =
         #     we pick the tab the user has selected even if it is empty. END
-        #     if none, we select a the advanced search content type
+        #     if none, we select the filter/advanced search content type
         #     if none or its result is empty we select the first non empty type 
         #     if none we select the first type. END
         result_type = request.GET.get('result_type', '')
+
+        # requested result type does not exist => ignore it
+        if result_type not in [type.key for type in context['types']]:
+            result_type = ''
 
         if not result_type:
             first_non_empty_type = None

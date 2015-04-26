@@ -3,7 +3,11 @@
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
     <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
-        <span class="dp-small pull-right"><a href="/digipal/search/" data-toggle="tooltip" title="Go to the Advanced Search page">Advanced Search</a></span>
+        <span class="dp-small pull-right">
+            <a href="/digipal/search/?terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}" data-toggle="tooltip" title="Go to the Advanced Search page">
+                Advanced Search
+            </a>
+        </span>
     </h1>
     
     

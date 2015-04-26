@@ -8,6 +8,8 @@
 {% endblock %}
 
 {% block extra_css %}
+    {{ block.super }}
+
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
@@ -111,6 +113,8 @@
 {% endblock %}
 
 {% block extra_js %}
+    {{ block.super }}
+
     {% if show_image %}
         <script>var annotator_zoom_levels = {{ zoom_levels }};</script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>

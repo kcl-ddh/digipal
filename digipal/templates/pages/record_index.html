@@ -4,9 +4,6 @@
 
 {% block meta_title %}{{ content_type.label }} ({{ selected_page.label }}){% endblock %}
 
-{% block extra_js %}
-{% endblock %}
-
 {% block head %}
     <h1 class='header1'>{{ content_type.label }} Index</h1>
 {% endblock %}
@@ -62,3 +59,8 @@
         {% endif %}
     </div>
 {% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+{% endblock %}
+

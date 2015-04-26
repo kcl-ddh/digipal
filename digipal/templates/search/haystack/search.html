@@ -3,11 +3,14 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags keyword_tags %}
 
-{% block extra_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-{% endblock %}
+{% comment %}
+
+    DEPRECATED HAYSTACK SEARCH PAGE
+     
+{% endcomment %}
 
 {% block extra_css %}
+    {{ block.super }}
 {% endblock %}
 
 {% block main %}
@@ -138,8 +141,11 @@
             {% endif %}
 
 {% endblock %}
+
 {% block extra_js %}
-<script>
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+    <script>
         $(document).ready(function(){
 
             var radio =  $('#radio');

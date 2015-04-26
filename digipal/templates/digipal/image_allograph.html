@@ -30,34 +30,34 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if can_edit %}
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-  <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-  <script type="text/javascript">
-      $(document).ready(function(){
-        annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-                    'x', {{ width }}, {{ height }},
-                    '{{ image_server_url }}', "{{can_edit}}");
-
-        annotator.hands_page = "{{hands_page}}";
-
-        if(annotator){
-          $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
-        }
-      });
-  </script>
-{% else %}
-<script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
-{% endif %}
-<script>
-
-  function selectFeature(id) {
-    window.opener.annotator.selectFeatureByIdAndCentre(id);
-    window.opener.focus();
-    return false;
-  }
-</script>
+    {{ block.super }}
+    {% if can_edit %}
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+      <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+      <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+      <script type="text/javascript">
+          $(document).ready(function(){
+            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+                        'x', {{ width }}, {{ height }},
+                        '{{ image_server_url }}', "{{can_edit}}");
+    
+            annotator.hands_page = "{{hands_page}}";
+    
+            if(annotator){
+              $.getScript('{{ STATIC_URL }}digipal/scripts/allographs-annotator.js');
+            }
+          });
+      </script>
+    {% else %}
+        <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+    {% endif %}
+    <script>    
+      function selectFeature(id) {
+        window.opener.annotator.selectFeatureByIdAndCentre(id);
+        window.opener.focus();
+        return false;
+      }
+    </script>
 {% endblock %}

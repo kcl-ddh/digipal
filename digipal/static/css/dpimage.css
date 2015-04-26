@@ -121,3 +121,7 @@
 .img_right {
     float: right;
 }
+
+.private-image {
+    color: red;
+}

@@ -26,16 +26,28 @@ from patches import iipimage_patches, admin_patches, whoosh_patches
 iipimage_patches()
 
 def has_edit_permission(request, model):
-    '''Returns True if the user of the current HTTP request
-        can edit a model. False otherwise.
+    '''Returns True if the user of the current HTTP request can edit a model. 
+        False otherwise.
 
         model is a model class
-        request is a django request
+        request is a django request or None (assumed public user)
     '''
     ret = False
-    if model and request and request.user:
+    if request and request.user:
+        ret = has_user_edit_permission(request.user, model)
+
+    return ret
+
+def has_user_edit_permission(user, model):
+    '''Returns True if the user can edit a model. False otherwise.
+
+        model is a model class
+        user is a django User instance or None (assumed public user)
+    '''
+    ret = False
+    if model and user:
         perm = model._meta.app_label + '.' + model._meta.get_change_permission()
-        ret = request.user.has_perm(perm)
+        ret = user.has_perm(perm)
 
     return ret
 
@@ -1591,14 +1603,16 @@ class Image(models.Model):
     def get_media_unavailability_reason(self, user=None):
         '''Returns an empty string if the media can be viewed by the user.
            Returns a message explaining the reason otherwise.
+           If User is not given, we assume public user.
         '''
         ret = ''
 
         if not self.iipimage:
             # image is missing, default message
-            ret = 'The image was not found'
+            ret = 'This record has no Image'
         else:
-            if (user is None) or (not user.is_superuser):
+            #if (user is None) or (not user.is_superuser):
+            if not has_user_edit_permission(user, Image):
                 permission = self.get_media_permission()
                 if permission.is_private:
                     ret = permission.display_message

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from django.contrib.auth.decorators import login_required
 from django.core import urlresolvers
 from django.db import transaction
@@ -8,20 +7,15 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 import json
 from django.utils.datastructures import SortedDict
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-import sys, re
+import re
 from django import template
-from django.template import Context
 from django.utils.safestring import mark_safe
-from django.views.decorators.csrf import ensure_csrf_cookie
-
 
 from digipal.forms import ImageAnnotationForm
 from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
         GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
         has_edit_permission, Aspect
 import ast
-from django import template
 from django.conf import settings
 from digipal.templatetags.hand_filters import chrono
 
@@ -196,7 +190,7 @@ def allograph_features(request, allograph_id):
         return allographs_list
 
 def image(request, image_id):
-    """Returns a image annotation form."""
+    """The view for the front-end annotator page"""
     
     from digipal.utils import request_invisible_model
     request_invisible_model('image', request, 'Image') 
@@ -218,7 +212,7 @@ def image(request, image_id):
         'height': image.dimensions()[1]
         }
     hands = image.hands.count()
-    url = url = request.path
+    url = request.path
     url = url.split('/')
     url.pop(len(url) - 1)
     url = url[len(url) - 1]
@@ -270,7 +264,8 @@ def image(request, image_id):
                'image_link': image_link, 'annotations': annotations.count(),
                'annotations_list': data_allographs, 'url': url,
                'hands': hands, 'is_admin': is_admin,
-               'no_image_reason': image.get_media_unavailability_reason(request.user),
+               'no_image_reason': image.get_media_unavailability_reason(),
+               # True is the user can edit the database
                'can_edit': has_edit_permission(request, Annotation),
                'ontograph_types': OntographType.objects.order_by('name'),
                'zoom_levels': zoom_levels,
@@ -280,6 +275,8 @@ def image(request, image_id):
                }
 
     context['annotations_switch_initial'] =  1 - int(context['hide_annotations'] or ((request.REQUEST.get('annotations', 'true')).strip().lower() in ['0', 'false']))
+    
+    context['show_image'] = context['can_edit'] or not context['no_image_reason']
     
     if vector_id:
         context['vector_id'] = vector_id
@@ -652,7 +649,6 @@ def images_lightbox(request, collection_name):
             data['images'] = images
         if 'editorial' in graphs:
             editorial_annotations = []
-            vector_ids = []
             editorial_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
             editorial_annotations_list.sort(key=lambda t: graphs['editorial'].index(str(t.id)))
             for _annotation in editorial_annotations_list:

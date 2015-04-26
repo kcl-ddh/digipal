@@ -1,9 +1,7 @@
 <div class="alert alert-warning">
-    <h6>
-        {% if message %}
-            {{ message }}
-        {% else %}
-            No {{ type|title }} associated to this record
-        {% endif %}
-    </h6>
+    {% if message %}
+        {{ message }}
+    {% else %}
+        No {{ type|title }} associated to this record
+    {% endif %}
 </div>

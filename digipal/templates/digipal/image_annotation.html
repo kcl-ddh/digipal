@@ -19,8 +19,8 @@
         Manuscript Image:
         <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
         {% include "digipal/admin_edit.html" with instance=image %}
-        {% if not no_image_reason or can_edit %}
-        <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
+        {% if show_image %}
+            <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
         {% endif %}
     </h2>
     <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
@@ -30,7 +30,13 @@
         <div class='col-md-12'>
             <ul class='nav nav-tabs'>
                 <li {% if url == image.id|slugify or url == 'allographs' %} class='active in' {% endif %}>
-                    <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>Manuscript Image</a>
+                    <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>
+                        Manuscript Image
+                        {% if no_image_reason %}
+                            <span class="glyphicon glyphicon glyphicon-ban-circle private-image" aria-hidden="true" 
+                            title="High resolution Image not publicly available" data-toggle="tooltip"></span>
+                        {% endif %}
+                    </a>
                 </li>
                 {% if cansee.graph %}
                     <li {% if annotations == 0 %} class='disabled' {% endif %}>
@@ -59,10 +65,10 @@
         <div class="tabbable">
             <div class="tab-content">
                 <div class="tab-pane fade {% if url == image.id|slugify or url == 'allographs' %} active in {% endif %}" id='annotator'>
-                    {% if no_image_reason %}
-                    {{ no_image_reason|richfield }}
+                    {% if no_image_reason and not show_image %}
+                        {% include "digipal/empty_tab.html" with message=no_image_reason|richfield %}
                     {% endif %}
-                    {% if not no_image_reason or can_edit %}
+                    {% if show_image %}
                         {% include "digipal/image_annotation_control_bar.html" %}
                         <div id="map" class='panel'></div>
                         <div id="toolbar"></div>
@@ -105,99 +111,100 @@
 {% endblock %}
 
 {% block extra_js %}
-    {% if not no_image_reason or can_edit %}
-    <script>var annotator_zoom_levels = {{ zoom_levels }};</script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
-    <script src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-    <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
-    <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
-    <script src="{{ STATIC_URL }}digipal/scripts/annotations-cache.js"></script>
-    <script type="text/javascript" src='{{ STATIC_URL }}js/jquery.notebook.min.js'></script>
-    {% if can_edit %}
-    <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
-    {% else %}
-    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
-    {% endif %}
-    <script>
-        $(document).ready(function() {
-            var si = new StoredInputs('digipal_settings');
-            si.registerInput('#ontograph_type');
-            var url = "{{ url }}";
-            var image_id = "{{ image.id }}";
-            if(url == image_id || url == 'allographs'){
-                main();
-            }
-
-            if(url == 'allographs'){
-                $('a[data-target="#allographs"]').tab('show');
-            }
-        });
-
-        function main(from_tab){
-
-            if($('#loading_allographs_image').hasClass("hidden")){
-                $('#loading_allographs_image').removeClass("hidden");
-            }
-
-            annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
-            'x', {{ width }}, {{ height }},
-            '{{ image_server_url }}', "{{is_admin}}");
-
-            {% if not is_admin %}
-            annotator.toolbarPanel.controls.splice(4, 4);
-            annotator.toolbarPanel.redraw();
-            annotator.user_annotations = [];
-            annotator.boxes_on_click = true;
-            {% endif %}
-            var dimensions = "{{ image.dimensions }}";
-            annotator.dimensions = dimensions.replace('(', '').replace(')', '').replace(' ', '').split(',');
-            annotator.image_id = {{ image.id }};
-            annotator.hands = {{ hands_list|safe }};
-            annotator.absolute_image_url = '{{ image.get_absolute_url }}';
-            annotator.url_annotations = '{{ image.get_absolute_url }}annotations/';
-            no_image_reason = false;
-            var _toolbar = $('#panelImageBox');
-            var toolbar_position = _toolbar.offset().top;
-            annotator.toolbar_position = toolbar_position;
-            {% if vector_id %}
-            vector_id = true;
-            vector_id_value = annotator.utils.getParameter('graph') || annotator.utils.getParameter('vector_id');
-            {% else %}
-            vector_id = false;
-            {% endif %}
-
-            {% if no_image_reason %}
-            no_image_reason = true;
-            {% endif %}
-
-            /* Calling page script */
-
-            if(annotator){
-	            annotator.annotations_switch_initial = {{ annotations_switch_initial }};
-	            annotator.hide_annotations = {{ hide_annotations }};
-                $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
-                if(annotator.isAdmin == 'True'){
-                    $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
+    {% if show_image %}
+        <script>var annotator_zoom_levels = {{ zoom_levels }};</script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
+        <script src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/update_dialog.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/annotator-digipal.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/stored-inputs.js"></script>
+        <script src='http{% if request.is_secure %}s{% endif %}://apis.google.com/js/client.js'></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/annotations-cache.js"></script>
+        <script type="text/javascript" src='{{ STATIC_URL }}js/jquery.notebook.min.js'></script>
+        {% if can_edit %}
+            <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
+        {% else %}
+            <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+        {% endif %}
+        <script>
+            $(document).ready(function() {
+                var si = new StoredInputs('digipal_settings');
+                si.registerInput('#ontograph_type');
+                var url = "{{ url }}";
+                var image_id = "{{ image.id }}";
+                if(url == image_id || url == 'allographs'){
+                    main();
+                }
+    
+                if(url == 'allographs'){
+                    $('a[data-target="#allographs"]').tab('show');
+                }
+            });
+    
+            function main(from_tab){
+    
+                if($('#loading_allographs_image').hasClass("hidden")){
+                    $('#loading_allographs_image').removeClass("hidden");
+                }
+    
+                annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
+                'x', {{ width }}, {{ height }},
+                '{{ image_server_url }}', "{{is_admin}}");
+    
+                {% if not is_admin %}
+                    annotator.toolbarPanel.controls.splice(4, 4);
+                    annotator.toolbarPanel.redraw();
+                    annotator.user_annotations = [];
+                    annotator.boxes_on_click = true;
+                {% endif %}
+                var dimensions = "{{ image.dimensions }}";
+                annotator.dimensions = dimensions.replace('(', '').replace(')', '').replace(' ', '').split(',');
+                annotator.image_id = {{ image.id }};
+                annotator.hands = {{ hands_list|safe }};
+                annotator.absolute_image_url = '{{ image.get_absolute_url }}';
+                annotator.url_annotations = '{{ image.get_absolute_url }}annotations/';
+                no_image_reason = false;
+                var _toolbar = $('#panelImageBox');
+                var toolbar_position = _toolbar.offset().top;
+                annotator.toolbar_position = toolbar_position;
+                {% if vector_id %}
+                    vector_id = true;
+                    vector_id_value = annotator.utils.getParameter('graph') || annotator.utils.getParameter('vector_id');
+                {% else %}
+                    vector_id = false;
+                {% endif %}
+    
+                {% if no_image_reason %}
+                    no_image_reason = true;
+                {% endif %}
+    
+                /* Calling page script */
+    
+                if(annotator){
+    	            annotator.annotations_switch_initial = {{ annotations_switch_initial }};
+    	            annotator.hide_annotations = {{ hide_annotations }};
+                    $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
+                    if(annotator.isAdmin == 'True'){
+                        $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
+                    }
+                }
+    
+                if(from_tab){
+                    annotator.vectorLayer.events.register("loadend", annotator.vectorLayer, function() {
+                        restoreFullscreenPositions();
+                    });
                 }
             }
-
-            if(from_tab){
-                annotator.vectorLayer.events.register("loadend", annotator.vectorLayer, function() {
-                    restoreFullscreenPositions();
-                });
-            }
-        }
-
-    </script>
+    
+        </script>
     {% endif %}
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+    
     {% if not can_edit %}
-    <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
+        <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
     {% endif %}
 {% endblock %}

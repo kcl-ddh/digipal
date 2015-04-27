@@ -46,7 +46,7 @@ def get_ms_id_from_image_names(manuscripts, folios):
     # find a pattern among the image paths
     pattern = SortedDict()
     
-    folio_count = folios.count()
+    folio_count = len(folios)
     for folio in folios:
         im_path = folio.iipimage.name
         
@@ -135,6 +135,9 @@ def image_bulk_edit(request, url=None):
     
     context = {}
     context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
+    
+    from digipal.utils import natural_sort_key
+    context['folios'] = sorted(list(context['folios']), key=lambda r: natural_sort_key(unicode(r.iipimage)))
     
     context['folio_sides'] = []
     '''

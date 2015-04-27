@@ -665,7 +665,7 @@ class ImageAdmin(DigiPalModelAdmin):
     change_list_template = 'admin/digipal/change_list.html'
     
     # temporary
-    #list_per_page = 100000
+    #list_per_page = 500
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'locus', 'get_thumbnail', 

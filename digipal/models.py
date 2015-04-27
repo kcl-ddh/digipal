@@ -1642,21 +1642,21 @@ class Image(models.Model):
         ''' Returns a label for the locus from the side and number fields.
             If hide_type is False, don't include p. or f. in the output.
         '''
-        ret = ''
+        ret = u''
         if self.folio_number:
-            ret = ret + self.folio_number
+            ret = ret + unicode(self.folio_number)
         if self.folio_side:
-            ret = ret + self.folio_side
+            ret = ret + unicode(self.folio_side)
 
-        if ret == '0r':
-            ret = 'face'
-        if ret == '0v':
-            ret = 'dorse'
+        if ret == u'0r':
+            ret = u'face'
+        if ret == u'0v':
+            ret = u'dorse'
 
-        if ret and self.folio_number and self.folio_number != '0' and not hide_type:
-            unit = 'f.'
+        if ret and self.folio_number and self.folio_number != u'0' and not hide_type:
+            unit = u'f.'
             if self.item_part and self.item_part.pagination:
-                unit = 'p.'
+                unit = u'p.'
             ret = unit + ret
 
         return ret

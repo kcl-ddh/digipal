@@ -385,6 +385,9 @@ ITEM_PART_DEFAULT_LOCUS = 'face'
 
 SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
 
+# This appears in the advanced search page
+HAND_ID_PREFIX = 'DigiPal Hand '
+
 STATUS_CHOPPER = 'chopper'
 STATUS_DEFAULT = 'draft'
 STATUS = [STATUS_DEFAULT, STATUS_CHOPPER]

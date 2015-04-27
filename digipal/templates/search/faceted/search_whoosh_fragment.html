@@ -4,7 +4,7 @@
 
     <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
         <span class="dp-small pull-right">
-            <a href="/digipal/search/?terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}" data-toggle="tooltip" title="Go to the Advanced Search page">
+            <a href="/digipal/search/?s=1&terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}" data-toggle="tooltip" title="Go to the Advanced Search page">
                 Advanced Search
             </a>
         </span>

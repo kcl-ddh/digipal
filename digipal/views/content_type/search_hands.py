@@ -24,7 +24,7 @@ class SearchHands(SearchContentType):
         # Use FT_CODE instead of FT_TITLE because we have numbers in the field e.g. "Digipal Hand 1" woudln't return anything with FT_TITLE 
         ret['scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
         # JIRA 358: we need to search by the hand name
-        ret['pk'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand', 'format': 'DigiPal Hand %s'}}
+        ret['pk'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand', 'format': settings.HAND_ID_PREFIX + '%s'}}
         
         ret['assigned_place__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}
         ret['item_part__current_item__shelfmark'] = {'whoosh': {'type': self.FT_CODE, 'name': 'shelfmark', 'boost': 3.0}}

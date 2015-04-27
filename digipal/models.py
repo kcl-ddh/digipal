@@ -1985,7 +1985,7 @@ class Hand(models.Model):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
 
     def get_search_label(self):
-        return 'DigiPal Hand %s' % self.id
+        return '%s%s' % (settings.HAND_ID_PREFIX , self.id)
 
     def get_short_label(self):
         ret = unicode(self)

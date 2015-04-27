@@ -16,7 +16,7 @@
                     <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
 
-                <td>DigiPal Hand {{ hand.id }}
+                <td>{{ hand.get_search_label }}
                     {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
                 </td>
 

@@ -193,7 +193,8 @@ def process_commands_main_dir():
                 print '> Pull digipal (%s)' % github_dir
                 os.chdir(github_dir)
                 git_status_info = {}
-                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
+                #system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
+                system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', output_data=git_status_info)
                 branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])
                 
                 system('git pull', validation_git)

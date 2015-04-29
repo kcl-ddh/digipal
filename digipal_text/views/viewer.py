@@ -74,7 +74,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
-    max_fragment_size = 10000
+    max_fragment_size = 100000
     
     text_content_xml = None
     
@@ -158,7 +158,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
                 ret['message'] = 'Content backed up'
             
             # save the new content
-            text_content_xml.save()
+            # TODO: UNCOMMENT!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ##text_content_xml.save()
             
             # update the extent
             # note that extent can fail now if the user has remove the marker for the current location

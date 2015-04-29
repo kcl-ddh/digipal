@@ -8,6 +8,8 @@ import re
 from optparse import make_option
 from django.db import IntegrityError
 
+from exon.customisations.digipal_text import models
+
 class Command(BaseCommand):
     help = """
 Digipal Text management tool.
@@ -19,6 +21,10 @@ Commands:
   
   restore   COPY_ID
             restore a copy
+            
+  markup    CONTENT_ID
+            auto-markup a content
+            
 """
     
     args = 'reformat|importtags'
@@ -59,6 +65,10 @@ Commands:
         
         known_command = False
 
+        if command == 'list':
+            known_command = True
+            self.command_list()
+
         if command == 'copies':
             known_command = True
             self.command_copies()
@@ -67,11 +77,45 @@ Commands:
             known_command = True
             self.command_restore()
         
+        if command == 'markup':
+            known_command = True
+            self.command_markup()
+
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
             
         if not known_command:
             print self.help
+
+    def get_friendly_datetime(self, dtime):
+        return re.sub(ur'\..*', '', unicode(dtime))
+
+    def get_content_xml_summary(self, content_xml):
+        return '#%4s %8s %20s %20s %20s' % (content_xml.id, content_xml.get_length(), 
+                self.get_friendly_datetime(content_xml.created), self.get_friendly_datetime(content_xml.modified), content_xml.text_content)
+            
+    def command_list(self):
+        from digipal_text.models import TextContentXML
+        for content_xml in TextContentXML.objects.all().order_by('text_content__item_part__display_label', 'text_content__type__name'):
+            print self.get_content_xml_summary(content_xml)
+        
+    def command_markup(self):
+        from digipal_text.models import TextContentXML
+        if len(self.args) > 1:
+            content_xml = TextContentXML.objects.filter(id=self.args[1]).first()
+            if content_xml:
+                print self.get_content_xml_summary(content_xml)
+                
+                versions = [content_xml.content]
+                
+                content_xml.convert()
+                
+                versions.append(content_xml.content)
+                
+                print repr(content_xml.content)
+                
+        else:
+            pass
     
     def command_copies(self):
         from digipal_text.models import TextContentXMLCopy

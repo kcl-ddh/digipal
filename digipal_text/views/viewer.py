@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-from digipal_text.models import *
+#from digipal_text.models import *
+from digipal_text.models import TextContentXMLStatus, TextContent, TextContentXML
 import re
 from django.shortcuts import render
-from django.template import RequestContext
-from django.shortcuts import render_to_response
-from django.utils.safestring import mark_safe
-from django.core import urlresolvers
-from django.http import HttpResponse, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, Http404
 from django.db import transaction
 from digipal import utils
 from django.utils.datastructures import SortedDict 
@@ -89,7 +86,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         #print 'item_part %s' % item_part
         # get or create the TextContent
         with transaction.atomic():
-            from digipal_text.models import TextContent, TextContentXML
             text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
             # get or create the TextContentXML
             text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)

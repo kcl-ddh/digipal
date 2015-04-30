@@ -256,9 +256,27 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     if location:
         imageid = re.sub(ur'^#(\d+)$', ur'\1', location)
         if imageid and imageid != location:
+            # e.g. location = #100
             image = Image.objects.filter(id=imageid).first()
         else:
+            # e.g. location = 13r
             image = Image.objects.filter(item_part_id=item_partid, locus=location).first()
+            
+            # e.g. location = 54b2 (entry number)
+            # => convert to 54v
+            # TODO: check location_type
+            # TODOL this is a customisation for EXON, 
+            # unlikely to be relevant for other projects
+            if not image:
+                parts = re.match('(\d+)([abrv]?)(\d*)', location)
+                if parts:
+                    number = parts.group(1)
+                    side = 'r'
+                    if parts.group(2) and parts.group(2) == 'b': side = 'v'
+                    locus = number+side
+                    image = Image.objects.filter(item_part_id=item_partid, locus=locus).first()
+    
+    # Image not found, display the first one
     if not image:
         image = Image.objects.filter(item_part_id=item_partid).first()
     

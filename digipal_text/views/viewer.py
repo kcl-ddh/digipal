@@ -37,7 +37,14 @@ def text_viewer_view(request, item_partid=0):
     ]
     context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
     
+    update_viewer_context(context, request)
+    
     return render(request, 'digipal_text/text_viewer.html', context)
+
+def update_viewer_context(context, request):
+    ''' To be overridden '''
+    # TODO: design a better overriding model
+    pass
 
 def text_api_view(request, item_partid, content_type, location_type, location):
     
@@ -264,16 +271,9 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
             
             # e.g. location = 54b2 (entry number)
             # => convert to 54v
-            # TODO: check location_type
-            # TODOL this is a customisation for EXON, 
-            # unlikely to be relevant for other projects
             if not image:
-                parts = re.match('(\d+)([abrv]?)(\d*)', location)
-                if parts:
-                    number = parts.group(1)
-                    side = 'r'
-                    if parts.group(2) and parts.group(2) == 'b': side = 'v'
-                    locus = number+side
+                locus = get_locus_from_location(location_type, location)
+                if locus:
                     image = Image.objects.filter(item_part_id=item_partid, locus=locus).first()
     
     # Image not found, display the first one
@@ -296,3 +296,19 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     
     return ret
 
+def get_locus_from_location(location_type, location):
+    ret = None
+    
+    # e.g. location = 54b2 (entry number)
+    # => convert to 54v
+    # TODO: check location_type
+    # TODOL this is a customisation for EXON, 
+    # unlikely to be relevant for other projects
+    parts = re.match('(\d+)([abrv]?)(\d*)', location)
+    if parts:
+        number = parts.group(1)
+        side = 'r'
+        if parts.group(2) and parts.group(2) == 'b': side = 'v'
+        ret = number+side
+        
+    return ret

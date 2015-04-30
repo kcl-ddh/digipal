@@ -25,7 +25,7 @@ Generate a hash key from it and use it in the query string to force reload when 
 /* General */
 
 div.mce-content-body.preview {
-    margin: 8px;
+    padding: 8px;
 }
 
 .mce-content-body p, .mce-content-body div {

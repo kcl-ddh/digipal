@@ -138,7 +138,7 @@
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
     //
     /////////////////////////////////////////////////////////////////////////
-    var Panel = TextViewer.Panel = function($root, contentType) {
+    var Panel = TextViewer.Panel = function($root, contentType, panelType) {
         this.$root = $root;
         
         // we set a ref from the root element to its panel 
@@ -148,6 +148,7 @@
         }
         this.$root[0].textViewerPanel = this;
         
+        this.panelType = panelType;
         this.contentType = contentType;
         
         this.panelSet = null;
@@ -161,7 +162,9 @@
 
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
-        $panelHtml.attr('id', '');
+        $panelHtml.removeAttr('id');
+        $panelHtml.addClass('ct-'+contentType);
+        $panelHtml.addClass('pt-'+panelType.toLowerCase());
         this.$root.html($panelHtml);
         
         // We create bindings for all the html controls on the panel
@@ -532,7 +535,7 @@
     //
     //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType) {
-        TextViewer.Panel.call(this, $root, contentType);
+        TextViewer.Panel.call(this, $root, contentType, 'Text');
 
         this.getEditingMode = function() {
             return false;
@@ -559,8 +562,8 @@
         
     };
     
-    PanelText.prototype = Panel;
-
+    PanelText.prototype = Object.create(Panel.prototype);
+    
     PanelText.prototype.onContentLoaded = function(data) {
         this.$content.addClass('mce-content-body').addClass('preview');
         this.$content.html(data.content);
@@ -575,7 +578,7 @@
     TextViewer.textAreaNumber = 0;
     
     var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType) {
-        TextViewer.PanelText.call(this, $root, contentType);
+        TextViewer.PanelText.call(this, $root, contentType, 'Text');
         
         this.unreadyComponents.push('tinymce');
         
@@ -695,7 +698,7 @@
         this.initTinyMCE();
     };
 
-    PanelTextWrite.prototype = PanelText;
+    PanelTextWrite.prototype = Object.create(PanelText.prototype);
 
     PanelTextWrite.prototype.onContentLoaded = function(data) {
         this.tinymce.setContent(data.content);
@@ -712,8 +715,9 @@
     //
     //////////////////////////////////////////////////////////////////////
     var PanelImage = TextViewer.PanelImage = function($root, contentType) {
-        Panel.call(this, $root, contentType);
-        
+
+        Panel.call(this, $root, contentType, 'Image');
+
         this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
             var me = this;
@@ -735,8 +739,8 @@
         };
     };
     
-    PanelImage.prototype = Panel;
-    
+    PanelImage.prototype = Object.create(Panel.prototype);
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelNavigator

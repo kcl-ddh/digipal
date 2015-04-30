@@ -69,6 +69,7 @@ span.message-error {
 
 .ui-layout-pane {
     padding: 0 !important;
+    overflow: hidden !important;
 }
 
 .text-viewer-panel {

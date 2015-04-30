@@ -164,21 +164,42 @@ span[data-dpt] > span[data-dpt] {
     background: transparent;
 }
 
-.preview.mce-content-body span[data-dpt=supplied]:before {
+.preview.mce-content-body span[data-dpt=supplied]:before,
+.preview.mce-content-body span[data-dpt=gap]:before {
     font-size: 100%;
     color: rgb(5,5,5);;
     font-weight: normal;
-    content: "(";
     font-family: junicode, arial, sans-serif;
     margin-top: 0px;
     position: relative;
-    content: "<";
+    content: "[";
 }
-.preview.mce-content-body span[data-dpt=supplied]:after {
+.preview.mce-content-body span[data-dpt=supplied]:after,
+.preview.mce-content-body span[data-dpt=gap]:after {
     font-size: 100%;
-    color: rgb(5,5,5);;
+    color: rgb(5,5,5);
     font-weight: normal;
-    content: ">";
+    content: "]";
+}
+
+.mce-content-body span[data-dpt=gap]:before {
+    content: "Gap";
+}
+
+.preview.mce-content-body span[data-dpt=gap] {
+    background: transparent;
+}
+
+.mce-content-body span[data-dpt=marginal]:before {
+    content: "Margin";
+}
+
+.mce-content-body span[data-dpt=interlineation]:before {
+    content: "Int.";
+}
+
+.mce-content-body span[data-dpt=interlineation-to-margin]:before {
+    content: "Int. -> marg.";
 }
 
 /*
@@ -269,6 +290,7 @@ span[data-dpt] > span[data-dpt] {
 }
 
 /* TEI */
+/* For DigiPal Project Hand descriptions */
 
 .mce-content-body span[data-dpt=foreign]:before {
     content: "Foreign";

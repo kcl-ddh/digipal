@@ -850,3 +850,17 @@ def convert_xml_to_html(xml):
     
     return ret
     
+def re_sub_fct(content, apattern, fct):
+    # Replace every occurrence of apattern in content with fct(match)
+    # Return the resulting content  
+    pattern = re.compile(apattern)
+    pos = 0
+    while True:
+        match = pattern.search(content, pos)
+        if not match: break
+
+        replacement = fct(match)
+        content = content[0:match.start(0)] + replacement + content[match.end(0):]
+        pos = match.start(0) + len(replacement)
+        
+    return content

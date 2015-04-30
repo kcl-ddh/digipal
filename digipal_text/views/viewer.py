@@ -128,6 +128,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     
     extent = get_fragment_extent(record_content, location_type, location)
     ret['message'] = ''
+    dry_run = 0
     if extent:
         # make sure we compare with None, as '' is a different case
         if new_fragment is not None:
@@ -135,7 +136,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
 
             # insert user fragment
             len_previous_record_content = len(record_content)
-            record_content = record_content[0:extent[0]]+new_fragment+record_content[extent[1]:]
+            # TODO: UNCOMMENT!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if not dry_run:
+                record_content = record_content[0:extent[0]]+new_fragment+record_content[extent[1]:]
     
             # we make a copy if the new content removes 10% of the content
             # this might be due to a bug in the UI
@@ -159,7 +162,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             
             # save the new content
             # TODO: UNCOMMENT!!!!!!!!!!!!!!!!!!!!!!!!!!
-            ##text_content_xml.save()
+            if not dry_run:
+                text_content_xml.save()
             
             # update the extent
             # note that extent can fail now if the user has remove the marker for the current location

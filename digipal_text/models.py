@@ -138,7 +138,7 @@ class TextContentXML(models.Model):
 def set_additional_models_methods():
     
     def model_get_absolute_url(self):
-        from utils import plural
+        from digipal.utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
         if self._meta.module_name in ['currentitem']: 
             return None            

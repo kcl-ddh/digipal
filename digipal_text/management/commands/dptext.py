@@ -108,11 +108,21 @@ Commands:
                 
                 versions = [content_xml.content]
                 
-                content_xml.convert()
+                #content_xml.convert()
                 
-                versions.append(content_xml.content)
+                #versions.append(content_xml.content)
                 
-                print repr(content_xml.content)
+                #print repr(content_xml.content)
+                
+                # 1a
+                # 1b
+                # 14b1
+                # 16a1
+                # 179, 379
+                
+                pattern = ur'(?musi)&lt;\s*(\w+a)\s*&gt;'
+                for folio in re.findall(pattern, content_xml.content):
+                    print folio
                 
         else:
             pass

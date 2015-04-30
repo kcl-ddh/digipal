@@ -401,7 +401,8 @@
             // received from the server.
             
             if (locations) {
-                locations['sync'] = ['Transcription', 'Translation', 'Image']
+                //locations['sync'] = ['Transcription', 'Translation', 'Image', 'Codicology']
+                locations['sync'] = this.$contentTypes.dpbsdropdown('getLabels');
                 
                 // save the locations
                 this.locations = locations;
@@ -664,20 +665,14 @@
             var divid = 'text-area-' + TextViewer.textAreaNumber;
             this.$content.append('<div id="'+ divid + '"></div>');
             var me = this;
-            tinyMCE.init({
+
+            var options = {
                 skin : 'digipal',
                 selector: '#' + divid,
                 init_instance_callback: function() {
                     me.tinymce = tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
                 },
-//                setup : function(ed) {
-//                    ed.onPaste.add(function(ed, e) {
-//                        // TODO: move the code to the plug in as a tinymce command.
-//                        // convert all the Ps into DIVs
-//                        ed.setContent(ed.getContent().replace(/<\/?p/g, '<div'));
-//                    });
-//                },
                 plugins: ['paste', 'code', 'panelset'],
                 toolbar: 'psclear undo redo pssave | psconvert | psclause | pslocation | psex pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em,p,span',
@@ -691,7 +686,32 @@
                 statusbar: false,
                 height: '15em',
                 content_css : "/static/digipal_text/viewer/tinymce.css?v=3"
-            });
+            };
+            
+            if (this.contentType == 'codicology') {
+                options['toolbar'] = 'psclear undo redo | pslocation | psh1 psh2 | pspgside pspgdimensions pspgcolour | pshand | code';
+                options['paste_as_text'] = true;
+                options['paste_postprocess'] = function(plugin, args) {
+                    //args.node is a temporary div surrounding the content that will be inserted
+                    //console.log($(args.node).html());
+                    //$(args.node).html($(args.node).html().replace(/<(\/?)p/g, '<$1div'));
+                    //console.log($(args.node).html());
+                    //console.log(args.node);
+                    
+                    // remove all tags except <p>s
+                    var content = $(args.node).html();
+                    content = content.replace(/<(?!\/?p(?=>|\s.*>))\/?.*?>/gi, '');
+                    // remove attributes from all the elements
+                    content = content.replace(/<(\/?)([a-z]+)\b[^>]*>/gi, '<$1$2>');
+                    // remove nbsp;
+                    content = content.replace(/&nbsp;/gi, '');
+                    // remove empty elements
+                    content = content.replace(/<[^>]*>\s*<\/[^>]*>/gi, '');
+                    $(args.node).html(content);
+                };
+            }
+            
+            tinyMCE.init(options);
             
         };
         
@@ -741,6 +761,15 @@
     
     PanelImage.prototype = Object.create(Panel.prototype);
 
+    //////////////////////////////////////////////////////////////////////
+    //
+    // PanelNavigator
+    //
+    //////////////////////////////////////////////////////////////////////
+    var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
+        TextViewer.Panel.call(this, $root, contentType);
+    };
+    
     //////////////////////////////////////////////////////////////////////
     //
     // PanelNavigator

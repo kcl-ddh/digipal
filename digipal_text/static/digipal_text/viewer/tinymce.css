@@ -316,3 +316,16 @@ span[data-dpt] > span[data-dpt] {
     content: "HI:SC";
 }
 
+/* Codicology */
+
+.mce-content-body span[data-dpt=page_side]:before {
+    content: "Side";
+}
+
+.mce-content-body span[data-dpt=page_dimensions]:before {
+    content: "Dims";
+}
+
+.mce-content-body span[data-dpt=page_colour]:before {
+    content: "Colour";
+}

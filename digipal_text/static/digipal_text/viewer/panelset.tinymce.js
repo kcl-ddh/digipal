@@ -244,6 +244,34 @@ var PanelSetPlugIn = function(editor, url) {
             addSpan({'tag': 'record', 'attributes': {'model': 'hand'}});
         }
     });
+    
+    // -------------------------------------------------------------------
+    // CODICOLOGY
+    
+    editor.addButton('pspgside', {
+        text: 'Side',
+        tooltip: 'Page side (Hair, Flesh)',
+        onclick: function() {
+            addSpan({'tag': 'page_side', 'attributes': {'cat': 'chars'}});
+        }
+    });
+    
+    editor.addButton('pspgdimensions', {
+        text: 'Dims',
+        tooltip: 'The dimensions of the page (e.g. 25.1 cm x 15.6 cm)',
+        onclick: function() {
+            addSpan({'tag': 'page_dimensions', 'attributes': {'cat': 'chars'}});
+        }
+    });
+
+    editor.addButton('pspgcolour', {
+        text: 'Colour',
+        tooltip: 'The colour of the page',
+        onclick: function() {
+            addSpan({'tag': 'page_colour', 'attributes': {'cat': 'chars'}});
+        }
+    });
+    // -------------------------------------------------------------------
 
     // Hand
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html

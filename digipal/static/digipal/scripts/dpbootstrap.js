@@ -67,6 +67,14 @@
             });
         },
         
+        getLabels: function(key, silent) {
+            var ret = [];
+            this.$el.find('ul.dropdown-menu li a').each(function() {
+                ret.push($(this).text());
+            });
+            return ret;
+        },
+        
         setOption: function(key, silent) {
             // select the option from its key
             // if key is not provided, leave the selection as it is

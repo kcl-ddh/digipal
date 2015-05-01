@@ -203,7 +203,7 @@ var PanelSetPlugIn = function(editor, url) {
             fixedWidth: true,
             onclick: function(e) {
                 if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
-                    addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': e.control.settings.value}});
+                    addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': e.control.settings.value}, 'conditions': {'isparent': null}});
                 }
             }
         };

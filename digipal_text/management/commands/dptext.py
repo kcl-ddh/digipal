@@ -25,6 +25,9 @@ Commands:
   markup    CONTENT_ID
             auto-markup a content
             
+  search    QUERY
+            search content by query 
+            
 """
     
     args = 'reformat|importtags'
@@ -76,6 +79,10 @@ Commands:
         if command == 'restore':
             known_command = True
             self.command_restore()
+            
+        if command == 'units':
+            known_command = True
+            self.command_units()
         
         if command == 'markup':
             known_command = True
@@ -86,6 +93,14 @@ Commands:
             
         if not known_command:
             print self.help
+            
+    def command_units(self):
+        from digipal_text.models import TextUnit
+        rs = TextUnit.objects
+        #print repr(rs)
+        rs = rs.all()
+        for r in rs:
+            print r.id 
 
     def get_friendly_datetime(self, dtime):
         return re.sub(ur'\..*', '', unicode(dtime))

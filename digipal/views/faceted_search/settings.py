@@ -165,7 +165,7 @@ FACETED_SEARCH = {
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'text_type', 'label': 'Type', 'path': 'text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
 
-                               {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'short_text'},
+                               {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
                                
@@ -177,6 +177,26 @@ FACETED_SEARCH = {
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
 #                     'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
+                },
+
+                {
+                    #'disabled': True,
+                    'key': 'textunits', 
+                    'label': 'Unit of Text',
+                    'model': 'digipal_text.models.TextUnit',
+                    'fields': [
+                               
+                               #{'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
+                               {'key': 'entryid', 'label': 'Ref', 'path': 'entryid', 'search': True, 'viewable': True, 'type': 'code'},
+                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
+                               ],
+#                     'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
+#                     'prefetch_related': ['item_part__historical_items'],
+#                     'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
+#                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
+#                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
+#                     'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
+#                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
 
                 {

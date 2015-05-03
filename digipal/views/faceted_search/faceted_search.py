@@ -189,6 +189,12 @@ class FacetedModel(object):
                 if field['type'] == 'boolean':
                     ret[field['key']] = int(bool(ret[field['key']]) and ret[field['key']] not in ['0', 'False', 'false'])
                 
+                if field['type'] == 'xml':
+                    from django.utils.html import strip_tags
+                    import HTMLParser
+                    html_parser = HTMLParser.HTMLParser()
+                    ret[field['key']] = html_parser.unescape(strip_tags(ret[field['key']]))
+
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
                     rng = get_range_from_date(ret[field['key']])
@@ -761,6 +767,9 @@ def get_whoosh_field_type(field, sortable=False):
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'short_text':
         # A few words.
+        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
+    elif field_type == 'xml':
+        # xml document.
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'boolean':
         # A few words.

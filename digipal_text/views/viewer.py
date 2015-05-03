@@ -312,3 +312,103 @@ def get_locus_from_location(location_type, location):
         ret = number+side
         
     return ret
+
+def text_api_view_search(request, item_partid, content_type, location_type, location):
+    '''
+        location = an identifier for the image. Relative to the item part
+                    '#1000' => image with id = 1000
+                    '1r'    => image with locus = 1r attached to selected item part
+    '''
+    ret = {}
+    
+    from digipal.templatetags.html_escape import iip_img
+    from digipal.models import Image
+    
+    # return the locus of the images under this item part
+    # return #ID for images which have no locus
+    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
+        ret['locations'] = SortedDict()
+        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+
+    # resolve 'default' location request
+    location_type, location = resolve_default_location(location_type, location, ret)
+    
+    query = request.REQUEST.get('query', '')
+    entries = ''
+    hit_count = 0
+    if query:
+        tcx = TextContentXML.objects.filter(text_content__type__slug='translation', text_content__item_part__id=item_partid).first()
+        if tcx:
+            for hit in get_entries_from_query(query):
+                hit_count += 1
+                entries += '<li><a data-location-type="entry" href="%s">%s</a><br/>%s</li>' % (hit['entryid'], hit['entryid'], hit['snippets']) 
+            
+            #import re
+            #match = re.search()
+            #tcx.content
+            #print tcx
+        
+    # e.g. if the requested location is 'default' we resolve it
+    from django.utils.html import escape 
+    ret['location_type'] = location_type
+    ret['location'] = location
+
+    ret['content'] = ur'''<form class="text-search-form" method="GET">
+        <p>Query: <input type="text" name="query" value="%s"/><input type="submit" name="s" value="Search"/></p>
+        <p>%s entries</p>
+        <ul>
+            %s
+        </ul>
+    </form>''' % (escape(query), hit_count, entries)
+    
+    return ret
+
+def get_entries_from_query(query):
+
+    # run the query with Whoosh
+    from django.conf import settings
+    from whoosh.index import open_dir
+    import os
+    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'textunits'))
+
+    #from whoosh.qparser import QueryParser
+    
+    search_phrase = query
+    
+    # make the query
+    # get the field=value query from the selected facet options
+    field_queries = u''
+    
+    # add the search phrase    
+    if search_phrase or field_queries:
+        qp = get_whoosh_parser(index)
+        q = qp.parse(u'%s %s' % (search_phrase, field_queries))
+    else:
+        from whoosh.query.qcore import Every
+        q = Every()
+           
+    ret = []
+    
+    with index.searcher() as s:
+        # run the query
+        #facets = self.get_whoosh_facets()
+
+        hits = s.search(q, limit=1000000, sortedby='entryid_sortable')
+        hits.fragmenter.charlimit = None
+        
+        # get highlights from the hits
+        for hit in hits:
+            ret.append({'entryid': hit['entryid'], 'snippets': hit.highlights('content', top=10)})
+        #print '%s hits.' % len(hits)
+                
+    return ret
+
+def get_whoosh_parser(index):
+    from whoosh.qparser import MultifieldParser, GtLtPlugin
+    
+    # TODO: only active columns
+    term_fields = ['content', 'entryid']
+    parser = MultifieldParser(term_fields, index.schema)
+    parser.add_plugin(GtLtPlugin)
+    return parser
+

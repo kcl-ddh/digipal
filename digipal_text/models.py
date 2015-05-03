@@ -15,6 +15,68 @@ import digipal.models
 from django.contrib.auth.models import User
 dplog = logging.getLogger('digipal_debugger')
 
+class TextUnits(object):
+    
+    def __init__(self):
+        self.recs = list()
+        
+        # get all the texts
+        pattern = re.compile(ur'<span[^>]+data-dpt-loctype="entry"[^>]*>([^<]+)</span>')
+        for content_xml in TextContentXML.objects.all():
+            rec = None
+            # get all the entries in this content
+            pos = 0
+            content = content_xml.content
+            if content:
+                while True:
+                    match = pattern.search(content, pos)
+                    if match:
+                        if rec:
+                            rec.content =  content[pos:match.start(0)]
+                        rec = TextUnit()
+                        rec.entryid = match.group(1).strip()
+                        pos = match.end(0)
+                        rec.content_xml = content_xml
+                        rec.content = None
+                        self.recs.append(rec)
+                    else:
+                        if rec:
+                            rec.content =  content[pos:]
+                        break
+    
+    def __iter__(self):
+        return self.recs.__iter__()
+    
+    def iterator(self, *args, **kwargs):
+        return self.recs
+
+    def count(self, *args, **kwargs):
+        return len(self.recs)
+
+    def all(self, *args, **kwargs):
+        return self
+
+    def filter(self, *args, **kwargs):
+        return self
+        
+    def order_by(self, *args, **kwargs):
+        return self
+
+class ClassProperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+    
+class TextUnit(object):
+
+    @property
+    def id(self):
+        return ur'%s:%s' % (self.content_xml.id, self.entryid)
+    
+    @ClassProperty
+    @classmethod
+    def objects(cls, *args, **kwargs):
+        return TextUnits()
+
 class TextContentType(digipal.models.NameModel):
     pass
 

@@ -539,10 +539,11 @@ class FacetedModel(object):
             records = records.in_bulk(ids)
             
             if len(records) != len(ids):
-                raise Exception("DB query didn't retrieve all Whoosh results.")
+                #raise Exception("DB query didn't retrieve all Whoosh results.")
+                pass
             
             # 'item_part__historical_items'
-            ret = [records[int(id)] for id in ids]
+            ret = [records[int(id)] for id in ids if int(id) in records]
             
             hand_filters.chrono(':sql')
 

@@ -287,15 +287,16 @@ MIDDLEWARE_CLASSES = (
 
 ADMIN_MENU_ORDER = (
     ('Web Content', ('blog.BlogPost', 'pages.Page', 'digipal.CarouselItem', 'generic.Keyword', 'generic.ThreadedComment', ('Media Library', 'fb_browse'))),
-    ('Document', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart', 'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
-    ('Image', ('digipal.Image', 'digipal.ImageAnnotationStatus', 'digipal.MediaPermission')),
+    ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart', 'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
+    ('Image', ('digipal.Image', 'digipal.MediaPermission')),
     ('Hand', ('digipal.Hand', 'digipal.Scribe', 'digipal.Script')),
-    ('Annotation', ('digipal.Annotation', 'digipal.Graph')),
+    ('Annotation', ('digipal.Annotation', 'digipal.Graph', 'digipal.ImageAnnotationStatus')),
     ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
     ('Descriptor', ('digipal.Component', 'digipal.Feature', 'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
     ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
-    ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County', 'digipal.InstitutionType')),
-    ('Admin', ('admin.LogEntry', 'conf.Setting', 'auth.Group', 'auth.User', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog')),
+    ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County')),
+    ('Admin', ('auth.User', 'auth.Group', 'conf.Setting', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog', 'admin.LogEntry')),
+    ('Text Content', ('digipal.Text', 'digipal_text.TextContent', 'digipal_text.TextContentType', 'digipal_text.TextContentXML', 'digipal_text.TextContentXMLStatus')),
 )
 
 ADMIN_MENU_COLLAPSED = True
@@ -451,6 +452,10 @@ COMMENTS_DEFAULT_APPROVED = True
 # The slug of the CMS Page that contains the help about the search interface
 SEARCH_HELP_PAGE_SLUG = 'how-to-use-digipal'
 SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
+
+# Set this to True to let the quick search box go to the faceted search page
+# If False, goes to the advanced search page
+QUICK_SEARCH_TO_FACETS = True
 
 # Haystack
 # HAYSTACK_CONNECTIONS = {

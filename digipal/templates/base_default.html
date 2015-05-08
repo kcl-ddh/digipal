@@ -111,7 +111,7 @@
         {% if not advanced_search_form %}
             {% block quick_search_form %}
                 <div id='navQuickSearch'>
-                    <form class="form-inline container" id='quickSearch' method='GET' action="/digipal/search/">
+                    <form class="form-inline container" id='quickSearch' method='GET' action="/digipal/search/{% if settings.QUICK_SEARCH_TO_FACETS %}facets/{% endif %}">
                         <div class="row">
                             <div class="col-md-6 col-sm-12 quick-search-group">
                                 {% if settings.SHOW_QUICK_SEARCH_SCOPES %}

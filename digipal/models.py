@@ -222,6 +222,10 @@ class Ontograph(models.Model):
             help_text='''An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.''')
     sort_order = models.IntegerField(blank=False, null=False, default=0)
 
+    @staticmethod
+    def get_definition():
+        return u'''?Graphical abstraction of a character. It is formless and shapeless.'''
+
     class Meta:
         #ordering = ['ontograph_type', 'name']
         ordering = ['sort_order', 'ontograph_type__name', 'name']
@@ -251,6 +255,10 @@ class Character(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
+    @staticmethod
+    def get_definition():
+        return u'''Similar to sign; more or less a set of letters in the abstract sense but also including punctuation and abbreviations'''
+
     class Meta:
         #ordering = ['name']
         ordering = ['ontograph__sort_order', 'ontograph__ontograph_type__name', 'name']
@@ -268,6 +276,10 @@ class Allograph(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+
+    @staticmethod
+    def get_definition():
+        return u'''A recognised variant form of the same character (e.g. a and a, or Caroline and Insular)'''
 
     class Meta:
         #ordering = ['character__name', 'name']
@@ -1244,6 +1256,10 @@ class Idiograph(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
+
+    @staticmethod
+    def get_definition():
+        return u'''The way (or one of the ways) in which an individual writes a given allograph'''
 
     class Meta:
         ordering = ['allograph']
@@ -2247,6 +2263,10 @@ class Graph(models.Model):
             editable=False)
     group = models.ForeignKey('Graph', related_name='parts', blank=True,
                               null=True, help_text=u'Select a graph that contains this one')
+
+    @staticmethod
+    def get_definition():
+        return u'''A single instance of a given sign written on the page'''
 
     class Meta:
         ordering = ['idiograph']

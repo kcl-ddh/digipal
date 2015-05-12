@@ -149,23 +149,29 @@ function DigipalAPI(options) {
     };
 
     var get_datatypes = function(callback) {
-
-        var url = constants.ROOT + '/content_type/';
-
-        if (default_options.crossDomain) {
-            var cb = '_datatypes';
-            url += '?@callback=' + cb;
-            var script = makeRequestScript(url, false);
-            window[cb] = function(data) {
-                callback(data);
-                window[cb] = null;
-                script.parentNode.removeChild(script);
-            };
-
+        
+        // API optimisation, we preload the API content types to avoid BLOCKING requests by the JS API
+        if (window.DAPI_CONTENT_TYPE_RESPONSE) {
+            callback(window.DAPI_CONTENT_TYPE_RESPONSE);
         } else {
-            Ajax(url, function(data) {
-                callback(data);
-            }, false);
+            
+            var url = constants.ROOT + '/content_type/';
+
+            if (default_options.crossDomain) {
+                var cb = '_datatypes';
+                url += '?@callback=' + cb;
+                var script = makeRequestScript(url, false);
+                window[cb] = function(data) {
+                    callback(data);
+                    window[cb] = null;
+                    script.parentNode.removeChild(script);
+                };
+
+            } else {
+                Ajax(url, function(data) {
+                    callback(data);
+                }, false);
+            }
         }
     };
 

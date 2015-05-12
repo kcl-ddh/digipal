@@ -173,6 +173,13 @@
         {% include "includes/footer.html" %}
 
         <!-- javascript scripts -->
+        {% if 1 %}
+            {# API optimisation, we preload the API content types to avoid BLOCKING requests by the JS API #}
+            <script type="text/javascript">
+                window.DAPI_CONTENT_TYPE_RESPONSE = {{ dapi_content_type_response|safe }};
+            </script>
+        {% endif %}
+        
         {% compress js %}
             <!-- <script src="{{ STATIC_URL }}mezzanine/js/{{ settings.JQUERY_FILENAME }}" type="text/javascript" ></script> -->
             <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js" type="text/javascript" ></script>

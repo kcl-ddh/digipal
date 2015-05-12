@@ -17,6 +17,15 @@ class CanUserSeeModel(object):
         from digipal.utils import is_model_visible
         return is_model_visible(index, self.request)
 
+def get_dapi_content_type_response():
+    '''Returns a string with all the content types supported by the API.
+        Optimisation to avoid blocking call by the JS API.
+    '''
+    from digipal.api.generic import API
+    api = API()
+    ret = api.get_all_content_types('content_type');
+    return ret
+
 def quick_search(request):
     # We need this form for the quick search box
     # on to of every page
@@ -26,4 +35,5 @@ def quick_search(request):
             # Usage in template: 
             # {% if cansee.Hand %}
             'cansee': CanUserSeeModel(request),
+            'dapi_content_type_response': get_dapi_content_type_response
             }

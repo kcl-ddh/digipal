@@ -72,7 +72,8 @@
         function runQuery() {
             var url = $('#input_url').val();
             $('#result').html('<img style="position:absolute;left:50%;" src="/static/digipal/images/ajax-loader4.gif"/>');
-            dpapi.request(url, function(data, success){
+            //dpapi.request(url, function(data, success){
+            dpapi.graph({'display_label__icontains': 'a.'}, function(data, success){
                 if(success){
                     $('#result').html(syntaxHighlight(data));
                 } else {
@@ -85,7 +86,7 @@
                     }
                     $('#result').html("<span class='error'>" + summary.innerHTML + "</span>");
                 }
-            });
+            }, ['id', 'str'], 3);
             $('#input_url').focus();
         }
 
@@ -118,6 +119,12 @@
                 return '<span class="' + cls + '">' + match + '</span>';
             });
         }
+        
+        crossSelect.val('false').change();
+        runQuery();
 
     </script>
+    
+    
+    
 {% endblock %}

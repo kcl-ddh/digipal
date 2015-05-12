@@ -1,12 +1,14 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls admin_static admin_modify %}
 
-{% block extrahead %}{{ block.super }}
+{% block extrahead %}
+    {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"/>
-    {% comment %}<script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui.min.js" type="text/javascript"></script>{% endcomment %}
-    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/jquery-ui.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.css" />
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" type="text/javascript"></script>
+    
     {{ media }}
+    
     <script type="text/javascript">
         (function($) {
             $(function() {

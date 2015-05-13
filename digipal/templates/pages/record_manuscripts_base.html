@@ -162,6 +162,9 @@
                                 <a href="{{ hand.get_absolute_url }}">
                                     {{ hand }}
                                 </a>
+                                {% if hand.scribe %}
+                                    (<a href="{{ hand.scribe.get_absolute_url }}">{{ hand.scribe }})</a>)
+                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>

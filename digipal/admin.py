@@ -332,8 +332,10 @@ class DescriptionAdmin(DigiPalModelAdmin):
 
     list_display = ['historical_item', 'source', 'created', 'modified', 'description']
     list_display_links = ['historical_item', 'source', 'created', 'modified']
-    search_fields = ['description']
-    list_filter = [admin_filters.DescriptionFilter]
+    
+    search_fields = ['historical_item__display_label', 'source__name', 'description']
+    
+    list_filter = ['source', admin_filters.DescriptionFilter]
 
 class FeatureAdmin(DigiPalModelAdmin):
     model = Feature

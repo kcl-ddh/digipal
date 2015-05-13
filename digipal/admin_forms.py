@@ -34,7 +34,7 @@ fieldsets_hand = (
             ('Place and Date', {'fields': ('assigned_place', 'assigned_date')}),
             ('Gloss', {'fields': ('glossed_text', 'num_glossing_hands', 'num_glosses', 'gloss_only')}),
             ('Appearance and other properties', {'fields': ('script', 'appearance', 'relevant', 'latin_only', 'latin_style', 'scribble_only', 'imitative', 'membra_disjecta')}),
-            ('Brookes Database', {'fields': ('stewart_record', 'selected_locus', 'locus', 'surrogates')}),
+            #('Brookes Database', {'fields': ('stewart_record', 'selected_locus', 'locus', 'surrogates')}),
             ) 
 
 # This class is only defined to pass a reference to the current Hand to HandsInlineForm

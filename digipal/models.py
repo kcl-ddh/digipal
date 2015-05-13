@@ -2113,7 +2113,7 @@ class HandDescription(models.Model):
     description = models.TextField(help_text='''This field accepts TEI elements.''')
     
     label = models.CharField(max_length=64, blank=True, null=True,
-        help_text='''A label assigned to this hand by a source. E.g. 'Alpha' (for source 'FLight').''')
+        help_text='''A label assigned to this hand by a source. E.g. 'Alpha' (for source 'Flight').''')
     
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,

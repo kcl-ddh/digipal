@@ -832,6 +832,7 @@ class Decoration(models.Model):
 
 
 class Description(models.Model):
+    '''A HI description'''
     historical_item = models.ForeignKey(HistoricalItem, blank=True, null=True)
     text = models.ForeignKey('Text', related_name='descriptions', blank=True, null=True)
 
@@ -859,6 +860,15 @@ class Description(models.Model):
     def __unicode__(self):
         #return u'%s %s' % (self.historical_item, self.source)
         return get_list_as_string(self.historical_item, ' ', self.source)
+
+    def get_absolute_url(self):
+        ret = u''
+        hi = self.historical_item
+        if hi:
+            ip = hi.item_parts.first()
+            if ip:
+                ret = u'%sdescriptions/' % ip.get_absolute_url()
+        return ret
     
     def get_description_plain_text(self):
         '''Returns the description in plain text, no html tag or any encoding, just utf-8'''

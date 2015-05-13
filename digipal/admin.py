@@ -179,14 +179,25 @@ class AlphabetAdmin(DigiPalModelAdmin):
 class AnnotationAdmin(DigiPalModelAdmin):
     change_list_template = 'admin/digipal/change_list.html'
     model = Annotation
+    
+    fieldsets = (
+                (None, {'fields': ('graph', 'image')}),
+                ('Metadata', {'fields': ('before', 'after', 'rotation', 'status')}),
+                ('Notes', {'fields': ('internal_note', 'display_note')}),
+                ('Internal data', {'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
+                ) 
 
-    list_display = ['author', 'image', 'status', 'before', 'graph', 'after',
-            'thumbnail', 'created', 'modified']
-    list_display_links = ['author', 'image', 'status', 'before', 'graph',
-            'after', 'created', 'modified']
-    search_fields = ['vector_id', 'image__display_label',
+    list_display = ['id', 'author', 'image', 'before', 'thumbnail', 'get_graph_desc', 'after', 'created', 'modified', 'status']
+    list_display_links = list_display
+    search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
             'graph__idiograph__allograph__character__name']
-    list_filter = ['author__username', 'graph__idiograph__allograph__character__name']
+    list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status']
+    
+    def get_graph_desc(self, obj):
+        ret = u''
+        if obj and obj.graph:
+            ret = u'%s (#%s)' % (obj.graph, obj.graph.id)
+        return ret
 
     readonly_fields = ('graph',)
 

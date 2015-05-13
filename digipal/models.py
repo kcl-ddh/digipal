@@ -2394,7 +2394,7 @@ class Annotation(models.Model):
             related_name='allograph_after')
     # GN: try avoid using this field as it may not be useful anymore
     # Use the record id instead
-    vector_id = models.TextField()
+    vector_id = models.TextField(blank=True, null=False, default=u'')
     geo_json = models.TextField()
     display_note = HTMLField(blank=True, null=True, help_text='An optional note that will be publicly visible on the website.')
     internal_note = HTMLField(blank=True, null=True, help_text='An optional note for internal or editorial purpose only. Will not be visible on the website.')

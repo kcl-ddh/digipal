@@ -16,7 +16,7 @@ Whoosh==2.6.0
 disqus-python==0.4.2
 django-appconf==0.6
 django-compress==1.0.1
-django-compressor==1.4
+django-compressor==1.5
 git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
 git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
 django-reversion==1.8.4

@@ -214,27 +214,15 @@ function share(selectedCollections) {
         div.fadeIn();
     }
 
-    gapi.client.load('urlshortener', 'v1', function() {
-
-        var request = gapi.client.urlshortener.url.insert({
-            'resource': {
-                'longUrl': url
-            }
-        });
-
-        var resp = request.execute(function(resp) {
-            if (resp.error) {
-                return false;
-            } else {
-
-                $("#basket_url").replaceWith('<input type="text" value="' + resp.id + '" />');
-                var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + resp.id + '">Tweet</a>';
-                if (!$('.twitter-hashtag-button').length) {
-                    div.find('input').after(linkTwitter + scriptTwitter);
-                } else {
-                    twttr.widgets.load();
-                }
-            }
-        });
+    dputils.gapi_shorten_url(url, function(short_url) {
+        $("#basket_url").replaceWith('<input type="text" value="' + short_url + '" />');
+        var linkTwitter = ' <a href="https://twitter.com/share" data-hashtags="digipal" class="twitter-hashtag-button" data-lang="en" data-count="none" data-size="large" data-related="digipal" data-text="' + short_url + '">Tweet</a>';
+        if (!$('.twitter-hashtag-button').length) {
+            div.find('input').after(linkTwitter + scriptTwitter);
+        } else {
+            twttr.widgets.load();
+        }
     });
+
 }
+

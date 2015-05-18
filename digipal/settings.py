@@ -216,8 +216,6 @@ INSTALLED_APPS = (
         'mezzanine.twitter',
         'pagination',
         'tinymce',
-#        'taggit',
-        #'mezzanine.mobile',
         )
 
 # SOUTH_MIGRATION_MODULES = {
@@ -326,8 +324,6 @@ PACKAGE_NAME_GRAPPELLI = 'grappelli_safe'
 INSTALLED_APPS = INSTALLED_APPS + (
         'digipal',
         'digipal_text',
-        #'haystack',
-        #'legacy',
         'reversion',
         'south',
         )
@@ -549,7 +545,7 @@ UNSPECIFIED_MEDIA_PERMISSION_MESSAGE = '''<p>A full image of this page is not ye
 
 # ADMIN CUSTOMISATIONS
 # If True a custom and simplified form to add a new Item Part record will be used
-# Typically found at /admin/digipal/itempart/add/ 
+# Typically found at /admin/digipal/itempart/add/
 USE_ITEM_PART_QUICK_ADD_FORM = True
 
 ADMIN_FORCE_HTTPS = False
@@ -564,9 +560,19 @@ except NameError:
 
 OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 
-# JS and CSS Compression disabled by default
-# To enable it, set True in your local_settings.py file
+# DJANGO COMPRESSOR
+# Is Django compressor combining the JS and CSS?
+# Compressor will still precompile and process resource
+# even if COMPRESS_ENABLED = False
 COMPRESS_ENABLED = False
+
+INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
+STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
+
+COMPRESS_PRECOMPILERS = (
+    #('text/coffeescript', 'coffee --compile --stdio'),
+    ('text/less', 'lessc {infile}'),
+)
 
 # TINY MCE
 TINYMCE_DEFAULT_CONFIG = {
@@ -634,11 +640,6 @@ except ImportError:
     # no local_settings.py
     print 'WARNING: local_settings.py not found'
     pass
-
-# Load compressor app if enabled
-if COMPRESS_ENABLED:
-    INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
-    STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
 
 ####################
 # DYNAMIC SETTINGS #

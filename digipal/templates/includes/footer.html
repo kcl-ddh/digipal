@@ -1,30 +1,32 @@
 {# Included from base.html #}
 {% load html_escape %}
 
-<footer>
+<footer class="footer">
     <div class="container">
-        <div class='col-md-3 col-xs-12' id='logos_footer'>
-        
-            {% render_mezzanine_page 'footer.logos' %}
+        <div class="row">
+            <div class='col-md-3 col-xs-12' id='logos_footer'>
 
-        </div>
+                {% render_mezzanine_page 'footer.logos' %}
 
-        <div class='col-md-8 col-xs-12' id='footer'>
-            {% render_mezzanine_page 'footer' %}
-        </div>
+            </div>
 
-        <div class='col-md-1 col-xs-12' id='footer_logos'>
-            {% if settings.TWITTER %}
-                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
-                    <i class='fa fa-twitter'></i>
-                </a>
-            {% endif %}
+            <div class='col-md-8 col-xs-12' id='footer'>
+                {% render_mezzanine_page 'footer' %}
+            </div>
 
-            {% if settings.GITHUB %}
-                <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Digipal's source code on GitHub" href= 'https://github.com/{{ settings.GITHUB }}'>
-                    <i class='fa fa-github'></i>
-                </a>
-            {% endif %}
+            <div class='col-md-1 col-xs-12' id='footer_logos'>
+                {% if settings.TWITTER %}
+                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
+                        <i class='fa fa-twitter'></i>
+                    </a>
+                {% endif %}
+
+                {% if settings.GITHUB %}
+                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Digipal's source code on GitHub" href= 'https://github.com/{{ settings.GITHUB }}'>
+                        <i class='fa fa-github'></i>
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </footer>

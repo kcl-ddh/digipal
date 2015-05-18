@@ -33,7 +33,7 @@
             <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/typeahead.js-bootstrap.css"/>
             {# style.css has been replaced by this series of individual sheets #}
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/dpbase.css"/>
+            <link rel="stylesheet" href="{{ STATIC_URL }}css/dpbase.less" type="text/less" />
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpmenu.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dphome.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpimage.css"/>
@@ -64,7 +64,7 @@
         <![endif]-->
 
     </head>
-     <body id="{% block body_id %}body{% endblock %}">
+    <body id="{% block body_id %}body{% endblock %}">
 
         <div class="site-nav navbar" role="navigation">
              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -77,27 +77,27 @@
                 {% if settings.SITE_TITLE %}
                     <a class="logo pull-left" href="/">
                         {% block logo %}
-	                        {% if settings.BANNER_LOGO_HTML %}
-	                            {{ settings.BANNER_LOGO_HTML|safe }}
-	                        {% else %}
-	                            <div id="logo">
-	                                <div id='logo_words'>
-	                                    <span id="digi">Digi</span><span id="pal">Pal</span>
-	                                </div>
-	                                <div id="trt" class='hidden-sm hidden-xs'></div>
-	                                <div id='div-logo-desc' class='hidden-sm hidden-xs'>
-	                                    <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
-	                                    <span class="logo-desc">Manuscript Studies and Diplomatic</span>
-	                                </div>
-	                            </div>
-	                        {% endif %}
+                            {% if settings.BANNER_LOGO_HTML %}
+                                {{ settings.BANNER_LOGO_HTML|safe }}
+                            {% else %}
+                                <div id="logo">
+                                    <div id='logo_words'>
+                                        <span id="digi">Digi</span><span id="pal">Pal</span>
+                                    </div>
+                                    <div id="trt" class='hidden-sm hidden-xs'></div>
+                                    <div id='div-logo-desc' class='hidden-sm hidden-xs'>
+                                        <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
+                                        <span class="logo-desc">Manuscript Studies and Diplomatic</span>
+                                    </div>
+                                </div>
+                            {% endif %}
                         {% endblock %}
                     </a>
                 {% endif %}
                 {% block logo_right %}
-	                <div class='pull-right hidden-xs hidden-sm'>
-	                    <img id='logo_right' alt='Logo right' src='{{ STATIC_URL }}digipal/images/headerLogoright.jpg' />
-	                </div>
+                    <div class='pull-right hidden-xs hidden-sm'>
+                        <img id='logo_right' alt='Logo right' src='{{ STATIC_URL }}digipal/images/headerLogoright.jpg' />
+                    </div>
                 {% endblock %}
             </div>
             <div class="collapse navbar-collapse">
@@ -179,7 +179,7 @@
                 window.DAPI_CONTENT_TYPE_RESPONSE = {{ dapi_content_type_response|safe }};
             </script>
         {% endif %}
-        
+
         {% compress js %}
             <!-- <script src="{{ STATIC_URL }}mezzanine/js/{{ settings.JQUERY_FILENAME }}" type="text/javascript" ></script> -->
             <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js" type="text/javascript" ></script>

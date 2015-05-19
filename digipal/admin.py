@@ -42,19 +42,19 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
                 threshold can be defined in local_settings.py::ADMIN_INLINE_HIDE_SIZE
                 default threshold is 100
     '''
-    
+
     @classmethod
     def get_related_records_count(cls, record, related_model):
         '''Return a query set with all the instances of related_model linking to record'''
         ret = 0
         if not record: return ret
-        
+
         model = record.__class__
-        
+
 #         for rel_obj in model._meta.get_all_related_objects():
 #             if rel_obj.model.__name__ == related_model.__name__:
 #                 ret = getattr(record, rel_obj.get_accessor_name())
-                
+
         for field_name in model._meta.get_all_field_names():
             field = model._meta.get_field_by_name(field_name)[0]
             get_accessor_name = getattr(field, 'get_accessor_name', None)
@@ -64,26 +64,26 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
             field = getattr(record, field_name, None)
 #             if field is None:
 #                 raise Exception('%s #%s . %s not found' % (record.__class__, record.pk, field_name))
-            
+
             if field and related_model in [getattr(field, 'through', ''), getattr(field, 'model', '')]:
                 ret = field.count()
                 break
 
             #print model._meta.get_all_related_objects()
             #raise Exception('%s #%s has no related model %s' % (record.__class__, record.pk, related_model))
-        
+
 #         print related_model, ret
-        
+
         return ret
-    
+
     def get_inline_instances(self, request, *args, **kwargs):
         ret = super(DigiPalModelAdmin, self).get_inline_instances(request, *args, **kwargs)
         threshold = getattr(settings, 'ADMIN_INLINE_HIDE_SIZE', 100)
-        
+
         instance = args[0] if len(args) else None
-        
+
         ret = [inline for inline in ret if self.get_related_records_count(instance, inline.model) < threshold]
-        
+
         return ret
 
 
@@ -114,13 +114,13 @@ class GraphForm(forms.ModelForm):
 class ImageForm(forms.ModelForm):
 
     class Meta:
-        model = Image    
+        model = Image
 
     def __init__(self, *args, **kwargs):
-        # we change the label of the default value for the media_permission 
+        # we change the label of the default value for the media_permission
         # field so it displays the actual permission on the repository object.
         #
-        # We also add a link to the repository in the help message under the 
+        # We also add a link to the repository in the help message under the
         # field
         super(ImageForm, self).__init__(*args, **kwargs)
         image = getattr(self, 'instance', None)
@@ -130,12 +130,12 @@ class ImageForm(forms.ModelForm):
             repository = image.get_repository()
             if repository:
                 permission = repository.get_media_permission()
-                repository_url = reverse("admin:digipal_repository_change", 
+                repository_url = reverse("admin:digipal_repository_change",
                                          args=[repository.id])
                 permission_field.empty_label = 'Inherited: %s' % permission
-                permission_field.help_text += ur'''<br/>To inherit from the 
-                    default permission set in the 
-                    <a target="_blank" href="%s">repository</a>, please 
+                permission_field.help_text += ur'''<br/>To inherit from the
+                    default permission set in the
+                    <a target="_blank" href="%s">repository</a>, please
                     select the first option.<br/>''' % repository_url
 
 class RepositoryForm(forms.ModelForm):
@@ -144,7 +144,7 @@ class RepositoryForm(forms.ModelForm):
         model = Repository
 
     def __init__(self, *args, **kwargs):
-        # we change the label of the default value for the media_permission 
+        # we change the label of the default value for the media_permission
         # field so it displays the actual permission (public/private)
         super(RepositoryForm, self).__init__(*args, **kwargs)
         self.fields['media_permission'].empty_label = '%s' % Repository.get_default_media_permission()
@@ -179,20 +179,20 @@ class AlphabetAdmin(DigiPalModelAdmin):
 class AnnotationAdmin(DigiPalModelAdmin):
     change_list_template = 'admin/digipal/change_list.html'
     model = Annotation
-    
+
     fieldsets = (
                 (None, {'fields': ('graph', 'image')}),
                 ('Metadata', {'fields': ('before', 'after', 'rotation', 'status')}),
                 ('Notes', {'fields': ('internal_note', 'display_note')}),
                 ('Internal data', {'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
-                ) 
+                )
 
     list_display = ['id', 'author', 'image', 'before', 'thumbnail', 'get_graph_desc', 'after', 'created', 'modified', 'status']
     list_display_links = list_display
     search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
             'graph__idiograph__allograph__character__name']
     list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status']
-    
+
     def get_graph_desc(self, obj):
         ret = u''
         if obj and obj.graph:
@@ -275,7 +275,7 @@ class ComponentAdmin(DigiPalModelAdmin):
 
 class ComponentFeatureAdmin(DigiPalModelAdmin):
     model = ComponentFeature
-    
+
     list_display = ['id', 'component', 'feature', 'set_by_default', 'created', 'modified']
     list_display_links = ['id', 'component', 'feature', 'created', 'modified']
     list_editable = ['set_by_default']
@@ -300,13 +300,13 @@ class CurrentItemAdmin(DigiPalModelAdmin):
     list_display_links = list_display
     search_fields = ['repository__name', 'shelfmark', 'description', 'display_label']
     list_filter = ['repository', admin_filters.CurrentItemPartNumberFilter]
-    
+
     readonly_fields = ('display_label',)
-    
+
     fieldsets = (
                 (None, {'fields': ('display_label', 'repository', 'shelfmark', 'description')}),
                 ('Legacy', {'fields': ('legacy_id',)}),
-                ) 
+                )
 
     inlines = [admin_inlines.ItemPartInline, admin_inlines.CurrentItemOwnerInline]
     filter_horizontal = ['owners']
@@ -343,9 +343,9 @@ class DescriptionAdmin(DigiPalModelAdmin):
 
     list_display = ['historical_item', 'source', 'created', 'modified', 'description']
     list_display_links = ['historical_item', 'source', 'created', 'modified']
-    
+
     search_fields = ['historical_item__display_label', 'source__name', 'description']
-    
+
     list_filter = ['source', admin_filters.DescriptionFilter]
 
 class FeatureAdmin(DigiPalModelAdmin):
@@ -404,51 +404,51 @@ class HandAdmin(DigiPalModelAdmin):
             'assigned_date', 'assigned_place', 'created',
             'modified']
     list_display_links = list_display
-    search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num', 
-            'em_title', 'label', 'item_part__display_label', 
+    search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num',
+            'em_title', 'label', 'item_part__display_label',
             'display_note', 'internal_note']
-    list_filter = ['latin_only', admin_filters.HandItempPartFilter, 
-                    admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter, 
+    list_filter = ['latin_only', admin_filters.HandItempPartFilter,
+                    admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter,
                     admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
-    
+
     fieldsets = admin_forms.fieldsets_hand
 
-    inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline, 
+    inlines = [admin_inlines.HandDescriptionInline, admin_inlines.DateEvidenceInline,
                 admin_inlines.PlaceEvidenceInline, admin_inlines.ProportionInline]
-    
+
     def response_change(self, request, obj, *args, **kwargs):
         image_from_desc = request.REQUEST.get('image_from_desc', False)
         if image_from_desc:
             obj._update_images_from_stints()
 #         obj._update_display_label_and_save()
         return super(HandAdmin, self).response_change(request, obj, *args, **kwargs)
-    
+
 class HistoricalItemAdmin(DigiPalModelAdmin):
     model = HistoricalItem
 
     search_fields = ['id', 'catalogue_number', 'date', 'name']
-    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 'get_part_count', 
+    list_display = ['id', 'catalogue_number', 'name', 'date', 'historical_item_type', 'get_part_count',
                     'historical_item_format', 'created', 'modified']
     list_display_links = list_display
-    list_filter = ['historical_item_type', 'historical_item_format', 
-                   admin_filters.HistoricalItemDescriptionFilter, admin_filters.HistoricalItemKerFilter, 
-                   admin_filters.HistoricalItemGneussFilter, admin_filters.HistoricalItemItemPartNumberFilter, 
+    list_filter = ['historical_item_type', 'historical_item_format',
+                   admin_filters.HistoricalItemDescriptionFilter, admin_filters.HistoricalItemKerFilter,
+                   admin_filters.HistoricalItemGneussFilter, admin_filters.HistoricalItemItemPartNumberFilter,
                    admin_filters.HistoricalCatalogueNumberFilter]
-    
+
     fieldsets = (
                 (None, {'fields': ('display_label', 'name', 'date', 'catalogue_number')}),
                 ('Classifications', {'fields': ('historical_item_type', 'historical_item_format', 'categories')}),
                 ('Properties', {'fields': ('language', 'vernacular', 'neumed', 'hair', 'url')}),
                 #('Owners', {'fields': ('owners',)}),
                 ('Legacy', {'fields': ('legacy_id', 'legacy_reference',)}),
-                ) 
-    
+                )
+
     readonly_fields = ['catalogue_number', 'display_label']
-    
+
     filter_horizontal = ['categories', 'owners']
-    
+
     inlines = [admin_inlines.ItemPartItemInlineFromHistoricalItem, admin_inlines.CatalogueNumberInline,
-            admin_inlines.ItemDateInline, admin_inlines.ItemOriginInline, admin_inlines.HistoricalItemOwnerInline, 
+            admin_inlines.ItemDateInline, admin_inlines.ItemOriginInline, admin_inlines.HistoricalItemOwnerInline,
             admin_inlines.CollationInline, admin_inlines.DecorationInline, admin_inlines.DescriptionInline, admin_inlines.ItemLayoutInline]
 
 class HistoricalItemTypeAdmin(DigiPalModelAdmin):
@@ -507,31 +507,31 @@ class ItemOriginAdmin(DigiPalModelAdmin):
 class ItemSubPartInline(StackedDynamicInlineAdmin):
     model = ItemPart
     extra = 3
-    
+
     verbose_name = 'Item Part'
     verbose_name_plural = 'Sub-parts In This Group'
-    
+
     readonly_fields = ['display_label']
     fieldsets = (
                 (None, {'fields': ('display_label', 'type',)}),
                 ('Locus of this part in the group', {'fields': ('group_locus', )}),
                 ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
-                ) 
+                )
 
 class ItemPartAdmin(DigiPalModelAdmin):
     model = ItemPart
 
-    # 'current_item', 'locus', 
-    list_display = ['id', 'display_label', 'historical_label', 'type', 
-                    'get_image_count', 'get_part_count', 'keywords_string', 
+    # 'current_item', 'locus',
+    list_display = ['id', 'display_label', 'historical_label', 'type',
+                    'get_image_count', 'get_part_count', 'keywords_string',
                     'created', 'modified']
     list_display_links = list_display
     search_fields = ['locus', 'display_label',
             'historical_items__display_label', 'current_item__display_label',
-            'subdivisions__display_label', 'group__display_label', 
+            'subdivisions__display_label', 'group__display_label',
             'type__name', 'keywords_string', 'notes']
     list_filter = ('type', admin_filters.ItemPartHIFilter, admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
-    
+
     readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
                 (None, {'fields': ('display_label', 'historical_label', 'type',)}),
@@ -540,7 +540,7 @@ class ItemPartAdmin(DigiPalModelAdmin):
                 ('Notes', {'fields': ('notes', )}),
                 ('Keywords', {'fields': ('keywords',)}),
                 #('Owners', {'fields': ('owners',)}),
-                ) 
+                )
     filter_horizontal = ['owners']
     inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
 
@@ -548,14 +548,14 @@ class ItemPartAdmin(DigiPalModelAdmin):
 #         ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)
 #         ret = [inline for inline in ret if inline.get_queryset(request).count() < 20]
 #         return ret
-    
+
     # Due to denormalisation of display_label and its dependency on IPHI.locus, we have
     # to update this field and resave the IP *after* the related models have been saved!
-    # See https://code.djangoproject.com/ticket/13950 
+    # See https://code.djangoproject.com/ticket/13950
     def response_add(self, request, obj, *args, **kwargs):
         obj._update_display_label_and_save()
         return super(ItemPartAdmin, self).response_add(request, obj, *args, **kwargs)
-    
+
     def response_change(self, request, obj, *args, **kwargs):
         obj._update_display_label_and_save()
         return super(ItemPartAdmin, self).response_change(request, obj, *args, **kwargs)
@@ -603,13 +603,13 @@ class MeasurementAdmin(DigiPalModelAdmin):
 class OwnerAdmin(DigiPalModelAdmin):
     model = Owner
 
-    list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date', 
+    list_display = ['id', 'legacy_id', 'get_owned_item', 'get_content_object', 'get_content_type', 'date',
                     'rebound', 'annotated', 'dubitable', 'created', 'modified']
     list_display_links = list_display
-    
-    list_filter = ('repository__type__name', ) 
 
-    search_fields = ['evidence', 'institution__name', 'person__name', 'repository__name', 'itempart__display_label', 
+    list_filter = ('repository__type__name', )
+
+    search_fields = ['evidence', 'institution__name', 'person__name', 'repository__name', 'itempart__display_label',
                      'current_items__display_label', 'historicalitem__display_label', 'id', 'legacy_id', 'date']
 
     fieldsets = (
@@ -617,15 +617,15 @@ class OwnerAdmin(DigiPalModelAdmin):
                 ('Misc.', {'fields': ('date', 'rebound', 'annotated', 'dubitable', 'evidence')}),
                 ('legacy', {'fields': ('legacy_id',)}),
                 )
-    
+
     inlines = [admin_inlines.OwnerHistoricalItemInline, admin_inlines.OwnerItemPartInline, admin_inlines.OwnerCurrentItemInline]
-    
+
     def get_content_type(self, obj):
         ret = unicode(obj.content_type)
         if ret == u'repository':
             ret += u'/' + obj.repository.type.name
         return ret
-    
+
     def get_owned_item(self, obj):
         return obj.get_owned_item()
     get_owned_item.short_description = 'Owned Item'
@@ -633,8 +633,8 @@ class OwnerAdmin(DigiPalModelAdmin):
     def get_content_object(self, obj):
         return obj.content_object
     get_content_object.short_description = 'Owner'
-        
-    
+
+
 class OwnerTypeAdmin(DigiPalModelAdmin):
     model = OwnerType
 
@@ -676,37 +676,37 @@ class ImageAnnotationStatusAdmin(DigiPalModelAdmin):
 class ImageAdmin(DigiPalModelAdmin):
     form = ImageForm
     change_list_template = 'admin/digipal/change_list.html'
-    
+
     # temporary
     #list_per_page = 500
 
     exclude = ['image', 'caption']
-    list_display = ['id', 'display_label', 'locus', 'get_thumbnail', 
+    list_display = ['id', 'display_label', 'locus', 'get_thumbnail',
             'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
             'keywords_string', 'get_iipimage_field']
-    list_display_links = ['id', 'display_label', 
+    list_display_links = ['id', 'display_label',
             'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
             'keywords_string', 'get_iipimage_field']
     list_editable = ['locus']
-    
-    search_fields = ['id', 'display_label', 'locus', 
-            'item_part__display_label', 'iipimage', 'annotation_status__name', 
+
+    search_fields = ['id', 'display_label', 'locus',
+            'item_part__display_label', 'iipimage', 'annotation_status__name',
             'keywords_string', 'internal_notes', 'transcription']
 
     actions = ['bulk_editing', 'action_regen_display_label', 'bulk_natural_sorting', 'action_find_nested_annotations']
-    
-    list_filter = ['annotation_status', 'media_permission__label', admin_filters.ImageLocus, admin_filters.ImageAnnotationNumber, admin_filters.ImageWithFeature, admin_filters.ImageWithHand, 
+
+    list_filter = ['annotation_status', 'media_permission__label', admin_filters.ImageLocus, admin_filters.ImageAnnotationNumber, admin_filters.ImageWithFeature, admin_filters.ImageWithHand,
                     admin_filters.ImageFilterNoItemPart, admin_filters.ImageFilterDuplicateShelfmark, admin_filters.ImageFilterDuplicateFilename]
-    
+
     readonly_fields = ('display_label', 'folio_number', 'folio_side', 'width', 'height', 'size')
-    
+
     fieldsets = (
                 (None, {'fields': ('display_label', 'custom_label')}),
                 ('Source', {'fields': ('item_part', 'locus', 'folio_side', 'folio_number',)}),
                 ('Image file', {'fields': ('iipimage', 'media_permission', 'width', 'height', 'size')}),
                 ('Internal and editorial information', {'fields': ('annotation_status', 'internal_notes', 'transcription')}),
                 ('Keywords', {'fields': ('keywords',)}),
-                ) 
+                )
     inlines = [admin_inlines.HandsInline]
 
     def get_iipimage_field(self, obj):
@@ -714,31 +714,31 @@ class ImageAdmin(DigiPalModelAdmin):
         return u'<span title="%s">%s</span>' % (obj.iipimage, truncatechars(obj.iipimage, 15))
     get_iipimage_field.short_description = 'file'
     get_iipimage_field.allow_tags = True
-    
+
     def get_changelist(self, request, **kwargs):
         ''' Override this function in order to enforce a sort order on the folio number and side'''
         from django.contrib.admin.views.main import ChangeList
-         
+
         class SortedChangeList(ChangeList):
             def get_query_set(self, *args, **kwargs):
                 qs = super(SortedChangeList, self).get_query_set(*args, **kwargs)
                 return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands').select_related('item_part')
-                 
+
         if request.GET.get('o'):
             return ChangeList
-             
-        return SortedChangeList        
-    
+
+        return SortedChangeList
+
     def get_annotations_count(self, image):
         return image.annotation_set.count()
         #return ''
     get_annotations_count.short_description = '#ann.'
-    
+
     def get_thumbnail(self, image):
         from templatetags.html_escape import iip_img_a
         return iip_img_a(image, width=70, cls='img-expand', lazy=True)
     get_thumbnail.short_description = 'Thumbnail'
-    get_thumbnail.allow_tags = True 
+    get_thumbnail.allow_tags = True
 
     def action_regen_display_label(self, request, queryset):
         for image in queryset.all():
@@ -755,7 +755,7 @@ class ImageAdmin(DigiPalModelAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected) )
     bulk_editing.short_description = 'Bulk edit'
-    
+
     def get_status_label(self, obj):
         hand_count = obj.hands.count()
         ret = '%d hands' % hand_count
@@ -765,15 +765,15 @@ class ImageAdmin(DigiPalModelAdmin):
             ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
         return ret
     get_status_label.short_description = 'Hands'
-    get_status_label.allow_tags = True 
-    
+    get_status_label.allow_tags = True
+
     def get_media_permission_field(self, obj):
         return obj.media_permission
-    get_media_permission_field.short_description = 'Permission' 
+    get_media_permission_field.short_description = 'Permission'
 
     def get_annotation_status_field(self, obj):
         return obj.annotation_status
-    get_annotation_status_field.short_description = 'Status' 
+    get_annotation_status_field.short_description = 'Status'
 
     def get_locus_label(self, obj):
         return obj.get_locus_label()
@@ -809,7 +809,7 @@ class PlaceAdmin(DigiPalModelAdmin):
                 ('Regions', {'fields': ('region', 'current_county', 'historical_county')}),
                 ('Coordinates', {'fields': ('eastings', 'northings')}),
                 ('Legacy', {'fields': ('legacy_id',)}),
-                ) 
+                )
     inlines = [admin_inlines.InstitutionInline, admin_inlines.PlaceEvidenceInline]
 
 class PlaceEvidenceAdmin(DigiPalModelAdmin):
@@ -917,17 +917,17 @@ class MediaPermissionAdmin(DigiPalModelAdmin):
 
 class TextAdmin(DigiPalModelAdmin):
     model = Text
-    
+
     list_display = ['name', 'date', 'created', 'modified']
     list_display_link = list_display
     search_fields = ['name']
     ordering = ['name']
-    
+
     inlines = [admin_inlines.TextItemPartInline, admin_inlines.CatalogueNumberInline, admin_inlines.DescriptionInline]
 
 class CarouselItemAdmin(DigiPalModelAdmin):
     model = CarouselItem
-    
+
     list_display = ['title', 'sort_order', 'created', 'modified']
     list_display_link = ['title', 'created', 'modified']
     list_editable = ['sort_order']
@@ -937,13 +937,13 @@ class CarouselItemAdmin(DigiPalModelAdmin):
 class StewartRecordFilterMatched(admin.SimpleListFilter):
     title = 'Match'
     parameter_name = 'matched'
-    
+
     def lookups(self, request, model_admin):
         return (
                     ('1', 'matched'),
                     ('0', 'not matched'),
                 )
-    
+
     def queryset(self, request, queryset):
         if self.value() == '1':
             return queryset.exclude(matched_hands__isnull=True).exclude(matched_hands__exact='').distinct()
@@ -953,14 +953,14 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
 
 class StewartRecordAdmin(DigiPalModelAdmin):
     model = StewartRecord
-    
+
     list_display = ['id', 'field_hands', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_display_links = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
     list_filter = [StewartRecordFilterMatched, admin_filters.StewartRecordFilterLegacy, admin_filters.StewartRecordFilterMerged]
     search_fields = ['id', 'scragg', 'sp', 'ker', 'gneuss', 'stokes_db', 'repository', 'shelf_mark']
-    
+
     actions = ['match_hands', 'merge_matched_simulation', 'merge_matched']
-    
+
     def field_hands(self, record):
         ret = u''
 #         for hand in record.hands.all():
@@ -978,26 +978,26 @@ class StewartRecordAdmin(DigiPalModelAdmin):
             ret += u'<a href="/admin/digipal/%s/%s/">%s #%s</a>' % (content_type, rid, {'h': u'Hand', 'ip': u'New Hand on Item Part'}[rttype], rid)
         return ret
     field_hands.short_description = 'Matched hand'
-    field_hands.allow_tags = True 
+    field_hands.allow_tags = True
 
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('stewart_match') + '?ids=' + ','.join(selected) )
     match_hands.short_description = 'Match with DigiPal hand records'
-    
+
     def merge_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('stewart_import') + '?ids=' + ','.join(selected) )
     merge_matched.short_description = 'Merge records into their matched hand records'
-    
+
     def merge_matched_simulation(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('stewart_import') + '?dry_run=1&ids=' + ','.join(selected) )
     merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
-    
+
 class RequestLogAdmin(admin.ModelAdmin):
     model = RequestLog
     list_display = ['id', 'request_hyperlink', 'field_terms', 'result_count', 'created']
@@ -1006,7 +1006,7 @@ class RequestLogAdmin(admin.ModelAdmin):
     ordering = ['-id']
 
     list_filter = [admin_filters.RequestLogFilterEmpty]
-    
+
     def field_terms(self, record):
         return re.sub('^.*terms=([^&#?]*).*$', r'\1', record.request)
     field_terms.short_description = 'Terms'
@@ -1024,11 +1024,11 @@ class ApiTransformAdmin(DigiPalModelAdmin):
     list_display_links = list_display
     search_fields = ['id', 'title', 'slug']
     ordering = ['id']
-    
+
     fieldsets = (
                 (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
-                ) 
-    
+                )
+
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
 admin.site.register(Annotation, AnnotationAdmin)

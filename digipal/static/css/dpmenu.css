@@ -73,11 +73,6 @@
         padding: 10px 15px 10px 15px !important;
     }
 
-    #footer, #logos_footer, #footer_logos{
-        text-align: center;
-        margin-bottom: 2em;
-    }
-
     #homeSection {
         text-align: center;
     }
@@ -90,11 +85,6 @@
         padding: 10px 15px 10px 15px !important;
     }
 
-    #footer, #logos_footer, #footer_logos{
-        text-align: center;
-        margin-bottom: 2em;
-    }
-
     #homeSection {
         text-align: center;
     }
@@ -102,16 +92,16 @@
 
 
 @media (max-width: 767px) {
-	/* decrease height of the top bar in 'mobile' mode.
-		too much blank space wasted otherwise.*/
+    /* decrease height of the top bar in 'mobile' mode.
+        too much blank space wasted otherwise.*/
 
     #contentNav{
         height: 45px;
     }
 
     /* Boostrap sets a 20px padding on each side of the page.
-    	This is too much for mobile devices.
-    	Apply a smaller padding to the main containers only.*/
+        This is too much for mobile devices.
+        Apply a smaller padding to the main containers only.*/
     body {
         padding-right: 0px;
         padding-left: 0px;
@@ -123,16 +113,6 @@
 
     #homeSection {
         text-align: center;
-    }
-
-    footer .row  {
-        margin:0;
-        margin-top: 4%;
-    }
-
-    #footer, #logos_footer, #footer_logos{
-        text-align: center;
-        margin-bottom: 2em;
     }
 
    .nav ul a, .nav a{
@@ -273,40 +253,10 @@ span.quick-search-category {
     border: 0px;
 }
 
-/*
-GN: commented this after upgrading to typeahead 0.10 out as the underlying
-	input box was slightly visible below the typeahead input.
-
-.tt-hint {
-    margin-top: 2px;
-}
-*/
-
-/*
-#quickSearch .textEntry {
-   border-radius: 4px;
-   background-color: #fff !important;
-}
-
-#quickSearch .input-group-btn {
-    vertical-align: top;
-}
-
-
-#quickSearch ul li, #quickSearch ul{
-    display: inline;
-}
-
-#advanced_search_link {
-    font-weight:bold;
-    color: #5e5e5e;
-    vertical-align: top;
-}
-*/
 
 /* Rounded right corner of the button after the text input
-	This is normal BS appearance but we force it because the
-	Quick Search has a non-button as the last element.
+    This is normal BS appearance but we force it because the
+    Quick Search has a non-button as the last element.
 */
 #navQuickSearch .btn {
    border-top-right-radius: 4px;

@@ -1,8 +1,85 @@
+/* FOOTER */
+
+html, body {
+    height: 100%;
+}
+
+.resp-container {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.resp-block {
+    display: table-row;
+    height: 1px;
+}
+.resp-push {
+    height: auto;
+}
+
+footer.footer {
+    
+    background-color: #e9e9e9;
+    border: 1px dotted rgba(0, 0, 0, 0.1);
+    font-size: 11px;
+    
+    div.container {
+        padding-top: 1em;
+    }
+    
+    div.row > div {
+        text-align: center;
+        margin: 0;
+        margin-bottom: 1.5em;
+
+        p {
+            line-height: 15px;
+            margin: 0;
+            
+            @media (max-width: 992px) {
+                text-align: center;
+            }
+        }
+        
+        img {
+            padding: 2%;
+        }
+        
+        .fa {
+            font-size: 25px;
+            
+            -webkit-transition-property:color;
+            -moz-transition-property:color;
+            -ms-transition-property:color;
+            -o-transition-property:color;
+            -webkit-transition-duration:0.35s;
+            -moz-transition-duration:0.35s;
+            -ms-transition-duration:0.35s;
+            -o-transition-duration:0.35s;
+            color: #5a5a5a;
+            
+            .fa-twitter:hover {
+                color: #2c77ba;
+            }
+            
+            .fa-github:hover {
+                color: #fff;
+                background: #5a5a5a;
+                border-radius: 10px;
+            }
+        }
+        
+    }
+    
+}
+
+/* end footer */
+
 /* general rules */
 
 html {
     position: relative;
-    min-height: 100%;
 }
 
 body {
@@ -131,58 +208,6 @@ a:hover .label-default, a:focus .label-default, a:active .label-default {
     box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
 
-/* footer */
-
-/*
-footer {
-    background-color: #f9f9f9;
-    border: 1px dotted rgba(0, 0, 0, 0.08);
-}
-
-footer p {
-    margin:0.2%;
-    line-height: 15px;
-    font-size:11px;
-}
-
-footer .span3, footer .span8 {
-    margin:0;
-}
-
-footer .container {
-    text-align: initial;
-    display: block;
-    padding:0;
-}
-
-footer .row {
-    margin:0;
-}
-*/
-
-@footer_height: 20em;
-
-.footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: @footer_height;
-
-    /* background-color: #f9f9f9; */
-    background-color: palegreen;
-    border: 1px dotted rgba(0, 0, 0, 0.08);
-}
-
-body {
-    margin-bottom: @footer_height;
-}
-
-footer .container {
-    width: auto;
-    padding: 0 15px;
-}
-
-/* end footer */
 
 .nav-tabs.nav-stacked li, .nav-tabs.nav-stacked a {
     line-height: 1;
@@ -344,13 +369,6 @@ li.active > a{
     border-radius: 3px;
 }
 
-.graph_img{
-    /*
-    GN: removed as it messes up with the position of the graph thumbnails
-    line-height: 4;
-    */
-}
-
 .smaller p, .smaller ul, a.smaller, .imageDetails a.smaller {
     font-size: 85%;
     line-height: 18px;
@@ -413,30 +431,6 @@ ul.flat-list {
 .modal-body .ul_inline_form {
     margin:1.5%;
     display: block;
-}
-
-.fa-twitter, .fa-github{
-    font-size:25px;
-    margin-left:1%;
-    -webkit-transition-property:color;
-    -moz-transition-property:color;
-    -ms-transition-property:color;
-    -o-transition-property:color;
-    -webkit-transition-duration:0.35s;
-    -moz-transition-duration:0.35s;
-    -ms-transition-duration:0.35s;
-    -o-transition-duration:0.35s;
-    color: #5a5a5a;
-}
-
-.fa-twitter:hover{
-    color: #2c77ba;
-}
-
-.fa-github:hover{
-    color: #fff;
-    background: #5a5a5a;
-    border-radius: 10px;
 }
 
 .nav-stacked>li+li{
@@ -713,3 +707,4 @@ a[data-toggle="pill"]{
 .dp-small {
     font-size: small;
 }
+

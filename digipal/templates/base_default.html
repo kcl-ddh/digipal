@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load pages_tags mezzanine_tags i18n future %}
 <html>
+
     <head>
         <!-- DigiPal - build number {{ settings.DP_BUILD_NUMBER }} - build date {{ settings.DP_BUILD_TIMESTAMP }} - {{ digipal_version }} ({{ settings.DP_BUILD_BRANCH }}) -->
         <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
@@ -23,13 +24,13 @@
         <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.png"/>
 
         {% ifinstalled mezzanine.blog %}
-            <link rel="alternate" type="application/rss+xml" title="RSS" href="{% url "blog_post_feed" "rss" %}"/>
-            <link rel="alternate" type="application/atom+xml" title="Atom" href="{% url "blog_post_feed" "atom" %}"/>
+            <link rel="alternate" type="application/rss+xml" title="RSS" href="{% url 'blog_post_feed' 'rss' %}"/>
+            <link rel="alternate" type="application/atom+xml" title="Atom" href="{% url 'blog_post_feed' 'atom' %}"/>
         {% endifinstalled %}
 
         {% compress css %}
             <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3/bootstrap.min.css"/>
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/mezzanine.css"/>
+            <!-- link rel="stylesheet" href="{{ STATIC_URL }}css/mezzanine.css"/ -->
             <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/typeahead.js-bootstrap.css"/>
             {# style.css has been replaced by this series of individual sheets #}
@@ -45,7 +46,7 @@
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dptei.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpjqui.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpscrollbar.css"/>
-            <link rel="stylesheet" href="{{ STATIC_URL }}digipal/styles/print.css" media="print">
+            <link rel="stylesheet" href="{{ STATIC_URL }}digipal/styles/print.css" media="print" />
             <link rel="stylesheet" href="{{ STATIC_URL }}js/fancybox/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
             <link rel="stylesheet" href="{{ STATIC_URL }}digipal/styles/font-awesome/css/font-awesome.min.css" />
         {% endcompress %}
@@ -64,113 +65,121 @@
         <![endif]-->
 
     </head>
+
     <body id="{% block body_id %}body{% endblock %}">
 
-        <div class="site-nav navbar" role="navigation">
-             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <div id="contentNav">
-                {% if settings.SITE_TITLE %}
-                    <a class="logo pull-left" href="/">
-                        {% block logo %}
-                            {% if settings.BANNER_LOGO_HTML %}
-                                {{ settings.BANNER_LOGO_HTML|safe }}
-                            {% else %}
-                                <div id="logo">
-                                    <div id='logo_words'>
-                                        <span id="digi">Digi</span><span id="pal">Pal</span>
-                                    </div>
-                                    <div id="trt" class='hidden-sm hidden-xs'></div>
-                                    <div id='div-logo-desc' class='hidden-sm hidden-xs'>
-                                        <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
-                                        <span class="logo-desc">Manuscript Studies and Diplomatic</span>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endblock %}
-                    </a>
-                {% endif %}
-                {% block logo_right %}
-                    <div class='pull-right hidden-xs hidden-sm'>
-                        <img id='logo_right' alt='Logo right' src='{{ STATIC_URL }}digipal/images/headerLogoright.jpg' />
-                    </div>
-                {% endblock %}
-            </div>
-            <div class="collapse navbar-collapse">
-                <div class="container">
-                    {% page_menu "pages/menus/dropdown.html" %}
-                </div>
-            </div><!--/.nav-collapse -->
-        </div>
+        <div class="resp-container">
 
-        <!-- quick search -->
-        {% if not advanced_search_form %}
-            {% block quick_search_form %}
-                <div id='navQuickSearch'>
-                    <form class="form-inline container" id='quickSearch' method='GET' action="/digipal/search/{% if settings.QUICK_SEARCH_TO_FACETS %}facets/{% endif %}">
-                        <div class="row">
-                            <div class="col-md-6 col-sm-12 quick-search-group">
-                                {% if settings.SHOW_QUICK_SEARCH_SCOPES %}
-                                    <span class="quick-search-category hidden-xs">
-                                        <select name="scp" class="form-control" title="Search in" data-toggle="tooltip" data-placement="left">
-                                            <option value="">Database</option>
-                                            <option value="st">News &amp; Blog</option>
-                                        </select>
-                                    </span>
-                                {% endif %}
-
-                                <div class="input-group" id='search-form-input-group'>
-
-                                    {{ quick_search_form.terms }}
-
-                                    <span class="input-group-btn">
-                                        <button type='submit' class='btn btn-default'>
-                                            <i class="glyphicon glyphicon-search"></i>
-                                        </button>
-                                        <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
-                                            <i class="glyphicon glyphicon-cog"> </i>
-                                        </a>
-                                    </span>
-                                </div>
-                                <div class="hidden">
-                                    {{ quick_search_form.s }}
-                                    {{ quick_search_form.basic_search_type }}
-                                    {{ quick_search_form.ordering }}
-                                    {{ quick_search_form.years }}
-                                    {{ quick_search_form.result_type }}
-                                </div>
+            <div class="resp-block">
+                <div class="site-nav navbar" role="navigation">
+                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <div id="contentNav">
+                        {% if settings.SITE_TITLE %}
+                            <a class="logo pull-left" href="/">
+                                {% block logo %}
+                                    {% if settings.BANNER_LOGO_HTML %}
+                                        {{ settings.BANNER_LOGO_HTML|safe }}
+                                    {% else %}
+                                        <div id="logo">
+                                            <div id='logo_words'>
+                                                <span id="digi">Digi</span><span id="pal">Pal</span>
+                                            </div>
+                                            <div id="trt" class='hidden-sm hidden-xs'></div>
+                                            <div id='div-logo-desc' class='hidden-sm hidden-xs'>
+                                                <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
+                                                <span class="logo-desc">Manuscript Studies and Diplomatic</span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endblock %}
+                            </a>
+                        {% endif %}
+                        {% block logo_right %}
+                            <div class='pull-right hidden-xs hidden-sm'>
+                                <img id='logo_right' alt='Logo right' src='{{ STATIC_URL }}digipal/images/headerLogoright.jpg' />
                             </div>
+                        {% endblock %}
+                    </div>
+                    <div class="collapse navbar-collapse">
+                        <div class="container">
+                            {% page_menu "pages/menus/dropdown.html" %}
                         </div>
-                    </form>
+                    </div><!--/.nav-collapse -->
                 </div>
-            {% endblock %}
-        {% endif %}
 
-        <!-- main body -->
-        <div class="container" id='main_body_container'>
+                <!-- quick search -->
+                {% if not advanced_search_form %}
+                    {% block quick_search_form %}
+                        <div id='navQuickSearch'>
+                            <form class="form-inline container" id='quickSearch' method='GET' action="/digipal/search/{% if settings.QUICK_SEARCH_TO_FACETS %}facets/{% endif %}">
+                                <div class="row">
+                                    <div class="col-md-6 col-sm-12 quick-search-group">
+                                        {% if settings.SHOW_QUICK_SEARCH_SCOPES %}
+                                            <span class="quick-search-category hidden-xs">
+                                                <select name="scp" class="form-control" title="Search in" data-toggle="tooltip" data-placement="left">
+                                                    <option value="">Database</option>
+                                                    <option value="st">News &amp; Blog</option>
+                                                </select>
+                                            </span>
+                                        {% endif %}
 
-           {% if message %}
-                {% nevercache %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}" data-alert="alert">
-                            <a class="close" href="#" onclick="$(this).parent().fadeOut('fast'); return false;">×</a>{{ message }}
+                                        <div class="input-group" id='search-form-input-group'>
+
+                                            {{ quick_search_form.terms }}
+
+                                            <span class="input-group-btn">
+                                                <button type='submit' class='btn btn-default'>
+                                                    <i class="glyphicon glyphicon-search"></i>
+                                                </button>
+                                                <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
+                                                    <i class="glyphicon glyphicon-cog"> </i>
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div class="hidden">
+                                            {{ quick_search_form.s }}
+                                            {{ quick_search_form.basic_search_type }}
+                                            {{ quick_search_form.ordering }}
+                                            {{ quick_search_form.years }}
+                                            {{ quick_search_form.result_type }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                    {% endfor %}
-                {% endnevercache %}
-            {% endif %}
+                    {% endblock %}
+                {% endif %}
+            </div>
 
-            {% block head %}{% endblock %}
+            <!-- main body -->
+            <div class="resp-block resp-push">
+                <div class="container" id="main_body_container">
+    
+                   {% if message %}
+                        {% nevercache %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}" data-alert="alert">
+                                    <a class="close" href="#" onclick="$(this).parent().fadeOut('fast'); return false;">×</a>{{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endnevercache %}
+                    {% endif %}
+    
+                    {% block head %}{% endblock %}
+    
+                    {% block main %}{% endblock %}
+    
+                </div>
+            </div>
 
-            {% block main %}{% endblock %}
-
+            <!-- footer -->
+            {% include "includes/footer.html" %}
         </div>
-
-        <!-- footer -->
-        {% include "includes/footer.html" %}
 
         <!-- javascript scripts -->
         {% if 1 %}

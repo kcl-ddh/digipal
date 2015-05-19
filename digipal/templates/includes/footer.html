@@ -1,20 +1,24 @@
 {# Included from base.html #}
 {% load html_escape %}
 
-<footer class="footer">
+{% comment %}
+    Sticky responsive footer
+    See http://timothylong.com/responsive-sticky-footer/
+{% endcomment %}
+
+<footer class="footer resp-block">
     <div class="container">
         <div class="row">
-            <div class='col-md-3 col-xs-12' id='logos_footer'>
-
+        
+            <div class="col-md-3 col-xs-12">
                 {% render_mezzanine_page 'footer.logos' %}
-
             </div>
 
-            <div class='col-md-8 col-xs-12' id='footer'>
+            <div class="col-md-8 col-xs-12">
                 {% render_mezzanine_page 'footer' %}
             </div>
 
-            <div class='col-md-1 col-xs-12' id='footer_logos'>
+            <div class="col-md-1 col-xs-12">
                 {% if settings.TWITTER %}
                     <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
                         <i class='fa fa-twitter'></i>
@@ -27,7 +31,7 @@
                     </a>
                 {% endif %}
             </div>
+            
         </div>
     </div>
 </footer>
-

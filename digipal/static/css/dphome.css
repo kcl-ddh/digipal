@@ -1,9 +1,5 @@
 /* index page, carousel */
 
-#logos_footer a {
-    padding:2%;
-}
-
 #myCarousel {
     -webkit-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
     -moz-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
@@ -12,8 +8,8 @@
     box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
 }
 /* Vertical centering of the carousel
-	only when we have another column
-	on the left hand side.
+    only when we have another column
+    on the left hand side.
  992px is the breaking point for col-md-
 */
 @media (min-width: 992px) {

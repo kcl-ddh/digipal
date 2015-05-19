@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 {% load pages_tags mezzanine_tags i18n future %}
-<html>
+<html lang="en">
 
     <head>
-        <!-- DigiPal - build number {{ settings.DP_BUILD_NUMBER }} - build date {{ settings.DP_BUILD_TIMESTAMP }} - {{ digipal_version }} ({{ settings.DP_BUILD_BRANCH }}) -->
-        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
         <meta name="keywords" content="{% block meta_keywords %}{% endblock %}"/>
         <meta name="description" content="{% block meta_description %}{% endblock %}"/>
+
+        <!-- DigiPal - build number {{ settings.DP_BUILD_NUMBER }} - build date {{ settings.DP_BUILD_TIMESTAMP }} - {{ digipal_version }} ({{ settings.DP_BUILD_BRANCH }}) -->
 
         {% if nofollow %}
             <meta name="robots" content="nofollow" />
@@ -52,11 +55,7 @@
         {% endcompress %}
 
         {# leave this out of the compress block as we can't compress files served remotely #}
-        {% if 1 %}
-            <link rel="stylesheet" href="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.css" />
-        {% else %}
-            <link rel="stylesheet" href="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css"/>
-        {% endif %}
+        <link rel="stylesheet" href="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.css" />
 
         {% block extra_css %}{% endblock %}
 
@@ -137,7 +136,7 @@
                                                     <i class="glyphicon glyphicon-search"></i>
                                                 </button>
                                                 <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
-                                                    <i class="glyphicon glyphicon-cog"> </i>
+                                                    <i class="glyphicon glyphicon-cog"></i>
                                                 </a>
                                             </span>
                                         </div>
@@ -201,13 +200,8 @@
             {% endif %}
         {% endcompress %}
 
-        {# leave this out of the compress block as we can't compress files served remotely #}
-        {% if 1 %}
-            <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" type="text/javascript"></script>
-        {% else %}
-            <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/jquery-ui.min.js" type="text/javascript"></script>
-        {% endif %}
         {% compress js %}
+            <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" type="text/javascript"></script>
             <!-- <script src='{{ STATIC_URL }}js/top_bar.js' type="text/javascript" ></script> -->
             <script src="{{ STATIC_URL }}js/bootstrap3/bootstrap.min.js" type="text/javascript" ></script>
             <script src="{{ STATIC_URL }}js/search_page.js" type="text/javascript" ></script>

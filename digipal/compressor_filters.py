@@ -1,6 +1,10 @@
 from compressor.filters.base import CompilerFilter
 from compressor.filters.css_default import CssAbsoluteFilter
 
+from digipal.templatetags import hand_filters
+
+KEYWORD_ALLOW_IMPORT = 'ALLOW_IMPORT'
+
 class LessAndCssAbsoluteFilter(CompilerFilter):
     '''
         Less compilation followed by CssAbsoluteFilter filter
@@ -25,10 +29,35 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
         super(LessAndCssAbsoluteFilter, self).__init__(content, command='lessc {infile}', **kwargs)
 
     def input(self, **kwargs):
+        
+        #raise Exception('BACK TRACE')
+        
+        hand_filters.chrono('input:')
+        
+        # LESSC
         content = super(LessAndCssAbsoluteFilter, self).input(**kwargs)
+
+        self.validate_input()
+        
+        # CssAbsoluteFilter
+        hand_filters.chrono('\t %s' % repr(kwargs))
         kwargs['filename'] = self.init_filename
-        c1 = CssAbsoluteFilter(content).input(**kwargs
-            )
-        return c1
+        ret = CssAbsoluteFilter(content).input(**kwargs)
+        
+        hand_filters.chrono(':input')
+        
+        return ret
         
         
+    def validate_input(self):
+        from digipal import utils
+        content = None
+        try:
+            content = utils.read_file(self.infile.name)
+        except:
+            pass
+        if content:
+            if '@import' in content and KEYWORD_ALLOW_IMPORT not in content:
+                raise Exception('@import not supported in LESS file as changes in nested LESS files are not detected by django-compressor (%s).' % self.infile.name)
+        
+            

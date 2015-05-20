@@ -560,19 +560,29 @@ except NameError:
 
 OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 
+# ----------------------------------------------------------------------------
 # DJANGO COMPRESSOR
-# Is Django compressor combining the JS and CSS?
-# Compressor will still precompile and process resource
-# even if COMPRESS_ENABLED = False
+# True => Combine all resources into a single file
 COMPRESS_ENABLED = False
 
 INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
 STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
 
+# Preprocessing of the CSS
+# ONLY if COMPRESS_ENABLED == True
+COMPRESS_CSS_FILTERS = [
+    #'compressor.filters.css_default.CssAbsoluteFilter',
+    #'compressor.filters.cssmin.CSSMinFilter',
+]
+
+# Compiling LESS to CSS
+# ALWAYS (even when COMPRESS_ENABLED == False)
 COMPRESS_PRECOMPILERS = (
     #('text/coffeescript', 'coffee --compile --stdio'),
-    ('text/less', 'lessc {infile}'),
+    ('text/less', 'digipal.compressor_filters.LessAndCssAbsoluteFilter'),
+    #('text/less', 'lessc {infile}'),
 )
+# ----------------------------------------------------------------------------
 
 # TINY MCE
 TINYMCE_DEFAULT_CONFIG = {

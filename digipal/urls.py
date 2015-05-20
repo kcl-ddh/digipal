@@ -2,7 +2,7 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.contrib import admin
 from mezzanine.core.views import direct_to_template
-from patches import mezzanine_patches
+from patches import mezzanine_patches, compressor_patch
 from digipal.models import CarouselItem
 from digipal.signals import init_signals
 from index import count
@@ -10,6 +10,7 @@ admin.autodiscover()
 
 # apply mezzanine patches at this stage. Before that would be troublesome (importing mezzanine would reimport digipal, etc)
 mezzanine_patches()
+compressor_patch()
 
 init_signals()
 

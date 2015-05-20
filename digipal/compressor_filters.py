@@ -3,6 +3,7 @@ from compressor.filters.css_default import CssAbsoluteFilter
 
 from digipal.templatetags import hand_filters
 
+# Add this keyword to your LESS file to prevent errors due to imports.
 KEYWORD_ALLOW_IMPORT = 'ALLOW_IMPORT'
 
 class LessAndCssAbsoluteFilter(CompilerFilter):
@@ -32,7 +33,7 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
         
         #raise Exception('BACK TRACE')
         
-        hand_filters.chrono('input:')
+        #hand_filters.chrono('input:')
         
         # LESSC
         content = super(LessAndCssAbsoluteFilter, self).input(**kwargs)
@@ -40,16 +41,18 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
         self.validate_input()
         
         # CssAbsoluteFilter
-        hand_filters.chrono('\t %s' % repr(kwargs))
+        #hand_filters.chrono('\t %s' % repr(kwargs))
         kwargs['filename'] = self.init_filename
         ret = CssAbsoluteFilter(content).input(**kwargs)
         
-        hand_filters.chrono(':input')
+        #hand_filters.chrono(':input')
         
         return ret
         
         
     def validate_input(self):
+        '''Raises an exception if the LESS file contains @import and not the
+            KEYWORD_ALLOW_IMPORT keyword.'''
         from digipal import utils
         content = None
         try:
@@ -61,3 +64,24 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
                 raise Exception('@import not supported in LESS file as changes in nested LESS files are not detected by django-compressor (%s).' % self.infile.name)
         
             
+def compressor_patch():
+    '''Make sure the cache is always used.
+        Even with COMPRESSOR_ENABLED == False
+        Note that if a file has changed, all the files within the compress
+        template block will be recompiled!
+    '''
+
+    from compressor.templatetags.compress import CompressorMixin
+    
+    from compressor.cache import (cache_get, get_templatetag_cachekey)
+    
+    def render_cached(self, compressor, kind, mode, forced=False):
+        """
+        If enabled checks the cache for the given compressor's cache key
+        and return a tuple of cache key and output
+        """
+        cache_key = get_templatetag_cachekey(compressor, mode, kind)
+        cache_content = cache_get(cache_key)
+        return cache_key, cache_content
+    
+    CompressorMixin.render_cached = render_cached

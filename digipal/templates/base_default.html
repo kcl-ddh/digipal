@@ -32,13 +32,17 @@
         {% endifinstalled %}
 
         {% compress css %}
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3/bootstrap.min.css"/>
+            <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bootstrap/less/dpbootstrap.less" type="text/less" />
+        {% endcompress %}
+
+        {% compress css %}
+            {# <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3/bootstrap.min.css"/> #}
             <!-- link rel="stylesheet" href="{{ STATIC_URL }}css/mezzanine.css"/ -->
             <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/typeahead.js-bootstrap.css"/>
             {# style.css has been replaced by this series of individual sheets #}
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpbase.less" type="text/less" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/dpmenu.css"/>
+            <link rel="stylesheet" href="{{ STATIC_URL }}css/dpmenu.less" type="text/less" />
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dphome.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpimage.css"/>
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpblog.css"/>
@@ -70,6 +74,30 @@
         <div class="resp-container">
 
             <div class="resp-block">
+            
+                <nav class="primary-nav navbar navbar-default">
+                  <div class="container">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                      </button>
+                      <a class="navbar-brand" href="/">
+                        {{ settings.SITE_TITLE }}
+                      </a>
+                    </div>
+                
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse">
+                      {% page_menu "pages/menus/dropdown.html" %}
+                    </div>
+                </nav>
+                                    
+            
+                {% if 0 %}
                 <div class="site-nav navbar" role="navigation">
                      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="sr-only">Toggle navigation</span>
@@ -104,12 +132,15 @@
                             </div>
                         {% endblock %}
                     </div>
+
                     <div class="collapse navbar-collapse">
                         <div class="container">
                             {% page_menu "pages/menus/dropdown.html" %}
                         </div>
                     </div><!--/.nav-collapse -->
+                    
                 </div>
+                {% endif %}
 
                 <!-- quick search -->
                 {% if not advanced_search_form %}

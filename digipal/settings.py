@@ -87,14 +87,6 @@ DATABASES = {
             'HOST': '',
             'PORT': '',
             },
-        'legacy': {
-            'ENGINE': 'django.db.backends.',
-            'NAME': '',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': ''
-            }
         }
 
 #########
@@ -561,12 +553,29 @@ except NameError:
 OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 
 # ----------------------------------------------------------------------------
+
 # DJANGO COMPRESSOR
 # True => Combine all resources into a single file
 COMPRESS_ENABLED = False
 
 INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
 STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
+
+# CACHING (make sure it is persistent otherwise files are recompiled each time
+# the app restarts)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+    'django-compressor': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/django_compressor/'),
+    }
+}
+
+NEVERCACHE_KEY = 'NOCACHE'
+
+COMPRESS_CACHE_BACKEND = 'django-compressor'
 
 # Preprocessing of the CSS
 # ONLY if COMPRESS_ENABLED == True

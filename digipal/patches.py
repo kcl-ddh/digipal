@@ -1,11 +1,13 @@
 '''
     Patches for other apps or libraries.
-    Patches should always be avoided if possible because they are likely to break when the 
-    patched app gets upgraded. However we don't have direct control over them and it's 
+    Patches should always be avoided if possible because they are likely to break when the
+    patched app gets upgraded. However we don't have direct control over them and it's
     sometimes the most efficient way to quickly include missing features.
 '''
 
 import re
+
+from digipal.compressor_filters import compressor_patch
 
 def iipimage_patches():
     from django.conf import settings
@@ -24,7 +26,7 @@ def iipimage_patches():
     
     # Patch 3+1:
     # We now support TIF as well as JP2 on the image server
-    # If default format is set to 'tif' then we overwrite the conversion instruction to a pyramidal TIF 
+    # If default format is set to 'tif' then we overwrite the conversion instruction to a pyramidal TIF
     #CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
     if settings.IMAGE_SERVER_EXT == 'tif':
         storage.CONVERT_TO_JP2 = "convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s"
@@ -119,8 +121,8 @@ def iipimage_patches():
     from iipimage import fields
     
     # Patch 3:
-    # The order of the query string arguments do matter, 
-    # if CVT appears before HEI, the resizing will fail on some iip image server implementations 
+    # The order of the query string arguments do matter,
+    # if CVT appears before HEI, the resizing will fail on some iip image server implementations
     
     def thumbnail_url (self, height=None, width=None):
         try:
@@ -140,16 +142,16 @@ def mezzanine_patches():
     # Fix Mezzanine case-insensitive keyword issue
     # See https://github.com/stephenmcd/mezzanine/issues/647
     
-    from django.conf import settings    
+    from django.conf import settings
     if 'mezzanine.blog' in settings.INSTALLED_APPS:
     
         keyword_exists = True
         try:
             from mezzanine.generic.models import Keyword
         except Exception, e:
-            keyword_exists = False 
+            keyword_exists = False
             if getattr(settings, 'DEV_SERVER', False):
-                print 'WARNING: import failed (%s) and Mezzanine Blog case-sensitive keywords patch cannot be applied.' % e 
+                print 'WARNING: import failed (%s) and Mezzanine Blog case-sensitive keywords patch cannot be applied.' % e
         
         if keyword_exists:
             # patch integrated into the latest mezzanine version
@@ -168,25 +170,25 @@ def mezzanine_patches():
 #                     title = title.strip()
 #                     if title:
 #                         keywords = Keyword.objects.filter(title__iexact=title)
-#                         
+#
 #                         # pick a case-sensitive match if it exists.
 #                         # otherwise pick any other match.
 #                         for keyword in keywords:
 #                             if keyword.title == title:
 #                                 break
-#                         
+#
 #                         # no match at all, create a new keyword.
 #                         if not keywords.count():
 #                             keyword = Keyword(title=title)
-#                             keyword.save()                
-#                         
+#                             keyword.save()
+#
 #                         id = str(keyword.id)
 #                         if id not in ids:
 #                             ids.append(id)
 #                             titles.append(title)
 #                 from django.http import HttpResponse
 #                 return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
-#             
+#
 #             import mezzanine.generic.views
 #             mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
             
@@ -201,14 +203,14 @@ def mezzanine_patches():
                 from django.contrib.contenttypes.models import ContentType
                 content_type_id = ContentType.objects.get_for_model(self).id
                 select = r'''
-                    select p.* 
+                    select p.*
                     from blog_blogpost p
                     join generic_assignedkeyword ak on (p.id = ak.object_pk)
-                    where 
+                    where
                         ak.content_type_id = %s
-                    AND 
+                    AND
                         ak.keyword_id in (select distinct ak2.keyword_id from generic_assignedkeyword ak2 where ak2.object_pk = %s and ak.content_type_id = %s)
-                    AND 
+                    AND
                         p.id <> %s
                     order by p.publish_date;
                 '''
@@ -248,15 +250,15 @@ def admin_patches():
     # Patch 5: bar permissions to some application models in the admin
     # Why not doing it with django permissions and groups?
     # Because we want to keep the data migration scripts simple and
-    # therefore we copy all the django records from  STG to the other 
+    # therefore we copy all the django records from  STG to the other
     # servers. This means that we can't have different permissions and
     # user groups across our servers.
-    # 
+    #
     # setings.HIDDEN_ADMIN_APPS = ('APP_LABEL_1', )
     #
     
     from django.conf import settings
-    import django.contrib.auth.models 
+    import django.contrib.auth.models
     
     _user_has_module_perms_old = django.contrib.auth.models._user_has_module_perms
     
@@ -344,6 +346,6 @@ def whoosh_patches():
             return wrapper
         return decorating_function
     
-    from whoosh.util import cache 
+    from whoosh.util import cache
     cache.lru_cache = lru_cache
     

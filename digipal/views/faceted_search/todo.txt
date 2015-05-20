@@ -1,3 +1,128 @@
+
+
+DP Color Customisations:
+
+dpbase
+    .btn-primary
+
+    .has-switch
+
+    .label-default, .btn-digipal
+
+    .nav-tabs.nav-stacked
+        see http://localhost/about/digipal/
+
+    .view_button
+        border:
+        background:
+        
+        see /
+
+    form.panel
+    
+    .panel
+
+BS:
+
+.text-primary {
+    color: #a1514d
+}
+
+a.text-primary:hover {
+    color: #7f403d
+}
+
+.bg-primary {
+    color: #fff;
+    background-color: #a1514d
+}
+
+a.bg-primary:hover {
+    background-color: #7f403d
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #a1514d;
+    border-color: #904845
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.open .dropdown-toggle.btn-primary {
+    color: #fff;
+    background-color: #854340;
+    border-color: #663331
+}
+
+fieldset[disabled] .btn-primary.active {
+    background-color: #a1514d;
+    border-color: #904845
+}
+
+.btn-primary .badge {
+    color: #a1514d;
+    background-color: #fff
+}
+
+.btn-link {
+    color: #a1514d;
+    font-weight: normal;
+    cursor: pointer;
+    border-radius: 0
+}
+
+.btn-link:hover,
+.btn-link:focus {
+    color: #6d3734;
+    text-decoration: underline;
+    background-color: transparent
+}
+
+.dropdown-menu>.active>a:focus {
+    color: #fff;
+    text-decoration: none;
+    outline: 0;
+    background-color: #a1514d
+}
+
+.nav>li>a:hover,
+.nav>li>a:focus {
+    text-decoration: none;
+    background-color: #a1514d
+}
+
+.nav>li.disabled>a {
+    color: #fff
+}
+
+.nav>li.disabled>a:hover,
+.nav>li.disabled>a:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: transparent;
+    cursor: not-allowed
+}
+
+.nav .open>a,
+.nav .open>a:hover,
+.nav .open>a:focus {
+    background-color: #a1514d;
+    border-color: #a1514d
+}
+
+.nav-pills>li.active>a,
+.nav-pills>li.active>a:hover,
+.nav-pills>li.active>a:focus {
+    color: #fff;
+    background-color: #a1514d
+}
+
+
+
+
 MAIN TODO:
     . Codocological desc editor
     . MoA Live

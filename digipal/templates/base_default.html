@@ -76,24 +76,67 @@
             <div class="resp-block">
             
                 <nav class="primary-nav navbar navbar-default">
-                  <div class="container">
-                    <!-- Brand and toggle get grouped for better mobile display -->
-                    <div class="navbar-header">
-                      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                      </button>
-                      <a class="navbar-brand" href="/">
-                        {{ settings.SITE_TITLE }}
-                      </a>
-                    </div>
                 
-                    <!-- Collect the nav links, forms, and other content for toggling -->
-                    <div class="collapse navbar-collapse">
-                      {% page_menu "pages/menus/dropdown.html" %}
+                    <span id="banner-img-left" class="banner-image hidden-xs"></span>
+                    <span id="banner-img-right" class="banner-image hidden-sm hidden-xs"></span>
+
+                    <div class="container">
+                    
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                            
+                            <a class="navbar-brand" href="/">
+                                {% block logo %}
+                                    {% if settings.BANNER_LOGO_HTML %}
+                                        {{ settings.BANNER_LOGO_HTML|safe }}
+                                    {% else %}
+                                        <div id='logo'>
+                                            {%spaceless%}
+                                            <span class="logo-brand logo-brand-digi">Digi</span>
+                                            <span class="logo-brand logo-brand-pal">Pal</span>
+                                            <span class='logo-separator hidden-sm hidden-xs'>&nbsp;</span>
+                                            <span class='logo-sub hidden-sm hidden-xs'>
+                                                Digital Resource and Database of Palaeography,
+                                                <br/>
+                                                Manuscript Studies and Diplomatic
+                                            </span>
+                                            {%endspaceless%}
+                                        </div>
+                                        {% if 0 %}
+                                        <span id="logo">
+                                            <span class='logo-brand logo-text'>
+                                                <span class="logo-brand-digi">Digi</span>
+                                                <span class="logo-brand-pal">Pal</span>
+                                            </span>
+                                            <span class='logo-sub logo-text hidden-sm hidden-xs'>
+                                                <!-- span class="logo-sub-line" -->
+                                                    Digital Resource and Database of Palaeography,
+                                                    <br/>
+                                                    Manuscript Studies and Diplomatic
+                                                <!-- /span -->
+                                            </span>
+                                        </span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endblock %}
+                            </a>
+                            
+                        </div>
+                        
+                        <!-- main menu -->
+                        <div class="collapse navbar-collapse">
+                            {% page_menu "pages/menus/dropdown.html" %}
+                        </div>
+                        
                     </div>
+                                        
                 </nav>
                                     
             
@@ -108,7 +151,7 @@
                     <div id="contentNav">
                         {% if settings.SITE_TITLE %}
                             <a class="logo pull-left" href="/">
-                                {% block logo %}
+                                {% block logo2 %}
                                     {% if settings.BANNER_LOGO_HTML %}
                                         {{ settings.BANNER_LOGO_HTML|safe }}
                                     {% else %}

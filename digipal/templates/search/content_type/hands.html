@@ -11,9 +11,9 @@
 
                 <td>
                     {% if can_edit %}
-                        <a class="view_button" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
+                        <a class="btn btn-default" href="/admin/digipal/hand/{{ hand.id }}">Edit</a>
                     {% endif %}
-                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                    <a class="btn btn-default" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ hand.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
 
                 <td>{{ hand.get_search_label }}

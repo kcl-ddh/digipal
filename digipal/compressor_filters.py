@@ -33,7 +33,7 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
         
         #raise Exception('BACK TRACE')
         
-        #hand_filters.chrono('input:')
+        hand_filters.chrono('input:')
         
         # LESSC
         content = super(LessAndCssAbsoluteFilter, self).input(**kwargs)
@@ -41,11 +41,11 @@ class LessAndCssAbsoluteFilter(CompilerFilter):
         self.validate_input()
         
         # CssAbsoluteFilter
-        #hand_filters.chrono('\t %s' % repr(kwargs))
+        hand_filters.chrono('\t %s' % repr(kwargs))
         kwargs['filename'] = self.init_filename
         ret = CssAbsoluteFilter(content).input(**kwargs)
         
-        #hand_filters.chrono(':input')
+        hand_filters.chrono(':input')
         
         return ret
         

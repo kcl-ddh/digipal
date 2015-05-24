@@ -8,7 +8,8 @@
 
                 {% if page.is_primary and forloop.first %}
                     <li class="{% if on_home %} active{% endif %}" id="dropdown-menu-{{ page.html_id }}">
-                        <a class='navLink' href="{% url "home" %}">{% trans "Home" %}</a>
+                        {# <a class='' href="{% url "home" %}">{% trans "Home" %}</a> #}
+                        <a class='' href="{% url "home" %}"><i class="glyphicon glyphicon-home"></i></a>
                     </li>
                 {% endif %}
 
@@ -21,7 +22,7 @@
                         </li>
                     {% else %}
                         <li class="dropdown{% if page.is_current_or_ascendant %} active{% endif %} {% mezzanine_page_active request page %}">
-                            <a data-toggle='dropdown' class='navLink dropdown-toggle'>
+                            <a data-toggle='dropdown' class='dropdown-toggle'>
                                 {{ page.title }}
                                 <span class="caret"></span>
                             </a>

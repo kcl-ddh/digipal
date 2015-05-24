@@ -13,9 +13,9 @@
             <tr class="{% cycle 'bgColour' '' %}">
                 <td>
                     {% if can_edit %}
-                        <a class="view_button" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
+                        <a class="btn btn-default" href="/admin/digipal/scribe/{{ scribe.id }}">Edit</a>
                     {% endif %}
-                    <a class="view_button" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
+                    <a class="btn btn-default" href="{% filter add_query_params:request.META.QUERY_STRING %}{{ scribe.get_absolute_url }}?result_type={{template_type}}{% endfilter %}">View</a>
                 </td>
                 <td>{{ scribe.name }}
                     {% image_icon scribe.get_image_count "COUNT images for this scribe" scribe.get_absolute_url|add:"pages" template_type request %}

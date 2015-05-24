@@ -92,7 +92,7 @@
                         </tr>
                         {% for image in images_on_this_page %}
                             <tr>
-                                <td><a class='view_button' href='{{ image.id }}/'>View</a></td>
+                                <td><a class='btn btn-default' href='{{ image.id }}/'>View</a></td>
                                 <td><a data-type='image' data-id='{{ image.id }}' class='droppable_image' href='{{ image.id }}/'>{{image}}</a></td>
                                 <td>{{image.item_part.current_item.repository.place}}</td>
                                 <td>{{image.item_part.current_item.repository.name}}</td>

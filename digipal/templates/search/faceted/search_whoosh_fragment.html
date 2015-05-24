@@ -2,7 +2,7 @@
     {% load pages_tags mezzanine_tags i18n %}
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
-    <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})  
+    <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})
         <span class="dp-small pull-right">
             <a href="/digipal/search/?s=1&terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}" data-toggle="tooltip" title="Go to the Advanced Search page">
                 Advanced Search
@@ -27,7 +27,7 @@
                                     {% if view.selected %}
                                         <input type="hidden" name="view" value="{{ view.key }}" />
                                     {% endif %}
-                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}" 
+                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
                                         class="btn btn-default {% if view.selected %} active {% endif %}"
                                         title="{{ view.label }} View" data-toggle="tooltip">
                                         <span class="glyphicon glyphicon-{{ view.icon }}"></span>
@@ -59,7 +59,7 @@
                         <div class="panel-heading">
                             <h4 class="panel-title">
                                 {% comment %}<a data-toggle="collapse" data-target="#panel-{{ facet.key }}-body">{% endcomment %}
-                                    {{ facet.label }} 
+                                    {{ facet.label }}
                                     {% if facet.options %}
                                         ({{ facet.options|length }})
                                     {% endif %}
@@ -70,7 +70,7 @@
                             <div class="panel-body">
                                 {% if facet.type == 'textbox' or facet.type == 'date' %}
                                     <div class="input-group">
-                                        <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}" 
+                                        <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}"
                                             {% if facet.id %}id="{{ facet.id }}"{% endif %}
                                         >
                                         <span class="input-group-btn">
@@ -79,7 +79,7 @@
                                     </div>
                                     {% if facet.type == 'date' %}
                                         <div >
-                                            <div class="slider" 
+                                            <div class="slider"
                                                 {% if facet.id %}data-label-selector="#{{ facet.id }}"{% endif %}
                                                 data-min="{{ facet.min }}"
                                                 data-max="{{ facet.max }}"
@@ -104,13 +104,13 @@
                                         {% if facet.options.5 %}
                                             <tr><td colspan="2">
                                             {% if facet.expanded == 1 %}
-                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="view_button small">Show less</a>
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small">Show less</a>
                                             {% endif %}
                                             </td></tr>
                                         {% endif %}
                                         {% for option in facet.options %}
                                             {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected %}
-                                                <tr 
+                                                <tr
                                                     {% if option.selected %}class="active"{% endif %}
                                                     >
                                                     <td>
@@ -129,7 +129,7 @@
                                             <tr><td colspan="2">
                                                 {% if facet.expanded == 1 %}
                                                 {% else %}
-                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}" class="view_button small">Show more...</a>
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small">Show more...</a>
                                                 {% endif %}
                                             </td></tr>
                                         {% endif %}
@@ -138,7 +138,7 @@
                             </div>
                         </div>
                     </div>
-                {% endfor %}        
+                {% endfor %}
             </div>
 
         </form>

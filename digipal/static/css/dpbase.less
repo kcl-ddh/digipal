@@ -1,4 +1,4 @@
-/* FOOTER */
+// TOP STRUCTURE
 
 html, body {
     height: 100%;
@@ -18,9 +18,11 @@ html, body {
     height: auto;
 }
 
+// FOOTER
+
 footer.footer {
     
-    background-color: #e9e9e9;
+    background-color: rgb(249, 249, 249);
     border: 1px dotted rgba(0, 0, 0, 0.1);
     font-size: 11px;
     
@@ -208,7 +210,6 @@ a:hover .label-default, a:focus .label-default, a:active .label-default {
     box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
 
-
 .nav-tabs.nav-stacked li, .nav-tabs.nav-stacked a {
     line-height: 1;
 }
@@ -267,19 +268,29 @@ blockquote{
     text-decoration: underline;
 }
 
+a.btn:hover {
+    background-color: @dp-main;
+    color: @dp-menu-color;
+}
+
+/*
 .btn {
     font-weight: bold;
 }
-
+ */
+ 
+/*
 .nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
     background-color: #EEEEEE;
     color: #555555;
 }
+*/
 
+/*
 li.active > a{
     cursor: text;
 }
-
+*/
 
 .tab-content {
     overflow: visible;
@@ -289,6 +300,8 @@ li.active > a{
     vertical-align: bottom;
 }
 
+
+/*
 .view_button{
     padding-top: 8px;
     padding-bottom: 8px;
@@ -306,7 +319,7 @@ li.active > a{
 .view_button.small {
     padding-top: 1px;
     padding-bottom: 1px;
-    /* font-size: 100%; */
+    // font-size: 100%;
     line-height: 1.5em;
 }
 
@@ -315,6 +328,7 @@ li.active > a{
     background: url('/static/digipal/images/nav_bg.png');
     text-decoration: none;
 }
+*/
 
 .table-condensed th, .table-condensed td {
     padding: 1%;
@@ -453,6 +467,7 @@ ul.flat-list {
     padding-right: 4px;
 }
 
+/*
 .pagination > li > a:focus, .pagination > li > a:hover {
     background-color: #a1514d;
     color: #fff;
@@ -466,12 +481,14 @@ ul.flat-list {
 .pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
     border-color: #ccc;
 }
+*/
 
 /* END pagination */
 
 .tab-content{
     padding-top:1.5%;
 }
+
 
 .btn-digipal:hover, .btn-digipal:focus{
     color: #eee;
@@ -495,16 +512,18 @@ ul.flat-list {
 
 
 form.panel {
-    border-color: #E0C4BE;
+    border-color: @dp-input-border;
 }
 
 a.link-icon, a.link-icon:hover {
     text-decoration: none;
 }
 
+/*
 .nav-pills a:hover, .nav-tabs a:hover{
     color: #fff;
 }
+*/
 
 .nav-tabs li.active:hover a{
     color:#555;
@@ -518,9 +537,11 @@ a.link-icon, a.link-icon:hover {
     color: #999;
 }
 
+/*
 .nav-pills a.disabled:hover, .nav-tabs a.disabled:hover{
     color: #ccc;
 }
+*/
 
 .dropdown-menu>li>a {
     color:#333;
@@ -574,31 +595,41 @@ because it spreads across a column. */
 }
 
 /* 3D effect to the primary buttons */
+
+// ALLOW_IMPORT
+
+@import "../digipal/css/dpvariables.less";
+@dp-main-3d-from:   lighten(@dp-main, 20%);
+@dp-main-3d-to:     darken(@dp-main, 8%);
+
 .btn-primary {
-    background-color: hsl(2, 51%, 37%) !important;
+    background-color: @dp-main !important;
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d5827f", endColorstr="#8e312e");
-    background-image: -khtml-gradient(linear, left top, left bottom, from(#d5827f), to(#8e312e));
-    background-image: -moz-linear-gradient(top, #d5827f, #8e312e);
-    background-image: -ms-linear-gradient(top, #d5827f, #8e312e);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #d5827f), color-stop(100%, #8e312e));
-    background-image: -webkit-linear-gradient(top, #d5827f, #8e312e);
-    background-image: -o-linear-gradient(top, #d5827f, #8e312e);
-    background-image: linear-gradient(#d5827f, #8e312e);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="@dp-main-3d-from", endColorstr="@dp-main-3d-to");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(@dp-main-3d-from), to(@dp-main-3d-to));
+    background-image: -moz-linear-gradient(top, @dp-main-3d-from, @dp-main-3d-to);
+    background-image: -ms-linear-gradient(top, @dp-main-3d-from, @dp-main-3d-to);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, @dp-main-3d-from), color-stop(100%, @dp-main-3d-to));
+    background-image: -webkit-linear-gradient(top, @dp-main-3d-from, @dp-main-3d-to);
+    background-image: -o-linear-gradient(top, @dp-main-3d-from, @dp-main-3d-to);
+    background-image: linear-gradient(@dp-main-3d-from, @dp-main-3d-to);
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.49);
 }
 
+@dp-main-3d-hover-from:   darken(@dp-main-3d-from, 10%);
+@dp-main-3d-hover-to:     darken(@dp-main-3d-to, 10%);
+
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
-    background-color: hsl(2, 51%, 24%) !important;
+    background-color: darken(@dp-main, 6.5%) !important;
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#c5514d", endColorstr="#5c201d");
-    background-image: -khtml-gradient(linear, left top, left bottom, from(#c5514d), to(#5c201d));
-    background-image: -moz-linear-gradient(top, #c5514d, #5c201d);
-    background-image: -ms-linear-gradient(top, #c5514d, #5c201d);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #c5514d), color-stop(100%, #5c201d));
-    background-image: -webkit-linear-gradient(top, #c5514d, #5c201d);
-    background-image: -o-linear-gradient(top, #c5514d, #5c201d);
-    background-image: linear-gradient(#c5514d, #5c201d);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="@dp-main-3d-hover-from", endColorstr="@dp-main-3d-hover-to");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(@dp-main-3d-hover-from), to(@dp-main-3d-hover-to));
+    background-image: -moz-linear-gradient(top, @dp-main-3d-hover-from, @dp-main-3d-hover-to);
+    background-image: -ms-linear-gradient(top, @dp-main-3d-hover-from, @dp-main-3d-hover-to);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, @dp-main-3d-hover-from), color-stop(100%, @dp-main-3d-hover-to));
+    background-image: -webkit-linear-gradient(top, @dp-main-3d-hover-from, @dp-main-3d-hover-to);
+    background-image: -o-linear-gradient(top, @dp-main-3d-hover-from, @dp-main-3d-hover-to);
+    background-image: linear-gradient(@dp-main-3d-hover-from, @dp-main-3d-hover-to);
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.49);
 }
 
@@ -667,10 +698,12 @@ Bootstrap patch for extra small devices
 }
 
 
+/*
 a[data-toggle="pill"]{
     cursor:pointer;
     border-radius: 2px !important;
 }
+*/
 
 .pull-top {
     vertical-align: top;

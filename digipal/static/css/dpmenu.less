@@ -6,9 +6,11 @@
 @nav_color_bg_from: rgba(red(@dp-main), green(@dp-main), blue(@dp-main), 0.9);
 @nav_color_bg_to: darken(@nav_color_bg_from, 5%);
 
-@banner-height: 100px;
+@banner-height: 85px;
 
 nav.primary-nav {
+    
+    border-width: 0;
     
     background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
 
@@ -25,11 +27,20 @@ nav.primary-nav {
         .navbar-brand {
             // place the brand in the middle of the banner
             position: absolute;
-            top: 12%;
+            top: 8px;
         }
     }
 
+    .navbar-toggle {
+        top: 25px;
+        background-color: @dp-main;
+    }
+
     .navbar-collapse {
+        
+        // prevent bg images from banner to cover navbar
+        z-index: 1;
+        position: relative;
     
         // bg color for main menu
         background: -webkit-linear-gradient(@nav_color_bg_from, @nav_color_bg_to); // For Safari 5.1 to 6.0
@@ -52,8 +63,8 @@ nav.primary-nav {
 
 #logo {
     line-height: 65px;
-    color:#a1514d;
-    float: left;
+    color:@dp-main;
+    display: inline-block;
     font-size: 46px;
     
     .logo-brand {
@@ -62,17 +73,17 @@ nav.primary-nav {
     .logo-brand-pal {
         color:#777;
     }
-    .logo-sub {
-        display: inline-block;
-        font-size: 14px;
-        line-height: 22px;
-    }
     .logo-separator {
         display: inline-block;
         border-right: 1px solid #999;
         height: 100%;
         margin: 0 9px;
         width: 1px;
+    }
+    .logo-sub {
+        display: inline-block;
+        font-size: 14px;
+        line-height: 20px;
     }
 }
 
@@ -88,7 +99,6 @@ nav.primary-nav {
 #banner-img-left {
     background: url('/static/digipal/images/banner_bg.png') no-repeat scroll left 0 transparent;
 }
-
 
 #banner-img-right {
     background: url('/static/digipal/images/headerLogoright.jpg') no-repeat scroll right 0 transparent;

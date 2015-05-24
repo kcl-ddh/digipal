@@ -341,11 +341,12 @@
 
 // Basics of a navbar
 @navbar-height:                    @dp-navbar-height;
-@navbar-margin-bottom:             @line-height-computed;
-@navbar-border-radius:             @border-radius-base;
+@navbar-margin-bottom:             0; //@line-height-computed;
+@navbar-border-radius:             0; //@border-radius-base;
 @navbar-padding-horizontal:        floor((@grid-gutter-width / 2));
 @navbar-padding-vertical:          ((@navbar-height - @line-height-computed) / 2);
-@navbar-collapse-max-height:       340px;
+//@navbar-collapse-max-height:       340px;
+@navbar-collapse-max-height:       none;
 
 @navbar-default-color:             @dp-menu-color;
 @navbar-default-bg:                @dp-main;
@@ -368,7 +369,7 @@
 // Navbar toggle
 @navbar-default-toggle-hover-bg:           @navbar-default-link-active-bg;
 @navbar-default-toggle-icon-bar-bg:        @dp-menu-color;
-@navbar-default-toggle-border-color:       @navbar-default-link-active-bg;
+@navbar-default-toggle-border-color:       @dp-menu-color;
 
 
 // Inverted navbar

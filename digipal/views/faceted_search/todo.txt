@@ -1,8 +1,9 @@
 BANNER
-    less tall
-    fix sub title layout
-    remove round red corners
-    expand the menu bar to the whole width
+    [DONE] less tall
+    [DONE] fix sub title layout
+    [DONE] remove round red corners
+    [DONE] expand the menu bar to the whole width
+    toggle button
     * search
 
 

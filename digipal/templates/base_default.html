@@ -96,6 +96,7 @@
                                     {% if settings.BANNER_LOGO_HTML %}
                                         {{ settings.BANNER_LOGO_HTML|safe }}
                                     {% else %}
+                                        {# https://jsfiddle.net/vemj87m3/ #}
                                         <span id='logo'>
                                             {%spaceless%}
                                                 <span class="logo-brand logo-brand-digi">Digi</span>
@@ -123,95 +124,58 @@
                             {% page_menu "pages/menus/dropdown.html" %}
                         </div>
                     </div>
-                        
                                         
                 </nav>
-                                    
             
-                {% if 0 %}
-                <div class="site-nav navbar" role="navigation">
-                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <div id="contentNav">
-                        {% if settings.SITE_TITLE %}
-                            <a class="logo pull-left" href="/">
-                                {% block logo2 %}
-                                    {% if settings.BANNER_LOGO_HTML %}
-                                        {{ settings.BANNER_LOGO_HTML|safe }}
-                                    {% else %}
-                                        <div id="logo">
-                                            <div id='logo_words'>
-                                                <span id="digi">Digi</span><span id="pal">Pal</span>
-                                            </div>
-                                            <div id="trt" class='hidden-sm hidden-xs'></div>
-                                            <div id='div-logo-desc' class='hidden-sm hidden-xs'>
-                                                <span class="logo-desc">Digital Resource and Database of Palaeography,</span>
-                                                <span class="logo-desc">Manuscript Studies and Diplomatic</span>
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                {% endblock %}
-                            </a>
-                        {% endif %}
-                        {% block logo_right %}
-                            <div class='pull-right hidden-xs hidden-sm'>
-                                <img id='logo_right' alt='Logo right' src='{{ STATIC_URL }}digipal/images/headerLogoright.jpg' />
-                            </div>
-                        {% endblock %}
-                    </div>
-
-                    <div class="collapse navbar-collapse">
-                        <div class="container">
-                            {% page_menu "pages/menus/dropdown.html" %}
-                        </div>
-                    </div><!--/.nav-collapse -->
-                    
-                </div>
-                {% endif %}
-
                 <!-- quick search -->
                 {% if not advanced_search_form %}
                     {% block quick_search_form %}
-                        <div id='navQuickSearch'>
-                            <form class="form-inline container" id='quickSearch' method='GET' action="/digipal/search/{% if settings.QUICK_SEARCH_TO_FACETS %}facets/{% endif %}">
+                        <div id='quick-search'>
+                            <div class="container">
                                 <div class="row">
-                                    <div class="col-md-6 col-sm-12 quick-search-group">
-                                        {% if settings.SHOW_QUICK_SEARCH_SCOPES %}
-                                            <span class="quick-search-category hidden-xs">
-                                                <select name="scp" class="form-control" title="Search in" data-toggle="tooltip" data-placement="left">
-                                                    <option value="">Database</option>
-                                                    <option value="st">News &amp; Blog</option>
-                                                </select>
+                                    <div class="col-md-6 col-sm-12">
+                                        <form class="form-inline">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                        
+                                                    {% if settings.SHOW_QUICK_SEARCH_SCOPES %}
+                                                        <span class="input-group-btn hidden-xs">
+                                                            <select name="scp" class="form-control"
+                                                                title="Search in" data-toggle="tooltip" data-placement="left">
+                                                                <option value="">Database</option>
+                                                                <option value="st">News &amp; Blog</option>
+                                                            </select>
+                                                        </span>
+                                                    {% endif %}
+                                                    
+                                                    {{ quick_search_form.terms }}
+                                                    
+                                                    <span class="input-group-btn">
+                                                        <button type='submit' class='btn btn-default'>
+                                                            <i class="glyphicon glyphicon-search"></i>
+                                                        </button>
+                                                    </span>
+                                                
+                                                </div>
+                                            
+                                            </div>
+        
+                                            <span class="hidden">
+                                                {{ quick_search_form.s }}
+                                                {{ quick_search_form.basic_search_type }}
+                                                {{ quick_search_form.ordering }}
+                                                {{ quick_search_form.years }}
+                                                {{ quick_search_form.result_type }}
                                             </span>
-                                        {% endif %}
-
-                                        <div class="input-group" id='search-form-input-group'>
-
-                                            {{ quick_search_form.terms }}
-
-                                            <span class="input-group-btn">
-                                                <button type='submit' class='btn btn-default'>
-                                                    <i class="glyphicon glyphicon-search"></i>
-                                                </button>
-                                                <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
-                                                    <i class="glyphicon glyphicon-cog"></i>
-                                                </a>
-                                            </span>
-                                        </div>
-                                        <div class="hidden">
-                                            {{ quick_search_form.s }}
-                                            {{ quick_search_form.basic_search_type }}
-                                            {{ quick_search_form.ordering }}
-                                            {{ quick_search_form.years }}
-                                            {{ quick_search_form.result_type }}
-                                        </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-1 col-sm-12 hidden-sm">
+                                        <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
+                                            <i class="glyphicon glyphicon-cog"></i>
+                                        </a>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     {% endblock %}
                 {% endif %}
@@ -257,15 +221,14 @@
             <script src="{{ STATIC_URL }}digipal/scripts/api.digipal.js" type="text/javascript" ></script>
             <script src="{{ STATIC_URL }}digipal/scripts/utils.js" type="text/javascript" ></script>
             <script src='{{ STATIC_URL }}js/typeahead.min.js'></script>
-            {% if not advanced_search_form %}
-                <script src='{{ STATIC_URL }}js/bootstrap.select.js'></script>
-            {% endif %}
         {% endcompress %}
 
         {% compress js %}
             <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" type="text/javascript"></script>
-            <!-- <script src='{{ STATIC_URL }}js/top_bar.js' type="text/javascript" ></script> -->
             <script src="{{ STATIC_URL }}js/bootstrap3/bootstrap.min.js" type="text/javascript" ></script>
+            {% if 1 and not advanced_search_form %}
+                <script src='{{ STATIC_URL }}js/bootstrap.select.js'></script>
+            {% endif %}
             <script src="{{ STATIC_URL }}js/search_page.js" type="text/javascript" ></script>
             <script src='{{ STATIC_URL }}digipal/scripts/add_to_lightbox.js' type="text/javascript" ></script>
             <script src='{{ STATIC_URL }}digipal/scripts/annotation_editor.js' type="text/javascript" ></script>

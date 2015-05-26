@@ -49,7 +49,7 @@ function init_suggestions() {
                 }
             }
         });
-    };
+    }
 }
 
 $(document).ready(function() {
@@ -59,19 +59,23 @@ $(document).ready(function() {
     // use bootstrap select to render the scope dropdown on the quick search
     var $select = $('select[name="scp"]');
     if ($.fn.bootstrapSelect && $select.length) {
-        $select.bootstrapSelect({
-            input_group: true,
-            parent: {
-                selector: '#search-form-input-group',
-                placement: 'prepend'
-            }
-        }, function() {
-            $('.quick-search-category').hide();
-            $select.on('change', function() {
-                $('#search-terms').focus();
+        $select.bootstrapSelect(
+            {
+                // surround BS dropdown with input-group-btn span
+                input_group: true,
+                // need to be first so we get round corners on the left
+                parent: {
+                    selector: '#quick-search form .input-group:first',
+                    placement: 'prepend'
+                }
+            },
+            function() {
+                $select.parent().hide();
+                $select.on('change', function() {
+                    $('#search-terms').focus();
             });
         });
-    };
+    }
 
     // Scrolls directly to the results on second or later pages.
     // Scrolls to an element with id="auto-scroll"
@@ -122,36 +126,36 @@ function init_search_page(options) {
     window.sp_options = options;
 
     /*
-		Example:
+        Example:
 
-		init_search_page({
-			advanced_search_expanded: {{ advanced_search_expanded }},
-			filters: [
-				{
-					html: '{{ filterHands.as_ul|escapejs }}',
-					label: 'Hands',
-				},
-				{
-					html: '{{ filterManuscripts.as_ul|escapejs }}',
-					label: 'Manuscripts',
-				},
-				{
-					html: '{{ filterScribes.as_ul|escapejs }}',
-					label: 'Scribes',
-				}
-			},
-			linked_fields: [
-			        {
-			            'fields': ['chartype', 'character'],
-			            'values': {
-			                        u'abbreviation': [u'7', u'th\xe6t'],
-			                        u'ligature': [u'&', u'ligature'],
-			                        u'accent': [u'accent'],
-			                        u'punctuation': [u'.', u'?', u'./', u';', u'abbrev. stroke'],
-		            }
-			    ]
-		});
-	*/
+        init_search_page({
+            advanced_search_expanded: {{ advanced_search_expanded }},
+            filters: [
+                {
+                    html: '{{ filterHands.as_ul|escapejs }}',
+                    label: 'Hands',
+                },
+                {
+                    html: '{{ filterManuscripts.as_ul|escapejs }}',
+                    label: 'Manuscripts',
+                },
+                {
+                    html: '{{ filterScribes.as_ul|escapejs }}',
+                    label: 'Scribes',
+                }
+            },
+            linked_fields: [
+                    {
+                        'fields': ['chartype', 'character'],
+                        'values': {
+                                    u'abbreviation': [u'7', u'th\xe6t'],
+                                    u'ligature': [u'&', u'ligature'],
+                                    u'accent': [u'accent'],
+                                    u'punctuation': [u'.', u'?', u'./', u';', u'abbrev. stroke'],
+                    }
+                ]
+        });
+    */
 
     function set_focus_search_box() {
         // Set focus on the search box. Place the cursor at the end.

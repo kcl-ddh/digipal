@@ -149,15 +149,18 @@
                                                     {% endif %}
                                                     
                                                     {{ quick_search_form.terms }}
-                                                    
+
                                                     <span class="input-group-btn">
-                                                        <button type='submit' class='btn btn-default'>
+                                                        <button type='submit' class='btn btn-default round-right'>
                                                             <i class="glyphicon glyphicon-search"></i>
                                                         </button>
+	                                                    <a class="btn btn-link advanced-search-btn" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
+	                                                        <i class="glyphicon glyphicon-cog"></i>
+	                                                    </a>
                                                     </span>
                                                 
                                                 </div>
-                                            
+                                                
                                             </div>
         
                                             <span class="hidden">
@@ -168,11 +171,6 @@
                                                 {{ quick_search_form.result_type }}
                                             </span>
                                         </form>
-                                    </div>
-                                    <div class="col-md-1 col-sm-12 hidden-sm">
-                                        <a class="btn btn-link" data-toggle="tooltip" title='Go to Advanced Search' href='/digipal/search/?from_link=true&amp;s=1' id='advanced_search_link' data-placement="right">
-                                            <i class="glyphicon glyphicon-cog"></i>
-                                        </a>
                                     </div>
                                 </div>
                             </div>

@@ -16,16 +16,17 @@ function init_suggestions() {
     function get_suggestions(query, cb) {
         // returns suggestions only if we are searching the database
         // so no suggestion for blog/news
+        // Works for both typeahead and jqueryui
         if (is_searching_database()) {
             $.getJSON('/digipal/search/suggestions.json', {
-                q: query,
+                q: query.term || query,
                 l: suggestions_limit
             }, function(data) {
                 var ret = [];
                 $.each(data, function(i, str) {
                     ret.push({
-                        txt: str.replace(/<\/?strong>/g, ''),
-                        html: str
+                        value: str.replace(/<\/?strong>/g, ''),
+                        label: str
                     });
                 });
                 cb(ret);
@@ -34,18 +35,37 @@ function init_suggestions() {
             cb([]);
         }
     }
+    
+    // JQuery UI
+    if (1) {
+        $(function() {
+            var cache = {};
+            $("#search-terms").autocomplete({
+              minLength: 1,
+              source: get_suggestions,
+            })
+            .data('autocomplete')._renderItem = function( ul, item ) {
+                //return $('<li style="white-space: normal;>'+item.label+'</li>').appendTo(ul);
+                return $('<li>').append($('<a>').html(item.label)).appendTo(ul);
+            };
+            
+        });
+    }
 
-    if ($.fn.typeahead) {
+    // Old Typeahead version
+    // No longer used as it messes up the styles of the text box
+    // We already include JQueryUI anyway
+    if (0 && $.fn.typeahead) {
         $("#search-terms").typeahead({
             minlength: 1,
             limit: suggestions_limit
         }, {
             name: 'dbrecords',
             source: get_suggestions,
-            displayKey: 'txt',
+            displayKey: 'value',
             templates: {
                 suggestion: function(suggestion) {
-                    return '<p style="white-space: normal;">' + suggestion.html + '</p>';
+                    return '<p style="white-space: normal;">' + suggestion.label + '</p>';
                 }
             }
         });

@@ -20,6 +20,10 @@
 
 }
 
+#home_page_list {
+    margin-left:4.5%;
+}
+
 @media (max-width: 450px) {
     .h3home {
         height: 10px;
@@ -43,7 +47,7 @@
 .carousel-indicators li, .carousel-indicators table li{
     list-style: none;
 }
-
+ 
 .contentSection{
     margin-top: 5%;
 }
@@ -51,7 +55,6 @@
 .carousel-inner a:hover{
     text-decoration: underline;
 }
-
 
 #myCarousel h2{
     font-size: 16.5px;
@@ -80,14 +83,14 @@
     font-size:12px;
 }
 
-#home_page_list{
-    margin-left:4.5%;
-}
-
 .carousel-inner{
     -moz-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
     -webkit-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
     box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+.carousel-caption a{
+    color:#fff;
 }
 
 .carousel-caption{
@@ -103,10 +106,6 @@
     bottom:0;
     left:0;
     padding-top:1em;
-}
-
-.carousel-caption a{
-    color:#fff;
 }
 
 #homeSection {
@@ -148,7 +147,7 @@
     top: 10% !important;
     left:20% !important;
 }
-
+ 
 /* ? */
 
 .home-page-listings ul {

@@ -5,6 +5,9 @@ import subprocess
 
 import repo_cfg as config
 
+def get_config(varname='', default=''):
+    return getattr(config, varname, default)
+
 class ExecutionError(Exception):
     
     def __init__(self, title, message):
@@ -234,7 +237,8 @@ def process_commands_main_dir():
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')
 
                 print '> Collect Static'
-                system('python manage.py collectstatic --noinput')
+                if not get_config('DJANGO_WEB_SERVER'):
+                    system('python manage.py collectstatic --noinput')
 
                 print '> Validate'
                 system('python manage.py validate', r'0 errors found', True)

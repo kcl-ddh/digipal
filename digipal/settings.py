@@ -582,7 +582,7 @@ CACHES = {
     }
 }
 
-# Comment this to force less to ALWAYS be compiled, even when not changed
+# Uncomment this to force less to ALWAYS be compiled, even when not changed
 # Slow but useful when making changes to css
 #CACHES['django-compressor'] = CACHES['default']
 

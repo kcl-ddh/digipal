@@ -18,7 +18,7 @@ class ExecutionError(Exception):
 '''
 Repository management tool.
 
-Please try to keep the code cross-OS compatible: Windows and Linux. 
+Please try to keep the code cross-OS compatible: Windows and Linux.
 '''
 
 def show_help():
@@ -65,7 +65,7 @@ def get_allowed_branch_names_as_str():
 def get_hg_folder_name():
     ret = ''
     for root, dirs, files in os.walk('.'):
-        if 'settings.py' in files: 
+        if 'settings.py' in files:
             ret = root
             break
     return ret
@@ -130,13 +130,13 @@ def process_commands_main_dir():
                 if not config.SELF_CONTAINED:
                     os.chdir(original_dir)
                     
-                    # HG          
+                    # HG
                     system('hg sum', '', False, '', out)
                     
                     branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
                     parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
                     modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
-                    has_local_change = (len(modified) != len(out['output']))                  
+                    has_local_change = (len(modified) != len(out['output']))
     
                     status = '%s, %s' % (branch, parent)
                     if has_local_change:
@@ -144,7 +144,7 @@ def process_commands_main_dir():
                     
                     print 'Mercurial: %s ' % (status, )
             finally:
-                os.chdir(original_dir)          
+                os.chdir(original_dir)
         
         if command == 'diff':
             known_command = True
@@ -226,9 +226,9 @@ def process_commands_main_dir():
                     system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
                     system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
                     system('%schmod 570 -R .' % sudo)
-                    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+                    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
-                    # we do this because the cron job to reindex the content 
+                    # we do this because the cron job to reindex the content
                     # recreate the dirs with owner = gnoel:ddh-research
                     system('%schmod o+r -R %s/search' % (project_folder, sudo))
                     system('%schmod o+x -R %s/search/*' % (project_folder, sudo))
@@ -277,9 +277,9 @@ def get_terminal_username():
         pass
     return ret
 
-def read_file(file_path): 
+def read_file(file_path):
     ret = ''
-    try: 
+    try:
         text_file = open(file_path, 'r')
         ret = text_file.read()
         text_file.close()
@@ -300,7 +300,7 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
     if os.path.exists(val_file): os.unlink(val_file)
     
     if validity_pattern:
-        pattern_found = re.search(validity_pattern, output) is not None 
+        pattern_found = re.search(validity_pattern, output) is not None
         is_valid = (pattern_found == pattern_must_be_found)
         
     if output_data is not None:
@@ -309,7 +309,7 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
     if not is_valid:
         raise ExecutionError('%s - ERROR DURING EXECUTION of "%s"' % (error_message, command), output)
     
-    return is_valid 
+    return is_valid
 
 def run_shell_command(command, sudo=False):
     ret = True
@@ -328,7 +328,7 @@ def run_shell_command(command, sudo=False):
                 break
             if out != '':
                 sys.stdout.write(out)
-                sys.stdout.flush()        
+                sys.stdout.flush()
         #subprocess.check_output(command, stdin=subprocess.STD_INPUT_HANDLE, stdout=subprocess.STD_OUTPUT_HANDLE)
     #except subprocess.CalledProcessError, e:
     except Exception, e:
@@ -359,6 +359,6 @@ def send_email(ato, amsg, asubject, afrom='noreply@digipal.eu'):
     # envelope header.
     s = smtplib.SMTP('localhost')
     s.sendmail(msg['From'], msg['To'].split(', '), msg.as_string())
-    s.quit()           
+    s.quit()
     
 process_commands()

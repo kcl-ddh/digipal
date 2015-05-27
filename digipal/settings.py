@@ -580,6 +580,9 @@ CACHES = {
     }
 }
 
+#CACHES['django-compressor'] = CACHES['default']
+
+# Mezzanine settings var reuire as soon as we use django cache
 NEVERCACHE_KEY = 'NOCACHE'
 
 COMPRESS_CACHE_BACKEND = 'django-compressor'

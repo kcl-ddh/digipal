@@ -177,8 +177,10 @@ STATICFILES_DIRS = (
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
             # use this for your project customisations of digipal
-            os.path.join(CUSTOM_STATIC_PATH),
+            os.path.join(CUSTOM_STATIC_PATH).replace('\\', '/'),
         )
+
+print STATICFILES_DIRS
 
 make_path(os.path.join(PROJECT_ROOT, 'customisations'))
 make_path(CUSTOM_STATIC_PATH)

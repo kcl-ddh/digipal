@@ -10,6 +10,10 @@ import sys
 
 gettext = lambda s: s
 
+def make_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 ########################
 # MAIN DJANGO SETTINGS #
 ########################
@@ -135,24 +139,21 @@ ANNOTATIONS_URL = 'uploads/annotations/'
 ANNOTATIONS_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
         ANNOTATIONS_URL.strip('/'))
 
-if not os.path.exists(ANNOTATIONS_ROOT):
-    os.makedirs(ANNOTATIONS_ROOT)
+make_path(ANNOTATIONS_ROOT)
 
 # Images uploads
 UPLOAD_IMAGES_URL = 'uploads/images/'
 UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
         UPLOAD_IMAGES_URL.strip('/'))
 
-if not os.path.exists(UPLOAD_IMAGES_ROOT):
-    os.makedirs(UPLOAD_IMAGES_ROOT)
+make_path(UPLOAD_IMAGES_ROOT)
 
 # Image cache
 IMAGE_CACHE_URL = 'uploads/images/tmp/'
 IMAGE_CACHE_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
         IMAGE_CACHE_URL.strip('/'))
 
-if not os.path.exists(IMAGE_CACHE_ROOT):
-    os.makedirs(IMAGE_CACHE_ROOT)
+make_path(IMAGE_CACHE_ROOT)
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -168,13 +169,19 @@ ROOT_URLCONF = '%s.urls' % PROJECT_DIRNAME
 # Don't forget to use absolute paths, not relative paths.
 TEMPLATE_DIRS = [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(PROJECT_ROOT, '../digipal/templates'),]
 
+CUSTOM_STATIC_PATH = os.path.join(PROJECT_ROOT, 'customisations', 'static')
+
 # Additional locations of static files
 STATICFILES_DIRS = (
         # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
-        #os.path.join(PROJECT_ROOT, 'static'),
+            # use this for your project customisations of digipal
+            os.path.join(CUSTOM_STATIC_PATH),
         )
+
+make_path(os.path.join(PROJECT_ROOT, 'customisations'))
+make_path(CUSTOM_STATIC_PATH)
 
 # List of finder classes that know how to find static files in
 # various locations.

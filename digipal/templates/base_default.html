@@ -37,9 +37,7 @@
 
         {% compress css %}
             {# <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3/bootstrap.min.css"/> #}
-            <!-- link rel="stylesheet" href="{{ STATIC_URL }}css/mezzanine.css"/ -->
             <link rel="stylesheet" href="{{ STATIC_URL }}css/chosen.css"/>
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/typeahead.js-bootstrap.css"/>
             {# style.css has been replaced by this series of individual sheets #}
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpbase.less" type="text/less" />
             <link rel="stylesheet" href="{{ STATIC_URL }}css/dpmenu.less" type="text/less" />
@@ -218,7 +216,6 @@
             <script src="{{ STATIC_URL }}js/jquery-migrate-1.2.1.js"></script>
             <script src="{{ STATIC_URL }}digipal/scripts/api.digipal.js" type="text/javascript" ></script>
             <script src="{{ STATIC_URL }}digipal/scripts/utils.js" type="text/javascript" ></script>
-            <script src='{{ STATIC_URL }}js/typeahead.min.js'></script>
         {% endcompress %}
 
         {% compress js %}

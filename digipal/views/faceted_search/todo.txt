@@ -3,72 +3,17 @@ BANNER
     [DONE] fix sub title layout
     [DONE] remove round red corners
     [DONE] expand the menu bar to the whole width
-    toggle button
-    * search
+    [DONE] toggle button
+    [DONE] search
 
-
-- navLink
-
-DP Color Customisations:
-
-dpbase
-    .btn-primary
-
-    .has-switch
-
-    .label-default, .btn-digipal
-
-    .nav-tabs.nav-stacked
-        see http://localhost/about/digipal/
-
-    .view_button
-        border:
-        background:
-        
-        see /
-
-    form.panel
-    
-    .panel
-
-BS:
-
-.text-primary {
-    color: #a1514d
-}
-
-a.text-primary:hover {
-    color: #7f403d
-}
-
-.bg-primary {
-    color: #fff;
-    background-color: #a1514d
-}
-
-a.bg-primary:hover {
-    background-color: #7f403d
-}
-
-.btn-primary {
-    color: #fff;
-    background-color: #a1514d;
-    border-color: #904845
-}
-
-MAIN TODO:
-    . Codocological desc editor
-    . MoA Live
-        . footer
-        . colors
-            . less
-            . - mezzanine
-
-/homes/gnoel/deploy/nodejs/node/out
+LESS/BS
+    BSVAR
+        DPVAR
+            DPVARBASE
+CSS
 
 latest version of less
     2.5.0
-
 
 pythonport for less:
     lesscpy 0.10.2

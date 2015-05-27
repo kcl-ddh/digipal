@@ -7,7 +7,7 @@ import subprocess
 import re
 from optparse import make_option
 import utils
-from utils import Logger  
+from utils import Logger
 from django.utils.datastructures import SortedDict
 import difflib
 from django.utils.text import slugify
@@ -22,16 +22,16 @@ Commands:
     
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
         
-                        Copy all the records from SRC_DB_ALIAS.hand_* to 
+                        Copy all the records from SRC_DB_ALIAS.hand_* to
                         DB_ALIAS.digipal_*
-                        Existing records are removed. Preexisting table 
+                        Existing records are removed. Preexisting table
                         structures are preserved.
 
   copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER] [--dry-run]
         
-                        Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER* 
+                        Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER*
                         to DB_ALIAS.*TABLE_FILTER*
-                        Existing records are removed. Preexisting table 
+                        Existing records are removed. Preexisting table
                         structures are preserved.
                         
   stewart_import --src=CSV_FILE_PATH [--db DB_ALIAS] [--dry-run]
@@ -43,13 +43,13 @@ Commands:
   parse_em_table --src=HTML_FILE_PATH
   
   fp7_import --src=XML_FILE_PATH
-                        Where file.xml is a XML file exported from a FileMaker 
+                        Where file.xml is a XML file exported from a FileMaker
                         Pro 7 table.
-                        This command will (re)create a table in the database 
+                        This command will (re)create a table in the database
                         and upload all the data from the XML file.
     
   esawyer_import
-                        Import data from the filemaker table into the Text 
+                        Import data from the filemaker table into the Text
                         records
 
 
@@ -85,7 +85,7 @@ Commands:
             dest='dry-run',
             default=False,
             help='Dry run, don\'t change any data.'),
-        ) 
+        )
 
     migrations = ['0004_page_number_and_side', '0005_page_iipimage']
 
@@ -104,6 +104,18 @@ Commands:
         command = args[0]
         
         known_command = False
+
+        if command == 'clear-compressor':
+            known_command = True
+            cache_name = 'django-compressor'
+            print 'Clear cache "%s"...' % cache_name
+            from django.core.cache import get_cache
+            cache = get_cache(cache_name)
+            cache.clear()
+            
+            from compressor import conf
+            path = os.path.join(conf.settings.COMPRESS_ROOT, conf.settings.COMPRESS_OUTPUT_DIR.strip('/'))
+            print path
 
         if command == 'convert_exon_folio_numbers':
             known_command = True
@@ -213,9 +225,9 @@ Commands:
         
         # load the CSV
         '''
-        [u'nnb', u'cote', u'localisation', u'dr', u'rfbibtrsorsbaisbuis', 
-        u'anciennecollection', u'rfanciennecollection', u'numrodacquisition', 
-        u'poids', u'idphotos', u'rfbibprou', u'atelier', u'',  u'rgion', 
+        [u'nnb', u'cote', u'localisation', u'dr', u'rfbibtrsorsbaisbuis',
+        u'anciennecollection', u'rfanciennecollection', u'numrodacquisition',
+        u'poids', u'idphotos', u'rfbibprou', u'atelier', u'',  u'rgion',
         u'autoritmettrice', u'montaire', u'imitation', u'mtal']
         '''
         
@@ -297,8 +309,8 @@ Commands:
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
         pc = poms.cursor()
-        pc.execute('''select *, la.name as la_name, so.id as so_id, ct.name as ct_name, pl.name as pl_name, so.description as so_description 
-from pomsapp_source so 
+        pc.execute('''select *, la.name as la_name, so.id as so_id, ct.name as ct_name, pl.name as pl_name, so.description as so_description
+from pomsapp_source so
 left join pomsapp_charter ch on (so.id = ch.source_ptr_id)
 left join pomsapp_chartertype ct on (ch.chartertypekey_id = ct.id)
 left join pomsapp_place pl on (pl.id = ch.placefk_id)
@@ -316,7 +328,7 @@ left join pomsapp_language la on (la.id = so.language_id)
           updated_at = 2009-09-15 10:08:21+00:00
           placefk_id = 1276
           hammondext =
-                 lft = 218        
+                 lft = 218
         letterpatent = 0
        updated_by_id = 3
         ischirograph = 0
@@ -335,7 +347,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
           to_weekday = None
         placedatedoc = Cluni
          genericname = None
-                geom = 
+                geom =
            from_year = 1140
               to_day = None
   helper_totfactoids = None
@@ -375,7 +387,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
        hammondnumber = 1
        source_ptr_id = 236
                notes = None
-         datingnotes = About the same time as H1-4-37 & 38. See A.A.M. Duncan, 'The Foundation of St Andrews Cathedral Priory, 1140', 13.        
+         datingnotes = About the same time as H1-4-37 & 38. See A.A.M. Duncan, 'The Foundation of St Andrews Cathedral Priory, 1140', 13.
         '''
         
         self.init_possible_sources()
@@ -441,7 +453,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # import Language
         if not row['la_name']:
             self.print_warning('No language language', 1, '%s' % row['source_tradid'])
-        else:    
+        else:
             lg, created = Language.objects.get_or_create(name=row['la_name'])
             print '    HI #%s.language = %s' % (hi.id, lg)
             hi.language = lg
@@ -509,7 +521,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if row['orignoncontemp']:
             dputils.add_keywords(ip, 'Original (non-contemporary)')
 
-        #exit() 
+        #exit()
 
     def get_source_and_num_from_poms_ref(self, ref):
         # '_Holy. Lib._, no. 11' => <Source: ?>, 'no. 11|'
@@ -528,7 +540,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def init_possible_sources(self):
         ret = SortedDict()
         
-        possible_sources = '''     
+        possible_sources = '''
         Ash, St Andrews
         BL
         Barrow, E. Fife Docs.
@@ -589,24 +601,24 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         # legacy.manuscripts
         #
-        # ['Hair Arrangement', 'Index', 'Illustrated?', 'Fragment?', 'Frame Width', 'Style', 'Colours', 'Illus Cat Refs', 'Illus Description', 
-        # 'Neumed?', 'Columns', 'On Top Line?', 'Description', 'Insular Pricking?', 'Inks', 'Tramline Width', 'Date', 'Illuminated?', 'Biblical?', 
-        # 'OldShelfMark', 'Ker Index', 'Shelfmark', 'CLA Number', 'Name', 'URL', 'Num Colours', 'Leaves', 'Num Inks', 'Lines', 'Back Flyleaves', 
-        # 'Multiple Sheet Ruling?', 'Vernacular', 'Text Type', 'ID', 'Bilinear Ruling?', 'Front Flyleaves', 'TempShelfmark', 'Layout Comments', 
+        # ['Hair Arrangement', 'Index', 'Illustrated?', 'Fragment?', 'Frame Width', 'Style', 'Colours', 'Illus Cat Refs', 'Illus Description',
+        # 'Neumed?', 'Columns', 'On Top Line?', 'Description', 'Insular Pricking?', 'Inks', 'Tramline Width', 'Date', 'Illuminated?', 'Biblical?',
+        # 'OldShelfMark', 'Ker Index', 'Shelfmark', 'CLA Number', 'Name', 'URL', 'Num Colours', 'Leaves', 'Num Inks', 'Lines', 'Back Flyleaves',
+        # 'Multiple Sheet Ruling?', 'Vernacular', 'Text Type', 'ID', 'Bilinear Ruling?', 'Front Flyleaves', 'TempShelfmark', 'Layout Comments',
         # 'Frame Height', 'Ker Text Type', 'Page Height', 'Decorated?', 'Locus', 'Page Width', 'Location Index']
         #
         # legacy.ms owners
         #
         # ['Manuscript', 'Annotated?', 'Evidence', 'Rebound?', 'Date', 'Owner', 'Dubitable?', 'ID']
         #
-        # Legacy.owner text 
+        # Legacy.owner text
         #
         # ['Owner', 'Category', 'Overseas?', 'ID']
-        # Category = 
+        # Category =
         #            0 for Places (e.g. France or Gloucester)
         #            1 for People (e.g. Lambarde, William (1536--1601))
         #            2 for Library (e.g. Cambridge, Peterhouse College)
-        # 
+        #
         
         #
         # Heuristics match legacy.`owner text` (OT) with digipal_repository (REPO):
@@ -622,23 +634,23 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         for repo in Repository.objects.all():
             key = repo.legacy_id
             self.repos[key] = repo
-            self.repos_by_name[slugify(repo.name)] = repo        
+            self.repos_by_name[slugify(repo.name)] = repo
         
-        cursor.execute('''select 
-                            ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID, 
+        cursor.execute('''select
+                            ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID,
                             ms.*, mo.*, ot.*
-                        from 
+                        from
                             `owner text` ot
                             left join libraries li on (ot.Owner = li.library),
                             `ms owners` mo,
                             `manuscripts` ms
-                        where 
+                        where
                             mo.Owner = ot.ID
-                            and 
+                            and
                             mo.Manuscript = ms.ID
                             -- and
                             -- ot.Category = 0
-                        order 
+                        order
                             by ot.Owner, ms.Shelfmark
                         ''')
         
@@ -727,8 +739,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def create_ownership(self, repo, ip, row):
         # row = ['Manuscript', 'Annotated?', 'Evidence', 'Rebound?', 'Date', 'Owner', 'Dubitable?', 'ID']
         from digipal.models import Owner
-        ret = Owner(repository=repo, 
-                    legacy_id=row['mo_id'], 
+        ret = Owner(repository=repo,
+                    legacy_id=row['mo_id'],
                     date=row['Date'] or u'',
                     annotated=utils.get_bool_from_mysql(row['Annotated?']),
                     evidence=row['Evidence'] or u'',
@@ -745,10 +757,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         from digipal.models import Repository, Place
         
-        # place unknown, type unknown        
+        # place unknown, type unknown
         ret = Repository(legacy_id=-row['ot_id'], name=row['Owner'], british_isles=utils.get_bool_from_mysql(row['Overseas?']), type_id=4, place_id = 40)
         
-        cat = unicode(row['Category']).strip()            
+        cat = unicode(row['Category']).strip()
         if cat == '0':
             # unknown owner in a place
             # TODO: create the place
@@ -764,12 +776,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 utils.prnt(u'\t\t#%s, %s [Place]' % (place.id, place))
             ret.place_id = place.id
         if cat == '1':
-            # person 
+            # person
             if '(' not in row['Owner']:
                 self.print_warning(u'missing birth/death date, owner may not be a person', 1)
             ret.type_id = 1
         if cat == '2':
-            # modern library 
+            # modern library
             ret.type_id = 2
             
         ret.save()
@@ -801,7 +813,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             
         return repo
 
-    def load_ips(self):    
+    def load_ips(self):
         from django.utils.html import strip_tags
 
         if not hasattr(self, 'ips'):
@@ -811,14 +823,14 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             from django.db import connections
             con = connections['default']
             cursor = con.cursor()
-            cursor.execute(''' 
+            cursor.execute('''
                     select ip.id, ci.shelfmark, hi.legacy_id, de.description, ip.display_label, ip.locus
                     from digipal_itempart ip,
                     digipal_itempartitem ipi,
                     digipal_historicalitem hi,
                     digipal_currentitem ci,
                     digipal_description de
-                    where 
+                    where
                     ip.current_item_id = ci.id
                     and
                     ipi.historical_item_id = hi.id
@@ -977,7 +989,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     # get_close_matches can miss in cases like this one: '277', ['Burney 277', '2522']
                     # so we pick a candidate which contains the shelfmark we are looking for
                     ms_matching_message_extra = ' (%s)' % repr([ip.current_item.shelfmark for ip in ips])
-                    matched_ips = [] 
+                    matched_ips = []
                     for ip in ips:
                         if row['Shelfmark'] in ip.current_item.shelfmark:
                             matched_ips.append(ip)
@@ -1004,17 +1016,17 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 select distinct
                     'http://www.digipal.eu/digipal/manuscripts/' || ip.id || '/pages/' as "Digipal URL",
                     pc.page_count as "Pages",
-                    pl.name as "Place", 
-                    re.name as "Repository", 
-                    ci.shelfmark as "Shelf Mark", 
-                    ip.locus as "Locus", 
-                    '[' || cn.number || ']' as "Ker", 
-                    de.description as "Content", 
-                    ori.name as "Origin", 
+                    pl.name as "Place",
+                    re.name as "Repository",
+                    ci.shelfmark as "Shelf Mark",
+                    ip.locus as "Locus",
+                    '[' || cn.number || ']' as "Ker",
+                    de.description as "Content",
+                    ori.name as "Origin",
                     (case when length(hi.date) > 0 then hi.date else hand_date end) as "Date",
                     (case when length(regexp_replace(shelfmark, E'\\D','','g')) between 1 and 10 then regexp_replace(shelfmark, E'\\D','','g')::bigint else 0 end) as shelf_num
-                from 
-                    digipal_itempart ip 
+                from
+                    digipal_itempart ip
                     join digipal_currentitem ci on ip.current_item_id = ci.id
                     join digipal_historicalitem hi on ip.historical_item_id = hi.id
                     join digipal_repository re on ci.repository_id = re.id
@@ -1023,14 +1035,14 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     left join digipal_cataloguenumber cn on (cn.historical_item_id = hi.id and cn.source_id = 3)
                     left join (
                             select ip2.id as id, (case when max(pa.id) > 0 then count(*) else 0 end) as page_count
-                            from 
+                            from
                             digipal_itempart ip2 left join digipal_page pa on pa.item_part_id = ip2.id
                             group by ip2.id
                             order by page_count desc
                         ) pc on ip.id = pc.id
                     left join (
                             select io.historical_item_id as historical_item_id, (case when pl2.id > 0 then pl2.name when ins.id > 0 then ins.name else '' end) as name
-                            from 
+                            from
                                 digipal_itemorigin io
                                 left join digipal_place pl2 on (io.object_id = pl2.id and io.content_type_id = 43)
                                 left join digipal_institution ins on (io.object_id = ins.id and io.content_type_id = 48)
@@ -1059,7 +1071,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         csv_path = 'digipal.csv'
         with open(csv_path, 'wb') as csvfile:
-            import csv        
+            import csv
             csvwriter = csv.writer(csvfile)
             csvwriter.writerows(rows)
             
@@ -1071,15 +1083,15 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         con_dst.enter_transaction_management()
         con_dst.managed()
         
-        print '\n fm_sawyerdetails -> digipal_text\n' 
+        print '\n fm_sawyerdetails -> digipal_text\n'
         
-        from digipal.models import Text, CatalogueNumber, Description, Source        
-        source_esawyer = Source.objects.get(name=settings.SOURCE_SAWYER) 
+        from digipal.models import Text, CatalogueNumber, Description, Source
+        source_esawyer = Source.objects.get(name=settings.SOURCE_SAWYER)
         
         es_descriptions = utils.fetch_all_dic(utils.sqlSelect(con_dst, 'select sawyer_num, title, king, kingdom, comments from fm_sawyerdetails'))
 
         es_text_item_parts0 = utils.fetch_all_dic(utils.sqlSelect(con_dst, '''
-            select re.recordid, sd.sawyer_num, cm.shelfmark, cm.part, 
+            select re.recordid, sd.sawyer_num, cm.shelfmark, cm.part,
                     re.calculatefoliopagemembrane as locus, re.this_text_date
             from fm_chartermss cm , fm_sawyermssrelationships re , fm_sawyerdetails sd
             where re.sawyernumber = sd.sawyer_num
@@ -1094,7 +1106,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #    2. cm.part is only necessary when the text is in more than one item part of the same current item
         #
         # => we first try to match records using an exact key for our item part.
-        #     if it does not work we try to match using a loose key: without cm.part 
+        #     if it does not work we try to match using a loose key: without cm.part
         
         def get_key(code):
             ret = utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_')
@@ -1125,13 +1137,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #print '-' * 50
         
         # For each text with an eSawyer cat num
-        # We update the text description from the matching record in eSawyer. 
-        # Then find the item part matching those in eSawyer DB. 
+        # We update the text description from the matching record in eSawyer.
+        # Then find the item part matching those in eSawyer DB.
         item_part_count = 0
 
         cat_nums = CatalogueNumber.objects.filter(number__in=es_descriptions.keys(), source=source_esawyer, text_id__isnull=False)
         for cat_num in cat_nums:
-            # update the Text record from the esawyerdetails record 
+            # update the Text record from the esawyerdetails record
             
             # Create/Update the Description
             es_desc = es_descriptions[cat_num.number]
@@ -1147,11 +1159,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 print '\tCreate description'
                 description = Description(source=source_esawyer, text=text)
             
-            if es_desc['title'] and es_desc['title'].strip(): 
+            if es_desc['title'] and es_desc['title'].strip():
                 description.description = es_desc['title']
                 print '\t\tUpdate description'
-            if es_desc['comments'] and es_desc['comments'].strip(): 
-                description.comments = es_desc['comments'] 
+            if es_desc['comments'] and es_desc['comments'].strip():
+                description.comments = es_desc['comments']
                 print '\t\tUpdate comments'
             description.summary = ''
             
@@ -1177,7 +1189,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         self.print_warning('Item Part not found in eSawyer', 1)
                         print u'\t\tSearch keys: ("%s", "%s"); Item part: %s' % (repr(key_long), repr(key), repr(utils.get_obj_label(text_item_part.item_part)))
                         similars = ''
-                        for pk in es_text_item_parts.keys(): 
+                        for pk in es_text_item_parts.keys():
                              if (pk is not None) and (pk.startswith('%s_' % cat_num.number)) and es_text_item_parts[pk]:
                                  if similars: similars += ' | '
                                  similars += '#%s (%s)' % (es_text_item_parts[pk]['recordid'], pk)
@@ -1208,8 +1220,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         --src=file.xml
         
         Where file.xml is a XML file exported from a FileMaker Pro 7 table.
-        This command will (re)create a table in the database and upload all 
-        the date from the XML file. 
+        This command will (re)create a table in the database and upload all
+        the date from the XML file.
         
         '''
         import xml.etree.ElementTree as ET
@@ -1262,7 +1274,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         def field_type(field, field_name):
             ret = 'int'
-            if not field[1]: 
+            if not field[1]:
                 ret = 'varchar(%s)' % field[0]
             if field_name == 'recordid':
                 ret += ' PRIMARY KEY '
@@ -1302,7 +1314,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         with open(csv_path, 'wb') as csvfile:
 
-            import csv        
+            import csv
             csvwriter = csv.writer(csvfile)
         
             xml_file = options.get('src', '')
@@ -1325,7 +1337,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 
                 href_abs = ''
                 if href_file:
-                    href_abs = ur'http://www.le.ac.uk/english/em1060to1220/mss/%s' % href_file 
+                    href_abs = ur'http://www.le.ac.uk/english/em1060to1220/mss/%s' % href_file
                 
                 # extract class
                 ms_type = find_first(ur'class="(.*?)"', cols[0])
@@ -1353,8 +1365,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         xml_file = options.get('src', '')
         
-        # <p><label>G.4-2</label>. Hand 2 (5r). This large, very rotund hand was written 
-        # with a thick pen held quite flat and with a great deal of shading. Ascenders 
+        # <p><label>G.4-2</label>. Hand 2 (5r). This large, very rotund hand was written
+        # with a thick pen held quite flat and with a great deal of shading. Ascenders
         # are thick, straight
 
         content = utils.readFile(xml_file)
@@ -1379,14 +1391,14 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 
                 description = (re.sub(ur'^(\s|\.)*', '', description)).strip()
                 
-                if len(label_parts[0]) > 30: 
+                if len(label_parts[0]) > 30:
                     self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
                     self.log(u'Labels is too long (%s)' % label_parts[0], Logger.WARNING, 1)
                     continue
                 
                 loci = loci.strip()
                 catalogue, doc_number, hand_number = label_parts[0]
-                if not hand_number: 
+                if not hand_number:
 #                      print '\tWARNING: no hand number.'
                      hand_number = '1'
                 
@@ -1428,7 +1440,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     same_hands = []
                     for hand in hands:
                         same = ''
-                        if hand.description.lower().find(loci.lower()) != -1: 
+                        if hand.description.lower().find(loci.lower()) != -1:
                             same = 'SAME '
                             same_hands.append(hand)
                         self.log(u'%5s#%s, %s (%s)' % (same, hand.id, hand.description, hand.item_part.historical_item.catalogue_number), Logger.DEBUG, 1)
@@ -1646,10 +1658,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 if images.count() > 20:
                     self.print_warning('WARNING: too many images associated with this MS', indent=1, extra=extra+', %s images' % images.count())
                 else:
-                    for image in images: 
+                    for image in images:
                         print '    Image #%s connected to this MS' % image.id
                         image.item_part = ip
-                        image.save()                    
+                        image.save()
                     
                 #break
                             
@@ -1661,7 +1673,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             if len(v) > 1:
                 print k, v
 
-        self.print_warning_report()            
+        self.print_warning_report()
         #raise Exception('ROLLBACK')
 
     def importStewart(self, options):
@@ -1693,7 +1705,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 line = [v.decode('latin-1') for v in line]
                 if not columns:
                     columns = line
-                    for co in columns: stats[co] = 0 
+                    for co in columns: stats[co] = 0
                     continue
                 
                 rec = dict(zip(columns, line))
@@ -1706,7 +1718,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 #if c > 10: exit()
                 
             #print stats
-            #exit() 
+            #exit()
             
             self.copyTable(None, csv_path, con_dst, dst_table, records, {'Date': 'adate'})
                 
@@ -1749,7 +1761,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         '''
             We have to re-apply the data migrations only.
             
-            Why? 
+            Why?
             
             Because pouring data from an old datatabase structure to a new one is already a hack.
             
@@ -1815,7 +1827,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.log('Copy from %s to %s ' %  (src_table, dst_table), 2)
         
         # 1 find all fields in source and destinations
-        if con_src: 
+        if con_src:
             fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
             fnames_src = [f[0] for f in fields_src]
         else:
@@ -1834,11 +1846,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             else:
                 # try case insensitive match
                 for fn2 in fnames_dst:
-                    if self.normalisedField(fn) == self.normalisedField(fn2): 
+                    if self.normalisedField(fn) == self.normalisedField(fn2):
                         mapping[fn] = fn2
                                         
         missings = set(fnames_src) - set(mapping.keys())
-        additionals = set(fnames_dst) - set(mapping.values()) 
+        additionals = set(fnames_dst) - set(mapping.values())
         ##common = [fn for fn in fnames_src if fn in fnames_dst]
         if missings:
             self.log('Missing fields (%s)' % ', '.join(missings), 1)

@@ -565,7 +565,7 @@ OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 
 # DJANGO COMPRESSOR
 # True => Combine all resources into a single file
-COMPRESS_ENABLED = False
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
 STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
@@ -582,6 +582,8 @@ CACHES = {
     }
 }
 
+# Comment this to force less to ALWAYS be compiled, even when not changed
+# Slow but useful when making changes to css
 #CACHES['django-compressor'] = CACHES['default']
 
 # Mezzanine settings var reuire as soon as we use django cache

@@ -6,6 +6,23 @@ BANNER
     [DONE] toggle button
     [DONE] search
 
+Perf:
+            LCL             DEV
+    Home    0.55 - 1.4      2 - 3.80
+
+
+LCL
+    no caching
+        dpbase, dpmenu and dpsearch are returned as timestamp (not changed)
+    caching
+
+DEV
+    no caching
+    caching
+        bootstrap, dpmenu and dpsearch are returned in full
+        varies, sometimes base
+     
+    
 LESS/BS
     BSVAR
         DPVAR

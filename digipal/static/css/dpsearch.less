@@ -1,4 +1,7 @@
 /* search pages */
+// ALLOW_IMPORT
+
+@import "../digipal/css/dpvariables.less";
 
 #searchform .errorlist {
     display:none;
@@ -90,15 +93,6 @@
     box-shadow: 0px 0px 8px 4px yellow !important;
 }
 
-.tt-suggestion > p:hover, .tt-suggestion > p:focus, .tt-suggestion.tt-cursor p {
-    background-color: #A1514D;
-    cursor: pointer;
-}
-
-div.tt-suggestion p {
-    margin: 0px;
-}
-
 .result-image-count {
     white-space: nowrap;
     font-size: small;
@@ -116,14 +110,14 @@ div.tt-suggestion p {
 
 .facets .panel {
     margin-bottom: 20px;
-    padding: 0;    
+    padding: 0;
 }
 
 .faceted-search .panel-heading a:after {
     font-family: 'Glyphicons Halflings';
-    content: "\e114";    
-    float: right; 
-    color: grey; 
+    content: "\e114";
+    float: right;
+    color: grey;
 }
 
 .faceted-search .panel-heading a.collapsed:after {
@@ -132,7 +126,7 @@ div.tt-suggestion p {
 
 .faceted-summary span.label {
     margin: 0.3em;
-    color: #a1514d;
+    color: @dp-main;
     background-color: #fff;
     border: 1px solid #E0C4BE;
 }
@@ -141,7 +135,7 @@ div.tt-suggestion p {
     /* font-family: 'Glyphicons Halflings'; */
     content: "\2716";
     padding-left: 0.2em;
-    color: #a1514d;
+    color: @dp-main;
     font-size: large;
 }
 
@@ -180,7 +174,7 @@ div.tt-suggestion p {
 }
 
 .facets .panel {
-    line-height: normal;    
+    line-height: normal;
 }
 
 .facets .panel-body {
@@ -194,7 +188,7 @@ div.tt-suggestion p {
 }
 
 .facets .panel-body tr.active td {
-    background-color: #a1514d;
+    background-color: @dp-main;
     color: white;
 }
 

@@ -179,12 +179,11 @@ label{
 */
 
 a .label-default, .btn-digipal{
-    background: #a1514d;
-    color: #fff;
+    background: @dp-main;
 }
 
 a:hover .label-default, a:focus .label-default, a:active .label-default {
-    background: #933833;
+    background: @link-hover-color;
     text-decoration: none;
 }
 
@@ -639,8 +638,10 @@ different height depending when they are selected and push the other values down
     font-weight: normal;
 }
 
+
+// TODO: use LESS for BSSwitch
 #body .has-switch span.switch-left, #body .has-switch span.switch-primary {
-    background: none repeat scroll 0 0 #933833;
+    background: none repeat scroll 0 0 @dp-main;
 }
 
 .row-min-admin{

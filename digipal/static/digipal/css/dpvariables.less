@@ -1,4 +1,11 @@
 
+//@dp-main:               #a1514d; /* 161,81,77 */
+@dp-main:               blue; /* 161,81,77 */
+@dp-menu-color:         white;
+@dp-navbar-height:      32px;
+@dp-active:             #eee;
+@dp-input-border:       lighten(@dp-main, 40%);
+
 // TODO: import from BS
 @screen-sm:                  768px;
 @screen-sm-min:              @screen-sm;
@@ -6,9 +13,5 @@
 @grid-float-breakpoint:     @screen-sm-min;
 @grid-float-breakpoint-max: (@grid-float-breakpoint - 1);
 @border-radius-base:        4px;
-
-@dp-main:               #a1514d; /* 161,81,77 */
-@dp-menu-color:         white;
-@dp-navbar-height:      32px;
-@dp-active:             #eee;
-@dp-input-border:       lighten(@dp-main, 40%);
+@link-color:            @dp-main;
+@link-hover-color:      darken(@link-color, 15%);

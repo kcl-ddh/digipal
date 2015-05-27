@@ -530,7 +530,7 @@ label[for=id_internal_note], label[for=id_display_note]{
 }
 
 .admin-edit{
-	font-size: small;
+    font-size: small;
 }
 
 .label {
@@ -731,6 +731,7 @@ path {
 
 #container-letters-popup{
     overflow-y: auto;
+    padding: 0.5em;
 }
 
 .align-right {

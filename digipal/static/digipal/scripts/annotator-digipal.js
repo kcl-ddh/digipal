@@ -1560,7 +1560,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             images_link.fadeIn();
             if (img.length) {
                 img.remove();
-            }
+            };
+            
+            document.load_lazy_images();
         }
     };
 

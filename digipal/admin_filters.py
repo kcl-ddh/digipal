@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count
 from django.conf import settings
-import reversion
 import django_admin_customisations
+from digipal.models import Image, HistoricalItem, Hand
 import re
 
 #########################
@@ -33,10 +33,10 @@ class RelatedObjectNumberFilter(SimpleListFilter):
             ('1p', ('1+')),
             ('2p', ('2+')),
             ('3p', ('3+')),
-        )   
+        )
 
     def queryset(self, request, queryset):
-        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key)) 
+        select = (ur'''((SELECT COUNT(*) FROM %s fcta WHERE fcta.%s = %s.%s) ''' % (self.related_table, self.foreign_key, self.this_table, self.this_key))
         select += ur'%s )'
         if self.value() == '0':
             return queryset.extra(where=[select % ' = 0'])
@@ -66,7 +66,7 @@ class ImageAnnotationNumber(SimpleListFilter):
             ('2', ('Fewer than five annotations')),
             ('3', ('At least one annotation')),
             ('0', ('No annotation')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == '0':
@@ -88,7 +88,7 @@ class ImageLocus(SimpleListFilter):
         return (
             ('with', ('With locus')),
             ('without', ('Without Locus')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'with':
@@ -105,7 +105,7 @@ class ImageFilterNoItemPart(SimpleListFilter):
         return (
             ('with', ('With Item Part')),
             ('without', ('Without Item Part')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'with':
@@ -122,7 +122,7 @@ class GraphFilterNoAnnotation(SimpleListFilter):
         return (
             ('with', ('With annotation')),
             ('without', ('Annotation is missing')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'with':
@@ -139,7 +139,7 @@ class ImageFilterDuplicateShelfmark(SimpleListFilter):
         return (
             ('1', ('has duplicate shelfmark')),
             ('-1', ('has unique shelfmark')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() in ['1', '-1']:
@@ -160,7 +160,7 @@ class ImageFilterDuplicateFilename(SimpleListFilter):
             ('1', ('has duplicate filename')),
             ('-1', ('has unique filename')),
             ('2', ('has duplicate size')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() in ['-1', '1']:
@@ -183,7 +183,7 @@ class ImageWithFeature(SimpleListFilter):
         return (
             ('yes', ('Has feature(s)')),
             ('no', ('No features')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -200,7 +200,7 @@ class ImageWithHand(SimpleListFilter):
         return (
             ('yes', ('Has Hand(s)')),
             ('no', ('No Hand')),
-        )        
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -219,7 +219,7 @@ class DescriptionFilter(SimpleListFilter):
             ('toFix', ('Needs to be fixed')),
             ('toCheck', ('Needs to be checked')),
             ('goodlikethis', ('No needs to be checked or fixed')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'toFix':
@@ -251,7 +251,7 @@ class HistoricalItemDescriptionFilter(SimpleListFilter):
             ('toFix', ('Needs to be fixed')),
             ('toCheck', ('Needs to be checked')),
             ('goodlikethis', ('No needs to be checked or fixed')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'toFix':
@@ -272,7 +272,7 @@ class ItemPartHasGroupGroupFilter(SimpleListFilter):
         return (
             ('0', ('not part of a group')),
             ('1', ('part of a group')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == '1':
@@ -334,7 +334,7 @@ class HistoricalItemKerFilter(SimpleListFilter):
         return (
             ('yes', ('Contains Ker')),
             ('no', ('Not contains Ker')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -351,7 +351,7 @@ class HistoricalItemGneussFilter(SimpleListFilter):
         return (
             ('yes', ('Contains Gneuss Number')),
             ('no', ('Not contains Gneuss Number')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -368,7 +368,7 @@ class HandItempPartFilter(SimpleListFilter):
         return (
             ('yes', ('Has more than one Item Part')),
             ('no', ('Has not more than one Item Part')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -385,7 +385,7 @@ class HandGlossNumFilter(SimpleListFilter):
         return (
             ('yes', ('Has Num. Glossing hands')),
             ('no', ('Not has Num. Glossing hands')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
@@ -402,13 +402,13 @@ class HandGlossTextFilter(SimpleListFilter):
         return (
             ('yes', ('Has Glossed Text')),
             ('no', ('Not has Glossed text')),
-        )   
+        )
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
             return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=False)
         if self.value() == 'no':
-            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True) 
+            return Hand.objects.filter(gloss_only=True).filter(glossed_text__isnull=True)
 
 class HandImageNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of images')

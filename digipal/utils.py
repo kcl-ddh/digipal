@@ -379,15 +379,19 @@ def get_one2one_object(model, field_name):
     
     return ret
 
-def get_xslt_transform(source, template, error=None):
-    ret = source
+def get_xml_from_unicode(document):
     import lxml.etree as ET
     from io import BytesIO
+    d = BytesIO(document.encode('utf-8'))
+    ret = ET.parse(d)
     
-    d = BytesIO(source.encode('utf-8'))
-    dom = ET.parse(d)
-    d = BytesIO(template.encode('utf-8'))
-    xslt = ET.parse(d)
+    return ret
+
+def get_xslt_transform(source, template, error=None):
+    import lxml.etree as ET
+    
+    dom = get_xml_from_unicode(source)
+    xslt = get_xml_from_unicode(template)
     transform = ET.XSLT(xslt)
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))

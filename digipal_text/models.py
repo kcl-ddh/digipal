@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 dplog = logging.getLogger('digipal_debugger')
 
 class TextUnits(object):
+    '''Virtual Model Class that represents a unit of text in a TextContentXML'''
     
     def __init__(self):
         self.recs = list()

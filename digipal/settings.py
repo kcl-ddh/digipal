@@ -180,8 +180,6 @@ STATICFILES_DIRS = (
             os.path.join(CUSTOM_STATIC_PATH).replace('\\', '/'),
         )
 
-print STATICFILES_DIRS
-
 make_path(os.path.join(PROJECT_ROOT, 'customisations'))
 make_path(CUSTOM_STATIC_PATH)
 

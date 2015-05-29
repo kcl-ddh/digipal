@@ -25,8 +25,9 @@ Commands:
   markup    CONTENT_ID
             auto-markup a content
             
-  search    QUERY
-            search content by query 
+  upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
+            upload a XML file into the database
+            e.g. upload 'mytext.xml' 13 'transcription' 
             
 """
     
@@ -88,12 +89,111 @@ Commands:
             known_command = True
             self.command_markup()
 
+        if command == 'upload':
+            known_command = True
+            self.command_upload()
+
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
             
         if not known_command:
             print self.help
             
+    def command_upload(self):
+        return
+        
+    def command_upload_old(self):
+        '''upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
+            pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xml 1 transcription "//div1"
+        '''
+        if len(self.args) < 4:
+            print 'upload requires 3 arguments'
+            return
+        
+        xml_path, ip_id, content_type_name = self.args[1:4]
+        
+        xpath = None
+        if len(self.args) > 4:
+            xpath = self.args[4]
+        
+        # I find the TextContentXML record (or create it)
+        from django.utils.text import slugify
+        from digipal_text.models import TextContentType, TextContent, TextContentXML
+        content_type = TextContentType.objects.get(slug=slugify(unicode(content_type_name)))
+        tc, created = TextContent.objects.get_or_create(item_part__id=ip_id, type=content_type)
+        tcx, created = TextContentXML.objects.get_or_create(text_content=tc)
+
+        # II load the file and convert it
+        from digipal.utils import read_file, get_xml_from_unicode, re_sub_fct
+        xml_string = read_file(xml_path)
+        
+        # III get the XML into a string
+        xml = get_xml_from_unicode(xml_string)
+        if xpath:
+            els = xml.xpath(xpath)
+            if len(els) > 0:
+                root = els[0]
+            else:
+                raise Exception(u'No match for XPATH "%s"' % xpath)
+        else:
+            root = xml.getroot()
+        from lxml import etree
+        content = etree.tostring(root)
+        # don't keep root element tag
+        content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
+
+        # IV convert the xml tags and attribute to HTML-TEI
+        # remove comments
+        content = re.sub(ur'(?musi)<!--.*?-->', ur'', content)
+        #
+        self.c = 0
+        self.conversion_cache = {}
+
+        def replace_tag(match):
+            if match.group(0) in self.conversion_cache:
+                return self.conversion_cache[match.group(0)]
+            
+            self.c += 1
+            if self.c > 10e6:
+                exit()
+
+            ret = match.group(0)
+            
+            #print ret
+
+            tag = match.group(2)
+            
+            # don't convert <p>
+            if tag in ['p', 'span']:
+                return ret
+            
+            # any closing tag is /span
+            if '/' in match.group(1):
+                return '</span>'
+            
+            if tag == 'pb':
+                print self.c
+            
+            # tag - 
+            ret = ur'<span data-dpt="%s"' % tag
+            # attribute - assumes " for attribute values
+            attrs = (re.sub(ur'(?ui)(\w+)(\s*=\s*")', ur'data-dpt-\1\2', match.group(3))).strip()
+            if attrs:
+                ret += ' ' + attrs
+            ret += match.group(4)
+            
+            #print '', ret
+            
+            self.conversion_cache[match.group(0)] = ret
+            
+            return ret
+            
+        content = re_sub_fct(content, ur'(?musi)(<\s*/?\s*)(\w+)([^>]*?)(/?\s*>)', replace_tag)
+        
+        # save the content into the TextContentXML record
+        tcx.content = content
+        tcx.save()
+        
     def command_units(self):
         from digipal_text.models import TextUnit
         rs = TextUnit.objects
@@ -115,6 +215,7 @@ Commands:
             print self.get_content_xml_summary(content_xml)
         
     def command_markup(self):
+        # call the auto-markup function on a text
         from digipal_text.models import TextContentXML
         if len(self.args) > 1:
             content_xml = TextContentXML.objects.filter(id=self.args[1]).first()

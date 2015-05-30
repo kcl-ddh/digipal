@@ -1,48 +1,12 @@
 #main_body_container { width: 100%; }
 
-div.message-box {
-    border: 1px solid lightgrey;
-    border-radius: 10px;
-    margin: 0.5em;
-    padding: 0.5em;
-    color: green;
-    background-color: white;
-}
-
-div.message-box.message-error {
-    color: pink;
-}
-div.message-box.message-warning {
-    color: orange;
-}
-div.message-box.message-info {
-    color: green;
-}
-
-.status-bar {
-    padding: 0.3em;
-    border-top: 1px solid lightgrey;
-    font-size: 12px;
-    font-family: "Lucida Console", Monaco, monospace;
-}
-
-.status-bar span {
-    /* padding-left: 0.3em; */
-}
-
-.mce-tinymce.mce-container.mce-panel {
-    border: 0px !important;
-}
-
 /*
 span.message-time {
     padding: 0.3em;
 }
 */
 
-span.message-error {
-    color: red;
-}
+/* PANEL */
 
 #text-viewer-panel {
     display: none;
@@ -76,37 +40,82 @@ span.message-error {
     height: 100%;
 }
 
-.text-viewer-panel .navbar-default {
-    border-width: 0 0 1px 0;
+/* Align the buttons in the panel navbar with the chosen drop downs */
+
+.text-viewer-panel ul.nav > li > a {
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
-/* */
 
-/* Less tall navbar */
+/* TOOL BAR */
 
-.text-viewer-panel .navbar-nav > li > a {
-    padding-bottom: 0;
-    padding-top: 3px;
+.text-viewer-panel .btn-toolbar {
+    background-color: #f8f8f8;
+    border-bottom: 1px solid lightgrey;
 }
 
-.text-viewer-panel .navbar {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    min-height: 0px;
+.text-viewer-panel .btn-toolbar .btn {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    color: #777;
 }
 
-.text-viewer-panel .chzn-container {
+.dropdown-menu {
+    /* Close the gap between dropdown list and the button above
+       To avoid the list from closing when the mouse goes into the gap */
+    top: 87%;
+}
+
+.auto-open:hover > ul.dropdown-menu {
+  display: block;
+}
+
+.auto-open:hover .btn {
+  background-color: #e7e7e7;
+}
+
+.text-viewer-panel .btn-toolbar .btn:hover {
+    background-color: #e7e7e7;
+}
+
+li.bsdp-selected a {
+    font-weight: bold;
+}
+
+ul.dropdown-menu.dpbs-clicked {
+    display: none;
+}
+
+.glyphicon.glyphicon-entry:before {
+    content: "\25BC";
+}
+
+.glyphicon.glyphicon-section:before {
+    content: "\00A7";
+}
+
+/* Means that the element is initially hidden
+    But can be overridden by JQ .toggle()
+*/
+.dphidden {
+    display: none;
+}
+
+.btn-toolbar .chzn-container {
     width: 10em !important;
     margin-top: 2px !important;
     margin-bottom: 2px !important;
 }
 
-.text-viewer-panel .chzn-container-single .chzn-single {
+.btn-toolbar .chzn-container-single .chzn-single {
     font-size: 10px;
 }
 
 /* fixes */
 /* right nav on each panel overflows to the right, reduced BS margin-right */
+/*
 .text-viewer-panel .navbar-nav.navbar-right:last-child {
     margin-right: -6px;
 }
@@ -114,13 +123,7 @@ span.message-error {
 .text-viewer-panel .dropdown-menu .glyphicon {
     padding-right: 0.4em;
 }
-
-
-
-.status-bar {
-    min-height: 2em;
-    background-color: #f8f8f8;
-}
+*/
 
 /* Reduce Tinymce drop down width */
 
@@ -128,11 +131,58 @@ span.message-error {
     width: auto;
 }
 
+.mce-tinymce.mce-container.mce-panel {
+    border: 0px !important;
+}
+
+/* STATUS BAR */
+
+.status-bar {
+    padding: 0.3em;
+    border-top: 1px solid lightgrey;
+    font-size: 12px;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+.status-bar {
+    min-height: 2em;
+    background-color: #f8f8f8;
+}
+
+.status-bar span {
+    /* padding-left: 0.3em; */
+}
+
+/* MESSAGE BOX - not used */
+
+div.message-box {
+    border: 1px solid lightgrey;
+    border-radius: 10px;
+    margin: 0.5em;
+    padding: 0.5em;
+    color: green;
+    background-color: white;
+}
+
+div.message-box.message-error {
+    color: pink;
+}
+div.message-box.message-warning {
+    color: orange;
+}
+div.message-box.message-info {
+    color: green;
+}
+
+span.message-error {
+    color: red;
+}
+
 
 /*
 #container input.sbm-change {float: left;}
 #context-div ul {margin-left: 2em;}
-#context-div ul li { 
+#context-div ul li {
     list-style-type: disc;
 }
 
@@ -165,31 +215,4 @@ div#side-panel {
     float: left;
 }
 */
-
-.glyphicon.glyphicon-entry:before {
-    content: "\25BC";
-}
-
-.glyphicon.glyphicon-section:before {
-    content: "\00A7";
-}
-
-li.dphidden {
-    display: none;
-}
-
-.navbar-nav > li.dropdown > ul.dropdown-menu.dpbs-clicked {
-    display: none;
-}
-
-li.bsdp-selected a {
-    font-weight: bold;
-}
-
-/* Align the buttons in the panel navbar with the chosen drop downs */
-
-.text-viewer-panel ul.nav > li > a {
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
 

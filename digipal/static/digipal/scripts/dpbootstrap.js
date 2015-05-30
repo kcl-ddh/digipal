@@ -1,21 +1,21 @@
 /*
  * A JQuery plugin to control a Bootstrap dropdown widget.
- * 
+ *
  * Usage:
  *      var $mydropdown = $('.dropdown something-more-specific');
- *      
+ *
  *      $mydropdown.dpbsdropdown({onSelect: onSelect});
- *      
+ *
  *      var currentOption = $mydropdown.dpbsdropdown('getOption');
  *      $mydropdown.dpbsdropdown('setOption', 'option-key');
- *      
+ *
  *      // return the plug-in instance
  *      $mydropdown.dpbsdropdown();
- *      
+ *
  *      // This call will keep the same plug in instance and update its opts
- *      // That way we don't create a second instance with both listening to the same events 
+ *      // That way we don't create a second instance with both listening to the same events
  *      $mydropdown.dpbsdropdown({onSelect: onSelect2});
- *      
+ *
  */
 ;(function ( $, window, document, undefined ) {
 
@@ -54,9 +54,9 @@
             
             // when the user clicks an option we select it
             // and we close the drop down
-            this.$el.find('ul li a').on('click', function() { 
+            this.$el.find('ul li a').on('click', function() {
                 me.setOption($(this).attr('href'));
-                $(this).blur();
+                document.activeElement.blur();
                 
                 // That won't work because of mezzanine hacks
                 //me.$el.find('.dropdown-toggle').dropdown('toggle');
@@ -79,7 +79,7 @@
             // select the option from its key
             // if key is not provided, leave the selection as it is
             // if no selection yet, select the first visible option
-            // If the key has changed and silent is not true, 
+            // If the key has changed and silent is not true,
             // the 'onSelect' user callback is triggered
             key = key || this.getOption();
             
@@ -87,7 +87,7 @@
                 key = key.substr(1, key.length - 1);
             }
             
-            currentOption = this.$el.parent().data('value');
+            var currentOption = this.$el.parent().data('value');
             if (currentOption != key) {
                 var $selectedA = this.$el.find('a[href=#'+key+']');
                 // Replace the dropdown heading label by the selected option
@@ -140,7 +140,7 @@
     };
 
     
-    // GN: adapted from 
+    // GN: adapted from
     // http://stackoverflow.com/questions/1117086/how-to-create-a-jquery-plugin-with-methods
     // and
     // https://github.com/jquery-boilerplate/jquery-patterns/blob/master/patterns/jquery.basic.plugin-boilerplate.js
@@ -149,7 +149,7 @@
         if ((this.length === 1) && ($.data(this[0], "plugin_" + pluginName))) {
             // plugin already assigned to the DOM element
             var plugin = $.data(this[0], "plugin_" + pluginName);
-            if (arguments.length == 0) {
+            if (arguments.length === 0) {
                 // no argument => we return the plugin
                 return plugin;
             } else {
@@ -167,11 +167,11 @@
                 }
             }
         } else {
-            // instantiate a new plug in on the given elements 
+            // instantiate a new plug in on the given elements
             return this.each(function () {
                 if (!$.data(this, "plugin_" + pluginName)) {
                     $.data(this, "plugin_" + pluginName, new Plugin( this, opts ));
-                };
+                }
             });
         }
     };
@@ -184,11 +184,11 @@ jQuery(document).ready(function($) {
     var onSelect = function($dd, key) {
         console.log('In callback');
         console.log(key);
-    }; 
+    };
     var onSelect2 = function($dd, key) {
         console.log('In callback 2');
         console.log(key);
-    }; 
+    };
     $dd.dpbsdropdown({onSelect: onSelect});
     $dd.dpbsdropdown('showOptions', ['folio', 'entry']);
     $dd.dpbsdropdown('getOption');

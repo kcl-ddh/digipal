@@ -1,13 +1,11 @@
-(function($) {
+(function(TextViewer, $, undefined) {
 
-    TextViewer = window.TextViewer || {};
-    
     //////////////////////////////////////////////////////////////////////
     //
     // PanelSet
     //
     //////////////////////////////////////////////////////////////////////
-    var PanelSet = TextViewer.PanelSet = function($root) {
+    TextViewer.PanelSet = function($root) {
         this.panels = [];
         this.$root = $root;
         this.$panelset = null;
@@ -47,7 +45,7 @@
             this.$panelset = $panelset;
             var me = this;
             var resize = function() { me._resizePanels(); };
-            this.layout = $panelset.layout({ 
+            this.layout = $panelset.layout({
                 applyDefaultStyles: true,
                 closable: true,
                 resizable: true,
@@ -65,14 +63,14 @@
         // panelLocation: west|north|south|east
         // size: a ratio. e.g. 1/2.0 for half the full length
         this.setPanelSize = function(panelLocation, size) {
-            if (size == 0) {
+            if (size === 0) {
                 this.layout.close(panelLocation);
             } else {
                 var fullLength = this.$panelset[(panelLocation == 'east' || panelLocation == 'west') ? 'width': 'height']();
                 this.layout.open(panelLocation);
                 this.layout.sizePane(panelLocation, size * fullLength);
             }
-        }
+        };
 
         this.setMessageBox = function($messageBox) {
             this.$messageBox = $messageBox;
@@ -103,17 +101,17 @@
             for (var i in this.panels) {
                 this.panels[i].onResize();
             }
-        }
+        };
 
         this.initEvents = function() {
             
             this._resize(true);
             var me = this;
             
-            $(window).resize(function() { 
+            $(window).resize(function() {
                 me._resize();
                 });
-            $(window).scroll(function() { 
+            $(window).scroll(function() {
                 me._resize(true);
                 });
         };
@@ -141,7 +139,7 @@
     var Panel = TextViewer.Panel = function($root, contentType, panelType) {
         this.$root = $root;
         
-        // we set a ref from the root element to its panel 
+        // we set a ref from the root element to its panel
         // so we can clean up things properly when the panel is replaced
         if ($root[0].textViewerPanel) {
             $root[0].textViewerPanel.onDestroy();
@@ -208,7 +206,7 @@
             this.setMessage(title+'...', 'info');
             var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
             return ret;
-        } 
+        };
         
         this.onDestroy = function() {
             // destructor, the place to remove any resource and detach event handlers
@@ -240,9 +238,9 @@
                 this.unreadyComponents.splice(index, 1);
             }
             // if the waiting list is empty, we call _ready()
-            if (this.unreadyComponents.length == 0) {
+            if (this.unreadyComponents.length === 0) {
                 this._ready();
-            } 
+            }
         };
         
         this._ready = function() {
@@ -271,7 +269,7 @@
             this.$statusSelect.on('change', function() {
                 // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
                 var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
-                    'method': 'PUT', 
+                    'method': 'PUT',
                     '_text_content__item_part__id': me.itemPartid,
                     '_text_content__type__slug': me.getContentType(),
                     'status__id': $(this).val(),
@@ -296,7 +294,7 @@
         
         /*
          * Loading and saving
-         * 
+         *
          * General rules about when the content should be saved:
          *      at regular interval (this class)
          *      when the editor loses the focus (subclass)
@@ -332,19 +330,19 @@
         this.saveContent = function(options) {
             options = options || {};
             if (this.loadedAddress && (this.isDirty() || options.forceSave)) {
-                console.log('SAVE '+this.loadedAddress);
+                //console.log('SAVE '+this.loadedAddress);
                 this.setNotDirty();
                 this.saveContentCustom(options);
             }
-        }
+        };
         
         this.saveContentCustom = function(options) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY saveContent() can call it
-        }
+        };
         
         this.onContentSaved = function(data) {
-        }
+        };
 
         /* -------------- */
         
@@ -353,7 +351,7 @@
             // if it is invalid we have to block editing
             // visually inform the user the content is not valid.
             var $mask = this.$root.find('.mask');
-            if ($mask.length == 0) {
+            if ($mask.length === 0) {
                 // TODO: move this HTML to the template.
                 // Not good practice to create it with JS
                 this.$content.prepend('<div class="mask"></div>');
@@ -361,27 +359,27 @@
             }
 
             $mask.css('height', isValid ? '0' : '100%');
-        }
+        };
 
         this.isDirty = function() {
             var ret = (this.getContentHash() !== this.lastSavedHash);
             return ret;
-        }
+        };
 
         this.setNotDirty = function() {
             this.lastSavedHash = this.getContentHash();
-        }
+        };
 
         this.setDirty = function() {
             var d = new Date();
             this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
-        }
+        };
         
         this.getContentHash = function() {
             var ret = null;
             return ret;
             //return ret.length + ret;
-        }
+        };
         
         // Content Status
         this.setStatusSelect = function(contentStatus) {
@@ -391,8 +389,8 @@
                 this.$statusSelect.trigger('liszt:updated');
             }
             // hide (chosen) select if no status supplied
-            this.$statusSelect.closest('li').toggle(!!contentStatus);
-        }
+            this.$statusSelect.closest('.dphidden').toggle(!!contentStatus);
+        };
         
         // Address / Locations
 
@@ -402,7 +400,7 @@
             
             if (locations) {
                 //locations['sync'] = ['Transcription', 'Translation', 'Image', 'Codicology']
-                locations['sync'] = this.$contentTypes.dpbsdropdown('getLabels');
+                locations.sync = this.$contentTypes.dpbsdropdown('getLabels');
                 
                 // save the locations
                 this.locations = locations;
@@ -415,7 +413,7 @@
                 
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                 this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                this.$locationTypes.closest('li').show();
+                this.$locationTypes.show();
             }
         };
 
@@ -429,8 +427,8 @@
             }
             this.$locationSelect.html(htmlstr);
             this.$locationSelect.trigger('liszt:updated');
-            this.$locationSelect.closest('li').toggle(htmlstr ? true : false);
-            if (!htmlstr) { this.loadContent(); };
+            this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
+            if (!htmlstr) this.loadContent();
         };
         
         this.setItemPartid = function(itemPartid) {
@@ -468,7 +466,7 @@
 
         this.getLocation = function() {
             var ret = '';
-            if (this.$locationSelect.next().is(':visible')) {
+            if (this.$locationSelect.is(':visible')) {
                 ret = this.$locationSelect.val();
             }
             return ret;
@@ -488,14 +486,14 @@
                 
                 this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
                 
-                this.$toggleEdit.find('a').toggleClass('active', (mode === true));
+                this.$toggleEdit.toggleClass('active', (mode === true));
                 
-                this.$toggleEdit.find('a').attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
+                this.$toggleEdit.attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
                 
-                this.$toggleEdit.find('a').tooltip();
+                this.$toggleEdit.tooltip();
                 
                 var me = this;
-                this.$toggleEdit.find('a').on('click', function() {
+                this.$toggleEdit.on('click', function() {
                     me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType()));
                     return false;
                 });
@@ -641,7 +639,7 @@
             var me = this;
             this.callApi(
                 'saving content',
-                this.loadedAddress, 
+                this.loadedAddress,
                 function(data) {
                     //me.tinymce.setContent(data.content);
                     me.onContentSaved(data);
@@ -651,8 +649,8 @@
                     }
                 },
                 {
-                    'content': me.tinymce.getContent(), 
-                    'convert': options.autoMarkup ? 1 : 0, 
+                    'content': me.tinymce.getContent(),
+                    'convert': options.autoMarkup ? 1 : 0,
                     'save_copy': options.saveCopy ? 1 : 0,
                     'method': 'POST',
                 },
@@ -670,7 +668,7 @@
                 skin : 'digipal',
                 selector: '#' + divid,
                 init_instance_callback: function() {
-                    me.tinymce = tinyMCE.get(divid);
+                    me.tinymce = window.tinyMCE.get(divid);
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
@@ -689,9 +687,9 @@
             };
             
             if (this.contentType == 'codicology') {
-                options['toolbar'] = 'psclear undo redo | pslocation | psh1 psh2 | pspgside pspgdimensions pspgcolour | pshand | code';
-                options['paste_as_text'] = true;
-                options['paste_postprocess'] = function(plugin, args) {
+                options.toolbar = 'psclear undo redo | pslocation | psh1 psh2 | pspgside pspgdimensions pspgcolour | pshand | code';
+                options.paste_as_text = true;
+                options.paste_postprocess = function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
                     //console.log($(args.node).html());
                     //$(args.node).html($(args.node).html().replace(/<(\/?)p/g, '<$1div'));
@@ -711,7 +709,7 @@
                 };
             }
             
-            tinyMCE.init(options);
+            window.tinyMCE.init(options);
             
         };
         
@@ -743,7 +741,7 @@
             var me = this;
             this.callApi(
                 'loading image',
-                address, 
+                address,
                 function(data) {
                     me.$content.html(data.content).find('img').load(function() {
                         me.onContentLoaded(data);
@@ -774,7 +772,7 @@
             var me = this;
             this.callApi(
                 'loading search',
-                address, 
+                address,
                 function(data) {
                     me.$content.html(data.content);
                     me.onContentLoaded(data);
@@ -794,7 +792,7 @@
             var me = this;
             this.callApi(
                 'searching',
-                address, 
+                address,
                 function(data) {
                     me.$content.html(data.content);
                     me.$content.find('form').on('submit', function() {
@@ -820,21 +818,12 @@
     
     //////////////////////////////////////////////////////////////////////
     //
-    // PanelNavigator
-    //
-    //////////////////////////////////////////////////////////////////////
-    var PanelNavigator = TextViewer.PanelNavigator = function($root, contentType) {
-        TextViewer.Panel.call(this, $root, contentType);
-    };
-    
-    //////////////////////////////////////////////////////////////////////
-    //
     // PanelXmlelement
     //
     //////////////////////////////////////////////////////////////////////
     var PanelXmlelementWrite = TextViewer.PanelXmlelementWrite = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
-    }
+    };
         
     //////////////////////////////////////////////////////////////////////
     //
@@ -850,9 +839,9 @@
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
         
         var getData = {
-            url: url_ajax, 
-            data: requestData, 
-            async: (synced ? false : true), 
+            url: url_ajax,
+            data: requestData,
+            async: (synced ? false : true),
             complete: onComplete,
             success: onSuccess
         };
@@ -863,16 +852,16 @@
         var ret = $.ajax(getData);
         
         return ret;
-    }
+    };
     
     TextViewer.getStrFromTime = function(date) {
         date = date || new Date();
         var parts = [date.getHours(), date.getMinutes(), date.getSeconds()];
         for (var i in parts) {
-            if ((i > 0) && (parts[i] < 10)) {parts[i] = '0' + parts[i]};
+            if ((i > 0) && (parts[i] < 10)) parts[i] = '0' + parts[i];
         }
         return parts.join(':');
-    }
+    };
 
     // These are external init steps for JSLayout
     function initLayoutAddOns() {
@@ -881,9 +870,9 @@
         //  this functionality will be included in RC30.80
         //
         $.layout.disableTextSelection = function(){
-            var $d  = $(document)
-            ,   s   = 'textSelectionDisabled'
-            ,   x   = 'textSelectionInitialized'
+            var $d  = $(document),
+                    s   = 'textSelectionDisabled',
+                    x   = 'textSelectionInitialized'
             ;
             if ($.fn.disableSelection) {
                 if (!$d.data(x)) // document hasn't been initialized yet
@@ -893,8 +882,8 @@
             }
         };
         $.layout.enableTextSelection = function(){
-            var $d  = $(document)
-            ,   s   = 'textSelectionDisabled';
+            var $d  = $(document),
+                    s   = 'textSelectionDisabled';
             if ($.fn.enableSelection && $d.data(s))
                 $d.enableSelection().data(s, false);
         };
@@ -908,9 +897,7 @@
         }
         
         $lrs.on('mousedown', $.layout.disableTextSelection ); // affects entire document
-    };
-    
-    initLayoutAddOns();
+    }
     
     // TODO: move to dputils.js
     
@@ -933,15 +920,18 @@
             // or any other URL that isn't scheme relative or absolute i.e relative.
             !(/^(\/\/|http:|https:).*/.test(url));
     }
+    
+    initLayoutAddOns();
+    
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
                 // Send the token to same-origin, relative URLs only.
                 // Send the token only if the method warrants CSRF protection
                 // Using the CSRFToken value acquired earlier
-                xhr.setRequestHeader("X-CSRFToken", dputils.getCookie('csrftoken'));
+                xhr.setRequestHeader("X-CSRFToken", window.dputils.getCookie('csrftoken'));
             }
         }
     });
     
-}( jQuery ));
+}( window.TextViewer = window.TextViewer || {}, jQuery ));

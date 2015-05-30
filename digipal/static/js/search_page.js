@@ -99,7 +99,7 @@ $(document).ready(function() {
 
     // Scrolls directly to the results on second or later pages.
     // Scrolls to an element with id="auto-scroll"
-    var page = dputils.get_query_string_param('page');
+    var page = window.dputils.get_query_string_param('page');
     if (page && (page != '1')) {
         var auto_scroll = $('#auto-scroll');
         if (auto_scroll.length) {
@@ -381,7 +381,7 @@ $(function() {
         var href = $(this).attr('href');
         if (tab && href) {
             // overwrite that path in the previous/next links
-            $(this).attr('href', href.replace(/(\/\d+)[^?]+/, '$1' + tab))
+            $(this).attr('href', href.replace(/(\/\d+)[^?]+/, '$1' + tab));
         }
     });
 

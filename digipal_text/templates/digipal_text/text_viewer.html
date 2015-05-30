@@ -6,11 +6,11 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/junicode/junicode.css"/>
-    {% comment %} 
-        Trick: TinyMCE will load this later dynamically 
+    {% comment %}
+        Trick: TinyMCE will load this later dynamically
         but that happens AFTER our resize calculate the height of the button bar
         which is unstyled yet and therefore too tall and shrinks the iframe.
-        The solution is to force a load of the stylesheet here so the computation 
+        The solution is to force a load of the stylesheet here so the computation
         is accurate.
     {% endcomment %}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/tinymce/skins/digipal/skin.min.css"/>
@@ -27,7 +27,7 @@
 <div id="text-viewer">
     <div class="message-box">
         <a href="#text-viewer" style="float:left;" title="Expand" data-toggle="tooltip" data-placement="bottom"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a>
-	    <span class="message-content">&nbsp;</span>
+        <span class="message-content">&nbsp;</span>
     </div>
     <div class="panels">
         <div class="ui-layout-north">North</div>
@@ -40,45 +40,39 @@
 
 {# Template for a panel within the frame #}
 <div id="text-viewer-panel" class="text-viewer-panel">
-    <nav class="navbar navbar-default">
-        <ul class="nav navbar-nav pull-left">
-            <li class="dropdown dropdown-content-type">
-                {% include "bootstrap/dropdown.html" with options=dd_content_types %}
-            </li>
-        </ul>
+    <div class="btn-toolbar">
+        <div class="btn-group dropdown-content-type">
+            {% include "bootstrap/dropdown.html" with options=dd_content_types classes="auto-open" %}
+        </div>
 
-        <ul class="nav navbar-nav pull-left">
-            <li class="dropdown dropdown-location-type pull-left dphidden">
-                {% include "bootstrap/dropdown.html" with options=dd_location_types %}
-            </li>
-            <li class="dropdown-location pull-left dphidden">
-                <select name="location">
-                    <option value="1r">1r</option>
-                    <option value="1v">1v</option>
-                </select>
-            </li>
-        </ul>
+        <div class="btn-group">
+            {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
+        </div>
+        <div class="btn-group dphidden">
+            <select name="location">
+                <option value="1r">1r</option>
+                <option value="1v">1v</option>
+            </select>
+        </div>
         
         {% if request.user.is_authenticated %}
-            <ul class="nav navbar-nav pull-left">
-                <li class="toggle-edit pull-left dphidden">
-                    <a class="btn btn-default" title="Edit the text" data-toggle="tooltip" href="#toggle-edit" data-placement="bottom">
-                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                    </a>
-                </li>
+            <div class="btn-group">
+                <button class="btn btn-default btn-sm toggle-edit dphidden" title="Edit the text" data-toggle="tooltip" href="#toggle-edit" data-placement="bottom">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                </button>
                 {% if statuses.count > 1 %}
-                    <li class="dropdown-status pull-left dphidden">
+                    <span class="dphidden">
                         <select name="status" class="no-search">
                             {% for status in statuses %}
                                 <option value="{{ status.id }}">{{ status.name }}</option>
                             {% endfor %}
                         </select>
-                    </li>
+                    </span>
                 {% endif %}
-    	    </ul>
+            </div>
         {% endif %}
-	    
-    </nav>
+        
+    </div>
     
     <div class="panel-content">
     </div>

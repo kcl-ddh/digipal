@@ -27,7 +27,13 @@ Commands:
             
   upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
             upload a XML file into the database
-            e.g. upload 'mytext.xml' 13 'transcription' 
+            e.g. upload 'mytext.xml' 13 'transcription'
+
+  process   OPERATION IP_ID CONTENT_TYPE [OPTIONS]
+            Transform a content.
+            OPERATION =
+                pb2locus    convert pb to locus
+                    OPTIONS = START_NUMBER
             
 """
     
@@ -53,7 +59,7 @@ Commands:
             dest='dry-run',
             default=False,
             help='Dry run, don\'t change any data.'),
-        ) 
+        )
 
     def handle(self, *args, **options):
         
@@ -92,19 +98,77 @@ Commands:
         if command == 'upload':
             known_command = True
             self.command_upload()
+            
+        if command == 'process':
+            known_command = True
+            self.command_process()
 
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
             
         if not known_command:
             print self.help
-            
-    def command_upload(self):
-        return
+        else:
+            print 'done'
+
+    def get_textcontentxml(self, ip_id, content_type_name):
+        from django.utils.text import slugify
+        from digipal_text.models import TextContentType, TextContent, TextContentXML
+        content_type = TextContentType.objects.filter(slug=slugify(unicode(content_type_name))).first()
+        if not content_type:
+            print 'Content Type "%s" not found' % content_type_name
+            return None
+        tc, created = TextContent.objects.get_or_create(item_part__id=ip_id, type=content_type)
+        tcx, created = TextContentXML.objects.get_or_create(text_content=tc)
+        return tcx
+
+    def command_process(self):
+        if len(self.args) < 4:
+            print 'upload requires 3 arguments'
+            return
         
-    def command_upload_old(self):
+        operation, ip_id, content_type_name = self.args[1:4]
+        
+        options = []
+        if len(self.args) > 4:
+            options = self.args[4:]
+        
+        # I find the TextContentXML record (or create it)
+        tcx = self.get_textcontentxml(ip_id, content_type_name)
+        if not tcx:
+            return
+
+        from digipal.utils import re_sub_fct, get_int
+
+        content = tcx.content
+        
+        if operation == 'pb2locus':
+            start_page = 1
+            if options:
+                start_page = int(options[0])
+            
+            self.rep_option = start_page
+            def replace(match):
+                # !!! ASSUME pb is not in <p> or anything else
+                
+                number = re.sub(ur'^.*"([^"]+)".*$', ur'\1', match.group(1))
+                if len(number) == len(match.group(1)):
+                    number = self.rep_option
+                
+                ret = u'<p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p>' % number
+                
+                self.rep_option = get_int(number, default=self.rep_option) + 1
+                
+                return ret
+            
+            content = re_sub_fct(content, ur'<span\s+data-dpt\s*=\s*"pb"([^>]*)>', replace)
+            
+        tcx.content = content
+        content = tcx.save()
+        
+    def command_upload(self):
         '''upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
-            pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xml 1 transcription "//div1"
+            pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xhtml 1 transcription
         '''
         if len(self.args) < 4:
             print 'upload requires 3 arguments'
@@ -117,14 +181,12 @@ Commands:
             xpath = self.args[4]
         
         # I find the TextContentXML record (or create it)
-        from django.utils.text import slugify
-        from digipal_text.models import TextContentType, TextContent, TextContentXML
-        content_type = TextContentType.objects.get(slug=slugify(unicode(content_type_name)))
-        tc, created = TextContent.objects.get_or_create(item_part__id=ip_id, type=content_type)
-        tcx, created = TextContentXML.objects.get_or_create(text_content=tc)
+        tcx = self.get_textcontentxml(ip_id, content_type_name)
+        if not tcx:
+            return
 
         # II load the file and convert it
-        from digipal.utils import read_file, get_xml_from_unicode, re_sub_fct
+        from digipal.utils import read_file, get_xml_from_unicode
         xml_string = read_file(xml_path)
         
         # III get the XML into a string
@@ -138,13 +200,34 @@ Commands:
         else:
             root = xml.getroot()
         from lxml import etree
-        content = etree.tostring(root)
+        content = etree.tostring(root, encoding="UTF-8")
+#         print type(root)
+#         print dir(root)
+#         content = str(root)
+        
+        if '&#361;' in content:
+            print 'Numeric entity'
+            exit()
+        
         # don't keep root element tag
         content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
-
+        
         # IV convert the xml tags and attribute to HTML-TEI
+        #content = self.get_xhtml_from_xml(content)
+        
+        # save the content into the TextContentXML record
+        tcx.content = content
+        tcx.save()
+        
+        from django.template.defaultfilters import filesizeformat
+        print 'Uploaded %s into record #%s' % (filesizeformat(tcx.get_length()), tcx.id)
+        
+
+    def get_xhtml_from_xml(self, xml_string):
+        # IV convert the xml tags and attribute to HTML-TEI
+        
         # remove comments
-        content = re.sub(ur'(?musi)<!--.*?-->', ur'', content)
+        content = re.sub(ur'(?musi)<!--.*?-->', ur'', xml_string)
         #
         self.c = 0
         self.conversion_cache = {}
@@ -159,8 +242,6 @@ Commands:
 
             ret = match.group(0)
             
-            #print ret
-
             tag = match.group(2)
             
             # don't convert <p>
@@ -174,7 +255,7 @@ Commands:
             if tag == 'pb':
                 print self.c
             
-            # tag - 
+            # tag -
             ret = ur'<span data-dpt="%s"' % tag
             # attribute - assumes " for attribute values
             attrs = (re.sub(ur'(?ui)(\w+)(\s*=\s*")', ur'data-dpt-\1\2', match.group(3))).strip()
@@ -188,11 +269,11 @@ Commands:
             
             return ret
             
+        from digipal.utils import re_sub_fct
         content = re_sub_fct(content, ur'(?musi)(<\s*/?\s*)(\w+)([^>]*?)(/?\s*>)', replace_tag)
         
-        # save the content into the TextContentXML record
-        tcx.content = content
-        tcx.save()
+        return content
+        
         
     def command_units(self):
         from digipal_text.models import TextUnit
@@ -200,13 +281,13 @@ Commands:
         #print repr(rs)
         rs = rs.all()
         for r in rs:
-            print r.id 
+            print r.id
 
     def get_friendly_datetime(self, dtime):
         return re.sub(ur'\..*', '', unicode(dtime))
 
     def get_content_xml_summary(self, content_xml):
-        return '#%4s %8s %20s %20s %20s' % (content_xml.id, content_xml.get_length(), 
+        return '#%4s %8s %20s %20s %20s' % (content_xml.id, content_xml.get_length(),
                 self.get_friendly_datetime(content_xml.created), self.get_friendly_datetime(content_xml.modified), content_xml.text_content)
             
     def command_list(self):

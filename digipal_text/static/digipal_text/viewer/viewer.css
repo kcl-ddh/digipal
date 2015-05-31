@@ -68,10 +68,6 @@ span.message-time {
     top: 87%;
 }
 
-.auto-open:hover > ul.dropdown-menu {
-  display: block;
-}
-
 .auto-open:hover .btn {
   background-color: #e7e7e7;
 }

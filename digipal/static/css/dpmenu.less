@@ -56,7 +56,9 @@ nav.primary-nav {
     
         .navbar-nav > li {
             // separator between menu items
-            background: url('/static/digipal/images/nav_li.png') 100% 50% no-repeat;
+            @media (min-width: @grid-float-breakpoint) {
+                background: url('/static/digipal/images/nav_li.png') 100% 50% no-repeat;
+            }
         }
     }
 
@@ -64,11 +66,22 @@ nav.primary-nav {
 
 // BANNER LOGO
 
+.navbar-brand {
+    // avoid long brand going off screen right
+    max-width: 100%;
+}
+
 #logo {
     line-height: 65px;
     color:@dp-main;
     display: inline-block;
     font-size: 46px;
+
+    // avoid long brand going off screen right
+    max-width: 100%;
+    overflow: hidden;
+    // avoid long brand wrapping
+    white-space: nowrap;
     
     .logo-brand {
         font-family: Serif;

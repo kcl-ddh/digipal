@@ -545,11 +545,12 @@ a.link-icon, a.link-icon:hover {
     border-radius: 5px;
 }
 
-.form-control:focus, .form-control:active{
-    border-color: #E0C4BE;
+.form-control:focus, .form-control:active {
+    border-color: @dp-input-border;
     outline: 0;
-    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px @dp-shadow-color;
+    //-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
+    //box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(161, 81, 77, 0.6);
 }
 
 
@@ -625,11 +626,23 @@ different height depending when they are selected and push the other values down
   display: block;
 }
 
+// BootstrapSwitch
 // TODO: use LESS for BSSwitch
 #body .has-switch span.switch-left, #body .has-switch span.switch-primary {
     background: none repeat scroll 0 0 @dp-main;
 }
 
+div.has-switch.switch-small {
+    min-width: 4.5em;
+}
+
+div.has-switch:focus {
+    border-color: @dp-input-border;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px @dp-shadow-color;
+    outline: 0 none;
+}
+
+// ----
 .row-min-admin{
     width:70%;
 }

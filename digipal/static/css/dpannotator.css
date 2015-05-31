@@ -561,11 +561,6 @@ label[for=id_internal_note], label[for=id_display_note]{
     box-shadow: 0 0 5px 1px #ccc;
 }
 
-.has-switch{
-    min-width: 66px !important;
-}
-
-
 .fullScreenMap{
     width: 100% !important;
     height: 100% !important;

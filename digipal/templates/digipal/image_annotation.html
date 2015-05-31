@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load html_escape hand_filters %}
+{% load html_escape hand_filters future mezzanine_tags %}
 
 {% block meta_title %}
     {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
@@ -10,9 +10,11 @@
 {% block extra_css %}
     {{ block.super }}
 
+    {% compress css %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.less" type="text/less" />
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
+    {% endcompress %}
 {% endblock %}
 
 {% block main %}
@@ -35,7 +37,7 @@
                     <a data-toggle="tab" data-target='#annotator' href='/digipal/page/{{ image.id }}'>
                         Manuscript Image
                         {% if no_image_reason %}
-                            <span class="glyphicon glyphicon glyphicon-ban-circle private-image" aria-hidden="true" 
+                            <span class="glyphicon glyphicon glyphicon-ban-circle private-image" aria-hidden="true"
                             title="Full size image not publicly available" data-toggle="tooltip"></span>
                         {% endif %}
                     </a>
@@ -81,15 +83,15 @@
                 </div>
 
                 {% if cansee.graph %}
-	                <div class="tab-pane fade" id='allographs'>
-	                    {% include "digipal/annotations.html" %}
-	                </div>
+                    <div class="tab-pane fade" id='allographs'>
+                        {% include "digipal/annotations.html" %}
+                    </div>
                 {% endif %}
 
                 {% if cansee.hand %}
-	                <div class="tab-pane fade {% if url == 'hands' %} active in {% endif %}" id='hands'>
-	                    {% include "digipal/hands.html" %}
-	                </div>
+                    <div class="tab-pane fade {% if url == 'hands' %} active in {% endif %}" id='hands'>
+                        {% include "digipal/hands.html" %}
+                    </div>
                 {% endif %}
 
                 <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
@@ -188,8 +190,8 @@
                 /* Calling page script */
     
                 if(annotator){
-    	            annotator.annotations_switch_initial = {{ annotations_switch_initial }};
-    	            annotator.hide_annotations = {{ hide_annotations }};
+                    annotator.annotations_switch_initial = {{ annotations_switch_initial }};
+                    annotator.hide_annotations = {{ hide_annotations }};
                     $.getScript("{{ STATIC_URL }}digipal/scripts/annotator-page-script.js");
                     if(annotator.isAdmin == 'True'){
                         $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');

@@ -1,3 +1,6 @@
+// ALLOW_IMPORT
+@import "../../../../../css/dpvars_bs.less";
+
 div.olMap {
     z-index: 0;
     padding: 0 !important;
@@ -548,7 +551,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 }
 
 .olControlEditingToolbar .olControlFullScreenFeatureItemInactive{
-	background-image: url(img/fullscreen.gif);
+    background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
     background-color: #eee;
@@ -558,7 +561,7 @@ span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
 }
 
 .olControlEditingToolbar .olControlFullScreenFeatureItemInactive:hover, .olControlEditingToolbar .olControlFullScreenFeatureItemActive{
-	background-image: url(img/fullscreen.gif);
+    background-image: url(img/fullscreen.gif);
     background-repeat: no-repeat;
     background-position: 0 1px;
     background-color: yellow;
@@ -636,8 +639,8 @@ a.olControlZoomOut {
 }
 
 .ItemInactive:hover{
-    background:#a1514d !important;
-    color:#fff !important;
+    background: @dp-main !important;
+    color: @dp-menu-color !important;
 }
 
 #OpenLayers_Control_DrawFeature_72, #OpenLayers_Control_TransformFeature_32, #OpenLayers_Control_DeleteFeature_30, #OpenLayers_Control_Button_84, #OpenLayers_Control_Button_85, #OpenLayers_Control_Button_86, #OpenLayers_Control_SelectFeature_78, #OpenLayers_Control_Button_87{

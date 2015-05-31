@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.db import transaction
 from digipal import utils
-from django.utils.datastructures import SortedDict 
+from django.utils.datastructures import SortedDict
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -99,7 +99,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     
     if not text_content_xml:
         ret['message'] = 'Content not found'
-        ret['status'] = 'error' 
+        ret['status'] = 'error'
         return ret
 
     record_content = text_content_xml.content or ''
@@ -201,7 +201,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         
     return ret
 
-def resolve_default_location(location_type, location, response): 
+def resolve_default_location(location_type, location, response):
     if location_type == 'default':
         locations = response['locations']
         # grab the first available location
@@ -226,10 +226,15 @@ def get_fragment_extent(content, location_type, location):
         # ASSUME order of the attributes in the span (OK)
         # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
         span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
+        print '--'
+        print '<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<'
+        print span0
         if span0 > -1:
             p0 = content.rfind('<p>', 0, span0)
+            print p0
             if p0 > -1:
                 span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
+                print span1
                 if span1 == -1:
                     ret = [p0, len(content)]
                 else:
@@ -302,7 +307,7 @@ def get_locus_from_location(location_type, location):
     # e.g. location = 54b2 (entry number)
     # => convert to 54v
     # TODO: check location_type
-    # TODOL this is a customisation for EXON, 
+    # TODOL this is a customisation for EXON,
     # unlikely to be relevant for other projects
     parts = re.match('(\d+)([abrv]?)(\d*)', location)
     if parts:
@@ -341,7 +346,7 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
         if tcx:
             for hit in get_entries_from_query(query):
                 hit_count += 1
-                entries += '<li><a data-location-type="entry" href="%s">%s</a><br/>%s</li>' % (hit['entryid'], hit['entryid'], hit['snippets']) 
+                entries += '<li><a data-location-type="entry" href="%s">%s</a><br/>%s</li>' % (hit['entryid'], hit['entryid'], hit['snippets'])
             
             #import re
             #match = re.search()
@@ -349,7 +354,7 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
             #print tcx
         
     # e.g. if the requested location is 'default' we resolve it
-    from django.utils.html import escape 
+    from django.utils.html import escape
     ret['location_type'] = location_type
     ret['location'] = location
 
@@ -379,7 +384,7 @@ def get_entries_from_query(query):
     # get the field=value query from the selected facet options
     field_queries = u''
     
-    # add the search phrase    
+    # add the search phrase
     if search_phrase or field_queries:
         qp = get_whoosh_parser(index)
         q = qp.parse(u'%s %s' % (search_phrase, field_queries))

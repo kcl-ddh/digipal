@@ -1,12 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from os.path import isdir
-import os
-import shlex
-import subprocess
 import re
 from optparse import make_option
-from django.db import IntegrityError
+from digipal.utils import re_sub_fct, get_int
 
 from exon.customisations.digipal_text import models
 
@@ -122,50 +118,6 @@ Commands:
         tcx, created = TextContentXML.objects.get_or_create(text_content=tc)
         return tcx
 
-    def command_process(self):
-        if len(self.args) < 4:
-            print 'upload requires 3 arguments'
-            return
-        
-        operation, ip_id, content_type_name = self.args[1:4]
-        
-        options = []
-        if len(self.args) > 4:
-            options = self.args[4:]
-        
-        # I find the TextContentXML record (or create it)
-        tcx = self.get_textcontentxml(ip_id, content_type_name)
-        if not tcx:
-            return
-
-        from digipal.utils import re_sub_fct, get_int
-
-        content = tcx.content
-        
-        if operation == 'pb2locus':
-            start_page = 1
-            if options:
-                start_page = int(options[0])
-            
-            self.rep_option = start_page
-            def replace(match):
-                # !!! ASSUME pb is not in <p> or anything else
-                
-                number = re.sub(ur'^.*"([^"]+)".*$', ur'\1', match.group(1))
-                if len(number) == len(match.group(1)):
-                    number = self.rep_option
-                
-                ret = u'<p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p>' % number
-                
-                self.rep_option = get_int(number, default=self.rep_option) + 1
-                
-                return ret
-            
-            content = re_sub_fct(content, ur'<span\s+data-dpt\s*=\s*"pb"([^>]*)>', replace)
-            
-        tcx.content = content
-        content = tcx.save()
-        
     def command_upload(self):
         '''upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
             pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xhtml 1 transcription
@@ -348,5 +300,105 @@ Commands:
         print 'Restore copy #%s, "%s"' % (copyid, copy.source.text_content)
         
         copy.restore()
+        
+    def command_process(self):
+        if len(self.args) < 4:
+            print 'upload requires 3 arguments'
+            return
+        
+        operation, ip_id, content_type_name = self.args[1:4]
+        
+        options = []
+        if len(self.args) > 4:
+            options = self.args[4:]
+        
+        # I find the TextContentXML record (or create it)
+        tcx = self.get_textcontentxml(ip_id, content_type_name)
+        if not tcx:
+            return
+
+        content = tcx.content
+        
+        len0 = len(content)
+        
+        if operation == 'pb2locus':
+            content = self.operation_pb2locus(options, content)
+        
+        if operation == 'foliate':
+            content = self.operation_foliate(options, content)
+            
+        if content and len(content) != len0:
+            tcx.content = content
+            print repr(content)
+            content = tcx.save()
+            print 'Saved new content'
+        else:
+            print 'Nothing done. Did you call the right operation?'
+
+    def operation_foliate(self, options, content):
+        '''
+            <span data-dpt="margin">fol. 1. b</span>[...]
+            
+            =>
+            
+            <p><span data-dpt="location" data-dpt-loctype="locus">1v</span><p>
+        '''
+        self._next_locus = u'1r'
+        
+        def replace(match):
+            ret = match.group(0)
+            
+            locus = match.group(1)
+            
+            parts = re.match(ur'(?musi)^\s?(\d+)\.?\s*(b?)\.?$', locus)
+            if not parts:
+                print 'WARNING: no match [%s]' % repr(locus)
+            else:
+                lo = parts.group(1)
+                lon = lo
+                if parts.group(2) == 'b':
+                    lon = u'%sr' % (int(lo)+1, )
+                    lo += 'v'
+                else:
+                    lon = lo+'v'
+                    lo += 'r'
+
+                print '%s ("%s")' % (lo, locus)
+                
+                if lo != self._next_locus:
+                    print 'WARNING: locus out of sequence, expected %s, got %s' % (self._next_locus, lo)
+                
+                self._next_locus = lon
+                
+                ret = u'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p><p>' % lo
+            
+            return ret
+
+        content = re_sub_fct(content, ur'(?musi)<span data-dpt="margin">\s*fol.([^<]*)</span>', replace)
+            
+        return content
+    
+    def operation_pb2locus(self, options, content):
+        start_page = 1
+        if options:
+            start_page = int(options[0])
+        
+        self.rep_option = start_page
+        def replace(match):
+            # !!! ASSUME pb is not in <p> or anything else
+            
+            number = re.sub(ur'^.*"([^"]+)".*$', ur'\1', match.group(1))
+            if len(number) == len(match.group(1)):
+                number = self.rep_option
+            
+            ret = u'<p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p>' % number
+            
+            self.rep_option = get_int(number, default=self.rep_option) + 1
+            
+            return ret
+        
+        content = re_sub_fct(content, ur'<span\s+data-dpt\s*=\s*"pb"([^>]*)>', replace)
+        
+        return content
         
         

@@ -466,7 +466,7 @@
 
         this.getLocation = function() {
             var ret = '';
-            if (this.$locationSelect.is(':visible')) {
+            if (this.$locationSelect.closest('.dphidden').is(':visible')) {
                 ret = this.$locationSelect.val();
             }
             return ret;

@@ -135,9 +135,15 @@
     //    var panelset = $('#text-viewer').panelset();
     //    panelset.registerPanel(new Panel($('.ui-layout-center')));
     //
+    //    options
+    //      locationType
+    //      location
+    //
     /////////////////////////////////////////////////////////////////////////
-    var Panel = TextViewer.Panel = function($root, contentType, panelType) {
+    var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
         this.$root = $root;
+        
+        this.loadOptions = options || {};
         
         // we set a ref from the root element to its panel
         // so we can clean up things properly when the panel is replaced
@@ -171,8 +177,18 @@
         
         this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$locationSelect = this.$root.find('select[name=location]');
+        
+        var me = this;
+        
+        this.canAddLocation = function() {
+            return this.getEditingMode();
+        };
+        
         this.$root.find('select').each(function() {
-            $(this).chosen({disable_search: $(this).hasClass('no-search')});
+            $(this).chosen({
+                disable_search: $(this).hasClass('no-search'),
+                no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found'
+            });
         });
         
         this.$content = this.$root.find('.panel-content');
@@ -181,7 +197,6 @@
         this.$statusSelect = this.$root.find('select[name=status]');
         
         this.$toggleEdit = this.$root.find('.toggle-edit');
-        
         
         // METHODS
         
@@ -256,7 +271,7 @@
             });
             this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
 
-            this.loadContent(true);
+            this.loadContent(true, this.loadOptions.contentAddress || undefined);
             
             this.onResize();
 
@@ -494,7 +509,10 @@
                 
                 var me = this;
                 this.$toggleEdit.on('click', function() {
-                    me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType()));
+                    var options = {
+                        contentAddress: me.getContentAddress()
+                    };
+                    me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType(), options));
                     return false;
                 });
             }
@@ -533,8 +551,8 @@
     // PanelText
     //
     //////////////////////////////////////////////////////////////////////
-    var PanelText = TextViewer.PanelText = function($root, contentType) {
-        TextViewer.Panel.call(this, $root, contentType, 'Text');
+    var PanelText = TextViewer.PanelText = function($root, contentType, options) {
+        TextViewer.Panel.call(this, $root, contentType, 'Text', options);
 
         this.getEditingMode = function() {
             return false;
@@ -576,8 +594,8 @@
     //////////////////////////////////////////////////////////////////////
     TextViewer.textAreaNumber = 0;
     
-    var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType) {
-        TextViewer.PanelText.call(this, $root, contentType, 'Text');
+    var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType, options) {
+        TextViewer.PanelText.call(this, $root, contentType, 'Text', options);
         
         this.unreadyComponents.push('tinymce');
         
@@ -732,9 +750,9 @@
     // PanelImage
     //
     //////////////////////////////////////////////////////////////////////
-    var PanelImage = TextViewer.PanelImage = function($root, contentType) {
+    var PanelImage = TextViewer.PanelImage = function($root, contentType, options) {
 
-        Panel.call(this, $root, contentType, 'Image');
+        Panel.call(this, $root, contentType, 'Image', options);
 
         this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API
@@ -764,8 +782,8 @@
     // PanelSearch
     //
     //////////////////////////////////////////////////////////////////////
-    var PanelSearch = TextViewer.PanelSearch = function($root, contentType) {
-        TextViewer.Panel.call(this, $root, contentType, 'Search');
+    var PanelSearch = TextViewer.PanelSearch = function($root, contentType, options) {
+        TextViewer.Panel.call(this, $root, contentType, 'Search', options);
         
         this.loadContentCustom = function(loadLocations, address) {
             // load the content with the API

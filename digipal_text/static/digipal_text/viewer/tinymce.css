@@ -15,7 +15,7 @@
     
 }
 
-/* 
+/*
 TODO: Generate this CSS dynamically with Python
 Use a config file for the editor buttons/elements
 Generate a hash key from it and use it in the query string to force reload when the styles have changed
@@ -165,7 +165,7 @@ span[data-dpt] > span[data-dpt] {
 }
 
 .preview.mce-content-body span[data-dpt=supplied]:before,
-.preview.mce-content-body span[data-dpt=gap]:before {
+.preview.mce-content-body span[data-dpt=gap]:before,
     font-size: 100%;
     color: rgb(5,5,5);;
     font-weight: normal;
@@ -175,7 +175,7 @@ span[data-dpt] > span[data-dpt] {
     content: "[";
 }
 .preview.mce-content-body span[data-dpt=supplied]:after,
-.preview.mce-content-body span[data-dpt=gap]:after {
+.preview.mce-content-body span[data-dpt=gap]:after,
     font-size: 100%;
     color: rgb(5,5,5);
     font-weight: normal;
@@ -314,6 +314,46 @@ span[data-dpt] > span[data-dpt] {
 
 .mce-content-body span[data-dpt=hi][data-dpt-rend=smallcap]:before {
     content: "HI:SC";
+}
+
+/* TEI - EXON */
+
+.preview.mce-content-body span[data-dpt=hi]:after {
+    content: "";
+}
+
+.preview.mce-content-body span[data-dpt=hi]:before {
+    content: "";
+}
+.preview.mce-content-body span[data-dpt=hi] {
+    background: none;
+}
+
+.preview.mce-content-body span[data-dpt=pb]:before {
+    content: '';
+    width: 100%;
+    border-bottom: 1px dashed grey;
+}
+
+.preview.mce-content-body span[data-dpt=nsc]:before {
+    margin-top: 0px;
+    position: relative;
+    background: none;
+    font-weight: normal;
+    color: black;
+    content: '<NSC>';
+}
+
+.preview.mce-content-body span[data-dpt=margin]:before {
+    content: 'Margin';
+}
+
+.preview.mce-content-body span[data-dpt=add]:before {
+    content: 'Added';
+}
+
+.preview.mce-content-body span[data-dpt=add] {
+    background: paleyellow;
 }
 
 /* Codicology */

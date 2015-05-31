@@ -226,15 +226,10 @@ def get_fragment_extent(content, location_type, location):
         # ASSUME order of the attributes in the span (OK)
         # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
         span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
-        print '--'
-        print '<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<'
-        print span0
         if span0 > -1:
             p0 = content.rfind('<p>', 0, span0)
-            print p0
             if p0 > -1:
                 span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
-                print span1
                 if span1 == -1:
                     ret = [p0, len(content)]
                 else:

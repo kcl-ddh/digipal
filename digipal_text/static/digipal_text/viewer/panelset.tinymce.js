@@ -3,7 +3,7 @@ var PanelSetPlugIn = function(editor, url) {
     var $ = jQuery;
     
     this.dpmup = {
-        'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'}, 
+        'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'},
     };
     
     function beforeChange() {
@@ -30,7 +30,7 @@ var PanelSetPlugIn = function(editor, url) {
         for (var i in [0, 1]) {
             var bm = editor.selection.getBookmark();
             // move to one end of the selection
-            editor.selection.collapse(i == 0);
+            editor.selection.collapse(i === 0);
             parents.push(editor.selection.getNode().parentNode);
             editor.selection.moveToBookmark(bm);
         }
@@ -131,7 +131,7 @@ var PanelSetPlugIn = function(editor, url) {
     });
 
     // Clear the markup
-    // Clear digipal elements within or directly above the selection 
+    // Clear digipal elements within or directly above the selection
     editor.addButton('psclear', {
         text: '\u274C',
         tooltip: 'Clear Markup',
@@ -290,7 +290,7 @@ var PanelSetPlugIn = function(editor, url) {
         onclick: function() {
             if (!editor.selection.isCollapsed()) {
                 var sel_cont = editor.selection.getContent();
-                sel_cont = sel_cont.replace(/(OF\s*)?\b(\d{1,4}(r|v))[^\s;,\]<]*/g, 
+                sel_cont = sel_cont.replace(/(OF\s*)?\b(\d{1,4}(r|v))[^\s;,\]<]*/g,
                             function($0, $1){
                                 return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="chars">'+$0+'</span>';
                             }
@@ -334,7 +334,7 @@ var PanelSetPlugIn = function(editor, url) {
     // Heading
 //    editor.addButton('psheading', function() {
 //        var items = [{text: 'Heading 1', value: 'h1'}, {text: 'Heading 2', value: 'h2'}];
-//    
+//
 //        return {
 //            type: 'listbox',
 //            text: 'Heading',
@@ -359,7 +359,7 @@ var PanelSetPlugIn = function(editor, url) {
             var parents = getSelectionParents();
             
             // get the p above each parent
-            // make sure the 
+            // make sure the
 
             console.log((parents[0] === parents[1]) ? 'Same parent' : 'Different parents');
             console.log(parents);

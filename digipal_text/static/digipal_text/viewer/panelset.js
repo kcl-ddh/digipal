@@ -785,6 +785,11 @@
             // rather than recreating everything each time
             // See http://openlayers.org/en/v3.5.0/examples/zoomify.html
             
+            var zoom = 0;
+            if (this.map) {
+                zoom = this.map.getView().getZoom();
+            }
+            
             // empty the content as OL appends to it
             this.$content.html('');
             
@@ -809,18 +814,22 @@
               size: [imgWidth, imgHeight],
               crossOrigin: crossOrigin
             });
+            
+            var tileLayer = new ol.layer.Tile({
+                source: source
+            });
 
             var map = new ol.Map({
-              layers: [
-                new ol.layer.Tile({
-                  source: source
-                })
-              ],
+              layers: [tileLayer],
+              // overview is not great, see EXON-28
+              // controls: ol.control.defaults().extend([
+              //   new ol.control.OverviewMap({layers: [tileLayer]})
+              // ]),
               target: this.$content[0],
               view: new ol.View({
                 projection: proj,
                 center: imgCenter,
-                zoom: 0,
+                zoom: zoom,
                 // constrain the center: center cannot be set outside
                 // this extent
                 extent: [0, -imgHeight, imgWidth, 0]
@@ -828,7 +837,19 @@
             });
             
             this.map = map;
+            this.clipImageToTop();
         };
+        
+        this.clipImageToTop = function() {
+            var map = this.map;
+            var view = map.getView();
+            var imageFullHeight = view.getProjection().getExtent()[3];
+            var viewerFullHeight = map.getSize()[1] * view.getResolution();
+            if (viewerFullHeight < imageFullHeight) {
+                view.setCenter([view.getCenter()[0], - (viewerFullHeight / 2)]);
+            }
+        };
+        
     };
     
     PanelImage.prototype = Object.create(Panel.prototype);
@@ -840,33 +861,6 @@
         }
     }
     
-    var PanelImageOld = TextViewer.PanelImageOld = function($root, contentType, options) {
-
-        Panel.call(this, $root, contentType, 'Image', options);
-
-        this.loadContentCustom = function(loadLocations, address) {
-            // load the content with the API
-            var me = this;
-            this.callApi(
-                'loading image',
-                address,
-                function(data) {
-                    me.$content.html(data.content).find('img').load(function() {
-                        me.onContentLoaded(data);
-                    });
-                },
-                {
-                    'layout': 'width',
-                    'width': me.$content.width(),
-                    'height': me.$content.height(),
-                    'load_locations': loadLocations ? 1 : 0,
-                }
-            );
-        };
-    };
-    
-    PanelImageOld.prototype = Object.create(Panel.prototype);
-
     //////////////////////////////////////////////////////////////////////
     //
     // PanelSearch

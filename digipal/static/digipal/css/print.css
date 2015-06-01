@@ -1,0 +1,58 @@
+.navbar, #navQuickSearch, .page-header, button, input, footer, h2, .glyphicon, .num_row,
+ #counter-annotations, #counter-images, #counter-editorial, .nav, .fa, #switcher {
+    visibility: hidden !important;
+    height: 0;
+}
+
+.nav li {
+    height: 0;
+}
+
+a[href]:after {
+   content: none !important;
+}
+
+.panel {
+    border:none;
+}
+
+#grid h3 {
+    visibility: visible !important;
+    display: block !important;
+}
+
+.manuscript-number{
+    display: inline-block;
+}
+
+#manuscripts-index {
+    display: block;
+    margin-top: -35px;
+    width: 100%;
+}
+
+.manuscript-index {
+    font-size:17px;
+}
+
+#logo_words, #div-logo-desc, #trt {
+    visibility: visible;
+    display: block;
+}
+
+.collapse, #navQuickSearch {
+    display: none;
+}
+
+.row, .container {
+    height:0;
+}
+
+#header_annotations {
+    position: relative;
+    right: 78%;
+}
+
+.panel {
+    background: #fff;
+}

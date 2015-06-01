@@ -20,7 +20,7 @@ h1, h2, p { margin: 10px 0; }
 .leftContainer { float: left; width: 75%; }
 .rightContainer { float:left; margin-left: 1em; }
 
-.fieldWrapper label { display: block; font-weight: bold; color: #333; margin: 0 0 5px 0 }
+.fieldWrapper label { display: block; font-weight: bold; color: #333333; margin: 0 0 5px 0 }
 .fieldWrapper h3 { color: #573d00; font-size: 1em; }
 
 /* multiselect */

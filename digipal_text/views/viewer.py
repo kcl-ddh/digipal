@@ -292,7 +292,10 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     ret['location_type'] = location_type
     ret['location'] = location
 
-    ret['content'] = iip_img(image, **options)
+    #ret['content'] = iip_img(image, **options)
+    ret['zoomify_url'] = image.zoomify()
+    ret['width'] = image.width
+    ret['height'] = image.height
     
     return ret
 

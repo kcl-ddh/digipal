@@ -750,7 +750,89 @@
     // PanelImage
     //
     //////////////////////////////////////////////////////////////////////
+    
     var PanelImage = TextViewer.PanelImage = function($root, contentType, options) {
+
+        Panel.call(this, $root, contentType, 'Image', options);
+
+        this.loadContentCustom = function(loadLocations, address) {
+            // load the content with the API
+            var me = this;
+            this.callApi(
+                'loading image',
+                address,
+                function(data) {
+//                    me.$content.html(data.content).find('img').load(function() {
+//                        me.onContentLoaded(data);
+//                    });
+                    //me.$content.text(data.content);
+                    
+                    me.applyOpenLayer(data);
+                    
+                    me.onContentLoaded(data);
+                },
+                {
+                    'layout': 'width',
+                    'width': me.$content.width(),
+                    'height': me.$content.height(),
+                    'load_locations': loadLocations ? 1 : 0,
+                }
+            );
+        };
+        
+        this.applyOpenLayer = function(data) {
+            // TODO: think about reusing the OL objects and only changing the underlying image
+            // rather than recreating everything each time
+            // See http://openlayers.org/en/v3.5.0/examples/zoomify.html
+            
+            // empty the content as OL appends to it
+            this.$content.html('');
+            
+            var imgWidth = data.width;
+            var imgHeight = data.height;
+            var url = data.zoomify_url;
+            var crossOrigin = 'anonymous';
+
+            var imgCenter = [imgWidth / 2, - imgHeight / 2];
+
+            // Maps always need a projection, but Zoomify layers are not geo-referenced, and
+            // are only measured in pixels.  So, we create a fake projection that the map
+            // can use to properly display the layer.
+            var proj = new ol.proj.Projection({
+              code: 'ZOOMIFY',
+              units: 'pixels',
+              extent: [0, 0, imgWidth, imgHeight]
+            });
+
+            var source = new ol.source.Zoomify({
+              url: url,
+              size: [imgWidth, imgHeight],
+              crossOrigin: crossOrigin
+            });
+
+            var map = new ol.Map({
+              layers: [
+                new ol.layer.Tile({
+                  source: source
+                })
+              ],
+              target: this.$content[0],
+              view: new ol.View({
+                projection: proj,
+                center: imgCenter,
+                zoom: 0,
+                // constrain the center: center cannot be set outside
+                // this extent
+                extent: [0, -imgHeight, imgWidth, 0]
+              })
+            });            
+        };
+    };
+    
+    PanelImage.prototype = Object.create(Panel.prototype);
+    
+    
+    var PanelImageOld = TextViewer.PanelImageOld = function($root, contentType, options) {
 
         Panel.call(this, $root, contentType, 'Image', options);
 
@@ -775,7 +857,7 @@
         };
     };
     
-    PanelImage.prototype = Object.create(Panel.prototype);
+    PanelImageOld.prototype = Object.create(Panel.prototype);
 
     //////////////////////////////////////////////////////////////////////
     //

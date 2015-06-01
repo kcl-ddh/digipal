@@ -231,13 +231,6 @@
             this.loadedAddress = null;
         };
         
-        this.onResize = function () {
-            // resize content to take the remaining height in the panel
-            var height = this.$root.innerHeight() - (this.$content.offset().top - $root.offset().top) - this.$statusBar.outerHeight(true);
-            this.$content.css('max-height', height+'px');
-            this.$content.height(height+'px');
-        };
-        
         this.setMessage = function(message, status) {
             // status = success|info|warning|error
             this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
@@ -539,6 +532,13 @@
         this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
     };
     
+    Panel.prototype.onResize = function () {
+        // resize content to take the remaining height in the panel
+        var height = this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true);
+        this.$content.css('max-height', height+'px');
+        this.$content.height(height+'px');
+    };
+
     Panel.create = function(contentType, selector, write) {
         var panelType = contentType.toUpperCase().substr(0, 1) + contentType.substr(1, contentType.length - 1);
         //if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
@@ -825,12 +825,20 @@
                 // this extent
                 extent: [0, -imgHeight, imgWidth, 0]
               })
-            });            
+            });
+            
+            this.map = map;
         };
     };
     
     PanelImage.prototype = Object.create(Panel.prototype);
     
+    PanelImage.prototype.onResize = function() {
+        Panel.prototype.onResize.call(this);
+        if (this.map) {
+            this.map.updateSize();
+        }
+    }
     
     var PanelImageOld = TextViewer.PanelImageOld = function($root, contentType, options) {
 

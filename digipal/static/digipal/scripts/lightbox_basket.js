@@ -263,7 +263,7 @@
 
 		} else {
 			s = '<div class="container alert alert-warning"><p>The collection is empty.</p>';
-			s += '<p>Start adding images from <a href="/digipal/page">Browse Images</a> or using the DigiPal <a href="/digipal/search/?from_link=true">search engine</a></div>';
+			s += '<p>Start adding images from <a href="/digipal/page/">Browse Images</a> or using the <a href="/digipal/search/facets/?&result_type=images&img_is_public=1&view=grid">search page</a></div>';
 
 			container_basket.html(s);
 

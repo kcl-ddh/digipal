@@ -30,7 +30,7 @@ Commands:
             OPERATION =
                 pb2locus    convert pb to locus
                     OPTIONS = START_NUMBER
-            
+                    
 """
     
     args = 'reformat|importtags'
@@ -326,6 +326,9 @@ Commands:
         
         if operation == 'foliate':
             content = self.operation_foliate(options, content)
+
+        if operation == 'addentries':
+            content = self.operation_addentries(options, content)
             
         if content and len(content) != len0:
             tcx.content = content
@@ -334,6 +337,17 @@ Commands:
             print 'Saved new content'
         else:
             print 'Nothing done. Did you call the right operation?'
+
+    def operation_addentries(self, options, content):
+        first, last = options[0].split('..')
+        
+        content = u'';
+        
+        for i in range(int(first), int(last)):
+            for s in ['r', 'v']:
+                content += u'<p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p>\n\n' % (i, s)
+            
+        return content
 
     def operation_foliate(self, options, content):
         '''

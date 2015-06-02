@@ -1,3 +1,26 @@
+Codicology
+    Insert template into empty entry
+    When saving, keep entry empty if same as template
+    Markup some template element
+        quire
+        page-location
+        written-words
+        ink/pencil
+        column-count
+        perforation-count
+        perforation-shape
+        ruling-method
+        ruling-dimension
+        rule-space-dimension
+        written-dimension
+        column-count
+        rule-count
+        folio-number
+        
+    Can't turn status to X if there are $ left
+    Button to move to the next dollar sign
+    pgn down/up
+
 Fix the layout bugs with the scroll bar appearing on the right of the image.
 
 () Fix slug
@@ -80,7 +103,7 @@ Review Faceted search customisations
 [DONE] 4.6. Assign images to hand based on the stints locations
 [DONE] 5. locus: automatic detection
 [DONE] 6. display description on front end
-Search menu links to faceted search page 
+Search menu links to faceted search page
 [DONE] Convert characters to link to search page
 Add missing detectable characters
 7. Convert DigiPal & co data to the new format
@@ -112,7 +135,7 @@ Scribe/Hand
                 Location: e.g. 29v14-16 (Q.6) or 263r1-4r20 (Q.54) or 37v3-19; 38r1-7 (Q.7)
                 Note: Very similar to 'iota' + Identified by Webber (1989, p.12) as 'zeta'
     Main idiosyncrasies
-        v-shaped cauda in e and q; -us suspension detached from letter on top of which is supposed to be; finishing strokes on baseline r and s. 
+        v-shaped cauda in e and q; -us suspension detached from letter on top of which is supposed to be; finishing strokes on baseline r and s.
     Other relevant info
         Very few stints, but some are rather long. F found on margin next to beginning of each entry. Not exclusive to this scribe (quires 48-54)
         
@@ -175,7 +198,7 @@ BOTH
 
 
     Save the name of the last person to save the text
-    Save the person in the backup as well 
+    Save the person in the backup as well
 
     Pipes
         auto-markup: convert them into span
@@ -184,10 +207,10 @@ BOTH
             as line break as well (toggle it on/off)
 
 
-    () . read only mode 
+    () . read only mode
 
     () Image Panel
-        zoom inset on click 
+        zoom inset on click
             OR zoomify
         !!Bypass image size quota:
             Zoomify?
@@ -227,18 +250,18 @@ EXON
     
     Bug with segmentation
         4 hides under 14a1 is interpreted as an entry number
-        Search for 4 
+        Search for 4
 
     [DONE] Upload text
     
     Improve the loading of the locations:
         request and refresh the locations each time the location type is changed
     
-    customise 
+    customise
         the buttons
         the conversion of the notations (), [] etc.
             [DONE] <p style="margin-bottom: 0cm;">&nbsp;</p>
-            [DONE] <span style="text-decoration: line-through;">of these</span> 
+            [DONE] <span style="text-decoration: line-through;">of these</span>
 
     Split long texts into small parts
         [DONE] mark up scheme
@@ -269,7 +292,7 @@ EXON
     ? mark-up records
         person
         place
-        Q: should we use an intermediary record to represent any type of entity? There are some commonalities among rec types such as normalised name, name before and after conquest, etc. 
+        Q: should we use an intermediary record to represent any type of entity? There are some commonalities among rec types such as normalised name, name before and after conquest, etc.
         Or do we link directly to a Person/Place record?
         Q: what about the distinction between identified entity and occurrence of an entity name?
 
@@ -339,7 +362,7 @@ Performance
         can be added with tinymce, pasted from Word it will strip almost all styles and keep minimal HTML
         pasting takes a long time (~20s) but it is decent given the size of the text however it freezes the browser and we can get javascript performance warnings
         the size is 310KB
-        loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds 
+        loading the text takes just 150ms but setting it into TinyMCE make the browser freeze for a few seconds
         sending the text and saving it to the DB takes less than 1 seconds however the browser tends to freeze and be very laggy after a few operations
 
 Maybe
@@ -349,9 +372,9 @@ Maybe
     Let panels from different browser tabs communicate
         synchronise position
         edition + refresh views, etc.
-    Name tables in the admin: in the future we may want to 
+    Name tables in the admin: in the future we may want to
         make the slug input writable
-        keep the slug as it is even when the name changes 
+        keep the slug as it is even when the name changes
         but if the slug is blanked (or add an icon for that) we reset it.
     Generalise API:
         query for the list of locations and this can be handled by the custom function on server side
@@ -422,3 +445,13 @@ DONE
 [(Bool, Char)]
 ([a], [a])
 
+
+
+u'<p>$Q.$3</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">1.Folio</span></p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">1.Qualityofparchment(thickness,appearance,colour,flexibility,translucence,condition,damage,repairs).</span></p><p><spandata-dpt="page_side"data-dpt-cat="chars">$Flesh</span>page.</p><p><spandata-dpt="page_colour"data-dpt-cat="chars">$&lsquo;Grimedsemi-translucent&rsquo;</span>&nbsp;$(Clarkson,p.5).</p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">2.Dimensions(pagesize)</span></p><p><spandata-dpt="page_dimensions"data-dpt-cat="chars">$257/261mmx163/170mm</span>.</p><p>$Heightshorteratinnermargin($253mm).</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">2.Foliations</span></p><p>$Toprightcorner,$277(ea.16thc.,darkbrownink)</p><p>$Topcentre,$14(lightbrownink,underlined)</p><p>$Topcentreleft,$288(pencil)</p><p>$Topcentreleft,$14(pencil)</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">3.Quirenumbers/signatures/catchwords</span></p><p>$Bottommargin,centre:$b(brownink,betweentwodots);</p><p>$Bottommargin,centreleft:$b(brownink);</p><p>$Bottommargin,centreright:$b(fadedpencil,betweenbrackets).</p><p>$ProbablyenteredbyBarnesinaround1812(seeKer1977,800).</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">4.Pricking(shape,number,location)</span></p><p>$Twentysingleperforations$downtheoutermargin,between3mmand9mmawayfromcurrenttrimmedborder.$Twosingleperforationsat$topandbottommargins(notclearlyvisible)alignedwithverticalrulingforbounders.Allperforationsare$y-shaped.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">5.Ruling(method,number,relationshiptowriting,originallyblanklines,dimensionsofruledarea)</span></p><p>Ruledin$drypointon$thispage(nowslightlyfaded);$singlecolumnof$20ruledlines(alignedwithprickingmarks)inwhichthebottomtworeachacrosstheoutermargin;twovertical(single)bounderssetwrittenarea.</p><p>$</p><p>$Noblanklines.</p><p>Dimensionsofruledarea:<spandata-dpt="page_dimensions"data-dpt-cat="chars">$183/5mmx131/4mm</span>.Spacebetweenruledlinesmayvary$between$7mmand$11mm.</p><p>Writtenarea:<spandata-dpt="page_dimensions"data-dpt-cat="chars">$199mmx144mm</span>.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">6.Scribalactivity[textualgenetics](whodidwhat,approximatelyinwhatorder)</span></p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">1.Maintext(sequenceofhands,sizes[orinstint],inkcolours,decorativegallows-marks,rubrics)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">2.Insertionsbytextscribes(sequenceofinsertions,marginalia)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">3.Correctionsbytextscribes(sequenceoferasures,subpunction,underlining)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">4.Insertionsbyotherapparentlycontemporaneousscribes</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">5.Correctionsbyotherapparentlycontemporaneousscribes</span></p><p>$Line$8(&lsquo;<spandata-dpt="record"data-dpt-model="hand">$sigma</span>&rsquo;):$&nbsp;[probablyby&lsquo;<spandata-dpt="record"data-dpt-model="hand">$tau</span>&rsquo;]</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">6.Othernotableinterventions(doodles,pen-trials,etc)</span></p><p>$None.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">7.Post-1200activity</span></p><p>$None.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">7.Bifolium(Conjointwith;sewingholes;tacketholes).</span></p><p>$Conjointwithfo$15(quire$3).&nbsp;</p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">8.Otherremarks.</span></p><p>$</p><p>&nbsp;</p>'
+
+u'<p><span data-dpt="location" data-dpt-loctype="locus">template</span></p>\n<p>$Q.$3</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">1. Folio</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Quality of parchment (thickness, appearance, colour, flexibility, translucence, condition, damage, repairs).</span></p>\n<p><span data-dpt="page_side" data-dpt-cat="chars">$Flesh</span> page.</p>\n<p><span data-dpt="page_colour" data-dpt-cat="chars">$&lsquo;Grimed semi-translucent&rsquo;</span>&nbsp;$(Clarkson, p. 5).</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Dimensions (page size)</span></p>\n<p><span data-dpt="page_dimensions" data-dpt-cat="chars">$257/261 mm x 163/170 mm</span>.</p>\n<p>$Height shorter at inner margin ($253mm).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">2. Foliations</span></p>\n<p>$Top right corner, $277 (ea. 16th c., dark brown ink)</p>\n<p>$Top centre, $14 (light brown ink, underlined)</p>\n<p>$Top centre left, $288 (pencil)</p>\n<p>$Top centre left, $14 (pencil)</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">3. Quire numbers / signatures / catchwords</span></p>\n<p>$Bottom margin, centre: $b (brown ink, between two dots);</p>\n<p>$Bottom margin, centre left: $b (brown ink);</p>\n<p>$Bottom
+ margin, centre right: $b (faded pencil, between brackets).</p>\n<p>$Probably entered by Barnes in around 1812 (see Ker 1977, 800).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">4. Pricking (shape, number, location)</span></p>\n<p>$Twenty single perforations $down the outer margin, between 3mm and 9mm away from current trimmed border. $Two single perforations at $top and bottom margins (not clearly visible) aligned with vertical ruling for bounders. All perforations are $y-shaped.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">5. Ruling (method, number, relationship to writing, originally blank lines, dimensions of ruled area)</span></p>\n<p>Ruled in $dry point on $this page (now slightly faded); $single column of $20 ruled lines (aligned with pricking marks) in which the bottom two reach across the outer margin; two vertical (single) bounders set written area.</p>\n<p>$</p>\n<p>$No blank lines.</p>\n<p>Dimensions of ruled area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$183/5 mm x 131/4 mm</span>. Space between ruled lines may vary $between $7 mm and $11 mm.</p>\n<p>Written area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$199 mm x 144 mm</span>.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">6. Scribal activity [textual genetics] (who did what, approximately in what order)</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Main text (sequence of hands, sizes [or in stint], ink colours, decorative gallows-marks, rubrics)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Insertions by text scribes (sequence of insertions, marginalia)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">3. Corrections by text scribes (sequence of erasures, subpunction, underlining)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">4. Insertions by other apparently contemporaneous scribes</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">5. Corrections by other apparently contemporaneous scribes</span></p>\n<p>$Line $8 (&lsquo;<span data-dpt="record" data-dpt-model="hand">$sigma</span>&rsquo;): $&nbsp;[probably by &lsquo;<span data-dpt="record" data-dpt-model="hand">$tau</span>&rsquo;]</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">6. Other notable interventions (doodles, pen-trials, etc)</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">7. Post-1200 activity</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">7. Bifolium (Conjoint with; sewing holes; tacket holes).</span></p>\n<p>$Conjoint with fo $15 (quire $3).&nbsp;</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">8. Other remarks.</span></p>\n<p>$</p>\n<p>&nbsp;</p>'
+u
+'<p></p>\n<p>$Q.$3</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">1. Folio</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Quality of parchment (thickness, appearance, colour, flexibility, translucence, condition, damage, repairs).</span></p>\n<p><span data-dpt="page_side" data-dpt-cat="chars">$Flesh</span> page.</p>\n<p><span data-dpt="page_colour" data-dpt-cat="chars">$&lsquo;Grimed semi-translucent&rsquo;</span>&nbsp;$(Clarkson, p. 5).</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Dimensions (page size)</span></p>\n<p><span data-dpt="page_dimensions" data-dpt-cat="chars">$257/261 mm x 163/170 mm</span>.</p>\n<p>$Height shorter at inner margin ($253mm).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">2. Foliations</span></p>\n<p>$Top right corner, $277 (ea. 16th c., dark brown ink)</p>\n<p>$Top centre, $14 (light brown ink, underlined)</p>\n<p>$Top centre left, $288 (pencil)</p>\n<p>$Top centre left, $14 (pencil)</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">3. Quire numbers / signatures / catchwords</span></p>\n<p>$Bottom margin, centre: $b (brown ink, between two dots);</p>\n<p>$Bottom margin, centre left: $b (brown ink);</p>\n<p>$Bottom margin, centre right: $b (faded pencil, between brackets).</p>\n<p>$Probably entered by Barnes in around 1812 (see Ker 1977, 800).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">4. Pricking (shape, number, location)</span></p>\n<p>$Twenty single perforations $down the outer margin, between 3mm and 9mm away from current trimmed border. $Two single perforations at $top and bottom margins (not clearly visible) aligned with vertical ruling for bounders. All perforations are $y-shaped.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">5. Ruling (method, number, relationship to writing, originally blank lines, dimensions of ruled area)</span></p>\n<p>Ruled in $dry point on $this page (now slightly faded); $single column of $20 ruled lines (aligned with pricking marks) in which the bottom two reach across the outer margin; two vertical (single) bounders set written area.</p>\n<p>$</p>\n<p>$No blank lines.</p>\n<p>Dimensions of ruled area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$183/5 mm x 131/4 mm</span>. Space between ruled lines may vary $between $7 mm and $11 mm.</p>\n<p>Written area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$199 mm x 144 mm</span>.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">6. Scribal activity [textual genetics] (who did what, approximately in what order)</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Main text (sequence of hands, sizes [or in stint], ink colours, decorative gallows-marks, rubrics)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Insertions by text scribes (sequence of insertions, marginalia)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">3. Corrections by text scribes (sequence of erasures, subpunction, underlining)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">4. Insertions by other apparently contemporaneous scribes</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">5. Corrections by other apparently contemporaneous scribes</span></p>\n<p>$Line $8 (&lsquo;<span data-dpt="record" data-dpt-model="hand">$sigma</span>&rsquo;): $&nbsp;[probably by &lsquo;<span data-dpt="record" data-dpt-model="hand">$tau</span>&rsquo;]</p>\n<p><span data-dpt="heading"
+ data-dpt-cat="words" data-dpt-level="2">6. Other notable interventions (doodles, pen-trials, etc)</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">7. Post-1200 activity</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">7. Bifolium (Conjoint with; sewing holes; tacket holes).</span></p>\n<p>$Conjoint with fo $15 (quire $3).&nbsp;</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">8. Other remarks.</span></p>\n<p>$</p>\n<p>&nbsp;</p>'
+ 

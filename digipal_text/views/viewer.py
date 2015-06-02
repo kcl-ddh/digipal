@@ -81,7 +81,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
-    max_fragment_size = 100000
+    max_fragment_size = 10000
     
     text_content_xml = None
     
@@ -111,7 +111,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['locations'] = SortedDict()
         
         # whole
-        if len(record_content) <= max_fragment_size:
+        if len(record_content) <= max_fragment_size and (content_type != 'codicology'):
             ret['locations']['whole'] = []
         
         # entry
@@ -234,7 +234,7 @@ def get_fragment_extent(content, location_type, location):
                     ret = [p0, len(content)]
                 else:
                     p1 = content.find('</p>', span1)
-                    ret = [p0, p1]
+                    ret = [p0, p1+4]
 
     return ret
 

@@ -211,7 +211,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 			if (callback) {
 				$('#toolbar').fadeIn();
 				
-		        if (self.hide_annotations) {
+		        if (self.hide_annotations && self.isAdmin == 'True') {
 		            self.toolbar.toggle_tools(['.olControlDrawFeaturePolygon']);
 		        }
 

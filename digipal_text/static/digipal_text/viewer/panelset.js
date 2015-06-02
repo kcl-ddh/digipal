@@ -784,6 +784,7 @@
             // TODO: think about reusing the OL objects and only changing the underlying image
             // rather than recreating everything each time
             // See http://openlayers.org/en/v3.5.0/examples/zoomify.html
+            var me = this;
             
             var zoom = 0;
             if (this.map) {
@@ -800,6 +801,8 @@
 
             var imgCenter = [imgWidth / 2, - imgHeight / 2];
 
+            var ol = window.ol;
+
             // Maps always need a projection, but Zoomify layers are not geo-referenced, and
             // are only measured in pixels.  So, we create a fake projection that the map
             // can use to properly display the layer.
@@ -813,6 +816,19 @@
               url: url,
               size: [imgWidth, imgHeight],
               crossOrigin: crossOrigin
+            });
+            
+            this.tileLoadingCount = 0;
+            this.tileLoadError = false;
+            
+            source.on('tileloadstart', function(event) {
+              me.loadTile(1);
+            });
+            source.on('tileloadend', function(event) {
+              me.loadTile(-1);
+            });
+            source.on('tileloaderror', function(event) {
+              me.loadTile(-1, true);
             });
             
             var tileLayer = new ol.layer.Tile({
@@ -838,8 +854,28 @@
             
             this.map = map;
             this.clipImageToTop();
+            
+            // tooltip to OL icon
+            this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
         
+        this.loadTile = function(incdec, error) {
+            if (error) this.tileLoadError += 1;
+            if (incdec !== undefined) {
+                this.tileLoadingCount += incdec;
+            }
+            if (this.tileLoadingCount <= 0) {
+                if (this.tileLoadError) {
+                    this.setMessage('Error while loading image.', 'error');
+                } else {
+                    this.setMessage('Image loaded.', 'success');
+                }
+                this.tileLoadError = 0;
+            } else {
+                this.setMessage('Loading image...', 'info');
+            }
+        };
+
         this.clipImageToTop = function() {
             var map = this.map;
             var view = map.getView();
@@ -859,7 +895,7 @@
         if (this.map) {
             this.map.updateSize();
         }
-    }
+    };
     
     //////////////////////////////////////////////////////////////////////
     //

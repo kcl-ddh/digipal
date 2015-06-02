@@ -126,7 +126,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     location_type, location = resolve_default_location(location_type, location, ret)
             
     # 3. Save the user fragment
-    new_fragment = request.REQUEST.get('content', None)
+    new_fragment = None
+    if request:
+        new_fragment = request.REQUEST.get('content', None)
     
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')

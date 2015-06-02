@@ -1,6 +1,6 @@
 Codicology
-    Insert template into empty entry
-    When saving, keep entry empty if same as template
+    [DONE] Insert template into empty entry
+    [DONE] When saving, keep entry empty if same as template
     Markup some template element
         quire
         page-location

@@ -211,7 +211,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             if (callback) {
                 $('#toolbar').fadeIn();
 
-                if (self.hide_annotations && (isAdmin === 'True')) {
+                if (self.hide_annotations && (self.isAdmin === 'True')) {
                     // Logged-in but Graphs content type is not enabled
                     // so we hide all the annotation tools.
                     // TODO: all the annotation tools

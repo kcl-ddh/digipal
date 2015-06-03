@@ -89,7 +89,7 @@ var PanelSetPlugIn = function(editor, url) {
         var attrStr = '';
         for (var k in options.attributes) {
             attrStr += ' data-dpt-'+k+'="'+options.attributes[k]+'"';
-        };
+        }
         
         var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
         
@@ -147,7 +147,7 @@ var PanelSetPlugIn = function(editor, url) {
 
             $(parents).each(function (index, parent) {
                 // don't remove second parent if same as first
-                if ((index == 0) || (parents[0] !== parents[1])) {
+                if ((index === 0) || (parents[0] !== parents[1])) {
                     // make sure we remove only data-dpt parents and not any parent element
                     var $panelset_parent = $(parent).closest('[data-dpt]');
                     $panelset_parent.replaceWith($panelset_parent.html());
@@ -271,6 +271,89 @@ var PanelSetPlugIn = function(editor, url) {
             addSpan({'tag': 'page_colour', 'attributes': {'cat': 'chars'}});
         }
     });
+
+    // -------------------------------------------------------------------
+    // Codicology
+    /*
+            object="perforation" property="count"
+            object="perforation" property="shape"
+            object="perforation" property="location"
+            object="column" property="count"
+            object="written-block" property="size"
+            object="ruling" property="size"
+            object="ruling" property="count"
+            object="ruling" property="distance"
+            object="ruling" property="method"
+            object="page" property="color"
+            
+            object="quire|folio|line|page-area|side" property="location"
+    */
+    
+
+    var cods = [
+                {text: 'Perforations count', value: '1', attrs: {'object':'perforation', 'property':'count'}, },
+                {text: 'Perforation shape', value: '2', attrs: {'object':'perforation', 'property':'shape'}, },
+                {text: 'Perforation location', value: '3', attrs: {'object':'perforation', 'property':'location'}, },
+
+                {text: 'Size of ruled area', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
+                {text: 'Number of ruled lines', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
+                {text: 'Distance between ruled lines', value: '8', attrs: {'object':'ruling', 'property':'distance'}, },
+                {text: 'Ruling method', value: '9', attrs: {'object':'ruling', 'property':'method'}, },
+
+                {text: 'Signature location', value: '7', attrs: {'object':'signature', 'property':'location'}, },
+                {text: 'Signature label', value: '7', attrs: {'object':'signature', 'property':'label'}, },
+                {text: 'Signature appearance', value: '8', attrs: {'object':'signature', 'property':'appearance'}, },
+
+                {text: 'Foliation location', value: '7', attrs: {'object':'foliation', 'property':'location'}, },
+                {text: 'Foliation label', value: '7', attrs: {'object':'foliation', 'property':'label'}, },
+                {text: 'Foliation appearance', value: '8', attrs: {'object':'foliation', 'property':'appearance'}, },
+
+                {text: 'Bifolium conjoint', value: '4', attrs: {'object':'bifolium', 'property':'conjoint'}, },
+                {text: 'Quire number', value: '5', attrs: {'object':'quire', 'property':'number'}, },
+                {text: 'Column count', value: '6', attrs: {'object':'column', 'property':'count'}, },
+                {text: 'Column size', value: '6', attrs: {'object':'column', 'property':'size'}, },
+                
+                {text: 'Parchment color', value: '10', attrs: {'object':'parchment', 'property':'color'}, },
+                {text: 'Parchment side', value: '11', attrs: {'object':'parchment', 'property':'side'}, },
+                {text: 'Parchment size', value: '12', attrs: {'object':'parchment', 'property':'size'}, }
+                ];
+    
+    function addButton(aitems, button_key, button_label, filters) {
+    
+        editor.addButton(button_key, function() {
+        
+            var items = [];
+            for (var i in aitems) {
+                var aitem = aitems[i];
+                if (filters.indexOf(aitem.attrs.object) > -1) {
+                    items.push(aitem);
+                }
+            }
+        
+            return {
+                type: 'listbox',
+                text: button_label,
+                values: items,
+                fixedWidth: true,
+                onclick: function(e) {
+                    if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+                        var settings = e.control.settings;
+                        addSpan({'tag': 'codesc', 'attributes': settings.attrs});
+                        editor.focus();
+                    }
+                }
+            };
+        });
+        
+    }
+    
+    addButton(cods, 'pscodperf', 'Perforation', ['perforation']);
+    addButton(cods, 'pscodruling', 'Ruling', ['ruling']);
+    addButton(cods, 'pscodsign', 'Signature', ['signature']);
+    addButton(cods, 'pscodfol', 'Foliation', ['foliation']);
+    addButton(cods, 'pscodparch', 'Parchment', ['parchment']);
+    addButton(cods, 'pscodothers', 'Codicology (other)', ['quire', 'bifolium', 'column']);
+
     // -------------------------------------------------------------------
 
     // Hand
@@ -361,8 +444,8 @@ var PanelSetPlugIn = function(editor, url) {
             // get the p above each parent
             // make sure the
 
-            console.log((parents[0] === parents[1]) ? 'Same parent' : 'Different parents');
-            console.log(parents);
+            //console.log((parents[0] === parents[1]) ? 'Same parent' : 'Different parents');
+            //console.log(parents);
 
             // check that the selection doesn't contain fragmentary elements.
             // e.g. '1</span>2' or '1<span>2'
@@ -374,4 +457,4 @@ var PanelSetPlugIn = function(editor, url) {
     
 };
 
-tinymce.PluginManager.add('panelset', PanelSetPlugIn);
+window.tinymce.PluginManager.add('panelset', PanelSetPlugIn);

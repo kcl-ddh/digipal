@@ -358,14 +358,79 @@ span[data-dpt] > span[data-dpt] {
 
 /* Codicology */
 
-.mce-content-body span[data-dpt=page_side]:before {
-    content: "Side";
+.mce-content-body span[data-dpt=codesc]:before {
+    font-size: 70%;
+    color: green;
+    font-weight: bold;
 }
 
-.mce-content-body span[data-dpt=page_dimensions]:before {
-    content: "Dims";
+.mce-content-body span[data-dpt=codesc] {
+    background-color: rgba(0,255,0,0.25);
 }
 
-.mce-content-body span[data-dpt=page_colour]:before {
-    content: "Colour";
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=count]:before {
+    content: "Perf. count";
 }
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=shape]:before {
+    content: "Perf. shape";
+}
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=location]:before {
+    content: "Perf. location";
+}
+
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=size]:before {
+    content: "Rul. size";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=count]:before {
+    content: "Rul. count";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=distance]:before {
+    content: "Rul. distance";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=method]:before {
+    content: "Rul. method";
+}
+
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=color]:before {
+    content: "Parch. color";
+}
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=side]:before {
+    content: "Parch. side";
+}
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=size]:before {
+    content: "Parch. size";
+}
+
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=location]:before {
+    content: "Sig. location";
+}
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=label]:before {
+    content: "Sig. label";
+}
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=appearance]:before {
+    content: "Sig. appearance";
+}
+
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=location]:before {
+    content: "Fol. location";
+}
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=label]:before {
+    content: "Fol. label";
+}
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=appearance]:before {
+    content: "Fol. appearance";
+}
+
+.mce-content-body span[data-dpt-object=bifolium][data-dpt-property=conjoint]:before {
+    content: "Bifol. conjoint";
+}
+.mce-content-body span[data-dpt-object=quire][data-dpt-property=number]:before {
+    content: "Quire number";
+}
+.mce-content-body span[data-dpt-object=column][data-dpt-property=count]:before {
+    content: "Col. count";
+}
+.mce-content-body span[data-dpt-object=column][data-dpt-property=size]:before {
+    content: "Col. size";
+}
+

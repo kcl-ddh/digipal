@@ -701,11 +701,11 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css?v=3"
+                content_css : "/static/digipal_text/viewer/tinymce.css?v=8"
             };
             
             if (this.contentType == 'codicology') {
-                options.toolbar = 'psclear undo redo | pslocation | psh1 psh2 | pspgside pspgdimensions pspgcolour | pshand | code';
+                options.toolbar = 'psclear undo redo | psh1 psh2 | pshand | pscodparch pscodfol pscodsign pscodperf pscodruling pscodothers | code';
                 options.paste_as_text = true;
                 options.paste_postprocess = function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
@@ -719,7 +719,7 @@
                     content = content.replace(/<(?!\/?p(?=>|\s.*>))\/?.*?>/gi, '');
                     // remove attributes from all the elements
                     content = content.replace(/<(\/?)([a-z]+)\b[^>]*>/gi, '<$1$2>');
-                    // remove nbsp;
+                    // remove &nbsp;
                     content = content.replace(/&nbsp;/gi, '');
                     // remove empty elements
                     content = content.replace(/<[^>]*>\s*<\/[^>]*>/gi, '');

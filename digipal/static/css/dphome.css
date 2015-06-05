@@ -3,6 +3,14 @@
 /* -------------------------------------------- */
 /* CAROUSEL */
 
+.carousel.slide {
+  -webkit-box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+  -moz-box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+  -ms-box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+  -o-box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+}
+
 .carousel-caption {
     background-color: rgba(0,0,0,0.75);
     left: 0;
@@ -29,6 +37,10 @@
 
 ol.carousel-indicators {
     bottom: 1.3em;
+}
+
+a.carousel-control.left, a.carousel-control.right {
+    background-image: none;
 }
 
 a.carousel-control span.glyphicon {

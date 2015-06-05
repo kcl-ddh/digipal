@@ -41,6 +41,7 @@ ol.carousel-indicators {
 
 a.carousel-control.left, a.carousel-control.right {
     background-image: none;
+    width: 8%;
 }
 
 a.carousel-control span.glyphicon {

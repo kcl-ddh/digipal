@@ -3,24 +3,22 @@
     {% load static %}
     <div class='col-md-8'>
         <div id="myCarousel" class="carousel slide">
-          <ol class="carousel-indicators">
-            {% for item in carousel.get_visible_items %}
-                <li data-target="#myCarousel" data-slide-to="{{ forloop.counter0 }}" {% if not forloop.counter0 %}class="active"{% endif %}></li>
-            {% endfor %}
-          </ol>
+            <ol class="carousel-indicators">
+                {% for item in carousel.get_visible_items %}
+                    <li data-target="#myCarousel" data-slide-to="{{ forloop.counter0 }}" {% if not forloop.counter0 %}class="active"{% endif %}></li>
+                {% endfor %}
+            </ol>
           <!-- Carousel items -->
           <div class="carousel-inner">
 
             {% for item in carousel.get_visible_items %}
-                <div class="{% if not forloop.counter0 %}active{% endif %} item">
+                <div class="item {% if not forloop.counter0 %}active{% endif %}">
                     <a href="{{ item.link }}">
                         <img src="{% if item.image %}{{ item.image }}{% else %}{% get_media_prefix %}{{ item.image_file }}{% endif %}" 
                             alt="{{ item.image_alt }}" title="{{ item.image_title }}" />
                     </a>
                     <div class='carousel-caption'>
-                      <h3 class='h3home'>
-                          {{ item.title_with_link }}
-                      </h3>
+                        <p>{{ item.title_with_link }}</p>
                     </div>
                 </div>
             {% endfor %}

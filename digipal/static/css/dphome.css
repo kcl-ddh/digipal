@@ -1,153 +1,77 @@
 /* index page, carousel */
 
-#myCarousel {
-    -webkit-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    -moz-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    -ms-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    -o-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
+/* -------------------------------------------- */
+/* CAROUSEL */
+
+.carousel-caption {
+    background-color: rgba(0,0,0,0.75);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 5px 0;
+    font-size: 85%;
 }
-/* Vertical centering of the carousel
-    only when we have another column
-    on the left hand side.
- 992px is the breaking point for col-md-
-*/
-@media (min-width: 992px) {
 
-    #myCarousel {
-        top: 0.6em;
+.carousel-caption p {
+  /* Enough space above for the caption background to cover
+   * the navigation
+   */
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 1.5em 2px 2px 2px;
+  padding-left: 4px;
+}
+
+.carousel-caption a { 
+    color:white; 
+    text-decoration: underline;
+}
+
+ol.carousel-indicators {
+    bottom: 1.3em;
+}
+
+a.carousel-control span.glyphicon {
+    top: 45%;
+}
+
+/* Remove car. nav. on small display */
+@media (max-width: 450px) {
+    .carousel-caption p {
+        margin-top: 2px;
     }
+    
+    ol.carousel-indicators {
+        display: none;
+    }
+}
 
+/* black background around left/right buttons*/
+a.carousel-control span.glyphicon:before {
+  background-color: rgba(0,0,0,0.75);
+  padding: 0.3em;
+  border-radius: 6px;
+}
+
+ 
+/* END CAROUSEL */
+/* -------------------------------------------- */
+
+.contentSection{
+    margin-top: 5%;
 }
 
 #home_page_list {
     margin-left:4.5%;
 }
 
-@media (max-width: 450px) {
-    .h3home {
-        height: 10px;
-        margin-top: -1em;
-        line-height: 12px;
-        font-size: 1.3em;
-    }
-
-    .carousel-indicators{
-        display: none;
-    }
-    .carousel-caption{
-        height: 1em !important;
-    }
-
-    .carousel-control {
-        top: 20% !important;
-    }
-}
-
-.carousel-indicators li, .carousel-indicators table li{
-    list-style: none;
-}
- 
-.contentSection{
-    margin-top: 5%;
-}
-
-.carousel-inner a:hover{
-    text-decoration: underline;
-}
-
-#myCarousel h2{
-    font-size: 16.5px;
-    font-weight: bold;
-    line-height: 1.6;
-}
-
-.carousel-caption span, .carousel-caption a {
-    font-size:0.5em;
-}
-
-.carousel-caption a{
-    text-decoration: underline;
-}
-
-#homeCarousel p{
-    font-size: 12.5px;
-    margin: 0;
-    padding: 0;
-}
-
-#homeCarousel .row-fluid{
-    margin:0;
-    padding: 1%;
-    border-bottom: 1px dotted #efefef;
-    font-size:12px;
-}
-
-.carousel-inner{
-    -moz-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    -webkit-box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-    box-shadow: 4px 1px 10px rgba(0, 0, 0, 0.35);
-}
-
-.carousel-caption a{
-    color:#fff;
-}
-
-.carousel-caption{
-    height: 4em;
-    padding: 0;
-    padding-left: 1%;
-    padding-bottom: 3.5%;
-    -moz-box-shadow: 2px 0px 13px rgba(0, 0, 0, 0.75);
-    -webkit-box-shadow: 2px 0px 13px rgba(0, 0, 0, 0.75);
-    box-shadow: 2px 0px 13px rgba(0, 0, 0, 0.75);
-    background: rgba(0, 0, 0, 0.75);
-    width: 100%;
-    bottom:0;
-    left:0;
-    padding-top:1em;
-}
-
 #homeSection {
     margin-top: 1em;
-}
-
-.h3home{
-    line-height: 2;
 }
 
 .recentPosts .header1 {
     margin-bottom:0.5em;
 }
-
-.carousel-control, .carousel-control {
-    position: absolute;
-    top: 35%;
-    left:2%;
-    font-size: 3em;
-    color: #eee;
-    height: 60px;
-    width: 1.5em;
-    outline: medium none;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 0.25em;
-    border-radius: 10px;
-}
-
-.carousel-control.right{
-    right: 2%;
-}
-
-.carousel-control .glyphicon-chevron-right{
-    top: 5% !important;
-    left: 22% !important;
-}
-
-.carousel-control .glyphicon-chevron-left{
-    top: 10% !important;
-    left:20% !important;
-}
- 
 /* ? */
 
 .home-page-listings ul {

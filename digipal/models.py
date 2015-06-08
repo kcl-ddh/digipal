@@ -123,6 +123,13 @@ class MediaPermission(models.Model):
 
     class Meta:
         ordering = ['label']
+        
+    @classmethod
+    def get_new_default(cls):
+        ret = cls(display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE,
+                              label='Unspecified',
+                              permission=cls.PERM_PRIVATE)
+        return ret
 
     def get_permission_label(self):
         ret = u''
@@ -1128,12 +1135,10 @@ class Repository(models.Model):
 
     @staticmethod
     def get_default_media_permission():
-        return MediaPermission(label='Unspecified',
-                               display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE,
-                               is_private=True)
+        return MediaPermission.get_new_default()
 
     def get_media_permission(self):
-        # this function will always return a mdia_permission object
+        # this function will always return a media_permission object
         return self.media_permission or Repository.get_default_media_permission()
 
     def is_media_private(self):
@@ -1643,7 +1648,7 @@ class Image(models.Model):
         return ret
 
     def get_media_unavailability_reason(self, user=None):
-        '''Returns an empty string if the media can be viewed by the user.
+        '''Returns an empty string if the media can be viewed in full res. by the user.
            Returns a message explaining the reason otherwise.
            If User is not given, we assume public user.
         '''
@@ -1653,10 +1658,9 @@ class Image(models.Model):
             # image is missing, default message
             ret = 'This record has no Image'
         else:
-            #if (user is None) or (not user.is_superuser):
             if not has_user_edit_permission(user, Image):
                 permission = self.get_media_permission()
-                if permission.is_private:
+                if permission.permission < MediaPermission.PERM_PUBLIC:
                     ret = permission.display_message
                     if not ret:
                         ret = settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE
@@ -1665,10 +1669,10 @@ class Image(models.Model):
 
     @classmethod
     def filter_public_permissions(cls, image_queryset):
-        '''Filter an Image queryset to keep only the images with public permissions.
+        '''Filter an Image queryset to keep only the images with FULL public permissions.
             Returns the modified query set.
         '''
-        ret = image_queryset.filter(Q(media_permission__is_private=False) | (Q(media_permission__is_private__isnull=True) & Q(item_part__current_item__repository__media_permission__is_private=False)))
+        ret = image_queryset.filter(Q(media_permission__permission=MediaPermission.PERM_PUBLIC) | (Q(media_permission__permission__isnull=True) & Q(item_part__current_item__repository__media_permission__permission=MediaPermission.PERM_PUBLIC)))
         return ret
 
     @classmethod

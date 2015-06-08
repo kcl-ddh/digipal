@@ -103,21 +103,37 @@ class NameModel(models.Model):
         return u'%s' % (self.name)
 
 class MediaPermission(models.Model):
+    
+    PERM_PRIVATE    = 100
+    PERM_THUMB_ONLY = 200
+    PERM_PUBLIC     = 300
+    PERM_CHOICES = (
+        (PERM_PRIVATE, 'Private'),
+        (PERM_THUMB_ONLY, 'Public (thumbnail only)'),
+        (PERM_PUBLIC, 'Public'),
+    )
+    
     label = models.CharField(max_length=64, blank=False, null=False,
         help_text='''An short label describing the type of permission. For internal use only.''')
-    is_private = models.BooleanField(null=False, default=False,
-        help_text='''If ticked the image the following message will be displayed instead of the image.''')
+    
+    permission = models.IntegerField(null=False, default=PERM_PRIVATE, choices=PERM_CHOICES)
+    
     display_message = HTMLField(blank=True, null=False, default='',
-        help_text='''If Private is ticked the image the message will be displayed instead of the image.''')
+        help_text='''This message will be displayed when the image is not available to the user.''')
 
     class Meta:
         ordering = ['label']
 
+    def get_permission_label(self):
+        ret = u''
+        for choice in self.PERM_CHOICES:
+            if choice[0] == self.permission:
+                ret = choice[1]
+                break
+        return ret
+
     def __unicode__(self):
-        status = 'Public'
-        if self.is_private:
-            status = 'Private'
-        return ur'%s [%s]' % (self.label, status)
+        return ur'%s [%s]' % (self.label, self.get_permission_label())
 
 # Aspect on legacy db
 class Appearance(models.Model):

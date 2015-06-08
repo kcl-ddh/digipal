@@ -912,7 +912,7 @@ class LogEntryAdmin(DigiPalModelAdmin):
         return False
 
 class MediaPermissionAdmin(DigiPalModelAdmin):
-    list_display = ['label', 'display_message', 'is_private']
+    list_display = ['id', 'label', 'display_message', 'get_permission_label']
     ordering = ['label']
 
 class TextAdmin(DigiPalModelAdmin):

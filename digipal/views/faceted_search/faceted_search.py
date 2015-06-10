@@ -245,6 +245,8 @@ class FacetedModel(object):
         from copy import deepcopy
         for key in self.filter_field_keys:
             field = self.get_field_by_key(key)
+            if field is None:
+                raise Exception('Content type "%s" has no field named "%s". Check filters.' % (self.get_key(), key))
             facet = deepcopy(field)
             facet['sorted_by'] = request.GET.get('@st_'+field['key'], 'c')
             facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])

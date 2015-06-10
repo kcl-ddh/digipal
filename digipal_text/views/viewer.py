@@ -251,11 +251,21 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     from digipal.templatetags.html_escape import iip_img
     from digipal.models import Image
     
+    visible_images = None
+    def get_visible_images(item_partid, request, visible_images=None):
+        if visible_images is None:
+            ret = Image.objects.filter(item_part_id=item_partid)
+            from digipal.utils import is_staff
+            if not is_staff(request):
+                ret = Image.filter_public_permissions(ret)
+            ret = Image.sort_query_set_by_locus(ret)
+        return visible_images
+    
     # return the locus of the images under this item part
     # return #ID for images which have no locus
     if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
         ret['locations'] = SortedDict()
-        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]
+        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(get_visible_images(item_partid, request, visible_images)).values_list('locus', 'id')]
 
     # resolve 'default' location request
     location_type, location = resolve_default_location(location_type, location, ret)
@@ -279,8 +289,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
                     image = Image.objects.filter(item_part_id=item_partid, locus=locus).first()
     
     # Image not found, display the first one
-    if not image:
-        image = Image.objects.filter(item_part_id=item_partid).first()
+    if not image or not image.is_full_res_for_user(request):
+        image = get_visible_images(item_partid, request, visible_images).first()
     
     # image dimensions
     options = {}
@@ -293,11 +303,12 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # e.g. if the requested location is 'default' we resolve it
     ret['location_type'] = location_type
     ret['location'] = location
-
-    #ret['content'] = iip_img(image, **options)
-    ret['zoomify_url'] = image.zoomify()
-    ret['width'] = image.width
-    ret['height'] = image.height
+    
+    if image:
+        #ret['content'] = iip_img(image, **options)
+        ret['zoomify_url'] = image.zoomify()
+        ret['width'] = image.width
+        ret['height'] = image.height
     
     return ret
 

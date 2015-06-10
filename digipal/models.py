@@ -109,8 +109,8 @@ class MediaPermission(models.Model):
     PERM_PUBLIC     = 300
     PERM_CHOICES = (
         (PERM_PRIVATE, 'Private'),
-        (PERM_THUMB_ONLY, 'Public (thumbnail only)'),
-        (PERM_PUBLIC, 'Public'),
+        (PERM_THUMB_ONLY, 'Thumbnail Only'),
+        (PERM_PUBLIC, 'Full Resolution'),
     )
     
     label = models.CharField(max_length=64, blank=False, null=False,
@@ -1141,8 +1141,8 @@ class Repository(models.Model):
         # this function will always return a media_permission object
         return self.media_permission or Repository.get_default_media_permission()
 
-    def is_media_private(self):
-        return self.get_media_permission().is_private
+#     def is_media_private(self):
+#         return self.get_media_permission().is_private
 
     @classmethod
     def get_or_create(cls, city_comma_name):
@@ -1638,6 +1638,14 @@ class Image(models.Model):
     def is_media_public(self):
         return not self.is_media_private()
 
+    def is_full_res_for_user(self, request):
+        ret = not self.is_private_for_user(request) and self.get_media_permission().permission == MediaPermission.PERM_PUBLIC
+        return ret
+
+    def is_private_for_user(self, request):
+        from digipal.utils import is_staff
+        return (self.get_media_permission().permission <= MediaPermission.PERM_PRIVATE) and (not is_staff(request))
+
     def is_media_private(self):
         return self.get_media_permission().is_private
 
@@ -1672,7 +1680,13 @@ class Image(models.Model):
         '''Filter an Image queryset to keep only the images with FULL public permissions.
             Returns the modified query set.
         '''
-        ret = image_queryset.filter(Q(media_permission__permission=MediaPermission.PERM_PUBLIC) | (Q(media_permission__permission__isnull=True) & Q(item_part__current_item__repository__media_permission__permission=MediaPermission.PERM_PUBLIC)))
+        ret = image_queryset.filter(
+                    Q(media_permission__permission=MediaPermission.PERM_PUBLIC) |
+                    (
+                        Q(media_permission__permission__isnull=True) &
+                        Q(item_part__current_item__repository__media_permission__permission=MediaPermission.PERM_PUBLIC)
+                    )
+                )
         return ret
 
     @classmethod

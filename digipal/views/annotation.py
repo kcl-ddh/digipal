@@ -191,15 +191,20 @@ def allograph_features(request, allograph_id):
 
 def image(request, image_id):
     """The view for the front-end annotator page"""
-    
-    from digipal.utils import request_invisible_model
-    request_invisible_model('image', request, 'Image') 
 
     try:
         image = Image.objects.get(id=image_id)
     except Image.DoesNotExist:
         return render_to_response('errors/404.html', {'title': 'This Page record does not exist'},
                               context_instance=RequestContext(request))
+
+    # 404 if content type Image not visible
+    from digipal.utils import request_invisible_model, raise_404
+    request_invisible_model(Image, request, 'Image')
+    
+    # 404 if image is private and user not staff
+    if image.is_private_for_user(request):
+        raise_404('''This Image is private''') 
         
     is_admin = has_edit_permission(request, Image)
 

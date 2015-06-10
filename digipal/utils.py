@@ -808,33 +808,55 @@ def is_model_visible(model, request):
     # Returns True if <model> is visible to the user
     # See setting.py:MODELS_PUBLIC and MODELS_PRIVATE
     # If request is not provided we assume public user
+    # If request == True, returns true
     
     if request == True:
         return True
     
     if not model: return False
     
-    # resolve model -> string
+    # resolve model instance -> model
     from django.db.models.base import ModelBase
+    meta = getattr(model, '_meta', None)
+    if meta:
+        model = getattr(model, 'model', meta)
+    
+    # resolve model -> string
     if isinstance(model, ModelBase):
         model = model.__name__
-        
+    
+    # normalise model name
     model = ('%s' % model).lower()
     model = model.split('.')[-1]
     
+    # check permissions from settings.py MODELS_PUBLIC|PRIVATE
     from django.conf import settings
     ret = (model in settings.MODELS_PUBLIC) or (request and request.user and request.user.is_staff and (model in settings.MODELS_PRIVATE))
     
     return ret
 
+def is_staff(request=None):
+    # returns True if the request user is a staff
+    if request == True:
+        return True
+    
+    return request and request.user and request.user.is_staff
+    
+
+def raise_404(message=None):
+    from django.http import Http404
+    options = []
+    if message:
+        options.append(message)
+    raise Http404(*options)
+
 def request_invisible_model(model, request, model_label=None):
     # Raise 404 if the model is not visible
     if not is_model_visible(model, request):
-        from django.http import Http404
-        options = []
+        message = None
         if model_label:
-            options.append('%s view not enabled' % model_label)
-        raise Http404(*options)
+            message = u'''You don't have access to this %s record.''' % model_label
+        raise_404(message)
 
 def convert_xml_to_html(xml):
     ret = xml

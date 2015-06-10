@@ -781,6 +781,12 @@
         };
         
         this.applyOpenLayer = function(data) {
+            
+            if (!data || !data.zoomify_url) {
+                this.$content.html('No image.');
+                return;
+            }
+            
             // TODO: think about reusing the OL objects and only changing the underlying image
             // rather than recreating everything each time
             // See http://openlayers.org/en/v3.5.0/examples/zoomify.html

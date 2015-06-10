@@ -66,7 +66,7 @@ FACETED_SEARCH = {
                                #
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                #{'key': 'img_is_public', 'label': 'Full Image', 'path': 'is_media_public', 'type': 'boolean', 'count': True, 'search': True},
-                               {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_media_permission.perm.get_permission_label', 'type': 'code', 'count': True},
+                               {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_media_permission.get_permission_label', 'type': 'code', 'count': True},
                                {'key': 'hi_type', 'label': 'Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
@@ -78,7 +78,7 @@ FACETED_SEARCH = {
                                ],
                     'select_related': ['item_part__current_item__repository__place'],
                     'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
-                    'filter_order': ['hi_date', 'img_is_public', 'hi_type', 'hi_format', 'repo_city', 'repo_place'],
+                    'filter_order': ['hi_date', 'mp_permission', 'hi_type', 'hi_format', 'repo_city', 'repo_place'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],

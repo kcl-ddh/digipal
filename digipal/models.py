@@ -1680,15 +1680,25 @@ class Image(models.Model):
         '''Filter an Image queryset to keep only the images with FULL public permissions.
             Returns the modified query set.
         '''
-        ret = image_queryset.filter(
-                    Q(media_permission__permission=MediaPermission.PERM_PUBLIC) |
-                    (
-                        Q(media_permission__permission__isnull=True) &
-                        Q(item_part__current_item__repository__media_permission__permission=MediaPermission.PERM_PUBLIC)
-                    )
-                )
-        return ret
+        return cls.filter_permissions(image_queryset)
 
+    @classmethod
+    def filter_permissions(cls, image_queryset, permissions=[MediaPermission.PERM_PUBLIC]):
+        '''Filter an Image queryset to keep only the images with FULL public permissions.
+            Returns the modified query set.
+        '''
+        ret = image_queryset
+        if permissions:
+            ret = ret.filter(
+                        Q(media_permission__permission__in=permissions) |
+                        (
+                            Q(media_permission__permission__isnull=True) &
+                            #Q(item_part__current_item__repository__media_permission__permission__in=permissions)
+                            Q(item_part__current_item__repository__media_permission__permission__in=permissions)
+                        )
+                    )
+        return ret
+    
     @classmethod
     def get_all_public_images(cls):
         if not hasattr(cls, 'public_images'):

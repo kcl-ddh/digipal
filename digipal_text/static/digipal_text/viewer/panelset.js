@@ -407,21 +407,30 @@
             // received from the server.
             
             if (locations) {
-                //locations['sync'] = ['Transcription', 'Translation', 'Image', 'Codicology']
-                locations.sync = this.$contentTypes.dpbsdropdown('getLabels');
-                
-                // save the locations
-                this.locations = locations;
-
-                // only show the available location types
-                var locationTypes = [];
-                for (var j in locations) {
-                    locationTypes.push(j);
+                var empty = true;
+                for (var k in locations) {
+                    empty = false;
+                    break;
                 }
-                
-                this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
-                this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                this.$locationTypes.show();
+                if (!empty) {
+                    locations.sync = this.$contentTypes.dpbsdropdown('getLabels');
+                    
+                    // save the locations
+                    this.locations = locations;
+    
+                    // only show the available location types
+                    var locationTypes = [];
+                    for (var j in locations) {
+                        locationTypes.push(j);
+                    }
+                    
+                    this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
+                    this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
+                    this.$locationTypes.show();
+                } else {
+                    // save the locations
+                    this.locations = locations;
+                }
             }
         };
 
@@ -783,7 +792,11 @@
         this.applyOpenLayer = function(data) {
             
             if (!data || !data.zoomify_url) {
-                this.$content.html('No image.');
+                // TODO: this is shortcut
+                // we may arrive here if selection doesn't return an zoomify url
+                // the general message below should only be shown when the
+                // list of locations from the server is empty
+                this.$content.html('<p>&nbsp;Full resolution image not available.</p>');
                 return;
             }
             

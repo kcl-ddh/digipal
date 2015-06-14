@@ -248,7 +248,6 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     '''
     ret = {}
     
-    from digipal.templatetags.html_escape import iip_img
     from digipal.models import Image
     
     visible_images = None
@@ -256,16 +255,22 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
         if visible_images is None:
             ret = Image.objects.filter(item_part_id=item_partid)
             from digipal.utils import is_staff
-            if not is_staff(request):
-                ret = Image.filter_public_permissions(ret)
+            from digipal.models import MediaPermission
+            permissions = [MediaPermission.PERM_PUBLIC]
+            if is_staff(request):
+                permissions.append(MediaPermission.PERM_PRIVATE)
+            ret = Image.filter_permissions(ret, permissions)
             ret = Image.sort_query_set_by_locus(ret)
+            visible_images = ret
         return visible_images
     
     # return the locus of the images under this item part
     # return #ID for images which have no locus
     if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
+        recs = Image.sort_query_set_by_locus(get_visible_images(item_partid, request, visible_images)).values_list('locus', 'id')
         ret['locations'] = SortedDict()
-        ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(get_visible_images(item_partid, request, visible_images)).values_list('locus', 'id')]
+        if recs:
+            ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in recs]
 
     # resolve 'default' location request
     location_type, location = resolve_default_location(location_type, location, ret)

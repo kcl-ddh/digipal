@@ -91,17 +91,19 @@
             if (currentOption != key) {
                 var $selectedA = this.$el.find('a[href=#'+key+']');
                 // Replace the dropdown heading label by the selected option
-                this.$el.find('.dropdown-toggle span:first').replaceWith($selectedA.find('span')[0].outerHTML);
-                
-                // Highlight the selected option
-                $selectedA.closest('ul').find('li').removeClass('bsdp-selected');
-                $selectedA.closest('li').addClass('bsdp-selected');
-                                
-                // save the selected value in the parent data-value attribute
-                this.$el.parent().data('value', key);
-                
-                // call the user callback
-                if (!silent) this.onSelect();
+                if ($selectedA.length) {
+                    this.$el.find('.dropdown-toggle span:first').replaceWith($selectedA.find('span')[0].outerHTML);
+                    
+                    // Highlight the selected option
+                    $selectedA.closest('ul').find('li').removeClass('bsdp-selected');
+                    $selectedA.closest('li').addClass('bsdp-selected');
+                                    
+                    // save the selected value in the parent data-value attribute
+                    this.$el.parent().data('value', key);
+                    
+                    // call the user callback
+                    if (!silent) this.onSelect();
+                }
             }
         },
         

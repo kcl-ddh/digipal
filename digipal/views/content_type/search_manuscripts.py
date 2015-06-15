@@ -65,7 +65,8 @@ class SearchManuscripts(SearchContentType):
     def set_record_view_context(self, context, request):
         super(SearchManuscripts, self).set_record_view_context(context, request)
         context['item_part'] = ItemPart.objects.get(id=context['id'])
-        context['images'] = Image.sort_query_set_by_locus(context['item_part'].images.all().prefetch_related('hands', 'annotation_set'))
+        images = Image.filter_permissions_from_request(context['item_part'].images.all().prefetch_related('hands', 'annotation_set'), request)
+        context['images'] = Image.sort_query_set_by_locus(images)
         context['hands'] = context['item_part'].hands.all().order_by('num')
 
     def get_index_records(self):

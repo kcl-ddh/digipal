@@ -1693,10 +1693,20 @@ class Image(models.Model):
                         Q(media_permission__permission__in=permissions) |
                         (
                             Q(media_permission__permission__isnull=True) &
-                            #Q(item_part__current_item__repository__media_permission__permission__in=permissions)
                             Q(item_part__current_item__repository__media_permission__permission__in=permissions)
                         )
                     )
+        return ret
+
+    @classmethod
+    def filter_permissions_from_request(cls, image_queryset, request, show_full=False):
+        from digipal.utils import is_staff
+        ret = image_queryset
+        if not is_staff(request):
+            permissions = [MediaPermission.PERM_PUBLIC]
+            if not show_full:
+                permissions.append(MediaPermission.PERM_THUMB_ONLY)
+            ret = cls.filter_permissions(ret, permissions)
         return ret
     
     @classmethod

@@ -254,12 +254,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     def get_visible_images(item_partid, request, visible_images=None):
         if visible_images is None:
             ret = Image.objects.filter(item_part_id=item_partid)
-            from digipal.utils import is_staff
-            from digipal.models import MediaPermission
-            permissions = [MediaPermission.PERM_PUBLIC]
-            if is_staff(request):
-                permissions.append(MediaPermission.PERM_PRIVATE)
-            ret = Image.filter_permissions(ret, permissions)
+            ret = Image.filter_permissions_from_request(ret, request, True)
             ret = Image.sort_query_set_by_locus(ret)
             visible_images = ret
         return visible_images

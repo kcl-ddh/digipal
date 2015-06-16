@@ -714,7 +714,7 @@
             };
             
             if (this.contentType == 'codicology') {
-                options.toolbar = 'psclear undo redo | psh1 psh2 | pshand | pscodparch pscodfol pscodsign pscodperf pscodruling pscodothers | code';
+                options.toolbar = 'psclear undo redo pssave | psh1 psh2 | pshand | pscodparch pscodfol pscodsign pscodperf pscodruling pscodothers | code';
                 options.paste_as_text = true;
                 options.paste_postprocess = function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

@@ -11,6 +11,7 @@ from django.utils.datastructures import SortedDict
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
+MAX_FRAGMENT_SIZE = 20000
 
 def text_viewer_view(request, item_partid=0):
     
@@ -81,7 +82,7 @@ def text_api_view(request, item_partid, content_type, location_type, location):
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
-    max_fragment_size = 10000
+    max_fragment_size = MAX_FRAGMENT_SIZE
     
     text_content_xml = None
     

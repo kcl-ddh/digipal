@@ -2142,14 +2142,15 @@ class Hand(models.Model):
 
             self.descriptions.add(hand_description)
 
-    def _update_images_from_stints(self):
+    def _update_images_from_stints(self, errors=None):
         # get the hand descriptions
         loci = []
         for desc in self.descriptions.all().order_by('source__priority'):
             for stint_range in desc.get_stints_ranges():
                 # expand the stint range (e.g. 363v14-4r18) into loci (-> 363v...364r)
                 from digipal.utils import expand_folio_range
-                loci.extend(expand_folio_range(stint_range))
+                stint_loci = expand_folio_range(stint_range, errors)
+                loci.extend(stint_loci)
             if loci: break
         #
         images = Image.objects.filter(locus__in=loci)

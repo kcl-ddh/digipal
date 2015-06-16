@@ -419,7 +419,11 @@ class HandAdmin(DigiPalModelAdmin):
     def response_change(self, request, obj, *args, **kwargs):
         image_from_desc = request.REQUEST.get('image_from_desc', False)
         if image_from_desc:
-            obj._update_images_from_stints()
+            errors = []
+            obj._update_images_from_stints(errors)
+            from django.contrib import messages
+            for error in errors:
+                messages.warning(request, error)
 #         obj._update_display_label_and_save()
         return super(HandAdmin, self).response_change(request, obj, *args, **kwargs)
 

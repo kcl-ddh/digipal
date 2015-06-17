@@ -52,9 +52,11 @@
                         <a data-toggle="tab" data-target='#hands' href="/digipal/page/{{ image.id }}/hands/">Hands ({{image.hands.all.count}})</a>
                     </li>
                 {% endif %}
-                <li {% if url == 'metadata' %} class='active in' {% endif %}>
-                    <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
-                </li>
+                {% if 0 %}
+	                <li {% if url == 'metadata' %} class='active in' {% endif %}>
+	                    <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
+	                </li>
+                {% endif %}
                 <li {% if url == 'copyright' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                 </li>
@@ -94,9 +96,11 @@
                     </div>
                 {% endif %}
 
-                <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
-                     {% include "pages/record_images.html" %}
-                </div>
+                {% if 0 %}
+	                <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
+	                     {% include "pages/record_images.html" %}
+	                </div>
+	            {% endif %}
 
                 <div class="tab-pane fade {% if url == 'copyright' %} active in {% endif %}" id='copyright'>
                     {% include "pages/copyright.html" %}

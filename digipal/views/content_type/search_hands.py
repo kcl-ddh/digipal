@@ -72,10 +72,18 @@ class SearchHands(SearchContentType):
         current_hand = Hand.objects.get(id=context['id'])
 
         #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
-        annotation_list = Annotation.objects.filter(graph__hand__id=current_hand.id).exclude_hidden(context['can_edit'])
+        # hand > allograph > graph
+        annotations = Annotation.objects.filter(graph__hand__id=current_hand.id).exclude_hidden(context['can_edit']).select_related('image', 'image__media_permission')
         data = SortedDict()
         
-        for annotation in annotation_list:
+        context['annotations_count'] = 0
+        
+        for annotation in annotations:
+            if annotation.image.is_private_for_user(request):
+                continue
+            
+            context['annotations_count'] += 1
+            
             hand = annotation.graph.hand
             allograph_name = annotation.graph.idiograph.allograph
 
@@ -90,6 +98,7 @@ class SearchHands(SearchContentType):
 
             context['annotations_list'] = data
 
+        # image list (filtered by permission)
         images = Image.filter_permissions_from_request(current_hand.images.all().prefetch_related('hands', 'annotation_set'), request)
         context['images'] = Image.sort_query_set_by_locus(images)
         

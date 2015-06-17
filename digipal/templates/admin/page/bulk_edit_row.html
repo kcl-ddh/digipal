@@ -4,7 +4,11 @@
 	<td>
         <a href="/admin/digipal/image/{{folio.id}}/">{{folio.id}}</a>
     </td>
-	<td>{{folio.iipimage.name}}</td>
+	<td>
+	   {{folio.iipimage.name}}
+	   <br/> <br/>
+	   {{ folio.get_media_permission }}
+	</td>
 	<td>
         {% if folio.item_part %}
             {{folio.item_part.display_label}}

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from digipal.models import ItemPart, CurrentItem, Repository, Hand, Image
+from digipal.models import ItemPart, CurrentItem, Repository, Hand, Image, MediaPermission
 import re
 from django import http, template
 from django.shortcuts import render
@@ -128,7 +128,7 @@ def process_bulk_image_ajax(request):
 def image_bulk_edit(request, url=None):
     '''
         This is the view for the bulk editing of the images.
-        It helps with cataloguing a selection of of images.
+        It helps cataloguing a selection of images.
     '''
     if request.is_ajax():
         return process_bulk_image_ajax(request)            
@@ -155,6 +155,8 @@ def image_bulk_edit(request, url=None):
     context['manuscripts'] = ItemPart.objects.all().order_by('display_label')
     
     context['repos'] = Repository.objects.all().order_by('short_name', 'name')
+    
+    context['permissions'] = MediaPermission.objects.all().order_by('label')
     
     context['title'] = 'Bulk Edit Images'
     
@@ -197,6 +199,8 @@ def image_bulk_edit(request, url=None):
                     offset_info = im1.find_image_offset(im2)
                     if sum(offset_info['offsets']) > 0:
                         im1.replace_image_and_update_annotations(offset_info['offsets'], im2)
+
+    one_modified = False
 
     if len(action):
         
@@ -282,7 +286,13 @@ def image_bulk_edit(request, url=None):
                         else:
                             folio.hands.add(Hand.objects.get(id=handid))
                     modified = True
-                
+                if str(request.POST.get('perm_set', '0')) == '1':
+                    permid = str(request.POST.get('perm', '0'))
+                    if permid != '0':
+                        perm = MediaPermission.objects.filter(id=permid).first()
+                        if not perm: perm = None
+                        folio.media_permission = perm
+                        modified = True
 
             if action == 'change_values':
 
@@ -303,8 +313,13 @@ def image_bulk_edit(request, url=None):
                     modified = True
 
             if modified:
+                one_modified = True
                 folio.locus = folio.get_locus_label(True)
                 folio.save()
+
+    if one_modified:
+        from django.contrib import messages
+        messages.success(request, 'Image data updated.')
 
     context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(context['manuscripts'], context['folios'])
 

@@ -2,12 +2,12 @@
 {% load i18n html_escape %}
 
 {% block breadcrumbs %}
-<div class="breadcrumbs">
-     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
-     <a href="../../">Editions</a> &rsaquo;
-     <a href="../">Image</a> &rsaquo;
-     Bulk Edit
-</div>
+	<div class="breadcrumbs">
+	     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+	     <a href="../../">Editions</a> &rsaquo;
+	     <a href="../">Image</a> &rsaquo;
+	     Bulk Edit
+	</div>
 {% endblock %}
 
 
@@ -86,31 +86,31 @@
 {% else %}
     <form action="" method="post">
         {% csrf_token %}
-		<fieldset class="module aligned ">
-		    <h2>Edit the selected images</h2>
-	    	<table class="bulk_options">
-	    		<thead>
-		    		<tr>
-		    			<th>Operation</th>
-		    			<th>Options</th>
-		    		</tr>
-	    		</thead>
-	    		<tbody>
-		    		<tr class="section_last">
-		    			<td>
-		    				<input type="checkbox" name="manuscript_set" id="manuscript_set_id" value="1" />
-		    				<label for="manuscript_set_id">Set item part</label>
-		    			</td>
-		    			<td>
+        <fieldset class="module aligned ">
+            <h2>Edit the selected images</h2>
+            <table class="bulk_options">
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="section_last">
+                        <td>
+                            <input type="checkbox" name="manuscript_set" id="manuscript_set_id" value="1" />
+                            <label for="manuscript_set_id">Set item part</label>
+                        </td>
+                        <td>
                             Select the correct shelfmark and folio range from this list.
                             <br/>
-		    				<select name="manuscript">
+                            <select name="manuscript">
                                 <option value="0">Disconnect from Item Part</option>
-					    		{% for manuscript in manuscripts %}
-						    		<option {% if manuscript.id == selected_manuscript_id %}selected="selected"{% endif %} 
+                                {% for manuscript in manuscripts %}
+                                    <option {% if manuscript.id == selected_manuscript_id %}selected="selected"{% endif %} 
                                         value="{{ manuscript.id }}">{{ manuscript.display_label }}</option>
-					    		{% endfor %}
-					    	</select>
+                                {% endfor %}
+                            </select>
                             <a id="manuscript-link" href="#">[edit]</a>
                             
                             <br/>
@@ -145,8 +145,8 @@
                                 <span class="legend">e.g. "fols 1-57"</span>
                             </div>
                             
-		    			</td>
-		    		</tr>
+                        </td>
+                    </tr>
                     {% if can_set_hand %}
                         <tr  class="section_last">
                             <td>
@@ -170,37 +170,51 @@
                             </td>
                         </tr>
                     {% endif %}
-		    		<tr>
-		    			<td>
-		    				<input type="checkbox" name="folio_set" id="folio_set_id" value="1" />
-		    				<label for="folio_set_id">Set side and number in sequence</label>
-		    			</td>
-		    			<td>
-		    				Starting from number 
+                    <tr  class="section_last">
+                        <td>
+                            <input type="checkbox" name="perm_set" id="perm_set_id" value="1" />
+                            <label for="perm_set_id">Set Media Permission</label>
+                        </td>
+                        <td>
+                            <select name="perm">
+                                <option selected="selected" value="-1">Repository Permission (inherit)</option>
+                                {% for perm in permissions %}
+                                    <option value="{{ perm.id }}">{{ perm }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="folio_set" id="folio_set_id" value="1" />
+                            <label for="folio_set_id">Set side and number in sequence</label>
+                        </td>
+                        <td>
+                            Starting from number 
                                 <input type="text" name="folio_number" value=""  class="txt-folio-number" />
-		    				&nbsp;
-		    				and side
+                            &nbsp;
+                            and side
                                 <input type="text" name="folio_side" value=""  class="folio_side" />
-		    			</td>
-		    		</tr>
-		    		<tr>
-		    			<td>
-		    				<input type="checkbox" name="folio_number_set" id="folio_number_set_id" value="1" />
-		    				<label for="folio_number_set_id">Set number from file name</label>
-		    			</td>
-		    			<td>
-		    				The folio number will be set from the number found in the file name. e.g. ff.49v => folio 49
-		    			</td>
-		    		</tr>
-		    		<tr>
-		    			<td>
-		    				<input type="checkbox" name="folio_side_set" id="folio_side_set_id" value="1" />
-		    				<label for="folio_side_set_id">Set folio side from file name</label>
-		    			</td>
-		    			<td>
-		    				The folio side will be set from the side found in the file name. e.g. ff.49v => Verso
-		    			</td>
-		    		</tr>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="folio_number_set" id="folio_number_set_id" value="1" />
+                            <label for="folio_number_set_id">Set number from file name</label>
+                        </td>
+                        <td>
+                            The folio number will be set from the number found in the file name. e.g. ff.49v => folio 49
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="folio_side_set" id="folio_side_set_id" value="1" />
+                            <label for="folio_side_set_id">Set folio side from file name</label>
+                        </td>
+                        <td>
+                            The folio side will be set from the side found in the file name. e.g. ff.49v => Verso
+                        </td>
+                    </tr>
                     <tr>
                         <td>
                             <input type="checkbox" name="locus_regex_set" id="locus_regex_set_id" value="1" />
@@ -212,12 +226,12 @@
                             <table>
                                 <tr>
                                     <td>
-	                                    Matching expression: 
-	                                </td>
-	                                <td>
-	                                   <input type="text" name="locus_regex" value="{{ request.REQUEST.locus_regex|default:"gb_exc_ms3500_(.*)\.jp2" }}"  class="wide-input" />
-	                                </td>
-	                            </tr>
+                                        Matching expression: 
+                                    </td>
+                                    <td>
+                                       <input type="text" name="locus_regex" value="{{ request.REQUEST.locus_regex|default:"gb_exc_ms3500_(.*)\.jp2" }}"  class="wide-input" />
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td>
                                         Locus: 
@@ -252,128 +266,127 @@
                         </td>
                     </tr>
                     {% if 0 %}
-    		    		<tr>
-    		    			<td>
-    		    				<input type="checkbox" name="page_set" id="page_set_id" value="1" />
-    		    				<label for="page_set_id">Set page number in sequence</label>
-    		    			</td>
-    		    			<td>
-    		    				Starting from page number
-    		    				<input type="text" name="page_number" value=""  class="txt-folio-number" />
-    		    			</td>
-    		    		</tr>
-    		    		<tr class="section_last">
-    		    			<td>
-    		    				<input type="checkbox" name="page_number_set" id="page_number_set_id" value="1" />
-    		    				<label for="page_number_set_id">Set page number from file name</label>
-    		    			</td>
-    		    			<td>
-    		    				The page number will be set from the number found in the file name. e.g. page_58 => page 58
-    		    			</td>
-    		    		</tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="page_set" id="page_set_id" value="1" />
+                                <label for="page_set_id">Set page number in sequence</label>
+                            </td>
+                            <td>
+                                Starting from page number
+                                <input type="text" name="page_number" value=""  class="txt-folio-number" />
+                            </td>
+                        </tr>
+                        <tr class="section_last">
+                            <td>
+                                <input type="checkbox" name="page_number_set" id="page_number_set_id" value="1" />
+                                <label for="page_number_set_id">Set page number from file name</label>
+                            </td>
+                            <td>
+                                The page number will be set from the number found in the file name. e.g. page_58 => page 58
+                            </td>
+                        </tr>
                     {% endif %}
                     {% if 0 %}
-    		    		<tr>
-    		    			<td>
-    		    				<input type="checkbox" name="archived_set" id="archived_id" value="1" />
-    		    				<label for="archived_id">Archive the images</label>
-    		    			</td>
-    		    			<td>
-    		    				Archived images won't be displayed on the website.
-    		    			</td>
-    		    		</tr>
-    		    		<tr class="section_last">
-    		    			<td>
-    		    				<input type="checkbox" name="unarchived_set" id="unarchived_id" value="1" />
-    		    				<label for="unarchived_id">Unarchive the images</label>
-    		    			</td>
-    		    			<td>
-    		    				&nbsp;
-    		    			</td>
-    		    		</tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="archived_set" id="archived_id" value="1" />
+                                <label for="archived_id">Archive the images</label>
+                            </td>
+                            <td>
+                                Archived images won't be displayed on the website.
+                            </td>
+                        </tr>
+                        <tr class="section_last">
+                            <td>
+                                <input type="checkbox" name="unarchived_set" id="unarchived_id" value="1" />
+                                <label for="unarchived_id">Unarchive the images</label>
+                            </td>
+                            <td>
+                                &nbsp;
+                            </td>
+                        </tr>
                     {% endif %}
-		    		<tr  class="section_last">
-		    			<td>
-		    				<input type="checkbox" name="duplicate_set" id="duplicate_id" value="1" {% if show_duplicates %}checked="checked"{% endif %} />
-		    				<label for="duplicate_id">Show duplicates images</label>
-		    			</td>
-		    			<td>
-		    				Show possible duplicates of the selected images and record merging tool
-		    			</td>
-		    		</tr>
-					<tr>
-						<td>
-							<input type="hidden" name="action" value="operations" />
-							<input type="submit" name="_save" class="default sbm-change" value="Change">
-						</td>
-						<td>
-							&nbsp;
-						</td>
-					</tr>
-				</tbody>
-	    	</table>
-	    </fieldset>
+                    <tr  class="section_last">
+                        <td>
+                            <input type="checkbox" name="duplicate_set" id="duplicate_id" value="1" {% if show_duplicates %}checked="checked"{% endif %} />
+                            <label for="duplicate_id">Show duplicates images</label>
+                        </td>
+                        <td>
+                            Show possible duplicates of the selected images and record merging tool
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="hidden" name="action" value="operations" />
+                            <input type="submit" name="_save" class="default sbm-change" value="Change">
+                        </td>
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
     </form>
     
     
     <form action="" method="post">
-    {% csrf_token %}
-    
-    {% if show_duplicates %}
-        <p>
-            The list below contains groups of duplicate folios/pages based on your original selection. Each group of duplicates is separated by a black horizontal line. 
-            Move your mouse over the thumbnails to compare duplicates. To replace an image in a record, select an option in the drop down in the last column, next to the original image.
-        </p>
-        <p>
-            When you click Change, your changes to the image records will be applied. The image file will be subsituted and the location of the annotations automatically corrected.
-        </p>
-    {% endif %}
-    
-    <br/>
-    
-    <h2>Selected images ({{ folios.count }})</h2>
-	<table id="tbl-selected-folios" cellspacing="0">
-		<thead>
-			<tr>
-		    	<th>ID</th>
-		    	<th>File</th>
-		    	<th>Item Part</th>
-		    	<th>Number</th>
-		    	<th>Side</th>
-                <th>Locus</th>
-                <th>Hands</th>
-                <th># ann.</th>
-		    	<th>View</th>
-                {% if show_duplicates %}
-                    <th style="color:black">Change image file to...</th>
-                {% endif %}
-		    </tr>
-		</thead>
-		<tbody class="{% if show_duplicates %}show-duplicates{% endif %}">
-		    {% for folio in folios %}
-                {% include "admin/page/bulk_edit_row.html" %}
-                {% if show_duplicates %}
-                    {% for duplicate in folio.get_duplicates %}
-                        {% include "admin/page/bulk_edit_row.html" with folio=duplicate main_folio=folio %}
-                    {% endfor %}
-                {% endif %}
-			{% endfor %}
-			<tr>
-				<td>
-                    {% if show_duplicates %}
-                        <input type="hidden" name="duplicate_set" value="1" />
-                    {% endif %}
-					<input type="hidden" name="action" value="change_values" />
-					<input type="submit" name="_save" class="default" value="Change" />
-				</td>
-				<td colspan="7">
-					&nbsp;
-				</td>
-			</tr>
-		</tbody>
-    </table>
+	    {% csrf_token %}
+	    
+	    {% if show_duplicates %}
+	        <p>
+	            The list below contains groups of duplicate folios/pages based on your original selection. Each group of duplicates is separated by a black horizontal line. 
+	            Move your mouse over the thumbnails to compare duplicates. To replace an image in a record, select an option in the drop down in the last column, next to the original image.
+	        </p>
+	        <p>
+	            When you click Change, your changes to the image records will be applied. The image file will be subsituted and the location of the annotations automatically corrected.
+	        </p>
+	    {% endif %}
+	    
+	    <br/>
+	    
+	    <h2>Selected images ({{ folios.count }})</h2>
+	    <table id="tbl-selected-folios" cellspacing="0">
+	        <thead>
+	            <tr>
+	                <th>ID</th>
+	                <th>File</th>
+	                <th>Item Part</th>
+	                <th>Number</th>
+	                <th>Side</th>
+	                <th>Locus</th>
+	                <th>Hands</th>
+	                <th># ann.</th>
+	                <th>View</th>
+	                {% if show_duplicates %}
+	                    <th style="color:black">Change image file to...</th>
+	                {% endif %}
+	            </tr>
+	        </thead>
+	        <tbody class="{% if show_duplicates %}show-duplicates{% endif %}">
+	            {% for folio in folios %}
+	                {% include "admin/page/bulk_edit_row.html" %}
+	                {% if show_duplicates %}
+	                    {% for duplicate in folio.get_duplicates %}
+	                        {% include "admin/page/bulk_edit_row.html" with folio=duplicate main_folio=folio %}
+	                    {% endfor %}
+	                {% endif %}
+	            {% endfor %}
+	            <tr>
+	                <td>
+	                    {% if show_duplicates %}
+	                        <input type="hidden" name="duplicate_set" value="1" />
+	                    {% endif %}
+	                    <input type="hidden" name="action" value="change_values" />
+	                    <input type="submit" name="_save" class="default" value="Change" />
+	                </td>
+	                <td colspan="7">
+	                    &nbsp;
+	                </td>
+	            </tr>
+	        </tbody>
+	    </table>
     </form>
-
 
 {% endif %}
 {% endblock %} 

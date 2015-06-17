@@ -62,7 +62,7 @@ class TextUnits(object):
         
     def order_by(self, *args, **kwargs):
         return self
-
+    
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
@@ -172,6 +172,9 @@ class TextContentXML(models.Model):
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''
         TextContentXMLCopy.create_from_content_xml(self)
+
+    def is_private(self):
+        return self.status.slug not in ['live', 'published', 'public', 'online']
         
     # TODO: make this function overridable
     def convert(self):

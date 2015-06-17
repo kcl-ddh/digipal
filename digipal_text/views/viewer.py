@@ -102,6 +102,12 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['message'] = 'Content not found'
         ret['status'] = 'error'
         return ret
+    
+    from digipal.utils import is_staff
+    if text_content_xml.is_private and not is_staff(request):
+        ret['message'] = 'Content not available'
+        ret['status'] = 'error'
+        return ret
 
     record_content = text_content_xml.content or ''
     

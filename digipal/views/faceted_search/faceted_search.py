@@ -250,6 +250,7 @@ class FacetedModel(object):
             facet = deepcopy(field)
             facet['sorted_by'] = request.GET.get('@st_'+field['key'], 'c')
             facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])
+            
             facet['value'] = request.GET.get(field['key'], '')
             
             if facet['value'] and field['type'] == 'date':
@@ -440,6 +441,14 @@ class FacetedModel(object):
         field_queries = u''
         for field in self.fields:
             value = request.GET.get(field['key'], '').strip()
+            
+            # Reserved field name to fide private content from public users 
+            if field['key'] == 'PRIVATE':
+                value = None
+                from digipal.utils import is_staff
+                if not is_staff(request):
+                    value = u'0'
+            
             if value:
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date
@@ -482,6 +491,9 @@ class FacetedModel(object):
             hand_filters.chrono('whoosh.search:')
 
             #ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            
+            print q
+            
             ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             ret.fragmenter.charlimit = None
             #ret = s.search(q, groupedby=facets, limit=1000000)

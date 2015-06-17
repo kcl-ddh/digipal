@@ -168,6 +168,8 @@ FACETED_SEARCH = {
 
                                {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
+                               {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_private', 'search': True, 'type': 'boolean'},
+                               
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
                                
                                ],

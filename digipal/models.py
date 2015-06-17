@@ -1638,6 +1638,9 @@ class Image(models.Model):
     def is_media_public(self):
         return not self.is_media_private()
 
+    def is_thumb_only(self):
+        return self.get_media_permission().permission == MediaPermission.PERM_THUMB_ONLY
+
     def is_full_res_for_user(self, request):
         ret = not self.is_private_for_user(request) and self.get_media_permission().permission == MediaPermission.PERM_PUBLIC
         return ret

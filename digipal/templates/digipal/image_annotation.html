@@ -117,8 +117,11 @@
 {% block extra_js %}
     {{ block.super }}
 
+    <script>var annotator_zoom_levels = {{ zoom_levels }};
+            var img_url = "{{ url }}";
+    </script>
+    
     {% if show_image %}
-        <script>var annotator_zoom_levels = {{ zoom_levels }};</script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator.js"></script>
@@ -139,14 +142,9 @@
             $(document).ready(function() {
                 var si = new StoredInputs('digipal_settings');
                 si.registerInput('#ontograph_type');
-                var url = "{{ url }}";
                 var image_id = "{{ image.id }}";
-                if(url == image_id || url == 'allographs'){
+                if(img_url == image_id || img_url == 'allographs'){
                     main();
-                }
-    
-                if(url == 'allographs'){
-                    $('a[data-target="#allographs"]').tab('show');
                 }
             });
     
@@ -207,6 +205,14 @@
     
         </script>
     {% endif %}
+    <script>
+        $(document).ready(function() {
+            if(img_url == 'allographs'){
+                $('a[data-target="#allographs"]').tab('show');
+            }
+        });
+    </script>
+    
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     

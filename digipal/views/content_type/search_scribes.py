@@ -43,7 +43,7 @@ class SearchScribes(SearchContentType):
         ret['idiographs__idiographcomponent__features__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'feature', 'ignore': True}, 'advanced': True}
 
         # MS
-        ret['hands__item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
+        ret['hands__item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}
         ret['hands__item_part__group__historical_items__name, hands__item_part__historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
         
         # Hands
@@ -54,7 +54,7 @@ class SearchScribes(SearchContentType):
         return ret
 
     def get_sort_fields(self):
-        ''' returns a list of django field names necessary to sort the results ''' 
+        ''' returns a list of django field names necessary to sort the results '''
         return ['name']
 
     def set_record_view_context(self, context, request):
@@ -65,9 +65,13 @@ class SearchScribes(SearchContentType):
         # No longer needed?
         #context['graphs'] = Graph.objects.filter(idiograph__in=context['idiograph_components'])
         context['pages'] = []
-        for hand in context['scribe'].hands.all():
-            for image in hand.images.all():
-                context['pages'].append({'hand': hand, 'image': image})
+        
+        images = Image.filter_permissions_from_request(Image.objects.filter(hands__scribe=context['scribe']).prefetch_related('hands', 'annotation_set'), request)
+        context['images'] = Image.sort_query_set_by_locus(images)
+        
+#         for hand in context['scribe'].hands.all():
+#             for image in hand.images.all():
+#                 context['pages'].append({'hand': hand, 'image': image})
     
     def get_model(self):
         return Scribe

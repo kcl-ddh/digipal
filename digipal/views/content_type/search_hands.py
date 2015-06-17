@@ -21,7 +21,7 @@ class SearchHands(SearchContentType):
         # TODO: new search field
         ret['label'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'label'}}
         ret['descriptions__description'] = {'whoosh': {'type': self.FT_LONG_FIELD, 'name': 'description', 'boost': 0.3}, 'long_text': True}
-        # Use FT_CODE instead of FT_TITLE because we have numbers in the field e.g. "Digipal Hand 1" woudln't return anything with FT_TITLE 
+        # Use FT_CODE instead of FT_TITLE because we have numbers in the field e.g. "Digipal Hand 1" woudln't return anything with FT_TITLE
         ret['scribe__name'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
         # JIRA 358: we need to search by the hand name
         ret['pk'] = {'whoosh': {'type': self.FT_CODE, 'name': 'hand', 'format': settings.HAND_ID_PREFIX + '%s'}}
@@ -36,11 +36,11 @@ class SearchHands(SearchContentType):
         ret['script__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'script'}, 'advanced': True}
         
         # MS
-        ret['item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}        
+        ret['item_part__historical_items__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'ms_date'}, 'advanced': True}
         ret['item_part__group__historical_items__name, item_part__historical_items__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'hi'}}
 
         # Scribe
-        ret['scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}        
+        ret['scribe__scriptorium__name'] = {'whoosh': {'type': self.FT_TITLE, 'name': 'scriptorium'}, 'advanced': True}
         ret['scribe__date'] = {'whoosh': {'type': self.FT_CODE, 'name': 'scribe_date', 'boost': 1.0}, 'advanced': True}
         
         return ret
@@ -90,9 +90,11 @@ class SearchHands(SearchContentType):
 
             context['annotations_list'] = data
 
-        images = current_hand.images.all()
-        if images.count():
-            image = images[0]
+        images = Image.filter_permissions_from_request(current_hand.images.all().prefetch_related('hands', 'annotation_set'), request)
+        context['images'] = Image.sort_query_set_by_locus(images)
+        
+        if context['images'].count():
+            image = context['images'][0]
             context['width'], context['height'] = image.dimensions()
             context['image_erver_url'] = image.zoomify
 

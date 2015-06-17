@@ -16,7 +16,7 @@
             {% if cansee.graph %}
                 {% with annotation_count=image.get_annotation_count %}
                     {% if annotation_count %}
-                        <a href='{{image.get_absolute_url }}'>
+                        <a href='{{image.get_absolute_url }}allographs/'>
                     {% endif %}
                             <span class="label label-default">{{ annotation_count  }} {{ "Annotation"|plural:annotation_count }}</span>
                     {% if annotation_count %}
@@ -28,7 +28,7 @@
             {% if cansee.hand %}
                 {% with hand_count=image.hands.all.count %}
                     {% if hand_count %}
-                        <a href='{{image.get_absolute_url }}hands'>
+                        <a href='{{image.get_absolute_url }}hands/'>
                     {% endif %}
                             <span class="label label-default" >{{ hand_count }} {{ "Hand"|plural:hand_count }}</span>
                     {% if hand_count %}
@@ -44,11 +44,19 @@
                     <span class='drag_caption'>Drag image to collection</span>
                     {% iip_img image width=width lazy=1 %}
                 </a>
-                <span class="button-bar">
-                    <a class="btn btn-default btn-sm" href="{{ image.get_absolute_url }}?annotations=false" data-toggle='tooltip' data-placement='right' title='View image without annotations' >
-                        <span class='glyphicon glyphicon-eye-close'></span>
-                    </a>
-                </span>
+                {% if image.is_thumb_only %}
+                    <span class="private-image left" data-toggle='tooltip'
+                        data-placement='bottom' title='Full resolution not available' >
+                        <span class='glyphicon glyphicon-ban-circle'></span>
+                    </span>
+                {% else %}
+                    <span class="button-bar right">
+                        <a class="btn btn-default btn-sm" href="{{ image.get_absolute_url }}?annotations=false"
+                            data-toggle='tooltip' data-placement='right' title='View image without annotations' >
+                            <span class='glyphicon glyphicon-eye-close'></span>
+                        </a>
+                    </span>
+                {% endif %}
             </span>
         {% endspaceless %}
 

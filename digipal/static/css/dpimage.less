@@ -14,15 +14,31 @@
     margin: 0.3em;
     margin-left: 0.5em;
     
-    &:hover .button-bar {
-        display: inline;
-    }
-        
-    .button-bar {
+    .button-bar, .private-image {
         bottom: 1em;
         position: absolute;
-        right: -7px;
+
+        &.right {
+            right: -7px;
+        }
+        &.left {
+            left: -7px;
+        }
+    }
+    
+    .private-image {
+        font-size: large;
+        text-shadow: 1px 1px 5px black;
+        left: -0.2em;
+        bottom: 0.5em;
+    }
+    
+    .button-bar {
         display: none;
+    }
+
+    &:hover .button-bar {
+        display: inline;
     }
     
 }

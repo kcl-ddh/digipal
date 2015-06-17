@@ -1141,9 +1141,6 @@ class Repository(models.Model):
         # this function will always return a media_permission object
         return self.media_permission or Repository.get_default_media_permission()
 
-#     def is_media_private(self):
-#         return self.get_media_permission().is_private
-
     @classmethod
     def get_or_create(cls, city_comma_name):
         ret = None
@@ -1638,6 +1635,9 @@ class Image(models.Model):
     def is_media_public(self):
         return not self.is_media_private()
 
+    def is_media_private(self):
+        return self.get_media_permission().permission == MediaPermission.PERM_PRIVATE
+
     def is_thumb_only(self):
         return self.get_media_permission().permission == MediaPermission.PERM_THUMB_ONLY
 
@@ -1648,9 +1648,6 @@ class Image(models.Model):
     def is_private_for_user(self, request):
         from digipal.utils import is_staff
         return (self.get_media_permission().permission <= MediaPermission.PERM_PRIVATE) and (not is_staff(request))
-
-    def is_media_private(self):
-        return self.get_media_permission().is_private
 
     def get_media_right_label(self):
         ret = 'Full size image'

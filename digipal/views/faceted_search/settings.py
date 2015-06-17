@@ -75,6 +75,9 @@ FACETED_SEARCH = {
                                {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code', 'sort_fct': lambda r: u'%s %s %s' % (r.folio_number or '', r.folio_side or '', r.locus or '')},
                                {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
                                {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70, 'link': True},
+
+                               {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_media_private', 'type': 'boolean', 'search': True},
+                               
                                ],
                     'select_related': ['item_part__current_item__repository__place'],
                     'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
@@ -168,7 +171,7 @@ FACETED_SEARCH = {
 
                                {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
-                               {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_private', 'search': True, 'type': 'boolean'},
+                               {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_private', 'type': 'boolean', 'search': True},
                                
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
                                
@@ -231,6 +234,10 @@ FACETED_SEARCH = {
                                 {'key': 'hand_date', 'label': 'Hand Date', 'path': 'hand.assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                 {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation.thumbnail', 'viewable': True, 'type': 'code', 'link': True},
+                                
+                                {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
+                                
+                                {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place', 
                                        'idiograph__allograph__character__ontograph__ontograph_type',
@@ -238,7 +245,7 @@ FACETED_SEARCH = {
                                        'hand__assigned_place',
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
-                    'filter_order': ['hand_date', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],
+                    'filter_order': ['hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],

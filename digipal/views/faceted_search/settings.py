@@ -30,7 +30,7 @@ FACETED_SEARCH = {
                                
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
                                
-                               {'key': 'hi_has_images', 'label_col': 'With images', 'label': 'With images', 'path': 'images.all.count', 'type': 'boolean', 'count': True},
+                               {'key': 'hi_has_images', 'label_col': 'With images', 'label': 'With images', 'path': 'get_non_private_image_count', 'type': 'boolean', 'count': True},
 
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
@@ -40,7 +40,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'current_item.repository.human_readable', 'path_result': 'current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'hi_image_count', 'label_col': 'Images', 'label': 'Images', 'path': 'images.all.count', 'type': 'int', 'viewable': True},
+                               {'key': 'hi_image_count', 'label_col': 'Images', 'label': 'Images', 'path': 'get_non_private_image_count', 'type': 'int', 'viewable': True},
                                #{'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'hands_set.all.count', 'type': 'int', 'viewable': True},
                                #{'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                                ],

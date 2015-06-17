@@ -1386,6 +1386,9 @@ class ItemPart(models.Model):
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 
+    def get_non_private_image_count(self):
+        return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
+    
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'

@@ -144,6 +144,10 @@ def search_ms_image_view(request):
     #images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
     #context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
     
+    # permission filter
+    images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
+    
+    # count hands
     from django.db.models import Count
     context['images'] = Image.sort_query_set_by_locus(images.select_related('item_part__current_item__repository__place').annotate(hand_count=Count('hands')))
 

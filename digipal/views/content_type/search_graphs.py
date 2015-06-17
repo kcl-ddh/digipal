@@ -87,6 +87,13 @@ class SearchGraphs(SearchContentType):
         feature = request.GET.get('feature', undefined)
         repository = request.GET.get('repository', undefined)
         index = request.GET.get('index', undefined)
+        
+        
+        excluded_images = None
+        from digipal.utils import is_staff
+        if not is_staff(request):
+            excluded_images = Image.filter_permissions(Image.objects.all(), [MediaPermission.PERM_PRIVATE])
+        
         none = u'-1'
         one_or_more = u'-2'
         
@@ -155,6 +162,10 @@ class SearchGraphs(SearchContentType):
         from digipal.models import has_edit_permission
         if not has_edit_permission(request, self.get_model()):
             graphs = graphs.exclude(idiograph__allograph__hidden=True)
+            
+        # exclude private images
+        if excluded_images and excluded_images.count():
+            graphs = graphs.exclude(annotation__image__in=excluded_images)
         
         # condition on component
         if component:

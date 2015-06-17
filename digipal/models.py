@@ -1692,13 +1692,21 @@ class Image(models.Model):
         '''
         ret = image_queryset
         if permissions:
-            ret = ret.filter(
-                        Q(media_permission__permission__in=permissions) |
-                        (
-                            Q(media_permission__permission__isnull=True) &
-                            Q(item_part__current_item__repository__media_permission__permission__in=permissions)
-                        )
+            
+            conditions = Q(media_permission__permission__in=permissions) |\
+                (
+                    Q(media_permission__permission__isnull=True) &
+                    Q(item_part__current_item__repository__media_permission__permission__in=permissions)
+                )
+            
+            if MediaPermission.PERM_PRIVATE in permissions:
+                conditions = conditions |\
+                    (
+                        Q(media_permission__permission__isnull=True) &
+                        Q(item_part__current_item__repository__media_permission__permission__isnull=True)
                     )
+            
+            ret = ret.filter(conditions)
         return ret
 
     @classmethod

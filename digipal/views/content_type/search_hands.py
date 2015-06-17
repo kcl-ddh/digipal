@@ -71,7 +71,6 @@ class SearchHands(SearchContentType):
         from django.utils.datastructures import SortedDict
         current_hand = Hand.objects.get(id=context['id'])
 
-        #c = current_hand.graphs_set.model.objects.get(id=current_hand.id)
         # hand > allograph > graph
         annotations = Annotation.objects.filter(graph__hand__id=current_hand.id).exclude_hidden(context['can_edit']).select_related('image', 'image__media_permission')
         data = SortedDict()

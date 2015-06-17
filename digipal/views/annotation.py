@@ -177,7 +177,7 @@ def allograph_features(request, allograph_id):
             aspect_obj['id'] = aspect.id
             aspect_obj['features'] = []
             for feature in aspect.features.all():
-                 aspect_obj['features'].append({'id': feature.id, 'name': feature.name})
+                aspect_obj['features'].append({'id': feature.id, 'name': feature.name})
             aspect_obj['name'] = aspect.name
             allographs_list['aspects'].append(aspect_obj)
         obj['features'] = []
@@ -208,7 +208,6 @@ def image(request, image_id):
         
     is_admin = has_edit_permission(request, Image)
 
-    images = Image.sort_query_set_by_locus(image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set'), True)
     #annotations_count = image.annotation_set.all().values('graph').count()
     #annotations = image.annotation_set.all()
     annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(is_admin).select_related('graph__hand', 'graph__idiograph__allograph')
@@ -262,8 +261,13 @@ def image(request, image_id):
     from digipal.models import OntographType
     from digipal.utils import is_model_visible
     
+    images = image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set')
+    images = Image.filter_permissions_from_request(images, request)
+    images = Image.sort_query_set_by_locus(images, True)
+
     context = {
-               'form': form.as_ul(), 'dimensions': dimensions, 'images': images,
+               'form': form.as_ul(), 'dimensions': dimensions, 
+               'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
                'image_link': image_link, 'annotations': annotations.count(),

@@ -58,8 +58,8 @@
                 <li {% if url == 'copyright' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                 </li>
-                <li {% if image.item_part.images.all.count == 1 %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
-                    <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ image.item_part.images.all.count|add:'-1' }})</a>
+                <li {% if not images.count %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
+                    <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
                 </li>
             </ul>
         </div>

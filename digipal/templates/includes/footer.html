@@ -10,11 +10,11 @@
     <div class="container">
         <div class="row">
         
-            <div class="col-md-3 col-xs-12">
+            <div class="{% if settings.FOOTER_LOGO_LINE %}col-md-12 col-xs-12{% else %}col-md-3 col-xs-12{% endif %}">
                 {% render_mezzanine_page 'footer.logos' %}
             </div>
 
-            <div class="col-md-8 col-xs-12">
+            <div class="{% if settings.FOOTER_LOGO_LINE %}col-md-11 col-xs-12{% else %}col-md-8 col-xs-12{% endif %}">
                 {% render_mezzanine_page 'footer' %}
             </div>
 

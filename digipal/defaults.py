@@ -5,11 +5,12 @@ register_setting(
     description="Sequence of setting names available within templates.",
     editable=False,
     default=(
-        'ADMIN_STYLES', 'BANNER_LOGO_HTML', 'SHOW_QUICK_SEARCH_SCOPES',  
-        'GITHUB', 'TWITTER', 
+        'ADMIN_STYLES', 'BANNER_LOGO_HTML', 'SHOW_QUICK_SEARCH_SCOPES',
+        'GITHUB', 'TWITTER',
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
-        'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH'
+        'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH',
+        'FOOTER_LOGO_LINE',
     ),
     append=True,
 )

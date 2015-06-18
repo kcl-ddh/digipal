@@ -79,6 +79,11 @@ def text_api_view(request, item_partid, content_type, location_type, location):
     import json
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
+def set_message(ret, message, status='error'):
+    ret['message'] = message
+    ret['status'] = status
+    return ret
+
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
     ret = {}
     
@@ -99,15 +104,15 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
     
     if not text_content_xml:
-        ret['message'] = 'Content not found'
-        ret['status'] = 'error'
-        return ret
+        return set_message(ret, '%s not found' % content_type.capitalize())
     
     from digipal.utils import is_staff
-    if text_content_xml.is_private and not is_staff(request):
-        ret['message'] = 'Content not available'
-        ret['status'] = 'error'
-        return ret
+    if not is_staff(request):
+        if text_content_xml.is_private:
+            if text_content_xml.content and len(text_content_xml.content) > 10:
+                return set_message(ret, '%s not yet available but please come back shortly' % content_type.capitalize())
+            else:
+                return set_message(ret, '%s not found' % content_type.capitalize())
 
     record_content = text_content_xml.content or ''
     

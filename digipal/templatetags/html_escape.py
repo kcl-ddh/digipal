@@ -364,11 +364,15 @@ def dp_pagination_for(context, current_page):
         current_page = instance of 'django.core.paginator.Page'
     '''
     # JIRA 617
-    context['paginator'] = current_page.paginator if current_page else None
-    context['page_obj'] = current_page
+    ret = u''
     
-    from pagination.templatetags.pagination_tags import paginate
-    ret = paginate(context, window=3)
+    if current_page is not None:
+        context['paginator'] = current_page.paginator
+        
+        context['page_obj'] = current_page
+        
+        from pagination.templatetags.pagination_tags import paginate
+        ret = paginate(context, window=3)
     
     return ret
 

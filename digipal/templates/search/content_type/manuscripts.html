@@ -20,7 +20,7 @@
                         {{ item.catalogue_number }}
                     {% endfor %}
 
-                    {% image_icon manuscript.images.count "COUNT images of this manuscript" manuscript.get_absolute_url|add:"pages" template_type request %}
+                    {% image_icon manuscript.images "COUNT images of this manuscript" manuscript.get_absolute_url|add:"pages" template_type request %}
                 </td>
 
                 <td>{{ manuscript.current_item.repository.place.name }}, {{ manuscript.current_item.repository.name }}</td>

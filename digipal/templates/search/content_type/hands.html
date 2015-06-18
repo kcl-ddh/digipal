@@ -17,7 +17,7 @@
                 </td>
 
                 <td>{{ hand.get_search_label }}
-                    {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
+                    {% image_icon hand.images "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
                 </td>
 
                 <td>{{ hand.item_part.current_item.repository.place.name }}, {{ hand.item_part.current_item.repository.name }}</td>

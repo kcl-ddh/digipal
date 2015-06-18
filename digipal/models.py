@@ -1273,8 +1273,8 @@ class Scribe(models.Model):
         #return u'%s. %s' % (self.name, self.date or '')
         return get_list_as_string(self.name, '. ', self.date)
 
-    def get_image_count(self):
-        return sum([im.images.count() for im in self.hands.all()])
+    def get_images(self):
+        return Image.objects.filter(hands__scribe=self)
 
 class Idiograph(models.Model):
     allograph = models.ForeignKey(Allograph)

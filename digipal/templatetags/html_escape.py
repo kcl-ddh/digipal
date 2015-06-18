@@ -221,8 +221,8 @@ def annotation_img(annotation, *args, **kwargs):
         #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:
-            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(), 
-                        width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0], 
+            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(),
+                        width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
                         frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret
 
@@ -230,10 +230,10 @@ def annotation_img(annotation, *args, **kwargs):
 def img(src, *args, **kwargs):
     '''
         Returns <span class="img-frame"><img src="" alt=""></span>.
-        The span is a bounding frame around the image. It also serves as 
+        The span is a bounding frame around the image. It also serves as
         mask as the <img> can be bigger than the frame.
         
-        XML special chars in the attributes are encoded with &. 
+        XML special chars in the attributes are encoded with &.
         
         src is the URL of the image to display.
         
@@ -269,7 +269,7 @@ def img(src, *args, **kwargs):
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
         
-        # a serialised white dot GIF image 
+        # a serialised white dot GIF image
         #src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
         # TODO: don't hard-code the path!
         src = ur'/static/digipal/images/blank.gif'
@@ -358,13 +358,13 @@ def dp_pagination_with_size_for(context, current_page):
 @register.inclusion_tag('pagination/pagination.html', takes_context=True)
 def dp_pagination_for(context, current_page):
     ''' Replacement for mezzanine template tag: pagination_for.
-        It takes the same inputs but adapts them to use the django-pagination 
+        It takes the same inputs but adapts them to use the django-pagination
         template we use everywhere else.
         
         current_page = instance of 'django.core.paginator.Page'
-    '''    
+    '''
     # JIRA 617
-    context['paginator'] = current_page.paginator if current_page else None 
+    context['paginator'] = current_page.paginator if current_page else None
     context['page_obj'] = current_page
     
     from pagination.templatetags.pagination_tags import paginate
@@ -405,22 +405,30 @@ def image_icon(count, message, url, template_type=None, request=None):
     ret = u''
     
     if count:
-        m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
-        if m:
-            message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(3), plural(m.group(4), count), m.group(5))
-        ret = u'''<span class="result-image-count">
-                    (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
-                  </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
+        from django.db.models.query import QuerySet
+        
+        # if count is a QuerySet on Image model, convert it into a int
+        if hasattr(count, 'all'):
+            from digipal.models import Image
+            count = Image.filter_permissions_from_request(count.all(), request).count()
+        
+        if count:
+            m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
+            if m:
+                message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(3), plural(m.group(4), count), m.group(5))
+            ret = u'''<span class="result-image-count">
+                        (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
+                      </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
         
     return mark_safe(ret)
 
 @register.simple_tag
 def mezzanine_page_active(request, page):
     '''
-        Returns 'active' if the provided Mezzanine <page> 
+        Returns 'active' if the provided Mezzanine <page>
         is one of its children is in the current path.
         
-        This can be used in a template to set active in the class attribute. 
+        This can be used in a template to set active in the class attribute.
     '''
     ret = False
     

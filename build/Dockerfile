@@ -98,6 +98,11 @@ WORKDIR /home/digipal
 EXPOSE 8081
 
 ########################
+# LESSC
+
+RUN apt-get install -y nodejs npm; npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
+
+########################
 # SSH
 
 RUN apt-get -y install openssh-server
@@ -126,4 +131,4 @@ RUN echo "/etc/init.d/lighttpd start" >> startup.sh
 RUN echo "/etc/init.d/ssh start" >> startup.sh
 RUN echo "/bin/bash" >> startup.sh
 
-CMD ["/bin/bash", "startup.sh"]
+CMD ["/bin/bash", "startup.sh"] 

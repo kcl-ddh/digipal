@@ -58,7 +58,7 @@ class FacetedModel(object):
     def get_views(self):
         ret = self.get_option('views', [self.get_default_view(selected=False)])
         
-        found = False 
+        found = False
         if hasattr(self, 'request'):
             view_key = self.request.GET.get('view')
             for view in ret:
@@ -79,7 +79,7 @@ class FacetedModel(object):
                 ret = view.get('template', view.get('key', 'table'))
                 break
         
-        return 'search/faceted/views/' + ret + '.html' 
+        return 'search/faceted/views/' + ret + '.html'
     selected_view_template = property(get_selected_views_template)
 
     def get_all_records(self, prefetch=False):
@@ -121,7 +121,7 @@ class FacetedModel(object):
 
     def prepare_value_rankings(self):
         ''' populate self.value_rankings dict
-            It generates a ranking number for each value in each sortable field 
+            It generates a ranking number for each value in each sortable field
             This will be stored in the index as a separate field to allow sorting by any column
         '''
         self.value_rankings = {}
@@ -134,14 +134,14 @@ class FacetedModel(object):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
                     
-                    print '\t\t'+field['key']
+                    print '\t\t' + field['key']
                     
                     # get all the values for that field in the table
                     value_rankings = self.value_rankings[whoosh_sortable_field] = {}
                     # We call iterator() here to avoid fetching all the records at ones
-                    # which causes this query to crash on the Linux VM due to excessive 
-                    # memory consumption. 
-                    #for record in records.iterator():
+                    # which causes this query to crash on the Linux VM due to excessive
+                    # memory consumption.
+                    # for record in records.iterator():
                     
                     # get unique values
                     model, path = self.get_model_from_field(field)
@@ -163,8 +163,8 @@ class FacetedModel(object):
                             v = utils.get_midpoint_from_date_range(v)
                             value_rankings[k] = v or 10000
                         sorted_values = sorted(value_rankings.values())
-                        #print sorted_values
-                        #exit()
+                        # print sorted_values
+                        # exit()
                     else:
                         # sort by natural order
                         sorted_values = utils.sorted_natural(value_rankings.values(), True)
@@ -173,14 +173,14 @@ class FacetedModel(object):
                     for k, v in value_rankings.iteritems():
                         value_rankings[k] = sorted_values.index(v)
                         
-                    #print self.value_rankings[whoosh_sortable_field]
+                    # print self.value_rankings[whoosh_sortable_field]
         
     def get_document_from_record(self, record):
         ret = {'id': u'%s' % record.id}
         for field in self.fields:
             if self.is_field_indexable(field):
                 ret[field['key']] = self.get_record_field_whoosh(record, field)
-                #ret[field['key']] = None
+                # ret[field['key']] = None
                 
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
@@ -198,18 +198,18 @@ class FacetedModel(object):
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
                     rng = get_range_from_date(ret[field['key']])
-                    ret[field['key']+'_min'] = rng[0]
-                    ret[field['key']+'_max'] = rng[1]
-                    if is_max_date_range(rng): 
+                    ret[field['key'] + '_min'] = rng[0]
+                    ret[field['key'] + '_max'] = rng[1]
+                    if is_max_date_range(rng):
                         # we don't want the empty dates and invalid dates to be found
-                        ret[field['key']+'_max'] = ret[field['key']+'_min']
+                        ret[field['key'] + '_max'] = ret[field['key'] + '_min']
                         
         return ret
 
     def get_field_by_key(self, key):
         # todo: think about caching this
         for field in self.fields:
-            if field['key'] == key: 
+            if field['key'] == key:
                 return field
         return None
 
@@ -224,7 +224,7 @@ class FacetedModel(object):
     def get_facets(self, request):
         ret = []
         
-        # a filter for search phrase 
+        # a filter for search phrase
         phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'terms', 'value': request.GET.get('terms', ''), 'id': 'search-terms', 'removable_options': []}
         if phrase_facet['value']:
             phrase_facet['removable_options'] = [{'label': phrase_facet['value'], 'key': phrase_facet['value'], 'count': '?', 'selected': True}]
@@ -232,12 +232,12 @@ class FacetedModel(object):
         
         # a filter for the content types
         if self.faceted_model_group and len(self.faceted_model_group) > 1:
-            #ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
-            ct_facet = {'label': 'Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': []}
+            # ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
+            ct_facet = {'label': 'Result Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': []}
             for faceted_model in self.faceted_model_group:
                 selected = faceted_model.key == ct_facet['value']
-                option = {'label': faceted_model.label, 'key': faceted_model.key, 'count': '', 'selected': selected}
-                option['href'] = mark_safe(html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] }))
+                option = {'label': faceted_model.label_plural, 'key': faceted_model.key, 'count': '', 'selected': selected}
+                option['href'] = mark_safe(html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] }))
                 ct_facet['options'].append(option)
             ret.append(ct_facet)
         
@@ -248,7 +248,7 @@ class FacetedModel(object):
             if field is None:
                 raise Exception('Content type "%s" has no field named "%s". Check filters.' % (self.get_key(), key))
             facet = deepcopy(field)
-            facet['sorted_by'] = request.GET.get('@st_'+field['key'], 'c')
+            facet['sorted_by'] = request.GET.get('@st_' + field['key'], 'c')
             facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])
             
             facet['value'] = request.GET.get(field['key'], '')
@@ -266,7 +266,7 @@ class FacetedModel(object):
             ret.append(facet)
         
         for facet in ret:
-            facet['expanded'] = utils.get_int(request.GET.get('@xp_'+facet['key'], 0), 0)
+            facet['expanded'] = utils.get_int(request.GET.get('@xp_' + facet['key'], 0), 0)
         
         return ret
 
@@ -280,14 +280,14 @@ class FacetedModel(object):
             if field['type'] == 'boolean':
                 label = 'Yes' if k else 'No'
             option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
-            option['href'] = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
+            option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
             ret.append(option)
             
         sort_option = 'count'
         if sorted_by == 'o':
             sort_option = 'key'
-        ret = sorted(ret, key=lambda o: o[sort_option], reverse=(sort_option=='count'))
-        return ret      
+        ret = sorted(ret, key=lambda o: o[sort_option], reverse=(sort_option == 'count'))
+        return ret
     
     def get_record_field_html(self, record, field_key):
         if not hasattr(field_key, 'get'):
@@ -316,7 +316,7 @@ class FacetedModel(object):
 
     def get_record_field(self, record, afield, use_path_result=False):
         '''
-            returns the value of record.afield 
+            returns the value of record.afield
             where record is a model instance and afield is field name.
             afield and go through related objects.
             afield can also be a field definition (e.g. self.fields[0]).
@@ -345,19 +345,19 @@ class FacetedModel(object):
             
         ret = v
 
-        return ret  
+        return ret
 
     def get_summary(self, request):
         ret = u''
         for facet in self.get_facets(request):
             for option in facet['removable_options']:
-                href = html_escape.update_query_params('?'+request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
-                ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label']) 
+                href = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
+                ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label'])
 
         from django.utils.safestring import mark_safe
         
         if not ret.strip():
-            ret = 'All' 
+            ret = 'All'
         
         return mark_safe(ret)
 
@@ -375,8 +375,8 @@ class FacetedModel(object):
     
     def get_whoosh_facets(self):
         from whoosh import sorting
-        #print [field['key'] for field in self.fields if field.get('count', False)]
-        #return []
+        # print [field['key'] for field in self.fields if field.get('count', False)]
+        # return []
         return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
     
     @classmethod
@@ -399,18 +399,18 @@ class FacetedModel(object):
         for field in request.GET.get('sort', '').split(','):
             field = field.strip()
             if field and self._get_sortable_whoosh_field(self.get_field_by_key(field)):
-                if field in ret: 
+                if field in ret:
                     ret.remove(field)
                 ret.insert(0, field)
                 
         if whoosh_fields:
             ret = [self._get_sortable_whoosh_field(self.get_field_by_key(field)) for field in ret]
                 
-        return ret    
+        return ret
     
     def get_requested_records(self, request):
 #         selected = False
-#         
+#
 #         selected_view_key = request.GET.get('view', '')
 #         if selected_view_key:
 #             for view in self.views:
@@ -432,7 +432,7 @@ class FacetedModel(object):
         import os
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
 
-        #from whoosh.qparser import QueryParser
+        # from whoosh.qparser import QueryParser
         
         search_phrase = request.GET.get('terms', '').strip()
         
@@ -442,7 +442,7 @@ class FacetedModel(object):
         for field in self.fields:
             value = request.GET.get(field['key'], '').strip()
             
-            # Reserved field name to fide private content from public users 
+            # Reserved field name to fide private content from public users
             if field['key'] == 'PRIVATE':
                 value = None
                 from digipal.utils import is_staff
@@ -457,7 +457,7 @@ class FacetedModel(object):
                 else:
                     field_queries += u' %s:"%s" ' % (field['key'], value)
         
-        # add the search phrase    
+        # add the search phrase
         if search_phrase or field_queries:
             qp = self.get_whoosh_parser(index)
             q = qp.parse(u'%s %s' % (search_phrase, field_queries))
@@ -472,35 +472,35 @@ class FacetedModel(object):
             #
             # result returned by search_page() doesn't support faceting
             # "'ResultsPage' object has no attribute 'groups'"
-            # 
+            #
             # Two possible work-arounds:
             # 1. run two Whoosh searches (one for the groups/facets another for the specific page)
             # 2. run full faceted Whoosh search then paginate the ids
             #
-            # TODO: check which one is the most efficient            
-            # 
-            #ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
+            # TODO: check which one is the most efficient
+            #
+            # ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
             
             sortedby = self.get_whoosh_sortedby(request)
             
             # Will only take top 10/25 results by default
-            #ret = s.search(q, groupedby=facets)
+            # ret = s.search(q, groupedby=facets)
             
             hand_filters.chrono('whoosh:')
             
             hand_filters.chrono('whoosh.search:')
 
-            #ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             
             print q
             
             ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             ret.fragmenter.charlimit = None
-            #ret = s.search(q, groupedby=facets, limit=1000000)
-            #ret = s.search(q, sortedby=sortedby, limit=1000000)
-            #ret = s.search(q, limit=1000000)
-            #print facets
-            #ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
+            # ret = s.search(q, groupedby=facets, limit=1000000)
+            # ret = s.search(q, sortedby=sortedby, limit=1000000)
+            # ret = s.search(q, limit=1000000)
+            # print facets
+            # ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
             
             hand_filters.chrono(':whoosh.search')
 
@@ -511,8 +511,8 @@ class FacetedModel(object):
 #                     if field['key'] == 'hi_has_images':
 #                         print ret.groups(field['key'])
                     self.whoosh_groups[field['key']] = ret.groups(field['key'])
-                    ##self.whoosh_groups[field['key']] = {}
-                    #self.whoosh_groups[field['key']] = {}
+                    # #self.whoosh_groups[field['key']] = {}
+                    # self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
         
             # convert the result into a list of model instances
@@ -524,8 +524,8 @@ class FacetedModel(object):
             
             # get highlights from the hits
             for hit in ret:
-                #print '- ' * 20
-                #print hit['id']
+                # print '- ' * 20
+                # print hit['id']
                 
                 if 0 and self.key == 'texts':
                     text = self.get_model().objects.get(id=hit['id'])
@@ -536,16 +536,16 @@ class FacetedModel(object):
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:
-                current_page = self.paginator.num_pages 
+                current_page = self.paginator.num_pages
             self.current_page = self.paginator.page(current_page)
             ids = [hit['id'] for hit in self.current_page.object_list]
             hand_filters.chrono(':whoosh.paginate')
             
             hand_filters.chrono(':whoosh')
             
-            #print len(ids)
+            # print len(ids)
             
-            #ids = [res['id'] for res in ret]
+            # ids = [res['id'] for res in ret]
             
             hand_filters.chrono('sql:')
             
@@ -553,7 +553,7 @@ class FacetedModel(object):
             records = records.in_bulk(ids)
             
             if len(records) != len(ids):
-                #raise Exception("DB query didn't retrieve all Whoosh results.")
+                # raise Exception("DB query didn't retrieve all Whoosh results.")
                 pass
             
             # 'item_part__historical_items'
@@ -603,7 +603,7 @@ class FacetedModel(object):
         sizes = self.get_page_sizes()
         if ret not in sizes:
             ret = sizes[0]
-        return ret     
+        return ret
     
     def get_page_sizes(self):
         ret = [10, 20, 50, 100]
@@ -619,8 +619,8 @@ class FacetedModel(object):
         return ret
         
 def get_types(request):
-    ''' Returns a list of FacetModel instance generated from either 
-        settings.py::FACETED_SEARCH 
+    ''' Returns a list of FacetModel instance generated from either
+        settings.py::FACETED_SEARCH
         or the local settings.py::FACETED_SEARCH
     '''
     from django.conf import settings
@@ -646,7 +646,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     context = {'tabid': tabid}
     
-    # select the content type 
+    # select the content type
     cts = get_types(request)
     context['result_type'] = cts[0]
     ct_key = request.REQUEST.get('result_type', context['result_type'].key)
@@ -669,7 +669,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     context['cols'] = ct.get_columns()
     
-    # add the results to the template 
+    # add the results to the template
     context['result'] = list(records)
     
     context['current_page'] = ct.get_current_page()
@@ -719,7 +719,7 @@ def create_index_schema(ct):
     for field in ct.fields:
         if ct.is_field_indexable(field):
             for suffix, whoosh_type in get_whoosh_field_types(field).iteritems():
-                fields[field['key']+suffix] = whoosh_type
+                fields[field['key'] + suffix] = whoosh_type
         
     print '\t' + ', '.join(key for key in fields.keys())
     
@@ -730,7 +730,7 @@ def create_index_schema(ct):
     from whoosh.fields import Schema
     from digipal.utils import recreate_whoosh_index
     ret = recreate_whoosh_index(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted'), ct.key, Schema(**fields))
-    return ret        
+    return ret
 
 def get_whoosh_field_types(field):
     ret = {}
@@ -760,7 +760,7 @@ def get_whoosh_field_type(field, sortable=False):
     # see JIRA 165
     
     from whoosh.fields import TEXT, ID, NUMERIC, BOOLEAN
-    # TODO: shall we use stop words? e.g. 'A and B' won't work? 
+    # TODO: shall we use stop words? e.g. 'A and B' won't work?
     from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
     from whoosh.support.charset import accent_map
     # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
@@ -801,7 +801,7 @@ def populate_index(ct, index):
     
     print '\tretrieve all records'
     from whoosh.writing import BufferedWriter
-    #writer = BufferedWriter(index, period=None, limit=20)
+    # writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
     writer = index.writer()
     
@@ -810,13 +810,13 @@ def populate_index(ct, index):
     i = 0
     max = 40
     commit_size = 1000000
-    print '\t['+(max*' ')+']'
+    print '\t[' + (max * ' ') + ']'
     import sys
     sys.stdout.write('\t ')
     
     from digipal.templatetags.hand_filters import chrono
     
-    #settings.DEV_SERVER = True
+    # settings.DEV_SERVER = True
     chrono('scan+index:')
     chrono('iterator:')
     
@@ -825,14 +825,14 @@ def populate_index(ct, index):
     for record in rcs.iterator():
         if record_condition and not record_condition(record):
             continue
-    #for record in rcs:
+    # for record in rcs:
         if (i % commit_size) == 0:
             # we have to commit every x document otherwise the memory saturates on the VM
-            # BufferedWriter is buggy and will crash after a few 100x docs 
+            # BufferedWriter is buggy and will crash after a few 100x docs
             if writer:
                 writer.commit(optimize=True)
-            # we have to recreate after commit because commit unlock index 
-            writer = index.writer()            
+            # we have to recreate after commit because commit unlock index
+            writer = index.writer()
         if i == 0:
             chrono(':iterator')
             chrono('index:')

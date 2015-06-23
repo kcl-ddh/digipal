@@ -103,7 +103,7 @@ def get_requested_itempart(request):
             item_part = ItemPart(current_item=current_item, locus=new_locus)
             item_part.save()
             # create a new default hand for that part
-            hand = Hand(item_part=item_part, num=1, label='Default Hand')
+            hand = Hand(item_part=item_part, num=1, label=Hand.get_default_label())
             hand.save()
     
     return item_part
@@ -277,7 +277,7 @@ def image_bulk_edit(request, url=None):
                 if str(request.POST.get('hand_set', '0')) == '1':
                     if handid == '-2':
                         if folio.item_part:
-                            hand = Hand(item_part=folio.item_part, num=1, label='Default Hand')
+                            hand = Hand(item_part=folio.item_part, num=1, label=Hand.get_default_label())
                             hand.save()
                             handid = hand.id
                     if handid != '0':

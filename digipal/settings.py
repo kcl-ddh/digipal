@@ -384,6 +384,9 @@ SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
 # This appears in the advanced search page
 HAND_ID_PREFIX = 'DigiPal Hand '
 
+# Default name used for bulk creation of hands
+HAND_DEFAULT_LABEL = 'Default Hand'
+
 STATUS_CHOPPER = 'chopper'
 STATUS_DEFAULT = 'draft'
 STATUS = [STATUS_DEFAULT, STATUS_CHOPPER]

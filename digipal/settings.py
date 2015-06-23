@@ -455,6 +455,9 @@ SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
 # If False, goes to the advanced search page
 QUICK_SEARCH_TO_FACETS = True
 
+# If True the auto complete is enabled on the search page
+AUTOCOMPLETE_PUBLIC_USER = True
+
 # Haystack
 # HAYSTACK_CONNECTIONS = {
 #     'default': {

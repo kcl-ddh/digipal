@@ -70,7 +70,7 @@
                             <div class="panel-body">
                                 {% if facet.type == 'textbox' or facet.type == 'date' %}
                                     <div class="input-group">
-                                        <input type="text" class="form-control" value="{{ facet.value }}" name="{{facet.key}}"
+                                        <input type="text" class="form-control {{ facet.classes }}" value="{{ facet.value }}" name="{{facet.key}}" autocomplete="off"
                                             {% if facet.id %}id="{{ facet.id }}"{% endif %}
                                         >
                                         <span class="input-group-btn">

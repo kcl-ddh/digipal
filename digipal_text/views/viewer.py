@@ -110,7 +110,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not is_staff(request):
         if text_content_xml.is_private:
             if text_content_xml.content and len(text_content_xml.content) > 10:
-                return set_message(ret, '%s not yet available but please come back shortly' % content_type.capitalize())
+                return set_message(ret, 'The %s will be made available at a later stage of the project' % content_type)
             else:
                 return set_message(ret, '%s not found' % content_type.capitalize())
 

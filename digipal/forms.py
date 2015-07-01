@@ -153,6 +153,12 @@ class FilterManuscriptsImages(forms.Form):
         label='',
         widget=HiddenInput())
 
+def get_search_terms_classes():
+    ret = ''
+    from django.conf import settings
+    if getattr(settings, 'AUTOCOMPLETE_PUBLIC_USER', True):
+        ret = ' autocomplete '
+    return ret
 
 class SearchPageForm(forms.Form):
     """ Represents the input form on the search page """
@@ -179,7 +185,7 @@ class SearchPageForm(forms.Form):
         widget=TextInput(attrs={
             'id': 'search-terms',
             #'class':'textEntry form-control',
-            'class':'form-control',
+            'class':'form-control ' + get_search_terms_classes(),
             'placeholder': 'Enter search terms',
             #'required': 'required',
             "autocomplete":"off"})

@@ -2074,6 +2074,10 @@ class Hand(models.Model):
 
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
+        
+    @classmethod
+    def get_default_label(cls):
+        return getattr(settings, 'HAND_DEFAULT_LABEL', 'Default Hand')
 
     def get_search_label(self):
         return '%s%s' % (settings.HAND_ID_PREFIX , self.id)

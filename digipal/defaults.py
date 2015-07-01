@@ -10,7 +10,7 @@ register_setting(
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
         'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH',
-        'FOOTER_LOGO_LINE',
+        'FOOTER_LOGO_LINE'
     ),
     append=True,
 )

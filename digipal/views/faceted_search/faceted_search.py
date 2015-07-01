@@ -226,6 +226,9 @@ class FacetedModel(object):
         
         # a filter for search phrase
         phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'terms', 'value': request.GET.get('terms', ''), 'id': 'search-terms', 'removable_options': []}
+        if getattr(settings, 'AUTOCOMPLETE_PUBLIC_USER', True):
+            phrase_facet['classes'] = ' autocomplete '
+            
         if phrase_facet['value']:
             phrase_facet['removable_options'] = [{'label': phrase_facet['value'], 'key': phrase_facet['value'], 'count': '?', 'selected': True}]
         ret.append(phrase_facet)

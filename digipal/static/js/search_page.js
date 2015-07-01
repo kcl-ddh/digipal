@@ -40,15 +40,17 @@ function init_suggestions() {
     if (1) {
         $(function() {
             var cache = {};
-            $("#search-terms").autocomplete({
-              minLength: 1,
-              source: get_suggestions,
-            })
-            .data('autocomplete')._renderItem = function( ul, item ) {
-                //return $('<li style="white-space: normal;>'+item.label+'</li>').appendTo(ul);
-                return $('<li>').append($('<a>').html(item.label)).appendTo(ul);
-            };
-            
+            var $ac = $("#search-terms.autocomplete");
+            if ($ac.length) {
+                $ac.autocomplete({
+                  minLength: 1,
+                  source: get_suggestions,
+                })
+                .data('autocomplete')._renderItem = function( ul, item ) {
+                    //return $('<li style="white-space: normal;>'+item.label+'</li>').appendTo(ul);
+                    return $('<li>').append($('<a>').html(item.label)).appendTo(ul);
+                };
+            }
         });
     }
 

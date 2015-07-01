@@ -384,6 +384,9 @@ SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
 # This appears in the advanced search page
 HAND_ID_PREFIX = 'DigiPal Hand '
 
+# Default name used for bulk creation of hands
+HAND_DEFAULT_LABEL = 'Default Hand'
+
 STATUS_CHOPPER = 'chopper'
 STATUS_DEFAULT = 'draft'
 STATUS = [STATUS_DEFAULT, STATUS_CHOPPER]
@@ -452,7 +455,8 @@ SEARCH_INDEX_PATH = os.path.join(PROJECT_ROOT, 'search')
 # If False, goes to the advanced search page
 QUICK_SEARCH_TO_FACETS = True
 
-AUTOCOMPLETE_PUBLIC = True
+# If True the auto complete is enabled on the search page
+AUTOCOMPLETE_PUBLIC_USER = True
 
 # Haystack
 # HAYSTACK_CONNECTIONS = {

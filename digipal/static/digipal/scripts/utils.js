@@ -121,8 +121,8 @@
                 //      var scopes = 'https://www.googleapis.com/auth/plus.me';
                 //var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
                 //var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
-                var clientId = '263516768894-quol4bvq8159mvr9543f7l99e20g2l63.apps.googleusercontent.com';
-                var apiKey = 'AIzaSyBb6ZqeymC7YLwx4fVsqL2KAWz4x_dh-jk';
+                var clientId = '5476717076-8g5hi8hum8g48180bkbslf9u2ov3mnmj.apps.googleusercontent.com';
+                var apiKey = 'AIzaSyBPAzXEowbmq1oQbp65HIOBm_8ntfAFAaE';
                 var scopes = 'https://www.googleapis.com/auth/plus.me';
 
                 // TODO: Where does gapi come from?

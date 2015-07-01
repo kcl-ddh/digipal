@@ -1645,7 +1645,9 @@ class Image(models.Model):
         return self.get_media_permission().permission == MediaPermission.PERM_THUMB_ONLY
 
     def is_full_res_for_user(self, request):
-        ret = not self.is_private_for_user(request) and self.get_media_permission().permission == MediaPermission.PERM_PUBLIC
+        #ret = not self.is_private_for_user(request) and self.get_media_permission().permission == MediaPermission.PERM_PUBLIC
+        from digipal.utils import is_staff
+        ret = is_staff(request) or self.get_media_permission().permission == MediaPermission.PERM_PUBLIC
         return ret
 
     def is_private_for_user(self, request):
@@ -2213,7 +2215,7 @@ class HandDescription(models.Model):
             if hand.label:
                 hands[hand.label.lower()] = hand.get_absolute_url()
 
-        #print hands
+        ##print hands
 
         def replace_references(content, apattern, labels, content_type):
             pattern = re.compile(apattern)
@@ -2251,7 +2253,7 @@ class HandDescription(models.Model):
                         replacement = '<a href="%s">%s</a>' % (link, match.group(0))
                     elif editorial_view:
                         replacement = '<span class="locus-not-found" title="%s not found" data-toggle="tooltip">%s</span>' % (content_type, replacement)
-                        print replacement
+                        #print replacement
 
                 content = content[0:match.start(0)] + replacement + content[match.end(0):]
                 pos = match.start(0) + len(replacement)

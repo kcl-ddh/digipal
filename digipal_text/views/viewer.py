@@ -281,7 +281,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     # resolve 'default' location request
     location_type, location = resolve_default_location(location_type, location, ret)
-        
+    
     # find the image
     image = None
     if location:
@@ -314,7 +314,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # this may not be the same as the requested location
     # e.g. if the requested location is 'default' we resolve it
     ret['location_type'] = location_type
-    ret['location'] = location
+    ret['location'] = image.locus if image else location
     
     if image:
         #ret['content'] = iip_img(image, **options)

@@ -1,3 +1,11 @@
+Cannot see dorse image on the text editor:
+`   1. is_full_res_for_user(request) returns false despite beign logged in as staff
+        doesn't match the list of visible images returned by get_visible_images()
+    2. the return location is wrong, it should be updated when we get the first image with correct permissions
+        FIXED
+    3. the
+
+
 BANNER
     [DONE] less tall
     [DONE] fix sub title layout

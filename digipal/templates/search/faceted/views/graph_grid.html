@@ -3,12 +3,22 @@
 
 <div class="row">
     <div class="col-md-12">
-        {% for record in result %}
+        {% for graph in result %}
+
+            <span class="folio-image-wrapper">
+                <a data-checked='false'
+                    data-image-id='{{ graph.annotation.image.id }}'
+                    href="{{ graph.annotation.image.get_absolute_url }}?graph={{ graph.annotation.graph.id }}"
+                    data-type='annotation' data-graph="{{ graph.id }}" data-allograph='{{graph.idiograph.allograph.id}}'
+                    data-id='{{ graph.id }}' class='droppable_image graph_img'
+                    >
+                    {% annotation_img graph.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
+                </a>
+            </span>
             
-            <a href="{{ record.annotation.get_absolute_url }}">
-                {% annotation_img record.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
-            </a>
+            <!-- <a href="{{ record.annotation.get_absolute_url }}">
+            </a> -->
             
-        {% endfor %}       
+        {% endfor %}
     </div>
 </div>

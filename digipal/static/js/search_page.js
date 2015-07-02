@@ -306,6 +306,10 @@ function init_search_page(options) {
                         var v = $($focus_selector).val();
                         $($focus_selector).val('').val(v).focus();
                     }
+                    // enable the collection stars on the images
+                    if (window.collection_star) {
+                        window.collection_star.init();
+                    }
                 })
                 .fail(function(data) {
                     $("#search-ajax-fragment").stop().css({

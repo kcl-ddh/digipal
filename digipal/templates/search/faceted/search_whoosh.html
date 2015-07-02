@@ -9,12 +9,15 @@
 {% block main %}
 
     {% include "search/faceted/search_whoosh_fragment.html" %}
+
+    {% include "digipal/add_to_collection.html" %}
     
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super }}
     <script type="text/javascript">
-    	init_search_page({});
+        init_search_page({});
     </script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
 {% endblock %}

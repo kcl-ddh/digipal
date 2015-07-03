@@ -354,7 +354,7 @@ def remove_combining_marks(input_str):
     return u"".join([c for c in unicode(input_str) if not unicodedata.combining(c)])
 
 def write_file(file_path, content):
-    f = open(file_path, 'w')
+    f = open(file_path, 'wb')
     f.write(content.encode('utf8'))
     f.close()
 

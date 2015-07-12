@@ -1,10 +1,22 @@
+New version doc:
+    |
+    numbers:
+        lowercase
+        1 -> i
+        dots
+    q could become q[u]
+    point 8: m[od]o0
+    
+Point 5
+
+
 Cannot see dorse image on the text editor:
 `   1. is_full_res_for_user(request) returns false despite beign logged in as staff
         doesn't match the list of visible images returned by get_visible_images()
     2. the return location is wrong, it should be updated when we get the first image with correct permissions
         FIXED
     3. the
-
+    
 
 BANNER
     [DONE] less tall

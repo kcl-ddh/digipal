@@ -480,6 +480,7 @@ OPTIONAL_APPS = (
         PACKAGE_NAME_FILEBROWSER,
         PACKAGE_NAME_GRAPPELLI,
         'lightbox',
+        'djiwb',
         )
 
 DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}

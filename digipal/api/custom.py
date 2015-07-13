@@ -17,9 +17,13 @@ class APICustom(object):
         meta = record.__class__._meta
         for field_name in meta.get_all_field_names():
             field = meta.get_field_by_name(field_name)[0]
-            get_accessor_name = getattr(field, 'get_accessor_name', None)
-            if get_accessor_name:
-                field_name = get_accessor_name()
+            
+            # field_name may not be a property of the record
+            # if it is a related object manager
+            if not hasattr(record, field_name):
+                get_accessor_name = getattr(field, 'get_accessor_name', None)
+                if get_accessor_name:
+                    field_name = get_accessor_name()
 
             #value = request.REQUEST.get(field_name, QueryDict(request.body).get(field_name, None))
             value = get_param_value_from_request(request, field_name)
@@ -67,7 +71,8 @@ class APICustom(object):
                 else:
                     # RelatedObject for another model with a FK to this model (e.g. graph.graph_components)
                     # RelatedObject for another model with a FK to this model (e.g. graph.aspects)
-                    if field_type_name in ['RelatedObject', 'ManyToManyField']:
+                    # GenericRelatedObjectManager (e.g. image.keywords)
+                    if field_type_name in ['RelatedObject', 'ManyToManyField', 'GenericRelatedObjectManager']:
                         if value is None:
                             # case where a graph has no annotation
                             ret[field_name_id] = None

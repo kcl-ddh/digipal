@@ -65,6 +65,19 @@
                                         ({{ facet.options|length }})
                                     {% endif %}
                                 {% comment %}</a>{% endcomment %}
+                                {% if facet.options.5 and not facet.expanded_always %}
+                                    <span class="facet-xp-icon pull-right">
+                                        {% if facet.expanded == 1 %}
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}">
+                                                <span class="fa fa-chevron-down"></span>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}">
+                                                <span class="fa fa-chevron-left"></span>
+                                            </a>
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
                             </h4>
                         </div>
                         <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">

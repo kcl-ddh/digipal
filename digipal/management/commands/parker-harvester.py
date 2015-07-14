@@ -140,7 +140,7 @@ class Command(BaseCommand):
             request = urllib2.Request(url_json_file)
             json_file = urllib2.urlopen(request).read()
             json_object = json.loads(json_file.replace('\'', '"'))
-        except:
+        except Exception, e:
             print 'ERROR:'
             print 'Tried to Download %s' % (url_json_file)
         # list for storing final manuscripts array
@@ -151,7 +151,8 @@ class Command(BaseCommand):
                 obj = {}
                 obj['manuscript'] = json_object[manuscript]
                 index = manuscript.find('Parker')
-                url = manuscript[0: index] + 'data/manifests/' + manuscript[index: len(manuscript)]
+                #url = manuscript[0: index] + 'data/manifests/' + manuscript[index: len(manuscript)]
+                url = manuscript[0: index] + manuscript[index: len(manuscript)]
                 obj['url'] = url
                 list_manuscripts.append(obj)
 
@@ -203,7 +204,8 @@ class Command(BaseCommand):
 
                             if self.command == "download":
                                 self.download(url, canvas['label'], manuscript['manuscript'])
-                                time.sleep(12)
+                                #time.sleep(12)
+                                time.sleep(1)
         return output
 
     def download(self, url, file_name, folder_name):
@@ -232,9 +234,9 @@ class Command(BaseCommand):
                 image_file.write(image_data)
                 image_file.close()
 
-            except:
-                print 'ERROR:'
-                print 'Tried to Download %s, %s' % (folder_name, file_name)
+            except Exception, e:
+                print 'ERROR: %s' % e
+                print 'Tried to Download %s, %s (%s)' % (folder_name, file_name, url)
 
         else:
             return False

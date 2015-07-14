@@ -55,7 +55,10 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     if is_webpage:
         return render_to_response('digipal/api/webpage.html', {'api_response': mark_safe(data)}, context_instance=RequestContext(request))
 
-    return HttpResponse(data, mimetype=mimetype)
+    # Access-Control-Allow-Origin: *
+    ret = HttpResponse(data, mimetype=mimetype)
+    ret['Access-Control-Allow-Origin'] = '*'
+    return ret
 
 
 def get_old_api_request(request, content_type, ids=None, only_features=False):
@@ -204,7 +207,7 @@ def image(request, image_id):
     
     # 404 if image is private and user not staff
     if image.is_private_for_user(request):
-        raise_404('''This Image is private''') 
+        raise_404('''This Image is private''')
         
     is_admin = has_edit_permission(request, Image)
 
@@ -266,7 +269,7 @@ def image(request, image_id):
     images = Image.sort_query_set_by_locus(images, True)
 
     context = {
-               'form': form.as_ul(), 'dimensions': dimensions, 
+               'form': form.as_ul(), 'dimensions': dimensions,
                'images': images,
                'image': image, 'height': height, 'width': width,
                'image_server_url': image_server_url, 'hands_list': hands_list,
@@ -307,19 +310,19 @@ def get_allograph(request, graph_id):
 #     # contained in another will be created later and therefore remain on top.
 #     # Otherwise nested graphs may not be selectable because they are covered
 #     # by their parent.
-# 
+#
 #     annotation_list = list(Annotation.objects.filter(image=image_id))
 #     annotation_list = sorted(annotation_list, key=lambda a: a.get_coordinates()[0][0])
-# 
+#
 #     data = SortedDict()
-# 
+#
 #     for a in annotation_list:
 #         # TODO: suspicious call to eval. Should call json.loads() instead - GN
 #         if a.graph:
 #             data[a.graph.id] = ast.literal_eval(a.geo_json.strip())
 #         else:
 #             data[a.id] = ast.literal_eval(a.geo_json.strip())
-# 
+#
 #     if request:
 #         return HttpResponse(json.dumps(data), mimetype='application/json')
 #     else:
@@ -334,24 +337,24 @@ def get_vector(request, image_id, graph):
 
 # def image_annotations(request, image_id, annotations_page=True, hand=False):
 #     """Returns a JSON of all the annotations for the requested image."""
-#     
+#
 #     can_edit = has_edit_permission(request, Annotation)
-# 
+#
 #     if annotations_page:
 #         annotation_list_with_graph = Annotation.objects.filter(image=image_id).with_graph().select_related('image', 'graph')
 #     else:
 #         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph().select_related('image', 'graph')
 #     annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
-# 
+#
 #     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
 #     if not can_edit:
 #         editorial_annotations = editorial_annotations.editorial().publicly_visible()
 #     editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
-# 
+#
 #     vectors = json.loads(image_vectors(False, image_id))
-# 
+#
 #     #annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit).order_by('').distinct()
-# 
+#
 #     data = {}
 #     hands = []
 #     for a in annotation_list_with_graph:
@@ -369,32 +372,32 @@ def get_vector(request, image_id, graph):
 #         data[a.id]['features'] = features_list
 #         if unicode(a.graph.id) in vectors:
 #             data[a.id]['geo_json'] = vectors[unicode(a.graph.id)]['geometry']
-# 
+#
 #         data[a.id]['hidden_allograph'] = '%d::%s' % (a.graph.idiograph.allograph.id,
 #         a.graph.idiograph.allograph.name)
-# 
+#
 #         data[a.id]['feature'] = '%s' % (a.graph.idiograph.allograph)
 #         data[a.id]['graph'] = '%s' % (a.graph.id)
 #         hand = a.graph.hand.label
 #         hands.append(a.graph.hand.id)
-# 
+#
 #         data[a.id]['display_note'] = a.display_note
 #         data[a.id]['internal_note'] = a.internal_note
-# 
+#
 #         gc_list = GraphComponent.objects.filter(graph=a.graph)
-# 
+#
 #         if gc_list:
 #             data[a.id]['features'] = []
-# 
+#
 #             for gc in gc_list:
 #                 for f in gc.features.all():
 #                     data[a.id]['features'].append('%d::%d' % (gc.component.id,
 #                         f.id))
-# 
+#
 #         """
 #         if a.before:
 #             data[a.id]['before'] = '%d::%s' % (a.before.id, a.before.name)
-# 
+#
 #         if a.after:
 #             data[a.id]['after'] = '%d::%s' % (a.after.id, a.after.name)
 #         """
@@ -408,7 +411,7 @@ def get_vector(request, image_id, graph):
 #         data[e.id]['vector_id'] = e.vector_id
 #         data[e.id]['id'] = unicode(e.id)
 #         data[e.id]['is_editorial'] = True
-# 
+#
 #     if annotations_page:
 #         return HttpResponse(json.dumps(data), mimetype='application/json')
 #     else:

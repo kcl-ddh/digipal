@@ -236,7 +236,7 @@ class FacetedModel(object):
         # a filter for the content types
         if self.faceted_model_group and len(self.faceted_model_group) > 1:
             # ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
-            ct_facet = {'label': 'Result Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': []}
+            ct_facet = {'label': 'Result Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': [], 'expanded_always': True}
             for faceted_model in self.faceted_model_group:
                 selected = faceted_model.key == ct_facet['value']
                 option = {'label': faceted_model.label_plural, 'key': faceted_model.key, 'count': '', 'selected': selected}

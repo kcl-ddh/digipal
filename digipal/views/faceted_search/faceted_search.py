@@ -106,6 +106,13 @@ class FacetedModel(object):
                 
         return ret
     
+    def get_sort_info(self, request):
+        key = request.REQUEST.get('sort', '')
+        reverse = key.startswith('-')
+        if reverse:
+            key = key[1:]
+        return key, reverse
+
     def get_model_from_field(self, field):
         ret = self.model
         parts = field['path'].split('.')
@@ -364,7 +371,7 @@ class FacetedModel(object):
         
         return mark_safe(ret)
 
-    def get_columns(self):
+    def get_columns(self, request):
         ret = []
         keys = self.get_option('column_order', None)
         if keys is None:
@@ -388,7 +395,8 @@ class FacetedModel(object):
     
     def get_whoosh_sortedby(self, request):
         from whoosh import sorting
-        return [sorting.FieldFacet(field, reverse=False) for field in self.get_sorted_fields_from_request(request, True)]
+        key, reverse = self.get_sort_info(request)
+        return [sorting.FieldFacet(field, reverse=reverse) for field in self.get_sorted_fields_from_request(request, True)]
     
     def get_sorted_fields_from_request(self, request, whoosh_fields=False):
         '''Returns a list of field keys to sort by.
@@ -670,8 +678,10 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # add the search parameters to the template
     context['facets'] = ct.get_facets(request)
     
-    context['cols'] = ct.get_columns()
+    context['cols'] = ct.get_columns(request)
     
+    context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
+        
     # add the results to the template
     context['result'] = list(records)
     

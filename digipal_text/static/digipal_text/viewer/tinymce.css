@@ -289,7 +289,9 @@ span[data-dpt] > span[data-dpt] {
     content: "Character";
 }
 
+/* -------------------------------------------------------------------------*/
 /* TEI */
+/* -------------------------------------------------------------------------*/
 /* For DigiPal Project Hand descriptions */
 
 .mce-content-body span[data-dpt=foreign]:before {
@@ -316,7 +318,40 @@ span[data-dpt] > span[data-dpt] {
     content: "HI:SC";
 }
 
+/* -------------------------------------------------------------------------*/
 /* TEI - EXON */
+/* -------------------------------------------------------------------------*/
+
+.mce-content-body span[data-dpt=abbr]:before {
+    content: "Ab";
+    background: none;
+}
+.mce-content-body span[data-dpt=exp]:before {
+    content: "Ex";
+    background: none;
+}
+.preview.mce-content-body span[data-dpt=abbr], .preview.mce-content-body span[data-dpt=exp] {
+    background: none;
+}
+
+.preview.mce-content-body span[data-dpt=abbr]:before{
+    content: "";
+    background: none;
+}
+.preview.mce-content-body span[data-dpt=exp]:before{
+    content: "";
+    background: none;
+}
+
+.abbreviated.mce-content-body span[data-dpt=exp] {
+    display: none;
+}
+.mce-content-body span[data-dpt=abbr] {
+    display: none;
+}
+.abbreviated.mce-content-body span[data-dpt=abbr] {
+    display: inline;
+}
 
 .preview.mce-content-body span[data-dpt=hi]:after {
     content: "";
@@ -356,7 +391,9 @@ span[data-dpt] > span[data-dpt] {
     background: paleyellow;
 }
 
+/* -------------------------------------------------------------------------*/
 /* Codicology */
+/* -------------------------------------------------------------------------*/
 
 .mce-content-body span[data-dpt=codesc]:before {
     font-size: 70%;

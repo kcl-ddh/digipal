@@ -22,9 +22,9 @@ def natural_sort_key(s, roman_numbers=False):
         
         If roman_numbers is True, roman numbers will be converted to ints.
         Note that there is no fool-proof was to detect roman numerals
-        e.g. MS A; MS B; MS C. In this case C is a letter and not 500. 
+        e.g. MS A; MS B; MS C. In this case C is a letter and not 500.
             MS A.ix In this case ix is a number
-        So as a heuristic we only consider roman number if preceded by '.'  
+        So as a heuristic we only consider roman number if preceded by '.'
     '''
     
     if roman_numbers:
@@ -41,7 +41,7 @@ def natural_sort_key(s, roman_numbers=False):
 
 def plural(value, count=2):
     '''
-    Usage: 
+    Usage:
             {{ var|plural }}
             {{ var|plural:count }}
             
@@ -73,9 +73,9 @@ def plural(value, count=2):
         if ret in ['of']: return ret
         if count != 1:
             if ret in ['a', 'an']: return ''
-            if ret[-1:] == 'y': 
+            if ret[-1:] == 'y':
                 ret = ret[:-1] + 'ie'
-            if ret[-2:] == 'ss': 
+            if ret[-2:] == 'ss':
                 ret = ret + 'e'
             if not ret[-1:] == 's':
                 ret = ret + 's'
@@ -114,7 +114,7 @@ def update_query_string(url, updates, url_wins=False):
     parts = [p for p in urlparse(url)]
     # note that parse_qs converts u'terms=%C3%86thelstan' into u'\xc3\x86thelstan'
     # See http://stackoverflow.com/questions/16614695/python-urlparse-parse-qs-unicode-url
-    # for the reaon behind the call to encode('ASCII') 
+    # for the reaon behind the call to encode('ASCII')
     query_dict = parse_qs(parts[4].encode('ASCII'))
     if url_wins:
         updates_dict.update(query_dict)
@@ -122,11 +122,11 @@ def update_query_string(url, updates, url_wins=False):
     else:
         query_dict.update(updates_dict)
     
-    # Now query_dict is our updated query string as a dictionary 
+    # Now query_dict is our updated query string as a dictionary
     # Parse and unparse it again to remove the empty values
     query_dict = parse_qs(urlencode(query_dict, True))
     
-    # Convert back into a string    
+    # Convert back into a string
     parts[4] = urlencode(query_dict, True)
     
     # Place the query string back into the URL
@@ -138,7 +138,7 @@ def update_query_string(url, updates, url_wins=False):
         ret = '?'
         
     # We mark this safe so django template renderer won't try to escape it a second time
-    # This would generate something like this in the html output: '?k1=v1&amp;amp;k2=v'  
+    # This would generate something like this in the html output: '?k1=v1&amp;amp;k2=v'
     from django.utils.safestring import mark_safe
     ret = mark_safe(ret)
     
@@ -170,7 +170,7 @@ def urlencode(dict, doseq=0):
 def get_json_response(data):
     '''Returns a HttpResponse with the given data variable encoded as json'''
     import json
-    from django.http import HttpResponse 
+    from django.http import HttpResponse
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
 def get_tokens_from_phrase(phrase, lowercase=False):
@@ -249,7 +249,7 @@ def find_first(pattern, text, default=''):
 
 def get_int_from_roman_number(input):
     """
-    From 
+    From
     http://code.activestate.com/recipes/81611-roman-numerals/
     
     Convert a roman numeral to an integer.
@@ -334,7 +334,7 @@ def get_str_from_queryset(queryset):
     return ret.encode('ascii', 'ignore')
 
 def remove_accents(input_str):
-    '''Returns the input string without accented character. 
+    '''Returns the input string without accented character.
         This is useful for accent-insensitive matching (e.g. autocomplete).
         >> remove_accents(u'c\u0327   \u00c7')
         u'c   c'
@@ -428,7 +428,7 @@ def get_int(obj, default=0):
 def get_int_from_request_var(request, var_name, default=0):
     obj = None
     if request:
-        obj = request.REQUEST.get(var_name, None) 
+        obj = request.REQUEST.get(var_name, None)
     return get_int(obj, default)
 
 MAX_DATE_RANGE = [-5000, 5000]
@@ -439,12 +439,12 @@ def is_max_date_range(rng):
 def get_midpoint_from_date_range(astr=None, arange=None):
     '''
     Returns a numeric date which is the midpoint of a date range expressed in astr
-    The midpoint is not always the average of the range, it is biased 
+    The midpoint is not always the average of the range, it is biased
     towards the date mentioned in the label.
     e.g. get_range_from_date('940x956') => 948
     e.g. get_range_from_date('Ca 1075') => 1075
     
-    Returns None for unknown date 
+    Returns None for unknown date
     '''
     ret = None
     
@@ -454,10 +454,10 @@ def get_midpoint_from_date_range(astr=None, arange=None):
     if is_max_date_range(arange):
         return ret
     
-    # by default we take the middle point 
+    # by default we take the middle point
     ret = (arange[1] + arange[0]) / 2
 
-    if astr:    
+    if astr:
         # try harder... if we have a single date in the input we pick that one
         # Ca. 1090 => 1090
         patterns = [ur'(?i)^(?:c|ca)\.? (\d+)$']
@@ -473,7 +473,7 @@ def get_range_from_date(str):
     '''
     Returns a range of numeric dates from a string expression
     e.g. get_range_from_date('940x956') => [940, 956]
-    e.g. get_range_from_date('Ca 1075') => [1070, 1080] 
+    e.g. get_range_from_date('Ca 1075') => [1070, 1080]
     '''
     ret = MAX_DATE_RANGE[:]
     
@@ -540,7 +540,7 @@ def get_range_from_date(str):
     m = re.match(ur'(?iu)ca\.?\s?(\d+)$', str)
     if m:
         n = int(m.group(1))
-        str = 'Ca %sx%s' % (n-5, n+5)    
+        str = 'Ca %sx%s' % (n-5, n+5)
     
     # 1066x1087 => [1066, 1087]
     # Ca 820x840 => [820, 840]
@@ -556,7 +556,7 @@ def get_range_from_date(str):
             # Ca 1002x1023 [ 1000.0,  1025.0]
             ret[0] = ret[0] - (ret[0] % 5)
             if ret[1] % 5:
-                ret[1] = ret[1] - (ret[1] % 5) + 5                        
+                ret[1] = ret[1] - (ret[1] % 5) + 5
     #107    1080s    1080.0    1085.0    1090.0
     m = re.match(ur'(?iu)(\d+0)s$', str)
     if m:
@@ -573,7 +573,7 @@ def get_range_from_date(str):
         if m2:
             dur = 100.0 / int(m2.group(2))
             ret[1] = ret[0] + (int(m2.group(1)) * dur)
-            ret[0] = ret[1] - dur            
+            ret[0] = ret[1] - dur
     
         # in./med./ex.
         # digipal_date is not consistent for "ex."
@@ -581,7 +581,7 @@ def get_range_from_date(str):
         #139    Saec. viii ex.    780.0    790.0    800.0
         #137    Saec. vii ex.    670.0    690.0    700.0
         # => take last 30 years
-        ex_duration = 30    
+        ex_duration = 30
         if mod == 'ex.':
             ret[0] = ret[1] - ex_duration
         if mod == 'in.':
@@ -591,9 +591,9 @@ def get_range_from_date(str):
             ret[0] = ret[0] + 33
         
         # Saec. xi1 => 1000, 1050
-        if mod == '1':            
+        if mod == '1':
             ret[1] = ret[0] + 50
-        if mod == '2':            
+        if mod == '2':
             ret[0] = ret[0] + 50
 
         #Saec. x/xi [  980.0,  1020.0]
@@ -641,7 +641,7 @@ def get_all_files_under(root, file_types='fd', filters=[], extensions=[], direct
 
 def get_cms_page_from_title(title):
     from mezzanine.pages.models import Page as MPage
-    from django.utils.text import slugify 
+    from django.utils.text import slugify
     for page in MPage.objects.filter(slug__iendswith=slugify(unicode(title))):
         return page
     return None
@@ -674,7 +674,7 @@ def read_file(filepath):
 def get_dict_from_string(string, sep=',', keep_blanks=False):
     '''Return an array of string
         If the input is already an array, return it as is
-        If the input is a string, split it around the commas 
+        If the input is a string, split it around the commas
     '''
     ret = []
     if string:
@@ -728,7 +728,7 @@ def add_keywords(obj, keywords='', remove=False):
         # assign them to the object
         from mezzanine.generic.fields import KeywordsField
         for field in [f for f in obj._meta.virtual_fields if f.__class__ == KeywordsField]:
-            field.save_form_data(obj, u','.join([unicode(kw.id) for kw in existing_keywords.values()])) 
+            field.save_form_data(obj, u','.join([unicode(kw.id) for kw in existing_keywords.values()]))
 
     return ret
 
@@ -886,10 +886,12 @@ def convert_xml_to_html(xml):
     
     return ret
     
-def re_sub_fct(content, apattern, fct):
+def re_sub_fct(content, apattern, fct, are=None):
     # Replace every occurrence of apattern in content with fct(match)
-    # Return the resulting content  
-    pattern = re.compile(apattern)
+    # Return the resulting content
+    if not are:
+        are = re
+    pattern = are.compile(apattern)
     pos = 0
     while True:
         match = pattern.search(content, pos)

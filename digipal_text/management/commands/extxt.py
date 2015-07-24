@@ -21,6 +21,9 @@ Commands:
     pattern PATH_TO_XHTML PATTERN
         Test a regexp pattern on a XHTML file
 
+    upload PATH_TO_XHTML CONTENTID
+        Import XHTML file
+
 """
     
     args = 'locus|email'
@@ -60,6 +63,10 @@ Commands:
             known_command = True
             self.pattern()
         
+        if command == 'upload':
+            known_command = True
+            self.upload()
+        
         if known_command:
             print 'done'
             pass
@@ -89,7 +96,7 @@ Commands:
         input_path = self.cargs[0]
         pattern = self.cargs[1]
         
-        from digipal.utils import write_file, read_file
+        from digipal.utils import read_file
         
         content = read_file(input_path)
 
@@ -98,6 +105,67 @@ Commands:
         
         print
         
+    def upload(self):
+        input_path = self.cargs[0]
+        recordid = self.cargs[1]
+        
+        from digipal.utils import read_file
+        content = read_file(input_path)
+        
+        # extract body
+        content = re.sub(ur'(?musi)<body*?>(.*)</body>', ur'<p>\1</p>', content)
+        
+        # line breaks from MS
+        content = re.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
+
+        # line breaks from editor
+        content = re.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
+
+        # [fol. 1. b.] or [fol. 1.]
+        # TODO: check for false pos. or make the rule more strict
+        content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
+
+        # [1a3]
+        # TODO: check for false pos. or make the rule more strict
+        content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+
+        # abbreviation
+        # Eduuard<sup>9</sup>[us] => <span data-dpt="abbr">Eduuard9</span><span data-dpt="exp">Eduuardus</span>
+        # m[od]o<sup>o</sup> => <span data-dpt="abbr">m<sup>o</sup></span><span data-dpt="exp">modo</span>
+        # TODO: check for false pos. or make the rule more strict
+        #content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+
+        self.c = 0
+
+        import regex
+
+        def markup_expansions(match):
+            m = match.group(0)
+            if '[' not in m: return m
+            self.c += 1
+            #if self.c > 100: exit()
+            abbr = regex.sub(ur'\[.*?\]', ur'', m)
+            exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', m)
+            ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
+            #print repr(m), repr(ret)
+            return ret
+        
+        from digipal.utils import re_sub_fct
+        
+        content = re_sub_fct(content, ur'(?musi)([\w<>/\[\]]+)', markup_expansions, regex)
+        
+        # sup
+        content = re.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
+
+        # sub
+        content = re.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
+        content = re.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+
+        # import
+        from digipal_text.models import TextContentXML
+        text_content_xml = TextContentXML.objects.get(id=recordid)
+        text_content_xml.content = content
+        text_content_xml.save()
 
     def word_preprocess(self):
         input_path = self.cargs[0]

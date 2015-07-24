@@ -11,7 +11,7 @@ from django.utils.datastructures import SortedDict
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
 
-MAX_FRAGMENT_SIZE = 20000
+MAX_FRAGMENT_SIZE = 50000
 
 def text_viewer_view(request, item_partid=0):
     

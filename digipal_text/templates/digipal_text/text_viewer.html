@@ -16,7 +16,8 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/tinymce/skins/digipal/skin.min.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
     {# We need this for the readonly version although tinymce may also load it a second time for its iframe #}
-    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce.css?v={% now "U:u" %}"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
 {% endblock %}
 
@@ -54,6 +55,10 @@
                 <option value="1r">1r</option>
                 <option value="1v">1v</option>
             </select>
+        </div>
+        
+        <div class="btn-group dphidden">
+            <div class="presentation-options"></div>
         </div>
         
         {% if request.user.is_authenticated %}
@@ -99,6 +104,7 @@
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>
+    <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
             var panelset = new TextViewer.PanelSet($('#text-viewer'));

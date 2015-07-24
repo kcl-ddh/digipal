@@ -1,3 +1,21 @@
+1. convert MS Word into XHTML
+    1.1 Used MSWord 360 to save as html page (NOT single page) with utf8 encoding
+    1.2 convert to XML/TEI
+        pm dpxml convert exon\source\rekeyed\word\july\sample.htm exon\source\rekeyed\conversion\whtml2xml.xslt > exon\source\rekeyed\word\july\sample.xml
+    1.3 use existing XSLT to convert to XHTML
+2. import into DB
+3. rendering
+4. abbreviated rendering
+5. save layout and @s into URL
+6. load ... from URL
+
+
+
+Upper Left Triangle
+Geometric Shapes
+U+25F8 &#9720;
+
+
 http://www.tei-c.org/release/doc/tei-p5-doc/en/html/MS.html
 
 Codicology
@@ -8,7 +26,7 @@ Codicology
         ?*ink/pencil
         hand
         (@type borrowed from dimension but dimension content is strictly a dim value)
-        coddesc 
+        coddesc
             object="perforation" property="count"
             object="perforation" property="shape"
             object="perforation" property="location"

@@ -195,6 +195,7 @@
         this.$statusBar = this.$root.find('.status-bar');
         
         this.$statusSelect = this.$root.find('select[name=status]');
+        this.$presentationOptions = this.$root.find('.presentation-options');
         
         this.$toggleEdit = this.$root.find('.toggle-edit');
         
@@ -284,6 +285,10 @@
                     '@select': 'id'
                 });
             });
+            
+            this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
+                me.applyPresentationOptions();
+            });
 
             this.$locationSelect.on('change', function() {
                 me.loadContent();
@@ -299,6 +304,7 @@
                 this.loadContent(false, this.getContentAddress(locationType, location));
             }
         };
+        
         
         /*
          * Loading and saving
@@ -398,6 +404,19 @@
             }
             // hide (chosen) select if no status supplied
             this.$statusSelect.closest('.dphidden').toggle(!!contentStatus);
+        };
+        
+        this.setPresentationOptions = function(presentationOptions) {
+            if (presentationOptions) {
+                //var myData = [{id: 1, label: "Test" }];
+                var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
+                this.$presentationOptions.dropdownCheckbox({
+                    data: options,
+                    title: "Display"
+                });
+            }
+            // hide (chosen) select if no status supplied
+            this.$presentationOptions.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
         };
         
         // Address / Locations
@@ -537,6 +556,10 @@
         // update the status
         this.setStatusSelect(data.content_status);
         
+        // update presentation options
+        this.setPresentationOptions(data.presentation_options);
+        this.applyPresentationOptions();
+        
         // send signal to other panels so they can sync themselves
         this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
     };
@@ -553,6 +576,13 @@
         //if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
         var constructor = TextViewer['Panel'+panelType+(write ? 'Write': '')] || TextViewer['PanelText'+(write ? 'Write': '')];
         return new constructor($(selector), contentType);
+    };
+
+    Panel.prototype.applyPresentationOptions = function() {
+        var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function(v) { return v.id; }).join(' ');
+        this.$content.removeClass(classes);
+        classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+        this.$content.addClass(classes);
     };
     
     //////////////////////////////////////////////////////////////////////

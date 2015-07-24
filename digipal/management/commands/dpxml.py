@@ -8,7 +8,7 @@ import subprocess
 import re
 from optparse import make_option
 import utils
-from digipal import utils as dputils  
+from digipal import utils as dputils
 from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
 from digipal.models import Text
 from digipal.models import HistoricalItem, ItemPart
@@ -27,7 +27,9 @@ Commands:
   
   stats PATH_TO_XML
   
-    """
+  html2xml PATH_TO_HTML
+  
+"""
     
     args = 'backup|restore|list|tables|fixseq|tidyup1|checkdata1|pseudo_items|duplicate_ips'
     #help = 'Manage the Digipal database'
@@ -59,6 +61,10 @@ Commands:
             if command == 'stats':
                 known_command = True
                 self.stats()
+                
+            if command == 'html2xml':
+                known_command = True
+                self.html2xml()
             
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
@@ -71,22 +77,22 @@ Commands:
         xml_string = utils.readFile(xml_path)
         
         print 'Count - Tag'
-        print 
+        print
         
         elements = re.findall(ur'<(\w+)', xml_string)
         for el in set(elements):
             print '%8d %s' % (elements.count(el), el)
             
-        print 
+        print
         print 'Unique tag-attributes'
-        print 
+        print
         els = {}
         elements = re.findall(ur'<([^>]+)>', xml_string)
         for el in elements:
             el = el.strip()
             if el[0] not in ['/', '?', '!']:
                 els[el] = 1
-        for el in els:
+        for el in sorted(els):
             print el
         
     def val(self):
@@ -109,7 +115,7 @@ Commands:
                 dtd = ET.DTD(open(val_path, 'rb'))
                 valid = dtd.validate(dom)
 
-                if not valid:                
+                if not valid:
                     for error in dtd.error_log.filter_from_errors():
                         print error
             
@@ -124,6 +130,7 @@ Commands:
         xslt_path = self.cargs[2]
         
         xml_string = utils.readFile(xml_path)
+        xml_string = re.sub(ur'\bxmlns=', ur'xmlns2=', xml_string)
         xslt_string = utils.readFile(xslt_path)
         
         ret = dputils.get_xslt_transform(xml_string, xslt_string)
@@ -132,5 +139,26 @@ Commands:
             
         return ret
 
+    def html2xml(self):
+        if len(self.cargs) < 2:
+            raise CommandError('Convert requires 1 arguments')
+        
+        html_path = self.cargs[1]
+        
+        html_string = utils.readFile(html_path)
+        
+        import re
+        
+        html_string = re.sub(ur'.*(?musi)(<body.*/body>).*', ur'\1', html_string)
+        
+        from BeautifulSoup import BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
+        ret = soup.prettify()
+        
+        print ret
+        
+        #print str(ret)
+            
+        return ret
         
         

@@ -65,6 +65,19 @@
                                         ({{ facet.options|length }})
                                     {% endif %}
                                 {% comment %}</a>{% endcomment %}
+                                {% if facet.options.5 and not facet.expanded_always %}
+                                    <span class="facet-xp-icon pull-right">
+                                        {% if facet.expanded == 1 %}
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}">
+                                                <span class="fa fa-chevron-down"></span>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}">
+                                                <span class="fa fa-chevron-left"></span>
+                                            </a>
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
                             </h4>
                         </div>
                         <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
@@ -102,15 +115,8 @@
                                                     Count</a></th>
                                             </tr>
                                         {% endif %}
-                                        {% if facet.options.5 %}
-                                            <tr><td colspan="2">
-                                            {% if facet.expanded == 1 %}
-                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small">Show less</a>
-                                            {% endif %}
-                                            </td></tr>
-                                        {% endif %}
                                         {% for option in facet.options %}
-                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected %}
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded_always %}
                                                 <tr
                                                     {% if option.selected %}class="active"{% endif %}
                                                     >
@@ -126,11 +132,12 @@
                                                 </tr>
                                             {% endif %}
                                         {% endfor %}
-                                        {% if facet.options.5 %}
+                                        {% if facet.options.5 and not facet.expanded_always %}
                                             <tr><td colspan="2">
                                                 {% if facet.expanded == 1 %}
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet">Show less</a>
                                                 {% else %}
-                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small">Show more...</a>
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?@xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small btn-expand-facet">Show more...</a>
                                                 {% endif %}
                                             </td></tr>
                                         {% endif %}

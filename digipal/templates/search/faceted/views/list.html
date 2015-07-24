@@ -5,8 +5,15 @@
         {% for col in cols %}
             <th>
                 {% if col.sortable %}
-                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={{ col.key }}{% endfilter %}">
+                    {% if col.key == sort_key and not sort_reverse %}
+                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?sort=-{{ col.key }}{% endfilter %}">
+                    {% else %}
+                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={{ col.key }}{% endfilter %}">
+                    {% endif %}
                 {% endif %}
+                        {% if col.key == sort_key %}
+                            <span class="pull-left glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
+                        {% endif %}
                         {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
                 {% if col.sortable %}
                     </a>
@@ -29,4 +36,4 @@
             {% endfor %}
         </tr>
     {% endfor %}
-</table> 
+</table>

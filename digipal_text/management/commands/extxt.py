@@ -144,15 +144,21 @@ Commands:
             if '[' not in m: return m
             self.c += 1
             #if self.c > 100: exit()
+            
             abbr = regex.sub(ur'\[.*?\]', ur'', m)
+            
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', m)
+            exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
+            
             ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
+            
             #print repr(m), repr(ret)
+            
             return ret
         
         from digipal.utils import re_sub_fct
         
-        content = re_sub_fct(content, ur'(?musi)([\w<>/\[\]]+)', markup_expansions, regex)
+        content = re_sub_fct(content, ur'(?musi)(\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
         
         # sup
         content = re.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
@@ -165,6 +171,9 @@ Commands:
         from digipal_text.models import TextContentXML
         text_content_xml = TextContentXML.objects.get(id=recordid)
         text_content_xml.content = content
+        
+        #print repr(content)
+        
         text_content_xml.save()
 
     def word_preprocess(self):

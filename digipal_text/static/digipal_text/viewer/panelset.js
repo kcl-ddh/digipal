@@ -621,7 +621,7 @@
     PanelText.prototype = Object.create(Panel.prototype);
     
     PanelText.prototype.onContentLoaded = function(data) {
-        this.$content.addClass('mce-content-body').addClass('preview');
+        this.$content.addClass('mce-content-body').addClass('preview ct-'+this.getContentType());
         this.$content.html(data.content);
         Panel.prototype.onContentLoaded.call(this, data);
     };

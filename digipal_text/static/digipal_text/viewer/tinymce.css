@@ -322,6 +322,21 @@ span[data-dpt] > span[data-dpt] {
 /* TEI - EXON */
 /* -------------------------------------------------------------------------*/
 
+.ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
+    background: none;
+}
+.ct-transcription-sample.preview.mce-content-body span[data-dpt=location]:before {
+    font-family: 'junicode';
+    font-size: 100%;
+    color: rgb(5,5,5);
+    font-weight: normal;
+    position: relative;
+    content: "[";
+}
+.ct-transcription-sample.preview.mce-content-body span[data-dpt=location]:after {
+    content: "]";
+}
+
 .mce-content-body span[data-dpt=abbr]:before {
     content: "Ab";
     background: none;
@@ -350,6 +365,16 @@ span[data-dpt] > span[data-dpt] {
     display: none;
 }
 .abbreviated.mce-content-body span[data-dpt=abbr] {
+    display: inline;
+}
+
+.ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
+    display: none;
+}
+.ct-transcription-sample.preview.foliation.mce-content-body span[data-dpt-loctype=locus] {
+    display: inline;
+}
+.ct-transcription-sample.preview.entry.mce-content-body span[data-dpt-loctype=entry] {
     display: inline;
 }
 

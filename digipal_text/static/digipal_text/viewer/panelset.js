@@ -78,11 +78,14 @@
             // out: {'k1': 'v1', 'k2': 'v2'}
             var ret = {};
             if (queryString && queryString.length) {
-                (queryString.match(/(&|\?)(\w+)=([^&#]+)/g)).map(function(v) {
-                    var arg = v.replace(/[\?#&]/g, '').split('=');
-                    ret[arg[0]] = decodeURI ? decodeURI(arg[1]) : arg[1];
-                    return '';
-                });
+                var match = (queryString.match(/(&|\?)(\w+)=([^&#]+)/g));
+                if (match) {
+                    match.map(function(v) {
+                        var arg = v.replace(/[\?#&]/g, '').split('=');
+                        ret[arg[0]] = decodeURI ? decodeURI(arg[1]) : arg[1];
+                        return '';
+                    });
+                }
             }
             return ret;
         };

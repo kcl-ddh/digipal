@@ -1,6 +1,6 @@
 Bookmarks
 
-    http://localhost/digipal/manuscripts/1/texts/view/?east=image/locus/3r/&center=transcription-sample/entry/2a5/&north=transcription_ellis/locus/1/&
+    http://localhost/digipal/manuscripts/1/texts/view/?east=transcription-sample/locus/1r/&center=transcription-sample/locus/1r/&north=image/locus/endpaper%2520(f.%2520er)/&#text-viewer
     
     
 

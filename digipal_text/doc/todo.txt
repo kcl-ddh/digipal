@@ -1,3 +1,9 @@
+Bookmarks
+
+    http://localhost/digipal/manuscripts/1/texts/view/?east=image/locus/3r/&center=transcription-sample/entry/2a5/&north=transcription_ellis/locus/1/&
+    
+    
+
 1. convert MS Word into XHTML
     1.1 Used MSWord 360 to save as html page (NOT single page) with utf8 encoding
     1.2 convert to XML/TEI

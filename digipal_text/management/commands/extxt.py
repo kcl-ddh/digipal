@@ -10,6 +10,11 @@ from optparse import make_option
 # pm extxt wordpre exon\source\rekeyed\word\EXON-word.html exon\source\rekeyed\word\EXON-word2.html
 # pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
 
+import unicodedata
+def remove_accents(input_str):
+    nkfd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+
 class Command(BaseCommand):
     help = """
 Text conversion tool
@@ -109,6 +114,8 @@ Commands:
         input_path = self.cargs[0]
         recordid = self.cargs[1]
         
+        import regex
+        from digipal.utils import re_sub_fct
         from digipal.utils import read_file
         content = read_file(input_path)
         
@@ -123,21 +130,19 @@ Commands:
 
         # [fol. 1. b.] or [fol. 1.]
         # TODO: check for false pos. or make the rule more strict
-        content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
+        #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
+        self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
+        def get_side(m):
+            side = self.sides.get(m.group(3), m.group(3))
+            ret = ur'</p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span><p>' % (m.group(1), side)
+            return ret
+        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', get_side, regex)
 
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
         content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
 
-        # abbreviation
-        # Eduuard<sup>9</sup>[us] => <span data-dpt="abbr">Eduuard9</span><span data-dpt="exp">Eduuardus</span>
-        # m[od]o<sup>o</sup> => <span data-dpt="abbr">m<sup>o</sup></span><span data-dpt="exp">modo</span>
-        # TODO: check for false pos. or make the rule more strict
-        #content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
-
         self.c = 0
-
-        import regex
 
         def markup_expansions(match):
             m = match.group(0)
@@ -145,20 +150,38 @@ Commands:
             self.c += 1
             #if self.c > 100: exit()
             
+            # ABBR
             abbr = regex.sub(ur'\[.*?\]', ur'', m)
             
+            # o<sup>o</sup> -> <sup>o</sup>
+            abbr = regex.sub(ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
+            
+            # EXP
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', m)
+            # b
+            exp = regex.sub(ur'\u1d6c', ur'b', exp)
+            # l/ -> l
+            exp = regex.sub(ur'\u0142', ur'l', exp)
+            # d- -> d
+            exp = regex.sub(ur'\u0111', ur'd', exp)
+            # h
+            exp = regex.sub(ur'\u0127', ur'h', exp)
+            # e.g. hid4as
+            exp = regex.sub(ur'\d', ur'', exp)
+            # ;
+            exp = regex.sub(ur';', ur'', exp)
+            # e.g. st~
+            exp = remove_accents(exp)
+               
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
             
             ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
             
-            #print repr(m), repr(ret)
+            print repr(m), repr(ret)
             
             return ret
         
-        from digipal.utils import re_sub_fct
-        
-        content = re_sub_fct(content, ur'(?musi)(\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+        content = re_sub_fct(content, ur'(?musi)(;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
         
         # sup
         content = re.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)

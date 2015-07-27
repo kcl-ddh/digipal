@@ -13,6 +13,10 @@ fi
 
 # Reindexing
 python manage.py dpsearch index
+#python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
 python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
+
+# This takes 1 hour!
+python manage.py dpsearch index_facets --if=graphs
 
 deactivate

@@ -285,13 +285,14 @@ class FacetedModel(object):
         if not field.get('count', False):
             return ret
         selected_key = request.GET.get(field['key'], '')
-        for k, v in self.whoosh_groups[field['key']].iteritems():
-            label = k
-            if field['type'] == 'boolean':
-                label = 'Yes' if k else 'No'
-            option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
-            option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
-            ret.append(option)
+        if hasattr(self, 'whoosh_groups'):
+            for k, v in self.whoosh_groups[field['key']].iteritems():
+                label = k
+                if field['type'] == 'boolean':
+                    label = 'Yes' if k else 'No'
+                option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
+                option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
+                ret.append(option)
             
         sort_option = 'count'
         if sorted_by == 'o':
@@ -419,7 +420,17 @@ class FacetedModel(object):
                 
         return ret
     
+    def is_user_agent_banned(self, request):
+        # JIRA-673: Baidu doesn't respect the nofollow on the DigiPal search page
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        import re
+        m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
+        return m
+    
     def get_requested_records(self, request):
+        if self.is_user_agent_banned(request):
+            return []
+        
 #         selected = False
 #
 #         selected_view_key = request.GET.get('view', '')
@@ -581,13 +592,13 @@ class FacetedModel(object):
     
     def get_total_count(self):
         '''returns the total number of records in the result set'''
-        return len(self.ids)
+        return len(getattr(self, 'ids', []))
     
     def get_paginator(self):
         return getattr(self, 'paginator', Paginator([], 10))
     
     def get_current_page(self):
-        ret = self.current_page
+        ret = getattr(self, 'current_page', None)
         return ret
 
     def get_whoosh_parser(self, index):

@@ -473,16 +473,24 @@
         };
         
         this.setPresentationOptions = function(presentationOptions) {
+            var $pres = this.$presentationOptions;
             if (presentationOptions) {
                 //var myData = [{id: 1, label: "Test" }];
                 var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
-                this.$presentationOptions.dropdownCheckbox({
-                    data: options,
-                    title: "Display"
-                });
+                if (!$pres.data().hasOwnProperty('dropdownCheckbox')) {
+                    $pres.dropdownCheckbox({
+                        data: options,
+                        title: "Display",
+                        btnClass: 'btn btn-default btn-sm'
+                    });
+                    $pres.find('button').append('<span class="caret"></span>');
+                    $pres.on('mouseenter mouseleave', function($event) {
+                        $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
+                    });
+                }
             }
             // hide (chosen) select if no status supplied
-            this.$presentationOptions.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
+            $pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
         };
         
         // Address / Locations

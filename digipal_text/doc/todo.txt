@@ -1,7 +1,11 @@
+gnoel@digipal2:~$ sudo strace -p 27948
+[sudo] password for gnoel:
+Process 27948 attached - interrupt to quit
+restart_syscall(<... resuming interrupted call ...>
+
 Bookmarks
 
-    http://localhost/digipal/manuscripts/1/texts/view/?east=transcription-sample/locus/1r/&center=transcription-sample/locus/1r/&north=image/locus/endpaper%2520(f.%2520er)/&#text-viewer
-    
+    http://localhost/digipal/manuscripts/1/texts/view/?east=transcription-sample/locus/1r/&center=transcription-sample/locus/1r/&north=image/locus/1r/&#text-viewer
     
 
 1. convert MS Word into XHTML

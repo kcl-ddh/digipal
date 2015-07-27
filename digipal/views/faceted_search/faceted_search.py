@@ -657,6 +657,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     context = {'tabid': tabid}
     
+    context['nofollow'] = True
+    
     # select the content type
     cts = get_types(request)
     context['result_type'] = cts[0]

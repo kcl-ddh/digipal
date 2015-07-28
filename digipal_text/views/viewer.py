@@ -84,12 +84,15 @@ def set_message(ret, message, status='error'):
     ret['status'] = status
     return ret
 
-def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record):
+def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None):
     ret = {}
     
     max_fragment_size = MAX_FRAGMENT_SIZE
     
     text_content_xml = None
+    
+    if not user and request:
+        user = request.user
     
     #print 'content type %s' % content_type_record
     # 1. Fetch or Create the necessary DB records to hold this text
@@ -106,8 +109,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not text_content_xml:
         return set_message(ret, '%s not found' % content_type.capitalize())
     
-    from digipal.utils import is_staff
-    if not is_staff(request):
+    from digipal.utils import is_user_staff
+    if not is_user_staff(user):
         if text_content_xml.is_private():
             if text_content_xml.content and len(text_content_xml.content) > 10:
                 return set_message(ret, 'The %s will be made available at a later stage of the project' % content_type)

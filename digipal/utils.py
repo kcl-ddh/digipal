@@ -847,8 +847,14 @@ def is_staff(request=None):
     if request == True:
         return True
     
-    return request and request.user and request.user.is_staff
+    return request and request.user and is_user_staff(request.user)
     
+def is_user_staff(user=None):
+    # returns True if the request user is a staff
+    if user == True:
+        return True
+    
+    return user and user.is_staff
 
 def raise_404(message=None):
     from django.http import Http404

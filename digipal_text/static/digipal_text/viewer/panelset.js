@@ -66,6 +66,7 @@
         };
         
         this.setStateFromUrl = function(defaultState) {
+            // we merge the defaultState with the state from the Query String
             var args = $.extend(this.getQSArgs(defaultState), this.getQSArgs(window.location.href, true));
             var state = Object.keys(args).reduce(function(pv,cv) {
                 return pv + cv + '=' + args[cv] + '&';
@@ -355,6 +356,7 @@
             
             this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
                 me.applyPresentationOptions();
+                me.panelSet.onPanelStateChanged(me);
             });
 
             this.$locationSelect.on('change', function() {
@@ -643,6 +645,12 @@
         
         // asks PanelSet to update URL
         this.panelSet.onPanelStateChanged(this);
+        
+        //
+        if (this.loadOptions && this.loadOptions.stateDict) {
+            this.setStateDict(this.loadOptions.stateDict);
+            this.loadOptions.stateDict = null;
+        }
     };
     
     Panel.prototype.onResize = function () {
@@ -663,16 +671,29 @@
         // panelState =
         // transcription/locus/1r/
         // transcription/default/
-        var parts = panelState.split('/');
+        var metaparts = panelState.split(';');
+        var parts = metaparts[0].split('/');
         var contentType = parts[0];
-    
+        var stateDict = (metaparts.length > 1) ? metaparts[1]: null;
         
         //Panel.create(Panel.getPanelClassFromContentType(contentType), '.ui-layout-'+key);
-        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: panelState});
+        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
     };
 
     Panel.getPanelClassFromContentType = function(contentType) {
         return 'image';
+    };
+    
+    Panel.prototype.enablePresentationOptions = function(options) {
+        if (options) {
+            var $pres = this.$presentationOptions;
+            $pres.find('li').each(function() {
+                $li = $(this);
+                if (options.indexOf($li.data('id')) > -1) {
+                    $li.find('input').trigger('click');
+                }
+            });
+        }
     };
 
     Panel.prototype.applyPresentationOptions = function() {
@@ -683,7 +704,35 @@
     };
     
     Panel.prototype.getState = function() {
-        return this.getContentAddressRelative();
+        var ret = this.getContentAddressRelative();
+        var dict = this.getStateDict();
+        ret += Object.keys(dict).reduce(function(pv,cv) {
+            if (dict[cv]) {
+                return pv + cv + ':' + dict[cv] + ';';
+            }
+            return pv;
+        }, ';');
+        return ret;
+    };
+    
+    Panel.prototype.getStateDict = function() {
+        var ret = {};
+        ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+        return ret;
+    };
+
+    Panel.prototype.setStateDict = function(stateDict) {
+        // dis:abbreviated entry;x:y;a:b c;
+        var me = this;
+        var args = stateDict.split(';');
+        args.map(function(arg) {
+            var pair = arg.split(':');
+            if (pair.length == 2) {
+                if (pair[0] == 'dis') {
+                    me.enablePresentationOptions(pair[1].split(' '));
+                }
+            }
+        });
     };
 
     Panel.prototype.getPanelKey = function() {

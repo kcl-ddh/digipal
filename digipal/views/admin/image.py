@@ -58,14 +58,14 @@ def get_ms_id_from_image_names(manuscripts, folios):
         for i in range(max(0, len(parts) - 2), len(parts)):
             part = parts[i]
             for term in re.findall(ur'[^\W_]+', part):
-                pattern[term] = pattern.get(term, 0) + 1            
+                pattern[term] = pattern.get(term, 0) + 1
     
     # keep only the terms with frequency > threshold
     search_terms = [term for term in pattern if pattern[term] > threshold * folio_count]
     
     suggested_shelfmark = ' '.join(search_terms)
     
-    # find the best match 
+    # find the best match
     for manuscript in manuscripts:
         match = True
         for term in search_terms:
@@ -131,7 +131,7 @@ def image_bulk_edit(request, url=None):
         It helps cataloguing a selection of images.
     '''
     if request.is_ajax():
-        return process_bulk_image_ajax(request)            
+        return process_bulk_image_ajax(request)
     
     context = {}
     context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
@@ -230,12 +230,14 @@ def image_bulk_edit(request, url=None):
                         folio_side = verso
                     elif folio_side == verso:
                         folio_side = recto
+                    folio.locus = folio.get_locus_label(True)
                     modified = True
                 if str(request.POST.get('folio_number_set', '0')) == '1':
                     if len(number) > 0:
                         folio.folio_number = number[0]
                     else:
                         folio.folio_number = ''
+                    folio.locus = folio.get_locus_label(True)
                     modified = True
                 if str(request.POST.get('folio_side_set', '0')) == '1':
                     if folio.item_part and folio.item_part.pagination:
@@ -248,6 +250,7 @@ def image_bulk_edit(request, url=None):
                         else:
                             folio.folio_side = recto
                             #folio.folio_side = unspecified_side
+                    folio.locus = folio.get_locus_label(True)
                     modified = True
                 if str(request.POST.get('page_number_set', '0')) == '1':
                     if len(number) > 0:
@@ -310,11 +313,11 @@ def image_bulk_edit(request, url=None):
                     #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
                     #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
                     #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
+                    folio.locus = folio.get_locus_label(True)
                     modified = True
 
             if modified:
                 one_modified = True
-                folio.locus = folio.get_locus_label(True)
                 folio.save()
 
     if one_modified:
@@ -328,7 +331,7 @@ def image_bulk_edit(request, url=None):
     common_item_part = None
     for image in context['folios']:
         if image.item_part and image.item_part != common_item_part:
-            if common_item_part is None: 
+            if common_item_part is None:
                 common_item_part = image.item_part
             else:
                 common_item_part = None

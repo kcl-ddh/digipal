@@ -999,7 +999,7 @@
             
             var zoom = 0;
             if (this.map) {
-                zoom = this.map.getView().getZoom();
+                zoom = this.map.getView().getZoom() || 0;
             }
             
             // empty the content as OL appends to it

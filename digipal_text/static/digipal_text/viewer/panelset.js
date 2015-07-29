@@ -61,7 +61,7 @@
             }
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
-            window.history.pushState('', window.title, url);
+            window.history.replaceState('', window.title, url);
             
         };
         
@@ -643,14 +643,14 @@
         // send signal to other panels so they can sync themselves
         this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
         
-        // asks PanelSet to update URL
-        this.panelSet.onPanelStateChanged(this);
-        
         //
         if (this.loadOptions && this.loadOptions.stateDict) {
             this.setStateDict(this.loadOptions.stateDict);
             this.loadOptions.stateDict = null;
         }
+
+        // asks PanelSet to update URL
+        this.panelSet.onPanelStateChanged(this);
     };
     
     Panel.prototype.onResize = function () {
@@ -728,11 +728,15 @@
         args.map(function(arg) {
             var pair = arg.split(':');
             if (pair.length == 2) {
-                if (pair[0] == 'dis') {
-                    me.enablePresentationOptions(pair[1].split(' '));
-                }
+                me.setStateDictArg(pair[0], pair[1]);
             }
         });
+    };
+    
+    Panel.prototype.setStateDictArg = function(name, value) {
+        if (name == 'dis') {
+            this.enablePresentationOptions(value.split(' '));
+        }
     };
 
     Panel.prototype.getPanelKey = function() {
@@ -1062,6 +1066,10 @@
             this.map = map;
             this.clipImageToTop();
             
+            var view = map.getView();
+            view.on('change:center', function (event){me.panelSet.onPanelStateChanged(me);});
+            view.on('change:resolution', function (event){me.panelSet.onPanelStateChanged(me);});
+             
             // tooltip to OL icon
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
@@ -1097,10 +1105,32 @@
     
     PanelImage.prototype = Object.create(Panel.prototype);
     
+    PanelImage.prototype.getStateDict = function() {
+        var ret = Panel.prototype.getStateDict.call(this);
+
+        var map = this.map;
+        var view = map.getView();
+        var olv = [Math.round(view.getResolution()), Math.round(view.getCenter()[0]), Math.round(view.getCenter()[1])];
+        ret.olv = olv.join(',');
+        
+        return ret;
+    };
+    
     PanelImage.prototype.onResize = function() {
         Panel.prototype.onResize.call(this);
         if (this.map) {
             this.map.updateSize();
+        }
+    };
+    
+    PanelImage.prototype.setStateDictArg = function(name, value) {
+        // olv:RES,CX,CY
+        if (name === 'olv') {
+            var parts = value.split(',');
+            var map = this.map;
+            var view = map.getView();
+            view.setResolution(parseFloat(parts[0]));
+            view.setCenter([parseFloat(parts[1]), parseFloat(parts[2])]);
         }
     };
     

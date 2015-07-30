@@ -7,7 +7,7 @@ import subprocess
 import re
 from optparse import make_option
 import utils
-from utils import Logger  
+from utils import Logger
 from django.utils.datastructures import SortedDict
   
 
@@ -18,13 +18,13 @@ Digipal search tool.
 Commands:
     
   index
-                        Re-Index all the content 
+                        Re-Index all the content
 
   info [--if=KEYWORD]
                         Show general info and whoosh schemas
                         
   index_facets
-                        Re-Index the faceted content 
+                        Re-Index the faceted content
 
   dump
                         Dump indices
@@ -32,7 +32,7 @@ Commands:
 Options:
   
   --if=INDEX_NAME
-                        Work only with index INDEX_NAME 
+                        Work only with index INDEX_NAME
 
   --ctf=CONTENT_TYPE_NAME
                         Work only with content type CONTENT_TYPE_NAME
@@ -57,7 +57,7 @@ Options:
             dest='content_type_filter',
             default=None,
             help='The name of the content type to work with (All if unspecified)'),
-        ) 
+        )
 
     def handle(self, *args, **options):
         
@@ -106,6 +106,8 @@ Options:
         
         if not known_command:
             print Command.help
+            
+        utils.close_all_connections()
 
     def dump(self, options):
         for name in self.get_requested_index_names():
@@ -118,7 +120,7 @@ Options:
             from whoosh.query import Every
             index = open_dir(dir_abs)
             
-            q = Every()            
+            q = Every()
             with index.searcher() as searcher:
                 hits = searcher.search(q, limit=None)
                 for hit in hits:
@@ -134,7 +136,7 @@ Options:
         return ret
 
     def get_all_dirs_under_index_path(self):
-        ''' returns the absolute path to all the index folders 
+        ''' returns the absolute path to all the index folders
         (optionally filtered by --if command line option)'''
         from digipal.utils import get_all_files_under
         ret = get_all_files_under(settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
@@ -194,7 +196,7 @@ Options:
     #                         print v.decode('utf-8')
     #                         break
     #                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
-    #                     
+    #
     #                     vals = sorted(vals)
     #                     if vals:
     #                         field_info['range'] = (vals[0], vals[-1])
@@ -278,7 +280,7 @@ Options:
     def get_requested_index_names(self):
         #ret = ['unified', 'autocomplete']
         ret = ['unified']
-        index_filter = self.options['index_filter'] 
+        index_filter = self.options['index_filter']
         if index_filter:
             if index_filter not in ret:
                 print 'ERROR: index not found (%s)' % index_filter
@@ -307,14 +309,14 @@ Options:
                 cl = locals().get(cl_name, None)
                 if cl:
                     types.append(cl())
-        else:                
+        else:
             types = [SearchHands(), SearchManuscripts(), SearchScribes()]
             
         if not types:
             print 'ERROR: Content Type not found (%s)' % content_type_filter
             exit()
             
-        return types        
+        return types
 
     def index_facets(self, options):
         from digipal.views.faceted_search import faceted_search
@@ -330,7 +332,7 @@ Options:
         print 'Building %s index...' % index_name
         
         # build a single schema from the fields exposed by the different search types
-        print '\tSchema:' 
+        print '\tSchema:'
         fields = {}
         for type in types:
             for info in type.get_fields_info().values():
@@ -345,12 +347,12 @@ Options:
                                 field_type = TEXT(analyzer=simp_ana)
                             else:
                                 field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
-                    print '\t\t%s' % field_type          
+                    print '\t\t%s' % field_type
                     fields[info['whoosh']['name']] = field_type
                     
                     # JIRA 508 - Add an ID counterpart to allow exact phrase search
 #                     if info.get('long_text', False):
-#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))                    
+#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))
         
         from whoosh.fields import Schema
         schema = Schema(**fields)
@@ -408,7 +410,7 @@ Options:
     def recreate_index(self, index_name, schema):
         from digipal.utils import recreate_whoosh_index
         ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
-        return ret        
+        return ret
         
     def is_dry_run(self):
         return self.options.get('dry-run', False)

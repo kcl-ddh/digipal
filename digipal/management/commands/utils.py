@@ -43,7 +43,7 @@ def sqlWrite(wrapper, command, arguments=[], dry_run=False):
 
 def sqlSelect(wrapper, command, arguments=[]):
     ''' return a cursor,
-        caller need to call .close() on the returned cursor 
+        caller need to call .close() on the returned cursor
     '''
     cur = wrapper.cursor()
     cur.execute(command, arguments)
@@ -127,7 +127,7 @@ class Logger(object):
             self.warning_count += 1
         
         if log_level <= self.log_level:
-            prefixes = ['ERROR: ', 'WARNING: ', '', ''] 
+            prefixes = ['ERROR: ', 'WARNING: ', '', '']
             from datetime import datetime
             timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
             try:
@@ -162,7 +162,7 @@ def is_int(str):
     return True
 
 def get_obj_label(obj):
-    return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj) 
+    return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj)
 
 def web_fetch(url):
     ret = {'error': None, 'response': None, 'status': 0, 'reason': None, 'body': None}
@@ -180,7 +180,7 @@ def web_fetch(url):
             conn = httplib.HTTPConnection(parts.hostname, port)
         conn.request('GET', parts.path+'?'+parts.query)
         ret['response'] = conn.getresponse()
-        headers = dict(ret['response'].getheaders()) 
+        headers = dict(ret['response'].getheaders())
         ret['status'] = '%s' % ret['response'].status
         ret['reason'] = '%s' % ret['response'].reason
         ret['body'] = ret['response'].read()
@@ -208,3 +208,10 @@ def prnt(txt):
 def get_bool_from_mysql(mysql_bool='-1'):
     '''Returns True/False from a mysql boolean field'''
     return mysql_bool and unicode(mysql_bool) == '-1'
+
+def close_all_connections():
+    '''Django 1.6 app commands don't seem to close the DB connection properly
+    before exiting. So we use this to ensure everything to closed.
+    Note that this connection.close() might be depreacted in Dj 1.8'''
+    from django.db import connection
+    connection.close()

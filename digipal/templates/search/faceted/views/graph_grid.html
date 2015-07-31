@@ -5,6 +5,7 @@
     <div class="col-md-12">
         {% for graph in result %}
 
+            {% comment %}
             <span class="folio-image-wrapper">
                 <a data-checked='false'
                     data-image-id='{{ graph.annotation.image.id }}'
@@ -15,9 +16,9 @@
                     {% annotation_img graph.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" %}
                 </a>
             </span>
-            
-            <!-- <a href="{{ record.annotation.get_absolute_url }}">
-            </a> -->
+            {% endcomment %}
+
+            {% annotation_img graph.annotation lazy=1 a_title=record.get_short_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" wrap=graph link=graph %}
             
         {% endfor %}
     </div>

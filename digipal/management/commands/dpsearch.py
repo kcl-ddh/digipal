@@ -107,8 +107,6 @@ Options:
         if not known_command:
             print Command.help
             
-        utils.close_all_connections()
-
     def dump(self, options):
         for name in self.get_requested_index_names():
             print 'Schemas - %s' % name

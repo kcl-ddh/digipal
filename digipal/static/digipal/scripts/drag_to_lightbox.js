@@ -213,7 +213,7 @@ var Star = function(options) {
 
     var findStarredInPage = function() {
         var collection_id = getCurrentCollection();
-        var graphs = $('.droppable_image[data-graph]').add($('.droppable_image[data-id]'));
+        var graphs = $('.droppable_image[data-graph], .droppable_image[data-id]');
         var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
         $.each(graphs, function(index, value) {
             value = $(value);

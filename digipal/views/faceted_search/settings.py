@@ -23,7 +23,7 @@ FACETED_SEARCH = {
                     #'disabled': True,
                     # if private is True, the type is visible to editors only
                     #'private': False,
-                    'key': 'manuscripts', 
+                    'key': 'manuscripts',
                     'label': 'Manuscript',
                     'model': 'digipal.models.ItemPart',
                     'fields': [
@@ -54,7 +54,7 @@ FACETED_SEARCH = {
 
                 {
                     #'disabled': True,
-                    'key': 'images', 
+                    'key': 'images',
                     'label': 'Image',
                     'model': 'digipal.models.Image',
                     'django_filter': {'item_part__isnull': False},
@@ -74,7 +74,7 @@ FACETED_SEARCH = {
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code', 'sort_fct': lambda r: u'%s %s %s' % (r.folio_number or '', r.folio_side or '', r.locus or '')},
                                {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-                               {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70, 'link': True},
+                               {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
 
                                {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_media_private', 'type': 'boolean', 'search': True},
                                
@@ -93,7 +93,7 @@ FACETED_SEARCH = {
     
                 {
                     #'disabled': True,
-                    'key': 'scribes', 
+                    'key': 'scribes',
                     'label': 'Scribe',
                     'model': 'digipal.models.Scribe',
                     'fields': [
@@ -117,7 +117,7 @@ FACETED_SEARCH = {
 
                 {
                     #'disabled': True,
-                    'key': 'hands', 
+                    'key': 'hands',
                     'label': 'Hand',
                     'model': 'digipal.models.Hand',
                     #'condition': lambda r: max([len(d.description or '') for d in r.descriptions.all()] or [0]) > 2,
@@ -154,7 +154,7 @@ FACETED_SEARCH = {
 
                 {
                     #'disabled': True,
-                    'key': 'texts', 
+                    'key': 'texts',
                     'label': 'Text',
                     'model': 'digipal_text.models.TextContentXML',
                     'condition': lambda r: r.content and re.search('[a-z]', r.content),
@@ -187,7 +187,7 @@ FACETED_SEARCH = {
 
                 {
                     #'disabled': True,
-                    'key': 'textunits', 
+                    'key': 'textunits',
                     'label': 'Unit of Text',
                     'model': 'digipal_text.models.TextUnit',
                     'fields': [
@@ -207,7 +207,7 @@ FACETED_SEARCH = {
 
                 {
                     'disabled': False,
-                    'key': 'graphs', 
+                    'key': 'graphs',
                     'label': 'Graph',
                     'model': 'digipal.models.Graph',
                     'django_filter': {'annotation__isnull': False},
@@ -233,13 +233,13 @@ FACETED_SEARCH = {
                                 {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.human_readable', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'hand_date', 'label': 'Hand Date', 'path': 'hand.assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                 {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
-                                {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation.thumbnail', 'viewable': True, 'type': 'code', 'link': True},
+                                {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
                                 
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
                                 
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
                                ],
-                    'select_related': ['annotation__image__item_part__current_item__repository__place', 
+                    'select_related': ['annotation__image__item_part__current_item__repository__place',
                                        'idiograph__allograph__character__ontograph__ontograph_type',
                                        'idiograph__allograph__character__form__name',
                                        'hand__assigned_place',
@@ -261,7 +261,7 @@ from copy import deepcopy
 graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
 graph_sample.update({
                     'disabled': True,
-                    'key': 'graph_samples', 
+                    'key': 'graph_samples',
                     'label': 'Graph (sample)',
                     'label_plural': 'Graphs (sample)',
                     'django_filter': {'annotation__isnull': False, 'id__lt':20000},

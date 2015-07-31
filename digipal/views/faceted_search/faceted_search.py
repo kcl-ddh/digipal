@@ -303,9 +303,10 @@ class FacetedModel(object):
         if field['type'] == 'url':
             ret = '<a href="%s" class="view_button">View</a>' % ret
         if field['type'] == 'image':
-            # TODO: max_size as an argument for iip_img_a
-            ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1)
-            
+            if 'Annotation' in str(type(ret)) and 'Graph' in str(type(record)):
+                ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
+            else:
+                ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1, wrap=record, link=record)
         if ret is None:
             ret = ''
             
@@ -505,8 +506,6 @@ class FacetedModel(object):
             hand_filters.chrono('whoosh.search:')
 
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
-            
-            print q
             
             ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             ret.fragmenter.charlimit = None

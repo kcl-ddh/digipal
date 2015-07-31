@@ -40,10 +40,15 @@
 
         {% spaceless %}
             <span class="folio-image-wrapper">
+                {% comment %}
                 <a data-type='image' data-id='{{ image.id }}' class="droppable_image imageDatabase" href="{{ image.get_absolute_url }}">
                     <span class='drag_caption'>Drag image to collection</span>
                     {% iip_img image width=width lazy=1 %}
                 </a>
+                {% endcomment %}
+                
+                {% iip_img image width=width lazy=1 wrap=image link=image %}
+                
                 {% if image.is_thumb_only %}
                     <span class="private-image left" data-toggle='tooltip'
                         data-placement='bottom' title='Full size image not available' >

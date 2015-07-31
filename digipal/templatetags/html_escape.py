@@ -157,6 +157,8 @@ def reset_recordids():
 @register.simple_tag
 def iip_img_a(image, *args, **kwargs):
     '''
+        ADMIN ONLY: link to raw image file
+        
         Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <a href=""><img src="" /></a> element with the url referenced
@@ -169,7 +171,7 @@ def iip_img_a(image, *args, **kwargs):
 @register.simple_tag
 def iip_img(image_or_iipfield, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
+        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] [wrap=0] %}
 
         Render a <img src="" /> element with the url referenced by the
         iipimage field.
@@ -177,6 +179,9 @@ def iip_img(image_or_iipfield, *args, **kwargs):
         are treated.
         If lazy is True the image will be loaded only when visible in
         the browser.
+        
+        wrap = True|False : to wrap the element within a spans that help
+                with styles and widgets (e.g. star to collection).
     '''
     ret = u''
     if image_or_iipfield is None:
@@ -202,7 +207,7 @@ def iip_img(image_or_iipfield, *args, **kwargs):
                         kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
     
         ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
-            
+    
     return ret
 
 @register.simple_tag
@@ -224,6 +229,55 @@ def annotation_img(annotation, *args, **kwargs):
             ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(),
                         width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
                         frame_height=info['frame_dims'][1], *args, **kwargs)
+    return ret
+
+def wrap_img(html_img, **kwargs):
+    '''
+        Surrounds the img element with spans to make it compatible with
+        collection widgets.
+    '''
+    ret = html_img
+    
+    record = kwargs.get('wrap', None)
+    link_record = kwargs.get('link', None)
+
+    outer_element = ''
+
+    if record:
+        content_type = record.__class__.__name__.lower()
+    
+        type_class = ''
+        attributes = {}
+        attributes['data-type'] = content_type
+        
+        if content_type in ['graph']:
+            attributes['data-type'] = 'annotation'
+            attributes['data-graph'] = record.id
+            attributes['data-allograph'] = record.idiograph.allograph.id
+            attributes['data-image-id'] = record.annotation.image_id
+            type_class = 'graph_img'
+        
+        if content_type == 'image':
+            type_class = 'imageDatabase'
+
+        attributes['data-id'] = record.id
+    
+        ret = ur'''
+                <span %s class="droppable_image %s">
+                    %s
+                </span>
+        ''' % (' '.join(['%s="%s"' % (name, value) for name, value in attributes.iteritems()]), type_class, ret)
+
+    if link_record or record:
+        element = ur'span'
+        attributes = ur' '
+        if link_record:
+            element = ur'a'
+            attributes += ur' href="%s" ' % link_record.get_absolute_url()
+        if record:
+            attributes += ' class="folio-image-wrapper" '
+        ret = ur'''<%s %s>%s</%s>''' % (element, attributes, ret, element)
+    
     return ret
 
 @register.simple_tag
@@ -321,6 +375,10 @@ def img(src, *args, **kwargs):
             
     ret = ur'<span class="img-frame" %s>%s%s</span>' % (frame_css, holes_html, ret)
     
+    wrap_record = kwargs.get('wrap', None)
+    if wrap_record:
+        ret = wrap_img(ret, **kwargs)
+
     return mark_safe(ret)
 
 @register.simple_tag

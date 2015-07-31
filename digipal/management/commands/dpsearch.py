@@ -107,7 +107,7 @@ Options:
         if not known_command:
             print Command.help
 
-    def dump(self, options):
+	def dump(self, options):
         for name in self.get_requested_index_names():
             print 'Schemas - %s' % name
             dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, name)

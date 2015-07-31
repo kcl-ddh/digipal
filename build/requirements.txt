@@ -9,6 +9,7 @@ BeautifulSoup==3.2.1
 git+git://github.com/Gbuomprisco/Digital-Lightbox
 Django==1.6.5
 Mezzanine==3.1.5
+regex
 # if it fails, try 'sudo apt-get install python-dev', then run again
 Pillow==2.6.1
 South==1.0.1

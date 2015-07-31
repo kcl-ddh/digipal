@@ -61,11 +61,12 @@
             }
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
-            window.history.pushState('', window.title, url);
+            window.history.replaceState('', window.title, url);
             
         };
         
         this.setStateFromUrl = function(defaultState) {
+            // we merge the defaultState with the state from the Query String
             var args = $.extend(this.getQSArgs(defaultState), this.getQSArgs(window.location.href, true));
             var state = Object.keys(args).reduce(function(pv,cv) {
                 return pv + cv + '=' + args[cv] + '&';
@@ -355,6 +356,7 @@
             
             this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
                 me.applyPresentationOptions();
+                me.panelSet.onPanelStateChanged(me);
             });
 
             this.$locationSelect.on('change', function() {
@@ -473,16 +475,24 @@
         };
         
         this.setPresentationOptions = function(presentationOptions) {
+            var $pres = this.$presentationOptions;
             if (presentationOptions) {
                 //var myData = [{id: 1, label: "Test" }];
                 var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
-                this.$presentationOptions.dropdownCheckbox({
-                    data: options,
-                    title: "Display"
-                });
+                if (!$pres.data().hasOwnProperty('dropdownCheckbox')) {
+                    $pres.dropdownCheckbox({
+                        data: options,
+                        title: "Display",
+                        btnClass: 'btn btn-default btn-sm'
+                    });
+                    $pres.find('button').append('<span class="caret"></span>');
+                    $pres.on('mouseenter mouseleave', function($event) {
+                        $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
+                    });
+                }
             }
             // hide (chosen) select if no status supplied
-            this.$presentationOptions.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
+            $pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
         };
         
         // Address / Locations
@@ -633,6 +643,12 @@
         // send signal to other panels so they can sync themselves
         this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
         
+        //
+        if (this.loadOptions && this.loadOptions.stateDict) {
+            this.setStateDict(this.loadOptions.stateDict);
+            this.loadOptions.stateDict = null;
+        }
+
         // asks PanelSet to update URL
         this.panelSet.onPanelStateChanged(this);
     };
@@ -655,16 +671,29 @@
         // panelState =
         // transcription/locus/1r/
         // transcription/default/
-        var parts = panelState.split('/');
+        var metaparts = panelState.split(';');
+        var parts = metaparts[0].split('/');
         var contentType = parts[0];
-    
+        var stateDict = (metaparts.length > 1) ? metaparts[1]: null;
         
         //Panel.create(Panel.getPanelClassFromContentType(contentType), '.ui-layout-'+key);
-        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: panelState});
+        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
     };
 
     Panel.getPanelClassFromContentType = function(contentType) {
         return 'image';
+    };
+    
+    Panel.prototype.enablePresentationOptions = function(options) {
+        if (options) {
+            var $pres = this.$presentationOptions;
+            $pres.find('li').each(function() {
+                $li = $(this);
+                if (options.indexOf($li.data('id')) > -1) {
+                    $li.find('input').trigger('click');
+                }
+            });
+        }
     };
 
     Panel.prototype.applyPresentationOptions = function() {
@@ -675,7 +704,39 @@
     };
     
     Panel.prototype.getState = function() {
-        return this.getContentAddressRelative();
+        var ret = this.getContentAddressRelative();
+        var dict = this.getStateDict();
+        ret += Object.keys(dict).reduce(function(pv,cv) {
+            if (dict[cv]) {
+                return pv + cv + ':' + dict[cv] + ';';
+            }
+            return pv;
+        }, ';');
+        return ret;
+    };
+    
+    Panel.prototype.getStateDict = function() {
+        var ret = {};
+        ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+        return ret;
+    };
+
+    Panel.prototype.setStateDict = function(stateDict) {
+        // dis:abbreviated entry;x:y;a:b c;
+        var me = this;
+        var args = stateDict.split(';');
+        args.map(function(arg) {
+            var pair = arg.split(':');
+            if (pair.length == 2) {
+                me.setStateDictArg(pair[0], pair[1]);
+            }
+        });
+    };
+    
+    Panel.prototype.setStateDictArg = function(name, value) {
+        if (name == 'dis') {
+            this.enablePresentationOptions(value.split(' '));
+        }
     };
 
     Panel.prototype.getPanelKey = function() {
@@ -938,7 +999,7 @@
             
             var zoom = 0;
             if (this.map) {
-                zoom = this.map.getView().getZoom();
+                zoom = this.map.getView().getZoom() || 0;
             }
             
             // empty the content as OL appends to it
@@ -1005,6 +1066,10 @@
             this.map = map;
             this.clipImageToTop();
             
+            var view = map.getView();
+            view.on('change:center', function (event){me.panelSet.onPanelStateChanged(me);});
+            view.on('change:resolution', function (event){me.panelSet.onPanelStateChanged(me);});
+             
             // tooltip to OL icon
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
@@ -1040,10 +1105,32 @@
     
     PanelImage.prototype = Object.create(Panel.prototype);
     
+    PanelImage.prototype.getStateDict = function() {
+        var ret = Panel.prototype.getStateDict.call(this);
+
+        var map = this.map;
+        var view = map.getView();
+        var olv = [Math.round(view.getResolution()), Math.round(view.getCenter()[0]), Math.round(view.getCenter()[1])];
+        ret.olv = olv.join(',');
+        
+        return ret;
+    };
+    
     PanelImage.prototype.onResize = function() {
         Panel.prototype.onResize.call(this);
         if (this.map) {
             this.map.updateSize();
+        }
+    };
+    
+    PanelImage.prototype.setStateDictArg = function(name, value) {
+        // olv:RES,CX,CY
+        if (name === 'olv') {
+            var parts = value.split(',');
+            var map = this.map;
+            var view = map.getView();
+            view.setResolution(parseFloat(parts[0]));
+            view.setCenter([parseFloat(parts[1]), parseFloat(parts[2])]);
         }
     };
     

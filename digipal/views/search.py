@@ -25,7 +25,7 @@ def get_search_types(request=None):
 
 def get_search_types_display(content_types):
     ''' returns the content types as a string like this:
-        'Hands', 'Scribes' or 'Manuscripts' 
+        'Hands', 'Scribes' or 'Manuscripts'
     '''
     ret = ''
     for type in content_types:
@@ -33,7 +33,7 @@ def get_search_types_display(content_types):
             if type == content_types[-1]:
                 ret += ' and '
             else:
-                ret += ', '        
+                ret += ', '
         ret += '\'%s\'' % type.label
     return ret
 
@@ -159,20 +159,26 @@ def search_ms_image_view(request):
 
     return ret
 
-def search_record_view(request):
-    # Rerouting to the blog/news search result page 
+def reroute_to_static_search(request):
+    ret = None
+    # Rerouting to the blog/news search result page
     scope =  request.GET.get('scp', '')
     if scope == 'st':
         from django.shortcuts import redirect
         redirect_url = '/blog/search/?q=%s' % request.GET.get('terms')
-        return redirect(redirect_url)
+        ret = redirect(redirect_url)
+    return ret
+
+def search_record_view(request):
+    ret = reroute_to_static_search(request)
+    if ret: return ret
     
     hand_filters.chrono('SEARCH VIEW:')
     hand_filters.chrono('SEARCH LOGIC:')
     
     # Backward compatibility.
     # Previously all the record pages would go through this search URL and view
-    # and their URL was: 
+    # and their URL was:
     #     /digipal/search/?id=1&result_type=scribes&basic_search_type=hands&terms=Wulfstan
     # Now we redirect those requests to the record page
     #     /digipal/scribes/1/?basic_search_type=hands&terms=Wulfstan+&result_type=scribes
@@ -185,7 +191,7 @@ def search_record_view(request):
         return redirect(redirect_url)
 
     # backward compatibility:
-    # query string param 'name' and 'scribes' have ben renamed to 'scribe' 
+    # query string param 'name' and 'scribes' have ben renamed to 'scribe'
     request.GET = request.GET.copy()
     request.GET['scribe'] = request.REQUEST.get('scribe', '') or request.REQUEST.get('scribes', '') or request.REQUEST.get('name', '')
 
@@ -208,7 +214,7 @@ def search_record_view(request):
         # Tab Selection Logic =
         #     we pick the tab the user has selected even if it is empty. END
         #     if none, we select the filter/advanced search content type
-        #     if none or its result is empty we select the first non empty type 
+        #     if none or its result is empty we select the first non empty type
         #     if none we select the first type. END
         result_type = request.GET.get('result_type', '')
 
@@ -237,7 +243,7 @@ def search_record_view(request):
     from digipal import utils
     context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
-    # Initialise the advanced search forms 
+    # Initialise the advanced search forms
     #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
     
     page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
@@ -272,7 +278,7 @@ def set_page_sizes_to_context(request, context, options=[10, 20, 50, 100]):
     if context['page_size'] and context['page_size'].isdigit():
         context['page_size'] = int(context['page_size'])
     if context['page_size'] not in context['page_sizes']:
-        context['page_size'] = context['page_sizes'][0]  
+        context['page_size'] = context['page_sizes'][0]
     
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
@@ -280,8 +286,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         
         If the form was not valid or submitted, context['results'] is left undefined.
         
-        Other context variables used by the search template are also set.        
-    '''    
+        Other context variables used by the search template are also set.
+    '''
     
     # allowed_type: this variable is used to restrict the search to one content type only.
     # This is useful when we display a specific record page and we only
@@ -294,10 +300,10 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     # pagination sizes
     set_page_sizes_to_context(request, context)
         
-    # list of query parameter/form fields which can be changed without triggering a search 
+    # list of query parameter/form fields which can be changed without triggering a search
     context['submitted'] = False
     non_search_params = ['basic_search_type', 'from_link', 'result_type']
-    for param in request.GET:     
+    for param in request.GET:
         if param not in non_search_params and request.GET.get(param):
             context['submitted'] = True
     
@@ -353,8 +359,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
 
 def get_query_summary(request, term, submitted, forms):
     # Return two strings that summaries the query
-    # The first string is plain text, the second is in HTML and allows the user to remove filters 
-    # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"', 
+    # The first string is plain text, the second is in HTML and allows the user to remove filters
+    # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"',
     # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
     ret = u''
 
@@ -400,7 +406,7 @@ def get_query_summary(request, term, submitted, forms):
                                             if char:
                                                 choice_label = u'%s, %s' % (char.strip(), parts[1].strip())
                                             
-                                    # format the field for the summary                                    
+                                    # format the field for the summary
                                     if ret:
                                         ret += ', '
                                     ret += get_filter_html(choice_label, field_name, field_label)
@@ -428,7 +434,7 @@ def get_search_page_js_data(content_types, expanded_search=False, request=None):
                          'html': type.get_form(request).as_ul(),
                          'label': type.label,
                          'key': type.key,
-                         })        
+                         })
     
     ret = {
         'advanced_search_expanded': expanded_search or any([type.is_advanced_search for type in content_types]),

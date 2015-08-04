@@ -656,6 +656,9 @@ def get_types(request):
     return ret
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
+    from digipal.views.search import reroute_to_static_search
+    ret = reroute_to_static_search(request)
+    if ret: return ret
     
     # we just remove jx=1 from the request as we don't want to expose it in the HTML
     # this is an ajax ONLY request parameter.

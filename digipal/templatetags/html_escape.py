@@ -240,9 +240,7 @@ def wrap_img(html_img, **kwargs):
     
     record = kwargs.get('wrap', None)
     link_record = kwargs.get('link', None)
-
-    outer_element = ''
-
+    
     if record:
         content_type = record.__class__.__name__.lower()
     
@@ -274,6 +272,8 @@ def wrap_img(html_img, **kwargs):
         if link_record:
             element = ur'a'
             attributes += ur' href="%s" ' % link_record.get_absolute_url()
+            if link_record.__class__.__name__.lower() in ['graph']:
+                attributes += ur' rel="nofollow" '
         if record:
             attributes += ' class="folio-image-wrapper" '
         ret = ur'''<%s %s>%s</%s>''' % (element, attributes, ret, element)
@@ -375,9 +375,7 @@ def img(src, *args, **kwargs):
             
     ret = ur'<span class="img-frame" %s>%s%s</span>' % (frame_css, holes_html, ret)
     
-    wrap_record = kwargs.get('wrap', None)
-    if wrap_record:
-        ret = wrap_img(ret, **kwargs)
+    ret = wrap_img(ret, **kwargs)
 
     return mark_safe(ret)
 

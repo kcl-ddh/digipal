@@ -391,4 +391,57 @@ $(function() {
         }
     });
 
+    window.set_open_layer_on_faceted_results = function() {
+        $('.result-ol').each(function() {
+            set_open_layer_on_target($(this));
+        });
+    };
+
+    var set_open_layer_on_target = function($target) {
+        var ol = window.ol;
+        
+        var dims = [$target.data('width'), $target.data('height')];
+        var url = $target.data('url');
+        var crossOrigin = 'anonymous';
+        var zoom = 1;
+        
+        var proj = new ol.proj.Projection({
+          code: 'ZOOMIFY',
+          units: 'pixels',
+          extent: [0, 0, dims[0], dims[1]]
+        });
+
+        var source = new ol.source.Zoomify({
+          url: url,
+          size: [dims[0], dims[1]],
+          crossOrigin: crossOrigin
+        });
+        
+        var tileLayer = new ol.layer.Tile({
+            source: source
+        });
+        
+        var imgCenter = [dims[0] / 2, - dims[1] / 2];
+
+        var map = new window.ol.Map({
+          layers: [tileLayer],
+          // overview is not great, see EXON-28
+          // controls: ol.control.defaults().extend([
+          //   new ol.control.OverviewMap({layers: [tileLayer]})
+          // ]),
+          target: $target[0],
+          view: new ol.View({
+            projection: proj,
+            center: imgCenter,
+            zoom: zoom,
+            // constrain the center: center cannot be set outside
+            // this extent
+            extent: [0, -dims[1], dims[0], 0]
+          })
+        });
+        
+        dputils.elastic_element($target, function() { map.updateSize(); }, 100, 10);
+    };
+    
+    window.set_open_layer_on_faceted_results();
 });

@@ -88,6 +88,7 @@ FACETED_SEARCH = {
                     'views': [
                               {'icon': 'th-list', 'label': 'List', 'key': 'list'},
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
+                              {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
                 },
     

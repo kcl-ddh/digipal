@@ -6,6 +6,11 @@
     Search {{ result_type.label }}
 {% endblock %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
+{% endblock %}
+
 {% block main %}
 
     {% include "search/faceted/search_whoosh_fragment.html" %}
@@ -20,4 +25,5 @@
         init_search_page({});
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>
 {% endblock %}

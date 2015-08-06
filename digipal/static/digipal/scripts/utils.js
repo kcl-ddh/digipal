@@ -154,6 +154,40 @@
                         });
                     });
                 });
+            },
+            
+            /*
+                Returns the height $element should have to fill the remaining
+                space in the viewport.
+            */
+            get_elastic_height: function($element, min, margin) {
+                var height = 0;
+                
+                min = min || 0;
+                margin = margin || 0;
+                
+                var window_height = $(window).height() - margin;
+                height = window_height - $element.offset().top + $(document).scrollTop();
+                height = (height <= min) ? min : height;
+                height = (height > window_height) ? window_height : height;
+                
+                return height;
+            },
+            
+            /*
+                Make $target height elastic. It will take the rest of the
+                viewport space. This is automatically updated when the user
+                scrolls or change the viewport size.
+                
+                $callback is called each time the height is updated.
+            */
+            elastic_element: function($target, callback, min, margin) {
+                var on_resize = function() {
+                    $target.css('height', dputils.get_elastic_height($target, min, margin));
+                    callback();
+                };
+                $(window).on('resize scroll', function() {on_resize();});
+                on_resize();
             }
 
         };

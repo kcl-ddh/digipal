@@ -66,6 +66,9 @@
                 extent: [0, -dims[1], dims[0], 0]
               })
             });
+            
+            dputils.elastic_element($target, function() { map.updateSize(); }, 100, 10);
+            
         });
     </script>
             

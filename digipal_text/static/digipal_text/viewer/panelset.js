@@ -152,10 +152,8 @@
 
         this._resize = function(refreshLayout) {
             // resize the div to the available height on the browser viewport
-            var window_height = $(window).height();
-            var height = window_height - this.$root.offset().top + $(document).scrollTop();
-            height = (height < 1) ? 0 : height;
-            height = (height > window_height) ? window_height : height;
+            var height = window.dputils.getElasticHeight(this.$root);
+
             this.$panelset.css('height', height - this.$messageBox.outerHeight(true));
             
             if (refreshLayout && this.layout) {

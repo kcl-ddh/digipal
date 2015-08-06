@@ -1,0 +1,72 @@
+{% load html_escape%}
+
+{% for record in result %}
+    {% comment %}
+    {% include "digipal/folio_image.html" with image=record width=180 full_label=1 img_col=4 %}
+    {% endcomment %}
+
+    <div class="">
+        <a href="{{ record.get_absolute_url }}">
+            <span class='imageDatabase_label one-line'>
+                {{ record.display_label }}
+            </span>
+        </a>
+        
+        <span class="pull-right">
+        {% include 'digipal/folio_image_counts.html' with image=record %}
+        </span>
+    </div>
+
+    <div class="result-ol" id="image-{{record.id}}" style="width:100%; height:300px;"
+        data-width="{{record.width}}" data-height="{{record.height}}" data-url="{{record.zoomify}}" >
+    </div>
+    
+    <script>
+    
+        $(function(){
+            var ol = window.ol;
+            
+            var $target = $('#image-{{record.id}}');
+            var dims = [$target.data('width'), $target.data('height')];
+            var url = $target.data('url');
+            var crossOrigin = 'anonymous';
+            var zoom = 1;
+            
+            var proj = new ol.proj.Projection({
+              code: 'ZOOMIFY',
+              units: 'pixels',
+              extent: [0, 0, dims[0], dims[1]]
+            });
+
+            var source = new ol.source.Zoomify({
+              url: url,
+              size: [dims[0], dims[1]],
+              crossOrigin: crossOrigin
+            });
+            
+            var tileLayer = new ol.layer.Tile({
+                source: source
+            });
+            
+            var imgCenter = [dims[0] / 2, - dims[1] / 2];
+
+            var map = new window.ol.Map({
+              layers: [tileLayer],
+              // overview is not great, see EXON-28
+              // controls: ol.control.defaults().extend([
+              //   new ol.control.OverviewMap({layers: [tileLayer]})
+              // ]),
+              target: $target[0],
+              view: new ol.View({
+                projection: proj,
+                center: imgCenter,
+                zoom: zoom,
+                // constrain the center: center cannot be set outside
+                // this extent
+                extent: [0, -dims[1], dims[0], 0]
+              })
+            });
+        });
+    </script>
+            
+{% endfor %}

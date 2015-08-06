@@ -1,0 +1,27 @@
+{% load html_escape %}
+{# Displays the number of annotations and hands of an image as link #}
+{# Input: image #}
+
+{% if cansee.graph %}
+    {% with annotation_count=image.get_annotation_count %}
+        {% if annotation_count %}
+            <a href='{{image.get_absolute_url }}allographs/'>
+        {% endif %}
+                <span class="label label-default">{{ annotation_count  }} {{ "Annotation"|plural:annotation_count }}</span>
+        {% if annotation_count %}
+            </a>
+        {% endif %}
+    {% endwith %}
+{% endif %}
+
+{% if cansee.hand %}
+    {% with hand_count=image.hands.all.count %}
+        {% if hand_count %}
+            <a href='{{image.get_absolute_url }}hands/'>
+        {% endif %}
+                <span class="label label-default" >{{ hand_count }} {{ "Hand"|plural:hand_count }}</span>
+        {% if hand_count %}
+            </a>
+        {% endif %}
+    {% endwith %}
+{% endif %}

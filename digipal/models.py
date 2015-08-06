@@ -1613,7 +1613,7 @@ class Image(models.Model):
             if self.iipimage:
                 ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
         return ret
-
+    
     def get_annotation_count(self):
         '''returns only annotations which have either a graph or a display note'''
         return len([1 for an in self.annotation_set.all() if an.is_publicly_visible])

@@ -140,7 +140,7 @@ def tei(value):
 
 @register.assignment_tag(takes_context=True)
 def load_hands(context, var_name):
-    ''' 
+    '''
         Usage:
             {% load_hands hand_ids as hands %}
         
@@ -158,14 +158,14 @@ def load_hands(context, var_name):
         graph_ids_current_page.extend(ids[1:])
     
     # get all the graphs on this page
-    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image', 
+    graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image',
         'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by(
         #'hand__scribe__name', 'hand__id', 'id')
         # JIRA 539: sort the graphs alphabetically
         'hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
     
     hands = Hand.objects.in_bulk([g.hand_id for g in graphs])
-#     .select_related('scribe', 
+#     .select_related('scribe',
 #         'item_part', 'item_part__current_item', 'item_part__current_item__repository',
 #         'assigned_place', 'assigned_date').prefetch_related('item_part__historical_items', 'item_part__historical_items__catalogue_numbers')
     
@@ -181,6 +181,9 @@ def load_hands(context, var_name):
         hand.graphs_template.append(graph)
         
     return ret
+
+import logging
+dplog = logging.getLogger('digipal_debugger')
 
 @register.simple_tag
 def chrono(label):
@@ -205,7 +208,10 @@ def chrono(label):
             if k in chrono.last_times:
                 slice_duration = t - chrono.last_times[k]
         
-        print '%40s %5.4f s. %5.4f s. (%s)' % (label, d.total_seconds(), slice_duration.total_seconds(), t)
+        message = '%40s %5.4f s. %5.4f s. (%s)' % (label, d.total_seconds(), slice_duration.total_seconds(), t)
+        print message
+        dplog.debug(message)
+        
     return''
 chrono.last_time = datetime.now()
 chrono.last_times = {}

@@ -101,11 +101,16 @@ def index_view(request, content_type=''):
 
 def search_ms_image_view(request):
     '''View for the Browse Image page'''
+
+    hand_filters.chrono('BROWSE:')
     
     from digipal.utils import request_invisible_model
     request_invisible_model('image', request, 'Image')
-    
+
+    hand_filters.chrono('search:')
+    hand_filters.chrono('all():')
     images = Image.objects.all()
+    hand_filters.chrono(':all()')
     
     from digipal.forms import FilterManuscriptsImages
 
@@ -145,17 +150,29 @@ def search_ms_image_view(request):
     #context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
     
     # permission filter
-    images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
+    # OPT: on DigiPal prefetch_related of annotation_set takes 20s and it retrieves all the fields even
+    # related to linked tables (allograph, character, etc.)
+    # Same with hands which takes around 2/3 s.
+    #images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
+    images = Image.filter_permissions_from_request(images, request)
     
+    hand_filters.chrono(':search')
+
     # count hands
+    hand_filters.chrono('hands:')
     from django.db.models import Count
     context['images'] = Image.sort_query_set_by_locus(images.select_related('item_part__current_item__repository__place').annotate(hand_count=Count('hands')))
+    hand_filters.chrono('hands:')
 
     image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form
     context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, '', True, [image_search_form])
     
+    hand_filters.chrono('template:')
     ret = render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
+    hand_filters.chrono(':template')
+
+    hand_filters.chrono(':BROWSE')
 
     return ret
 

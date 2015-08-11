@@ -494,6 +494,8 @@ DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
 # the site admins on every HTTP 500 error.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+DJANGO_DEBUG_LOG = False
+
 LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -697,3 +699,11 @@ else:
     set_dynamic_settings(globals())
 
 #
+# DJANGO DEBUG INFO get logged into our debug log file
+# This includes the SQL statements
+if DJANGO_DEBUG_LOG:
+    LOGGING['loggers']['django.db.backends'] = {
+        'handlers': ['digipal_debug'],
+        'level': 'DEBUG',
+        'propagate': False,
+    }

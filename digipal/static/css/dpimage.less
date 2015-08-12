@@ -60,10 +60,28 @@
     font-size: large;
 }
 
+/* Open Layer Map */
 .result-ol {
     margin: 1em 0 1em;
     border: 1px solid lightgrey;
+    background-color: black;
 }
+
+/* Full Screen OL map */
+.result-ol:-moz-full-screen {
+  height: 100%;
+}
+.result-ol:-webkit-full-screen {
+  height: 100%;
+}
+.result-ol:fullscreen {
+  height: 100%;
+}
+/* position the rotate control lower than usual */
+.result-ol .ol-rotate {
+  top: 3em;
+}
+
 
 /* Thumbnails */
 

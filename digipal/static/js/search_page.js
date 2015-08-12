@@ -424,6 +424,12 @@ $(function() {
         var imgCenter = [dims[0] / 2, - dims[1] / 2];
 
         var map = new window.ol.Map({
+          controls: ol.control.defaults().extend([
+            new ol.control.FullScreen()
+          ]),
+          interactions: ol.interaction.defaults().extend([
+            new ol.interaction.DragRotate()
+          ]),
           layers: [tileLayer],
           // overview is not great, see EXON-28
           // controls: ol.control.defaults().extend([

@@ -163,6 +163,12 @@
             get_elastic_height: function($element, min, margin) {
                 var height = 0;
                 
+                // This is a hack for OL - we force 100% height when it is in
+                // full screen mode. See zoom view of images on the faceted search.
+                if ($element.find('.ol-full-screen-true').length > 0) {
+                    return '100%';
+                }
+                
                 min = min || 0;
                 margin = margin || 0;
                 

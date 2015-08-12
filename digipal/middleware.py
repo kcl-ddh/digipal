@@ -1,10 +1,9 @@
 from django import http
 from django.conf import settings
 import re
+from digipal.utils import dplog
 
 # TODO: log the perfs to a file instead of printing them out
-import logging
-dplog = logging.getLogger('digipal_debugger')
 
 def are_perf_info_enabled():
     return getattr(settings, 'DEBUG', False) and getattr(settings, 'DEBUG_PERFORMANCE', False)
@@ -15,9 +14,7 @@ class HttpsAdminMiddleware(object):
         request.start_time = datetime.now()
         
         if are_perf_info_enabled():
-            from datetime import datetime
-            self.debug_message('START REQUEST' + '-' * 60)
-            self.debug_message('%s' % datetime.now())
+            dplog('START REQUEST' + '-' * 60)
 
         return None
         
@@ -32,12 +29,8 @@ class HttpsAdminMiddleware(object):
         if are_perf_info_enabled():
             from datetime import datetime
             request.stop_time = datetime.now()
-            self.debug_message('%s (%s)' % (request.path, request.stop_time - request.start_time))
-            self.debug_message('END RESPONSE' + '-' * 60)
+            dplog('%s (%s)' % (request.path, request.stop_time - request.start_time))
+            dplog('END RESPONSE' + '-' * 60)
         
         return response
     
-    def debug_message(self, message):
-        dplog.debug(message)
-        print message
-

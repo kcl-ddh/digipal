@@ -908,3 +908,11 @@ def re_sub_fct(content, apattern, fct, are=None):
         pos = match.start(0) + len(replacement)
         
     return content
+
+def dplog(message, level='DEBUG'):
+    import logging
+    dplog = logging.getLogger('digipal_debugger')
+    dplog.debug(message)
+
+    from datetime import datetime
+    print '[%s] %s' % (datetime.now(), message)

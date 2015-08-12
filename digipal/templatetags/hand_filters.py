@@ -182,8 +182,7 @@ def load_hands(context, var_name):
         
     return ret
 
-import logging
-dplog = logging.getLogger('digipal_debugger')
+from digipal.utils import dplog
 
 @register.simple_tag
 def chrono(label):
@@ -208,9 +207,8 @@ def chrono(label):
             if k in chrono.last_times:
                 slice_duration = t - chrono.last_times[k]
         
-        message = '%40s %5.4f s. %5.4f s. (%s)' % (label, d.total_seconds(), slice_duration.total_seconds(), t)
-        print message
-        dplog.debug(message)
+        message = '%8.4f %8.4f %s' % (d.total_seconds(), slice_duration.total_seconds(), label)
+        dplog(message)
         
     return''
 chrono.last_time = datetime.now()

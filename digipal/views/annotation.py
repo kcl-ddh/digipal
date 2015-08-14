@@ -18,6 +18,7 @@ from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
 import ast
 from django.conf import settings
 from digipal.templatetags.hand_filters import chrono
+from digipal.utils import dplog
 
 
 register = template.Library()
@@ -90,64 +91,70 @@ def get_features(graph_id, only_features=False):
     graphs_ids = str(graph_id).split(',')
     graphs = Graph.objects.filter(id__in=graphs_ids).select_related('graph_components', 'hand', 'idiograph', 'image')
     for graph in graphs:
-        obj = {}
-        dict_features = list([])
-        a = graph.idiograph.allograph.id
-        graph_components = graph.graph_components
-
-        if not only_features and not a in allographs_cache:
-            allograph = allograph_features(False, a)
-            obj['allographs'] = allograph
-            allographs_cache.append(a)
-
-        #vector_id = graph.annotation.vector_id
-        hand_id = graph.hand.id
-        allograph_id = graph.idiograph.allograph.id
-        image_id = graph.annotation.image.id
-        hands_list = []
-        item_part = graph.annotation.image.item_part.id
-        hands = graph.annotation.image.hands.all()
-        display_note = graph.annotation.display_note
-        internal_note = graph.annotation.internal_note
-        for hand in hands:
-            h = {
-                'id': hand.id,
-                'label': hand.label
-            }
-            hands_list.append(h)
-
-        for component in graph_components.all():
-            name_component = component.component.name
-            if component.features.count > 0:
-                for feature in component.features.all():
-                    dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
-
-        aspects = []
-        for aspect in graph.aspects.all():
-            features = []
-            for feature in aspect.features.all():
-                features.append({'id': feature.id, 'name': feature.name})
-            aspects.append({'id': aspect.id, 'name': aspect.name, 'features': features})
-
-        obj['features'] = dict_features
-        obj['aspects'] = aspects
-        #obj['vector_id'] = vector_id
-        obj['image_id'] = image_id
-        obj['hand_id'] = hand_id
-        obj['allograph_id'] = allograph_id
-        obj['hands'] = hands_list
-        obj['graph'] = graph.id
-        obj['item_part'] = item_part
-
-        if display_note:
-            obj['display_note'] = display_note
-
-        if display_note:
-            obj['internal_note'] = internal_note
-
+        obj = get_features_from_graph(graph, only_features, allographs_cache=allographs_cache)
         data.append(obj)
 
     return json.dumps(data)
+
+def get_features_from_graph(graph, only_features=False, allographs_cache=None):
+    allographs_cache = allographs_cache or []
+
+    obj = {}
+    dict_features = list([])
+    a = graph.idiograph.allograph.id
+    graph_components = graph.graph_components
+
+    if not only_features and not a in allographs_cache:
+        allograph = allograph_features(False, a)
+        obj['allographs'] = allograph
+        allographs_cache.append(a)
+
+    #vector_id = graph.annotation.vector_id
+    hand_id = graph.hand.id
+    allograph_id = graph.idiograph.allograph.id
+    image_id = graph.annotation.image.id
+    hands_list = []
+    item_part = graph.annotation.image.item_part_id
+    hands = graph.annotation.image.hands.all()
+    display_note = graph.annotation.display_note
+    internal_note = graph.annotation.internal_note
+    for hand in hands:
+        h = {
+            'id': hand.id,
+            'label': hand.label
+        }
+        hands_list.append(h)
+
+    for component in graph_components.all():
+        name_component = component.component.name
+        if component.features.count > 0:
+            for feature in component.features.all():
+                dict_features.append({"graph_component_id": component.id, 'component_id': component.component.id, 'name': name_component, 'feature': [feature.name]})
+
+    aspects = []
+    for aspect in graph.aspects.all():
+        features = []
+        for feature in aspect.features.all():
+            features.append({'id': feature.id, 'name': feature.name})
+        aspects.append({'id': aspect.id, 'name': aspect.name, 'features': features})
+
+    obj['features'] = dict_features
+    obj['aspects'] = aspects
+    #obj['vector_id'] = vector_id
+    obj['image_id'] = image_id
+    obj['hand_id'] = hand_id
+    obj['allograph_id'] = allograph_id
+    obj['hands'] = hands_list
+    obj['graph'] = graph.id
+    obj['item_part'] = item_part
+
+    if display_note:
+        obj['display_note'] = display_note
+
+    if display_note:
+        obj['internal_note'] = internal_note
+
+    return obj
 
 
 def allograph_features(request, allograph_id):
@@ -428,7 +435,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     else:
         annotation_list_with_graph = Annotation.objects.filter(graph__hand=hand).with_graph()
     annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(can_edit)
-    annotation_list_with_graph = annotation_list_with_graph.select_related('image', 'graph', 'graph__hand', 'graph__idiograph__allograph__character').prefetch_related('graph__graph_components__features', 'graph__graph_components__component').distinct()
+    annotation_list_with_graph = annotation_list_with_graph.select_related('image', 'graph', 'graph__hand', 'graph__idiograph__allograph__character').prefetch_related('graph__graph_components__features', 'graph__aspects', 'graph__graph_components__component', 'image__hands').distinct()
 
     editorial_annotations = Annotation.objects.filter(image=image_id).editorial().select_related('image')
     if not can_edit:
@@ -439,6 +446,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     an = {}
     #hands = []
     for a in annotation_list_with_graph:
+        #if len(annotations) > 1: break
         an = {}
         annotations.append(an)
         an['vector_id'] = a.vector_id
@@ -449,11 +457,10 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         an['hand'] = a.graph.hand_id
         an['character_id'] = a.graph.idiograph.allograph.character.id
         an['allograph_id'] = a.graph.idiograph.allograph.id
-        # GN: very inefficient, this call makes at least one DB query per annotation.
-        # TODO: optimise to a single query for all annotations.
-        features_list = json.loads(get_features(a.graph.id, True))
-        an['num_features'] = len(features_list[0]['features'])
-        an['features'] = features_list
+        # Now optimised (see select_related and prefect_related in the query above)
+        features = get_features_from_graph(a.graph, True)
+        an['num_features'] = len(features['features'])
+        an['features'] = [features]
         geo = a.get_geo_json_as_dict().get('geometry', None)
         if geo:
             an['geo_json'] = geo

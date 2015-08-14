@@ -701,7 +701,7 @@ else:
 #
 # DJANGO DEBUG INFO get logged into our debug log file
 # This includes the SQL statements
-if DJANGO_DEBUG_LOG:
+if DJANGO_DEBUG_LOG and LOGGING:
     LOGGING['loggers']['django.db.backends'] = {
         'handlers': ['digipal_debug'],
         'level': 'DEBUG',

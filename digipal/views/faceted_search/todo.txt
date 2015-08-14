@@ -1,3 +1,8 @@
+DONE 1. image size too big on moa (all)
+2. 500 error (why? try the new iipsrv)
+3. pink images
+4. the popover
+
 New version doc:
     |
     numbers:

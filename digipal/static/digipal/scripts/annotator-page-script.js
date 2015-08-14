@@ -536,7 +536,7 @@ function AnnotatorLoader() {
     this.filter_allographs = function(button) {
         button.addClass('active');
         var checkOutput = "<div id='annotations-switcher-alert' class='alert-danger hidden' style='padding: 0.5em;padding-left: 1.5em;font-size: 13px;'>Annotations are turned off</div>";
-        checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-lg-6">';
+        checkOutput += '<div style="margin-left: 0;margin-right: 0;padding: 2%;"><div class="col-md-6">';
         checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll" data-toggle="uncheck">Toggle All</span><br clear="all" />';
         var annotations = sort(annotator.vectorLayer.features, 'feature');
         var h;
@@ -561,7 +561,7 @@ function AnnotatorLoader() {
 
         }
         checkOutput += "</div>";
-        checkOutput += '<div class="col-lg-6">';
+        checkOutput += '<div class="col-md-6">';
         checkOutput += ' <span style="cursor:pointer;" title = "Toggle All" class="pull-left btn btn-xs btn-default" id="checkAll_hands" data-toggle="uncheck">Toggle All</span><br clear="all" />';
 
         var checked_editorial = "checked",
@@ -715,8 +715,8 @@ function AnnotatorLoader() {
             restoreFullscreenPositions();
         });
 
-        if (!annotator.annotations_switch_initial) { 
-            switcher.bootstrapSwitch('toggleState'); 
+        if (!annotator.annotations_switch_initial) {
+            switcher.bootstrapSwitch('toggleState');
         }
     };
 

@@ -1787,9 +1787,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         annotator.selectedAnnotations = [];
         annotator.cacheAnnotations.clear();
         $('.dialog_annotations').parent().remove();
-        var request = $.getJSON(annotator.absolute_image_url + 'annotations/', function(data) {
-            annotator.annotations = data;
-        });
+        // GN: commented this out because load_annotations() below will load the
+        // annotation anyway.
+        //         var request = $.getJSON(annotator.absolute_image_url + 'annotations/', function(data) {
+        //             annotator.annotations = data;
+        //         });
         var div = $('<div>');
         div.attr('class', 'loading-div');
         div.html('<p>Reloading annotations. Please wait...</p><img src="/static/digipal/images/ajax-loader3.gif" />');

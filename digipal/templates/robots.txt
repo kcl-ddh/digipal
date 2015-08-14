@@ -3,6 +3,7 @@ User-agent: *
 Disallow: /
 {% else %}
 Disallow: /admin/
+Disallow: /digipal/search/
 
 {% if sitemap_url %}
 Sitemap: {{ sitemap_url }}

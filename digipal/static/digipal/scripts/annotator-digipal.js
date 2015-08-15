@@ -821,9 +821,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             if (annotator.boxes_on_click) {
                 dialog.dialog({
                     draggable: true,
+                    //height: 340,
+                    //minHeight: 340,
                     height: 340,
-                    minHeight: 340,
-                    minWidth: 335,
+                    //minWidth: 340,
                     resizable: false,
 
                     close: function(event, ui) {
@@ -2444,7 +2445,7 @@ function refresh_features_dialog(data, dialog) {
     dialog.find('#components_tab').html(s);
     dialog.find('#notes_tab').html(notes);
 
-    $('.public_text_dialog_div').notebook().css("margin", "2%");
+    $('.public_text_dialog_div').notebook();//.css("margin", "2%");
     if (data.user_note) {
         $('.public_text_dialog_div').html(data.user_note);
     }

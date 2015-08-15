@@ -358,7 +358,7 @@
 .jquery-notebook {
     width: 270px;
     height: 120px;
-    margin: 2%;
+    /* margin: 2%; */
     -webkit-column-count: none;
     -moz-column-count: none;
     column-count: none;
@@ -696,9 +696,9 @@ path {
 }
 
 .label-dialog {
-    margin-left: 4%;
-    margin-top: 3%;
-    margin-bottom:0;
+    /*margin-left: 4%;*/
+    /*margin-top: 3%;-*
+    /*margin-bottom:0;*/
 }
 
 .olPopupCloseBox{
@@ -749,4 +749,8 @@ div.jquery-notebook p:first-child {
 
 #notes_tab div.jquery-notebook.editor {
     height: 15em;
+}
+
+.dialog_annotations .tab-content {
+    padding: 0.5em;
 }

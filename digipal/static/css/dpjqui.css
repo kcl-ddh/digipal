@@ -53,3 +53,8 @@
 .jquery-notebook .link-area button.link-ok:after {
     content: "\f00c";
 }
+
+/* The clear icon to remove all tags */
+.jquery-notebook button.clear:after {
+    content: "\f12d";
+}

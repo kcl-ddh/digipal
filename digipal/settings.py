@@ -601,8 +601,9 @@ COMPRESS_CACHE_BACKEND = 'django-compressor'
 # Preprocessing of the CSS
 # ONLY if COMPRESS_ENABLED == True
 COMPRESS_CSS_FILTERS = [
-    #'compressor.filters.css_default.CssAbsoluteFilter',
-    #'compressor.filters.cssmin.CSSMinFilter',
+    # NECESSARY on production site to avoid rel refs to non existent images
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
 ]
 
 # Compiling LESS to CSS

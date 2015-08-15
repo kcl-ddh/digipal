@@ -11,6 +11,12 @@ def cookied_inputs(request):
     return render_to_response('test/cookied_inputs.html', context,
             context_instance=RequestContext(request))
 
+def jqnotebook_view(request):
+    context = {'test': 'Yo!'}
+
+    return render_to_response('test/jqnotebook.html', context,
+            context_instance=RequestContext(request))
+
 def iipimage(request):
     context = {'iiphost': settings.IMAGE_SERVER_URL}
     
@@ -43,28 +49,28 @@ def map_view(request):
     # get all the item parts with coordinates
     context['q'] = request.GET.get('q', '')
     ip_objs = ItemPart.objects.filter(
-                                  Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']), 
+                                  Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']),
                                   owners__institution__place__id__gt=0
                                 ).order_by('display_label').distinct().prefetch_related('owners', 'owners__institution', 'owners__institution__place', 'images')
     
 #     ips = ItemPart.objects.filter(
-#                                   Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']), 
+#                                   Q(display_label__icontains=context['q']) | Q(group__display_label__icontains=context['q']) | Q(owners__institution__place__name__icontains=context['q'])  | Q(owners__institution__place__region__name__icontains=context['q']),
 #                                   owners__institution__place__id__gt=0
 #                                 ).values(
-#                                   'display_label', 
+#                                   'display_label',
 #                                   'owners__institution__place__name',
-#                                   'owners__institution__place__id', 
-#                                   'owners__institution__place__northings', 
-#                                   'owners__institution__place__eastings', 
+#                                   'owners__institution__place__id',
+#                                   'owners__institution__place__northings',
+#                                   'owners__institution__place__eastings',
 #                                   'owners__date',
 #                                   'id'
 #                                 ).order_by('display_label').distinct()
     ips = ip_objs.values(
-                                  'display_label', 
+                                  'display_label',
                                   'owners__institution__place__name',
-                                  'owners__institution__place__id', 
-                                  'owners__institution__place__northings', 
-                                  'owners__institution__place__eastings', 
+                                  'owners__institution__place__id',
+                                  'owners__institution__place__northings',
+                                  'owners__institution__place__eastings',
                                   'owners__date',
                                   'id'
                                 )
@@ -78,7 +84,7 @@ def map_view(request):
         if key not in context['marks']:
             context['marks'][key] = [ip['owners__institution__place__northings'], ip['owners__institution__place__eastings'], ip['owners__institution__place__name'], []]
         context['marks'][key][3].append([ip['display_label'], ip['owners__date']])
-    #context['marks'] = 
+    #context['marks'] =
 
     import json
     context['marks'] = json.dumps(context['marks'])

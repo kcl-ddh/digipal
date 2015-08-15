@@ -78,6 +78,8 @@ if settings.DEBUG:
        (r'test/map/$', 'map_view'),
        (r'test/autocomplete/$', 'autocomplete_view'),
        (r'test/api/$', 'api_view'),
+       # jquery notebook
+       (r'test/jqnotebook/$', 'jqnotebook_view'),
    )
 
 urlpatterns += patterns('digipal.views.test', (r'test/error/?$', 'server_error_view'),)

@@ -47,3 +47,9 @@
     font-size: 14.5px;
 }
 
+/* Patches from jqnotebook */
+
+/* Style the link-ok icon */
+.jquery-notebook .link-area button.link-ok:after {
+    content: "\f00c";
+}

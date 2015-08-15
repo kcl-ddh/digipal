@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags html_escape %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {% if 0 %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/dpjqui.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/dpannotator.css"/>
+    {%endif%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.notebook.min.css"/>
+    
+    <style>
+        .dialog {
+            width: 340px;
+            height: 180px;
+        }
+    </style>
+{% endblock %}
+
+{% block head %}
+    <h1>Light Wysiwyg Editor</h1>
+
+    <div class="dialog ">
+        <div class="my-editor public_text_dialog_div form-control"></div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.notebook.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            //$('.my-editor').notebook();
+        });
+    </script>
+{% endblock %}

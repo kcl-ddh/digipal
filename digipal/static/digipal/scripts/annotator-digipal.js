@@ -654,12 +654,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                 show_url_allograph(dialog_instance, selectedFeature, $(this));
             });
 
+            // Changes in the name/title of the public note
             var name_temporary_annotation = $('.name_temporary_annotation');
-            var content_temporary_annotation = $('.textarea_temporary_annotation');
-
-            if (annotator.selectedFeature.contentAnnotation) {
-                content_temporary_annotation.val(annotator.selectedFeature.contentAnnotation);
-            }
+            //var content_temporary_annotation = $('.textarea_temporary_annotation');
 
             if (annotator.selectedFeature.contentTitle) {
                 name_temporary_annotation.val(annotator.selectedFeature.contentTitle);
@@ -674,20 +671,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                 remove_url_div();
             });
 
-            content_temporary_annotation.notebook({
-                placeholder: 'Type description here...'
-            });
-
-            content_temporary_annotation.on('keyup', function(e) {
-                var content = e.originalEvent.detail.content;
-                annotator.selectedFeature.contentAnnotation = content;
-                remove_url_div();
-            });
-            content_temporary_annotation.on('contentChange', function(e) {
-                var content = e.originalEvent.detail.content;
-                annotator.selectedFeature.contentAnnotation = content;
-                remove_url_div();
-            });
+            init_note_field('.textarea_temporary_annotation', annotator, 'contentAnnotation');
 
             // Showing all the allographs of a given allograph
             dialog_instance.parent().find('.number_annotated_allographs').on('click', function() {
@@ -903,31 +887,9 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                             notes += '<div placeholder="Type here display note" class="form-control" id="display_note" name="display_note" style="width:95%;margin-left:0.1em;"></div>';
                             dialog.css("margin", "1%");
                             dialog.find('#notes_tab').html(notes);
-
-                            dialog.find('#display_note').notebook({
-                                placeholder: 'Type display note here...'
-                            }).html(annotator.selectedFeature.display_note).on('contentChange', function(e) {
-                                var content = e.originalEvent.detail.content;
-                                annotator.selectedFeature.display_note = content;
-                                remove_url_div();
-                            }).on('keyup', function() {
-                                var content = e.originalEvent.detail.content;
-                                annotator.selectedFeature.display_note = content;
-                                remove_url_div();
-                            });
-
-
-                            dialog.find('#internal_note').notebook({
-                                placeholder: 'Type internal note here...'
-                            }).html(annotator.selectedFeature.internal_note).on('contentChange', function(e) {
-                                var content = e.originalEvent.detail.content;
-                                annotator.selectedFeature.internal_note = content;
-                                remove_url_div();
-                            }).on('keyup', function() {
-                                var content = e.originalEvent.detail.content;
-                                annotator.selectedFeature.internal_note = content;
-                                remove_url_div();
-                            });
+                            
+                            init_note_field(dialog.find('#display_note'), annotator, 'display_note', 'Type display note here...');
+                            init_note_field(dialog.find('#internal_note'), annotator, 'internal_note', 'Type internal note here...');
 
                             $('#panelImageBox .allograph_form').val('------');
                             $('#panelImageBox .hand_form').val('------');
@@ -2445,11 +2407,8 @@ function refresh_features_dialog(data, dialog) {
     dialog.find('#components_tab').html(s);
     dialog.find('#notes_tab').html(notes);
 
-    $('.public_text_dialog_div').notebook();//.css("margin", "2%");
-    if (data.user_note) {
-        $('.public_text_dialog_div').html(data.user_note);
-    }
-
+    init_note_field('.public_text_dialog_div', annotator, 'user_note');
+                            
     if ($.isEmptyObject(data) || data && data.components && !data.components.length) {
         dialog.find('#components_tab').hide();
         $('[data-target="#components_tab"]').hide();

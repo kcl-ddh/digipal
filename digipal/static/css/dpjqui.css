@@ -58,3 +58,18 @@
 .jquery-notebook button.clear:after {
     content: "\f12d";
 }
+
+/* Float the close icon to the right rather than using absolute position
+    This way it is easier to add otehr icons in the corner
+ */
+ 
+.ui-dialog2 .ui-dialog-titlebar a[role=button], .ui-dialog2 .ui-dialog-titlebar button {
+    position: static;
+    float: right;
+    margin-left: 2px;
+ 
+
+/* Move the close icon nearer to the edge */
+.ui-dialog2 .ui-dialog-titlebar {
+    padding: .3em;
+}

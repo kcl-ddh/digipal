@@ -152,7 +152,7 @@
 
         this._resize = function(refreshLayout) {
             // resize the div to the available height on the browser viewport
-            var height = window.dputils.getElasticHeight(this.$root);
+            var height = window.dputils.get_elastic_height(this.$root);
 
             this.$panelset.css('height', height - this.$messageBox.outerHeight(true));
             

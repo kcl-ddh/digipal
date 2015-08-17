@@ -53,9 +53,9 @@
                     </li>
                 {% endif %}
                 {% if 0 %}
-	                <li {% if url == 'metadata' %} class='active in' {% endif %}>
-	                    <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
-	                </li>
+                    <li {% if url == 'metadata' %} class='active in' {% endif %}>
+                        <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
+                    </li>
                 {% endif %}
                 <li {% if url == 'copyright' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
@@ -97,10 +97,10 @@
                 {% endif %}
 
                 {% if 0 %}
-	                <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
-	                     {% include "pages/record_images.html" %}
-	                </div>
-	            {% endif %}
+                    <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
+                         {% include "pages/record_images.html" %}
+                    </div>
+                {% endif %}
 
                 <div class="tab-pane fade {% if url == 'copyright' %} active in {% endif %}" id='copyright'>
                     {% include "pages/copyright.html" %}
@@ -122,7 +122,7 @@
     {{ block.super }}
 
     <script>var annotator_zoom_levels = {{ zoom_levels }};
-            var img_url = "{{ url }}";
+        var img_url = "{{ url }}";
     </script>
     
     {% if show_image %}
@@ -186,7 +186,7 @@
                 {% endif %}
     
                 {% if no_image_reason %}
-                    no_image_reason = true;
+                    //no_image_reason = true;
                 {% endif %}
     
                 /* Calling page script */

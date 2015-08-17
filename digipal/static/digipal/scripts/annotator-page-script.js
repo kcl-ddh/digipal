@@ -338,7 +338,7 @@ function AnnotatorLoader() {
 
     this.load_temporary_vector = function() {
         var temporary_vectors = annotator.utils.getParameter('temporary_vector');
-        if (temporary_vectors.length && !no_image_reason) {
+        if (temporary_vectors.length && annotator) {
 
             $('html').animate({
                 scrollTop: $('#map').position().top + 'px'
@@ -433,7 +433,7 @@ function AnnotatorLoader() {
     */
 
     this.load_stored_vector = function() {
-        if (typeof vector_id_value != "undefined" && vector_id_value && !no_image_reason) {
+        if (typeof vector_id_value != "undefined" && vector_id_value && annotator) {
             $('html').animate({
                 scrollTop: $('#map').position().top + 'px'
             }, 0);

@@ -53,6 +53,8 @@ Options:
      -e --email=EMAIL_ADDRESS
          send error message to EMAIL_ADDRESS
 
+    --nohg
+         pull command ignores hg repo
     ''' % os.path.basename(__file__)
     exit
 
@@ -89,6 +91,9 @@ def process_commands_main_dir():
     parser.add_option("-e", "--email",
                       action="store", dest="email", default='',
                       help="email to send errors to")
+    parser.add_option("--nohg",
+                      action="store_true", dest="nohg", default=False,
+                      help="skip hg pull")
     
     (options, args) = parser.parse_args()
     
@@ -203,7 +208,7 @@ def process_commands_main_dir():
                 system('git pull', validation_git)
                 os.chdir(original_dir)
 
-                if not config.SELF_CONTAINED:
+                if not config.SELF_CONTAINED and not options.nohg:
                     print '> Pull main'
                     validation_hg = r'(?i)error:|abort:'
                     system('hg pull', validation_hg)
@@ -236,9 +241,11 @@ def process_commands_main_dir():
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')
 
-                print '> Collect Static'
                 if not get_config('DJANGO_WEB_SERVER'):
+                    print '> Collect Static'
                     system('python manage.py collectstatic --noinput')
+                else:
+                    print '> Collect Static (skipped: django webserver)'
 
                 print '> Validate'
                 system('python manage.py validate', r'0 errors found', True)

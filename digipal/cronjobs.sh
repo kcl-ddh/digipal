@@ -17,7 +17,7 @@ while getopts ":p:e:i" opt; do
       ;;
     p)
       # upgrade the code
-      python digipal/repo.py -a -e "$OPTARG" pull
+      python digipal/repo.py -a --nohg -e "$OPTARG" pull
       SHOW_HELP=0
       ;;
     i)
@@ -59,7 +59,7 @@ exit
 if [ ! -f manage.py ]
     then
         echo "ERROR: manage.py not found."
-	exit
+    exit
 fi
 
 if [ -n "$env_path" ]

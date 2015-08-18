@@ -13,6 +13,12 @@
 {% block extra_js %}
     {{ block.super }}
     <script>
-        
+        var options = {
+            $target:        '#ol',
+            image_height:   ,
+            image_width:    ,
+            image_url:      'http://digipal2-images.cch.kcl.ac.uk/iip/iipsrv.fcgi?FIF=jp2/parker/cccc/CCCC_MS_162/p_109_full.jp2',
+        };
+        window.dputils.add_open_layer(options);
     </script>
 {% endblock %}

@@ -228,15 +228,18 @@ def process_commands_main_dir():
                     if has_sudo: print '\t(with sudo)'
                     sudo = ''
                     if has_sudo and not options.automatic: sudo = 'sudo '
-                    system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
-                    system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
+                    if has_sudo:
+                        system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
+                        system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
+                    # -r- xrw x---
                     system('%schmod 570 -R .' % sudo)
                     dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+                    # -rw xrw x---
                     system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
                     # we do this because the cron job to reindex the content
                     # recreate the dirs with owner = gnoel:ddh-research
-                    system('%schmod o+r -R %s/search' % (project_folder, sudo))
-                    system('%schmod o+x -R %s/search/*' % (project_folder, sudo))
+                    system('%schmod o+r -R %s/search' % (sudo, project_folder))
+                    system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
                 
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')

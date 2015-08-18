@@ -52,9 +52,9 @@ function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {
     
     this.map = window.dputils.add_open_layer({
         version: 2,
+        $target: '#map',
         image_width: this.imageWidth,
         image_height: this.imageHeight,
-        zoom: annotator_zoom_levels,
         max_resolution: Math.pow(2, this.imageLayer.numberOfTiers - 1),
         eventListeners: {
             featureover: function(e) {

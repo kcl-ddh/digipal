@@ -205,7 +205,7 @@
                     image_url *: ,
                     zoom:
                         initial zoom level (e.g. 1),
-                    zoom_levels:
+                    (zoom_levels:)
                     load_tile_callback:
                         a callback to keep track of the tile loading
                     can_rotate:
@@ -221,25 +221,66 @@
             */
             add_open_layer: function(options) {
                 options.version = options.version || 3;
-                options.zoom_levels = options.zoom_levels || window.digipal_settings.ANNOTATOR_ZOOM_LEVELS;
-                return (options.version < 3) ?
-                    window.dputils.add_open_layer2(options)
-                    : window.dputils.add_open_layer3(options);
+                options.zoom = options.zoom || 0;
+                
+                //options.zoom_levels = options.zoom_levels || window.digipal_settings.ANNOTATOR_ZOOM_LEVELS;
+                if (!options.max_resolution) {
+                    // calculate max resolution so the image maximizes the viewport
+                    var div_dims = [700, 700];
+                    if (options.$target && $(options.$target).length) {
+                        div_dims = [$(options.$target).width(), $(options.$target).height()];
+                    }
+                    options.max_resolution = options.image_width / div_dims[0];
+                    if ((options.max_resolution * options.image_height) > div_dims[1]) {
+                        options.max_resolution = options.image_height / div_dims[1];
+                    }
+                }
+                // don't go lower than the 1 resolution to avoid pixelation
+                //options.min_resolution = options.min_resolution || 1;
+                options.resolutions = [];
+                var new_res = options.max_resolution;
+                var zoom_factor = window.digipal_settings.ANNOTATOR_ZOOM_FACTOR;
+                while (true) {
+                    options.resolutions.push(new_res | 0);
+                    if (new_res < 1) break;
+                    new_res /= zoom_factor;
+                }
+                // add one resolution under the 1
+                if (new_res > 0.5) {
+                    options.resolutions.push((new_res / zoom_factor) |  0);
+                }
+                
+                var function_name = 'add_open_layer' + ((options.version < 3) ? '2' : '3');
+                var ret = window.dputils[function_name](options);
+                return ret;
             },
 
             add_open_layer2: function(options) {
             
+                var $target = $(options.$target);
+
                 var maxExtent = new window.OpenLayers.Bounds(0, 0, options.image_width, options.image_height);
             
                 // creates a new OpenLayers map
-                options.map = new window.OpenLayers.Map('map', {
+                var map_options = {
                     maxExtent: maxExtent,
-                    maxResolution: options.max_resolution,
-                    numZoomLevels: options.zoom_levels,
                     projection: 'EPSG:3785',
                     units: 'm',
-                    eventListeners: options.event_listeners,
-                });
+                    //units: 'pixels',
+                    //resolutions: options.resolutions,
+                    //maxResolution: options.resolutions[0],
+                    //minResolution: options.resolutions[options.resolutions.length - 1],
+                    maxResolution: options.max_resolution,
+                    //numZoomLevels: options.resolutions.length,
+                    numZoomLevels: window.digipal_settings.ANNOTATOR_ZOOM_LEVELS,
+                    //numZoomLevels: options.zoom_levels,
+                };
+                
+                if (options.event_listeners) {
+                    map_options.eventListeners = options.event_listeners;
+                }
+                
+                options.map = new window.OpenLayers.Map($target.attr('id'), map_options);
                 
                 return options.map;
             },
@@ -282,6 +323,21 @@
                     source: source
                 });
                 
+                var view_options = {
+                    projection: proj,
+                    center: [options.image_width / 2, - options.image_height / 2],
+                    zoom: options.zoom,
+                    //maxResolution: options.max_resolution,
+                    //minResolution: options.min_resolution,
+                    //zoomFactor: options.zoom_factor,
+                    resolutions: options.resolutions,
+                    //minZoom: 0,
+                    //maxZoom: options.zoom_levels - 1,
+                    // constrain the center: center cannot be set outside
+                    // this extent
+                    extent: [0, -options.image_height, options.image_width, 0]
+                };
+                
                 var map_options = {
                     layers: [tileLayer],
                     // overview is not great, see EXON-28
@@ -289,16 +345,7 @@
                     //   new ol.control.OverviewMap({layers: [tileLayer]})
                     // ]),
                     target: $target[0],
-                    view: new ol.View({
-                        projection: proj,
-                        center: [options.image_width / 2, - options.image_height / 2],
-                        zoom: options.zoom,
-                        minZoom: 0,
-                        maxZoom: options.zoom_levels - 1,
-                        // constrain the center: center cannot be set outside
-                        // this extent
-                        extent: [0, -options.image_height, options.image_width, 0]
-                    })
+                    view: new ol.View(view_options)
                 };
                 
                 if (options.can_fullscreen) {

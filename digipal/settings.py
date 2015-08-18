@@ -647,6 +647,9 @@ TINYMCE_DEFAULT_CONFIG = {
 
 # Annotator Settings
 ANNOTATOR_ZOOM_LEVELS = 7
+# Zoom Increment for the OpenLayers/Zoomify viewer
+# Lower value for smaller increments (OL default = 2)
+ANNOTATOR_ZOOM_FACTOR = 1.4
 
 # Web API
 REJECT_HTTP_API_REQUESTS = False

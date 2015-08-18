@@ -2,6 +2,20 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}digipal/scripts/libs/openlayers.digipal/theme/default/style.less" type="text/less" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
+    <style>
+        #ol {
+            width: 100%;
+            height: 30em;
+            border: 1px solid grey;
+            background-color: black;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
 
     <div id="ol" />
@@ -9,16 +23,37 @@
     
 {% endblock %}
 
-
 {% block extra_js %}
     {{ block.super }}
+    <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>
     <script>
-        var options = {
-            $target:        '#ol',
-            image_height:   ,
-            image_width:    ,
-            image_url:      'http://digipal2-images.cch.kcl.ac.uk/iip/iipsrv.fcgi?FIF=jp2/parker/cccc/CCCC_MS_162/p_109_full.jp2',
-        };
-        window.dputils.add_open_layer(options);
+        $(function() {
+            var options = {
+                image_height:   3479,
+                image_url:      "https://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham_Scottish_Charters/Misc_Charters_001/DCD_1_1_Sacr_12/dcd_1_1_sacr_12_2.jp2/",
+                image_width:    3666,
+                $target:        '#ol',
+                version: 2,
+            };
+            var imageLayer = null;
+            var map = window.dputils.add_open_layer(options);
+            if (options.version < 3) {
+                imageLayer = new OpenLayers.Layer.Zoomify('Zoomify', options.image_url,
+                    new OpenLayers.Size(options.image_width, options.image_height),
+                    {
+                        isBaseLayer: true,
+                        serverResolutions: options.resolutions,
+                    });
+                //options.max_resolution = Math.pow(2, imageLayer.numberOfTiers - 1);
+                //options.max_resolution = Math.pow(2, imageLayer.numberOfTiers - 1);
+                //options.zoom_levels = imageLayer.numberOfTiers;
+            }
+            
+            // adds the image layer to the map
+            if (imageLayer) {
+                map.addLayer(imageLayer);
+            }
+        });
     </script>
 {% endblock %}

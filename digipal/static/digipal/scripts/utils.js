@@ -198,21 +198,53 @@
 
             /* Set up Open layer on a DOM element
                 options = {
-                    target:
+                    target *:
                         JQuery element to convert to Open Layer,
-                    image_height: ,
-                    image_width: ,
+                    image_height *: ,
+                    image_width *: ,
+                    image_url *: ,
                     zoom:
                         initial zoom level (e.g. 1),
+                    zoom_levels:
                     load_tile_callback:
                         a callback to keep track of the tile loading
                     can_rotate:
                         true,
                     can_fullscreen:
                         true,
+                        
+                    version:
+                        2|3
+                    max_resolution (version 2)
+                    event_listeners (version 2)
                 }
             */
             add_open_layer: function(options) {
+                options.version = options.version || 3;
+                options.zoom_levels = options.zoom_levels || window.digipal_settings.ANNOTATOR_ZOOM_LEVELS;
+                return (options.version < 3) ?
+                    window.dputils.add_open_layer2(options)
+                    : window.dputils.add_open_layer3(options);
+            },
+
+            add_open_layer2: function(options) {
+            
+                var maxExtent = new window.OpenLayers.Bounds(0, 0, options.image_width, options.image_height);
+            
+                // creates a new OpenLayers map
+                options.map = new window.OpenLayers.Map('map', {
+                    maxExtent: maxExtent,
+                    maxResolution: options.max_resolution,
+                    numZoomLevels: options.zoom_levels,
+                    projection: 'EPSG:3785',
+                    units: 'm',
+                    eventListeners: options.event_listeners,
+                });
+                
+                return options.map;
+            },
+            
+            add_open_layer3: function(options) {
                 var ol = window.ol;
                 
                 var $target = $(options.$target);
@@ -261,6 +293,8 @@
                         projection: proj,
                         center: [options.image_width / 2, - options.image_height / 2],
                         zoom: options.zoom,
+                        minZoom: 0,
+                        maxZoom: options.zoom_levels - 1,
                         // constrain the center: center cannot be set outside
                         // this extent
                         extent: [0, -options.image_height, options.image_width, 0]

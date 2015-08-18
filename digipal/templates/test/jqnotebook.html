@@ -1,11 +1,18 @@
-<html>
-<head></head>
-<body>
+{% extends "base.html" %}
+{% load pages_tags mezzanine_tags i18n %}
+{% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
-<img src="https://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham_Scottish_Charters/Misc_Charters_001/DCD_1_1_Sacr_12/dcd_1_1_sacr_12.jp2/TileGroup0/1-0-0.jpg">
-<img src="https://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham_Scottish_Charters/Misc_Charters_001/DCD_1_1_Sacr_12/dcd_1_1_sacr_12.jp2/TileGroup0/1-1-0.jpg">
-<img src="https://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham_Scottish_Charters/Misc_Charters_001/DCD_1_1_Sacr_12/dcd_1_1_sacr_12.jp2/TileGroup0/1-0-1.jpg">
-<img src="https://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham_Scottish_Charters/Misc_Charters_001/DCD_1_1_Sacr_12/dcd_1_1_sacr_12.jp2/TileGroup0/1-1-1.jpg">
+{% block main %}
 
-</body>
-</html>
+    <div id="ol" />
+    
+    
+{% endblock %}
+
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        
+    </script>
+{% endblock %}

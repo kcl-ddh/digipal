@@ -1,5 +1,6 @@
 from digipal.forms import SearchPageForm
 import digipal
+from django.conf import settings
 
 class CanUserSeeModel(object):
     ''' Usage:
@@ -8,7 +9,7 @@ class CanUserSeeModel(object):
             
             => v is True is request.user can see Hand model
             See settings.py:MODELS_PUBLIC & MODELS_PRIVATE
-    ''' 
+    '''
     
     def __init__(self, request=None):
         self.request = request
@@ -26,14 +27,27 @@ def get_dapi_content_type_response():
     ret = api.get_all_content_types('content_type');
     return ret
 
+def get_contextable_digipal_settings():
+    ret = {}
+    # space separated list of django settings variable names
+    # to expose in the templates as global javascript var
+    # window.digipal_settings.VARNAME = VALUE
+    template_settings = 'ANNOTATOR_ZOOM_LEVELS'
+    for k in template_settings.split(' '):
+        k = k.strip()
+        ret[k] = getattr(settings, k, '')
+    return ret
+
 def quick_search(request):
     # We need this form for the quick search box
     # on to of every page
+    import json
     return {
             'quick_search_form': SearchPageForm(),
             'digipal_version': digipal.__version__,
-            # Usage in template: 
+            # Usage in template:
             # {% if cansee.Hand %}
             'cansee': CanUserSeeModel(request),
-            'dapi_content_type_response': get_dapi_content_type_response
+            'dapi_content_type_response': get_dapi_content_type_response,
+            'DIGIPAL_SETTINGS': json.dumps(get_contextable_digipal_settings())
             }

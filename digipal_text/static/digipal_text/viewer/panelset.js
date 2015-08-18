@@ -686,7 +686,7 @@
         if (options) {
             var $pres = this.$presentationOptions;
             $pres.find('li').each(function() {
-                $li = $(this);
+                var $li = $(this);
                 if (options.indexOf($li.data('id')) > -1) {
                     $li.find('input').trigger('click');
                 }
@@ -995,76 +995,22 @@
             // See http://openlayers.org/en/v3.5.0/examples/zoomify.html
             var me = this;
             
-            var zoom = 0;
-            if (this.map) {
-                zoom = this.map.getView().getZoom() || 0;
-            }
-            
             // empty the content as OL appends to it
             this.$content.html('');
             
-            var imgWidth = data.width;
-            var imgHeight = data.height;
-            var url = data.zoomify_url;
-            var crossOrigin = 'anonymous';
-
-            var imgCenter = [imgWidth / 2, - imgHeight / 2];
-
-            var ol = window.ol;
-
-            // Maps always need a projection, but Zoomify layers are not geo-referenced, and
-            // are only measured in pixels.  So, we create a fake projection that the map
-            // can use to properly display the layer.
-            var proj = new ol.proj.Projection({
-              code: 'ZOOMIFY',
-              units: 'pixels',
-              extent: [0, 0, imgWidth, imgHeight]
+            this.map = window.dputils.add_open_layer({
+                $target: this.$content,
+                image_url: data.zoomify_url,
+                image_height: data.height,
+                image_width: data.width,
+                zoom: this.map ? this.map.getView().getZoom() : 0,
+                load_tile_callback: function() {me.loadTile.apply(me, arguments);},
             });
 
-            var source = new ol.source.Zoomify({
-              url: url,
-              size: [imgWidth, imgHeight],
-              crossOrigin: crossOrigin
-            });
-            
-            this.tileLoadingCount = 0;
-            this.tileLoadError = false;
-            
-            source.on('tileloadstart', function(event) {
-              me.loadTile(1);
-            });
-            source.on('tileloadend', function(event) {
-              me.loadTile(-1);
-            });
-            source.on('tileloaderror', function(event) {
-              me.loadTile(-1, true);
-            });
-            
-            var tileLayer = new ol.layer.Tile({
-                source: source
-            });
-
-            var map = new ol.Map({
-              layers: [tileLayer],
-              // overview is not great, see EXON-28
-              // controls: ol.control.defaults().extend([
-              //   new ol.control.OverviewMap({layers: [tileLayer]})
-              // ]),
-              target: this.$content[0],
-              view: new ol.View({
-                projection: proj,
-                center: imgCenter,
-                zoom: zoom,
-                // constrain the center: center cannot be set outside
-                // this extent
-                extent: [0, -imgHeight, imgWidth, 0]
-              })
-            });
-            
-            this.map = map;
             this.clipImageToTop();
-            
-            var view = map.getView();
+
+            // Update address bar after panning & zooming
+            var view = this.map.getView();
             view.on('change:center', function (event){me.panelSet.onPanelStateChanged(me);});
             view.on('change:resolution', function (event){me.panelSet.onPanelStateChanged(me);});
              
@@ -1072,7 +1018,23 @@
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
         
+        /*
+            Open Layer Callback that keep count of the tile loading
+            We display a laoding status message to the user
+            
+            incdec:
+                the number of tiles loading (-1 if a new one is loaded)
+                'reset': to reset the count (e.g. we load a new image)
+            error:
+                true  if an error occured during the tile loading
+        */
         this.loadTile = function(incdec, error) {
+            if (incdec === 'reset') {
+                this.tileLoadingCount = 0;
+                this.tileLoadError = false;
+                return;
+            }
+
             if (error) this.tileLoadError += 1;
             if (incdec !== undefined) {
                 this.tileLoadingCount += incdec;

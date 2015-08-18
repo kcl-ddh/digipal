@@ -915,4 +915,4 @@ def dplog(message, level='DEBUG'):
     dplog.debug(message)
 
     from datetime import datetime
-    print '[%s] %s' % (datetime.now(), message)
+    #print '[%s] %s' % (datetime.now(), message)

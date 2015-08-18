@@ -194,6 +194,94 @@
                 };
                 $(window).on('resize scroll', function() {on_resize();});
                 on_resize();
+            },
+
+            /* Set up Open layer on a DOM element
+                options = {
+                    target:
+                        JQuery element to convert to Open Layer,
+                    image_height: ,
+                    image_width: ,
+                    zoom:
+                        initial zoom level (e.g. 1),
+                    load_tile_callback:
+                        a callback to keep track of the tile loading
+                    can_rotate:
+                        true,
+                    can_fullscreen:
+                        true,
+                }
+            */
+            add_open_layer: function(options) {
+                var ol = window.ol;
+                
+                var $target = $(options.$target);
+                
+                // Maps always need a projection, but Zoomify layers are not geo-referenced, and
+                // are only measured in pixels.  So, we create a fake projection that the map
+                // can use to properly display the layer.
+                var proj = new ol.proj.Projection({
+                  code: 'ZOOMIFY',
+                  units: 'pixels',
+                  extent: [0, 0, options.image_width, options.image_height]
+                });
+                
+                var source = new ol.source.Zoomify({
+                    url: options.image_url,
+                    size: [options.image_width, options.image_height],
+                    crossOrigin: 'anonymous'
+                });
+                
+                if (options.load_tile_callback) {
+                    options.load_tile_callback('reset');
+                
+                    source.on('tileloadstart', function(event) {
+                      options.load_tile_callback(1);
+                    });
+                    source.on('tileloadend', function(event) {
+                      options.load_tile_callback(-1);
+                    });
+                    source.on('tileloaderror', function(event) {
+                      options.load_tile_callback(-1, true);
+                    });
+                }
+            
+                var tileLayer = new ol.layer.Tile({
+                    source: source
+                });
+                
+                var map_options = {
+                    layers: [tileLayer],
+                    // overview is not great, see EXON-28
+                    // controls: ol.control.defaults().extend([
+                    //   new ol.control.OverviewMap({layers: [tileLayer]})
+                    // ]),
+                    target: $target[0],
+                    view: new ol.View({
+                        projection: proj,
+                        center: [options.image_width / 2, - options.image_height / 2],
+                        zoom: options.zoom,
+                        // constrain the center: center cannot be set outside
+                        // this extent
+                        extent: [0, -options.image_height, options.image_width, 0]
+                    })
+                };
+                
+                if (options.can_fullscreen) {
+                    map_options.controls = ol.control.defaults().extend([
+                        new ol.control.FullScreen()
+                    ]);
+                }
+            
+                if (options.can_rotate) {
+                    map_options.interactions = ol.interaction.defaults().extend([
+                        new ol.interaction.DragRotate()
+                    ]);
+                }
+            
+                options.map = new ol.Map(map_options);
+                
+                return options.map;
             }
 
         };
@@ -278,6 +366,7 @@
             // enable fancybox on the .fancybox elements
             $(".fancybox").fancybox();
         }
+        
     });
 })(jQuery);
 

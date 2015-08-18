@@ -241,13 +241,13 @@
                 var new_res = options.max_resolution;
                 var zoom_factor = window.digipal_settings.ANNOTATOR_ZOOM_FACTOR;
                 while (true) {
-                    options.resolutions.push(new_res | 0);
+                    options.resolutions.push(new_res);
                     if (new_res < 1) break;
                     new_res /= zoom_factor;
                 }
                 // add one resolution under the 1
                 if (new_res > 0.5) {
-                    options.resolutions.push((new_res / zoom_factor) |  0);
+                    options.resolutions.push((new_res / zoom_factor));
                 }
                 
                 var function_name = 'add_open_layer' + ((options.version < 3) ? '2' : '3');

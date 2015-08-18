@@ -1005,6 +1005,7 @@
                 image_width: data.width,
                 zoom: this.map ? this.map.getView().getZoom() : 0,
                 load_tile_callback: function() {me.loadTile.apply(me, arguments);},
+                can_rotate: true,
             });
 
             this.clipImageToTop();
@@ -1013,6 +1014,7 @@
             var view = this.map.getView();
             view.on('change:center', function (event){me.panelSet.onPanelStateChanged(me);});
             view.on('change:resolution', function (event){me.panelSet.onPanelStateChanged(me);});
+            view.on('change:rotation', function (event){me.panelSet.onPanelStateChanged(me);});
              
             // tooltip to OL icon
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
@@ -1070,7 +1072,10 @@
 
         var map = this.map;
         var view = map.getView();
-        var olv = [Math.round(view.getResolution()), Math.round(view.getCenter()[0]), Math.round(view.getCenter()[1])];
+        var olv = [Math.round(view.getResolution()),
+                    Math.round(view.getCenter()[0]),
+                    Math.round(view.getCenter()[1]),
+                    Math.round(view.getRotation() * 180 / Math.PI)];
         ret.olv = olv.join(',');
         
         return ret;
@@ -1091,6 +1096,9 @@
             var view = map.getView();
             view.setResolution(parseFloat(parts[0]));
             view.setCenter([parseFloat(parts[1]), parseFloat(parts[2])]);
+            if (parts.length > 3) {
+                view.setRotation(parseFloat(parts[3]) * Math.PI / 180);
+            }
         }
     };
     

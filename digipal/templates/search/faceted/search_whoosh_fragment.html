@@ -22,14 +22,14 @@
                 {% if views %}
                     <div class="panel panel-default">
                         <div class="btn-toolbar" role="toolbar">
-                            <div class="btn-group pull-left">
+                            <!-- div class="btn-group pull-left" -->
                                 <input type="hidden" name="wr" value="{{ wide_result }}" />
                                 <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
                                     class="btn btn-default {% if wide_result %} active {% endif %}"
                                     title="Toggle wide view" data-toggle="tooltip">
                                     <span class="glyphicon glyphicon-resize-horizontal"></span>
                                 </a>
-                            </div>
+                            <!-- /div -->
                             <div class="btn-group pull-right">
                                 {% for view in views %}
                                     {% if view.selected %}

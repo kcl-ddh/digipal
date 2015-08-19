@@ -621,12 +621,14 @@ class FacetedModel(object):
     
     def get_page_size(self, request):
         ret = utils.get_int(request.GET.get('pgs'), 10)
-        sizes = self.get_page_sizes()
+        sizes = self.get_page_sizes(request)
         if ret not in sizes:
             ret = sizes[0]
         return ret
     
-    def get_page_sizes(self):
+    def get_page_sizes(self, request):
+        col_per_row = self.get_col_per_row(request)
+        
         ret = [10, 20, 50, 100]
         selected_view = self.get_selected_view()
         if selected_view:
@@ -637,8 +639,15 @@ class FacetedModel(object):
                 view_type = selected_view.get('type', 'list')
                 if view_type == 'grid':
                     ret = [9, 18, 30, 90]
+                    ret = [r / 3 * col_per_row for r in ret]
         return ret
         
+    def get_wide_result(self, request):
+        return utils.get_int_from_request_var(request, 'wr', 0)
+    
+    def get_col_per_row(self, request):
+        return 4 if self.get_wide_result(request) else 3
+
 def get_types(request):
     ''' Returns a list of FacetModel instance generated from either
         settings.py::FACETED_SEARCH
@@ -706,11 +715,17 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     
     context['advanced_search_form'] = True
     
-    context['page_sizes'] = ct.get_page_sizes()
+    context['page_sizes'] = ct.get_page_sizes(request)
     context['page_size'] = ct.get_page_size(request)
     context['hit_count'] = ct.get_total_count()
     context['views'] = ct.views
     context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+    
+    context['wide_result'] = ct.get_wide_result(request)
+    # used for the grid.html view
+    context['col_per_row'] = ct.get_col_per_row(request)
+    context['col_width'] = 12 / context['col_per_row']
+    
     
     hand_filters.chrono(':SEARCH')
 

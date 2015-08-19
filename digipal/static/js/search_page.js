@@ -188,7 +188,11 @@ function init_search_page(options) {
 
         var page = dputils.get_query_string_param('page');
         if (!page || (page == '1')) {
-            search_box.val(search_terms).focus();
+            // GN: 2015/08/19: disabled focus on page load
+            // because on small screens the text box is below the result
+            // and the user, when they arrive to the search page for the
+            // first time will be disoriented.
+            //search_box.val(search_terms).focus();
         }
     }
 

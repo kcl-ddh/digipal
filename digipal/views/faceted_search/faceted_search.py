@@ -488,7 +488,7 @@ class FacetedModel(object):
             from whoosh.query.qcore import Every
             q = Every()
                        
-        with index.searcher() as s:
+        with index.searcher() as searcher:
             # run the query
             facets = self.get_whoosh_facets()
 
@@ -515,8 +515,10 @@ class FacetedModel(object):
 
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             
-            ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
-            ret.fragmenter.charlimit = None
+            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            
+            ##ret.fragmenter.charlimit = None
+            
             # ret = s.search(q, groupedby=facets, limit=1000000)
             # ret = s.search(q, sortedby=sortedby, limit=1000000)
             # ret = s.search(q, limit=1000000)
@@ -526,12 +528,14 @@ class FacetedModel(object):
             hand_filters.chrono(':whoosh.search')
 
             hand_filters.chrono('whoosh.facets:')
-            self.whoosh_groups = {}
-            for field in self.fields:
-                if field.get('count', False):
-#                     if field['key'] == 'hi_has_images':
-#                         print ret.groups(field['key'])
-                    self.whoosh_groups[field['key']] = ret.groups(field['key'])
+            self.whoosh_groups = ret['facets']
+            if 0:
+                self.whoosh_groups = {}
+                for field in self.fields:
+                    if field.get('count', False):
+    #                     if field['key'] == 'hi_has_images':
+    #                         print ret.groups(field['key'])
+                        self.whoosh_groups[field['key']] = ret.groups(field['key'])
                     # #self.whoosh_groups[field['key']] = {}
                     # self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
@@ -541,10 +545,11 @@ class FacetedModel(object):
             
             hand_filters.chrono('whoosh.paginate:')
             # paginate
-            self.ids = ret
+            self.ids = ret['ids']
             
             # get highlights from the hits
             for hit in ret:
+                #print repr(hit)
                 # print '- ' * 20
                 # print hit['id']
                 
@@ -553,13 +558,14 @@ class FacetedModel(object):
                     if text.content:
                         print repr(hit.highlights('text_content', top=100))
             
-            self.paginator = Paginator(ret, self.get_page_size(request))
+            self.paginator = Paginator(ret['ids'], self.get_page_size(request))
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:
                 current_page = self.paginator.num_pages
             self.current_page = self.paginator.page(current_page)
-            ids = [hit['id'] for hit in self.current_page.object_list]
+            #ids = [hit['id'] for hit in self.current_page.object_list]
+            ids = self.current_page.object_list
             hand_filters.chrono(':whoosh.paginate')
             
             hand_filters.chrono(':whoosh')
@@ -587,6 +593,34 @@ class FacetedModel(object):
             
             # get facets
                     
+        return ret
+
+    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
+        search_key = '%s|%s|%s' % (q, ','.join([f.default_name() for f in groupedby]), ','.join([f.default_name() for f in sortedby]))
+
+        from django.core.cache import get_cache
+        cache = get_cache('digipal_faceted_search')
+        
+        ret = cache.get(search_key)
+        print search_key
+        if ret is None:
+            print 'CACHE MISS'
+            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
+            
+            ret = {
+                   'ids': [hit['id'] for hit in res],
+                   'facets': {},
+                   }
+            
+            for field in self.fields:
+                if field.get('count', False):
+                    ret['facets'][field['key']] = res.groups(field['key'])
+            
+            cache.set(search_key, json.dumps(ret))
+        else:
+            print 'CACHE HIT'
+            ret = json.loads(ret)
+        
         return ret
     
     def get_total_count(self):

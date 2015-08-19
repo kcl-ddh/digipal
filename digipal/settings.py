@@ -586,6 +586,14 @@ CACHES = {
     'django-compressor': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/django_compressor/'),
+        'TIMEOUT': 60*60*24,
+        'MAX_ENTRIES': 300,
+    },
+    'digipal_faceted_search': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
+        'TIMEOUT': 60*60*24,
+        'MAX_ENTRIES': 300,
     }
 }
 

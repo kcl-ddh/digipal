@@ -593,6 +593,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
         'TIMEOUT': 60*60*24,
+        #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     }
 }

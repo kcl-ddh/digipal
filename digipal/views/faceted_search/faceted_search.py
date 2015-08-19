@@ -604,7 +604,7 @@ class FacetedModel(object):
         ret = cache.get(search_key)
         print search_key
         if ret is None:
-            print 'CACHE MISS'
+            #print 'CACHE MISS'
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
             
             ret = {
@@ -618,7 +618,7 @@ class FacetedModel(object):
             
             cache.set(search_key, json.dumps(ret))
         else:
-            print 'CACHE HIT'
+            #print 'CACHE HIT'
             ret = json.loads(ret)
         
         return ret

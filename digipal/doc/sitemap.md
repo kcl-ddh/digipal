@@ -34,5 +34,7 @@
     * image lists (on various record views)
 * Web API
 * Admin Interface
-* Code
-* Sitemap (/robot.txt, Google indexing)
+* Content Permission & Visibility
+* Not visual
+  * Code
+  * Sitemap (/robot.txt, Google indexing)

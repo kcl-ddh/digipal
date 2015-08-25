@@ -164,7 +164,7 @@ FACETED_SEARCH = {
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},
 
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
-                               {'key': 'hi_type', 'label': 'Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},

@@ -308,7 +308,7 @@ class FacetedModel(object):
         
         ret = self.get_record_field(record, field, True)
         if field['type'] == 'url':
-            ret = '<a href="%s" class="view_button">View</a>' % ret
+            ret = '<a href="%s" class="btn btn-default btn-sm" title="More details" data-toggle="tooltip">View</a>' % ret
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)) and 'Graph' in str(type(record)):
                 ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)

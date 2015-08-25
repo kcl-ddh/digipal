@@ -13,7 +13,7 @@
     
     <div class="panel faceted-summary">
         You are searching for: {{ summary }}
-        <a class="hidden-md hidden-lg" data-target="managed" href="#facets"> (Change)</a>
+        <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets"> (Change)</a>
     </div>
         
     <div class="row faceted-search">

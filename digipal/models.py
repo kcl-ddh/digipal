@@ -1603,7 +1603,7 @@ class Image(models.Model):
     def __init__(self, *args, **kwargs):
         super(Image, self).__init__(*args, **kwargs)
         self.__original_iipimage = self.iipimage
-
+    
     def __unicode__(self):
         ret = u''
         if self.display_label:
@@ -1710,6 +1710,11 @@ class Image(models.Model):
             
             ret = ret.filter(conditions)
         return ret
+
+    @classmethod
+    def get_public_only(cls):
+        '''Return all the publicly accessible records.'''
+        return cls.filter_public_permissions(cls.objects.all())
 
     @classmethod
     def filter_permissions_from_request(cls, image_queryset, request, show_full=False):

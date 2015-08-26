@@ -16,20 +16,21 @@
 {% endblock %}
 
 {% block blog_keywords %}
-{% keywords_for blog.blogpost as tags %}
-{% if tags %}
-<div class='panel'>
-<h3>{% trans "Posts by Topic" %}</h3>
-<ul class="list-unstyled tags">
-{% for tag in tags %}
-<li>
-    <!--<a href="{% url "blog_post_list_tag" tag.slug %}" class="tag-weight-{{ tag.weight }}">{{ tag }}</a> ({{ tag.item_count }})-->
-    <a href="{% url "blog_post_list_tag" tag.slug %}">{{ tag.title }}</a> ({{ tag.item_count }})
-</li>
-{% endfor %}
-</ul>
-</div>
-{% endif %}
+	{# GN: dp_keywords_for replaces keywords_for, to consider unpublished items in the count and visibility of tags/kws #}
+	{% keywords_for blog.blogpost as tags %}
+	{% if tags %}
+		<div class='panel'>
+		    <h3>{% trans "Posts by Topic" %}</h3>
+		    <ul class="list-unstyled tags">
+		        {% for tag in tags %}
+		            <li>
+		                <!--<a href="{% url "blog_post_list_tag" tag.slug %}" class="tag-weight-{{ tag.weight }}">{{ tag }}</a> ({{ tag.item_count }})-->
+		                <a href="{% url "blog_post_list_tag" tag.slug %}">{{ tag.title }}</a> ({{ tag.item_count }})
+		            </li>
+		        {% endfor %}
+		    </ul>
+		</div>
+	{% endif %}
 {% endblock %}
 
 {% block blog_months %}

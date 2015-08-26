@@ -65,14 +65,14 @@ sitemap.py <command>
             raise CommandError(
                 'Unknown command "%s", allowed commands are: %s' % (self.command, ', '.join(self.commands)))
         
-        self.models = [m.lower() for m in getattr(settings, 'SITEMAP_MODELS', [])]
+        self.models = [m.lower() for m in getattr(settings, 'MODELS_PUBLIC', [])]
         self.path = settings.STATIC_ROOT
         self.path_to_resource = getattr(settings, 'SITEMAP_PATH_TO_RESOURCE', '')
         self.path_to_sitemaps = os.path.join(self.path, self.sitemap_folder)
         
         if not self.models:
             raise CommandError(
-                'Please provide the settings variable SITEMAP_MODELS to state which models should be used to generate the sitemaps')
+                'Please provide the settings variable MODELS_PUBLIC to state which models should be used to generate the sitemaps')
 
         if not self.path_to_resource:
             raise CommandError(
@@ -94,24 +94,37 @@ sitemap.py <command>
             _models = self.get_models()
             for _model in _models:
                 file_name = '%s.xml' % (_model.__name__).lower()
-                xml = self.get_sitemap_by_model(_model)
-                self.write_file(file_name, xml)
+                xml, count = self.get_sitemap_by_model(_model)
+                self.write_file(file_name, xml, count)
             index = self.get_index_xml(_models)
-            self.write_file(self.sitemap_index, index)
+            self.write_file(self.sitemap_index, index, len(_models))
 
     def get_models(self):
-        model = None
-        _models = []
-        for member in dir(models):
-            if member.lower() in self.models:
-                model = getattr(models, member)
-                _models.append(model)
-        return _models
+        from digipal.utils import get_models_from_names
+        ret = get_models_from_names(self.models)
+        return ret
 
     def get_sitemap_by_model(self, model):
-        records = model.objects.all()
+        get_public_only = getattr(model, 'get_public_only', None)
+        if get_public_only:
+            records = get_public_only()
+        else:
+            records = model.objects.all()
+        
+        reason = '' 
+        if model.__name__.lower() in ['graph']:
+            reason = 'this model cannot be web indexed'
+
+        if not hasattr(model, 'get_absolute_url'):
+            reason = 'get_absolute_url() not found on the model'
+
+        if reason:
+            print 'Skipped "%s" model: %s' % (model, reason)
+            records = records.none()
+            
+        count = records.count()
         xml = self.get_resource_xml(records)
-        return xml
+        return xml, count
 
     def get_resource_xml(self, records):
         s = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'
@@ -136,9 +149,9 @@ sitemap.py <command>
         s += '</sitemapindex>\n'
         return s
 
-    def write_file(self, identifier, content):
+    def write_file(self, identifier, content, count):
         path_to_file = os.path.join(self.path_to_sitemaps, identifier)
         _file = open(path_to_file, 'w+')
         _file.write(content)
         _file.close()
-        print 'Written %s' % path_to_file 
+        print 'Written %s urls in %s' % (count, path_to_file) 

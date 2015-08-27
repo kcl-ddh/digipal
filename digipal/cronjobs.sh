@@ -1,6 +1,9 @@
 #!/bin/bash
 # Runs regular tasks
 
+echo --------------------------------
+echo `hostname` `date`
+
 #env_path="$1"
 SHOW_HELP=1
 
@@ -22,11 +25,10 @@ while getopts ":p:e:i" opt; do
       ;;
     i)
       python manage.py dpsearch index
-      #python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
-      ##python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
+      python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
 
       # This takes 1 hour!
-      ##python manage.py dpsearch index_facets --if=graphs
+      python manage.py dpsearch index_facets --if=graphs
       SHOW_HELP=0
       ;;
     \?)
@@ -53,36 +55,4 @@ if [ "$SHOW_HELP" == "1" ]
 
     exit 0
 fi
-
-exit
-
-if [ ! -f manage.py ]
-    then
-        echo "ERROR: manage.py not found."
-    exit
-fi
-
-if [ -n "$env_path" ]
-    then
-        source $env_path/bin/activate
-
-        # upgrade the code
-        email="$2"
-        if [ ! -z "$email" ]
-            then
-                python digipal/repo.py -a -e "$email" pull
-        fi
-        
-        # Reindexing
-        python manage.py dpsearch index
-        #python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
-        ##python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
-        
-        # This takes 1 hour!
-        ##python manage.py dpsearch index_facets --if=graphs
-        
-        # Bye
-        deactivate
-fi
-
 

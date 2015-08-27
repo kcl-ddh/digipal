@@ -108,6 +108,7 @@ Options:
         if command == 'index_facets':
             known_command = True
             self.index_facets(options)
+            self.clear_cache()
 
         if command == 'schema':
             known_command = True

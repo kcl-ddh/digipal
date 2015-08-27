@@ -9,6 +9,7 @@ from optparse import make_option
 import utils
 from utils import Logger
 from django.utils.datastructures import SortedDict
+from __builtin__ import True
   
 
 class Command(BaseCommand):
@@ -30,6 +31,9 @@ Commands:
                         Dump indices
 
   search --if=KEYWORD [--user=USERNAME] [--qs=QUERY_STRING]
+  
+  clear_cache
+                        Clear the faceted search cache
                         
 Options:
   
@@ -89,6 +93,10 @@ Options:
         
         known_command = False
 
+        if command == 'clear_cache':
+            known_command = True
+            self.clear_cache()
+
         if command == 'search':
             known_command = True
             self.search()
@@ -126,6 +134,12 @@ Options:
         
         if not known_command:
             print Command.help
+
+    def clear_cache(self):
+        from digipal.views.faceted_search import faceted_search
+        cache = faceted_search.FacetedModel.get_cache()
+        cache.clear()
+        print 'Cache cleared'
 
     def dump(self, options):
         for name in self.get_requested_index_names():

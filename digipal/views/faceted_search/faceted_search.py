@@ -595,14 +595,24 @@ class FacetedModel(object):
                     
         return ret
 
+    @classmethod
+    def get_cache(cls):
+        from django.core.cache import get_cache
+        ret = get_cache('digipal_faceted_search')
+        return ret
+
     def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
+        # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"
         search_key = '%s|%s|%s' % (q, ','.join([f.default_name() for f in groupedby]), ','.join([f.default_name() for f in sortedby]))
 
-        from django.core.cache import get_cache
-        cache = get_cache('digipal_faceted_search')
+        cache = self.get_cache()
         
         ret = cache.get(search_key)
+        if utils.get_int_from_request_var(self.request, 'nocache'):
+            ret = None
+        
         print search_key
+        self.cache_hit = False
         if ret is None:
             #print 'CACHE MISS'
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
@@ -618,6 +628,7 @@ class FacetedModel(object):
             
             cache.set(search_key, json.dumps(ret))
         else:
+            self.cache_hit = True
             #print 'CACHE HIT'
             ret = json.loads(ret)
         

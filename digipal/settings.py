@@ -721,3 +721,8 @@ if DJANGO_DEBUG_LOG and LOGGING:
         'level': 'DEBUG',
         'propagate': False,
     }
+
+# See http://stackoverflow.com/questions/26682413/django-rotating-file-handler-stuck-when-file-is-equal-to-maxbytes/32011192#32011192
+import os
+if DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
+    LOGGING = {}

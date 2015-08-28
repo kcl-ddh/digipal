@@ -272,3 +272,14 @@ FACETED_SEARCH['types'].append(graph_sample)
 FACETED_SEARCH['type_keys'] = {}
 for t in FACETED_SEARCH['types']:
     FACETED_SEARCH['type_keys'][t['key']] = t
+
+def remove_fields_from_faceted_search(fields, content_type_key=None):
+    for content_type in FACETED_SEARCH['types']:
+        if content_type_key is None or content_type_key == content_type['key']:
+            for ft in ['column_order', 'sorted_fields', 'filter_order']:
+                if ft in content_type:
+                    content_type[ft] = [c for c in content_type[ft] if c not in fields]
+            
+            content_type['fields'] = [c for c in content_type['fields'] if c['key'] not in fields]
+    print 'remove %s from %s' % (fields, content_type_key)
+    

@@ -24,7 +24,7 @@ function Allographs(dialog, cache) {
         switcher.bootstrapSwitch();
 
         switcher.on('switch-change', function(e, data) {
-            var graphs = $('a[data-graph]');
+            var graphs = $('[data-graph]');
             if ($(this).bootstrapSwitch('state')) {
                 graphs.attr('data-original-title', 'Edit Graph');
             } else {

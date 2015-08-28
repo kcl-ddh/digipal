@@ -281,5 +281,4 @@ def remove_fields_from_faceted_search(fields, content_type_key=None):
                     content_type[ft] = [c for c in content_type[ft] if c not in fields]
             
             content_type['fields'] = [c for c in content_type['fields'] if c['key'] not in fields]
-    print 'remove %s from %s' % (fields, content_type_key)
     

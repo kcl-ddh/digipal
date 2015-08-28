@@ -409,7 +409,9 @@ class FacetedModel(object):
             if whoosh_fields is True, returns the whoosh_field keys, e.g. ('a_sortable', 'b')
         '''
         ret = self.get_option('sorted_fields', [])[:]
-        for field in request.GET.get('sort', '').split(','):
+        #for field in request.GET.get('sort', '').split(','):
+        field, reverse = self.get_sort_info(request)
+        for field in [field]:
             field = field.strip()
             if field and self._get_sortable_whoosh_field(self.get_field_by_key(field)):
                 if field in ret:
@@ -505,7 +507,7 @@ class FacetedModel(object):
             # ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
             
             sortedby = self.get_whoosh_sortedby(request)
-            
+
             # Will only take top 10/25 results by default
             # ret = s.search(q, groupedby=facets)
             
@@ -603,7 +605,10 @@ class FacetedModel(object):
 
     def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
         # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"
-        search_key = '%s|%s|%s' % (q, ','.join([f.default_name() for f in groupedby]), ','.join([f.default_name() for f in sortedby]))
+        search_key = 'query=%s|groups=%s|sorts=%s' % (q,
+            ','.join([f.default_name() for f in groupedby]),
+            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
+        utils.dplog('Facetted Cache GET: %s' % search_key)
 
         cache = self.get_cache()
         
@@ -611,10 +616,9 @@ class FacetedModel(object):
         if utils.get_int_from_request_var(self.request, 'nocache'):
             ret = None
         
-        print search_key
         self.cache_hit = False
         if ret is None:
-            #print 'CACHE MISS'
+            utils.dplog('Cache MISS')
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
             
             ret = {
@@ -629,7 +633,7 @@ class FacetedModel(object):
             cache.set(search_key, json.dumps(ret))
         else:
             self.cache_hit = True
-            #print 'CACHE HIT'
+            utils.dplog('Cache HIT')
             ret = json.loads(ret)
         
         return ret

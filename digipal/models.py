@@ -1433,12 +1433,10 @@ class ItemPart(models.Model):
 
     @property
     def historical_item(self):
-        ret= None
-        try:
-            ret = self.historical_items.order_by('id')[0]
-        except IndexError:
-            pass
-        return ret
+        # Commented out as it is not cached by Django due to the sorting
+        # If sorting is important then it is best to do it manually on all().
+        #return self.historical_items.order_by('id').first()
+        return self.historical_items.first()
 
     def get_current_items(self):
          # this function will return all related current items.

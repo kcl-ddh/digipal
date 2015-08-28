@@ -433,22 +433,6 @@ class FacetedModel(object):
     def get_requested_records(self, request):
         if self.is_user_agent_banned(request):
             return []
-        
-#         selected = False
-#
-#         selected_view_key = request.GET.get('view', '')
-#         if selected_view_key:
-#             for view in self.views:
-#                 if view['key'] == selected_view_key:
-#                     print view
-#                     view['selected'] = True
-#                     selected = True
-#                     break
-#         if self.views and not selected:
-#             print 'h2'
-#             self.views[0]['selected'] = True
-#         print self.views
-#         print 'h3'
 
         self.request = request
         
@@ -578,6 +562,7 @@ class FacetedModel(object):
             
             hand_filters.chrono('sql:')
             
+            # SQL QUERY to get the records from the current result page
             records = self.get_all_records(True)
             records = records.in_bulk(ids)
             

@@ -177,12 +177,12 @@ FACETED_SEARCH = {
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
                                
                                ],
-#                     'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
-#                     'prefetch_related': ['item_part__historical_items'],
+                    'select_related': ['text_content__item_part__current_item__repository__place', 'text_content__type'],
+                    #'prefetch_related': ['item_part__historical_items'],
 #                     'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-#                     'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
+                    'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'text_type'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
 
@@ -274,6 +274,8 @@ for t in FACETED_SEARCH['types']:
     FACETED_SEARCH['type_keys'][t['key']] = t
 
 def remove_fields_from_faceted_search(fields, content_type_key=None):
+    # Removed a field completely from a content_type in the faceted search.
+    # If content_type_key is None, the field is removed from all content types.
     for content_type in FACETED_SEARCH['types']:
         if content_type_key is None or content_type_key == content_type['key']:
             for ft in ['column_order', 'sorted_fields', 'filter_order']:

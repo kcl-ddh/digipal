@@ -95,7 +95,7 @@
                                         <!-- annotation -->
                                         <div data-add-star='true' data-toggle='tooltip'
                                             {% if can_edit %}title="Edit graph"{% endif %} data-container='body'
-                                            class='annotation_li droppable_image' data-graph = "{{ annotation.id }}"
+                                            class='annotation_li droppable_image' data-graph = "{{ annotation.graph.id }}"
                                             data-image-id="{{ annotation.image_id }}" data-type ='annotation'
                                             data-allograph="{{ annotation.graph.idiograph.allograph.id }}" >
                 

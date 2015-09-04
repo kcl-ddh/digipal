@@ -120,13 +120,17 @@ Commands:
         content = read_file(input_path)
         
         # extract body
-        content = re.sub(ur'(?musi)<body*?>(.*)</body>', ur'<p>\1</p>', content)
+        l0 = len(content)
+        content = regex.sub(ur'(?musi).*<body*?>(.*)</body>.*', ur'<p>\1</p>', content)
+        if len(content) == l0:
+            print 'ERROR: could not find <body> element'
+            return
         
         # line breaks from MS
-        content = re.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
+        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
 
         # line breaks from editor
-        content = re.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
+        content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
 
         # [fol. 1. b.] or [fol. 1.]
         # TODO: check for false pos. or make the rule more strict
@@ -140,7 +144,7 @@ Commands:
 
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
-        content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+        content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
 
         self.c = 0
 
@@ -149,6 +153,9 @@ Commands:
             if '[' not in m: return m
             self.c += 1
             #if self.c > 100: exit()
+            
+            # ũ[ir]g̃[a]
+            # abbr =
             
             # ABBR
             abbr = regex.sub(ur'\[.*?\]', ur'', m)
@@ -168,27 +175,36 @@ Commands:
             exp = regex.sub(ur'\u0127', ur'h', exp)
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
+            
+            # Remove abbreviation signs
             # ;
             exp = regex.sub(ur';', ur'', exp)
+            # :
+            exp = regex.sub(ur':', ur'', exp)
             # e.g. st~
             exp = remove_accents(exp)
-               
+            
+            # remove sub/sup from the expanded form as it usually contains abbreviation mark
+            # Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
+            # here we keep ϛ because it is used as an insertion sign
+            ###exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
+            # general removal
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
             
             ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
             
-            print repr(m), repr(ret)
+            ##print repr(m), repr(ret)
             
             return ret
         
-        content = re_sub_fct(content, ur'(?musi)(;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+        content = re_sub_fct(content, ur'(?musi)(:|;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
         
         # sup
-        content = re.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
+        content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
 
         # sub
-        content = re.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
-        content = re.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+        content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
+        content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
 
         # import
         from digipal_text.models import TextContentXML

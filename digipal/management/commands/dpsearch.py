@@ -7,8 +7,9 @@ import subprocess
 import re
 from optparse import make_option
 import utils
-from utils import Logger  
+from utils import Logger
 from django.utils.datastructures import SortedDict
+from __builtin__ import True
   
 
 class Command(BaseCommand):
@@ -18,25 +19,34 @@ Digipal search tool.
 Commands:
     
   index
-                        Re-Index all the content 
+                        Re-Index all the content
 
   info [--if=KEYWORD]
                         Show general info and whoosh schemas
                         
   index_facets
-                        Re-Index the faceted content 
+                        Re-Index the faceted content
 
   dump
                         Dump indices
+
+  search --if=KEYWORD [--user=USERNAME] [--qs=QUERY_STRING]
+  
+  clear_cache
+                        Clear the faceted search cache
                         
 Options:
   
   --if=INDEX_NAME
-                        Work only with index INDEX_NAME 
+                        Work only with index INDEX_NAME
 
   --ctf=CONTENT_TYPE_NAME
                         Work only with content type CONTENT_TYPE_NAME
                         e.g. hand
+
+  --user=USERNAME
+
+  --qs=QUERY_STRING
 
 """
     
@@ -52,12 +62,22 @@ Options:
             dest='index_filter',
             default=None,
             help='The name of the index to work with (All if unspecified)'),
+        make_option('--user',
+            action='store',
+            dest='user',
+            default='',
+            help='The name of a Django user'),
+        make_option('--qs',
+            action='store',
+            dest='qs',
+            default='',
+            help='A query string'),
         make_option('--ctf',
             action='store',
             dest='content_type_filter',
             default=None,
             help='The name of the content type to work with (All if unspecified)'),
-        ) 
+        )
 
     def handle(self, *args, **options):
         
@@ -73,6 +93,14 @@ Options:
         
         known_command = False
 
+        if command == 'clear_cache':
+            known_command = True
+            self.clear_cache()
+
+        if command == 'search':
+            known_command = True
+            self.search()
+
         if command == 'index':
             known_command = True
             self.index_all(options)
@@ -80,6 +108,7 @@ Options:
         if command == 'index_facets':
             known_command = True
             self.index_facets(options)
+            self.clear_cache()
 
         if command == 'schema':
             known_command = True
@@ -107,6 +136,12 @@ Options:
         if not known_command:
             print Command.help
 
+    def clear_cache(self):
+        from digipal.views.faceted_search import faceted_search
+        cache = faceted_search.FacetedModel.get_cache()
+        cache.clear()
+        print 'Cache cleared'
+
     def dump(self, options):
         for name in self.get_requested_index_names():
             print 'Schemas - %s' % name
@@ -118,7 +153,7 @@ Options:
             from whoosh.query import Every
             index = open_dir(dir_abs)
             
-            q = Every()            
+            q = Every()
             with index.searcher() as searcher:
                 hits = searcher.search(q, limit=None)
                 for hit in hits:
@@ -134,7 +169,7 @@ Options:
         return ret
 
     def get_all_dirs_under_index_path(self):
-        ''' returns the absolute path to all the index folders 
+        ''' returns the absolute path to all the index folders
         (optionally filtered by --if command line option)'''
         from digipal.utils import get_all_files_under
         ret = get_all_files_under(settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
@@ -194,7 +229,7 @@ Options:
     #                         print v.decode('utf-8')
     #                         break
     #                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
-    #                     
+    #
     #                     vals = sorted(vals)
     #                     if vals:
     #                         field_info['range'] = (vals[0], vals[-1])
@@ -278,7 +313,7 @@ Options:
     def get_requested_index_names(self):
         #ret = ['unified', 'autocomplete']
         ret = ['unified']
-        index_filter = self.options['index_filter'] 
+        index_filter = self.options['index_filter']
         if index_filter:
             if index_filter not in ret:
                 print 'ERROR: index not found (%s)' % index_filter
@@ -307,14 +342,51 @@ Options:
                 cl = locals().get(cl_name, None)
                 if cl:
                     types.append(cl())
-        else:                
+        else:
             types = [SearchHands(), SearchManuscripts(), SearchScribes()]
             
         if not types:
             print 'ERROR: Content Type not found (%s)' % content_type_filter
             exit()
             
-        return types        
+        return types
+    
+    def search(self):
+        from digipal.views.faceted_search import faceted_search
+        cts = faceted_search.get_types(None)
+        
+        class Req(object):
+            
+            def __init__(self):
+                self.META = {}
+                self.GET = {}
+                self.REQUEST = self.GET
+                self.user = None
+                
+            def set_user(self, name):
+                from django.contrib.auth.models import User
+                self.user = User.objects.filter(username=name).first() or None
+                
+            def set_query_string(self, query_string):
+                self.META['QUERY_STRING'] = query_string
+                if query_string:
+                    for pair in query_string.split('&'):
+                        parts = pair.split('=')
+                        if len(parts) == 2:
+                            self.GET[parts[0]] = parts[1]
+                
+        
+        request = Req()
+        request.set_user(self.options['user'])
+        request.set_query_string(self.options['qs'])
+        
+        for ct in faceted_search.get_types(None):
+            if ct.get_key() == self.options['index_filter']:
+                records = ct.get_requested_records(request)
+                
+                print '%s records found' % len(records)
+                for record in records:
+                    print record.id, repr(record)
 
     def index_facets(self, options):
         from digipal.views.faceted_search import faceted_search
@@ -330,7 +402,7 @@ Options:
         print 'Building %s index...' % index_name
         
         # build a single schema from the fields exposed by the different search types
-        print '\tSchema:' 
+        print '\tSchema:'
         fields = {}
         for type in types:
             for info in type.get_fields_info().values():
@@ -345,12 +417,12 @@ Options:
                                 field_type = TEXT(analyzer=simp_ana)
                             else:
                                 field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
-                    print '\t\t%s' % field_type          
+                    print '\t\t%s' % field_type
                     fields[info['whoosh']['name']] = field_type
                     
                     # JIRA 508 - Add an ID counterpart to allow exact phrase search
 #                     if info.get('long_text', False):
-#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))                    
+#                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))
         
         from whoosh.fields import Schema
         schema = Schema(**fields)
@@ -408,7 +480,7 @@ Options:
     def recreate_index(self, index_name, schema):
         from digipal.utils import recreate_whoosh_index
         ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
-        return ret        
+        return ret
         
     def is_dry_run(self):
         return self.options.get('dry-run', False)

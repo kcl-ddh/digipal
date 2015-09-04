@@ -144,7 +144,7 @@ var load_group = function(group_element, cache, only_features, callback) {
 
     var graphs, graph, url, graphs_list = [];
     var content_type = 'graph';
-    graphs = group_element.find('a[data-graph]');
+    graphs = group_element.find('[data-graph]');
     $.each(graphs, function() {
         graph = $(this).data('graph');
         if (!cache.search('graph', graph)) {

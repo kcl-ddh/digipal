@@ -916,3 +916,26 @@ def dplog(message, level='DEBUG'):
 
     from datetime import datetime
     #print '[%s] %s' % (datetime.now(), message)
+
+def get_model_from_name(name):
+    return get_models_from_names([name])
+
+def get_models_from_names(names):
+    # name = an array of model names
+    # return a list of model classes with those names
+    # Only one class per name. In case of ambiguity, digipal app takes precedence. Otherwise it is undetermined.
+    # The order of the returned list is undetermined.
+    ret = {}
+    
+    from django.contrib.contenttypes.models import ContentType
+    cts = ContentType.objects.filter(model__in=[name.strip().lower() for name in names]).order_by('app_label', 'model')
+    for ct in cts:
+        found_model = ret.get(ct.model, None)
+        if found_model and found_model._meta.app_label == 'digipal':
+            # In case of multiple matches priority is given to DigiPal models
+            # Otherwise a random app will win
+            continue
+        model = ct.model_class()
+        ret[ct.model] = model
+    
+    return ret.values()

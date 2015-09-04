@@ -30,7 +30,7 @@ FACETED_SEARCH = {
                                
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
                                
-                               {'key': 'hi_has_images', 'label_col': 'With images', 'label': 'With images', 'path': 'get_non_private_image_count', 'type': 'boolean', 'count': True},
+                               {'key': 'hi_has_images', 'label': 'Image Availablity', 'path': 'get_has_public_image_label', 'type': 'code', 'count': True},
 
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
@@ -40,7 +40,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'current_item.repository.human_readable', 'path_result': 'current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'hi_image_count', 'label_col': 'Images', 'label': 'Images', 'path': 'get_non_private_image_count', 'type': 'int', 'viewable': True},
+                               {'key': 'hi_image_count', 'label_col': 'Public Images', 'label': 'Public Images', 'path': 'get_non_private_image_count', 'type': 'int', 'viewable': True},
                                #{'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'hands_set.all.count', 'type': 'int', 'viewable': True},
                                #{'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
                                ],
@@ -164,7 +164,7 @@ FACETED_SEARCH = {
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},
 
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
-                               {'key': 'hi_type', 'label': 'Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
@@ -177,12 +177,12 @@ FACETED_SEARCH = {
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
                                
                                ],
-#                     'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
-#                     'prefetch_related': ['item_part__historical_items'],
+                    'select_related': ['text_content__item_part__current_item__repository__place', 'text_content__type'],
+                    #'prefetch_related': ['item_part__historical_items'],
 #                     'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-#                     'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
+                    'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'text_type'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
 
@@ -272,3 +272,15 @@ FACETED_SEARCH['types'].append(graph_sample)
 FACETED_SEARCH['type_keys'] = {}
 for t in FACETED_SEARCH['types']:
     FACETED_SEARCH['type_keys'][t['key']] = t
+
+def remove_fields_from_faceted_search(fields, content_type_key=None):
+    # Removed a field completely from a content_type in the faceted search.
+    # If content_type_key is None, the field is removed from all content types.
+    for content_type in FACETED_SEARCH['types']:
+        if content_type_key is None or content_type_key == content_type['key']:
+            for ft in ['column_order', 'sorted_fields', 'filter_order']:
+                if ft in content_type:
+                    content_type[ft] = [c for c in content_type[ft] if c not in fields]
+            
+            content_type['fields'] = [c for c in content_type['fields'] if c['key'] not in fields]
+    

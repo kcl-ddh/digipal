@@ -1386,6 +1386,13 @@ class ItemPart(models.Model):
             from django.core.exceptions import ValidationError
             raise ValidationError('An Item Part cannot be its own group.')
 
+    def get_has_public_image_label(self):
+        # a label for the faceted search
+        ret = 'Without image'
+        if self.get_non_private_image_count():
+            ret = 'With image'
+        return ret
+
     def get_non_private_image_count(self):
         return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
     
@@ -1433,12 +1440,10 @@ class ItemPart(models.Model):
 
     @property
     def historical_item(self):
-        ret= None
-        try:
-            ret = self.historical_items.order_by('id')[0]
-        except IndexError:
-            pass
-        return ret
+        # Commented out as it is not cached by Django due to the sorting
+        # If sorting is important then it is best to do it manually on all().
+        #return self.historical_items.order_by('id').first()
+        return self.historical_items.first()
 
     def get_current_items(self):
          # this function will return all related current items.
@@ -1603,7 +1608,7 @@ class Image(models.Model):
     def __init__(self, *args, **kwargs):
         super(Image, self).__init__(*args, **kwargs)
         self.__original_iipimage = self.iipimage
-
+    
     def __unicode__(self):
         ret = u''
         if self.display_label:
@@ -1710,6 +1715,11 @@ class Image(models.Model):
             
             ret = ret.filter(conditions)
         return ret
+
+    @classmethod
+    def get_public_only(cls):
+        '''Return all the publicly accessible records.'''
+        return cls.filter_public_permissions(cls.objects.all())
 
     @classmethod
     def filter_permissions_from_request(cls, image_queryset, request, show_full=False):

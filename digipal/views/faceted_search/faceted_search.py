@@ -308,7 +308,7 @@ class FacetedModel(object):
         
         ret = self.get_record_field(record, field, True)
         if field['type'] == 'url':
-            ret = '<a href="%s" class="view_button">View</a>' % ret
+            ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)) and 'Graph' in str(type(record)):
                 ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
@@ -409,7 +409,9 @@ class FacetedModel(object):
             if whoosh_fields is True, returns the whoosh_field keys, e.g. ('a_sortable', 'b')
         '''
         ret = self.get_option('sorted_fields', [])[:]
-        for field in request.GET.get('sort', '').split(','):
+        #for field in request.GET.get('sort', '').split(','):
+        field, reverse = self.get_sort_info(request)
+        for field in [field]:
             field = field.strip()
             if field and self._get_sortable_whoosh_field(self.get_field_by_key(field)):
                 if field in ret:
@@ -431,7 +433,7 @@ class FacetedModel(object):
     def get_requested_records(self, request):
         if self.is_user_agent_banned(request):
             return []
-        
+
         self.request = request
         
         # run the query with Whoosh
@@ -472,7 +474,7 @@ class FacetedModel(object):
             from whoosh.query.qcore import Every
             q = Every()
                        
-        with index.searcher() as s:
+        with index.searcher() as searcher:
             # run the query
             facets = self.get_whoosh_facets()
 
@@ -489,7 +491,7 @@ class FacetedModel(object):
             # ret = s.search_page(q, 1, pagelen=10, groupedby=facets)
             
             sortedby = self.get_whoosh_sortedby(request)
-            
+
             # Will only take top 10/25 results by default
             # ret = s.search(q, groupedby=facets)
             
@@ -499,8 +501,10 @@ class FacetedModel(object):
 
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
             
-            ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
-            ret.fragmenter.charlimit = None
+            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000)
+            
+            ##ret.fragmenter.charlimit = None
+            
             # ret = s.search(q, groupedby=facets, limit=1000000)
             # ret = s.search(q, sortedby=sortedby, limit=1000000)
             # ret = s.search(q, limit=1000000)
@@ -510,12 +514,14 @@ class FacetedModel(object):
             hand_filters.chrono(':whoosh.search')
 
             hand_filters.chrono('whoosh.facets:')
-            self.whoosh_groups = {}
-            for field in self.fields:
-                if field.get('count', False):
-#                     if field['key'] == 'hi_has_images':
-#                         print ret.groups(field['key'])
-                    self.whoosh_groups[field['key']] = ret.groups(field['key'])
+            self.whoosh_groups = ret['facets']
+            if 0:
+                self.whoosh_groups = {}
+                for field in self.fields:
+                    if field.get('count', False):
+    #                     if field['key'] == 'hi_has_images':
+    #                         print ret.groups(field['key'])
+                        self.whoosh_groups[field['key']] = ret.groups(field['key'])
                     # #self.whoosh_groups[field['key']] = {}
                     # self.whoosh_groups[field['key']] = {}
             hand_filters.chrono(':whoosh.facets')
@@ -525,10 +531,11 @@ class FacetedModel(object):
             
             hand_filters.chrono('whoosh.paginate:')
             # paginate
-            self.ids = ret
+            self.ids = ret['ids']
             
             # get highlights from the hits
             for hit in ret:
+                #print repr(hit)
                 # print '- ' * 20
                 # print hit['id']
                 
@@ -537,13 +544,14 @@ class FacetedModel(object):
                     if text.content:
                         print repr(hit.highlights('text_content', top=100))
             
-            self.paginator = Paginator(ret, self.get_page_size(request))
+            self.paginator = Paginator(ret['ids'], self.get_page_size(request))
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:
                 current_page = self.paginator.num_pages
             self.current_page = self.paginator.page(current_page)
-            ids = [hit['id'] for hit in self.current_page.object_list]
+            #ids = [hit['id'] for hit in self.current_page.object_list]
+            ids = self.current_page.object_list
             hand_filters.chrono(':whoosh.paginate')
             
             hand_filters.chrono(':whoosh')
@@ -554,6 +562,7 @@ class FacetedModel(object):
             
             hand_filters.chrono('sql:')
             
+            # SQL QUERY to get the records from the current result page
             records = self.get_all_records(True)
             records = records.in_bulk(ids)
             
@@ -571,6 +580,47 @@ class FacetedModel(object):
             
             # get facets
                     
+        return ret
+
+    @classmethod
+    def get_cache(cls):
+        from django.core.cache import get_cache
+        ret = get_cache('digipal_faceted_search')
+        return ret
+
+    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
+        # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"
+        search_key = 'query=%s|groups=%s|sorts=%s' % (q,
+            ','.join([f.default_name() for f in groupedby]),
+            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
+        utils.dplog('Facetted Cache GET: %s' % search_key)
+
+        cache = self.get_cache()
+        
+        ret = cache.get(search_key)
+        if utils.get_int_from_request_var(self.request, 'nocache'):
+            ret = None
+        
+        self.cache_hit = False
+        if ret is None:
+            utils.dplog('Cache MISS')
+            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
+            
+            ret = {
+                   'ids': [hit['id'] for hit in res],
+                   'facets': {},
+                   }
+            
+            for field in self.fields:
+                if field.get('count', False):
+                    ret['facets'][field['key']] = res.groups(field['key'])
+            
+            cache.set(search_key, json.dumps(ret))
+        else:
+            self.cache_hit = True
+            utils.dplog('Cache HIT')
+            ret = json.loads(ret)
+        
         return ret
     
     def get_total_count(self):

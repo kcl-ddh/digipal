@@ -306,7 +306,8 @@ DASHBOARD_TAGS = (
 
 # SITEMAP GENERATION (see python manage.py sitemap)
 # List of DigiPal models to list in the sitemap
-SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
+# DEPRECATED, use MODELS_PUBLIC instead
+#SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
 # The website root URL (with trailing slash)
 SITEMAP_PATH_TO_RESOURCE = 'http://www.digipal.eu/'
 
@@ -586,6 +587,15 @@ CACHES = {
     'django-compressor': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/django_compressor/'),
+        'TIMEOUT': 60*60*24,
+        'MAX_ENTRIES': 300,
+    },
+    'digipal_faceted_search': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
+        'TIMEOUT': 60*60*24,
+        #'TIMEOUT': 1,
+        'MAX_ENTRIES': 300,
     }
 }
 
@@ -711,3 +721,8 @@ if DJANGO_DEBUG_LOG and LOGGING:
         'level': 'DEBUG',
         'propagate': False,
     }
+
+# See http://stackoverflow.com/questions/26682413/django-rotating-file-handler-stuck-when-file-is-equal-to-maxbytes/32011192#32011192
+import os
+if DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
+    LOGGING = {}

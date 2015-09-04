@@ -1,10 +1,12 @@
-from django.template import Library
 from django.template.defaultfilters import stringfilter
 from django.utils.html import conditional_escape, escape
 from django.utils.safestring import mark_safe
 import re
 
+from django.template import Library
 register = Library()
+#from mezzanine import template as mezzzanine_template
+#register = mezzzanine_template.Library()
 
 @stringfilter
 def spacify(value, autoescape=None):
@@ -510,3 +512,19 @@ def record_field(content_type, record, field):
     '''
     return content_type.get_record_field_html(record, field)
 
+# #from mezzanine import template as mezzzanine_template
+# #mezzanine_register = mezzzanine_template.Library()
+# 
+# @register.as_tag
+# def dp_keywords_for(*args):
+#     '''GN: improvement of the mezzanine tag, takes into account the unpublished items
+#         for the counts of the tags/keywords
+#     '''
+#     
+#     from mezzanine.generic.templatetags.keyword_tags import keywords_for
+#     
+#     ret = keywords_for(*args)
+#     
+#     print ret
+#     
+#     return ret 

@@ -229,7 +229,7 @@ def mezzanine_patches():
             
             from mezzanine.blog.models import BlogPost
             BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
-
+            
     # see https://github.com/stephenmcd/mezzanine/issues/1060
     patch_thumbnail = True
     if patch_thumbnail:

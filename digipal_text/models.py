@@ -158,6 +158,11 @@ class TextContentXML(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     
+    @classmethod
+    def get_public_only(cls):
+        '''Return all the publicly accessible records.'''
+        return cls.objects.filter(status__slug__in=['live', 'published', 'public', 'online'])
+    
     def get_length(self):
         if not self.content:
             return 0
@@ -168,6 +173,10 @@ class TextContentXML(models.Model):
         if not self.status_id:
             self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        ret = self.text_content.get_absolute_url()
+        return ret
     
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''

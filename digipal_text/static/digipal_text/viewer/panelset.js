@@ -37,6 +37,12 @@
             }
         };
         
+        this.syncPanel = function(panel) {
+            for (var i in this.panels) {
+                panel.syncLocationWith(this.panels[i], this.panels[i].getLocationType(), this.panels[i].getLocation());
+            }
+        };
+        
         this.getBaseAddress = function() {
             return '/digipal/manuscripts/' + this.itemPartid + '/texts/';
         };
@@ -387,6 +393,11 @@
         /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations, address) {
+            if (!address && (this.getLocationType() == 'sync')) {
+                this.panelSet.syncPanel(this);
+                return;
+            }
+            
             address = address || this.getContentAddress();
             
             if (this.loadedAddress != address) {
@@ -506,7 +517,7 @@
                     break;
                 }
                 if (!empty) {
-                    locations.sync = this.$contentTypes.dpbsdropdown('getLabels');
+                    locations.sync = this.$contentTypes.dpbsdropdown('getOptions');
                     
                     // save the locations
                     this.locations = locations;
@@ -532,7 +543,14 @@
             var htmlstr = '';
             if (this.locations && this.locations[locationType]) {
                 $(this.locations[locationType]).each(function (index, value) {
-                    htmlstr += '<option value="'+value+'">'+value+'</option>';
+                    // we accept either a list of string or a list or [value,label]
+                    var val = value;
+                    var label = value;
+                    if (value.sort) {
+                        val = value[0];
+                        label = value[1];
+                    }
+                    htmlstr += '<option value="'+val+'">'+label+'</option>';
                 });
             }
             this.$locationSelect.html(htmlstr);

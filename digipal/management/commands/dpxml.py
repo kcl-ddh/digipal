@@ -133,10 +133,56 @@ Commands:
         xml_string = re.sub(ur'\bxmlns=', ur'xmlns2=', xml_string)
         xslt_string = utils.readFile(xslt_path)
         
+        # replacements in the XSLT
+        xslt_string = self.parse_xslt_directives(xslt_string, xml_string)
+        
         ret = dputils.get_xslt_transform(xml_string, xslt_string)
         
         print str(ret)
             
+        return ret
+    
+    def parse_xslt_directives(self, xslt_string, xml_string):
+        '''
+            Substitute some of our own directives in the XSLT string
+            E.g. {% class super %} => @class='T1' or @class='T2' or @class='T6'
+        '''
+        
+        import regex
+        
+        def repl(match):
+            # e.g. match.group(0) = {% class super %}
+            unknown = True
+            directive = match.group(1)
+            ret = match.group(0)
+            parts = [p.strip() for p in directive.split(' ') if p.strip()]
+            if parts:
+                if parts[0] == 'class':
+                    unknown = False
+
+                    classes = []
+                    term = parts[1]
+                    if term == 'PRO':
+                        classes = regex.findall(ur'\s<span class="([^"]+)">p</span>\[ro\]\s', xml_string)
+                        classes = list(set(classes))
+                    else:
+                        # find the class with the term <term> (e.g. super)
+                        # e.g. .T6 { vertical-align:super; font-size:58%;} => T6
+                        classes = regex.findall(ur'\.(\S+)\s*{[^}]*'+regex.escape(term)+'[^}]*}', xml_string)
+                    
+                    if not classes:
+                        raise Exception('ERROR: class not found "%s"' % term)
+                    ret = ' or '.join([ur"@class='%s'" % cls for cls in classes])
+
+                    print '<!-- %s => %s -->' % (parts, ret)
+            
+            if unknown:
+                raise Exception('ERROR: unknown directive "%s"' % match.group(0))
+                
+            return ret
+        
+        ret = regex.sub(ur'\{%(.*?)%\}', repl, xslt_string)
+        
         return ret
 
     def html2xml(self):

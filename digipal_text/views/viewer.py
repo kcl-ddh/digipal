@@ -233,6 +233,8 @@ def resolve_default_location(location_type, location, response):
 def get_fragment_extent(content, location_type, location):
     ret = None
     
+    print location_type, location
+    
     content = content or ''
     
     if location_type == 'whole':

@@ -12,6 +12,8 @@ Digipal Text management tool.
     
 Commands:
     
+  download  CONTENTID
+    
   copies    [IP_ID]
             List copies of the texts.
   
@@ -95,6 +97,10 @@ Commands:
             known_command = True
             self.command_upload()
             
+        if command == 'download':
+            known_command = True
+            self.command_download()
+            
         if command == 'process':
             known_command = True
             self.command_process()
@@ -118,6 +124,31 @@ Commands:
         tcx, created = TextContentXML.objects.get_or_create(text_content=tc)
         return tcx
 
+    def command_download(self):
+        ret = ur''
+
+        recordid = self.args[1]
+        from digipal_text.models import TextContentXML
+        text_content_xml = TextContentXML.objects.get(id=recordid)
+        ret = text_content_xml.content
+        
+        import regex
+        ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
+
+        ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
+        ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
+        
+        #print repr(ret)
+        
+#         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
+#             print repr(it)
+
+        for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
+            print repr(it)
+        
+        print repr(ret)
+        
+        
     def command_upload(self):
         '''upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
             pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xhtml 1 transcription

@@ -75,6 +75,19 @@
             return ret;
         },
         
+        getOptions: function(key, silent) {
+            // return all the options as an array of pairs [value/key,label]
+            var ret = [];
+            this.$el.find('ul.dropdown-menu li a').each(function() {
+                var key = $(this).attr('href');
+                if (key && key.length > 1 && key[0] == '#') {
+                    key = key.substr(1, key.length - 1);
+                }
+                ret.push([key, $(this).text()]);
+            });
+            return ret;
+        },
+
         setOption: function(key, silent) {
             // select the option from its key
             // if key is not provided, leave the selection as it is

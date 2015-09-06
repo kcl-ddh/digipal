@@ -892,21 +892,56 @@ def convert_xml_to_html(xml):
     
     return ret
     
-def re_sub_fct(content, apattern, fct, are=None):
+class ProgressBar(object):
+    
+    def reset(self, amax=0.1, max_width=40):
+        self.max = 1.0 * amax
+        self.max_width = max_width
+        self.width = 0
+        print '_' * int(self.max_width)
+
+    def complete(self):
+        self.update(1, 1)
+        print
+
+    def update(self, pos=0.0, amax=None):
+        import sys
+        if amax:
+            self.max = amax
+        bar_width = int(1.0 * pos / self.max * self.max_width)
+        ext = int(bar_width - self.width)
+        if ext > 0:
+            #print pos,self.max,ext
+            sys.stdout.write('#' * ext)
+            self.width = bar_width
+    
+def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
     # Replace every occurrence of apattern in content with fct(match)
     # Return the resulting content
+    if show_bar:
+        bar = ProgressBar()
+        bar.reset(len(content), 70)
+    
     if not are:
         are = re
     pattern = are.compile(apattern)
     pos = 0
-    while True:
-        match = pattern.search(content, pos)
-        if not match: break
-
-        replacement = fct(match)
-        content = content[0:match.start(0)] + replacement + content[match.end(0):]
-        pos = match.start(0) + len(replacement)
+    if 0:
+        while True:
+            match = pattern.search(content, pos)
+            if not match: break
+    
+            replacement = fct(match)
+            content = ur'%s%s%s' % (content[0:match.start(0)], replacement, content[match.end(0):])
+            pos = match.start(0) + len(replacement)
+            if show_bar:
+                bar.update(match.start(), len(content))
+    else:
+        content = pattern.sub(fct, content)
         
+    if show_bar:
+        bar.complete()
+    
     return content
 
 def dplog(message, level='DEBUG'):

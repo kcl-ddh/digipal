@@ -1,3 +1,63 @@
+
+[DONE] display settings
+    margin
+    line breaks
+
+[DONE] Fix the sync
+
+(1) the p and the q  are not real letters but created by me by using a strike through.
+This is entirely my fault. At the moment these do not appear in the text at all.
+I suggest replacing the p with ṕ (unicode IE55) and the q with a ƣ (unicode 01A3).
+They will then appear as p and q in the final text.
+The ṕ should appear before all occurrences of ro as a separate word in italics.
+Restoring the ƣ is more complicated. I would happily do both these operations on Sunday morning and send a new text to you
+(I'm away this afternoon and all tomorrow)
+
+See 12b1: defendit se #p#ro .x. hidis. exceptis consuetudinibus #q#uae ƥertinent ad firmam
+
+(2) The machine does not seem to have coped with the occurences of qui+superscript i etc where
+we wanted to lose the superscript to give plain qui.
+Other examples are –rr (for rr –aa (for –a+superscript a) -ii (for i+superscript i) –oo (for o+superscript o).
+It seems to me that you will need to instruct the programme to eliminate the superscripts, if that is possible.
+If not, maybe we need a new way of dealing with these letters for the future.
+I could go through mechanically and eliminate these spare letters from the text I sent you.
+While we might manage a global to eliminate ii et cetera, we cant simply eliminate ii as that
+would remove numbers (= 2) and things like denarii where the double i is part of the word, not a textual device.
+
+    fixed, pb with sup/sub styles not detected properly
+
+(3) All the line breaks (|) seem to have disappeared!
+    
+    fixed
+
+(4) A few rogues remain in the finished text. I noticed some superscript 4s and also some ᵬᵬ (for bb).
+
+    GN: ᵬᵬ found in beginning of 23r, converted to b but why is it not expanded? Isn't ᵬ an abbreviation mark?
+    
+    4 & 5
+    
+        reddit4e
+            original contains both expension and abbreviations. Now removed.
+
+        .iii. hidas. &4 dimidiam.
+            That's an Ellis mistake, there is no abbrv. mark in 9b3
+    
+        §20a2 In berę hundr& st̃ .xlix. hiđ 7 .i. uirga. Inde h&5 rex .
+            where is the 5 coming from? not in rekeyed text
+(G1) double strikethrough
+    9a7: Barones regis. =de his h[abe]ñt= .xxxv.
+        => seems to be dashed underlined in MS and Ellis but not in RT
+    §[9a2] In hund de Stafort st. c. 7 .v.. hiđ[ae] =7 dim4[idia]= Inde
+        => single ST in Ellis, thivk in MS
+    PB1: double-strikethrough in MSW is exported as an empty class in XHTML which is ambiguous
+        this is because there is no CSS equivalent
+        => one solution would be to use dashed underlined or single-strikethrough
+        => could manually set class T5 to strikethrough
+        => PB1.1: single-strikethrough is used for special chars such as p and q
+        => PB1.2: the span doesn't surround the whole word, it is split around the superscripts, etc.
+            Which will disrupt the conversion because the words are split across spans
+        
+
 gnoel@digipal2:~$ sudo strace -p 27948
 [sudo] password for gnoel:
 Process 27948 attached - interrupt to quit

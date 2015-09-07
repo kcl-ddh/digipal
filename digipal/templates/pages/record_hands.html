@@ -23,9 +23,11 @@
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
-    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
-    </li>
+    {% if cansee.handdescription %}
+	    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
+	        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
+	    </li>
+    {% endif %}
     {% if cansee.image %}
         <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a>
@@ -92,6 +94,7 @@
                 </dl>
             </div>
 
+            {% if cansee.handdescription %}
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% for description in result.descriptions.all %}
                     <h3>
@@ -107,6 +110,7 @@
                     {% include "digipal/empty_tab.html" with type="description" %}
                 {% endfor %}
             </div>
+            {% endif %}
 
             {% if cansee.image %}
                 {% include "pages/tab_images.html" with images=images full_label=1 %}

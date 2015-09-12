@@ -102,6 +102,7 @@ Commands:
         if len(args) < 1:
             raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
         command = args[0]
+        self._args = args
         
         known_command = False
 
@@ -120,6 +121,14 @@ Commands:
         if command == 'convert_exon_folio_numbers':
             known_command = True
             self.convert_exon_folio_numbers()
+        
+        if command == 'csv2records':
+            known_command = True
+            self.insertTableFromCSV()
+        
+        if command == 'csv2table':
+            known_command = True
+            self.createTableFromCSV()
         
         if command == 'match_owners':
             known_command = True
@@ -1675,6 +1684,64 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         self.print_warning_report()
         #raise Exception('ROLLBACK')
+        
+    def insertTableFromCSV(self):
+        options = self.options
+        
+        file_path = self._args[1]
+        from digipal.utils import read_all_lines_from_csv
+        lines = read_all_lines_from_csv(file_path)
+
+        table_name = re.sub(ur'\..*$', '', file_path)
+
+        # delete all
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        utils.sqlDeleteAll(con_dst, table_name, self.is_dry_run())
+        
+        fields_ordered = lines[0].keys()
+        
+        # insert all
+        for line in lines:
+            insert_sql = ur'INSERT INTO %s (%s) values (%s)' % (table_name, ','.join(fields_ordered), ','.join([ur'%s' for f in fields_ordered]))
+            utils.sqlWrite(con_dst, insert_sql, [unicode(line[f]).strip() for f in fields_ordered])
+        print 'written %s records' % len(lines)
+    
+    def createTableFromCSV(self):
+        options = self.options
+
+        file_path = self._args[1]
+        from digipal.utils import read_all_lines_from_csv
+        lines = read_all_lines_from_csv(file_path)
+        
+        print lines[0].keys()
+        
+        # find the type of each column
+        schema = []
+        types = {}
+        max_len = 0
+        for col in lines[0].keys():
+            for val in [line[col] for line in lines]:
+                val = unicode(val)
+                if len(val) > max_len:
+                    max_len = len(val)
+            schema.append([col, 'varchar(%s)' % max_len])
+        
+        print schema
+        
+        table_name = re.sub(ur'\..*$', '', file_path)
+        
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
+        create = '''
+        CREATE TABLE %s (
+            %s
+        )
+        ''' % (table_name, ', '.join(['%s %s' % (col[0], col[1]) for col in schema]))
+        
+        utils.sqlWrite(con_dst, create)
+
 
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

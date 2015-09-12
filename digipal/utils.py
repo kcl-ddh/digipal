@@ -756,7 +756,7 @@ def read_all_lines_from_csv(file_path):
             line_index += 1
             line = [v.decode('latin-1') for v in line]
             if not columns:
-                columns = [re.sub(ur'[^a-z]', '', c.lower()) for c in line]
+                columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]
                 continue
             
             rec = dict(zip(columns, line))
@@ -974,3 +974,25 @@ def get_models_from_names(names):
         ret[ct.model] = model
     
     return ret.values()
+
+def sql_select_dict(query, arguments=None):
+    from digipal.management.commands.utils import sqlSelect, fetch_all_dic
+    from django.db import connections
+    
+    ret = []
+
+    con = connections['default']
+    cur = con.cursor()
+    arguments = arguments or []
+    cur.execute(query, arguments)
+    
+    desc = cur.description
+    ret = [
+        dict(zip([col[0] for col in desc], row))
+        for row in cur.fetchall()
+    ]
+
+    cur.close()
+    
+    return ret
+

@@ -20,6 +20,17 @@ register.filter(spacify)
 
 @register.filter(is_safe=True)
 @stringfilter
+def sql_query(value):
+    """
+    format a sql query qith line breaks
+    e.g. {{ my_query|sql_query }}
+    """
+    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    value = re.sub(ur'(?musi)(from|where|order|and|group)', ur'<br/>\1', value)
+    return mark_safe(value)
+
+@register.filter(is_safe=True)
+@stringfilter
 def anchorify(value):
     """
     Like slugify() but preserves the unicode chars
@@ -514,17 +525,17 @@ def record_field(content_type, record, field):
 
 # #from mezzanine import template as mezzzanine_template
 # #mezzanine_register = mezzzanine_template.Library()
-# 
+#
 # @register.as_tag
 # def dp_keywords_for(*args):
 #     '''GN: improvement of the mezzanine tag, takes into account the unpublished items
 #         for the counts of the tags/keywords
 #     '''
-#     
+#
 #     from mezzanine.generic.templatetags.keyword_tags import keywords_for
-#     
+#
 #     ret = keywords_for(*args)
-#     
+#
 #     print ret
-#     
-#     return ret 
+#
+#     return ret

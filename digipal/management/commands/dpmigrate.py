@@ -20,6 +20,12 @@ Digipal database migration tools.
     
 Commands:
     
+  csv2table CSV_FILE_PATH
+      (Re)Create a table from a CSV file. Only schema, not the data.
+  
+  csv2records CSV_FILE_PATH
+      (Re)Import the data from a CSV file. Use csv2table to create the table first.
+  
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
         
                         Copy all the records from SRC_DB_ALIAS.hand_* to
@@ -1685,6 +1691,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.print_warning_report()
         #raise Exception('ROLLBACK')
         
+    def getTablenameFromPath(self, path):
+        ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)
+        return ret
+        
     def insertTableFromCSV(self):
         options = self.options
         
@@ -1692,7 +1702,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         from digipal.utils import read_all_lines_from_csv
         lines = read_all_lines_from_csv(file_path)
 
-        table_name = re.sub(ur'\..*$', '', file_path)
+        table_name = self.getTablenameFromPath(file_path)
 
         # delete all
         from django.db import connections
@@ -1701,11 +1711,21 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         fields_ordered = lines[0].keys()
         
+        from digipal.utils import ProgressBar
+        
+        pbar = ProgressBar()
+        pbar.reset(len(lines))
+        
         # insert all
+        i = 0
         for line in lines:
+            i += 1
+            pbar.update(i)
             insert_sql = ur'INSERT INTO %s (%s) values (%s)' % (table_name, ','.join(fields_ordered), ','.join([ur'%s' for f in fields_ordered]))
             utils.sqlWrite(con_dst, insert_sql, [unicode(line[f]).strip() for f in fields_ordered])
-        print 'written %s records' % len(lines)
+        pbar.complete()
+            
+        print 'Written %s records into table %s' % (len(lines), table_name)
     
     def createTableFromCSV(self):
         options = self.options
@@ -1714,7 +1734,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         from digipal.utils import read_all_lines_from_csv
         lines = read_all_lines_from_csv(file_path)
         
-        print lines[0].keys()
+        #print lines[0].keys()
         
         # find the type of each column
         schema = []
@@ -1727,9 +1747,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     max_len = len(val)
             schema.append([col, 'varchar(%s)' % max_len])
         
-        print schema
+        #print schema
         
-        table_name = re.sub(ur'\..*$', '', file_path)
+        table_name = self.getTablenameFromPath(file_path)
         
         from django.db import connections
         con_dst = connections[options.get('db')]
@@ -1742,6 +1762,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         utils.sqlWrite(con_dst, create)
 
+        print 'Created table %s (%s columns)' % (table_name, len(schema))
 
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS

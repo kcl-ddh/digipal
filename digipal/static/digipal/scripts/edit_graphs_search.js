@@ -477,7 +477,7 @@ function EditGraphsSearch() {
         },
 
         toggle_all: function(button) {
-            var graphs_elements = button.next().find('a[data-graph]');
+            var graphs_elements = button.next().find('[data-graph]');
             if (!button.data('checked')) {
                 button.data('checked', true);
                 graphs_elements.click();

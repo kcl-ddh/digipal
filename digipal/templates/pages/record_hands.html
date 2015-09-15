@@ -2,6 +2,16 @@
 {% load pages_tags mezzanine_tags i18n %}
 {% load mezzanine_tags pagination_tags hand_filters html_escape %}
 
+{% block extra_css %}
+    {{ block.super }}
+
+    {% compress css %}
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery.notebook.min.css">
+    {% endcompress %}
+{% endblock %}
+
+
 {% block meta_title %}Hand: {{ result }}, {{ result.item_part }}{% endblock %}
 {% block record_title %}
     Hand: {{ result }},
@@ -13,9 +23,11 @@
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
-    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
-        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
-    </li>
+    {% if cansee.handdescription %}
+	    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
+	        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
+	    </li>
+    {% endif %}
     {% if cansee.image %}
         <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a>
@@ -82,6 +94,7 @@
                 </dl>
             </div>
 
+            {% if cansee.handdescription %}
             <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% for description in result.descriptions.all %}
                     <h3>
@@ -97,6 +110,7 @@
                     {% include "digipal/empty_tab.html" with type="description" %}
                 {% endfor %}
             </div>
+            {% endif %}
 
             {% if cansee.image %}
                 {% include "pages/tab_images.html" with images=images full_label=1 %}
@@ -126,8 +140,8 @@
         <script src="{{ STATIC_URL }}digipal/scripts/dialog.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/dialog-db-functions.js"></script>
         <script src="{{ STATIC_URL }}scripts/bootstrapSwitch.js"></script>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrapSwitch.css" />
         <script src='{{ STATIC_URL }}digipal/scripts/annotations-cache.js'></script>
+        <script type="text/javascript" src='{{ STATIC_URL }}js/jquery.notebook.min.js'></script>
         <script src='{{ STATIC_URL }}digipal/scripts/edit_graphs_search.js'></script>
     {% else %}
         <script src='{{ STATIC_URL }}digipal/scripts/allographs-public-user.js'></script>

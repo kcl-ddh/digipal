@@ -290,7 +290,7 @@ function Dialog() {
 
         init: function(graph) {
             var editor_space = $('#image-editor-space');
-            var img = $('a[data-graph="' + graph + '"]').find('img');
+            var img = $('[data-graph="' + graph + '"]').find('img');
             this.img = img.clone();
             this.temp = {};
             editor_space.html(this.img);

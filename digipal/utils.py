@@ -764,7 +764,7 @@ def read_all_lines_from_csv(file_path):
             line_index += 1
             line = [v.decode('latin-1') for v in line]
             if not columns:
-                columns = [re.sub(ur'[^a-z]', '', c.lower()) for c in line]
+                columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]
                 continue
             
             rec = dict(zip(columns, line))
@@ -900,21 +900,56 @@ def convert_xml_to_html(xml):
     
     return ret
     
-def re_sub_fct(content, apattern, fct, are=None):
+class ProgressBar(object):
+    
+    def reset(self, amax=0.1, max_width=40):
+        self.max = 1.0 * amax
+        self.max_width = max_width
+        self.width = 0
+        print '_' * int(self.max_width)
+
+    def complete(self):
+        self.update(1, 1)
+        print
+
+    def update(self, pos=0.0, amax=None):
+        import sys
+        if amax:
+            self.max = amax
+        bar_width = int(1.0 * pos / self.max * self.max_width)
+        ext = int(bar_width - self.width)
+        if ext > 0:
+            #print pos,self.max,ext
+            sys.stdout.write('#' * ext)
+            self.width = bar_width
+    
+def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
     # Replace every occurrence of apattern in content with fct(match)
     # Return the resulting content
+    if show_bar:
+        bar = ProgressBar()
+        bar.reset(len(content), 70)
+    
     if not are:
         are = re
     pattern = are.compile(apattern)
     pos = 0
-    while True:
-        match = pattern.search(content, pos)
-        if not match: break
-
-        replacement = fct(match)
-        content = content[0:match.start(0)] + replacement + content[match.end(0):]
-        pos = match.start(0) + len(replacement)
+    if 0:
+        while True:
+            match = pattern.search(content, pos)
+            if not match: break
+    
+            replacement = fct(match)
+            content = ur'%s%s%s' % (content[0:match.start(0)], replacement, content[match.end(0):])
+            pos = match.start(0) + len(replacement)
+            if show_bar:
+                bar.update(match.start(), len(content))
+    else:
+        content = pattern.sub(fct, content)
         
+    if show_bar:
+        bar.complete()
+    
     return content
 
 def dplog(message, level='DEBUG'):
@@ -947,3 +982,25 @@ def get_models_from_names(names):
         ret[ct.model] = model
     
     return ret.values()
+
+def sql_select_dict(query, arguments=None):
+    from digipal.management.commands.utils import sqlSelect, fetch_all_dic
+    from django.db import connections
+    
+    ret = []
+
+    con = connections['default']
+    cur = con.cursor()
+    arguments = arguments or []
+    cur.execute(query, arguments)
+    
+    desc = cur.description
+    ret = [
+        dict(zip([col[0] for col in desc], row))
+        for row in cur.fetchall()
+    ]
+
+    cur.close()
+    
+    return ret
+

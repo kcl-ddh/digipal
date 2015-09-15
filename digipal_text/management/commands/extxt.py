@@ -109,7 +109,7 @@ Commands:
         self.get_unique_matches(pattern, content)
         
         print
-        
+
     def upload(self):
         input_path = self.cargs[0]
         recordid = self.cargs[1]
@@ -120,14 +120,31 @@ Commands:
         content = read_file(input_path)
         
         # extract body
-        content = re.sub(ur'(?musi)<body*?>(.*)</body>', ur'<p>\1</p>', content)
+        l0 = len(content)
+        content = regex.sub(ur'(?musi).*<body*?>(.*)</body>.*', ur'<p>\1</p>', content)
+        if len(content) == l0:
+            print 'ERROR: could not find <body> element'
+            return
+
+        # unescape XML tags coming from MS Word
+        # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
+        content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)&gt;', ur'<\1>', content)
+
+        # convert &amp; to #AMP#
+        content = content.replace('&amp;', '#AMP#')
         
         # line breaks from MS
-        content = re.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
+        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
 
         # line breaks from editor
-        content = re.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
+        content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
 
+        # <st>p</st> => ṕ
+        content = regex.sub(ur'(?musi)<st>\s*p\s*</st>', ur'ṕ', content)
+        # <st>q</st> => ƣ
+        content = regex.sub(ur'(?musi)<st>\s*q\s*</st>', ur'ƣ', content)
+
+        # Folio number
         # [fol. 1. b.] or [fol. 1.]
         # TODO: check for false pos. or make the rule more strict
         #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
@@ -138,17 +155,35 @@ Commands:
             return ret
         content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', get_side, regex)
 
+        # Entry number
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
-        content = re.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+        content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+
+        # <margin></margin>
+        content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
+        content = content.replace('</margin>', '</span>')
+         
+        # to check which entities are left
+        ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
 
         self.c = 0
 
         def markup_expansions(match):
             m = match.group(0)
-            if '[' not in m: return m
+            ret = m
+
+            #if '[' not in m: return m
+            
+            # don't convert if starts with digit as it's most likely a folio or entry number
+            if m[0] <= '9' and m[0] >= '0':
+                return m
+            
             self.c += 1
             #if self.c > 100: exit()
+            
+            # ũ[ir]g̃[a]
+            # abbr =
             
             # ABBR
             abbr = regex.sub(ur'\[.*?\]', ur'', m)
@@ -168,27 +203,49 @@ Commands:
             exp = regex.sub(ur'\u0127', ur'h', exp)
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
+
+            ##exp = regex.sub(ur'ṕ', ur'p', exp)
+            exp = regex.sub(ur'ƣ', ur'q', exp)
+            
+            
+            # Remove abbreviation signs
+            # ! we must make sure that the content no longer contains entities!
+            # E.g. &amp; => &
             # ;
             exp = regex.sub(ur';', ur'', exp)
+            # :
+            exp = regex.sub(ur':', ur'', exp)
             # e.g. st~
             exp = remove_accents(exp)
-               
+            
+            # remove sub/sup from the expanded form as it usually contains abbreviation mark
+            # Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
+            # here we keep ϛ because it is used as an insertion sign
+            ###exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
+            # general removal
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
             
-            ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
+            if abbr != exp and exp:
+#                 if len(abbr) > len(exp):
+#                     # potentially spurious expansions
+#                     print repr(abbr), repr(exp)
+                ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
             
-            print repr(m), repr(ret)
+            ##print repr(m), repr(ret)
             
             return ret
         
-        content = re_sub_fct(content, ur'(?musi)(;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+        content = re_sub_fct(content, ur'(?musi)(:|;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
         
         # sup
-        content = re.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
+        content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
 
         # sub
-        content = re.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
-        content = re.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+        content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
+        content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+
+        # convert #AMP# to &amp;
+        content = content.replace('#AMP#', '&amp;')
 
         # import
         from digipal_text.models import TextContentXML

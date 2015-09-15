@@ -99,6 +99,10 @@ Commands:
             known_command = True
             self.command_process()
 
+        if command == 'clauses':
+            known_command = True
+            self.command_clauses()
+
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
             

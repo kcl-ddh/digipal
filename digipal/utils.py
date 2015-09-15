@@ -379,11 +379,19 @@ def get_one2one_object(model, field_name):
     
     return ret
 
-def get_xml_from_unicode(document):
+def get_string_from_xml(xmltree):
+    import lxml.etree as ET
+    return ET.tostring(xmltree)
+
+def get_xml_from_unicode(document, ishtml=False):
     import lxml.etree as ET
     from io import BytesIO
     d = BytesIO(document.encode('utf-8'))
-    ret = ET.parse(d)
+    
+    parser = None
+    if ishtml:
+        parser = ET.HTMLParser()
+    ret = ET.parse(d, parser)
     
     return ret
 

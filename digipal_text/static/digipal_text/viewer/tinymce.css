@@ -260,6 +260,58 @@ span[data-dpt] > span[data-dpt] {
     content: "Address";
 }
 
+.mce-content-body span[data-dpt-type=arenga]:before {
+    content: "Arenga";
+}
+
+.mce-content-body span[data-dpt-type=boundaries]:before {
+    content: "Boundaries";
+}
+
+.mce-content-body span[data-dpt-type=holding]:before {
+    content: "Holding";
+}
+
+.mce-content-body span[data-dpt-type=injunction]:before {
+    content: "Injunction";
+}
+
+.mce-content-body span[data-dpt-type=malediction]:before {
+    content: "Malediction";
+}
+
+.mce-content-body span[data-dpt-type=narration]:before {
+    content: "Narration";
+}
+
+.mce-content-body span[data-dpt-type=notification]:before {
+    content: "Notification";
+}
+
+.mce-content-body span[data-dpt-type=prohibition]:before {
+    content: "Prohibition";
+}
+
+.mce-content-body span[data-dpt-type=salutation]:before {
+    content: "Salutation";
+}
+
+.mce-content-body span[data-dpt-type=sealing]:before {
+    content: "Sealing";
+}
+
+.mce-content-body span[data-dpt-type=subscription]:before {
+    content: "Subscription";
+}
+
+.mce-content-body span[data-dpt-type=title]:before {
+    content: "Title";
+}
+
+.mce-content-body span[data-dpt-type=warrandice]:before {
+    content: "Warrandice";
+}
+
 /* Hand Descriptions */
 
 .mce-content-body span[data-dpt=heading] {

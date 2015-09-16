@@ -193,7 +193,28 @@ var PanelSetPlugIn = function(editor, url) {
     
     // Clauses
     editor.addButton('psclause', function() {
-        var items = [{text: 'Address', value: 'address'}, {text: 'Disposition', value: 'disposition'}, {text: 'Witnesses', value: 'witnesses'}];
+        var items = [
+                    {text: 'Address', value: 'address'},
+                    {text: 'Disposition', value: 'disposition'},
+                    {text: 'Witnesses', value: 'witnesses'},
+                    {text: 'Arenga'},
+                    {text: 'Boundaries'},
+                    {text: 'Holding'},
+                    {text: 'Injunction'},
+                    {text: 'Malediction'},
+                    {text: 'Narration'},
+                    {text: 'Notification'},
+                    {text: 'Prohibition'},
+                    {text: 'Salutation'},
+                    {text: 'Sealing'},
+                    {text: 'Subscription'},
+                    {text: 'Title'},
+                    {text: 'Warrandice'},
+                    ];
+        
+        for (var i in items) {
+            items[i].value = items[i].value || items[i].text.toLowerCase();
+        }
     
         return {
             type: 'listbox',

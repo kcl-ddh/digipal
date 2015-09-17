@@ -173,7 +173,57 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
-    // Clauses
+    function insertClauseOnSelectedDropdownOption(selectedValue) {
+        addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': selectedValue}, 'conditions': {'isparent': null}});
+    }
+
+    /*
+    * Adds a drop down to the editor toolbar
+    *
+    *   buttonid: dropdown identifier/key
+    *   items: [{text: 'my first option', value: 'first_option'}, ...]
+    *       (if value ommitted, it is derived from the text)
+    *       also accepts a comma separated list of labels
+    *       also accepts an aray of labels
+    *   label: a label for the drop down
+    *   tooltip: (optional, default = label)
+    *   onSelectFunction(selected_option_value): select option event handler
+    */
+    function addDropDown(buttonid, items, label, tooltip, onSelectFunction) {
+        editor.addButton(buttonid, function() {
+            tooltip = tooltip || label;
+            
+            // 'a,b,c' => 'a', 'b', 'c'
+            if (items.split) {
+                items = items.split(',');
+            }
+    
+            // [] => {}
+            if (items.map) {
+                items = items.map(function(obj) {return {'text': obj};});
+            }
+
+            // add missing .value
+            for (var i in items) {
+                items[i].value = items[i].value || items[i].text.toLowerCase();
+            }
+            
+            return {
+                type: 'listbox',
+                text: label,
+                tooltip: tooltip,
+                values: items,
+                fixedWidth: true,
+                onclick: function(e) {
+                    if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+                        onSelectFunction(e.control.settings.value);
+                    }
+                }
+            };
+        });
+    }
+    
+    // Locations
     editor.addButton('pslocation', function() {
         var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}, {text: 'Section', value: 'section'}];
     
@@ -192,25 +242,18 @@ var PanelSetPlugIn = function(editor, url) {
     });
     
     // Clauses
-    editor.addButton('psclause', function() {
+    addDropDown('psclause', 'Address,Disposition,Witnesses', 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+
+    // Clauses
+    addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Title,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+
+    // Clauses
+    /*
+    editor.addButton('psclause_minor', function() {
         var items = [
-                    {text: 'Address', value: 'address'},
-                    {text: 'Disposition', value: 'disposition'},
-                    {text: 'Witnesses', value: 'witnesses'},
-                    {text: 'Arenga'},
-                    {text: 'Boundaries'},
-                    {text: 'Holding'},
-                    {text: 'Injunction'},
-                    {text: 'Malediction'},
-                    {text: 'Narration'},
-                    {text: 'Notification'},
-                    {text: 'Prohibition'},
-                    {text: 'Salutation'},
-                    {text: 'Sealing'},
-                    {text: 'Subscription'},
-                    {text: 'Title'},
-                    {text: 'Warrandice'},
-                    ];
+
+
+
         
         for (var i in items) {
             items[i].value = items[i].value || items[i].text.toLowerCase();
@@ -228,7 +271,9 @@ var PanelSetPlugIn = function(editor, url) {
                 }
             }
         };
+        
     });
+    */
 
     // H1
     editor.addButton('psh1', {

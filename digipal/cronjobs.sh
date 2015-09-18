@@ -24,6 +24,11 @@ while getopts ":p:e:i" opt; do
       python digipal/repo.py -a -e "$OPTARG" pull
       SHOW_HELP=0
       ;;
+    g)
+      # upgrade the code (only git)
+      python digipal/repo.py -a --nohg -e "$OPTARG" pull
+      SHOW_HELP=0
+      ;;
     i)
       python manage.py dpsearch index
       python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
@@ -52,6 +57,7 @@ if [ "$SHOW_HELP" == "1" ]
     echo "  -e ENV_PATH  activate the virtual env located at ENV_PATH"
     echo "  -p EMAIL     update the code from the repositories and restart DigiPal."
     echo "                 Send an email to EMAIL on error."
+    echo "  -g EMAIL     same but doesn't update hg repo."
     echo "  -i           REINDEX the content"
 
     exit 0

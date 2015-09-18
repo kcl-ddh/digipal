@@ -224,6 +224,9 @@ def process_commands_main_dir():
                         system('hg update', validation_hg)
     
                 if os.name != 'nt':
+                    '''
+                        
+                    '''
                     with_sudo = ''
                     sudo = ''
                     if has_sudo:

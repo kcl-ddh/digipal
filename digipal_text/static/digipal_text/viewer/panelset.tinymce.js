@@ -26,15 +26,14 @@ var PanelSetPlugIn = function(editor, url) {
     }
     
     function getSelectionParents() {
-        var parents = [];
-        for (var i in [0, 1]) {
+        return [0, 1].map(function(i) {
             var bm = editor.selection.getBookmark();
             // move to one end of the selection
-            editor.selection.collapse(i === 0);
-            parents.push(editor.selection.getNode().parentNode);
+            editor.selection.collapse(i === 1);
+            var ret = editor.selection.getNode().parentNode;
             editor.selection.moveToBookmark(bm);
-        }
-        return parents;
+            return ret;
+        });
     }
     
     // Add a button that opens a window

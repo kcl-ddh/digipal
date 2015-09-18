@@ -11,7 +11,7 @@ SHOW_HELP=1
 DIR_PRJ=$( cd "$( dirname "$0" )" && pwd )/..
 cd $DIR_PRJ
 
-while getopts ":p:e:i" opt; do
+while getopts ":p:g:e:i" opt; do
   case $opt in
     e)
       echo "Activate ENV $OPTARG"

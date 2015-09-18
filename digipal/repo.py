@@ -123,6 +123,7 @@ def process_commands_main_dir():
         if command == 'g':
             known_command = True
             argms = sys.argv[2:]
+            print repr(argms)
             os.chdir(github_dir)
             
             for pair in [['s', 'status'], ['p', 'pull'], ['l', 'log']]:

@@ -259,7 +259,7 @@ def process_commands_main_dir():
                     if username == 'www-data':
                         # -rw xrw x---
                         system('%schmod 770 -R .' % sudo)
-                        system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
+                        #system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
                     else:
                         if has_sudo:
                             system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))

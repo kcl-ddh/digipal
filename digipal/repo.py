@@ -44,6 +44,9 @@ def show_help():
         
      st
          status
+
+     g [...]
+         from the git folder, executes git [...]
          
 Options:
 
@@ -91,6 +94,9 @@ def process_commands_main_dir():
     parser.add_option("-e", "--email",
                       action="store", dest="email", default='',
                       help="email to send errors to")
+    parser.add_option("-m", "--mmmm",
+                      action="store", dest="mmmm", default='',
+                      help="Just for git -am")
     parser.add_option("--nohg",
                       action="store_true", dest="nohg", default=False,
                       help="skip hg pull")
@@ -114,6 +120,21 @@ def process_commands_main_dir():
         
         print 'GitHub folder: %s' % github_dir
         
+        if command == 'g':
+            known_command = True
+            argms = sys.argv[2:]
+            os.chdir(github_dir)
+            
+            for pair in [['s', 'status'], ['p', 'pull'], ['l', 'log']]:
+                if argms[0] == pair[0]:
+                    argms[0] = pair[1]
+                    break
+            
+            #os.system('git %s' % (' '.join(argms)))
+            import subprocess
+            argms.insert(0, 'git')
+            subprocess.call(argms, shell=True)
+            
         if command == 'st':
             known_command = True
             
@@ -232,7 +253,6 @@ def process_commands_main_dir():
                         with_sudo = '(with sudo)'
                         sudo = 'sudo '
                     print '> fix permissions %s' % with_sudo
-                    
                     
                     # See MOA-197
                     if username == 'www-data':

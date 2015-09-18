@@ -109,6 +109,8 @@ def process_commands_main_dir():
                 break
         if not github_dir:
             github_dir = os.path.dirname(config.__file__)
+            
+        username = get_terminal_username()
         
         print 'GitHub folder: %s' % github_dir
         
@@ -180,7 +182,7 @@ def process_commands_main_dir():
                 project_folder = get_hg_folder_name()
                 print 'Main app folder: %s' % project_folder
 
-                has_sudo = not options.automatic and get_terminal_username() == 'gnoel'
+                has_sudo = not options.automatic and username == 'gnoel'
                 print '> check configuration (symlinks, repo branches, etc.)'
 #                 if not os.path.exists('iipimage') and os.path.exists('django-iipimage'):
 #                     if os.name == 'nt':
@@ -224,24 +226,28 @@ def process_commands_main_dir():
                         system('hg update', validation_hg)
     
                 if os.name != 'nt':
-                    '''
-                        
-                    '''
                     with_sudo = ''
                     sudo = ''
                     if has_sudo:
                         with_sudo = '(with sudo)'
                         sudo = 'sudo '
                     print '> fix permissions %s' % with_sudo
-                    if has_sudo:
-                        system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
-                        system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
-                        system('%schown gnoel:%s -R %s/.git' % (sudo, config.PROJECT_GROUP, github_dir))
-                    # -r- xrw x---
-                    system('%schmod 570 -R .' % sudo)
-                    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
-                    # -rw xrw x---
-                    system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+                    
+                    # See MOA-197
+                    if username == 'www-data':
+                        # -rw xrw x---
+                        system('%schmod 770 -R .' % sudo)
+                    else:
+                        if has_sudo:
+                            system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
+                            system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
+                            system('%schown gnoel:%s -R %s/.git' % (sudo, config.PROJECT_GROUP, github_dir))
+                        # -r- xrw x---
+                        system('%schmod 570 -R .' % sudo)
+                        dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+                        # -rw xrw x---
+                        system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+                        
                     # we do this because the cron job to reindex the content
                     # recreate the dirs with owner = gnoel:ddh-research
                     system('%schmod o+r -R %s/search' % (sudo, project_folder))

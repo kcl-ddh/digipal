@@ -134,7 +134,7 @@ def process_commands_main_dir():
             #os.system('git %s' % (' '.join(argms)))
             import subprocess
             argms.insert(0, 'git')
-            subprocess.call(argms, shell=True)
+            subprocess.call(argms, shell=False)
             
         if command == 'st':
             known_command = True

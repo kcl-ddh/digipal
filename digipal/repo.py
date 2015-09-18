@@ -233,6 +233,7 @@ def process_commands_main_dir():
                         sudo = 'sudo '
                     print '> fix permissions %s' % with_sudo
                     
+                    
                     # See MOA-197
                     if username == 'www-data':
                         # -rw xrw x---

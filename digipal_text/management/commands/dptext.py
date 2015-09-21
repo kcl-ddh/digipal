@@ -4,7 +4,12 @@ import re
 from optparse import make_option
 from digipal.utils import re_sub_fct, get_int
 
-from exon.customisations.digipal_text import models
+# Apply project specific patches
+try:
+    # TODO: SHOULD NOT be here! design a better way to import custom models
+    from exon.customisations.digipal_text import models
+except Exception, e:
+    pass
 
 class Command(BaseCommand):
     help = """
@@ -12,7 +17,7 @@ Digipal Text management tool.
     
 Commands:
     
-  download  CONTENTID
+  download  CONTENT_XML_ID
     
   copies    [IP_ID]
             List copies of the texts.
@@ -20,7 +25,7 @@ Commands:
   restore   COPY_ID
             restore a copy
             
-  markup    CONTENT_ID
+  markup    CONTENT_XML_ID
             auto-markup a content
             
   upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
@@ -137,6 +142,10 @@ Commands:
         ret = text_content_xml.content
         
         import regex
+        
+        if ret is None:
+            ret = u''
+        
         #ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
 
         #ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
@@ -149,16 +158,19 @@ Commands:
 
         #for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
         #    print repr(it)
-        ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
-        ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sub">([^<]+)</span>', ur'<sub>\1</sub>', ret)
-        ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="ms"></span>', ur'<br/>', ret)
-        ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
-        ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
-        ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
+        if 0:
+            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
+            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sub">([^<]+)</span>', ur'<sub>\1</sub>', ret)
+            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="ms"></span>', ur'<br/>', ret)
+            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
+            ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
+            ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
         
         #print repr(ret)
+        file_name = 'tcx%s.xml' % text_content_xml.id
         from digipal.utils import write_file
-        write_file('l.simple', ret)
+        write_file(file_name, ret)
+        print 'Written file %s ' % file_name
         
         
     def command_upload(self):

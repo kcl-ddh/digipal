@@ -535,16 +535,17 @@ class FacetedModel(object):
             self.ids = ret['ids']
             
             # get highlights from the hits
-            for hit in ret:
-                #print repr(hit)
-                # print '- ' * 20
-                # print hit['id']
-                
-                if 0 and self.key == 'texts':
-                    text = self.get_model().objects.get(id=hit['id'])
-                    if text.content:
-                        print repr(hit.highlights('text_content', top=100))
+            if 0:
+                for hit in ret:
+                    #print repr(hit)
+                    # print '- ' * 20
+                    # print hit['id']
+                    
+                    if 1 and self.key == 'clauses':
+                        #text = self.get_model().objects.get(id=hit['id'])
+                        print repr(hit.highlights('content', top=10))
             
+            # Paginate
             self.paginator = Paginator(ret['ids'], self.get_page_size(request))
             current_page = utils.get_int(request.GET.get('page'), 1)
             if current_page < 1: current_page = 1
@@ -578,6 +579,13 @@ class FacetedModel(object):
             
             # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
             ret = [records[id_type(id)] for id in ids if id_type(id) in records]
+            
+            # highlight
+            if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
+                from whoosh.highlight.Highlighter import highlight_hit
+                from whoosh.highlight import highlight
+                for r in ret:
+                    r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
             
             hand_filters.chrono(':sql')
 
@@ -720,6 +728,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context = {'tabid': tabid}
     
     context['nofollow'] = True
+    context['terms'] = request.GET.get('terms', '')
     
     # select the content type
     cts = get_types(request)

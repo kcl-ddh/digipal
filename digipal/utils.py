@@ -383,14 +383,28 @@ def get_string_from_xml(xmltree):
     import lxml.etree as ET
     return ET.tostring(xmltree)
 
-def get_xml_from_unicode(document, ishtml=False):
+def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False):
+    # if test_only = True => strip all XML tags
     import lxml.etree as ET
-    from io import BytesIO
-    d = BytesIO(document.encode('utf-8'))
+    method = None
+    if text_only: method = 'text'
+    return ET.tostring(xmltree, encoding=encoding, method=method).decode('utf-8')
+
+def get_xml_from_unicode(document, ishtml=False):
+    # document = a unicode object containing the document
+    # ishtml = True will be more lenient about the XML format
+    #          and won't complain about named entities (&nbsp;)
+    import lxml.etree as ET
     
     parser = None
     if ishtml:
+        from io import StringIO
         parser = ET.HTMLParser()
+        # we use StringIO otherwise we'll have encoding issues
+        d = StringIO(document)
+    else:
+        from io import BytesIO
+        d = BytesIO(document.encode('utf-8'))
     ret = ET.parse(d, parser)
     
     return ret

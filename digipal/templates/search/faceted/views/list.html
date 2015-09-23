@@ -3,33 +3,40 @@
 <table class="table table-condensed table-striped table-bordered table-hover">
     <tr class="sortable">
         {% for col in cols %}
-            <th>
-                {% if col.sortable %}
-                    <a title="Sort" data-toggle="tooltip" href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={% if col.key == sort_key and not sort_reverse %}-{%endif%}{{ col.key }}{% endfilter %}">
-                {% endif %}
-                        {% if col.key == sort_key %}
-                            <span class="pull-left glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
-                        {% endif %}
-                        {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
-                {% if col.sortable %}
-                    </a>
-                {% endif %}
-            </th>
+            {% if not col.line %}
+	            <th>
+	                {% if col.sortable %}
+	                    <a title="Sort" data-toggle="tooltip" href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={% if col.key == sort_key and not sort_reverse %}-{%endif%}{{ col.key }}{% endfilter %}">
+	                {% endif %}
+	                        {% if col.key == sort_key %}
+	                            <span class="pull-left glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
+	                        {% endif %}
+	                        {% if col.label_col %}{{ col.label_col }}{% else %}{{ col.label }}{% endif %}
+	                {% if col.sortable %}
+	                    </a>
+	                {% endif %}
+	            </th>
+            {% endif %}
         {% endfor %}
     </tr>
     {% for record in result %}
-        <tr>
-            {% for col in cols %}
-                <td>
-                    {% if col.link == True %}
-                        <a href="{{record.get_absolute_url}}">
-                    {% endif %}
-                            {% record_field result_type record col.key %}
-                    {% if col.link == True %}
-                        </a>
-                    {% endif %}
-                </td>
-            {% endfor %}
-        </tr>
+        <!-- {% cycle 'even' 'odd' as rowcolors %} -->
+        {% for line in lines %}
+	        <tr class="{{rowcolors}}">
+	            {% for col in cols %}
+	                {% if col.line == line %}
+	                    <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %}>
+	                        {% if col.link == True %}
+	                            <a href="{{record.get_absolute_url}}">
+	                        {% endif %}
+	                        {% record_field result_type record col.key %}
+	                        {% if col.link == True %}
+	                            </a>
+	                        {% endif %}
+		                </td>
+	                {% endif %}
+	            {% endfor %}
+	        </tr>
+        {% endfor %}
     {% endfor %}
 </table>

@@ -77,7 +77,7 @@ class TextUnit(object):
     @classmethod
     def objects(cls, *args, **kwargs):
         return TextUnits()
-
+    
 class TextContentType(digipal.models.NameModel):
     pass
 

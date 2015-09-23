@@ -382,6 +382,7 @@ class FacetedModel(object):
             ret = [self.get_field_by_key(key) for key in keys]
         for field in ret:
             field['sortable'] = self._get_sortable_whoosh_field(field)
+            field['line'] = field.get('line', 0)
             
         return ret
     
@@ -571,7 +572,12 @@ class FacetedModel(object):
                 pass
             
             # 'item_part__historical_items'
-            ret = [records[int(id)] for id in ids if int(id) in records]
+            #ret = [records[int(id)] for id in ids if int(id) in records]
+            if len(ids):
+                id_type = type(records.keys()[0])
+            
+            # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
+            ret = [records[id_type(id)] for id in ids if id_type(id) in records]
             
             hand_filters.chrono(':sql')
 
@@ -737,6 +743,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['facets'] = ct.get_facets(request)
     
     context['cols'] = ct.get_columns(request)
+    context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))
     
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
         

@@ -187,15 +187,22 @@ FACETED_SEARCH = {
                 },
 
                 {
-                    #'disabled': True,
+                    'disabled': False,
                     'key': 'textunits',
-                    'label': 'Unit of Text',
-                    'model': 'digipal_text.models.TextUnit',
+                    'label': 'Text Unit',
+                    #'model': 'mofa.customisations.digipal_text.models.Clause',
+                    'model': 'mofa.digipal_text.models.TextUnit',
                     'fields': [
-                               
-                               #{'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-                               {'key': 'entryid', 'label': 'Ref', 'path': 'entryid', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
+                               {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True, 'rowspan': '2'},
+                               {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'content_xml.text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'content_xml.text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'repo_city', 'label': 'Repository City', 'path': 'content_xml.text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                               {'key': 'repo_place', 'label': 'Repository Place', 'path': 'content_xml.text_content.item_part.current_item.repository.human_readable', 'path_result': 'content_xml.text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
+                               {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'content_xml.text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+                               {'key': 'text_type', 'label': 'Text Type', 'path': 'content_xml.text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
+                               #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
+                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 1},
+                               {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                ],
 #                     'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
 #                     'prefetch_related': ['item_part__historical_items'],
@@ -205,6 +212,26 @@ FACETED_SEARCH = {
 #                     'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
 #                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
+
+#                 {
+#                     'disabled': True,
+#                     'key': 'textunits',
+#                     'label': 'Unit of Text',
+#                     'model': 'digipal_text.models.TextUnit',
+#                     'fields': [
+#
+#                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
+#                                {'key': 'entryid', 'label': 'Ref', 'path': 'entryid', 'search': True, 'viewable': True, 'type': 'code'},
+#                                {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
+#                                ],
+#                      'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
+#                      'prefetch_related': ['item_part__historical_items'],
+#                      'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
+#                      'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
+#                      'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
+#                      'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
+#                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
+#                 },
 
                 {
                     'disabled': False,

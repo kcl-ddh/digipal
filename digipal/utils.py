@@ -779,10 +779,10 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='
         columns = None
         
         for line in csvreader:
+            line_index += 1
             if ignore_incomplete_lines and '' in line:
                 continue
                 
-            line_index += 1
             line = [v.decode(encoding) for v in line]
             if not columns:
                 columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]

@@ -191,7 +191,7 @@ FACETED_SEARCH = {
                     'key': 'textunits',
                     'label': 'Text Unit',
                     #'model': 'mofa.customisations.digipal_text.models.Clause',
-                    'model': 'mofa.digipal_text.models.TextUnit',
+                    'model': 'digipal_text.models.TextUnit',
                     'fields': [
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True, 'rowspan': '2'},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'content_xml.text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},

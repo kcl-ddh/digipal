@@ -20,13 +20,13 @@ Digipal database migration tools.
     
 Commands:
     
-  csv2table CSV_FILE_PATH
+  csv2table CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Create a table from a CSV file. Only schema, not the data.
   
-  csv2records CSV_FILE_PATH
+  csv2records CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Import the data from a CSV file. Use csv2table to create the table first.
   
-  csv2db CSV_FILE_PATH
+  csv2db CSV_FILE_PATH [--offset=LINE_OFFSET]
       = csv2table + csv2records
   
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
@@ -89,6 +89,11 @@ Commands:
             dest='table',
             default='',
             help='Name of the tables to backup. This acts as a name filter.'),
+        make_option('--iil',
+            action='store_true',
+            dest='iil',
+            default=False,
+            help='Ignore incomplete lines (when reading CSV)'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -1703,44 +1708,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)
         return ret
         
-    def insertTableFromCSV(self):
-        options = self.options
-        
-        file_path = self._args[1]
-        from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path)
-
-        table_name = self.getTablenameFromPath(file_path)
-
-        # delete all
-        from django.db import connections
-        con_dst = connections[options.get('db')]
-        utils.sqlDeleteAll(con_dst, table_name, self.is_dry_run())
-        
-        fields_ordered = lines[0].keys()
-        
-        from digipal.utils import ProgressBar
-        
-        pbar = ProgressBar()
-        pbar.reset(len(lines))
-        
-        # insert all
-        i = 0
-        for line in lines:
-            i += 1
-            pbar.update(i)
-            insert_sql = ur'INSERT INTO %s (%s) values (%s)' % (table_name, ','.join(fields_ordered), ','.join([ur'%s' for f in fields_ordered]))
-            utils.sqlWrite(con_dst, insert_sql, [unicode(line[f]).strip() for f in fields_ordered])
-        pbar.complete()
-            
-        print 'Written %s records into table %s' % (len(lines), table_name)
-    
     def createTableFromCSV(self):
         options = self.options
 
         file_path = self._args[1]
+        
         from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path)
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False))
         
         #print lines[0].keys()
         
@@ -1772,6 +1746,38 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         print 'Created table %s (%s columns)' % (table_name, len(schema))
 
+    def insertTableFromCSV(self):
+        options = self.options
+        
+        file_path = self._args[1]
+        from digipal.utils import read_all_lines_from_csv
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False))
+
+        table_name = self.getTablenameFromPath(file_path)
+
+        # delete all
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        utils.sqlDeleteAll(con_dst, table_name, self.is_dry_run())
+        
+        fields_ordered = lines[0].keys()
+        
+        from digipal.utils import ProgressBar
+        
+        pbar = ProgressBar()
+        pbar.reset(len(lines))
+        
+        # insert all
+        i = 0
+        for line in lines:
+            i += 1
+            pbar.update(i)
+            insert_sql = ur'INSERT INTO %s (%s) values (%s)' % (table_name, ','.join(fields_ordered), ','.join([ur'%s' for f in fields_ordered]))
+            utils.sqlWrite(con_dst, insert_sql, [unicode(line[f]).strip() for f in fields_ordered])
+        pbar.complete()
+            
+        print 'Written %s records into table %s' % (len(lines), table_name)
+    
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 

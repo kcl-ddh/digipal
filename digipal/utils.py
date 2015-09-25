@@ -754,15 +754,19 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def read_all_lines_from_csv(file_path):
+def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='Latin-1'):
     '''
         Read a CSV file and returns an array where
         each entry correspond to a line in the file.
         It is assumed that the first line of the CSV
         contains the headings.
+        
         Each entry in the returned array is a dictionary
         where the keys are the column headings and the
         values in the corresponding line in the file.
+        
+        If ignore_incomplete_lines is True,
+        lines in the input file which have missing values will be ignored
     '''
     ret = []
     
@@ -775,15 +779,18 @@ def read_all_lines_from_csv(file_path):
         columns = None
         
         for line in csvreader:
+            if ignore_incomplete_lines and '' in line:
+                continue
+                
             line_index += 1
-            line = [v.decode('latin-1') for v in line]
+            line = [v.decode(encoding) for v in line]
             if not columns:
                 columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]
                 continue
             
             rec = dict(zip(columns, line))
             rec['_line_index'] = line_index
-        
+            
             ret.append(rec)
     
     return ret

@@ -211,7 +211,7 @@ FACETED_SEARCH = {
 #                     'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-                    'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'text_type'],
+                    'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'text_type'],
 #                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
 

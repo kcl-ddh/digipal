@@ -187,7 +187,7 @@ FACETED_SEARCH = {
                 },
 
                 {
-                    'disabled': False,
+                    'disabled': True,
                     'key': 'textunits',
                     'label': 'Text Unit',
                     #'model': 'mofa.customisations.digipal_text.models.Clause',

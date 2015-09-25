@@ -26,6 +26,9 @@ Commands:
   csv2records CSV_FILE_PATH
       (Re)Import the data from a CSV file. Use csv2table to create the table first.
   
+  csv2db CSV_FILE_PATH
+      = csv2table + csv2records
+  
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
         
                         Copy all the records from SRC_DB_ALIAS.hand_* to
@@ -128,13 +131,18 @@ Commands:
             known_command = True
             self.convert_exon_folio_numbers()
         
+        if command == 'csv2table':
+            known_command = True
+            self.createTableFromCSV()
+
         if command == 'csv2records':
             known_command = True
             self.insertTableFromCSV()
         
-        if command == 'csv2table':
+        if command == 'csv2db':
             known_command = True
             self.createTableFromCSV()
+            self.insertTableFromCSV()
         
         if command == 'match_owners':
             known_command = True

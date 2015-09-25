@@ -187,6 +187,8 @@ FACETED_SEARCH = {
                 },
 
                 {
+                    # Disabled as this is an ABSTRACT type, only used to create
+                    # concrete derivatives, see TextUnit class for more info.
                     'disabled': True,
                     'key': 'textunits',
                     'label': 'Text Unit',

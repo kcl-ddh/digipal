@@ -94,6 +94,11 @@ Commands:
             dest='iil',
             default=False,
             help='Ignore incomplete lines (when reading CSV)'),
+        make_option('--saa',
+            action='store',
+            dest='saa',
+            default='',
+            help='comma separated list of strings that mean that a value is the same as in the above cell in a CSV (same_as_above).'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -1714,7 +1719,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         file_path = self._args[1]
         
         from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False))
+        same_as_above = options.get('saa', None)
+        if same_as_above:
+            same_as_above.split(',')
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
+
+        table_name = self.getTablenameFromPath(file_path)
         
         #print lines[0].keys()
         
@@ -1730,8 +1740,6 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             schema.append([col, 'varchar(%s)' % max_len])
         
         #print schema
-        
-        table_name = self.getTablenameFromPath(file_path)
         
         from django.db import connections
         con_dst = connections[options.get('db')]
@@ -1751,7 +1759,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         
         file_path = self._args[1]
         from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False))
+        same_as_above = options.get('saa', None)
+        if same_as_above:
+            same_as_above.split(',')
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
 
         table_name = self.getTablenameFromPath(file_path)
 

@@ -408,18 +408,24 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.init_possible_sources()
         
         import digipal
+        from digipal import utils as dputils
         from digipal.models import ItemPart
         
         print '> Load manuscripts from DigiPal...\n'
-        ips = {}
+        sources_ips = dputils.MultiDict()
         for ip in ItemPart.objects.filter(historical_items__id__gt=0).prefetch_related('historical_items__catalogue_number__source').select_related('current_item__repository__place'):
-            catnum = ip.historical_items.first().catalogue_numbers.first()
+            catnum = ip.historical_items.first().catalogue_numbers.filter(source__label='POMS').first()
             if catnum:
-                ips[catnum.number.strip().lower()] = ip
-        ips_found = {}
+                sources_ips.add_entry(catnum.number.strip().lower(), ip)
+        sources_found = {}
         
-        print '%s records' % len(ips)
-            
+        print '%s records, %s unique document/source/text numbers' % (sources_ips.get_entry_count(), len(sources_ips))
+
+        print '\n> POMS texts with more than one HI/IP\n'
+        for docnum, ips in sources_ips.iteritems():
+            if len(ips) > 1:
+                print docnum, ', '.join(['IP #%s HI #%s: %s' % (ip.id, ip.historical_items.first().id, ip.display_label) for ip in ips])
+        
         print '\n> Import data from POMS database...\n'
         self.stats = {'sources': {}}
         for row in utils.dictfetchall(pc):
@@ -428,12 +434,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             
             docnum = ('document %s' % row['helper_hnumber']).lower().strip()
             # find counterpart in DigiPal
-            if docnum and docnum in ips:
-                ips_found[docnum] = 1
-                self.import_poms_into_ip(row, ips[docnum])
+            for ip in sources_ips.get(docnum, []):
+                sources_found[docnum] = 1
+                #self.import_poms_into_ip(row, ip)
                 
-        print '%s MS in DigiPal, %s matching a source in POMS' % (len(ips), len(ips_found))
-        for catnum in set(ips.keys()) - set(ips_found.keys()):
+        print '%s MS in DigiPal, %s matching a source in POMS' % (len(sources_ips), len(sources_found))
+        for catnum in set(sources_ips.keys()) - set(sources_found.keys()):
             print '    %s not found in POMS' % catnum
             
         #for source in sorted(self.stats['sources'].keys()):
@@ -443,6 +449,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     
     def import_poms_into_ip(self, row, ip):
         docnum = ('document %s' % row['helper_hnumber']).lower().strip()
+        
+        if (row['helper_hnumber']).lower().strip() not in ['4/20/7']: return
         print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
         
         #ref = row['source_tradid']
@@ -450,6 +458,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #self.stats['sources'][source] = self.stats['sources'].get(source, 0) + 1
         
         source, cat_num = self.get_source_and_num_from_poms_ref(row['source_tradid'])
+        
         if not source or not cat_num:
             self.print_warning('Unrecognised reference', 1, '%s' % row['source_tradid'])
             return

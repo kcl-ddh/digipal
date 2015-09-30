@@ -7,7 +7,7 @@ import shlex
 import subprocess
 import re
 from optparse import make_option
-import utils  
+import utils
 from digipal.models import Text, CatalogueNumber, Description, TextItemPart, Collation
 from digipal.models import Text
 from digipal.models import HistoricalItem, ItemPart
@@ -24,17 +24,17 @@ Commands:
                         Backup a database into a file.
 
   restore BACKUP_NAME
-                        Restores a database from a backup. 
+                        Restores a database from a backup.
 
-  list 
+  list
                         Lists backup files.
   
-  tables [--db=DATABASE_ALIAS] [--table TABLE_NAME]  
+  tables [--db=DATABASE_ALIAS] [--table TABLE_NAME] [--order=[-]c|d|n]
                         Lists the tables in the database, their size and most recent change
-                        Use --table PATTERN to select which table to display                           
+                        Use --table PATTERN to select which table to display
   
   fixseq
-                        Fix the postgresql sequences. 
+                        Fix the postgresql sequences.
                         Useful when you get a duplicate key violation on insert after restoring a database.
                         
   tidyup1 [--db=DATABASE_ALIAS]
@@ -62,10 +62,10 @@ Commands:
                           Create missing cartulary HIs from the SS HIs
                           
   merge_rf
-                          Merge Reconstructed Folios (ScandiPal) 
+                          Merge Reconstructed Folios (ScandiPal)
                          
   merge_frg
-                          Merge Fragments (ScandiPal) 
+                          Merge Fragments (ScandiPal)
 
   version
                           show the version of the digipal code
@@ -100,6 +100,11 @@ Commands:
             dest='table',
             default='',
             help='Name of the table to backup'),
+        make_option('--order',
+            action='store',
+            dest='order',
+            default='',
+            help='Sort order'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -181,7 +186,7 @@ Commands:
         for image in fr.images.all():
             if image.locus and image.locus.strip():
                 print '\tWARNING: image has locus: #%s "%s"' % (image.id, image.locus)
-            else: 
+            else:
                 image.locus = 'recto'
             image.save()
             print '\t\tImage #%d (recto) : %s' % (image.id, image.custom_label)
@@ -189,7 +194,7 @@ Commands:
         for image in fv.images.all():
             if image.locus and image.locus.strip():
                 print '\tWARNING: image has locus: #%s "%s"' % (image.id, image.locus)
-            else: 
+            else:
                 image.locus = 'verso'
             image.item_part = fr
             image.save()
@@ -201,7 +206,7 @@ Commands:
             if handr.count():
                 handr = handr[0]
                 print '\t\tHands to merge : #%d %s (verso) -> #%d %s (recto)' % (handv.id, handv, handr.id, handr)
-                # reconnect to images from handv to handr 
+                # reconnect to images from handv to handr
                 for image in handv.images.all():
                     print '\t\t\tConnect recto hand #%d to image #%d' % (handr.id, image.id)
                     handr.images.add(image)
@@ -210,7 +215,7 @@ Commands:
                 for graph in handv.graphs.all():
                     print '\t\t\tConnect verso graph #%d to recto hand #%d' % (graph.id, handr.id)
                     graph.hand = handr
-                    graph.save()                    
+                    graph.save()
                 handv.delete()
             else:
                 print '\t\tHand to reconnect: #%d %s' % (handv.id, handv)
@@ -218,9 +223,9 @@ Commands:
                 handv.save()
 
         # delete the verso
-        fv.delete()        
+        fv.delete()
              
-    def merge_rf(self): 
+    def merge_rf(self):
         '''
         * Merge the RF
         * Make sure display label = HI + locus
@@ -268,13 +273,13 @@ Commands:
                 print 'Remove self-grouping, Item Part #%d cannot be its own group' % id
                 ip.group = None
                 ip.group_locus = None
-                ip.save() 
+                ip.save()
         
         # remove the reference to the CI if it already exists in one of the fragments
         rfs = ItemPart.objects.filter(type=rf_type).order_by('id')
         for rf in rfs:
             if rf.current_item and ItemPart.objects.filter(group = rf, current_item = rf.current_item).count():
-                print '\tREMOVE CI (IP #%s, %s)' % (rf.id, rf) 
+                print '\tREMOVE CI (IP #%s, %s)' % (rf.id, rf)
                 rf.current_item = None
             else:
                 pass
@@ -302,13 +307,13 @@ Commands:
         
         # reconnect images
         for image in rfr.images.all():
-            image.custom_label = image.display_label        
+            image.custom_label = image.display_label
             image.locus = 'recto'
             image.save()
             print '\t\tImage %d (recto) : %s' % (image.id, image.custom_label)
             
         for image in rfv.images.all():
-            image.custom_label = image.display_label        
+            image.custom_label = image.display_label
             image.item_part = rfr
             image.locus = 'verso'
             image.save()
@@ -332,7 +337,7 @@ Commands:
             if handr.count():
                 handr = handr[0]
                 print '\t\tHands to merge : #%d %s (verso) -> #%d %s (recto)' % (handv.id, handv, handr.id, handr)
-                # reconnect to images from handv to handr 
+                # reconnect to images from handv to handr
                 for image in handv.images.all():
                     print '\t\t\tConnect recto hand #%d to image #%d' % (handr.id, image.id)
                     handr.images.add(image)
@@ -341,7 +346,7 @@ Commands:
                 for graph in handv.graphs.all():
                     print '\t\t\tConnect verso graph #%d to recto hand #%d' % (graph.id, handr.id)
                     graph.hand = handr
-                    graph.save()                    
+                    graph.save()
                 handv.delete()
             else:
                 print '\t\tHand to reconnect: #%d %s' % (handv.id, handv)
@@ -383,8 +388,13 @@ Commands:
         from django.db import connections
         
         table_filter = options.get('table', '')
+        order = options.get('order', '')
+        if not order:
+            order = 'n'
         
         if table_filter == 'ALL': table_filter = ''
+        
+        
 
         con = connections[options.get('db')]
         
@@ -396,16 +406,22 @@ Commands:
         
         date_fields = ['last_login', 'modified', 'publish_date', 'submit_date', 'action_time', 'entry_time', 'applied']
         
-        print '%10s%20s %s' % ('count(*)', 'Most recent', 'Table')
-        
         table_displays = {}
         
         from datetime import datetime
         
+        from digipal.utils import ProgressBar
+        
+        pbar = ProgressBar(len(tables))
+        
         c = 0
+        tc = 0
+        table_info = []
         for table in tables:
+            tc += 1
+            pbar.update(tc)
             if re.search(r'%s' % table_filter, table):
-                c += 1 
+                c += 1
                 count = utils.sqlSelectCount(con, table)
                 # find datetime field
                 table_desc = con.introspection.get_table_description(cursor, table)
@@ -420,33 +436,48 @@ Commands:
                         max_date = utils.sqlSelectMaxDate(con, table, field_name)
                         if max_date and isinstance(max_date, datetime):
                             table_key = max_date.strftime("%Y%m%d%H%M%S")
-                            max_date = max_date.strftime("%d-%m-%y %H:%M:%S")
+                            max_date = max_date.strftime("%y-%m-%d %H:%M:%S")
                         else:
                             max_date = ''
                              
                         #print '%s = %s' % (field_name, max_date)
-                table_display = '%10s%20s %s' % (count, max_date, table)
-                print table_display
+                #table_display = '%10s%20s %s' % (count, max_date, table)
+                table_info.append([count, max_date, table])
+                #print table_display
                 
-                if table_key:
-                    table_displays[table_key] = table_display
+#                 if table_key:
+#                     table_displays[table_key] = table_display
+        
+        pbar.complete()
+        
+        reverse = ('-' in order)
+        key_index = 2
+        if 'c' in order: key_index = 0
+        if 'd' in order: key_index = 1
+        
+        table_info = sorted(table_info, key=lambda t: t[key_index], reverse=reverse)
+        
+        print '%10s%20s %s' % ('Count', 'Date', 'Name')
+        for table in table_info:
+            table_display = '%10s%20s %s' % (table[0], table[1], table[2])
+            print table_display
                 
         print '\n%s tables' % c
 
-        print '\nMost recently changed:'
-        
-        top_size = 0
-        if c > 1:
-            top_size = 1
-        if c > 3:
-            top_size = 3
-        if c > 10:
-            top_size = 10
-            
-        table_keys = table_displays.keys()
-        table_keys.sort()
-        for table_key in (table_keys[::-1])[0:top_size]:
-            print table_displays[table_key]
+#         print '\nMost recently changed:'
+#
+#         top_size = 0
+#         if c > 1:
+#             top_size = 1
+#         if c > 3:
+#             top_size = 3
+#         if c > 10:
+#             top_size = 10
+#
+#         table_keys = table_displays.keys()
+#         table_keys.sort()
+#         for table_key in (table_keys[::-1])[0:top_size]:
+#             print table_displays[table_key]
         
         cursor.close()
         
@@ -458,7 +489,7 @@ Commands:
         print 'A. Remove \'f\' and \'r\' from Image.locus when image.item_part.pagination = true.'
         print 'To remove the f/v from the Image.locus, try python manage.py dpdb cleanlocus ITEMPARTID1 ITEMPARTID2 ...'
         
-        print 
+        print
         from digipal.models import Image
         from django.db.models import Q
         images = Image.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
@@ -483,7 +514,7 @@ Commands:
 
         c = 0
         for model_class_name in model_class_names:
-            c += 1 
+            c += 1
             model_class = getattr(digipal.models, model_class_name)
             models = model_class.objects.all().order_by('id')
             print '\t(%d / %d, %d records)\t%s' % (c, len(model_class_names), len(models), model_class._meta.object_name)
@@ -505,7 +536,7 @@ Commands:
     def cleanlocus(self, item_partids, options):
         if len(item_partids) < 1:
             raise CommandError('Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
-        from digipal.models import Image 
+        from digipal.models import Image
         images = Image.objects.filter(item_part__in = item_partids).order_by('id')
         c = 0
         for image in images:
@@ -550,12 +581,12 @@ Commands:
                             'ms origins':         'digipal_itemorigin', # evidence char
                             'ms owners':         'digipal_owner', # evidence char
                             'place evidence':     'digipal_placeevidence', # ref FK, evidence char
-                            'references':         '', # 'digipal_reference', already imported 
+                            'references':         '', # 'digipal_reference', already imported
                             'scribes':             'digipal_scribe', # ref char => legacy_reference
                         }
         
         # NEW_DIGIPAL_REFERENCE_ID = reference_mapping[LEGACY_REFERENCE_ID]
-        reference_mapping = {}        
+        reference_mapping = {}
         cur_dst = utils.sqlSelect(con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
         for ref in cur_dst.fetchall():
             reference_mapping[ref[1]] = ref[0]
@@ -672,12 +703,12 @@ Commands:
         
         # ----------------------------------------------
         
-        print '1., 2b., 3. Save all models to fix various labelling errors.'        
+        print '1., 2b., 3. Save all models to fix various labelling errors.'
         import digipal.models
 
         #model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
         
-        # These model classes are in order of dependency of the display_label 
+        # These model classes are in order of dependency of the display_label
         # (B depends from A => A listed before B).
         model_class_names = '''
             Ontograph
@@ -707,7 +738,7 @@ Commands:
         
         c = 0
         for model_class_name in model_class_names:
-            c += 1 
+            c += 1
             model_class = getattr(digipal.models, model_class_name)
             models = model_class.objects.all().order_by('id')
             print '\t(%d / %d, %d records)\t%s' % (c, len(model_class_names), len(models), model_class._meta.object_name)
@@ -752,7 +783,7 @@ Commands:
 #                 print '>>>>>>>>>> ALREADY EXISTS'
 #             slugs[s] = 1
 #             print s, (u'%s' % allograph).encode('utf-8')
-#             
+#
 #         update_query_string(content, updates)
                     
         # ST.id=253 => H.id=1150
@@ -823,7 +854,7 @@ Commands:
                 if correct_ip is None:
                     self.print_warning('no IP with same locus', 2)
                     print (u'\t\t\t%s <> %s' % (repr(ip.locus), u' | '.join(repr(u'%s' % cip.locus) for cip in correct_ips)))
-                    continue                    
+                    continue
                 if not self.loci_are_the_same(ip.locus, correct_ip.locus):
                     self.print_warning('selected correct IP has a different locus', 2)
                     print '\t\t\t%s' % self.get_obj_label(correct_ip)
@@ -886,8 +917,8 @@ Commands:
             # Find a Text with the same Cat Num
             #texts = Text.objects.filter(Q(catalogue_numbers__source=hi_cat_num.source) & Q(catalogue_numbers__number=hi_cat_num.number))
             texts = list(Text.objects.raw(ur'''
-                select distinct te.* 
-                from digipal_text te, 
+                select distinct te.*
+                from digipal_text te,
                 digipal_cataloguenumber cn,
                 digipal_cataloguenumber cn2
                 where cn.historical_item_id = %s
@@ -932,7 +963,7 @@ Commands:
                 text.languages.add(hi.language)
 
             # connect the text to the correct item part
-            ## Check what to do for 
+            ## Check what to do for
 #             for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
 #                 from django.db.utils import IntegrityError
 #                 if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
@@ -944,7 +975,7 @@ Commands:
                 if not TextItemPart.objects.filter(text=text, item_part_id=correct_ip_id).count():
                     corrected = ''
                     if correct_ip_id != ip.id:
-                        corrected = ' (corrected)' 
+                        corrected = ' (corrected)'
                     print '\t\tItemPart: #%s%s' % (correct_ip_id, corrected)
                     TextItemPart(text=text, item_part_id=correct_ip_id).save()
                     
@@ -1035,7 +1066,7 @@ Commands:
         
     def add_cartulary_his(self):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
-        from digipal.models import ItemPartItem        
+        from digipal.models import ItemPartItem
         con = connections['default']
         con.enter_transaction_management()
         con.managed()
@@ -1076,16 +1107,16 @@ Commands:
         self.print_warning_report()
                     
     def fix_imcomplete_clones(self):
-        # Cloning of the HI in add_cartulary_his() didn't copy the 
+        # Cloning of the HI in add_cartulary_his() didn't copy the
         #     .catalogue_number field, collations and descriptions.
-        # We address that here in a second pass. 
+        # We address that here in a second pass.
         for hi in HistoricalItem.objects.filter(historical_item_type__name='charter', historical_item_format__name='Single-sheet'):
             if hi.catalogue_number:
                 select = '''
                     select hi.*
                     from digipal_historicalitem hi,
                     digipal_cataloguenumber cn
-                    where 
+                    where
                     cn.historical_item_id = hi.id
                     and hi.id <> %s
                     and (cn.number, cn.source_id) in (select cn2.number, cn2.source_id from digipal_cataloguenumber cn2 where cn2.historical_item_id = %s)
@@ -1100,24 +1131,24 @@ Commands:
                     hi_clone.description_set.all().delete()
                     for desc in hi.description_set.all():
                         print '\t\tCreate description'
-                        Description(historical_item=hi_clone, 
-                                source=desc.source, 
+                        Description(historical_item=hi_clone,
+                                source=desc.source,
                                 description=desc.description,
                                 text_id=desc.text_id,
                                 comments=desc.comments,
                                 summary=desc.summary
-                                ).save()                    
+                                ).save()
 
                     # create the collation
                     hi_clone.collation_set.all().delete()
                     for col in hi.collation_set.all():
                         print '\t\tCreate collation'
-                        Collation(historical_item=hi_clone, 
+                        Collation(historical_item=hi_clone,
                                 fragment=col.fragment,
                                 leaves=col.leaves,
                                 front_flyleaves=col.front_flyleaves,
                                 back_flyleaves=col.back_flyleaves
-                                ).save()                    
+                                ).save()
             
     def get_cloned_hi(self, hi):
         ret = HistoricalItem()
@@ -1178,7 +1209,7 @@ Commands:
     def get_normalised_code(self, code):
         #return re.sub(ur'\W+', ur'.', locus.lower().strip())
         code = code.lower()
-        # For CUL and Oxford Bodleian we ignore the number between parenthesis at the end  
+        # For CUL and Oxford Bodleian we ignore the number between parenthesis at the end
         if (code.startswith('20-')) or (code.startswith('43-')):
             code = re.sub(ur'\(\d+\)\s*$', ur'', code)
         code = re.sub(ur'(\s|,|\.|-|_|\u2013)+', ur'_', code)
@@ -1265,11 +1296,11 @@ Commands:
             known_command = True
             args = list(args)
             args.pop(0)
-            self.cleanlocus(args, options)            
+            self.cleanlocus(args, options)
             
         if command == 'fixseq':
             # fix the sequence number for auto incremental fields (e.g. id)
-            # Unfortunately posgresql import does not update them so we have to run this after an import 
+            # Unfortunately posgresql import does not update them so we have to run this after an import
             known_command = True
             
             c = utils.fix_sequences(options.get('db', 'default'), True)
@@ -1343,7 +1374,7 @@ Commands:
                     user.is_superuser = True
                     user.save()
                     
-                    print 'User %s. Password reset to "%s".' % (username, pwd) 
+                    print 'User %s. Password reset to "%s".' % (username, pwd)
             
         if command == 'backup':
             # backup

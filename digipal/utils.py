@@ -916,6 +916,9 @@ def convert_xml_to_html(xml):
     
 class ProgressBar(object):
     
+    def __init__(self, amax=0.1, max_width=40):
+        self.reset(amax=amax, max_width=max_width)
+    
     def reset(self, amax=0.1, max_width=40):
         self.max = 1.0 * amax
         self.max_width = max_width
@@ -1018,3 +1021,21 @@ def sql_select_dict(query, arguments=None):
     
     return ret
 
+class MultiDict(dict):
+    '''A multi-entries dictionary
+        Behaves like a python dict where each value is a list of entries
+        This class adds helpers functions to deal with this structure
+        # {'key1': [e1, e2, e3, ...], ...}
+    '''
+    def add_entry(self, key, entry):
+        if key not in self:
+            self[key] = []
+        if entry not in self[key]:
+            self[key].append(entry)
+    
+    def get_entry_count(self):
+        ret = 0
+        for entries in self.values():
+            ret += len(entries)
+        return ret
+    

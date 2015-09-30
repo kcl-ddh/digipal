@@ -463,21 +463,6 @@ Commands:
             print table_display
                 
         print '\n%s tables' % c
-
-#         print '\nMost recently changed:'
-#
-#         top_size = 0
-#         if c > 1:
-#             top_size = 1
-#         if c > 3:
-#             top_size = 3
-#         if c > 10:
-#             top_size = 10
-#
-#         table_keys = table_displays.keys()
-#         table_keys.sort()
-#         for table_key in (table_keys[::-1])[0:top_size]:
-#             print table_displays[table_key]
         
         cursor.close()
         

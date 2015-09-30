@@ -436,7 +436,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             # find counterpart in DigiPal
             for ip in sources_ips.get(docnum, []):
                 sources_found[docnum] = 1
-                #self.import_poms_into_ip(row, ip)
+                self.import_poms_into_ip(row, ip)
                 
         print '%s MS in DigiPal, %s matching a source in POMS' % (len(sources_ips), len(sources_found))
         for catnum in set(sources_ips.keys()) - set(sources_found.keys()):
@@ -450,7 +450,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def import_poms_into_ip(self, row, ip):
         docnum = ('document %s' % row['helper_hnumber']).lower().strip()
         
-        if (row['helper_hnumber']).lower().strip() not in ['4/20/7']: return
+        #if (row['helper_hnumber']).lower().strip() not in ['4/20/7']: return
         print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
         
         #ref = row['source_tradid']

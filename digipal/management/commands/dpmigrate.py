@@ -20,11 +20,14 @@ Digipal database migration tools.
     
 Commands:
     
-  csv2table CSV_FILE_PATH
+  csv2table CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Create a table from a CSV file. Only schema, not the data.
   
-  csv2records CSV_FILE_PATH
+  csv2records CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Import the data from a CSV file. Use csv2table to create the table first.
+  
+  csv2db CSV_FILE_PATH [--offset=LINE_OFFSET]
+      = csv2table + csv2records
   
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
         
@@ -86,6 +89,16 @@ Commands:
             dest='table',
             default='',
             help='Name of the tables to backup. This acts as a name filter.'),
+        make_option('--iil',
+            action='store_true',
+            dest='iil',
+            default=False,
+            help='Ignore incomplete lines (when reading CSV)'),
+        make_option('--saa',
+            action='store',
+            dest='saa',
+            default='',
+            help='comma separated list of strings that mean that a value is the same as in the above cell in a CSV (same_as_above).'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -128,13 +141,18 @@ Commands:
             known_command = True
             self.convert_exon_folio_numbers()
         
+        if command == 'csv2table':
+            known_command = True
+            self.createTableFromCSV()
+
         if command == 'csv2records':
             known_command = True
             self.insertTableFromCSV()
         
-        if command == 'csv2table':
+        if command == 'csv2db':
             known_command = True
             self.createTableFromCSV()
+            self.insertTableFromCSV()
         
         if command == 'match_owners':
             known_command = True
@@ -1704,12 +1722,56 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)
         return ret
         
+    def createTableFromCSV(self):
+        options = self.options
+
+        file_path = self._args[1]
+        
+        from digipal.utils import read_all_lines_from_csv
+        same_as_above = options.get('saa', None)
+        if same_as_above:
+            same_as_above.split(',')
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
+
+        table_name = self.getTablenameFromPath(file_path)
+        
+        #print lines[0].keys()
+        
+        # find the type of each column
+        schema = []
+        types = {}
+        max_len = 0
+        for col in lines[0].keys():
+            for val in [line[col] for line in lines]:
+                val = unicode(val)
+                if len(val) > max_len:
+                    max_len = len(val)
+            schema.append([col, 'varchar(%s)' % max_len])
+        
+        #print schema
+        
+        from django.db import connections
+        con_dst = connections[options.get('db')]
+        utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
+        create = '''
+        CREATE TABLE %s (
+            %s
+        )
+        ''' % (table_name, ', '.join(['%s %s' % (col[0], col[1]) for col in schema]))
+        
+        utils.sqlWrite(con_dst, create)
+
+        print 'Created table %s (%s columns)' % (table_name, len(schema))
+
     def insertTableFromCSV(self):
         options = self.options
         
         file_path = self._args[1]
         from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path)
+        same_as_above = options.get('saa', None)
+        if same_as_above:
+            same_as_above.split(',')
+        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
 
         table_name = self.getTablenameFromPath(file_path)
 
@@ -1736,43 +1798,6 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             
         print 'Written %s records into table %s' % (len(lines), table_name)
     
-    def createTableFromCSV(self):
-        options = self.options
-
-        file_path = self._args[1]
-        from digipal.utils import read_all_lines_from_csv
-        lines = read_all_lines_from_csv(file_path)
-        
-        #print lines[0].keys()
-        
-        # find the type of each column
-        schema = []
-        types = {}
-        max_len = 0
-        for col in lines[0].keys():
-            for val in [line[col] for line in lines]:
-                val = unicode(val)
-                if len(val) > max_len:
-                    max_len = len(val)
-            schema.append([col, 'varchar(%s)' % max_len])
-        
-        #print schema
-        
-        table_name = self.getTablenameFromPath(file_path)
-        
-        from django.db import connections
-        con_dst = connections[options.get('db')]
-        utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
-        create = '''
-        CREATE TABLE %s (
-            %s
-        )
-        ''' % (table_name, ', '.join(['%s %s' % (col[0], col[1]) for col in schema]))
-        
-        utils.sqlWrite(con_dst, create)
-
-        print 'Created table %s (%s columns)' % (table_name, len(schema))
-
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 

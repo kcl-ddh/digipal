@@ -1,5 +1,6 @@
 from django.utils.html import conditional_escape, escape
 import re
+from binhex import LINELEN
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
@@ -754,15 +755,22 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def read_all_lines_from_csv(file_path):
+def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='Latin-1', same_as_above=None):
     '''
         Read a CSV file and returns an array where
         each entry correspond to a line in the file.
         It is assumed that the first line of the CSV
         contains the headings.
+        
         Each entry in the returned array is a dictionary
         where the keys are the column headings and the
         values in the corresponding line in the file.
+        
+        If ignore_incomplete_lines is True,
+        lines in the input file which have missing values will be ignored
+        
+        same_as_above = list of strings which mean that the value 
+            should be the same as in the above row
     '''
     ret = []
     
@@ -774,17 +782,36 @@ def read_all_lines_from_csv(file_path):
         
         columns = None
         
+        line_last = None
+        
         for line in csvreader:
             line_index += 1
-            line = [v.decode('latin-1') for v in line]
+            
+            # skip some lines
+            if ignore_incomplete_lines and '' in line:
+                continue
+            
+            # -> unicode
+            line = [v.decode(encoding) for v in line]
+            
+            # heading line
             if not columns:
                 columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]
                 continue
             
+            # 'same as' values
+            if same_as_above and line_last:
+                for i in range(0, len(line)):
+                    if line[i] in same_as_above:
+                        line[i] = line_last[i]
+            
+            # turn into dict
             rec = dict(zip(columns, line))
             rec['_line_index'] = line_index
-        
+            
             ret.append(rec)
+
+            line_last = line
     
     return ret
 

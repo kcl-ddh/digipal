@@ -177,6 +177,10 @@ Commands:
             known_command = True
             self.import_poms()
 
+        if command == 'import_poms_extra':
+            known_command = True
+            self.import_poms_extra()
+
         if command == 'update_derived_fields':
             self.update_derived_fields()
             known_command = True
@@ -337,7 +341,66 @@ Commands:
         
         #return ret
         
+    def import_poms_extra(self):
+        from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
+        poms = connections['poms']
+        pc = poms.cursor()
+        pc.execute('''
+select 
+distinct ch.helper_hnumber, fa.inferred_type, pe.id as person_id, pe.persondisplayname, pe.genderkey_id, 
+case 
+    when ro.name = 'Beneficiary'
+    then 0
+    else 1
+end as is_issuer
+from pomsapp_factoid fa
+join pomsapp_source so on so.id = fa.sourcekey_id
+join pomsapp_charter ch on (so.id = ch.source_ptr_id)
+join pomsapp_assocfactoidperson afp on (afp.factoid_id = fa.id)
+join pomsapp_person pe on (pe.id = afp.person_id)
+join pomsapp_role ro on (ro.id = afp.role_id)
+join pomsapp_facttransaction ftr on (ftr.factoid_ptr_id = fa.id)
+join pomsapp_transactiontype tt on (tt.id = ftr.transactiontype_id)
+where True
+-- and helper_hnumber = '1/7/44'
+-- and tty.name like '%bishop%'
+and ro.name in ('Grantor', 'Beneficiary', 'Addressor')
+and ftr.isprimary = 1
+order by ch.helper_hnumber, fa.id
+;
+        ''')
+        
+    '''
+select helperhnumber, count(*) 
+from poms_charter_info ci
+join digipal_cataloguenumber cn on (('Document ' || ci.helperhnumber) = cn.number)
+where genderkeyid = '5'
+and isissuer='0'
+group by helperhnumber
+having count(*) > 1
+order by count(*) desc
+;
+    '''
+
+        from digipal.utils import write_rows_to_csv
+        file_path = 'poms_charter_info.csv'
+        
+        rows = utils.dictfetchall(pc)
+        
+        # Note that the rows values are python unicode objects
+        # but with latin-1 encoding!
+        # So we use utf8 encoding for the output
+        # but later we read as latin-1
+        write_rows_to_csv(file_path, rows, encoding='utf8')
+        
+        print 'Written %s records in %s.' % (len(rows), file_path)
+        
+        self._createTableFromCSV(file_path)
+        self._insertTableFromCSV(file_path)
+        
     def import_poms(self):
+        
+        raise Exception('Already imported? (comment this exception to confirm you want to import)')
         
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
@@ -1727,6 +1790,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         file_path = self._args[1]
         
+        self._createTableFromCSV(file_path, options)
+
+    def _createTableFromCSV(self, file_path, options=None):
+        options = options or {}
+        
         from digipal.utils import read_all_lines_from_csv
         same_as_above = options.get('saa', None)
         if same_as_above:
@@ -1751,7 +1819,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #print schema
         
         from django.db import connections
-        con_dst = connections[options.get('db')]
+        con_dst = connections[options.get('db', 'default')]
         utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
         create = '''
         CREATE TABLE %s (
@@ -1765,8 +1833,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
     def insertTableFromCSV(self):
         options = self.options
-        
         file_path = self._args[1]
+        self._insertTableFromCSV(file_path, options)
+        
+    def _insertTableFromCSV(self, file_path, options=None):
+        options = options or {}
+
         from digipal.utils import read_all_lines_from_csv
         same_as_above = options.get('saa', None)
         if same_as_above:
@@ -1777,7 +1849,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         # delete all
         from django.db import connections
-        con_dst = connections[options.get('db')]
+        con_dst = connections[options.get('db', 'default')]
         utils.sqlDeleteAll(con_dst, table_name, self.is_dry_run())
         
         fields_ordered = lines[0].keys()

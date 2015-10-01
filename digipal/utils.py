@@ -755,6 +755,25 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
+def write_rows_to_csv(file_path, rows, encoding='Latin-1'):
+    '''
+        rows: a list of records, each record is a dictionary with key/values
+            all records must have the same keys
+        
+        output: write a csv file [file_path] with all the rows
+    '''
+    import csv
+    with open(file_path, 'wb') as csvfile:
+        if len(rows):
+            csvwriter = csv.DictWriter(csvfile, rows[0].keys())
+            csvwriter.writeheader()
+            for row in rows:
+                row_encoded = {}
+                #print repr(row)
+                for k,v in row.iteritems():
+                    row_encoded[k] = unicode(v).encode(encoding)
+                csvwriter.writerow(row_encoded)
+    
 def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='Latin-1', same_as_above=None):
     '''
         Read a CSV file and returns an array where

@@ -155,7 +155,7 @@ class FacetedModel(object):
                     sort_function = field.get('sort_fct', None)
                     value_rankings[None] = u''
                     for record in model.objects.all().order_by('id'):
-                        value = self.get_record_field_whoosh(record, {'path': path})
+                        value = utils.get_sortable_hash_value(self.get_record_path(record, path))
                         
                         v = value
                         if sort_function:
@@ -181,8 +181,17 @@ class FacetedModel(object):
                         value_rankings[k] = sorted_values.index(v)
                         
                     # print self.value_rankings[whoosh_sortable_field]
+                    
+        #print self.value_rankings['image_name_sortable']
+        #exit()
         
     def get_document_from_record(self, record):
+        '''
+            Returns a Whoosh document from a Django model instance.
+            The list od instance fields to extract come from the content type 
+            definition (see settings.py).
+            Multivalued fields are turned into a list of unicode values.
+        '''
         ret = {'id': u'%s' % record.id}
         for field in self.fields:
             if self.is_field_indexable(field):
@@ -191,7 +200,7 @@ class FacetedModel(object):
                 
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
-                    ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][ret[field['key']]]
+                    ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][utils.get_sortable_hash_value(ret[field['key']])]
                 
                 if field['type'] == 'boolean':
                     ret[field['key']] = int(bool(ret[field['key']]) and ret[field['key']] not in ['0', 'False', 'false'])
@@ -210,7 +219,7 @@ class FacetedModel(object):
                     if is_max_date_range(rng):
                         # we don't want the empty dates and invalid dates to be found
                         ret[field['key'] + '_max'] = ret[field['key'] + '_min']
-                        
+        
         return ret
 
     def get_field_by_key(self, key):
@@ -307,6 +316,9 @@ class FacetedModel(object):
                     break
         
         ret = self.get_record_field(record, field, True)
+        if isinstance(ret, list):
+            ret = '; '.join(ret)
+        
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
         if field['type'] == 'image':
@@ -321,8 +333,13 @@ class FacetedModel(object):
         
     def get_record_field_whoosh(self, record, afield):
         ret = self.get_record_field(record, afield)
+        
+        # convert to unicode (or list of unicode)
         if ret is not None:
-            ret = unicode(ret)
+            if isinstance(ret, list):
+                ret = [unicode(v) for v in ret]
+            else:
+                ret = unicode(ret)
         
         return ret
 
@@ -339,24 +356,53 @@ class FacetedModel(object):
         path = afield['path']
         if use_path_result and 'path_result' in afield:
             path = afield['path_result']
+            
+        return self.get_record_path(record, path)
+
+    def get_record_path(self, record, path):
+        '''
+            Return one or more values related to a record
+            by following the given path through the data model.
+            See get_record_field
+            e.g. get_record_path(ItemPart.objects.get(id=598), 'images.all.id')
+            => [3200, 3201]
+        '''
         v = record
-        if path:
+        if path is not None:
             from django.core.exceptions import ObjectDoesNotExist
-            for part in path.split('.'):
+            from django.db.models.query import QuerySet
+            parts = path.split('.')
+            while parts:
+                part = parts.pop(0)
                 try:
                     v = getattr(v, part)
                 except ObjectDoesNotExist, e:
                     v = None
                 except Exception, e:
                     raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
-                                    
+        
                 if v is None:
                     break
+                
                 if callable(v):
                     v = v()
             
+                if isinstance(v, QuerySet):
+                    # we fork the path finding b/c we have a result set
+                    rec = v
+                    v = []
+                    for item in rec:
+                        subitems = self.get_record_path(item, '.'.join(parts))
+                        # flatten the lists
+                        if isinstance(subitems, list):
+                            v += subitems
+                        else:
+                            v.append(subitems)
+                    v = list(set(v))
+                    break
+                
         ret = v
-
+        
         return ret
 
     def get_summary(self, request):
@@ -390,7 +436,23 @@ class FacetedModel(object):
         from whoosh import sorting
         # print [field['key'] for field in self.fields if field.get('count', False)]
         # return []
-        return [sorting.StoredFieldFacet(field['key'], maptype=sorting.Count) for field in self.fields if field.get('count', False)]
+        
+        ret = []
+        for field in self.fields:
+            if field.get('count', False):
+                field_facet = sorting.StoredFieldFacet(
+                     field['key'], maptype=sorting.Count,
+                     # we do this to avoid errors trying to count using a list as a key 
+                     allow_overlap=field.get('multivalued', False),
+                ) 
+                # we do this to avoid errors trying to split using split() on list 
+                # See why it is NOT done in the constructor:
+                # https://bitbucket.org/mchaput/whoosh/issues/425/split_fn-ignored-in-storedfieldfacet
+                if field.get('multivalued', False):
+                    field_facet.split_fn = lambda v: v if isinstance(v, list) else []
+                ret.append(field_facet)
+        
+        return ret
     
     @classmethod
     def is_field_indexable(cls, field):

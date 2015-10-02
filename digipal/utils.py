@@ -1085,3 +1085,9 @@ class MultiDict(dict):
             ret += len(entries)
         return ret
     
+def get_sortable_hash_value(obj):
+    '''Returns a value that can be used as a key and can be sorted'''
+    ret = unicode(obj)
+    if isinstance(obj, list) and obj:
+        ret = unicode(min(obj))
+    return ret

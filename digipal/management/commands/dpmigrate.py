@@ -346,41 +346,39 @@ Commands:
         poms = connections['poms']
         pc = poms.cursor()
         pc.execute('''
-select 
-distinct ch.helper_hnumber, fa.inferred_type, pe.id as person_id, pe.persondisplayname, pe.genderkey_id, 
-case 
-    when ro.name = 'Beneficiary'
-    then 0
-    else 1
-end as is_issuer
-from pomsapp_factoid fa
-join pomsapp_source so on so.id = fa.sourcekey_id
-join pomsapp_charter ch on (so.id = ch.source_ptr_id)
-join pomsapp_assocfactoidperson afp on (afp.factoid_id = fa.id)
-join pomsapp_person pe on (pe.id = afp.person_id)
-join pomsapp_role ro on (ro.id = afp.role_id)
-join pomsapp_facttransaction ftr on (ftr.factoid_ptr_id = fa.id)
-join pomsapp_transactiontype tt on (tt.id = ftr.transactiontype_id)
-where True
--- and helper_hnumber = '1/7/44'
--- and tty.name like '%bishop%'
-and ro.name in ('Grantor', 'Beneficiary', 'Addressor')
-and ftr.isprimary = 1
-order by ch.helper_hnumber, fa.id
-;
+            select 
+            distinct ch.helper_hnumber, fa.inferred_type, pe.id as person_id, pe.persondisplayname, pe.genderkey_id, 
+            case 
+                when ro.name = 'Beneficiary'
+                then 0
+                else 1
+            end as is_issuer
+            from pomsapp_factoid fa
+            join pomsapp_source so on so.id = fa.sourcekey_id
+            join pomsapp_charter ch on (so.id = ch.source_ptr_id)
+            join pomsapp_assocfactoidperson afp on (afp.factoid_id = fa.id)
+            join pomsapp_person pe on (pe.id = afp.person_id)
+            join pomsapp_role ro on (ro.id = afp.role_id)
+            join pomsapp_facttransaction ftr on (ftr.factoid_ptr_id = fa.id)
+            join pomsapp_transactiontype tt on (tt.id = ftr.transactiontype_id)
+            where True
+            -- and helper_hnumber = '1/7/44'
+            -- and tty.name like '%bishop%'
+            and ro.name in ('Grantor', 'Beneficiary', 'Addressor')
+            and ftr.isprimary = 1
+            order by ch.helper_hnumber, fa.id
         ''')
         
-    '''
-select helperhnumber, count(*) 
-from poms_charter_info ci
-join digipal_cataloguenumber cn on (('Document ' || ci.helperhnumber) = cn.number)
-where genderkeyid = '5'
-and isissuer='0'
-group by helperhnumber
-having count(*) > 1
-order by count(*) desc
-;
-    '''
+        '''
+            select helperhnumber, count(*) 
+            from poms_charter_info ci
+            join digipal_cataloguenumber cn on (('Document ' || ci.helperhnumber) = cn.number)
+            where genderkeyid = '5'
+            and isissuer='0'
+            group by helperhnumber
+            having count(*) > 1
+            order by count(*) desc
+        '''
 
         from digipal.utils import write_rows_to_csv
         file_path = 'poms_charter_info.csv'

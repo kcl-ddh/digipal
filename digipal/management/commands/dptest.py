@@ -25,6 +25,10 @@ Commands:
     
     validate
     
+    record_path
+        Test the field extraction from record + path used by the faceted search module
+        e.g. record_path manuscripts historical_item.historical_item_type.name 598
+    
     max_date_range FIELD
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
@@ -101,6 +105,10 @@ Commands:
         
             for el in sorted(els.keys()):
                 print len(els[el]), el, els[el][0:10]
+
+        if command =='record_path':
+            known_command = True
+            self.record_path(*args[1:]) 
 
         if command == 'chd':
             # convert hand desc from xml to html
@@ -240,6 +248,39 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def record_path(self, *args):
+        '''
+            {'hi_date_max': -5000, 'hi_index_sortable': 287, 'hi_type': u'Charter', 
+            'hi_date': u'Probably early 13th century', 'hi_has_images': u'Without image', 'shelfmark_sortable': 0, 
+            'hi_type_sortable': 3, 
+            'image_name': [u'dorse', u'face'], 
+            'image_name_sortable': 1,
+            'hi_date_min': -5000, 
+            'repo_place_sortable': 0, 'repo_place': u'Durham, Durham Cathedral Muniments', 
+            'hi_date_sortable': 101, 'shelfmark': u'1.1.Sacr.12', 
+            'hi_index': u'ND App., no. 167 POMS Document 3/93/2', 'repo_city': u'Durham', 
+            'id': u'598', 'repo_city_sortable': 7}        
+        '''
+        ctype = args[0]
+        path = args[1]
+        recordid = args[2]
+        
+        from digipal.views.faceted_search.faceted_search import get_types
+        types = get_types(None)
+        fmodel = None
+        for t in types:
+            if t.get_key() == ctype:
+                fmodel = t
+        if not fmodel:
+            print 'ERROR: content type not found "%s"' % ctype
+            exit()
+            
+        record = fmodel.get_model().objects.get(id=recordid)
+        afield = {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'}
+        afield['path'] = path
+        value = fmodel.get_record_field_whoosh(record, afield)
+        print repr(value)
 
     def reconstruct_image(self, *args):
         from utils import web_fetch, write_file

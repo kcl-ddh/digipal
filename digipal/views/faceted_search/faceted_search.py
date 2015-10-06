@@ -188,7 +188,7 @@ class FacetedModel(object):
     def get_document_from_record(self, record):
         '''
             Returns a Whoosh document from a Django model instance.
-            The list od instance fields to extract come from the content type 
+            The list od instance fields to extract come from the content type
             definition (see settings.py).
             Multivalued fields are turned into a list of unicode values.
         '''
@@ -338,6 +338,7 @@ class FacetedModel(object):
         if ret is not None:
             if isinstance(ret, list):
                 ret = [unicode(v) for v in ret]
+                #ret = u';'.join([unicode(v) for v in ret])
             else:
                 ret = unicode(ret)
         
@@ -442,14 +443,15 @@ class FacetedModel(object):
             if field.get('count', False):
                 field_facet = sorting.StoredFieldFacet(
                      field['key'], maptype=sorting.Count,
-                     # we do this to avoid errors trying to count using a list as a key 
+                     # we do this to avoid errors trying to count using a list as a key
                      allow_overlap=field.get('multivalued', False),
-                ) 
-                # we do this to avoid errors trying to split using split() on list 
+                )
+                # we do this to avoid errors trying to split using split() on list
                 # See why it is NOT done in the constructor:
                 # https://bitbucket.org/mchaput/whoosh/issues/425/split_fn-ignored-in-storedfieldfacet
                 if field.get('multivalued', False):
-                    field_facet.split_fn = lambda v: v if isinstance(v, list) else []
+                    field_facet.split_fn = lambda v: (v if isinstance(v, list) else [])
+                    #field_facet.split_fn = lambda v: v if isinstance(v, list) else v.split(';')
                 ret.append(field_facet)
         
         return ret

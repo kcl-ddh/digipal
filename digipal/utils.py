@@ -788,7 +788,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='
         If ignore_incomplete_lines is True,
         lines in the input file which have missing values will be ignored
         
-        same_as_above = list of strings which mean that the value 
+        same_as_above = list of strings which mean that the value
             should be the same as in the above row
     '''
     ret = []
@@ -1047,6 +1047,10 @@ def get_models_from_names(names):
     return ret.values()
 
 def sql_select_dict(query, arguments=None):
+    '''
+        e.g.
+        sql_select_dict('select * from table where x = %s', arguments=['value1'])
+    '''
     from digipal.management.commands.utils import sqlSelect, fetch_all_dic
     from django.db import connections
     

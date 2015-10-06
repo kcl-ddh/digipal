@@ -57,7 +57,7 @@ Commands:
             dest='dry-run',
             default=False,
             help='Dry run, don\'t change any data.'),
-        ) 
+        )
 
     def handle(self, *args, **options):
         
@@ -90,7 +90,7 @@ Commands:
             # 3 <title level="m" > [659, 887, 336]
             # 36 <title level="m"> [1227, 1227, 548, 13, 18, 21, 598, 604, 619, 619]
             
-            els = {} 
+            els = {}
             
             # hand description element list
             from digipal.models import HandDescription
@@ -108,14 +108,18 @@ Commands:
 
         if command =='record_path':
             known_command = True
-            self.record_path(*args[1:]) 
+            self.record_path(*args[1:])
+
+        if command =='multivalued':
+            known_command = True
+            self.multivalued(*args[1:])
 
         if command == 'chd':
             # convert hand desc from xml to html
             from digipal.models import HandDescription
             from digipal.utils import convert_xml_to_html
             for hd in HandDescription.objects.all():
-                #if hd.hand.id != 1226: continue 
+                #if hd.hand.id != 1226: continue
                 print '-' * 80
                 print hd.id, hd.hand.id
                 print repr(hd.description)
@@ -249,18 +253,41 @@ Commands:
             known_command = True
             self.adhoc_test(*args[1:])
 
+    def multivalued(self, *args):
+        ''' test Whoosh search on multi-valued documents'''
+        from whoosh import fields
+        from whoosh.filedb.filestore import RamStorage
+        from whoosh import analysis, fields, index, qparser, query, searching, scoring
+        
+        schema = fields.Schema(id=fields.STORED, f1=fields.TEXT)
+        storage = RamStorage()
+        ix = storage.create_index(schema)
+    
+        writer = ix.writer()
+        writer.add_document(id=1, f1=u'valueone')
+        writer.add_document(id=2, f1=u'valuetwo')
+        writer.add_document(id=3, f1=u'valueone valuetwo')
+        writer.commit()
+    
+        with ix.searcher() as s:
+            qp = qparser.QueryParser('f1', schema)
+            q = qp.parse(u'valueone')
+            r = s.search(q)
+            print len(r)
+            print [hit for hit in r]
+
     def record_path(self, *args):
         '''
-            {'hi_date_max': -5000, 'hi_index_sortable': 287, 'hi_type': u'Charter', 
-            'hi_date': u'Probably early 13th century', 'hi_has_images': u'Without image', 'shelfmark_sortable': 0, 
-            'hi_type_sortable': 3, 
-            'image_name': [u'dorse', u'face'], 
+            {'hi_date_max': -5000, 'hi_index_sortable': 287, 'hi_type': u'Charter',
+            'hi_date': u'Probably early 13th century', 'hi_has_images': u'Without image', 'shelfmark_sortable': 0,
+            'hi_type_sortable': 3,
+            'image_name': [u'dorse', u'face'],
             'image_name_sortable': 1,
-            'hi_date_min': -5000, 
-            'repo_place_sortable': 0, 'repo_place': u'Durham, Durham Cathedral Muniments', 
-            'hi_date_sortable': 101, 'shelfmark': u'1.1.Sacr.12', 
-            'hi_index': u'ND App., no. 167 POMS Document 3/93/2', 'repo_city': u'Durham', 
-            'id': u'598', 'repo_city_sortable': 7}        
+            'hi_date_min': -5000,
+            'repo_place_sortable': 0, 'repo_place': u'Durham, Durham Cathedral Muniments',
+            'hi_date_sortable': 101, 'shelfmark': u'1.1.Sacr.12',
+            'hi_index': u'ND App., no. 167 POMS Document 3/93/2', 'repo_city': u'Durham',
+            'id': u'598', 'repo_city_sortable': 7}
         '''
         ctype = args[0]
         path = args[1]
@@ -367,15 +394,15 @@ Commands:
         ret = [None, None]
         if not len(args) == 1:
             print 'ERROR: please provide a path to a date field. E.g. dptest max_date_range HistoricalItem.date'
-            return 
+            return
         
         path = args[0]
-        print 'Path: %s' % path 
+        print 'Path: %s' % path
 
         parts = path.split('.')
 #         if len(parts) != 2:
 #             print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
-#             return 
+#             return
             
         model_name = parts[0]
         path_name = '__'.join(parts[1:])
@@ -383,7 +410,7 @@ Commands:
         model = getattr(digipal.models, model_name, None)
         if not model:
             print 'ERROR: Invalid model name. See digipal.models module.'
-            return 
+            return
 
         from digipal.utils import get_range_from_date
         for value in model.objects.values_list(path_name, flat=True):
@@ -410,7 +437,7 @@ Commands:
         
         if 'hi' in args:
             query = HistoricalItem.objects.all()
-        else:  
+        else:
             query = Date.objects.all()
             
         rid = None
@@ -491,29 +518,29 @@ Commands:
 #         ips = ItemOrigin.objects.values_list('id', 'place__name')
 #         print ips
 #         return
-#         
+#
 #         fields = [
-#             'current_item__repository__place__name', 
-#             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number', 
-#             'historical_items__itemorigin__place__name', 
-#             'subdivisions__current_item__repository__place__name', 
-#             'subdivisions__current_item__repository__name', 
-#             'current_item__repository__place__name', 
-#             'current_item__repository__name', 
-#             'hands__assigned_place__name', 
+#             'current_item__repository__place__name',
+#             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number',
+#             'historical_items__itemorigin__place__name',
+#             'subdivisions__current_item__repository__place__name',
+#             'subdivisions__current_item__repository__name',
+#             'current_item__repository__place__name',
+#             'current_item__repository__name',
+#             'hands__assigned_place__name',
 #             'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
 #         ips = ItemPart.objects.all().values_list(*fields)
 #         ips[0]
         from django.contrib.auth.models import User
 
-        ans = []        
-        # create an editorial annotation with internal note        
+        ans = []
+        # create an editorial annotation with internal note
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
         an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.internal_note = 'int note'
         ans.append(an)
         
-        # create an editorial annotation with display note        
+        # create an editorial annotation with display note
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
         an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.display_note = 'disp note'
@@ -594,7 +621,7 @@ Commands:
                 info = web_fetch(url)
                 now = datetime.now()
                 warning = ('OK' if info['status'] == '200' else 'ERROR!!!!!!!!!!')
-                self.status = info['status'] 
+                self.status = info['status']
                 #print info['status']
                 #print '#%d %s %s %s' % (self.index, str(now), info['status'], warning)
         
@@ -616,7 +643,7 @@ Commands:
                 print 'waiting (%d died, %d left, %d errors)' % (test_count- alive_count, alive_count, error_count)
 #                 if error_count > 0:
 #                     exit()
-            if alive_count:            
+            if alive_count:
                 time.sleep(0.5)
             
         return ret
@@ -642,13 +669,13 @@ Commands:
     def catnum(self, root=None):
         print '\nh1 NOCAT'
         hi1 = HistoricalItem(historical_item_type_id=1)
-        hi1.save() 
+        hi1.save()
         print hi1.catalogue_number
         print hi1.catalogue_numbers.all()
 
         print '\nh1 NOCAT'
         hi1.save()
-        hi1_id = hi1.id 
+        hi1_id = hi1.id
         print hi1.catalogue_number
         print hi1.catalogue_numbers.all()
 
@@ -730,9 +757,9 @@ Commands:
             url = root + page
 
             sp = {'url': url, 'msgs': [], 'body': ''}
-            stats.append(sp) 
+            stats.append(sp)
 
-            print 
+            print
             print 'Request %s' % url
             
             t0 = datetime.now()
@@ -784,7 +811,7 @@ Commands:
                 msg = 'Stylesheet included twice: %s' % sheets_names[0]
                 sheets[sheets_names[0]] = 1
 
-            if line.find('<script') > -1: 
+            if line.find('<script') > -1:
                 if line.find('src') == -1:
                     script_open_line = ln
                 else:
@@ -794,7 +821,7 @@ Commands:
                     scripts[script_names[0]] = 1
             if line.find('</script') > -1 and script_open_line is not None:
                 msg = 'Inline script (%d lines, starts at %s)' % (ln - script_open_line, script_open_line)
-                script_open_line = None 
+                script_open_line = None
             styles =  re.findall(ur'''style\s*=\s*['"]([^"']*)''', line)
             for style in styles:
                 style = re.sub(ur'(?:height|width)\s*:\s*[^;]*', ur'', style)
@@ -871,9 +898,9 @@ Commands:
         return ret
 
     def adjust_offsets(self, offset_path, target_path):
-        # we calculate a better offset for the annotations by searching for a 
-        # best match of one annotation along a line between the old (cropped) 
-        # and new (uncropped) image.    
+        # we calculate a better offset for the annotations by searching for a
+        # best match of one annotation along a line between the old (cropped)
+        # and new (uncropped) image.
         # pm dptest adjust_offsets crop_offsets.json c:\vol\digipal2\images\originals\bl\backup_bl_from_server\bl
         
         ###
@@ -900,7 +927,7 @@ Commands:
             
             src_path = os.path.join(images['root'], rel_path) + '.tif'
             dst_path = os.path.join(target_path, rel_path) + '.tif'
-            if not os.path.exists(dst_path): 
+            if not os.path.exists(dst_path):
                 print '\tskipped (new image)'
                 continue
             
@@ -927,7 +954,7 @@ Commands:
             # find the best match for this annotation region on the new image
             
             # We scan a whole line on the uncropped image to find the x value
-            # that minimises the pixelwise difference of annotation regions.  
+            # that minimises the pixelwise difference of annotation regions.
             box = a.get_coordinates(None, True)
             print '\tbox: %s' % repr(box)
             size = [(box[1][i] - box[0][i] + 1) for i in range(0, 1)]
@@ -963,7 +990,7 @@ Commands:
         import json
         images = json.load(open(info_path, 'rb'))
         
-        counts = {'image': 0, 'annotation': 0} 
+        counts = {'image': 0, 'annotation': 0}
         for path, info in images['images'].iteritems():
             #if path != 'harley_5915\\13r': continue
             #if path != 'harley_585\\191v': continue
@@ -988,7 +1015,7 @@ Commands:
                     for annotation in annotations:
                         counts['annotation'] += 1
                         #print
-                        #print annotation.id, annotation.vector_id 
+                        #print annotation.id, annotation.vector_id
                         #print annotation.cutout
                         #print annotation.geo_json
                         annotation.cutout = self.get_uncropped_cutout(annotation, info)
@@ -1004,7 +1031,7 @@ Commands:
     
     # TODO: remove, only temporary
     def get_uncropped_cutout(self, annotation, image_info):
-        ret = annotation.cutout    
+        ret = annotation.cutout
         
         offsets = image_info['offset']
         
@@ -1022,7 +1049,7 @@ Commands:
             Algorithm and formula for the conversion:
             
             for r in (px,py,lx,ly):
-                nl = new image length in that axis            
+                nl = new image length in that axis
                 l = old image length in that axis
                 o' = o = offset in that axis
                 o' = 0 if r = lx or ly or o < 0
@@ -1049,7 +1076,7 @@ Commands:
             
             rgn.append(r)
         
-        #print rgn 
+        #print rgn
         ret = re.sub(ur'RGN=[^&]+', ur'RGN=' + ','.join(['%.6f' % r for r in rgn]), ret)
         #print ret
         
@@ -1102,8 +1129,8 @@ Commands:
         return ret
         
                     
-#                 
-#         
+#
+#
 #         from digipal.models import Annotation
 #         annotations = Annotation.objects.filter(image__id=590)
 #         offsets = [True, 0, 499]
@@ -1138,7 +1165,7 @@ Commands:
 #         same = sorted(same)
 #         for f in same:
 #             print f
-# 
+#
 #         print '\nNew\n'
 #         new = sorted(new)
 #         for f in new:
@@ -1158,13 +1185,13 @@ Commands:
         
         print json.dumps(src)
         
-        print 
+        print
         
         print '\n'
         print '%d source images;  %d destination images' % (len(src['images']), len(dst['images']))
         print '%d new images; %d same images; %d different images' % (len(new), len(same), len(different))
 
-    # ------------------------------------------------------------------------------    
+    # ------------------------------------------------------------------------------
 
     def find_image_offset(self, id1, id2):
         from digipal.images.models import Image
@@ -1175,7 +1202,7 @@ Commands:
         print ret
         return ret
         
-    # ------------------------------------------------------------------------------    
+    # ------------------------------------------------------------------------------
     
     def get_image_offset(self, src, dst, f):
         '''
@@ -1226,14 +1253,14 @@ Commands:
 #             ret = [True, -ret[1], ret[2]]
 
 #         ret = [False, 0, 0]
-#  
-#         width_diff = src['images'][f]['y'] - dst['images'][f]['y'] 
+#
+#         width_diff = src['images'][f]['y'] - dst['images'][f]['y']
 #         if src['images'][f]['y'] != dst['images'][f]['y']:
 #             if src['images'][f]['x'] != dst['images'][f]['x']:
 #                 print '\tDifferent dimensions (%d x %d <> %d x %d)' % (src['images'][f]['x'], src['images'][f]['y'], dst['images'][f]['x'], dst['images'][f]['y'])
 #             else:
 #                 print '\tDifferent widths %d <> %d' % (src['images'][f]['y'], dst['images'][f]['y'])
-#                  
+#
         
         return ret
 
@@ -1332,7 +1359,7 @@ Commands:
             #line = csv.reader(csvfile, delimiter=' ', quotechar='|')
             csvreader = csv.reader(csvfile)
             base_dir = os.path.dirname(csv_path)
-            first_line = True        
+            first_line = True
             for line in csvreader:
                 if first_line:
                     first_line = False
@@ -1378,14 +1405,14 @@ Commands:
         return
     
 #         l = list(ItemPart.objects.filter(display_label__icontains='royal').order_by('display_label'))
-#             
+#
 #         import re
-# 
+#
 #         _nsre = re.compile('([0-9]+)')
 #         def natural_sort_key(s):
 #             return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
 #         l = sorted(l, key=lambda i: natural_sort_key(i.display_label))
-#         
+#
 #         for i in l:
 #             print (i.display_label).encode('ascii', 'ignore')
 
@@ -1413,17 +1440,17 @@ Commands:
         # envelope header.
         s = smtplib.SMTP('localhost')
         s.sendmail(msg['From'], msg['To'].split(', '), msg.as_string())
-        s.quit()           
+        s.quit()
     
     def test_locus(self, options):
         from digipal.models import Image
         i = Image()
         for l in [
-                    ('10r', ('10', 'r')), 
-                    ('10v', ('10', 'v')), 
-                    ('11', ('11', None)), 
-                    ('', (None, None)), 
-                    (None, (None, None)), 
+                    ('10r', ('10', 'r')),
+                    ('10v', ('10', 'v')),
+                    ('11', ('11', None)),
+                    ('', (None, None)),
+                    (None, (None, None)),
                     ('1 10 r', ('10', 'r')),
                     ('1 10 r 9 v8', ('9', 'v'))
                 ]:

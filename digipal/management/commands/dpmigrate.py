@@ -346,9 +346,9 @@ Commands:
         poms = connections['poms']
         pc = poms.cursor()
         pc.execute('''
-            select 
-            distinct ch.helper_hnumber, fa.inferred_type, pe.id as person_id, pe.persondisplayname, pe.genderkey_id, 
-            case 
+            select
+            distinct ch.helper_hnumber, fa.inferred_type, pe.id as person_id, pe.persondisplayname, pe.genderkey_id,
+            case
                 when ro.name = 'Beneficiary'
                 then 0
                 else 1
@@ -370,7 +370,7 @@ Commands:
         ''')
         
         '''
-            select helperhnumber, count(*) 
+            select helperhnumber, count(*)
             from poms_charter_info ci
             join digipal_cataloguenumber cn on (('Document ' || ci.helperhnumber) = cn.number)
             where genderkeyid = '5'
@@ -1798,6 +1798,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if same_as_above:
             same_as_above.split(',')
         lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
+        
+        if not lines:
+            print 'ERROR: cannot create table, no line in input CSV file (%s)' % file_path
+            exit()
 
         table_name = self.getTablenameFromPath(file_path)
         

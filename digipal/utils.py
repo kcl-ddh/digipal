@@ -786,7 +786,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='
         values in the corresponding line in the file.
         
         If ignore_incomplete_lines is True,
-        lines in the input file which have missing values will be ignored
+        ignore rows which have empty values in second and all following fields
         
         same_as_above = list of strings which mean that the value
             should be the same as in the above row
@@ -807,7 +807,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding='
             line_index += 1
             
             # skip some lines
-            if ignore_incomplete_lines and '' in line:
+            if ignore_incomplete_lines and len(''.join(line[1:]).strip()) == 0:
                 continue
             
             # -> unicode

@@ -41,7 +41,8 @@ class TextUnits(object):
         ids = args[0]
         ret = {}
         for rec in self.recs:
-            ret[rec.id] = rec
+            if rec.id in ids:
+                ret[rec.id] = rec
         return ret
 
     def iterator(self, *args, **kwargs):

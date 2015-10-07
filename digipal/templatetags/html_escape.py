@@ -26,7 +26,7 @@ def sql_query(value):
     e.g. {{ my_query|sql_query }}
     """
     #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = re.sub(ur'(?musi)(from|where|order|and|group)', ur'<br/>\1', value)
+    value = re.sub(ur'(?musi)\b(select|from|where|order\s+by|and|group|left\s+join|right\s+join)\b', ur'<br/><strong>\1</strong>', value)
     return mark_safe(value)
 
 @register.filter(is_safe=True)

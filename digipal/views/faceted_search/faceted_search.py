@@ -114,6 +114,12 @@ class FacetedModel(object):
         return key, reverse
 
     def get_model_from_field(self, field):
+        '''
+            Return the model and property name at the end of the given path/field
+            self.get_model_from_field(<FacetedModel on ItemPart>, 'current_item__repo__place__name')
+            =>
+            <Place>, 'name'
+        '''
         ret = self.model
         parts = field['path'].split('.')
         path = parts[-1]
@@ -154,8 +160,11 @@ class FacetedModel(object):
                     model, path = self.get_model_from_field(field)
                     sort_function = field.get('sort_fct', None)
                     value_rankings[None] = u''
+                    value_rankings[u''] = u''
                     for record in model.objects.all().order_by('id'):
-                        value = utils.get_sortable_hash_value(self.get_record_path(record, path))
+                        value = self.get_record_path(record, path)
+                        #value = self.get_record_field_whoosh(record, field)
+                        value = self.get_sortable_hash_value(value, field)
                         
                         v = value
                         if sort_function:
@@ -185,6 +194,11 @@ class FacetedModel(object):
         #print self.value_rankings['image_name_sortable']
         #exit()
         
+    def get_sortable_hash_value(self, value, field):
+        if field.get('multivalued', False) and hasattr(value, 'split'):
+            value = value.split('|')
+        return utils.get_sortable_hash_value(value)
+        
     def get_document_from_record(self, record):
         '''
             Returns a Whoosh document from a Django model instance.
@@ -195,30 +209,34 @@ class FacetedModel(object):
         ret = {'id': u'%s' % record.id}
         for field in self.fields:
             if self.is_field_indexable(field):
-                ret[field['key']] = self.get_record_field_whoosh(record, field)
-                # ret[field['key']] = None
+                fkey = field['key']
+                value = self.get_record_field_whoosh(record, field)
                 
+                # generate associated sort field
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
-                if whoosh_sortable_field and whoosh_sortable_field != field['key']:
-                    ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][utils.get_sortable_hash_value(ret[field['key']])]
+                if whoosh_sortable_field and whoosh_sortable_field != fkey:
+                    ret[whoosh_sortable_field] = self.value_rankings[whoosh_sortable_field][self.get_sortable_hash_value(value, field)]
                 
+                # value conversions
                 if field['type'] == 'boolean':
-                    ret[field['key']] = int(bool(ret[field['key']]) and ret[field['key']] not in ['0', 'False', 'false'])
+                    value = int(bool(value) and value not in ['0', 'False', 'false'])
                 
                 if field['type'] == 'xml':
                     from django.utils.html import strip_tags
                     import HTMLParser
                     html_parser = HTMLParser.HTMLParser()
-                    ret[field['key']] = html_parser.unescape(strip_tags(ret[field['key']]))
+                    value = html_parser.unescape(strip_tags(value))
 
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
-                    rng = get_range_from_date(ret[field['key']])
-                    ret[field['key'] + '_min'] = rng[0]
-                    ret[field['key'] + '_max'] = rng[1]
+                    rng = get_range_from_date(value)
+                    ret[fkey + '_min'] = rng[0]
+                    ret[fkey + '_max'] = rng[1]
                     if is_max_date_range(rng):
                         # we don't want the empty dates and invalid dates to be found
-                        ret[field['key'] + '_max'] = ret[field['key'] + '_min']
+                        ret[fkey + '_max'] = ret[fkey + '_min']
+                
+                ret[fkey] = value
         
         return ret
 
@@ -317,7 +335,7 @@ class FacetedModel(object):
         
         ret = self.get_record_field(record, field, True)
         if isinstance(ret, list):
-            ret = '; '.join(ret)
+            ret = '; '.join(sorted(ret))
         
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
@@ -335,12 +353,12 @@ class FacetedModel(object):
         ret = self.get_record_field(record, afield)
         
         # convert to unicode (or list of unicode)
-        if ret is not None:
-            if isinstance(ret, list):
-                ret = [unicode(v) for v in ret]
-                #ret = u';'.join([unicode(v) for v in ret])
-            else:
-                ret = unicode(ret)
+        #if ret is not None:
+        if isinstance(ret, list):
+            #ret = [unicode(v) for v in ret]
+            ret = u'|'.join([unicode(v) for v in ret])
+        else:
+            ret = unicode(ret)
         
         return ret
 
@@ -442,16 +460,18 @@ class FacetedModel(object):
         for field in self.fields:
             if field.get('count', False):
                 field_facet = sorting.StoredFieldFacet(
-                     field['key'], maptype=sorting.Count,
-                     # we do this to avoid errors trying to count using a list as a key
-                     allow_overlap=field.get('multivalued', False),
+                    field['key'], maptype=sorting.Count,
+                    # It tells whoosh that the a record can have more than one value
+                    # for that facet
+                    # Without it whoosh crashes trying to count using a list as a key
+                    allow_overlap=field.get('multivalued', False),
                 )
-                # we do this to avoid errors trying to split using split() on list
+                # We do this to avoid errors trying to split using split() on list
                 # See why it is NOT done in the constructor:
                 # https://bitbucket.org/mchaput/whoosh/issues/425/split_fn-ignored-in-storedfieldfacet
                 if field.get('multivalued', False):
-                    field_facet.split_fn = lambda v: (v if isinstance(v, list) else [])
-                    #field_facet.split_fn = lambda v: v if isinstance(v, list) else v.split(';')
+                    #field_facet.split_fn = lambda v: (v if isinstance(v, list) else [])
+                    field_facet.split_fn = lambda v: v if isinstance(v, list) else unicode(v).split('|')
                 ret.append(field_facet)
         
         return ret
@@ -944,7 +964,7 @@ def get_whoosh_field_type(field, sortable=False):
         # xml document.
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'boolean':
-        # A few words.
+        # 0|1
         ret = NUMERIC(stored=True, sortable=sortable)
     else:
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)

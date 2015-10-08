@@ -264,17 +264,26 @@ Commands:
         ix = storage.create_index(schema)
     
         writer = ix.writer()
-        writer.add_document(id=1, f1=u'valueone')
-        writer.add_document(id=2, f1=u'valuetwo')
-        writer.add_document(id=3, f1=u'valueone valuetwo')
+        values = [u'Value One', u'Term Two', u'Value One;Term Two']
+        i = 0
+        vf = lambda v: v.split(';')
+        for value in values:
+            i += 1
+            writer.add_document(id=i, f1=vf(value))
         writer.commit()
     
         with ix.searcher() as s:
+            
+            print list(s.lexicon('f1'))
+            
             qp = qparser.QueryParser('f1', schema)
-            q = qp.parse(u'valueone')
-            r = s.search(q)
-            print len(r)
-            print [hit for hit in r]
+            for i in range(0, 2):
+                print '-' * 40
+                print i, values[i]
+                q = qp.parse(u'"%s"' % values[i])
+                print repr(q)
+                r = s.search(q)
+                print [hit for hit in r]
 
     def record_path(self, *args):
         '''

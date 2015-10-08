@@ -161,6 +161,7 @@ class FacetedModel(object):
                     model, path = self.get_model_from_field(field)
                     sort_function = field.get('sort_fct', None)
                     value_rankings[None] = u''
+                    value_rankings['None'] = u''
                     value_rankings[u''] = u''
                     for record in model.objects.all().order_by('id'):
                         value = self.get_record_path(record, path)

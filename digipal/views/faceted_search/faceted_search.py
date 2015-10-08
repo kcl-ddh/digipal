@@ -13,6 +13,7 @@ from django.utils.datastructures import SortedDict
 import digipal.models
 
 import logging
+
 dplog = logging.getLogger('digipal_debugger')
 
 class FacetedModel(object):

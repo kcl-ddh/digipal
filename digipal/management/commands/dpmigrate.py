@@ -352,7 +352,18 @@ Commands:
                 when ro.name = 'Beneficiary'
                 then 0
                 else 1
-            end as is_issuer
+            end as is_issuer,
+            (
+                select distinct tty.name as title_type_name
+                from pomsapp_factoid fa2
+                join pomsapp_assocfactoidperson afp2 on (afp2.factoid_id = fa2.id)
+                join pomsapp_role ro2 on (ro2.id = afp2.role_id)
+                join pomsapp_facttitle fti on (fti.factoid_ptr_id = afp2.factoid_id)
+                join pomsapp_titletype tty on (tty.id = fti.titletypekey_id)
+                where person_id = pe.id
+                and sourcekey_id = fa.sourcekey_id
+                limit 1
+            ) as title_type_name
             from pomsapp_factoid fa
             join pomsapp_source so on so.id = fa.sourcekey_id
             join pomsapp_charter ch on (so.id = ch.source_ptr_id)
@@ -362,11 +373,11 @@ Commands:
             join pomsapp_facttransaction ftr on (ftr.factoid_ptr_id = fa.id)
             join pomsapp_transactiontype tt on (tt.id = ftr.transactiontype_id)
             where True
-            -- and helper_hnumber = '1/7/44'
-            -- and tty.name like '%bishop%'
+            and length(helper_hnumber) > 1
             and ro.name in ('Grantor', 'Beneficiary', 'Addressor')
             and ftr.isprimary = 1
             order by ch.helper_hnumber, fa.id
+            ;
         ''')
         
         '''

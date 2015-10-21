@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from os.path import isdir
@@ -99,6 +100,11 @@ Commands:
             dest='saa',
             default='',
             help='comma separated list of strings that mean that a value is the same as in the above cell in a CSV (same_as_above).'),
+        make_option('--encoding',
+            action='store',
+            dest='encoding',
+            default=None,
+            help='Input/output encoding. e.g. utf-8 or Latin-1'),
         make_option('--dry-run',
             action='store_true',
             dest='dry-run',
@@ -403,9 +409,10 @@ Commands:
         write_rows_to_csv(file_path, rows, encoding='utf8')
         
         print 'Written %s records in %s.' % (len(rows), file_path)
+        # transaction,0,3,"William, abbot of Scone (fl.1206×09-1225)",2/139/91 ,825,abbot of Scone
         
-        self._createTableFromCSV(file_path)
-        self._insertTableFromCSV(file_path)
+        self._createTableFromCSV(file_path, options={'encoding': 'utf8'})
+        self._insertTableFromCSV(file_path, options={'encoding': 'utf8'})
         
     def import_poms(self):
         
@@ -1808,7 +1815,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         same_as_above = options.get('saa', None)
         if same_as_above:
             same_as_above.split(',')
-        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
+        fct_args = {
+                    'ignore_incomplete_lines': options.get('iil', False), 
+                    'same_as_above': same_as_above,
+                    'encoding': options.get('encoding', None)
+                    }
+        lines = read_all_lines_from_csv(file_path, **fct_args)
         
         if not lines:
             print 'ERROR: cannot create table, no line in input CSV file (%s)' % file_path
@@ -1856,7 +1868,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         same_as_above = options.get('saa', None)
         if same_as_above:
             same_as_above.split(',')
-        lines = read_all_lines_from_csv(file_path, ignore_incomplete_lines=options.get('iil', False), same_as_above=same_as_above)
+        fct_args = {
+                    'ignore_incomplete_lines': options.get('iil', False), 
+                    'same_as_above': same_as_above,
+                    'encoding': options.get('encoding', None)
+                    }
+        lines = read_all_lines_from_csv(file_path, **fct_args)
 
         table_name = self.getTablenameFromPath(file_path)
 

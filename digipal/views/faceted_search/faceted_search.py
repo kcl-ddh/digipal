@@ -389,10 +389,11 @@ class FacetedModel(object):
             => [3200, 3201]
         '''
         v = record
-        if path is not None:
+        if path not in (None, ''):
             from django.core.exceptions import ObjectDoesNotExist
             from django.db.models.query import QuerySet
             parts = path.split('.')
+            path_done = []
             while parts:
                 part = parts.pop(0)
                 try:
@@ -400,7 +401,7 @@ class FacetedModel(object):
                 except ObjectDoesNotExist, e:
                     v = None
                 except Exception, e:
-                    raise Exception(u'Model path error: %s : %s, \'%s\' not found' % (self.key, path, part))
+                    raise Exception(u'Model path not found. Record = [%s:%s], path = %s, part = %s, value = %s' % (type(record), repr(record), path, part, repr(v)))
         
                 if v is None:
                     break
@@ -408,8 +409,13 @@ class FacetedModel(object):
                 if callable(v):
                     v = v()
             
-                if isinstance(v, QuerySet):
-                    # we fork the path finding b/c we have a result set
+                # We fork the path finding b/c we have a result set
+                # e.g. person.cars.color => we fork at cars and will eventually return [blue, red]
+                # Second part of the condition is for the case when we want to call
+                # a fct on the queryset, e.g. person.cars.all.count
+                # we don't want to fork in that case.
+                if isinstance(v, QuerySet) and not(parts and hasattr(v, parts[0])):
+                    #print v, parts
                     rec = v
                     v = []
                     for item in rec:
@@ -421,6 +427,8 @@ class FacetedModel(object):
                             v.append(subitems)
                     v = list(set(v))
                     break
+                
+                path_done.append(part)
                 
         ret = v
         

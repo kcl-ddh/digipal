@@ -313,3 +313,6 @@ def remove_fields_from_faceted_search(fields, content_type_key=None):
             
             content_type['fields'] = [c for c in content_type['fields'] if c['key'] not in fields]
     
+def get_content_type_from_key(key):
+    return [t for t in FACETED_SEARCH['types'] if t['key'] == key].pop()
+    

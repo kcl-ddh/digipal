@@ -543,7 +543,7 @@ def dpfootnotes(html):
         
         if preceding:
             # a note
-            anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to the reference" data-toggle="tooltip" data-placement="bottom">' % (match.group(3), match.group(3))
+            anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to main text" data-toggle="tooltip" data-placement="bottom">' % (match.group(3), match.group(3))
         else:
             # a reference
             anchor = u'<a id="refnote%s" href="#footnote%s" title="See the footnote" data-toggle="tooltip">' % (match.group(3), match.group(3))

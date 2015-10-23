@@ -108,6 +108,7 @@
     <script>
         jQuery(document).ready(function($) {
             var panelset = new TextViewer.PanelSet($('#text-viewer'));
+            window.ps = panelset;
             panelset.setItemPartid('{{ item_partid }}');
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));

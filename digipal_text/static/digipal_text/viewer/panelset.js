@@ -677,10 +677,16 @@
     };
 
     Panel.create = function(contentType, selector, write, options) {
-        var panelType = contentType.toUpperCase().substr(0, 1) + contentType.substr(1, contentType.length - 1);
-        //if ($.inArray('Panel'+panelType+(write ? 'Write': ''), TextViewer) === -1) {
-        var constructor = TextViewer['Panel'+panelType+(write ? 'Write': '')] || TextViewer['PanelText'+(write ? 'Write': '')];
-        return new constructor($(selector), contentType, options);
+        var constructor = Panel.getPanelClassFromContentType(contentType, write);
+        var error = !constructor; 
+        if (error) {
+            // content type not found, we are nice and instantiate a text
+            // we display an error message so user understands why
+            constructor = Panel.getPanelClassFromContentType('text');
+        }
+        var ret = new constructor($(selector), contentType, options);
+        if (error) ret.setMessage('Invalid content type ('+contentType+')', 'error');
+        return ret;
     };
     
     Panel.createFromState = function(panelState, key, options) {
@@ -696,8 +702,22 @@
         return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
     };
 
-    Panel.getPanelClassFromContentType = function(contentType) {
-        return 'image';
+    // Returns the Panel class that manages contentType 
+    // e.g. Translation => <PanelText>
+    // contentType can also be panel type
+    // e.g. text => <PanelText>
+    // Returns null if not found
+    Panel.getPanelClassFromContentType = function(contentType, write) {
+        // Get panel type from content type
+        // lookup in the dropdown of the panel template
+        // E.g. Translation => text
+        var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentType.toLowerCase()+']:first').data('class') || contentType;
+        
+        // Force first letter to uppercase. e.g Text
+        panelType = panelType.toUpperCase().substr(0, 1) + panelType.substr(1, contentType.length - 1);
+
+        var ret = 'Panel' + panelType + (write ? 'Write' : '');
+        return TextViewer[ret] || null;
     };
     
     Panel.prototype.enablePresentationOptions = function(options) {

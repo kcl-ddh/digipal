@@ -523,6 +523,50 @@ def record_field(content_type, record, field):
     '''
     return content_type.get_record_field_html(record, field)
 
+@register.filter
+def dpfootnotes(html):
+    example = u'''
+    <p>a ref to a footnote <a href="#note1" id="refnote1" name="refnote1">[1]</a>. Another sentence [2].
+    </p>
+    <p><a href="#refnote1" id="note1" name="note1">[1] the actual note</a> </p>
+    <p> [2] the actual note, easy to find as it begins a p/li or after br </p>
+    '''
+    
+    # For testing
+    #ret = example
+    ret = html
+    
+    #return ret
+
+    # 1. clean up: remove the existing anchors around [1]
+    # remove empty anchors
+    ret = re.sub(ur'(?musi)<a\s+[^>]*?/>\s*(\s*\[\d+\])', ur'\1', ret)
+    # remove empty anchors
+    ret = re.sub(ur'(?musi)<a\s+[^>]*>\s*</a>(\s*\[\d+\])', ur'\1', ret)
+    # <a ...>[1] X</a> => [1] X
+    ret = re.sub(ur'(?musi)<a\s+[^>]*>(\s*\[\d+\].*?)</a>', ur'\1', ret)
+    
+    # 2. add the new anchors
+    def sub_footnote(match):
+        ret = match.group(0)
+        
+        preceding = match.group(1) or u''
+        
+        if preceding:
+            # a note
+            anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to main text" data-toggle="tooltip" data-placement="bottom">' % (match.group(3), match.group(3))
+        else:
+            # a reference
+            anchor = u'<a id="refnote%s" href="#footnote%s" title="See the footnote" data-toggle="tooltip">' % (match.group(3), match.group(3))
+
+        ret = u'%s%s%s[%s]</a>' % (preceding, match.group(2), anchor, match.group(3))
+        
+        return ret
+    
+    ret = re.sub(ur'(<p>|<br/>|<li>|<div>)?(\s*)\[(\d+)\]', sub_footnote, ret)
+
+    return ret
+
 # #from mezzanine import template as mezzzanine_template
 # #mezzanine_register = mezzzanine_template.Library()
 #

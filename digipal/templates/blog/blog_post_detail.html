@@ -1,5 +1,5 @@
 {% extends "blog/blog_post_list.html" %}
-{% load mezzanine_tags comment_tags keyword_tags rating_tags i18n future disqus_tags %}
+{% load mezzanine_tags comment_tags keyword_tags rating_tags i18n future disqus_tags html_escape %}
 
 {% block meta_title %}{{ blog_post.meta_title }}{% endblock %}
 
@@ -81,13 +81,14 @@
     {% endblock %}
 
     {% if settings.COMMENTS_DISQUS_SHORTNAME %}
-    {% include "generic/includes/disqus_counts.html" %}
+        {% include "generic/includes/disqus_counts.html" %}
     {% endif %}
 
+    {# ******************************* CONTENT **************************** #}
     {% block blog_post_detail_content %}
-    {% editable blog_post.content %}
-    {{ blog_post.content|richtext_filter|safe }}
-    {% endeditable %}
+        {% editable blog_post.content %}
+            {{ blog_post.content|richtext_filter|dpfootnotes|safe }}
+        {% endeditable %}
     {% endblock %}
 
     {% block blog_post_detail_keywords %}
@@ -108,13 +109,13 @@
 
 
     {% comment %}
-	{% block blog_post_detail_rating %}
-	<div class="panel panel-default rating">
-	    <div class="panel-body">
-	    {% rating_for blog_post %}
-	    </div>
-	</div>
-	{% endblock %}
+    {% block blog_post_detail_rating %}
+    <div class="panel panel-default rating">
+        <div class="panel-body">
+        {% rating_for blog_post %}
+        </div>
+    </div>
+    {% endblock %}
     {% endcomment %}
 
     {% block blog_post_detail_sharebuttons %}
@@ -163,7 +164,7 @@
 
     </article>
     {% block right_panel %}
-	    {% include "blog/includes/filter_panel.html" %}
+        {% include "blog/includes/filter_panel.html" %}
     {% endblock %}
     </div>
 {% endblock %}

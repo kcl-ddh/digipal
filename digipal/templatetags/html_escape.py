@@ -539,6 +539,8 @@ def dpfootnotes(html):
     #return ret
 
     # 1. clean up: remove the existing anchors around [1]
+    # MOA pollution
+    ret = re.sub(ur'(?musi)<span\s+size="[^"]*"\s*>(.*?)</span>', ur'\1', ret)
     # remove empty anchors
     ret = re.sub(ur'(?musi)<a\s+[^>]*?/>\s*(\s*\[\d+\])', ur'\1', ret)
     # remove empty anchors

@@ -9,4 +9,6 @@ urlpatterns = patterns('digipal_text.views',
     # Django web server deals well with it. 
     #url(r'^digipal/manuscripts/(\d+)/texts/([^/]+)/([^/]+)/([^/]*)/$', 'viewer.text_api_view'),
     url(r'^digipal/manuscripts/(\d+)/texts/([^/]+)/([^/]+)/([^/]*)', 'viewer.text_api_view'),
+    url(r'^digipal/manuscripts/(\d+)/texts/([^/]+)/([^/]+)', 'viewer.text_api_view'),
+    url(r'^digipal/manuscripts/(\d+)/texts/([^/]+)', 'viewer.text_api_view'),
 )

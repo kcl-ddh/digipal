@@ -1109,12 +1109,14 @@
         var ret = Panel.prototype.getStateDict.call(this);
 
         var map = this.map;
-        var view = map.getView();
-        var olv = [Math.round(view.getResolution()),
-                    Math.round(view.getCenter()[0]),
-                    Math.round(view.getCenter()[1]),
-                    Math.round(view.getRotation() * 180 / Math.PI)];
-        ret.olv = olv.join(',');
+        if (map) {
+            var view = map.getView();
+            var olv = [Math.round(view.getResolution()),
+                        Math.round(view.getCenter()[0]),
+                        Math.round(view.getCenter()[1]),
+                        Math.round(view.getRotation() * 180 / Math.PI)];
+            ret.olv = olv.join(',');
+        }
         
         return ret;
     };

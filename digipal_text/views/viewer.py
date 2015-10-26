@@ -47,7 +47,7 @@ def update_viewer_context(context, request):
     # TODO: design a better overriding model
     pass
 
-def text_api_view(request, item_partid, content_type, location_type, location):
+def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
     
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):

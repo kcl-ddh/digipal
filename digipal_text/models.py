@@ -70,7 +70,7 @@ class TextUnit(object):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)
     
     def get_absolute_url(self):
-        return self.content_xml.get_absolute_url()
+        return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
     
     @ClassProperty
     @classmethod
@@ -101,8 +101,11 @@ class TextContent(models.Model):
         ret = u'%s (%s)' % (self.item_part, info)
         return ret
     
-    def get_absolute_url(self):
-        return u'%stexts/view/' % self.item_part.get_absolute_url()
+    def get_absolute_url(self, unset=False):
+        ret = u'%stexts/view/' % self.item_part.get_absolute_url()
+        if not unset:
+            ret += '?center=%s' % self.type.slug
+        return ret
 
 class TextContentXMLStatus(digipal.models.NameModel):
     sort_order = models.IntegerField(blank=False, null=False, default=0, help_text='The order of this status in your workflow.')
@@ -173,8 +176,8 @@ class TextContentXML(models.Model):
             self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
     
-    def get_absolute_url(self):
-        ret = self.text_content.get_absolute_url()
+    def get_absolute_url(self, unset=False):
+        ret = self.text_content.get_absolute_url(unset)
         return ret
     
     def save_copy(self):

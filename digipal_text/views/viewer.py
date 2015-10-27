@@ -75,6 +75,13 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     # we didn't find a custom function for this content type
     if response is None:
         response = {'status': 'error', 'message': 'Invalid Content Type (%s)' % content_type}
+
+    if location_type == 'sync':
+        # dummy response in case of syncing with another panel
+        response['location'] = location
+        response['location_type'] = location_type
+        response['content'] = 'Syncing...'
+        set_message(response, 'Syncing...', '')
     
     import json
     return HttpResponse(json.dumps(response), mimetype='application/json')

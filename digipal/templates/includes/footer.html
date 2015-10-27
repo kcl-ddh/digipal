@@ -33,5 +33,20 @@
             </div>
             
         </div>
+        {% if DEBUG %}
+	        <div class="row" style="font-size: 18px;">
+	            <div class="col-md-12">
+	               {% if request.user.is_staff %}
+	                   You are logged in as {{ request.user }} 
+	                   | 
+	                   <a href="/admin/">Database</a> 
+	                   | 
+	                   <a href="/logout/">Log out</a> 
+                   {% else %}
+                       <a href="/admin/">Log in to see all the content</a>.
+	               {% endif %}
+	            </div>
+	        </div>
+        {% endif %}
     </div>
 </footer>

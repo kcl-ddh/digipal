@@ -49,5 +49,6 @@ def quick_search(request):
             # {% if cansee.Hand %}
             'cansee': CanUserSeeModel(request),
             'dapi_content_type_response': get_dapi_content_type_response,
-            'DIGIPAL_SETTINGS': json.dumps(get_contextable_digipal_settings())
+            'DIGIPAL_SETTINGS': json.dumps(get_contextable_digipal_settings()),
+            'DEBUG': settings.DEBUG,
             }

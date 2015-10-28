@@ -41,9 +41,9 @@
 	                   | 
 	                   <a href="/admin/">Database</a> 
 	                   | 
-	                   <a href="/logout/">Log out</a> 
+	                   <a href="/logout/?next={{request.path}}">Log out</a> 
                    {% else %}
-                       <a href="/admin/">Log in to see all the content</a>.
+                       <a href="/login/?next={{request.path}}">Log in to see all the content</a>.
 	               {% endif %}
 	            </div>
 	        </div>

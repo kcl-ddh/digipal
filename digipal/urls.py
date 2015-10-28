@@ -26,7 +26,8 @@ urlpatterns += patterns('',
 
     url(r'^digipal/', include('digipal.urls_digipal')),
 
-    url(r'^account/$', 'django.contrib.auth.views.login'),
+    url(r'^login/$', 'django.contrib.auth.views.login', name='login'),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', name='logout'),
 
     url(r'^robots.txt/?$', 'digipal.views.robots.robots_view'),
 

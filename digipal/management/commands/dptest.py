@@ -29,6 +29,10 @@ Commands:
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
 
+    cs
+        TODO
+        collect static
+
 """
     
     args = 'locus|email'

@@ -1,5 +1,8 @@
 /* blog */
 
+// ALLOW_IMPORT
+@import "../digipal/css/dpvars_bs.less";
+
 .meta{
     color: #888;
     font-size: 12px;
@@ -35,10 +38,12 @@
     padding-bottom: 1%;
 }
 
+/*
 .article h2, article h3{
     font-size:22px;
     padding-bottom: 2px;
 }
+*/
 
 .article p{
     line-height: 24px;
@@ -133,4 +138,13 @@ article.textArticle{
     padding:3%;
     border-bottom:1px dotted #efefef;
     list-style: none;
+}
+
+.highlight-box {
+    color: @dp-secondary;
+    border: 1px solid @dp-secondary;
+    padding: 0.5em;
+    background-color: @dp-secondary-light;
+    font-weight: bold;
+    border-radius: 4px;
 }

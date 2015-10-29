@@ -21,7 +21,7 @@
     
     <body>
         <div class="">
-            <div class="panel-content mce-content-body preview ct-transcription-sample {{display_classes}}">
+            <div class="panel-content mce-content-body preview ct-{{content_type_key}} {{display_classes}}">
                 {% if response.status == 'error' %}
                     {{ response.status }}: {{ response.message }}
                 {% endif %}

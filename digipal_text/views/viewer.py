@@ -96,6 +96,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     if format == 'html':
         context = {'response': response}
         context['display_classes'] = ' '.join((request.REQUEST.get('ds', '').split(',')))
+        context['content_type_key'] = content_type
         ret = render(request, 'digipal_text/text_view.html', context)
         
     if not ret:

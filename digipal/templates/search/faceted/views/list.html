@@ -26,7 +26,7 @@
                 <tr class="{{rowcolors}}">
                     {% for col in cols %}
                         {% if col.line == line %}
-                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %}>
+                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %} class="{% if col.type == 'text' %} text {% endif %}">
                                 {% if col.link == True %}
                                     <a href="{{record.get_absolute_url}}">
                                 {% endif %}

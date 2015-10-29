@@ -49,9 +49,13 @@ def update_viewer_context(context, request):
 
 def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
     
+    format = request.REQUEST.get('format', 'html')
+    if request.is_ajax(): format = 'json'
+    
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):
         raise Http404('Text view not enabled')
+    max_size = MAX_FRAGMENT_SIZE if format == 'json' else None
 
     response = None
     
@@ -62,7 +66,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     function = globals().get('text_api_view_' + content_type,  None)
     
     if function:
-        response = function(request, item_partid, content_type, location_type, location)
+        response = function(request, item_partid, content_type, location_type, location, max_size=max_size)
     else:
         # Look up the content_type in the TextContentType table
         # e.g. content_type = translation or transcription, we assume it must be a TextContentXML
@@ -70,7 +74,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
         content_type_record = TextContentType.objects.filter(slug=content_type).first()
         
         if content_type_record:
-            response = text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record)
+            response = text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, max_size=max_size)
     
     # we didn't find a custom function for this content type
     if response is None:
@@ -85,16 +89,13 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
 
     ret = None
     
-    format = request.REQUEST.get('format', 'html')
-    if request.is_ajax(): format = 'json'
-    
     if format == 'json':
         import json
         ret = HttpResponse(json.dumps(response), mimetype='application/json')
     
     if format == 'html':
         context = {'response': response}
-        context['display_classes'] = ' '.join((request.REQUEST.get('ds', []).split(',')))
+        context['display_classes'] = ' '.join((request.REQUEST.get('ds', '').split(',')))
         ret = render(request, 'digipal_text/text_view.html', context)
         
     if not ret:
@@ -107,10 +108,8 @@ def set_message(ret, message, status='error'):
     ret['status'] = status
     return ret
 
-def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None):
+def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
     ret = {}
-    
-    max_fragment_size = MAX_FRAGMENT_SIZE
     
     text_content_xml = None
     
@@ -149,7 +148,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['locations'] = SortedDict()
         
         # whole
-        if len(record_content) <= max_fragment_size and (content_type != 'codicology'):
+        if max_size is not None and len(record_content) <= max_size and (content_type != 'codicology'):
             ret['locations']['whole'] = []
         
         # entry
@@ -223,10 +222,10 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         ret['message'] += 'location not found: %s %s' % (location_type, location)
         ret['status'] = 'error'
     else:
-        if (extent[1] - extent[0]) > max_fragment_size:
+        if max_size is not None and (extent[1] - extent[0]) > max_size:
             if ret['message']:
                 ret['message'] += ' then '
-            ret['message'] += 'text too long (> %s bytes)' % (max_fragment_size)
+            ret['message'] += 'text too long (> %s bytes)' % (max_size)
             ret['status'] = 'error'
         else:
             ret['content'] = record_content[extent[0]:extent[1]]
@@ -280,7 +279,7 @@ def get_fragment_extent(content, location_type, location):
 
     return ret
 
-def text_api_view_image(request, item_partid, content_type, location_type, location):
+def text_api_view_image(request, item_partid, content_type, location_type, location, max_size=None):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000
@@ -369,7 +368,7 @@ def get_locus_from_location(location_type, location):
         
     return ret
 
-def text_api_view_search(request, item_partid, content_type, location_type, location):
+def text_api_view_search(request, item_partid, content_type, location_type, location, max_size=None):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000

@@ -366,6 +366,13 @@
             this.$locationSelect.on('change', function() {
                 me.loadContent();
             });
+            
+            this.$root.find('.action-download').on('click', function() {
+                // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
+                var url = me.getContentAddress('whole', '');
+                url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
+                window.open(url, '_blank');
+            });
 
             setInterval(function() {
                 me.saveContent();
@@ -678,7 +685,7 @@
 
     Panel.create = function(contentType, selector, write, options) {
         var constructor = Panel.getPanelClassFromContentType(contentType, write);
-        var error = !constructor; 
+        var error = !constructor;
         if (error) {
             // content type not found, we are nice and instantiate a text
             // we display an error message so user understands why
@@ -702,7 +709,7 @@
         return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
     };
 
-    // Returns the Panel class that manages contentType 
+    // Returns the Panel class that manages contentType
     // e.g. Translation => <PanelText>
     // contentType can also be panel type
     // e.g. text => <PanelText>
@@ -750,10 +757,15 @@
         }, ';');
         return ret;
     };
+
+    Panel.prototype.getListFromPresentationOptions = function() {
+        return this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
+    };
     
     Panel.prototype.getStateDict = function() {
         var ret = {};
-        ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+        //ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+        ret.dis = (this.getListFromPresentationOptions()).join(' ');
         return ret;
     };
 

@@ -215,6 +215,8 @@ Commands:
             exp = regex.sub(ur';', ur'', exp)
             # :
             exp = regex.sub(ur':', ur'', exp)
+            # ÷
+            exp = regex.sub(ur'÷', ur'', exp)
             # e.g. st~
             exp = remove_accents(exp)
             
@@ -235,7 +237,10 @@ Commands:
             
             return ret
         
-        content = re_sub_fct(content, ur'(?musi)(:|;|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+        content = re_sub_fct(content, ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+
+        # Bal〈dwini〉 =>
+        content = regex.sub(ur'(?musi)(〈[^〈〉]{1,30}〉)', ur'<span data-dpt="exp">\1</span>', content)
         
         # sup
         content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)

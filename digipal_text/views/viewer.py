@@ -82,9 +82,25 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
         response['location_type'] = location_type
         response['content'] = 'Syncing...'
         set_message(response, 'Syncing...', '')
+
+    ret = None
     
-    import json
-    return HttpResponse(json.dumps(response), mimetype='application/json')
+    format = request.REQUEST.get('format', 'html')
+    if request.is_ajax(): format = 'json'
+    
+    if format == 'json':
+        import json
+        ret = HttpResponse(json.dumps(response), mimetype='application/json')
+    
+    if format == 'html':
+        context = {'response': response}
+        context['display_classes'] = ' '.join((request.REQUEST.get('ds', []).split(',')))
+        ret = render(request, 'digipal_text/text_view.html', context)
+        
+    if not ret:
+        raise Exception('Unknown output format: "%s"' % format)
+
+    return ret
 
 def set_message(ret, message, status='error'):
     ret['message'] = message

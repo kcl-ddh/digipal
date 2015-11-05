@@ -271,6 +271,8 @@
         
         this.$toggleEdit = this.$root.find('.toggle-edit');
         
+        this.$downloadButton = this.$root.find('.action-download');
+        
         // METHODS
         
         this.callApi = function(title, url, onSuccess, requestData, synced) {
@@ -367,7 +369,8 @@
                 me.loadContent();
             });
             
-            this.$root.find('.action-download').on('click', function() {
+            this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
+            this.$downloadButton.on('click', function() {
                 // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
                 var url = me.getContentAddress('whole', '');
                 url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
@@ -696,6 +699,10 @@
         return ret;
     };
     
+    Panel.prototype.isDownloadable = function() {
+        return false;
+    };
+    
     Panel.createFromState = function(panelState, key, options) {
         // panelState =
         // transcription/locus/1r/
@@ -835,6 +842,11 @@
         this.$content.html(data.content);
         Panel.prototype.onContentLoaded.call(this, data);
     };
+
+    PanelText.prototype.isDownloadable = function() {
+        return true;
+    };
+    
     
     //////////////////////////////////////////////////////////////////////
     //

@@ -1563,6 +1563,37 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         },
     };
 
+    this.select_default_hand_and_allograph = function() {
+        // GN: if no hand and allograph is selected 
+        // and only one hand is available, we select that hand.
+        // This is more efficient for editors.
+        // See MOA-195
+        var controls = get_forms();
+        if (controls) {
+            // the hand-select control
+            var select = controls.hand_form;
+            // any hand selected?
+            if (!(select.val())) {
+                var new_value = '';
+                
+                select.find('option').each(function(i, option) { 
+                    if (option.value) {
+                        if (new_value) { 
+                            // more than one hand, we don't pick any
+                            // it could be misleading for editors
+                            new_value = ''; 
+                            return false; 
+                        }
+                        new_value = option.value;
+                    }  
+                });
+                if (new_value) {
+                    select.val(new_value);
+                    select.trigger("liszt:updated");
+                }
+            }
+        }
+    };
 
     /**
      * Saves an annotation for the currently selected feature.

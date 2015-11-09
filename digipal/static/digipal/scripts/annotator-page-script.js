@@ -50,6 +50,7 @@ function AnnotatorLoader() {
             // loading annotations through URL (if there are)
             self.load_temporary_vector();
             self.load_stored_vector();
+            annotator.select_default_hand_and_allograph();
         });
     };
 

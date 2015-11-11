@@ -607,7 +607,7 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
 
 Annotator.prototype.scrollToImage = function() {
     // scroll to the heading so more of the image is visible
-    if ($('body').offset().top >= 0) {
+    if ($(window).scrollTop() <= 1) {
         $('html, body').animate({scrollTop: $('#annotator_heading').offset().top }, 100);
     }
 }

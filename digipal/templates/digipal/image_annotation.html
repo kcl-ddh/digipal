@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block main %}
-    <h2 class='header1'>
+    <h2 class='header1' id="annotator_heading">
         {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
         Manuscript Image:
         <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}

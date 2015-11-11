@@ -602,7 +602,15 @@ Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
     var feature = this.selectFeatureById(featureId);
     this.map.zoomToExtent(feature.geometry.getBounds());
     this.map.zoomTo(this.map.getZoom() - 1);
+    this.scrollToImage();
 };
+
+Annotator.prototype.scrollToImage = function() {
+    // scroll to the heading so more of the image is visible
+    if ($('body').offset().top >= 0) {
+        $('html, body').animate({scrollTop: $('#annotator_heading').offset().top }, 100);
+    }
+}
 
 Annotator.prototype.centreById = function(featureId) {
     var feature = this.vectorLayer.getFeatureById(featureId);

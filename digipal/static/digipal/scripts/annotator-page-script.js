@@ -486,6 +486,9 @@ function AnnotatorLoader() {
             if (note) {
                 annotator.selectedFeature.user_note = note;
             }
+            
+            // scroll to the heading so more of the image is visible
+            //annotator.scrollToImage();
 
         } else {
             return false;

@@ -1303,6 +1303,8 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             });
         }
     };
+    
+    this.noInitialDialog = (this.utils.getParameter('dlg') === '0');
 
     /**
 

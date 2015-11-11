@@ -601,6 +601,7 @@ Annotator.prototype.selectFeatureByIdAndCentre = function(featureId) {
 Annotator.prototype.selectFeatureByIdAndZoom = function(featureId) {
     var feature = this.selectFeatureById(featureId);
     this.map.zoomToExtent(feature.geometry.getBounds());
+    this.map.zoomTo(this.map.getZoom() - 1);
 };
 
 Annotator.prototype.centreById = function(featureId) {

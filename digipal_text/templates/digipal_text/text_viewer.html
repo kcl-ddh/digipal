@@ -5,7 +5,6 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/junicode/junicode.css"/>
     {% comment %}
         Trick: TinyMCE will load this later dynamically
         but that happens AFTER our resize calculate the height of the button bar

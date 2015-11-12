@@ -68,6 +68,8 @@ class SearchManuscripts(SearchContentType):
         images = Image.filter_permissions_from_request(context['item_part'].images.all().prefetch_related('hands', 'annotation_set'), request)
         context['images'] = Image.sort_query_set_by_locus(images)
         context['hands'] = context['item_part'].hands.all().order_by('num')
+        from digipal_text.models import TextContentXML
+        context['text_content_xmls'] = TextContentXML.get_public_only(context['can_edit']).filter(text_content__item_part=context['item_part']).order_by('text_content__type__name')
 
     def get_index_records(self):
         recs = super(SearchManuscripts, self).get_index_records()

@@ -772,8 +772,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             if (typeof annotator.allow_multiple_dialogs == "undefined") {
                 annotator.allow_multiple_dialogs = false;
             }
+            
+            var can_open_box = !annotator.noInitialDialog && annotator.boxes_on_click;
+            annotator.noInitialDialog = false;
 
-            if (!annotator.allow_multiple_dialogs || !annotator.boxes_on_click) {
+            if (!annotator.allow_multiple_dialogs || !can_open_box) {
                 var dialog_annotations = $('.dialog_annotations');
                 dialog_annotations.parent('.ui-dialog').remove();
                 dialog_annotations.remove();
@@ -802,7 +805,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             var position = _self.position(path);
             var absolute_position = position.absolute_position;
 
-            if (annotator.boxes_on_click) {
+            if (can_open_box) {
                 dialog.dialog({
                     draggable: true,
                     //height: 340,
@@ -1304,7 +1307,11 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         }
     };
     
-    this.noInitialDialog = (this.utils.getParameter('dlg') === '0');
+    // See MOA-205
+    // This is true when the user passes &dlg=0 in the URL
+    // it means that the desc. dialog should not open the first time a box is selected
+    // This should always be used in conjunction with &graph=X
+    this.noInitialDialog = (window.dputils.get_query_string_param('dlg') === '0');
 
     /**
 

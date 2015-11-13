@@ -144,6 +144,9 @@ Commands:
         # <st>q</st> => ƣ
         content = regex.sub(ur'(?musi)<st>\s*q\s*</st>', ur'ƣ', content)
 
+        # <del>de his</del> => 
+        content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
+
         # Folio number
         # [fol. 1. b.] or [fol. 1.]
         # TODO: check for false pos. or make the rule more strict
@@ -217,6 +220,8 @@ Commands:
             exp = regex.sub(ur':', ur'', exp)
             # ÷
             exp = regex.sub(ur'÷', ur'', exp)
+            # ʇ
+            exp = regex.sub(ur'ʇ', ur'', exp)
             # e.g. st~
             exp = remove_accents(exp)
             

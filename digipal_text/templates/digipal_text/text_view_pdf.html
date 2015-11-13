@@ -1,0 +1,33 @@
+{# % extends "base.html" % #}
+{% load html_escape %}
+<html>
+
+    <head>
+        <meta charset="utf-8" /> 
+        {% block extra_css %}
+            <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/junicode/junicode.css"/>
+            {% comment %}
+                Trick: TinyMCE will load this later dynamically
+                but that happens AFTER our resize calculate the height of the button bar
+                which is unstyled yet and therefore too tall and shrinks the iframe.
+                The solution is to force a load of the stylesheet here so the computation
+                is accurate.
+            {% endcomment %}
+            <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
+            {# We need this for the readonly version although tinymce may also load it a second time for its iframe #}
+            <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce.css?v={% now "U:u" %}"/>
+        {% endblock %}
+    </head>
+    
+    <body>
+        <div class="">
+            <div class="panel-content mce-content-body preview ct-{{content_type_key}} {{display_classes}}">
+                {% if response.status == 'error' %}
+                    {{ response.status }}: {{ response.message }}
+                {% endif %}
+                {{ response.content|safe }}
+            </div>
+        </div>
+    </body>
+    
+</html>

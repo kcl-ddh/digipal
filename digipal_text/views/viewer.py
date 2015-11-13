@@ -99,6 +99,13 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
         context['content_type_key'] = content_type
         ret = render(request, 'digipal_text/text_view.html', context)
         
+    if format == 'pdf':
+        context = {'response': response}
+        context['display_classes'] = ' '.join((request.REQUEST.get('ds', '').split(',')))
+        context['content_type_key'] = content_type
+        from pdfview import render_to_pdf
+        ret = render_to_pdf(request, 'digipal_text/text_view_pdf.html', context)
+
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)
 

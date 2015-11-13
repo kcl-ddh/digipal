@@ -4,38 +4,39 @@
 {% block meta_title %}{{ blog_post.meta_title }}{% endblock %}
 
 {% block meta_keywords %}{% metablock %}
-{% keywords_for blog_post as tags %}
-{% for tag in tags %}{% if not forloop.first %}, {% endif %}{{ tag }}{% endfor %}
+	{% keywords_for blog_post as tags %}
+	{% for tag in tags %}{% if not forloop.first %}, {% endif %}{{ tag }}{% endfor %}
 {% endmetablock %}{% endblock %}
 
 {% block meta_description %}{% metablock %}
-{{ blog_post.description }}
+    {{ blog_post.description }}
 {% endmetablock %}{% endblock %}
 
 
 {% block breadcrumb_menu %}
-{{ block.super }}
-<li class="active">{{ blog_post.title }}</li>
+	{{ block.super }}
+	<li class="active">{{ blog_post.title }}</li>
 {% endblock %}
 
 {% block main %}
 <div class="row">
 
 
-    <article class='col-lg-8 col-md-8 justified' id='blogLeft'>
+    <article class='col-lg-8 col-md-8 justified long-text' id='blogLeft'>
 
 
     {% block title %}
-    <h1 class='header1'>{% editable blog_post.title %}{{ blog_post.title }}{% endeditable %}</h1>
+        <h1 class='header1.bk'>{{ blog_post.title }}</h1>
     {% endblock %}
+    
     {% block blog_post_detail_postedby %}
-    {% editable blog_post.publish_date %}
+    {#% editable blog_post.publish_date %#}
 
     <ul class='meta' id='breadcumbBlog'>
         <li><i class="glyphicon glyphicon-user "></i>
         {% trans "Posted by" %}:
         {% with blog_post.user as author %}
-        <a href="{% url "blog_post_list_author" author %}">{{ author.get_full_name|default:author.username }}</a></li>
+            <a href="{% url "blog_post_list_author" author %}">{{ author.get_full_name|default:author.username }}</a></li>
         {% endwith %}
         <li><i class="fa fa-calendar"></i>
         {% blocktrans with sometime=blog_post.publish_date|date:"d M Y" %}{{ sometime }}{% endblocktrans %}</li>
@@ -70,7 +71,7 @@
         {% endif %}
     {% endblock %}</li>
     </ul>
-    {% endeditable %}
+    {#% endeditable %#}
     {% endblock %}
 
 

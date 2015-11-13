@@ -161,6 +161,10 @@ span[data-dpt] > span[data-dpt] {
     content: "\271A";
 }
 
+.preview.mce-content-body span[data-dpt] {
+    background-color: inherit;
+}
+
 .preview.mce-content-body span[data-dpt=supplied] {
     background: transparent;
 }

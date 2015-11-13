@@ -162,7 +162,11 @@ Commands:
 
                     classes = []
                     term = parts[1]
-                    if term == 'PRO':
+                    if term == 'STRUCKTWICE':
+                        # <span class="T33">aiulfus</span>
+                        classes = regex.findall(ur'<span class="([^"]+)">(?:aiulfus|7 dim)</span>', xml_string)
+                        classes = list(set(classes))
+                    elif term == 'PRO':
                         classes = regex.findall(ur'\s<span class="([^"]+)">p</span>\[ro\]\s', xml_string)
                         classes = list(set(classes))
                     else:

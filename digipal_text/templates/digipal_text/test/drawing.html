@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load html_escape mezzanine_tags  %}
+
+{% block meta_title %}Test: Drawing{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {% comment %}
+        Trick: TinyMCE will load this later dynamically
+        but that happens AFTER our resize calculate the height of the button bar
+        which is unstyled yet and therefore too tall and shrinks the iframe.
+        The solution is to force a load of the stylesheet here so the computation
+        is accurate.
+    {% endcomment %}
+    {# We need this for the readonly version although tinymce may also load it a second time for its iframe #}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
+    <style>
+        div.ol {
+            width: 90%;
+            height: 500px;
+            border: 1px solid black;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+
+<h1>Test: Drawing</h1>
+
+{# Template for the frame #}
+<div class="ol">
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {# TODO: include min on production #}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>
+    
+    {% compress js %}
+        <script src="{{ STATIC_URL }}digipal_text/viewer/annotation.ts"/ type="text/typescript">
+    {% endcompress %}
+    
+    <script>
+        $(function(){
+            this.map = window.dputils.add_open_layer({
+                $target: '.ol',
+                image_url: "http://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham03/Misc_Ch_615/misc_ch_615_003.jp2/",
+                image_height: 4596,
+                image_width: 3316,
+                zoom: 0,
+                //load_tile_callback: function() {me.loadTile.apply(me, arguments);},
+                can_rotate: true,
+            })
+        });
+    </script>
+{% endblock %}

@@ -1,4 +1,28 @@
 
+-----------------------------------------
+
+Graphical Annotation on the Text Viewer Image Pane
+
+. drawing actions:
+    . draw box
+    . select box
+    . transform box
+    . move box
+    . delete box
+    . (copy box)
+    . select multiple boxes
+    . undo
+. persistence:
+    . image editing mode
+    . display selectors:
+        . e.g. 1 annotation | markup/clause/address/1
+        . : <annotation selection> | <definition>
+    . create new table: TextViewLink
+    . save box
+    . display saved boxes
+
+-----------------------------------------
+
 [DONE] display settings
     margin
     line breaks

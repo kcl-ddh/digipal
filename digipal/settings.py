@@ -601,7 +601,7 @@ CACHES = {
 
 # Uncomment this to force less to ALWAYS be compiled, even when not changed
 # Slow but useful when making changes to css
-#CACHES['django-compressor'] = CACHES['default']
+CACHES['django-compressor'] = CACHES['default']
 
 # Mezzanine settings var reuire as soon as we use django cache
 NEVERCACHE_KEY = 'NOCACHE'
@@ -621,7 +621,7 @@ COMPRESS_CSS_FILTERS = [
 COMPRESS_PRECOMPILERS = (
     #('text/coffeescript', 'coffee --compile --stdio'),
     ('text/less', 'digipal.compressor_filters.LessAndCssAbsoluteFilter'),
-    #('text/less', 'lessc {infile}'),
+    ('text/typescript', 'tsc {infile} --out {outfile}'),
 )
 # ----------------------------------------------------------------------------
 

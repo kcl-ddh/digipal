@@ -44,7 +44,7 @@
     
     <script>
         $(function(){
-            this.map = window.dputils.add_open_layer({
+            var map = window.dputils.add_open_layer({
                 $target: '.ol',
                 image_url: "http://mofa-images.dighum.kcl.ac.uk/iip/iipsrv.fcgi?zoomify=jp2/Durham03/Misc_Ch_615/misc_ch_615_003.jp2/",
                 image_height: 4596,
@@ -53,6 +53,9 @@
                 //load_tile_callback: function() {me.loadTile.apply(me, arguments);},
                 can_rotate: true,
             })
+            
+            var ann3 = new AnnotatorOL3(map);
+            
         });
     </script>
 {% endblock %}

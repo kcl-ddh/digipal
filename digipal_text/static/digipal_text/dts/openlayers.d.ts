@@ -3453,14 +3453,14 @@ declare module ol {
         class DragZoom {
         }
 
-        class Draw {
+        class Draw extends Pointer {
             constructor(options?: olx.interaction.DrawOptions);
         }
 
         class DrawEvent {
         }
 
-        class Interaction {
+        class Interaction extends Object {
         }
 
         class KeyboardPan {
@@ -3481,7 +3481,7 @@ declare module ol {
         class PinchZoom {
         }
 
-        class Pointer {
+        class Pointer extends Interaction {
         }
 
         class Select {

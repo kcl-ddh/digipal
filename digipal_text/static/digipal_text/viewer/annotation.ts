@@ -1,6 +1,30 @@
 /// <reference path="../dts/jquery.d.ts"/>
 /// <reference path="../dts/openlayers.d.ts"/>
 
+/*
+class Draw extends ol.interaction.Draw {
+    started = false;
+    
+    constructor(options?: olx.interaction.DrawOptions) {
+        super(options);
+        
+        // draw is a reference to ol.interaction.Draw
+        this.on('drawstart', function(evt){
+            this.started = true;
+        });
+        
+        this.on('drawend', function(evt){
+            this.started = false;
+        });    
+    }
+    
+    isStarted(): boolean {
+        return this.started;
+    }
+    
+}
+*/
+
 class AnnotatorOL3 {
     map: ol.Map;
     // source
@@ -9,6 +33,8 @@ class AnnotatorOL3 {
     layer: ol.layer.Vector;
     //
     interaction: ol.interaction.Draw;
+    // events
+    events = {startDrawing: null, stopDrawing: null};
    
     constructor(map: ol.Map) {
         this.map = map;
@@ -45,6 +71,14 @@ class AnnotatorOL3 {
     }
     
     initInteractions(): void {
+        this.initDraw();
+        this.initSelect();
+    }
+
+    initSelect(): void {
+    }
+    
+    initDraw(): void {
         var geometryFunction, maxPoints;
         var value = 'LineString';
         maxPoints = 2;
@@ -62,13 +96,45 @@ class AnnotatorOL3 {
 
         if (this.interaction) this.map.removeInteraction(this.interaction);
         
+        var condition = (e: ol.MapBrowserEvent): boolean => {
+            var ctrl = e.originalEvent['ctrlKey'];
+            //var ctrl = ol.events.condition.platformModifierKeyOnly(e);
+            
+            //console.log('' + ctrl + '' + ctrl2);
+            return this.interaction['isStarted'] || ctrl;
+        }
+        
         this.interaction = new ol.interaction.Draw({
             source: this.source,
-            type: /** @type {ol.geom.GeometryType} */ (value),
+            type: (value),
             geometryFunction: geometryFunction,
+            condition: condition,
             maxPoints: maxPoints
         });
+
+
+        // draw is a reference to ol.interaction.Draw
+        this.interaction.on('drawstart', (evt) =>{
+            this.interaction['isStarted'] = true;
+        });
+        this.interaction.on('drawend', (evt) => {
+            this.interaction['isStarted'] = false;
+        });    
+
         this.map.addInteraction(this.interaction);
+        
+        /*
+        this.events.startDrawing = this.map.on('pointerdrag', (e) => {
+            // if (e.originalEvent.ctrlKey )
+            // var coord = e.coordinate;
+            console.log(e);
+        });
+        this.map.on('mouseup', (e) => {
+            // if (e.originalEvent.ctrlKey )
+            // var coord = e.coordinate;
+            console.log('MOUSEUP');
+        });
+        */
     }
     
     

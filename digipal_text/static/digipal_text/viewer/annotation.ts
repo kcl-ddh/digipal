@@ -92,6 +92,7 @@ class AnnotatorOL3 {
         });
         
         interaction.on('select', (e) => {
+            console.log('SELECT '+e['type']);
             console.log(e);
         });
         
@@ -134,16 +135,19 @@ class AnnotatorOL3 {
         // draw is a reference to ol.interaction.Draw
         interaction.on('drawstart', (evt) => {
             this.interactions.draw['isStarted'] = true;
+            console.log('DRAW START');
         });
         interaction.on('drawend', (evt) => {
             this.interactions.draw['isStarted'] = false;
             
             
             // evt['feature']
-            this.interactions.draw['setActive'](false);
-            var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
-            features.clear();
-            features.push(evt['feature']);
+            //this.interactions.draw['setActive'](false);
+            //var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
+            //features.clear();
+            //features.push(evt['feature']);
+            console.log('DRAW END');
+            
         });    
 
         this.interactions.setInteraction('draw', interaction, this.map);

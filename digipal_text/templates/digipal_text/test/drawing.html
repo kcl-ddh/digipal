@@ -36,10 +36,10 @@
 {% block extra_js %}
     {{ block.super }}
     {# TODO: include min on production #}
-    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
     
     {% compress js %}
-        <script src="{{ STATIC_URL }}digipal_text/viewer/annotation.ts"/ type="text/typescript">
+        <script src="{{ STATIC_URL }}digipal_text/viewer/annotation.ts" type="text/typescript"></script>
     {% endcompress %}
     
     <script>

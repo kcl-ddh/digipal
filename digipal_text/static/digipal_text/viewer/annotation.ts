@@ -25,6 +25,17 @@ class Draw extends ol.interaction.Draw {
 }
 */
 
+class AOL3Interactions {
+    draw: ol.interaction.Draw;
+    select: ol.interaction.Select;
+    
+    setInteraction(key: string, interaction: ol.interaction.Interaction, map: ol.Map) {
+        if (this[key]) map.removeInteraction(interaction);
+        this[key] = interaction;
+        map.addInteraction(interaction);
+    }
+}
+
 class AnnotatorOL3 {
     map: ol.Map;
     // source
@@ -32,7 +43,7 @@ class AnnotatorOL3 {
     // the annotation layer
     layer: ol.layer.Vector;
     //
-    interaction: ol.interaction.Draw;
+    interactions: AOL3Interactions = new AOL3Interactions();
     // events
     events = {startDrawing: null, stopDrawing: null};
    
@@ -76,6 +87,15 @@ class AnnotatorOL3 {
     }
 
     initSelect(): void {
+        var interaction = new ol.interaction.Select({
+            condition: ol.events.condition.click
+        });
+        
+        interaction.on('select', (e) => {
+            console.log(e);
+        });
+        
+        this.interactions.setInteraction('select', interaction, this.map);
     }
     
     initDraw(): void {
@@ -94,17 +114,15 @@ class AnnotatorOL3 {
             return geometry;
         };
 
-        if (this.interaction) this.map.removeInteraction(this.interaction);
-        
         var condition = (e: ol.MapBrowserEvent): boolean => {
             var ctrl = e.originalEvent['ctrlKey'];
             //var ctrl = ol.events.condition.platformModifierKeyOnly(e);
             
             //console.log('' + ctrl + '' + ctrl2);
-            return this.interaction['isStarted'] || ctrl;
+            return this.interactions.draw['isStarted'] || ctrl;
         }
         
-        this.interaction = new ol.interaction.Draw({
+        var interaction = new ol.interaction.Draw({
             source: this.source,
             type: (value),
             geometryFunction: geometryFunction,
@@ -114,14 +132,21 @@ class AnnotatorOL3 {
 
 
         // draw is a reference to ol.interaction.Draw
-        this.interaction.on('drawstart', (evt) =>{
-            this.interaction['isStarted'] = true;
+        interaction.on('drawstart', (evt) => {
+            this.interactions.draw['isStarted'] = true;
         });
-        this.interaction.on('drawend', (evt) => {
-            this.interaction['isStarted'] = false;
+        interaction.on('drawend', (evt) => {
+            this.interactions.draw['isStarted'] = false;
+            
+            
+            // evt['feature']
+            this.interactions.draw['setActive'](false);
+            var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
+            features.clear();
+            features.push(evt['feature']);
         });    
 
-        this.map.addInteraction(this.interaction);
+        this.interactions.setInteraction('draw', interaction, this.map);
         
         /*
         this.events.startDrawing = this.map.on('pointerdrag', (e) => {

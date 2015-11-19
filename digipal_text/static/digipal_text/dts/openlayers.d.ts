@@ -507,6 +507,10 @@ declare module olx {
             (coordinates: ol.Coordinate|Array<ol.Coordinate>|Array<Array<ol.Coordinate>>, geometry: ol.geom.SimpleGeometry): ol.geom.SimpleGeometry;
         }
         
+        interface SelectFilterFunction {
+            (feature: ol.Feature, layer: ol.layer.Layer): boolean
+        }        
+
         interface DefaultsOptions {
             altShiftDragRotate?: boolean;
             doubleClickZoom?: boolean;
@@ -518,7 +522,7 @@ declare module olx {
             pinchZoom?: boolean;
             zoomDelta?: number;
             zoomDuration?: number;
-          }
+        }
           
         interface DrawOptions {
             clickTolerance?: number;
@@ -534,7 +538,19 @@ declare module olx {
             condition?: ol.events.ConditionType;
             freehandCondition?: ol.events.ConditionType;
             wrapX?: boolean;
-          }
+        }
+          
+        interface SelectOptions {
+            addCondition?: ol.events.ConditionType;
+            condition?: ol.events.ConditionType;
+            layers?: Array<ol.layer.Layer>;
+            style?: ol.style.Style | Array<ol.style.Style> | ol.style.StyleFunction;
+            removeCondition?: ol.events.ConditionType;
+            toggleCondition?: ol.events.ConditionType;
+            multi?: boolean;
+            filter?: olx.interaction.SelectFilterFunction;
+            wrapX?: boolean;
+        }
           
     }
 
@@ -2445,6 +2461,7 @@ declare module ol {
         }
 
         module condition {
+            function click(event: ol.MapBrowserEvent): boolean; 
         }
     }
 
@@ -3428,7 +3445,7 @@ declare module ol {
     }
 
     module interaction {
-
+        
         class DoubleClickZoom {
         }
 
@@ -3484,7 +3501,8 @@ declare module ol {
         class Pointer extends Interaction {
         }
 
-        class Select {
+        class Select extends Interaction {
+            constructor(options?: olx.interaction.SelectOptions);
         }
 
         class Snap {

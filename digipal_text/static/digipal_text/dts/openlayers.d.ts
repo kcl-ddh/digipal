@@ -539,6 +539,10 @@ declare module olx {
             freehandCondition?: ol.events.ConditionType;
             wrapX?: boolean;
         }
+        
+        interface InteractionOptions {
+            handleEvent: any; 
+        }
           
         interface SelectOptions {
             addCondition?: ol.events.ConditionType;
@@ -3478,6 +3482,7 @@ declare module ol {
         }
 
         class Interaction extends Object {
+            constructor(options?: olx.interaction.InteractionOptions);
         }
 
         class KeyboardPan {

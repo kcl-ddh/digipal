@@ -26,6 +26,7 @@ class Draw extends ol.interaction.Draw {
 */
 
 class AOL3Interactions {
+    controler: ol.interaction.Interaction;
     draw: ol.interaction.Draw;
     select: ol.interaction.Select;
     
@@ -82,8 +83,31 @@ class AnnotatorOL3 {
     }
     
     initInteractions(): void {
-        this.initDraw();
+        this.initInteractionSelector();
         this.initSelect();
+        this.initDraw();
+    }
+    
+    initInteractionSelector(): void {
+        
+        var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => { 
+            console.log('------------');
+            console.log(e['type']);
+            
+            if (e['type'] === 'pointerdown') {
+                var ctrl = e.originalEvent['ctrlKey'];
+                if (ctrl && !this.interactions.draw['isStarted']) {
+                    console.log('CLICK ACTIVATE DRAW');
+                    this.interactions.draw['setActive'](true);
+                    this.interactions.select['setActive'](false);
+                }
+            }
+            
+            return true;
+         }};
+        var interaction = new ol.interaction.Interaction(options);
+        
+        this.interactions.setInteraction('controller', interaction, this.map);
     }
 
     initSelect(): void {
@@ -119,7 +143,7 @@ class AnnotatorOL3 {
             var ctrl = e.originalEvent['ctrlKey'];
             //var ctrl = ol.events.condition.platformModifierKeyOnly(e);
             
-            //console.log('' + ctrl + '' + ctrl2);
+            console.log('DRAW condition '+e['type']);
             return this.interactions.draw['isStarted'] || ctrl;
         }
         
@@ -130,7 +154,7 @@ class AnnotatorOL3 {
             condition: condition,
             maxPoints: maxPoints
         });
-
+        interaction['setActive'](false);
 
         // draw is a reference to ol.interaction.Draw
         interaction.on('drawstart', (evt) => {
@@ -142,7 +166,8 @@ class AnnotatorOL3 {
             
             
             // evt['feature']
-            //this.interactions.draw['setActive'](false);
+            this.interactions.draw['setActive'](false);
+            this.interactions.select['setActive'](true);
             //var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
             //features.clear();
             //features.push(evt['feature']);
@@ -168,3 +193,37 @@ class AnnotatorOL3 {
     
     
 }
+/*
+
+------------
+annotation.12c61fcb81d0.js:79 pointermove
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointermove
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointerdown
+annotation.12c61fcb81d0.js:83 CLICK ACTIVATE DRAW
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointerup
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 click
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointermove
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 singleclick
+annotation.12c61fcb81d0.js:122 DRAW condition pointerdown
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointerdown
+annotation.12c61fcb81d0.js:83 CLICK ACTIVATE DRAW
+annotation.12c61fcb81d0.js:136 DRAW START
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointerup
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 click
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointermove
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 singleclick
+annotation.12c61fcb81d0.js:78 ------------
+annotation.12c61fcb81d0.js:79 pointermove
+
+*/

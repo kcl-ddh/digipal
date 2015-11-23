@@ -35,6 +35,10 @@ class AOL3Interactions {
         this[key] = interaction;
         map.addInteraction(interaction);
     }
+    
+    setActive(key: string, active: boolean) {
+        this[key].setActive(active);
+    }
 }
 
 class AnnotatorOL3 {
@@ -47,6 +51,8 @@ class AnnotatorOL3 {
     interactions: AOL3Interactions = new AOL3Interactions();
     // events
     events = {startDrawing: null, stopDrawing: null};
+    // 
+    lastDrawnFeature: ol.Feature;
    
     constructor(map: ol.Map) {
         this.map = map;
@@ -94,17 +100,17 @@ class AnnotatorOL3 {
     initInteractionSelector(): void {
         
         var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => {
-            if (e['type'] !== 'pointermove') { 
-                console.log('------------');
-                console.log(e['type']);
+            var ctrl = e.originalEvent['ctrlKey'];
+            if (!((e['type'] === 'pointermove') || 
+                (e['type'] === 'key' && ctrl))) { 
+                console.log('> ' + e['type'] + ' <------------------');
             }
             
             if (e['type'] === 'pointerdown') {
-                var ctrl = e.originalEvent['ctrlKey'];
                 if (ctrl && !this.interactions.draw['isStarted']) {
                     console.log('CLICK ACTIVATE DRAW');
-                    this.interactions.draw['setActive'](true);
-                    this.interactions.select['setActive'](false);
+                    this.interactions.setActive('draw', true);
+                    this.interactions.setActive('select', false);
                 }
             }
             
@@ -121,14 +127,26 @@ class AnnotatorOL3 {
         });
         
         interaction.on('select', (e) => {
+            // After drawing ends a 'click' event is generated
+            // and the feature under the pointer is 
+            // the end point (endgeometry) of the drawn feature.
+            // Because OL replay the drawing instructions to detect a hit.
+            
+            // Here we detect that situation and force the selection of the
+            // last drawn feature.
+            var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
+            if (this.lastDrawnFeature) {
+                features.clear();
+                features.push(this.lastDrawnFeature);
+                this.lastDrawnFeature = null;
+            }
+            
             console.log('SELECT '+e['type']);
-            var features: Array<ol.Feature> = this.interactions.select['getFeatures']()['getArray']();
-            if (features.length > 0) {
-                this.showFeatureInfo(features[0]);
+            if (features.getLength() > 0) {
+                this.showFeatureInfo(features.item(0));
             } else {
                 console.log('No feature selected');
             }
-            
             //console.log(e);
         });
         
@@ -172,43 +190,24 @@ class AnnotatorOL3 {
         });
         interaction['setActive'](false);
 
-        // draw is a reference to ol.interaction.Draw
         interaction.on('drawstart', (evt) => {
             this.interactions.draw['isStarted'] = true;
+            
             console.log('DRAW START');
         });
         interaction.on('drawend', (evt) => {
             this.interactions.draw['isStarted'] = false;
             
+            this.interactions.setActive('draw', false);
+            this.interactions.setActive('select', true);
             
-            // evt['feature']
-            this.interactions.draw['setActive'](false);
-            this.interactions.select['setActive'](true);
-            
-            this.showFeatureInfo(evt['feature']);
-            
-            //var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
-            //features.clear();
-            //features.push(evt['feature']);
+            // See select interaction. This is a work around.
+            this.lastDrawnFeature = evt['feature'];
             
             console.log('DRAW END');
-            
         });    
 
         this.interactions.setInteraction('draw', interaction, this.map);
-        
-        /*
-        this.events.startDrawing = this.map.on('pointerdrag', (e) => {
-            // if (e.originalEvent.ctrlKey )
-            // var coord = e.coordinate;
-            console.log(e);
-        });
-        this.map.on('mouseup', (e) => {
-            // if (e.originalEvent.ctrlKey )
-            // var coord = e.coordinate;
-            console.log('MOUSEUP');
-        });
-        */
     }
     
     
@@ -245,5 +244,4 @@ annotation.12c61fcb81d0.js:78 ------------
 annotation.12c61fcb81d0.js:79 singleclick
 annotation.12c61fcb81d0.js:78 ------------
 annotation.12c61fcb81d0.js:79 pointermove
-
 */

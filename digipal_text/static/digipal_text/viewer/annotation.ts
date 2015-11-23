@@ -53,7 +53,7 @@ class AnnotatorOL3 {
     events = {startDrawing: null, stopDrawing: null};
     // 
     lastDrawnFeature: ol.Feature;
-   
+    
     constructor(map: ol.Map) {
         this.map = map;
         
@@ -134,14 +134,13 @@ class AnnotatorOL3 {
             
             // Here we detect that situation and force the selection of the
             // last drawn feature.
-            var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
             if (this.lastDrawnFeature) {
-                features.clear();
-                features.push(this.lastDrawnFeature);
+                this.selectFeature(this.lastDrawnFeature);
                 this.lastDrawnFeature = null;
             }
             
             console.log('SELECT '+e['type']);
+            var features = this.getSelectedFeatures();
             if (features.getLength() > 0) {
                 this.showFeatureInfo(features.item(0));
             } else {
@@ -193,6 +192,9 @@ class AnnotatorOL3 {
         interaction.on('drawstart', (evt) => {
             this.interactions.draw['isStarted'] = true;
             
+            // clear any selection
+            this.selectFeature();
+            
             console.log('DRAW START');
         });
         interaction.on('drawend', (evt) => {
@@ -210,6 +212,15 @@ class AnnotatorOL3 {
         this.interactions.setInteraction('draw', interaction, this.map);
     }
     
+    getSelectedFeatures(): ol.Collection<ol.Feature> {
+        return this.interactions.select['getFeatures']();
+    }
+    
+    selectFeature(feature?: ol.Feature): void {
+        var features = this.getSelectedFeatures();
+        features.clear();
+        if (feature) features.push(feature);
+    }
     
 }
 /*

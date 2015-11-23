@@ -83,16 +83,21 @@ class AnnotatorOL3 {
     }
     
     initInteractions(): void {
-        this.initInteractionSelector();
-        this.initSelect();
+        // Interactions are processed in reverse order:
         this.initDraw();
+        this.initSelect();
+        // Selector BEFORE draw and select 
+        // so we can chose which one handle the current event
+        this.initInteractionSelector();
     }
     
     initInteractionSelector(): void {
         
-        var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => { 
-            console.log('------------');
-            console.log(e['type']);
+        var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => {
+            if (e['type'] !== 'pointermove') { 
+                console.log('------------');
+                console.log(e['type']);
+            }
             
             if (e['type'] === 'pointerdown') {
                 var ctrl = e.originalEvent['ctrlKey'];
@@ -117,10 +122,21 @@ class AnnotatorOL3 {
         
         interaction.on('select', (e) => {
             console.log('SELECT '+e['type']);
-            console.log(e);
+            var features: Array<ol.Feature> = this.interactions.select['getFeatures']()['getArray']();
+            if (features.length > 0) {
+                this.showFeatureInfo(features[0]);
+            } else {
+                console.log('No feature selected');
+            }
+            
+            //console.log(e);
         });
         
         this.interactions.setInteraction('select', interaction, this.map);
+    }
+    
+    showFeatureInfo(feature: ol.Feature): void {
+        console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));        
     }
     
     initDraw(): void {
@@ -168,9 +184,13 @@ class AnnotatorOL3 {
             // evt['feature']
             this.interactions.draw['setActive'](false);
             this.interactions.select['setActive'](true);
+            
+            this.showFeatureInfo(evt['feature']);
+            
             //var features: ol.Collection<ol.Feature> = this.interactions.select['getFeatures']();
             //features.clear();
             //features.push(evt['feature']);
+            
             console.log('DRAW END');
             
         });    

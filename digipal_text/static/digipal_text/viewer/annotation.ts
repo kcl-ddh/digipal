@@ -146,7 +146,8 @@ class AnnotatorOL3 {
         var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => {
             var ctrl = e.originalEvent['ctrlKey'];
             var type = e['type'];
-            var key = e['browserEvent']['keyCode'];
+            //var key = e['browserEvent']['keyCode'];
+            var key = e.originalEvent['ctrlKey']['keyCode'] || 0;
             
             if (!((type === 'pointermove') || 
                 (type === 'key' && ctrl))) { 

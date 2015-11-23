@@ -1069,6 +1069,8 @@
                 load_tile_callback: function() {me.loadTile.apply(me, arguments);},
                 can_rotate: true,
             });
+            
+            window.ann3 = new window.AnnotatorOL3(this.map);
 
             this.clipImageToTop();
 

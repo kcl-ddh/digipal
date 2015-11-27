@@ -82,9 +82,13 @@ Commands:
             known_command = True
             self.hundorder()
         
+        if command == 'hundorderga':
+            known_command = True
+            self.hundorderga()
+        
         if command == 'setoptorder':
             known_command = True
-            self.setoptorder()
+            self.setoptorder_command()
         
         if known_command:
             print 'done'
@@ -92,15 +96,19 @@ Commands:
         else:
             print self.help
 
-    def setoptorder(self):
-        from django.db import connections
-        wrapper = connections['default']
+    def setoptorder_command(self):
         
         shire = self.cargs[0]
         hundreds = self.cargs[1]
         
         hundreds = eval(hundreds)
         
+        self.setoptorder(shire, hundreds, column='optimal')
+    
+    def setoptorder(self, shire, hundreds, column='optimal'):
+        from django.db import connections
+        wrapper = connections['default']
+
         i = 0
         for hundred in hundreds:
             i += 1
@@ -116,24 +124,253 @@ Commands:
             
             if not recs:
                 command = '''INSERT INTO exon_hundred
-                (hundredalorderoptimal, shire, hundrednameasenteredintomasterdatabase)
+                (hundredalorder''' + column + ''', shire, hundrednameasenteredintomasterdatabase)
                 VALUES
                 (%s, %s, %s)
                 '''
                 sqlWrite(wrapper, command, [i, shire, hundred], False)
             else:
                 command = '''UPDATE exon_hundred
-                SET hundredalorderoptimal = %s
+                SET hundredalorder''' + column + ''' = %s
                 WHERE lower(shire) = lower(%s)
                 AND hundrednameasenteredintomasterdatabase = %s
                 '''
                 sqlWrite(wrapper, command, [i, shire, hundred], False)
             
         wrapper.commit()
-            
 
     def hundorder(self):
         shire = self.cargs[0]
+        tics = self.get_tics_from_shire(shire)
+        
+        print
+        for tic in tics:
+            print '%s (%s): %s' % (tic['name'], len(tic['entries']), ', '.join([entry['hundred'] for entry in tic['entries']]))
+
+        # create adjacency matrix of the 'before' graph
+        # bm[hundred1][hundred2] = 3 means that hundred1 precedes hundred2 3 times
+         
+        bm = {}
+        def add_count(h1, h2):
+            if h1 not in bm:
+                bm[h1] = {}
+            if h2 not in bm[h1]:
+                bm[h1][h2] = 0
+            bm[h1][h2] += 1
+            
+         
+        for tic in tics:
+            i = 0
+            treated = {}
+            for entry in tic['entries']:
+                if entry['hundred'] in treated: continue
+                h = entry['hundred']
+                if h not in bm: bm[h] = {}
+                for entry2 in tic['entries'][i+1:]:
+                    add_count(h, entry2['hundred'])
+                i += 1
+                treated[entry['hundred']] = 1
+        
+        print
+        for h1 in bm:
+            print h1, bm[h1]
+
+        print '\nReenterance'
+        for r in sorted([(h1, bm[h1][h1]) for h1 in bm if h1 in bm[h1]], key=lambda r: r[1], reverse=True):
+            print r[1], r[0]
+
+        print '\nConflicts'
+        from copy import deepcopy
+        sbm = deepcopy(bm)
+        for h1 in bm:
+            print h1
+            for h2 in bm[h1]:
+                
+                if h1 == h2:
+                    # remove self references
+                    del sbm[h1][h2]
+                else:
+                    if h2 in bm and h1 in bm[h2]:
+                        print '', bm[h1][h2], h2, bm[h2][h1]
+                        
+                        if bm[h1][h2] * 3 <= bm[h2][h1]:
+                            del sbm[h1][h2]
+                        else:
+                            if not (bm[h2][h1] * 3 <= bm[h1][h2]):
+                                if sbm[h2] and h1 in sbm[h2]: del sbm[h2][h1]
+                                if sbm[h1] and h2 in sbm[h1]: del sbm[h1][h2]
+        
+        # create a new order
+        hs = []
+        while True:
+            if len(sbm.keys()) == 0:
+                break
+            sbmo = sorted(sbm.keys(), key=lambda h: len(sbm[h]))
+            hs.insert(0, sbmo[0])
+            
+            for h in sbm:
+                if sbmo[0] in sbm[h]: del sbm[h][sbmo[0]]
+            
+            del sbm[sbmo[0]]
+        
+        print
+        print hs
+        print 'cost: ', self.get_cost_from_hundreds(tics, hs)
+        self.setoptorder(shire, hs, column='')
+
+        
+        
+    def hundorderga(self):
+        shire = self.cargs[0]
+        tics = self.get_tics_from_shire(shire)
+
+        
+        # vr is numerical hundredal order supplied by the team
+        vr = {}
+        none_counter = 1000
+        
+        # hundreds is an arbitrary numerical mapping for the hundred names
+        # eg. hundreds = {A: 0, B: 1}
+        hundreds = {}
+        
+        l = -1
+        for tic in tics:
+            for entry in tic['entries']:
+                h = entry['hundred']
+                
+                # create 'vr'
+                if entry['hundredalorder'] is None:
+                    # None => assign a large number
+                    if h not in vr.values():
+                        none_counter += 1
+                        vr['%s' % none_counter] = h
+                else:
+                    vr[entry['hundredalorder']] = h
+                
+                # create 'hundreds'
+                if h not in hundreds:
+                    l += 1
+                    hundreds[h] = l
+                
+                # add hundred index/order into the data struct
+                # e.g. entry['hundred'] == B => entry['ho'] = 1
+                entry['ho'] = hundreds[h]
+
+        # convert vr into a standard candidate solution
+        from digipal.utils import sorted_natural
+        # vr = [B, A]
+        vr = [vr[k] for k in sorted_natural(vr.keys())]
+        # vr = [1, 0]
+        #vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
+        #vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
+
+        vr = [hundreds[label] for label in vr]
+        vr = range(0, len(vr))
+        seed = [vr]
+        
+        #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
+        #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
+        
+#             seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
+#
+#             seed.append([26, 27, 31, 43, 0, 37, 42, 41, 9, 16, 34, 29, 33, 11, 28, 21, 12, 2, 19, 4, 24, 6, 20, 10, 17, 39, 14, 1, 40, 7, 35, 30, 3, 22, 5, 15, 13, 38, 8, 36, 18, 32, 25, 23])
+#             seed.append([43, 13, 9, 21, 0, 5, 11, 42, 19, 31, 20, 41, 29, 23, 24, 32, 16, 39, 30, 27, 14, 28, 34, 26, 2, 25, 4, 6, 33, 1, 35, 10, 17, 40, 7, 3, 37, 38, 15, 8, 12, 22, 18, 36])
+
+        #seed.append([4, 5, 27, 9, 34, 26, 33, 0, 37, 29, 6, 14, 43, 31, 41, 16, 21, 32, 10, 28, 11, 39, 2, 19, 35, 3, 12, 17, 22, 23, 40, 13, 24, 36, 38, 20, 1, 30, 42, 7, 15, 8, 18, 25])
+        #seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
+        
+        #seed.append([20, 0, 1, 9, 5, 7, 24, 27, 41, 38, 43, 46, 21, 2, 10, 11, 44, 30, 4, 12, 34, 25, 37, 39, 42, 33, 23, 22, 13, 28, 3, 14, 32, 15, 16, 45, 17, 8, 40, 6, 26, 18, 36, 29, 31, 35, 19])
+        #seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
+        #seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
+
+        self.print_candidate(vr, tics, hundreds)
+                
+        # v1 = 1,0  means B,A
+        v1 = range(0, len(hundreds))
+        
+        self.print_candidate(v1, tics, hundreds)
+        
+        from digipal.optimiser import Optimiser
+        
+        optimiser = Optimiser()
+        optimiser.reset(seed=seed, costfn=lambda v: self.get_cost(tics, v), printfn=lambda v: self.print_candidate(v, tics, hundreds))
+        optimiser.start()
+        vs = optimiser.getSolution()
+        
+        self.print_candidate(vs, tics, hundreds)
+            
+        '''
+Cornwall (16/9)
+--------
+
+Many possible solutions
+
+[2, 5, 7, 3, 0, 4, 6, 1]
+[u'Pawton', u'Connerton', u'Rialton', u'Stratton', u'Winnianton', u'Rillaton', u'Fawton', u'Tybesta']
+Cost: 9; Len: 8
+done
+
+[7, 2, 3, 4, 0, 1, 5, 6]
+[u'Rialton', u'Pawton', u'Stratton', u'Rillaton', u'Winnianton', u'Tybesta', u'Connerton', u'Fawton']
+Cost: 9; Len: 8
+done
+
+Devon (104/62)
+---------
+
+[u'Alleriga', u'Lifton', u'South Molton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'North Tawton', u'Axmouth', u'Fremington', u'Exminster', u'Crediton', u'Shirwell', u'Bampton', u'Silverton', u'Hemyock', u'Braunton', u'Diptford', u'Walkhampton', u'Budleigh', u'Molland', u'Cliston', u'Kerswell', u'Colyton', u'Plympton', u'Witheridge', u'Halberton', u'Teignbridge', u'Wonford', u'Ottery St Mary', u'Axminster', u'Tiverton', u'Ermington', u'Chillington', u'unknown']
+
+
+[12, 32, 7, 34, 21, 13, 17, 18, 31, 2, 8, 4, 22, 15, 10, 5, 24, 23, 25, 19, 0, 27, 20, 11, 29, 30, 28, 6, 33, 9, 16, 1, 26, 3, 14]
+[u'Lifton', u'South Tawton', u'Black Torrington', u'Molland', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Shirwell', u'Bampton', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Colyton', u'Axmouth', u'Alleriga', u'Ottery St Mary', u'Chillington', u'Ermington', u'Diptford', u'unknown', u'Plympton', u'Walkhampton']
+Cost: 62; Len: 35
+
+Gen 2000. Cost 66. Best: 66. Pop: 105
+[12, 32, 6, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 34, 16, 26, 24, 23, 25, 19, 0, 1, 33, 27, 20, 11, 29, 30, 3, 14, 28, 9]
+[u'Lifton', u'South Tawton', u'Alleriga', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Molland', u'Ermington', u'unknown', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Diptford', u'Ottery St Mary', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Colyton', u'Plympton', u'Walkhampton', u'Axmouth', u'Chillington']
+Cost: 66; Len: 35
+
+Gen 2000. Cost 66. Best: 66. Pop: 105
+[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 4, 34, 22, 15, 10, 5, 24, 23, 25, 19, 27, 20, 11, 33, 29, 30, 28, 6, 9, 0, 16, 1, 3, 14, 26]
+[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Shirwell', u'Molland', u'Bampton', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Ottery St Mary', u'Axminster', u'Colyton', u'Axmouth', u'Alleriga', u'Chillington', u'Teignbridge', u'Ermington', u'Diptford', u'Plympton', u'Walkhampton', u'unknown']
+
+[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3]
+[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26]
+[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Tiverton', u'Ottery St Mary', u'Halberton', u'Kerswell', u'Plympton', u'Walkhampton', u'Axminster', u'Colyton', u'Alleriga', u'Chillington', u'Axmouth', u'Ermington', u'Diptford', u'unknown']
+Cost: 68; Len: 35
+
+[12, 32, 7, 21, 13, 17, 18, 31, 2, 34, 8, 22, 4, 15, 10, 5, 24, 23, 19, 25, 27, 20, 11, 30, 6, 9,
+ 28, 0, 16, 26, 1, 3, 33, 14, 29]
+[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Molland', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Witheridge', u'Budleigh', u'Tiverton', u'Halberton', u'Kerswell', u'Colyton', u'Alleriga', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Ottery St Mary', u'Walkhampton', u'Axminster']
+Cost: 71; Len: 35
+
+
+Dorset (None/41)
+---------
+
+NO REF TO ENTRY NUMBERS => NO ORDER!!!!
+
+
+Somerset (82/62)
+---------
+
+[61, 39, 49, 30, 19, 44, 1, 40, 53, 2, 33, 3, 4, 13, 21, 51, 54, 10, 58, 52, 11, 12, 5, 14, 16, 24, 22, 15, 17, 62, 43, 27, 25, 6, 60, 23, 18, 59, 35, 41, 47, 55, 45, 57, 46, 38, 7, 36, 50, 32, 42,
+ 20, 0, 34, 28, 48, 8, 29, 37, 31, 56, 9, 26]
+[u'Coker', u'Yeovil: Houndsborough', u'Pitminster', u'Lydeard', u'South Petherton', u'Loxley', u'Williton', u'Yeovil: Lyatts', u'Minehead', u'Bruton: Blachethorna', u'Reynaldsway', u'Milborne/Horethorne', u'Milverton', u'Bulstone', u'Cheddar', u'Sheriffs Brompton', u'Brompton Regis', u'North Petherton', u'Creech', u'Cutcombe', u'Cannington', u'Carhampton', u'Abdick', u'Andersfield', u'Winterstoke', u'Bedminster', u'Chew', u'Taunton', u'Portbury', u'Martock', u'Lyatts', u'Kingsbury', u'Hartcliffe', u'Keynsham', u'Congresbury', u'Bempstone', u'Frome: Frome', u'North Curry', u'Bruton: Wincanton', u'Yeovil: Stone', u'South Brent', u'Dulverton', u'Whitestone', u'Winsford', u'Monkton', u'Milverton or Brompton Regis', u'Bath', u'Thurlbear', u'Huntspill', u'Crewkerne', u'Carhampton / Williton', u'Yeovil: Tintinhull', u'Chewton', u'Somerton', u'Wiveliscombe', u'Frome: Frome/Downhead', u'Frome: Wellow', u'Wellington', u'Thornfalcon', u'Wells', u'Cleeve', u'Frome: Kilmersdon', u'Bruton: Bruton']
+Cost: 77; Len: 63
+
+[1, 5, 60, 2, 38, 4, 62, 54, 27, 55, 10, 33, 13, 11, 24, 14, 12, 16, 22, 15, 17, 25, 6, 28, 20, 57, 58, 23, 56, 7, 36, 43, 45, 9, 37, 51, 59, 34, 18, 32, 0, 29, 47, 35, 52, 39, 48, 50, 53, 19, 61, 42, 8, 49, 21, 44, 26, 31, 3, 46, 30, 40, 41]
+[u'Williton', u'Abdick', u'Congresbury', u'Bruton: Blachethorna', u'Milverton or Brompton Regis', u'Milverton', u'Martock', u'Brompton Regis', u'Kingsbury', u'Dulverton', u'North Petherton', u'Reynaldsway', u'Bulstone', u'Cannington', u'Bedminster', u'Andersfield', u'Carhampton', u'Winterstoke', u'Chew', u'Taunton', u'Portbury', u'Hartcliffe', u'Keynsham', u'Wiveliscombe', u'Yeovil: Tintinhull', u'Winsford', u'Creech', u'Bempstone', u'Cleeve', u'Bath', u'Thurlbear', u'Lyatts', u'Whitestone', u'Frome: Kilmersdon', u'Thornfalcon', u'Sheriffs Brompton', u'North Curry', u'Somerton', u'Frome: Frome', u'Crewkerne', u'Chewton', u'Wellington', u'South Brent', u'Bruton: Wincanton', u'Cutcombe', u'Yeovil: Houndsborough', u'Frome: Frome/Downhead', u'Huntspill', u'Minehead', u'South Petherton', u'Coker', u'Carhampton / Williton', u'Frome: Wellow', u'Pitminster', u'Cheddar', u'Loxley', u'Bruton: Bruton', u'Wells', u'Milborne/Horethorne', u'Monkton', u'Lydeard', u'Yeovil: Lyatts', u'Yeovil: Stone']
+Cost: 70; Len: 63
+
+Wiltshire (None)
+---------
+
+NO REF TO ENTRY NUMBERS => NO ORDER!!!!
+
+            '''
+    def get_tics_from_shire(self, shire):
+        ret = []
         
         from exon.customisations.digipal_lab.views.hundreds import get_hundreds_view_context
         
@@ -165,199 +402,19 @@ Commands:
                     hundred = entry['hundred']
                     # discard '-'
                     if len(hundred) < 2: continue
+                    # discard missing ellis number
+                    if entry['ellisref'] in [None, '-', '']: continue
+                    
                     if last_hundred is None or last_hundred != hundred:
                         tic['entries'].append(entry)
                     last_hundred = hundred
+            
             # remove tic with only one entry
             tics = [tic for tic in tics if len(tic['entries']) > 1]
-
             
-            # vr is numerical hundredal order supplied by the team
-            vr = {}
-            none_counter = 1000
-            
-            # hundreds is an arbitrary numerical mapping for the hundred names
-            # eg. hundreds = {A: 0, B: 1}
-            hundreds = {}
-            
-            l = -1
-            for tic in tics:
-                for entry in tic['entries']:
-                    h = entry['hundred']
-                    
-                    # create 'vr'
-                    if entry['hundredalorder'] is None:
-                        # None => assign a large number
-                        if h not in vr.values():
-                            none_counter += 1
-                            vr['%s' % none_counter] = h
-                    else:
-                        vr[entry['hundredalorder']] = h
-                    
-                    # create 'hundreds'
-                    if h not in hundreds:
-                        l += 1
-                        hundreds[h] = l
-                    
-                    # add hundred index/order into the data struct
-                    # e.g. entry['hundred'] == B => entry['ho'] = 1
-                    entry['ho'] = hundreds[h]
+            ret = tics
 
-            # convert vr into a standard candidate solution
-            from digipal.utils import sorted_natural
-            # vr = [B, A]
-            vr = [vr[k] for k in sorted_natural(vr.keys())]
-            # vr = [1, 0]
-            #vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
-            #vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
-
-            vr = [hundreds[label] for label in vr]
-            vr = range(0, len(vr))
-            seed = [vr]
-            
-            #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
-            #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
-            
-#             seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
-#
-#             seed.append([26, 27, 31, 43, 0, 37, 42, 41, 9, 16, 34, 29, 33, 11, 28, 21, 12, 2, 19, 4, 24, 6, 20, 10, 17, 39, 14, 1, 40, 7, 35, 30, 3, 22, 5, 15, 13, 38, 8, 36, 18, 32, 25, 23])
-#             seed.append([43, 13, 9, 21, 0, 5, 11, 42, 19, 31, 20, 41, 29, 23, 24, 32, 16, 39, 30, 27, 14, 28, 34, 26, 2, 25, 4, 6, 33, 1, 35, 10, 17, 40, 7, 3, 37, 38, 15, 8, 12, 22, 18, 36])
-
-            #seed.append([4, 5, 27, 9, 34, 26, 33, 0, 37, 29, 6, 14, 43, 31, 41, 16, 21, 32, 10, 28, 11, 39, 2, 19, 35, 3, 12, 17, 22, 23, 40, 13, 24, 36, 38, 20, 1, 30, 42, 7, 15, 8, 18, 25])
-            #seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
-            
-            seed.append([20, 0, 1, 9, 5, 7, 24, 27, 41, 38, 43, 46, 21, 2, 10, 11, 44, 30, 4, 12, 34, 25, 37, 39, 42, 33, 23, 22, 13, 28, 3, 14, 32, 15, 16, 45, 17, 8, 40, 6, 26, 18, 36, 29, 31, 35, 19])
-            seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
-            seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
-
-            self.print_candidate(vr, tics, hundreds)
-                    
-            # v1 = 1,0  means B,A
-            v1 = range(0, len(hundreds))
-            
-            self.print_candidate(v1, tics, hundreds)
-            
-            from digipal.optimiser import Optimiser
-            
-            optimiser = Optimiser()
-            optimiser.reset(seed=seed, costfn=lambda v: self.get_cost(tics, v), printfn=lambda v: self.print_candidate(v, tics, hundreds))
-            optimiser.start()
-            vs = optimiser.getSolution()
-            
-            self.print_candidate(vs, tics, hundreds)
-            
-            '''
-Cornwall (16/9)
---------
-
-Many possible solutions
-
-[2, 5, 7, 3, 0, 4, 6, 1]
-[u'Pawton', u'Connerton', u'Rialton', u'Stratton', u'Winnianton', u'Rillaton', u'Fawton', u'Tybesta']
-Cost: 9; Len: 8
-done
-
-[7, 2, 3, 4, 0, 1, 5, 6]
-[u'Rialton', u'Pawton', u'Stratton', u'Rillaton', u'Winnianton', u'Tybesta', u'Connerton', u'Fawton']
-Cost: 9; Len: 8
-done
-
-Devon (104/62)
----------
-
-[12, 32, 7, 34, 21, 13, 17, 18, 31, 2, 8, 4, 22, 15, 10, 5, 24, 23, 25, 19, 0, 27, 20, 11, 29, 30, 28, 6, 33, 9, 16, 1, 26, 3, 14]
-[u'Lifton', u'South Tawton', u'Black Torrington', u'Molland', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Shirwell', u'Bampton', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Colyton', u'Axmouth', u'Alleriga', u'Ottery St Mary', u'Chillington', u'Ermington', u'Diptford', u'unknown', u'Plympton', u'Walkhampton']
-Cost: 62; Len: 35
-
-Gen 2000. Cost 66. Best: 66. Pop: 105
-[12, 32, 6, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 34, 16, 26, 24, 23, 25, 19, 0, 1, 33, 27, 20, 11, 29, 30, 3, 14, 28, 9]
-[u'Lifton', u'South Tawton', u'Alleriga', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Molland', u'Ermington', u'unknown', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Diptford', u'Ottery St Mary', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Colyton', u'Plympton', u'Walkhampton', u'Axmouth', u'Chillington']
-Cost: 66; Len: 35
-
-Gen 2000. Cost 66. Best: 66. Pop: 105
-[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 4, 34, 22, 15, 10, 5, 24, 23, 25, 19, 27, 20, 11, 33, 29, 30, 28, 6, 9, 0, 16, 1, 3, 14, 26]
-[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Shirwell', u'Molland', u'Bampton', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Ottery St Mary', u'Axminster', u'Colyton', u'Axmouth', u'Alleriga', u'Chillington', u'Teignbridge', u'Ermington', u'Diptford', u'Plympton', u'Walkhampton', u'unknown']
-
-[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3]
-[12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26]
-[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Teignbridge', u'Tiverton', u'Ottery St Mary', u'Halberton', u'Kerswell', u'Plympton', u'Walkhampton', u'Axminster', u'Colyton', u'Alleriga', u'Chillington', u'Axmouth', u'Ermington', u'Diptford', u'unknown']
-Cost: 68; Len: 35
-
-[12, 32, 7, 21, 13, 17, 18, 31, 2, 34, 8, 22, 4, 15, 10, 5, 24, 23, 19, 25, 27, 20, 11, 30, 6, 9,
- 28, 0, 16, 26, 1, 3, 33, 14, 29]
-[u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Molland', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Wonford', u'Witheridge', u'Budleigh', u'Tiverton', u'Halberton', u'Kerswell', u'Colyton', u'Alleriga', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Ottery St Mary', u'Walkhampton', u'Axminster']
-Cost: 71; Len: 35
-
-Dorset (None/41)
----------
-
-[4, 25, 43, 40, 31, 5, 27, 9, 34, 33, 0, 37, 29, 6, 14, 16, 21, 41, 32, 10, 11, 28, 2, 19, 35, 39, 3, 12, 17, 23, 13, 22, 36, 24, 20, 38, 1, 42, 30, 7, 15, 8, 18, 26]
-[u'Ailwood', u'Sixpenny', u'Loders', u'Canedone', u'Albretesberga', u'Bere', u'Brunsell', u'Badbury', u'Buckland Newton', u'Cogdean', u'Modbury', u'Stana', u'Puddletown', u'Charborough', u'Langeberga', u'Canendona', u'Beaminster', u'Hundesburge', u'Bridport', u'Combsditch', u'Cranborne', u'Chilbury', u'Cullifordtree', u'Gillingham', u'Goderthorne', u'Alvredesberge', u'Hasler', u'Hunesberga', u'Dorchester', u'Hilton', u'Knowlton', u'Tollerford', u'Langeburgh', u'Newton', u'Pimperne', u'Wareham', u'Uggescombe', u'Farrington', u'Sherborne', u'Eggardon', u'Whitchurch', u'Winfrith', u'Yetminster', u'Redhove']
-Cost: 41; Len: 44
-
-[13, 16, 10, 4, 40, 42, 43, 31, 0, 9, 21, 5, 39, 37, 27, 25, 34, 29, 33, 28, 30, 11, 2, 17, 7, 19, 32, 6, 35, 23, 3, 36, 14, 41, 12, 22, 24, 20, 1, 15, 8, 38, 18, 26]
-[u'Knowlton', u'Canendona', u'Combsditch', u'Ailwood', u'Canedone', u'Farrington', u'Loders', u'Albretesberga', u'Modbury', u'Badbury', u'Beaminster', u'Bere', u'Alvredesberge', u'Stana', u'Brunsell', u'Sixpenny', u'Buckland Newton', u'Puddletown', u'Cogdean', u'Chilbury', u'Sherborne', u'Cranborne', u'Cullifordtree', u'Dorchester', u'Eggardon', u'Gillingham', u'Bridport', u'Charborough', u'Goderthorne', u'Hilton', u'Hasler', u'Langeburgh', u'Langeberga', u'Hundesburge', u'Hunesberga', u'Tollerford', u'Newton', u'Pimperne', u'Uggescombe', u'Whitchurch', u'Winfrith', u'Wareham', u'Yetminster', u'Redhove']
-Cost: 45; Len: 44
-
-[4, 5, 27, 9, 34, 26, 33, 0, 37, 29, 6, 14, 43, 31, 41, 16, 21, 32, 10, 28, 11, 39, 2, 19, 35, 3, 12, 17, 22, 23, 40, 13, 24, 36, 38, 20, 1, 30, 42, 7, 15, 8, 18, 25]
-[u'Ailwood', u'Bere', u'Brunsell', u'Badbury', u'Buckland Newton', u'Redhove', u'Cogdean', u'Modbury', u'Stana', u'Puddletown', u'Charborough', u'Langeberga', u'Loders', u'Albretesberga', u'Hundesburge', u'Canendona', u'Beaminster', u'Bridport', u'Combsditch', u'Chilbury', u'Cranborne', u'Alvredesberge', u'Cullifordtree', u'Gillingham', u'Goderthorne', u'Hasler', u'Hunesberga', u'Dorchester', u'Tollerford', u'Hilton', u'Canedone', u'Knowlton', u'Newton', u'Langeburgh', u'Wareham', u'Pimperne', u'Uggescombe', u'Sherborne', u'Farrington', u'Eggardon', u'Whitchurch', u'Winfrith', u'Yetminster', u'Sixpenny']
-Cost: 45; Len: 44
-
-Somerset (82/62)
----------
-
-[36, 10, 11, 19, 55, 37, 13, 20, 51, 52, 53, 56, 1, 12, 4, 57, 58, 59, 5, 2, 32, 14, 29, 27, 38, 60, 21, 16, 62, 15, 31, 34, 28, 24, 30, 39, 7, 61, 43, 49, 22, 44, 40, 17, 33, 25, 46, 18, 6, 45, 47, 8, 23, 35, 48, 9, 26, 0, 3, 54, 50,
- 41, 42]
-[u'Thurlbear', u'North Petherton', u'Cannington', u'South Petherton', u'Dulverton', u'Thornfalcon', u'Bulstone', u'Yeovil: Tintinhull', u'Sheriffs Brompton', u'Cutcombe', u'Minehead', u'Cleeve', u'Williton', u'Carhampton', u'Milverton', u'Winsford', u'Creech', u'North Curry', u'Abdick', u'Bruton: Blachethorna', u'Crewkerne', u'Andersfield', u'Wellington', u'Kingsbury', u'Milverton or Brompton Regis', u'Congresbury', u'Cheddar', u'Winterstoke', u'Martock', u'Taunton', u'Wells', u'Somerton', u'Wiveliscombe', u'Bedminster', u'Lydeard', u'Yeovil: Houndsborough', u'Bath', u'Coker', u'Lyatts', u'Pitminster', u'Chew', u'Loxley', u'Yeovil: Lyatts', u'Portbury', u'Reynaldsway', u'Hartcliffe', u'Monkton', u'Frome: Frome', u'Keynsham', u'Whitestone', u'South Brent', u'Frome: Wellow', u'Bempstone', u'Bruton: Wincanton', u'Frome: Frome/Downhead', u'Frome: Kilmersdon', u'Bruton: Bruton', u'Chewton', u'Milborne/Horethorne', u'Brompton Regis', u'Huntspill', u'Yeovil: Stone', u'Carhampton / Williton']
-Cost: 62; Len: 63
-
-[36, 10, 11, 19, 55, 37, 38, 20, 51, 52, 53, 56, 1, 12, 4, 57, 58, 59, 5, 2, 32, 14, 29, 27, 13, 60, 21, 16, 62, 15, 31, 34, 28, 24, 30, 39, 7, 61, 43, 49, 22, 44, 17, 40, 33, 25, 46, 18, 6, 45,
- 47, 8, 23, 35, 48, 9, 26, 0, 3, 54, 50, 41, 42]
-[u'Thurlbear', u'North Petherton', u'Cannington', u'South Petherton', u'Dulverton', u'Thornfalcon', u'Milverton or Brompton Regis', u'Yeovil: Tintinhull', u'Sheriffs Brompton', u'Cutcombe', u'Minehead', u'Cleeve', u'Williton', u'Carhampton', u'Milverton', u'Winsford', u'Creech', u'North Curry', u'Abdick', u'Bruton: Blachethorna', u'Crewkerne', u'Andersfield', u'Wellington', u'Kingsbury', u'Bulstone', u'Congresbury', u'Cheddar', u'Winterstoke', u'Martock', u'Taunton', u'Wells', u'Somerton', u'Wiveliscombe', u'Bedminster', u'Lydeard', u'Yeovil: Houndsborough', u'Bath', u'Coker', u'Lyatts', u'Pitminster', u'Chew', u'Loxley', u'Portbury', u'Yeovil: Lyatts', u'Reynaldsway', u'Hartcliffe', u'Monkton', u'Frome: Frome', u'Keynsham', u'Whitestone', u'South Brent', u'Frome: Wellow', u'Bempstone', u'Bruton: Wincanton', u'Frome: Frome/Downhead', u'Frome: Kilmersdon', u'Bruton: Bruton', u'Chewton', u'Milborne/Horethorne', u'Brompton Regis', u'Huntspill', u'Yeovil: Stone', u'Carhampton / Williton']
-Cost: 63; Len: 63
-
-[10, 11, 19, 1, 51, 52, 53, 12, 4, 5, 54, 13, 20, 55, 59, 56, 32, 30, 27, 57, 28, 58, 14, 62, 21,
- 16, 29, 31, 15, 34, 49, 24, 44, 39, 22, 40, 60, 17, 61, 18, 25, 46, 33, 6, 7, 45, 8, 47, 23, 9, 35, 0, 50, 26, 38, 2, 42, 3, 48, 36, 41, 37, 43]
-[u'North Petherton', u'Cannington', u'South Petherton', u'Williton', u'Sheriffs Brompton', u'Cutcombe', u'Minehead', u'Carhampton', u'Milverton', u'Abdick', u'Brompton Regis', u'Bulstone', u'Yeovil: Tintinhull', u'Dulverton', u'North Curry', u'Cleeve', u'Crewkerne', u'Lydeard', u'Kingsbury', u'Winsford', u'Wiveliscombe', u'Creech', u'Andersfield', u'Martock', u'Cheddar', u'Winterstoke', u'Wellington', u'Wells', u'Taunton', u'Somerton', u'Pitminster', u'Bedminster', u'Loxley', u'Yeovil: Houndsborough', u'Chew', u'Yeovil: Lyatts', u'Congresbury', u'Portbury', u'Coker', u'Frome:
- Frome', u'Hartcliffe', u'Monkton', u'Reynaldsway', u'Keynsham', u'Bath', u'Whitestone', u'Frome:
- Wellow', u'South Brent', u'Bempstone', u'Frome: Kilmersdon', u'Bruton: Wincanton', u'Chewton', u'Huntspill', u'Bruton: Bruton', u'Milverton or Brompton Regis', u'Bruton: Blachethorna', u'Carhampton / Williton', u'Milborne/Horethorne', u'Frome: Frome/Downhead', u'Thurlbear', u'Yeovil: Stone', u'Thornfalcon', u'Lyatts']
-Cost: 67; Len: 63
-
-[30, 1, 2, 5, 38, 4, 36, 13, 37, 10, 33, 11, 62, 12, 14, 49, 17, 57, 16, 55, 6, 27, 45, 23, 28, 32, 22, 60, 20, 25, 56, 15, 34, 35, 7, 61, 19, 39, 43, 18, 42, 44, 29, 47, 46, 51, 8, 50, 52, 26, 58, 40, 21, 0, 3, 41, 31, 48, 53, 24, 59, 54, 9]
-[u'Lydeard', u'Williton', u'Bruton: Blachethorna', u'Abdick', u'Milverton or Brompton Regis', u'Milverton', u'Thurlbear', u'Bulstone', u'Thornfalcon', u'North Petherton', u'Reynaldsway', u'Cannington', u'Martock', u'Carhampton', u'Andersfield', u'Pitminster', u'Portbury', u'Winsford', u'Winterstoke', u'Dulverton', u'Keynsham', u'Kingsbury', u'Whitestone', u'Bempstone', u'Wiveliscombe', u'Crewkerne', u'Chew', u'Congresbury', u'Yeovil: Tintinhull', u'Hartcliffe', u'Cleeve', u'Taunton', u'Somerton', u'Bruton: Wincanton', u'Bath', u'Coker', u'South Petherton', u'Yeovil: Houndsborough', u'Lyatts', u'Frome: Frome', u'Carhampton / Williton', u'Loxley', u'Wellington', u'South Brent', u'Monkton', u'Sheriffs Brompton', u'Frome: Wellow', u'Huntspill', u'Cutcombe', u'Bruton: Bruton', u'Creech', u'Yeovil: Lyatts', u'Cheddar', u'Chewton', u'Milborne/Horethorne', u'Yeovil: Stone', u'Wells', u'Frome: Frome/Downhead', u'Minehead', u'Bedminster', u'North Curry', u'Brompton Regis', u'Frome: Kilmersdon']
-Cost: 73; Len: 63
-
-
-Wiltshire (None/6)
----------
-
-[20, 0, 1, 9, 5, 7, 24, 27, 41, 38, 43, 46, 21, 2, 10, 11, 44, 30, 4, 12, 34, 25, 37, 39, 42, 33, 23, 22, 13, 28, 3, 14, 32, 15, 16, 45, 17, 8, 40, 6, 26, 18, 36, 29, 31, 35, 19]
-[u'Alderbury', u'Amesbury', u'Bowcombe', u'Blagrove', u'Bradford', u'Branchbury', u'Cadworth', u'Calne', u'Came', u'Ramsbury', u'Malmesbury', u'Westbury', u'Cawdon', u'Chippenham', u'Cicementone', u'Cricklade', u'Marlborough', u'Downton', u'Dolesfield', u'Dunworth', u'Melksham', u'Dunley', u'Bishops Cannings', u'Wilton', u'Bath', u'Damerham', u'Frustfield', u'Elstub', u'Heytesbury', u'Highworth', u'Kingsbridge', u'Kinwardstone', u'Mere', u'Rowborough', u'Scipa', u'Salisbury', u'Selkley', u'Stowford', u'Staple', u'Whorwellsdown', u'Startley', u'Studfold', u'Thorngrove', u'Swanborough', u'Thornhill', u'Wonderditch', u'Warminster']
-Cost: 6; Len: 47
-
-[44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6]
-[u'Marlborough', u'Alderbury', u'Salisbury', u'Came', u'Bishops Cannings', u'Westbury', u'Amesbury', u'Blagrove', u'Bradford', u'Branchbury', u'Cadworth', u'Calne', u'Cawdon', u'Chippenham', u'Dolesfield', u'Elstub', u'Melksham', u'Cicementone', u'Dunley', u'Cricklade', u'Downton', u'Dunworth', u'Heytesbury', u'Highworth', u'Kingsbridge', u'Ramsbury', u'Frustfield', u'Kinwardstone', u'Scipa', u'Mere', u'Malmesbury', u'Selkley', u'Staple', u'Startley', u'Bath', u'Rowborough', u'Stowford', u'Studfold', u'Thorngrove', u'Damerham', u'Swanborough', u'Bowcombe', u'Thornhill', u'Warminster', u'Wonderditch', u'Wilton', u'Whorwellsdown']
-Cost: 14; Len: 47
-
-[38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19]
-[u'Ramsbury', u'Thorngrove', u'Alderbury', u'Amesbury', u'Rowborough', u'Bowcombe', u'Westbury', u'Bath', u'Blagrove', u'Marlborough', u'Thornhill', u'Bradford', u'Branchbury', u'Wilton', u'Staple', u'Cadworth', u'Calne', u'Cawdon', u'Came', u'Chippenham', u'Cicementone', u'Cricklade', u'Salisbury', u'Melksham', u'Downton', u'Wonderditch', u'Dolesfield', u'Damerham', u'Dunley', u'Dunworth', u'Elstub', u'Frustfield', u'Heytesbury', u'Whorwellsdown', u'Highworth', u'Kingsbridge', u'Bishops Cannings', u'Kinwardstone', u'Scipa', u'Malmesbury', u'Mere', u'Selkley', u'Startley', u'Stowford', u'Studfold', u'Swanborough', u'Warminster']
-Cost: 19; Len: 47
-
-[37, 19, 6, 39, 24, 0, 1, 44, 46, 43, 14, 33, 8, 41, 11, 13, 42, 29, 40, 27, 2, 15, 35, 47, 36, 16, 26, 7, 17, 34, 30, 28, 25, 10, 38, 45, 32, 3, 9, 18, 20, 4, 21, 12, 31, 22, 5, 23]
-[u'Thorngrove', u'Rowborough', u'-', u'Ramsbury', u'Alderbury', u'Amesbury', u'Bowcombe', u'Bath', u'Marlborough', u'Westbury', u'Blagrove', u'Thornhill', u'Bradford', u'Staple', u'Branchbury', u'Calne', u'Came', u'Cadworth', u'Wilton', u'Cawdon', u'Chippenham', u'Cicementone', u'Melksham',
- u'Salisbury', u'Wonderditch', u'Cricklade', u'Downton', u'Dolesfield', u'Dunworth', u'Damerham',
- u'Dunley', u'Elstub', u'Frustfield', u'Heytesbury', u'Bishops Cannings', u'Malmesbury', u'Highworth', u'Kingsbridge', u'Whorwellsdown', u'Kinwardstone', u'Scipa', u'Mere', u'Selkley', u'Stowford', u'Startley', u'Studfold', u'Swanborough', u'Warminster']
-Cost: 23; Len: 48
-done
-
-[20, 0, 41, 45, 23, 38, 42, 9, 5, 35, 7, 1, 8, 24, 21, 2, 10, 11, 28, 46, 39, 4, 6, 30, 12, 25, 37, 33, 22, 3, 14, 32, 15, 27, 16, 17, 43, 40, 13, 26, 18, 44, 36, 29, 19, 34, 31]
-[u'Alderbury', u'Amesbury', u'Came', u'Salisbury', u'Frustfield', u'Ramsbury', u'Bath', u'Blagrove', u'Bradford', u'Wonderditch', u'Branchbury', u'Bowcombe', u'Stowford', u'Cadworth', u'Cawdon',
- u'Chippenham', u'Cicementone', u'Cricklade', u'Highworth', u'Westbury', u'Wilton', u'Dolesfield', u'Whorwellsdown', u'Downton', u'Dunworth', u'Dunley', u'Bishops Cannings', u'Damerham', u'Elstub', u'Kingsbridge', u'Kinwardstone', u'Mere', u'Rowborough', u'Calne', u'Scipa', u'Selkley', u'Malmesbury', u'Staple', u'Heytesbury', u'Startley', u'Studfold', u'Marlborough', u'Thorngrove', u'Swanborough', u'Warminster', u'Melksham', u'Thornhill']
-Cost: 35; Len: 47
-done
-
-
-            '''
+        return ret
             
     
     def print_candidate(self, v1, tics, hundreds):
@@ -366,14 +423,19 @@ done
         print self.get_vector_labels(hundreds, v1)
         print 'Cost: %s; Len: %s' % (self.get_cost(tics, v1), len(v1))
         
-    def get_cost(self, tics, v1):
+    def get_cost_from_function(self, tics, get_hhunber_from_entry):
+        ''' Returns a cost for out-of-seq hundreds for a given
+        hundredal numbering. get_hhunber_from_entry takes an entry dict
+        and returns a number for that entry'''
         ret = 0
         
         for tic in tics:
             last_ho = None
             last_last_ho = None
             for entry in tic['entries']:
-                ho = v1.index(entry['ho'])
+                #ho = v1.index(entry['ho'])
+                ho = get_hhunber_from_entry(entry)
+                
                 # 8 11 10 not ok
                 # 10 11 10 OK
                 if last_ho is not None and\
@@ -384,6 +446,14 @@ done
                 last_ho = ho
         
         return ret
+
+    def get_cost_from_hundreds(self, tics, hs):
+        ''' hs = [first_hundred_name, second_hundred_name, ...] '''
+        return self.get_cost_from_function(tics, lambda entry: hs.index(entry['hundred']))
+        
+    def get_cost(self, tics, v1):
+        ''' v1 = [first_hundred_entry_ho, ...] '''
+        return self.get_cost_from_function(tics, lambda entry: v1.index(entry['ho']))
     
     def get_vector_labels(self, hundreds, v1):
         hr = {}

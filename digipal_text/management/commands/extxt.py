@@ -106,14 +106,20 @@ Commands:
         self.setoptorder(shire, hundreds, column='optimal')
     
     def setoptorder(self, shire, hundreds, column='optimal'):
+        from digipal.management.commands.utils import sqlWrite, sqlSelect, dictfetchall
         from django.db import connections
         wrapper = connections['default']
+
+        command = '''UPDATE exon_hundred
+        SET hundredalorder''' + column + ''' = %s
+        WHERE lower(shire) = lower(%s)
+        '''
+        sqlWrite(wrapper, command, ['', shire], False)
 
         i = 0
         for hundred in hundreds:
             i += 1
             print hundred, i
-            from digipal.management.commands.utils import sqlWrite, sqlSelect, dictfetchall
             
             find = '''SELECT * from exon_hundred
             WHERE lower(shire) = lower(%s)
@@ -317,6 +323,14 @@ done
 
 Devon (104/62)
 ---------
+
+[13, 29, 32, 18, 14, 15, 10, 8, 9, 2, 16, 17, 4, 6, 5, 19, 11, 0, 7, 28, 20, 21, 3, 22, 12, 23, 24, 30, 31, 1, 25, 26, 27]
+[u'Lifton', u'South Tawton', u'Molland', u'Cliston', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Silverton', u'Wonford', u'Witheridge', u'Teignbridge', u'Ermington', u'Crediton', u'Hemyock', u'Budleigh', u'Plympton', u'Tiverton', u'Halberton', u'Kerswell', u'Axmouth', u'Walkhampton', u'Ottery St Mary', u'Diptford', u'Axminster', u'Colyton', u'Chillington']
+Cost: 71; Len: 33
+
+
+[u'Lifton', u'South Molton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'North Tawton', u'Axmouth', u'Fremington', u'Exminster', u'Crediton', u'Shirwell', u'Bampton', u'Silverton', u'Hemyock', u'Braunton', u'Diptford', u'Budleigh', u'Kerswell', u'Walkhampton', u'Molland', u'Cliston', u'Colyton', u'Plympton', u'Witheridge', u'Halberton', u'Teignbridge', u'Wonford', u'Ottery St Mary', u'Axminster', u'Tiverton', u'Ermington', u'Chillington']
+126
 
 [u'Alleriga', u'Lifton', u'South Molton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'North Tawton', u'Axmouth', u'Fremington', u'Exminster', u'Crediton', u'Shirwell', u'Bampton', u'Silverton', u'Hemyock', u'Braunton', u'Diptford', u'Walkhampton', u'Budleigh', u'Molland', u'Cliston', u'Kerswell', u'Colyton', u'Plympton', u'Witheridge', u'Halberton', u'Teignbridge', u'Wonford', u'Ottery St Mary', u'Axminster', u'Tiverton', u'Ermington', u'Chillington', u'unknown']
 

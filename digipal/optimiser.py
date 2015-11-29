@@ -108,15 +108,41 @@ class Optimiser:
 
     def crossOver(self, v1, v2):
         if random() < self.crossOverRate:
-            point = randint(1, len(v1)-2)
-            v3 = v1[0:point]
-            v3 += [s for s in v2 if s not in v3]
-            v4 = v2[0:point]
-            v4 += [s for s in v1 if s not in v4]
+            return self.crossOverOnePoint(v1, v2)
         else:
-            #ret = v1[:]
-            v3 = v1[:]
-            v4 = v2[:]
+            return v1[:], v2[:]
+
+    def crossOverUniform(self, *vo):
+        vs = deepcopy(vo)
+        
+        for i in range(0, len(vo[0])):
+            if random() < 0.2:
+                vs[0][i] = None
+            else:
+                vs[1][i] = None
+        
+        #print vo
+        #print vs
+        
+        vs2 = deepcopy(vs)
+        for j in range(0, 2):
+            vr = [h for h in vs2[1-j] if h not in vs2[j]]
+            vr += [h for h in vo[j] if (h not in vr and h not in vs2[j])]
+            for i in range(0, len(vo[0])):
+                if vs[j][i] is None: vs[j][i] = vr.pop(0)
+        
+        #print vs
+        
+        #exit()
+        
+        return vs[0], vs[1]
+
+    def crossOverOnePoint(self, v1, v2):
+        point = randint(1, len(v1)-2)
+        v3 = v1[0:point]
+        v3 += [s for s in v2 if s not in v3]
+        v4 = v2[0:point]
+        v4 += [s for s in v1 if s not in v4]
             
         return v3, v4
         
@@ -127,7 +153,8 @@ class Optimiser:
                 #ri = randint(0, self.ln - 1)
                 #ret[i], ret[ri] = ret[ri], ret[i]
                 ri = i + 1
-                if random() > 0.8: ri = randint(0, self.ln - 1)
+                if random() > 0.5: ri = randint(0, self.ln - 1)
+                #ri = randint(0, self.ln - 1)
                 if ri >= self.ln: ri = 0
                 ret[i], ret[ri] = ret[ri], ret[i]
             

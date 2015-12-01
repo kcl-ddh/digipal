@@ -5,12 +5,14 @@ from os.path import isdir
 import os
 import re
 from optparse import make_option
+from digipal.utils import sorted_natural
 
 # pm dpxml convert exon\source\rekeyed\converted\EXON-1-493-part1.xml exon\source\rekeyed\conversion\xml2word.xslt > exon\source\rekeyed\word\EXON-word.html
 # pm extxt wordpre exon\source\rekeyed\word\EXON-word.html exon\source\rekeyed\word\EXON-word2.html
 # pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
 
 import unicodedata
+from xhtml2pdf.pisa import showLogging
 def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
@@ -90,12 +92,177 @@ Commands:
             known_command = True
             self.setoptorder_command()
         
+        if command == 'handentry':
+            known_command = True
+            self.handentry_command()
+
         if known_command:
             print 'done'
             pass
         else:
             print self.help
 
+    def handentry_command(self):
+        from digipal_text.models import TextContentXML
+        
+        #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
+        
+        stints = self.get_stints()
+        
+        # entries = self.get_entries()
+        
+        pages = {}
+        for sinfo in stints:
+            for number in self.get_page_numbers_from_stint(sinfo):
+                number = str(number)
+                if number not in pages:
+                    pages[number] = {}
+                pages[number][sinfo['hand']] = 1
+                
+        for number in sorted_natural(pages.keys()):
+            print number, pages[number].keys()
+        
+        print '%s pages, %s with single hand.' % (len(pages.keys()), len([p for p in pages.values() if len(p.keys()) > 1])) 
+        
+    def get_page_numbers_from_stint(self, sinfo):
+        # {'note': u'opens and ends quire', 'x': [[u'353', u'r', u'1'], [u'355', u'v', u'9']], 'extent': u'353r1-5v9', 'hand': 'theta'}
+        # => ['353r', '353v', '354r', '354v', '355r', '355v']        
+        ret = []
+        for n in range(int(sinfo['x'][0][0]), int(sinfo['x'][1][0]) + 1):
+            ret.append(str(n) + 'r')
+            ret.append(str(n) + 'v')
+        
+        if sinfo['x'][0][1] == 'v':
+            ret.pop(0)
+        if sinfo['x'][1][1] == 'r':
+            ret.pop()
+            
+        return ret
+
+    def get_entries(self):
+        # Get all entry numbers from the translation
+        print 'get entries'
+        ret = []
+        
+        from digipal_text.models import TextContentXML
+        text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        
+        for entry in re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">(\d+)([ab])(\d+)</span>', text.content):
+            entry = list(entry)
+            entry[1] = 'r' if entry[0] == 'a' else 'v'
+            ret.append({'entry': ''.join(entry), 'x': entry})
+        
+        return ret
+    
+    def get_stints(self):
+        ''' get the stints info from the hand descriptions
+            [
+                [{'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'x': [[502, v, 11], [503, v, 18]], 'hand': 'alpha'}, ...],
+                ...
+            ]
+        '''
+        from django.core.cache import get_cache
+        cache = get_cache('digipal_compute')
+        
+        stints = cache.get('stints')
+        
+        if stints is not None: return stints
+        
+        print 'get stints'
+        
+        from digipal.models import HandDescription
+        hdescs = HandDescription.objects.all().select_related('hand')
+        #hdescs = hdescs.filter(hand__label='mu')
+
+        stints = []
+        
+        # <span data-dpt="stint" data-dpt-cat="chars">493v4-6</span><
+        stint_pattern = re.compile(ur'(?musi)<span data-dpt="stint" data-dpt-cat="chars">\s*([^<]+)\s*</span>(?:\s*\[([^\]]*)\])?')
+        for hdesc in hdescs:
+            print '-' * 50
+            hlabel = ('%s' % hdesc.hand)
+            print hlabel
+            description = hdesc.description
+            
+            # Extract the stints section from the description
+            desc = re.sub(ur'(?musi).*What does he write(.*?)data-dpt="heading".*', ur'\1', description)
+ 
+            stints += self.extract_stints_info_from_desc(desc, hlabel, stint_pattern)
+
+            desc = re.sub(ur'(?musi).*Previously unidentified(.*?)data-dpt="heading".*', ur'\1', description)
+            
+            stints += self.extract_stints_info_from_desc(desc, hlabel, stint_pattern)
+            
+            #print desc
+            #exit()
+            
+        cache.set('stints', stints)
+            
+        return stints
+
+    def extract_stints_info_from_desc(self, desc, hlabel, stint_pattern):
+        ret = []
+        
+        # Extract the stints: {}
+        for stint in stint_pattern.findall(desc):
+            # e.g.
+            # {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'hand': 'alpha'}
+            sinfo = {'hand': hlabel, 'extent': stint[0], 'note': stint[1]}
+            #print sinfo
+            sinfo = self.expand_stint_extent(sinfo)
+            if sinfo:
+                ret.append(sinfo)
+            
+        return ret
+
+    def expand_stint_extent(self, sinfo):
+        # eg. sinfo = {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'hand': 'alpha'}
+        # out= sinfo = {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'x': [[502, v, 11], [3, v, 18]], 'hand': 'alpha'}
+        extent = sinfo['extent']
+        sinfo['x'] = []
+        parts = extent.split('-')
+        if parts == 1:
+            parts.append(parts[0])
+        show = ''
+        for part in parts:
+            # e.g. 502v11
+            ps = re.findall(ur'^(\d+)?([rv])?(\d+)?$', part)
+            for p in ps:
+                # e.g.  [(u'496', u'v', u'18'), (u'19', u'', u'')], 'extent': u'496v18-19'
+                if len(p[0]) == len(''.join(p)):
+                    # => [(u'496', u'v', u'18'), (u'', u'', u'19')], 'extent': u'496v18-19'
+                    p = p[::-1] 
+#                 if ('' in p):
+#                     show = 'implicit'
+                sinfo['x'].append(list(p))
+
+        if len(sinfo['x']) == 0:
+            show = 'Invalid format'
+        else:
+            if len(sinfo['x']) == 1:
+                #show = 'Only one part'
+                sinfo['x'].append(sinfo['x'][0][:])
+            
+            #print sinfo
+            
+            if sinfo['x'][1][1] == '':
+                sinfo['x'][1][1] = sinfo['x'][0][1]
+            
+            copy_len = len(sinfo['x'][0][0]) - len(sinfo['x'][1][0])
+            if copy_len > 0:
+                #show = 'Relative folio number'
+                sinfo['x'][1][0] = sinfo['x'][0][0][0:copy_len] + sinfo['x'][1][0]
+        
+            if int(sinfo['x'][1][0]) > 600:
+                show = 'Folio number too large'
+        
+        if show:
+            print show
+            print sinfo
+            sinfo = None
+        
+        return sinfo 
+        
     def setoptorder_command(self):
         
         shire = self.cargs[0]

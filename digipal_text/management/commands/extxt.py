@@ -12,7 +12,7 @@ from digipal.utils import sorted_natural
 # pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
 
 import unicodedata
-from xhtml2pdf.pisa import showLogging
+#from xhtml2pdf.pisa import showLogging
 def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
@@ -103,30 +103,73 @@ Commands:
             print self.help
 
     def handentry_command(self):
-        from digipal_text.models import TextContentXML
-        
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
         
-        stints = self.get_stints()
         
         # entries = self.get_entries()
         
-        pages = {}
-        for sinfo in stints:
-            for number in self.get_page_numbers_from_stint(sinfo):
-                number = str(number)
-                if number not in pages:
-                    pages[number] = {}
-                pages[number][sinfo['hand']] = 1
-                
-        for number in sorted_natural(pages.keys()):
-            print number, pages[number].keys()
+        entry_lines = self.get_entries_line_number()
+
+        if 0:
+            stints = self.get_stints()
+            pages = {}
+            for sinfo in stints:
+                for number in self.get_page_numbers_from_stint(sinfo):
+                    number = str(number)
+                    if number not in pages:
+                        pages[number] = {}
+                    pages[number][sinfo['hand']] = 1
+    
+            for number in sorted_natural(pages.keys()):
+                print number, pages[number].keys()
+    
+            print '%s pages, %s with single hand.' % (len(pages.keys()), len([p for p in pages.values() if len(p.keys()) > 1]))
+
+    def get_entries_line_number(self):
+        ret = []
         
-        print '%s pages, %s with single hand.' % (len(pages.keys()), len([p for p in pages.values() if len(p.keys()) > 1])) 
+        from digipal_text.models import TextContentXML
+        text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
+        print text.id
+        
+        # TODO:
+        # remove all the marginal text
+        # and log where it contains longer text
+        
+        # add £ = virtual § <= renumbered facs
+        # add missing § and locus from rekeyed text
+        
+        content = text.content
+        
+        entry = ''
+        
+        for page in content.split('<span data-dpt="location" data-dpt-loctype="locus">'):
+            print '-' * 10
+            pn = re.findall(ur'^[^<]+', page)
+            pn = pn[0]
+            l = 0
+            en = 0
+            
+            for line in page.split('<span data-dpt="lb"/>'):
+                line = line.strip()
+                if line:
+                    l += 1
+                    
+                    for gallow in re.findall(ur'§', line):
+                        en += 1
+                        entry = '%s%s' % (pn, en)
+                    
+                    print pn, l, entry
+                    
+                    
+        
+        #for
+        
+        return ret
         
     def get_page_numbers_from_stint(self, sinfo):
         # {'note': u'opens and ends quire', 'x': [[u'353', u'r', u'1'], [u'355', u'v', u'9']], 'extent': u'353r1-5v9', 'hand': 'theta'}
-        # => ['353r', '353v', '354r', '354v', '355r', '355v']        
+        # => ['353r', '353v', '354r', '354v', '355r', '355v']
         ret = []
         for n in range(int(sinfo['x'][0][0]), int(sinfo['x'][1][0]) + 1):
             ret.append(str(n) + 'r')
@@ -231,7 +274,7 @@ Commands:
                 # e.g.  [(u'496', u'v', u'18'), (u'19', u'', u'')], 'extent': u'496v18-19'
                 if len(p[0]) == len(''.join(p)):
                     # => [(u'496', u'v', u'18'), (u'', u'', u'19')], 'extent': u'496v18-19'
-                    p = p[::-1] 
+                    p = p[::-1]
 #                 if ('' in p):
 #                     show = 'implicit'
                 sinfo['x'].append(list(p))
@@ -261,7 +304,7 @@ Commands:
             print sinfo
             sinfo = None
         
-        return sinfo 
+        return sinfo
         
     def setoptorder_command(self):
         

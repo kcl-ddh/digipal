@@ -499,6 +499,9 @@ Commands:
         #seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
         #seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
 
+        seed.append([24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42, 36, 0, 22, 26, 56, 43, 46, 3, 38, 50])
+        seed.append([17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43])
+
         self.print_candidate(vr, tics, hundreds)
                 
         # v1 = 1,0  means B,A
@@ -586,6 +589,23 @@ Cost: 77; Len: 63
 [1, 5, 60, 2, 38, 4, 62, 54, 27, 55, 10, 33, 13, 11, 24, 14, 12, 16, 22, 15, 17, 25, 6, 28, 20, 57, 58, 23, 56, 7, 36, 43, 45, 9, 37, 51, 59, 34, 18, 32, 0, 29, 47, 35, 52, 39, 48, 50, 53, 19, 61, 42, 8, 49, 21, 44, 26, 31, 3, 46, 30, 40, 41]
 [u'Williton', u'Abdick', u'Congresbury', u'Bruton: Blachethorna', u'Milverton or Brompton Regis', u'Milverton', u'Martock', u'Brompton Regis', u'Kingsbury', u'Dulverton', u'North Petherton', u'Reynaldsway', u'Bulstone', u'Cannington', u'Bedminster', u'Andersfield', u'Carhampton', u'Winterstoke', u'Chew', u'Taunton', u'Portbury', u'Hartcliffe', u'Keynsham', u'Wiveliscombe', u'Yeovil: Tintinhull', u'Winsford', u'Creech', u'Bempstone', u'Cleeve', u'Bath', u'Thurlbear', u'Lyatts', u'Whitestone', u'Frome: Kilmersdon', u'Thornfalcon', u'Sheriffs Brompton', u'North Curry', u'Somerton', u'Frome: Frome', u'Crewkerne', u'Chewton', u'Wellington', u'South Brent', u'Bruton: Wincanton', u'Cutcombe', u'Yeovil: Houndsborough', u'Frome: Frome/Downhead', u'Huntspill', u'Minehead', u'South Petherton', u'Coker', u'Carhampton / Williton', u'Frome: Wellow', u'Pitminster', u'Cheddar', u'Loxley', u'Bruton: Bruton', u'Wells', u'Milborne/Horethorne', u'Monkton', u'Lydeard', u'Yeovil: Lyatts', u'Yeovil: Stone']
 Cost: 70; Len: 63
+
+[24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42,
+ 36, 0, 22, 26, 56, 43, 46, 3, 38, 50]
+[u'Bedminster', u'Bath', u'Martock', u'Wellington', u'Lydeard', u'North Petherton', u'Cannington', u'Monkton', u'Yeovil: Lyatts', u'Cleeve', u'South Petherton', u'Williton', u'Portbury', u'Cutcombe', u'Bruton: Blachethorna', u'Huntspill', u'Hartcliffe', u'Cheddar', u'Minehead', u'Reynaldsway', u'Abdick', u'Milverton', u'Kingsbury', u'Bulstone', u'Andersfield', u'Carhampton', u'Winterstoke', u'Taunton', u'Frome: Frome', u'Frome: Wellow', u'Pitminster', u'Keynsham', u'Bempstone', u'Creech', u'Brompton Regis', u'North Curry', u'Whitestone', u'Yeovil: Tintinhull', u'Crewkerne', u'Wiveliscombe', u'Winsford', u'Bruton: Wincanton', u'Congresbury', u'Somerton', u'Wells', u'Loxley', u'Frome: Kilmersdon', u'South Brent', u'Yeovil: Houndsborough', u'Chewton', u'Chew', u'Bruton: Bruton', u'Coker', u'Frome: Frome/Downhead', u'Sheriffs Brompton', u'Milborne/Horethorne', u'Yeovil: Stone', u'Dulverton']
+Cost: 72; Len: 58
+
+[17, 56, 39, 42, 10, 31, 46, 25, 11, 19, 49, 13, 1, 47, 20, 12, 5, 27, 7, 4, 14, 16, 2, 15, 37, 48, 55, 33, 22, 18, 8, 28, 23, 45, 50, 41, 32, 35, 57, 6, 40, 52, 9, 34, 51, 44, 29, 26,
+ 0, 21, 3, 53, 38, 54, 30, 36, 24, 43]
+[u'Portbury', u'Coker', u'Loxley', u'South Brent', u'North Petherton', u'Wells', u'Sheriffs Brompton', u'Hartcliffe', u'Cannington', u'South Petherton', u'Brompton Regis', u'Bulstone',
+ u'Williton', u'Cutcombe', u'Yeovil: Tintinhull', u'Carhampton', u'Abdick', u'Kingsbury', u'Bath', u'Milverton', u'Andersfield', u'Winterstoke', u'Bruton: Blachethorna', u'Taunton', u'Yeovil: Lyatts', u'Minehead', u'Congresbury', u'Reynaldsway', u'Chew', u'Frome: Frome', u'Frome: Wellow', u'Wiveliscombe', u'Bempstone', u'Huntspill', u'Dulverton', u'Monkton', u'Crewkerne', u'Bruton: Wincanton', u'Martock', u'Keynsham', u'Whitestone', u'Winsford', u'Frome: Kilmersdon', u'Somerton', u'Cleeve', u'Pitminster', u'Wellington', u'Bruton: Bruton', u'Chewton', u'Cheddar', u'Milborne/Horethorne', u'Creech', u'Yeovil: Stone', u'North Curry', u'Lydeard', u'Yeovil: Houndsborough', u'Bedminster', u'Frome: Frome/Downhead']
+Cost: 70; Len: 58
+done
+
+[17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43]
+[u'Portbury', u'Cleeve', u'Loxley', u'Lydeard', u'North Petherton', u'Sheriffs Brompton', u'Wells', u'Hartcliffe', u'Cannington', u'South Petherton', u'Brompton Regis', u'Bulstone', u'Williton', u'Cutcombe', u'Minehead', u'Carhampton', u'Abdick', u'Bath', u'Kingsbury', u'Milverton', u'Andersfield', u'Winterstoke', u'Bruton: Blachethorna', u'Yeovil: Lyatts', u'Taunton', u'Yeovil: Tintinhull', u'Martock', u'Reynaldsway', u'Chew', u'Frome: Frome', u'Frome: Wellow', u'Wiveliscombe', u'Bempstone', u'Dulverton', u'Huntspill', u'Monkton', u'Bruton: Wincanton', u'Crewkerne', u'Congresbury', u'Keynsham', u'Whitestone', u'Winsford', u'Somerton', u'Frome: Kilmersdon', u'Coker', u'Wellington', u'Pitminster', u'Chewton', u'Bruton: Bruton',
+ u'Milborne/Horethorne', u'Cheddar', u'Creech', u'North Curry', u'Yeovil: Stone', u'South Brent', u'Bedminster', u'Yeovil: Houndsborough', u'Frome: Frome/Downhead']
+Cost: 66; Len: 58
 
 Wiltshire (None)
 ---------

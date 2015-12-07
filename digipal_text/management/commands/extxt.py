@@ -106,11 +106,11 @@ Commands:
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
         
         
-        # entries = self.get_entries()
+        #entries = self.get_entries()
         
-        entry_lines = self.get_entries_line_number()
+        #entry_lines = self.get_entries_line_number()
 
-        if 0:
+        if 1:
             stints = self.get_stints()
             pages = {}
             for sinfo in stints:
@@ -161,26 +161,11 @@ Commands:
                     
                     print pn, l, entry
                     
-                    
-        
-        #for
-        
         return ret
         
     def get_page_numbers_from_stint(self, sinfo):
-        # {'note': u'opens and ends quire', 'x': [[u'353', u'r', u'1'], [u'355', u'v', u'9']], 'extent': u'353r1-5v9', 'hand': 'theta'}
-        # => ['353r', '353v', '354r', '354v', '355r', '355v']
-        ret = []
-        for n in range(int(sinfo['x'][0][0]), int(sinfo['x'][1][0]) + 1):
-            ret.append(str(n) + 'r')
-            ret.append(str(n) + 'v')
-        
-        if sinfo['x'][0][1] == 'v':
-            ret.pop(0)
-        if sinfo['x'][1][1] == 'r':
-            ret.pop()
-            
-        return ret
+        from exon.customisations.digipal_lab.views.hands import get_page_numbers_from_stint
+        return get_page_numbers_from_stint(sinfo)
 
     def get_entries(self):
         # Get all entry numbers from the translation
@@ -198,114 +183,17 @@ Commands:
         return ret
     
     def get_stints(self):
-        ''' get the stints info from the hand descriptions
-            [
-                [{'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'x': [[502, v, 11], [503, v, 18]], 'hand': 'alpha'}, ...],
-                ...
-            ]
-        '''
-        from django.core.cache import get_cache
-        cache = get_cache('digipal_compute')
-        
-        stints = cache.get('stints')
-        
-        if stints is not None: return stints
-        
-        print 'get stints'
-        
-        from digipal.models import HandDescription
-        hdescs = HandDescription.objects.all().select_related('hand')
-        #hdescs = hdescs.filter(hand__label='mu')
-
-        stints = []
-        
-        # <span data-dpt="stint" data-dpt-cat="chars">493v4-6</span><
-        stint_pattern = re.compile(ur'(?musi)<span data-dpt="stint" data-dpt-cat="chars">\s*([^<]+)\s*</span>(?:\s*\[([^\]]*)\])?')
-        for hdesc in hdescs:
-            print '-' * 50
-            hlabel = ('%s' % hdesc.hand)
-            print hlabel
-            description = hdesc.description
-            
-            # Extract the stints section from the description
-            desc = re.sub(ur'(?musi).*What does he write(.*?)data-dpt="heading".*', ur'\1', description)
- 
-            stints += self.extract_stints_info_from_desc(desc, hlabel, stint_pattern)
-
-            desc = re.sub(ur'(?musi).*Previously unidentified(.*?)data-dpt="heading".*', ur'\1', description)
-            
-            stints += self.extract_stints_info_from_desc(desc, hlabel, stint_pattern)
-            
-            #print desc
-            #exit()
-            
-        cache.set('stints', stints)
-            
-        return stints
+        from exon.customisations.digipal_lab.views.hands import get_stints
+        return get_stints()
 
     def extract_stints_info_from_desc(self, desc, hlabel, stint_pattern):
-        ret = []
-        
-        # Extract the stints: {}
-        for stint in stint_pattern.findall(desc):
-            # e.g.
-            # {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'hand': 'alpha'}
-            sinfo = {'hand': hlabel, 'extent': stint[0], 'note': stint[1]}
-            #print sinfo
-            sinfo = self.expand_stint_extent(sinfo)
-            if sinfo:
-                ret.append(sinfo)
-            
-        return ret
+        from exon.customisations.digipal_lab.views.hands import extract_stints_info_from_desc
+        return extract_stints_info_from_desc(desc, hlabel, stint_pattern)
 
     def expand_stint_extent(self, sinfo):
-        # eg. sinfo = {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'hand': 'alpha'}
-        # out= sinfo = {'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'x': [[502, v, 11], [3, v, 18]], 'hand': 'alpha'}
-        extent = sinfo['extent']
-        sinfo['x'] = []
-        parts = extent.split('-')
-        if parts == 1:
-            parts.append(parts[0])
-        show = ''
-        for part in parts:
-            # e.g. 502v11
-            ps = re.findall(ur'^(\d+)?([rv])?(\d+)?$', part)
-            for p in ps:
-                # e.g.  [(u'496', u'v', u'18'), (u'19', u'', u'')], 'extent': u'496v18-19'
-                if len(p[0]) == len(''.join(p)):
-                    # => [(u'496', u'v', u'18'), (u'', u'', u'19')], 'extent': u'496v18-19'
-                    p = p[::-1]
-#                 if ('' in p):
-#                     show = 'implicit'
-                sinfo['x'].append(list(p))
+        from exon.customisations.digipal_lab.views.hands import expand_stint_extent
+        return expand_stint_extent(sinfo)
 
-        if len(sinfo['x']) == 0:
-            show = 'Invalid format'
-        else:
-            if len(sinfo['x']) == 1:
-                #show = 'Only one part'
-                sinfo['x'].append(sinfo['x'][0][:])
-            
-            #print sinfo
-            
-            if sinfo['x'][1][1] == '':
-                sinfo['x'][1][1] = sinfo['x'][0][1]
-            
-            copy_len = len(sinfo['x'][0][0]) - len(sinfo['x'][1][0])
-            if copy_len > 0:
-                #show = 'Relative folio number'
-                sinfo['x'][1][0] = sinfo['x'][0][0][0:copy_len] + sinfo['x'][1][0]
-        
-            if int(sinfo['x'][1][0]) > 600:
-                show = 'Folio number too large'
-        
-        if show:
-            print show
-            print sinfo
-            sinfo = None
-        
-        return sinfo
-        
     def setoptorder_command(self):
         
         shire = self.cargs[0]
@@ -480,9 +368,13 @@ Commands:
         #vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
         #vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
 
+        
+
         vr = [hundreds[label] for label in vr]
-        vr = range(0, len(vr))
+        #vr = range(0, len(vr))
+        vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
         seed = [vr]
+        seed.append([hundreds[label] for label in vr2])
         
         #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
         #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
@@ -499,8 +391,8 @@ Commands:
         #seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
         #seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
 
-        seed.append([24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42, 36, 0, 22, 26, 56, 43, 46, 3, 38, 50])
-        seed.append([17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43])
+        #seed.append([24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42, 36, 0, 22, 26, 56, 43, 46, 3, 38, 50])
+        #seed.append([17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43])
 
         self.print_candidate(vr, tics, hundreds)
                 

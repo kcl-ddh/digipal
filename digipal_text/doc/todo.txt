@@ -1,4 +1,14 @@
 
+--------------------------------------------------
+eta
+Invalid format
+{'note': u'', 'x': [], 'extent': u'465r2v7', 'hand': 'eta'}
+--------------------------------------------------
+sigma
+Invalid format
+{'note': u'', 'x': [], 'extent': u'9r7v10', 'hand': 'sigma'}
+--------------------------------------------------
+
 Odd stuff in stints desc:
 
     Alpha: 110v18 but 20 lines on that page. Cod desc also seem

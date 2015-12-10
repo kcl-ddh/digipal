@@ -37,6 +37,8 @@ Commands:
     setoptorder SHIRE HUNDRED
         Set the optimal order for a shire
 
+    handentry 
+        Map the hands to the entries
 """
     
     args = 'locus|email'
@@ -184,7 +186,7 @@ Commands:
     
     def get_stints(self):
         from exon.customisations.digipal_lab.views.hands import get_stints
-        return get_stints()
+        return get_stints(True)
 
     def extract_stints_info_from_desc(self, desc, hlabel, stint_pattern):
         from exon.customisations.digipal_lab.views.hands import extract_stints_info_from_desc

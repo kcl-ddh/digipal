@@ -37,7 +37,7 @@ Commands:
     setoptorder SHIRE HUNDRED
         Set the optimal order for a shire
 
-    handentry 
+    handentry
         Map the hands to the entries
 """
     
@@ -110,9 +110,10 @@ Commands:
         
         #entries = self.get_entries()
         
-        #entry_lines = self.get_entries_line_number()
+        entry_lines = self.get_entries_line_number()
+        print entry_lines
 
-        if 1:
+        if 0:
             stints = self.get_stints()
             pages = {}
             for sinfo in stints:

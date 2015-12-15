@@ -156,9 +156,15 @@ Commands:
                 . lines without entry
                 . more than 2 hands per line, the order is important
                 
+            3110 entries
+            156 assumed transitions (at beginning of entry)
+            70 ambiguous transitions
+            259 with more than one hand
+            56 without hand
+                
         '''
         
-        diag = '29v'
+        diag = '84v'
         
         pages = set(lines_entries.keys()) | set(lines_hands.keys())
         
@@ -210,9 +216,15 @@ Commands:
                                 ret[entry].append(msg)
             
             if page == diag:
-                print
-                print len(lines_entries[diag]), repr(lines_entries[diag])
-                print len([l for l in lines_hands[diag] if l]), repr(lines_hands[diag])
+                print '\ndebug %s' % page
+                for i in range(0, max(len([l for l in lines_entries[diag] if l]), len([l for l in lines_hands[diag] if l]))):
+                    entries = ''
+                    if len(lines_entries[diag]) > i:
+                        entries = ', '.join(lines_entries[diag][i])
+                    hands = ''
+                    if len(lines_hands[diag]) > i:
+                        hands = ', '.join(lines_hands[diag][i])
+                    print i + 1, entries, hands
                 
                 shown = {}
                 for line_entries in lines_entries[page]:
@@ -337,9 +349,6 @@ Commands:
         # add £ = virtual § <= renumbered facs
         # add missing § and locus from rekeyed text
         
-        
-        
-        
         if 0:
             entry = ''
             
@@ -386,16 +395,14 @@ Commands:
                     print repr(page[:20])
                     continue
 
-                page = re.sub(ur'^.*?</margin>', '', page)
-                
                 ret[pn] = []
 
-                #print pn
-                
+                # remove rest of the folio number enclosure
+                page = re.sub(ur'^.*?</margin>', '', page)
                 # remove all the margins
-                page = re.sub(ur'<margin>.*?</margin>', '', page)
+                page = re.sub(ur'(?musi)<margin>.*?</margin>', '', page)
                 # remove all the additions
-                page = re.sub(ur'<add>.*?</add>', '', page)
+                page = re.sub(ur'(?musi)<add>.*?</add>', '', page)
                 # remove all the pb
                 page = re.sub(ur'<pb/?>', '', page)
                 # convert /p into lb/

@@ -109,12 +109,134 @@ Commands:
         
         
         #entries = self.get_entries()
-        
-        entry_lines = self.get_entries_line_number()
-        print entry_lines
+    
+        entries_hands = self.get_entries_hands()
 
+        print '-' * 40
+        
+        for entry in sorted_natural(entries_hands.keys()):
+            print entry, ','.join(entries_hands[entry]) or 'NO HANDS'
+            
+        
+        print '%s entries' % len(entries_hands.keys())
+        print '%s assumed transitions (at beginning of entry)' % len([hands for hands in entries_hands.values() if 'ASSUMED' in hands])
+        print '%s ambiguous transitions' % len([hands for hands in entries_hands.values() if 'AMBIGUOUS' in hands])
+        print '%s with more than one hand' % len([hands for hands in entries_hands.values() if len([h for h in hands if h != 'ASSUMED']) > 1])
+        print '%s without hand' % len([hands for hands in entries_hands.values() if not hands])
+
+    def get_entries_hands(self):
+        ret = {}
+        
+        lines_entries = self.get_lines_entries()
+#         print lines_entries
+
+        lines_hands = self.get_lines_hands(lines_entries)
+        
+        '''
+        lines_entries['37v'] =
+        [
+            [u'37r5'], [u'37r5'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v1'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2'], [u'37v2']
+        ]
+        lines_hands['37v'] =
+        [
+            ['beta'], ['beta'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['tau'], ['alpha', 'tau'], ['alpha'], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+        ]
+        
+        '''
+        
+        '''
+        TODO:
+            . fix stints (see notepad)
+            . see warnings from lines_hands
+            . !!! add the virtual gallow marks
+                . from ellis
+                . check the numbers from the margin (after the main page?)
+            . additional validations:
+                . lines without hand
+                . lines without entry
+                . more than 2 hands per line, the order is important
+                
+        '''
+        
+        diag = '29v'
+        
+        pages = set(lines_entries.keys()) | set(lines_hands.keys())
+        
+        pages = sorted_natural(pages)
+        
+        for page in pages:
+            #print page
+            if page not in lines_entries:
+                print 'WARNING: page %s not in text but in stints (possible)' % page
+                continue
+            if page not in lines_hands:
+                print 'WARNING: page %s not in stints but in text' % page
+                continue
+            line0 = -1
+            for line_entries in lines_entries[page]:
+                line0 += 1
+                # get the hands on that line
+                if line0 < len(lines_hands[page]):
+                    hands = lines_hands[page][line0]
+                    # assign hands to entries
+                    if not hands:
+                        print 'WARNING: no hand on page %s line %s' % (page, line0 + 1)
+                    else:
+                        pass
+                    
+                    # assign all the hands to all the entries
+                    ie = -1
+                    for entry in line_entries:
+                        ie += 1
+                        if entry not in ret:
+                            ret[entry] = []
+                        ih = -1
+                        for hand in hands:
+                            ih += 1
+                            if len(hands) == len(line_entries):
+                                if ie != ih:
+                                    # assume that if we have 2 entries and 2 hands,
+                                    # there is one hand for each entry
+                                    # Otherwise all hands assigned to all entries
+                                    hand = 'ASSUMED'
+                                    #continue
+                                
+                            if hand not in ret[entry]:
+                                ret[entry].append(hand)
+
+                        if len(line_entries) != len(hands) and len(line_entries) > 1 and len(hands) > 1:
+                            msg = 'AMBIGUOUS'
+                            if msg not in ret[entry]:
+                                ret[entry].append(msg)
+            
+            if page == diag:
+                print
+                print len(lines_entries[diag]), repr(lines_entries[diag])
+                print len([l for l in lines_hands[diag] if l]), repr(lines_hands[diag])
+                
+                shown = {}
+                for line_entries in lines_entries[page]:
+                    for entry in line_entries:
+                        if entry in shown: continue
+                        shown[entry] = 1
+                        print entry, ret[entry]
+                #exit()
+        
+        return ret
+
+    def get_lines_hands(self, lines_entries):
+        '''
+            ret = [
+                    '1r1': [alpha, beta]
+                    ...
+                ]
+        '''
+        
+        ret = {}
+
+        stints = self.get_stints()
+        
         if 0:
-            stints = self.get_stints()
             pages = {}
             for sinfo in stints:
                 for number in self.get_page_numbers_from_stint(sinfo):
@@ -127,13 +249,86 @@ Commands:
                 print number, pages[number].keys()
     
             print '%s pages, %s with single hand.' % (len(pages.keys()), len([p for p in pages.values() if len(p.keys()) > 1]))
+        else:
+            '''
+                [
+                [{'note': u'ends and opens quire', 'extent': u'502v11-3v18', 'x': [[502, v, 11], [503, v, 18]], 'hand': 'alpha'}, ...],
+                ]
+            '''
+            for sinfo in stints:
+                #print sinfo['hand'], sinfo['extent'], sinfo.get('note', '')
+                pages = self.get_page_numbers_from_stint(sinfo)
+                last = len(pages)
+                for i in range(0, last):
+                    page = pages[i]
 
-    def get_entries_line_number(self):
+                    # get number of lines on this page according to the rekeyed text
+                    lines_on_page = 50
+                    if page in lines_entries:
+                        lines_on_page = len(lines_entries[page])
+                    else:
+                        print 'WARNING: page not found %s' % page
+
+                    # create line table for this page
+                    if page not in ret:
+                        ret[page] = [[] for j in range(0, 50)]
+                    
+                    # inclusive line range for this stint on this page
+                    lns = [1, lines_on_page]
+                    
+                    # use line numbers from stint extent
+                    if i == 0:
+                        lns[0] = sinfo['x'][0][2] or lns[0]
+                    if i == last - 1:
+                        lns[1] = sinfo['x'][1][2] or lns[1]
+                        
+                    for ln in range(int(lns[0]), int(lns[1])+1):
+                        #ret[page][ln-1].append('%s (%s)' % (sinfo['hand'], sinfo['extent']))
+                        l = ret[page][ln-1]
+                        # pos important!
+                        # to avoid [[tau], [alpha, tau], [alpha]]
+                        # TODO: doesn't work with more than 2 hands per line!
+                        pos = len(l)
+                        if ln == int(lns[1]):
+                            pos = 0
+                        l.insert(pos, '%s' % sinfo['hand'])
+                        #print page, ln-1, sinfo['hand']
+            
+        return ret
+
+    def get_lines_entries(self):
+        '''
+        Returns the entries found on each line of the manuscript.
+        The returned structure looks like this:
+        {
+            u'291r': [
+                        [u'290v3'],
+                        [u'290v3', u'291r1'],
+                        [u'291r1'],
+                        [u'291r1'],
+                        [...]
+                        [u'291r3']
+                    ],
+            u'429v': [
+                        [u'429r5'],
+                        [u'429r5'],
+                        [...]
+        '''
         ret = []
         
-        from digipal_text.models import TextContentXML
-        text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
-        print text.id
+        if 0:
+            # get rekeyed text from DB
+            from digipal_text.models import TextContentXML
+            text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
+            print text.id
+            content = text.content
+        else:
+            # get rekeyed text from file
+            from digipal import utils
+            content = utils.read_file('exon/source/rekeyed/converted/EXON-1-493.hands.xml')
+            xml = utils.get_xml_from_unicode(content)
+            content = utils.get_unicode_from_xml(xml)
+            
         
         # TODO:
         # remove all the marginal text
@@ -142,27 +337,93 @@ Commands:
         # add £ = virtual § <= renumbered facs
         # add missing § and locus from rekeyed text
         
-        content = text.content
         
-        entry = ''
         
-        for page in content.split('<span data-dpt="location" data-dpt-loctype="locus">'):
-            print '-' * 10
-            pn = re.findall(ur'^[^<]+', page)
-            pn = pn[0]
-            l = 0
-            en = 0
+        
+        if 0:
+            entry = ''
             
-            for line in page.split('<span data-dpt="lb"/>'):
-                line = line.strip()
-                if line:
-                    l += 1
-                    
-                    for gallow in re.findall(ur'§', line):
-                        en += 1
-                        entry = '%s%s' % (pn, en)
-                    
-                    print pn, l, entry
+            for page in content.split('<span data-dpt="location" data-dpt-loctype="locus">'):
+                #print '-' * 10
+                pn = re.findall(ur'^[^<]+', page)
+                pn = pn[0]
+                l = 0
+                en = 0
+                
+                for line in page.split('<span data-dpt="lb"/>'):
+                    line = line.strip()
+                    if line:
+                        l += 1
+                        
+                        for gallow in re.findall(ur'§', line):
+                            en += 1
+                            entry = '%s%s' % (pn, en)
+                        
+                        #print pn, l, entry
+        else:
+            entry = ''
+            
+            ret = {}
+            
+            for page in re.split(ur'<margin>\s*fol\.?\s*', content):
+                #print '-' * 10
+                #pn = re.findall(ur'^[^<]+', page)
+                #pn = pn[0].strip()
+                
+                # read the folio number
+                pnm = re.search(ur'^(\d+)\.?\s*(b\.?)?</margin>', page)
+                if not pnm:
+                    print 'WARNING: no page number found ' + repr(page[:30])
+                    continue
+
+                pn = pnm.group(1)
+                if pnm.group(2) is None:
+                    pn += 'r'
+                elif pnm.group(2)[0] == 'b':
+                    pn += 'v'
+                else:
+                    print 'WARNING: invalid folio number'
+                    print repr(page[:20])
+                    continue
+
+                page = re.sub(ur'^.*?</margin>', '', page)
+                
+                ret[pn] = []
+
+                #print pn
+                
+                # remove all the margins
+                page = re.sub(ur'<margin>.*?</margin>', '', page)
+                # remove all the additions
+                page = re.sub(ur'<add>.*?</add>', '', page)
+                # remove all the pb
+                page = re.sub(ur'<pb/?>', '', page)
+                # convert /p into lb/
+                page = re.sub(ur'</p>', '<lb/>', page)
+                page = re.sub(ur'<p>', '', page)
+
+                l = 0
+                en = 0
+
+                # parse the page
+                for line in re.split(ur'<lb/>|</p>', page):
+                    line = line.strip()
+                    if line:
+                        l += 1
+                        
+                        entries = []
+
+                        if entry and line[0] not in [ur'£', ur'§']:
+                            entries = [entry]
+
+                        for gallow in re.findall(ur'£|§', line):
+                            en += 1
+                            entry = '%s%s' % (pn, en)
+                            entries.append(entry)
+
+                        ret[pn].append(entries)
+                        
+                        #print pn, l, ret[pn][l-1]
                     
         return ret
         

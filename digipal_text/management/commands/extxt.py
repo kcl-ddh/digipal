@@ -113,8 +113,14 @@ Commands:
         
         #entries = self.get_entries()
     
+        #self.find_certainties()
+        
+        self.find_missing_entries()
+    
+        exit()
+    
         entries_hands = self.get_entries_hands()
-
+        
         print '-' * 40
         
 #         for entry in sorted_natural(entries_hands.keys()):
@@ -126,6 +132,49 @@ Commands:
         print '%s ambiguous transitions' % len([hands for hands in entries_hands.values() if 'AMBIGUOUS' in hands])
         print '%s with more than one hand' % len([hands for hands in entries_hands.values() if len([h for h in hands if h != 'ASSUMED']) > 1])
         print '%s without hand' % len([hands for hands in entries_hands.values() if not hands])
+
+    def find_missing_entries(self):
+        lines_entries = self.get_lines_entries()
+        
+        from digipal_text.models import TextContentXML
+        tcx = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        content = tcx.content
+        
+        tl_entries = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">([^<]+)</span>', content)
+        
+        tc_entries = {}
+        for page, lines in lines_entries.iteritems():
+            for line in lines:
+                for entry in line:
+                    entry = entry.replace('r', 'a')
+                    entry = entry.replace('v', 'b')
+                    tc_entries[entry] = 1
+        tc_entries = tc_entries.keys()
+        
+        print tl_entries
+        print tc_entries
+        missing = set(tl_entries) - set(tc_entries)
+        pages = []
+        for entry in sorted_natural(list(missing)):
+            entry_page = re.sub(ur'(.*[ab]).*', ur'\1', entry)
+            if entry_page not in pages:
+                print '-' * 10
+                pages.append(entry_page)
+            print entry
+        
+        print len(pages), '\n'.join(pages)
+
+    def find_certainties(self):
+        lines_entries = self.get_lines_entries()
+        lines_hands = self.get_lines_hands(lines_entries)
+        
+        # List all the pages, with the hands on that page if more than one hand
+        for page in sorted_natural(lines_hands.keys()):
+            hands = {}
+            for line_hands in lines_hands[page]:
+                for hand in line_hands:
+                    hands[hand] = 1
+            print page, (hands.keys() if len(hands.keys()) != 1 else '')
 
     def get_entries_hands(self):
         ret = {}
@@ -289,7 +338,7 @@ Commands:
                     if page in lines_entries:
                         lines_on_page = len(lines_entries[page])
                     else:
-                        self.msg('page not found %s' % page)
+                        self.msg('page not found %s', page)
 
                     # create line table for this page
                     if page not in ret:
@@ -297,6 +346,9 @@ Commands:
                     
                     # inclusive line range for this stint on this page
                     lns = [1, lines_on_page]
+                    
+                    if lns[1] < lns[0]:
+                        self.msg('empty stint range %s (%s)', sinfo['hand'], sinfo['extent'])
                     
                     # use line numbers from stint extent
                     if i == 0:

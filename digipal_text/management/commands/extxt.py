@@ -61,6 +61,9 @@ Commands:
         
         self.options = options
         
+        from digipal.management.commands.utils import CommandMessages
+        self.cm = CommandMessages()
+        
         if len(args) < 1:
             print self.help
             exit()
@@ -99,8 +102,8 @@ Commands:
             self.handentry_command()
 
         if known_command:
+            self.cm.printSummary()
             print 'done'
-            pass
         else:
             print self.help
 
@@ -114,8 +117,8 @@ Commands:
 
         print '-' * 40
         
-        for entry in sorted_natural(entries_hands.keys()):
-            print entry, ','.join(entries_hands[entry]) or 'NO HANDS'
+#         for entry in sorted_natural(entries_hands.keys()):
+#             print entry, ','.join(entries_hands[entry]) or 'NO HANDS'
             
         
         print '%s entries' % len(entries_hands.keys())
@@ -164,19 +167,21 @@ Commands:
                 
         '''
         
-        diag = '84v'
+        diag = '84vr'
         
         pages = set(lines_entries.keys()) | set(lines_hands.keys())
         
         pages = sorted_natural(pages)
         
+        last_page_warning = ''
+        
         for page in pages:
             #print page
             if page not in lines_entries:
-                print 'WARNING: page %s not in text but in stints (possible)' % page
+                self.msg('page %s not in text but in stints (possible)', page)
                 continue
             if page not in lines_hands:
-                print 'WARNING: page %s not in stints but in text' % page
+                self.msg('page %s not in stints but in text', page)
                 continue
             line0 = -1
             for line_entries in lines_entries[page]:
@@ -186,7 +191,10 @@ Commands:
                     hands = lines_hands[page][line0]
                     # assign hands to entries
                     if not hands:
-                        print 'WARNING: no hand on page %s line %s' % (page, line0 + 1)
+                        if last_page_warning != page:
+                            last_page_warning = page
+                            print '-' * 10
+                        self.msg('no hand on page %s line %s', page, line0 + 1)
                     else:
                         pass
                     
@@ -245,6 +253,8 @@ Commands:
         '''
         
         ret = {}
+        
+        print_lines = False
 
         stints = self.get_stints()
         
@@ -279,7 +289,7 @@ Commands:
                     if page in lines_entries:
                         lines_on_page = len(lines_entries[page])
                     else:
-                        print 'WARNING: page not found %s' % page
+                        self.msg('page not found %s' % page)
 
                     # create line table for this page
                     if page not in ret:
@@ -296,6 +306,8 @@ Commands:
                         
                     for ln in range(int(lns[0]), int(lns[1])+1):
                         #ret[page][ln-1].append('%s (%s)' % (sinfo['hand'], sinfo['extent']))
+                        if print_lines:
+                            print page, ln-1, lns
                         l = ret[page][ln-1]
                         # pos important!
                         # to avoid [[tau], [alpha, tau], [alpha]]
@@ -327,6 +339,8 @@ Commands:
                         [...]
         '''
         ret = []
+        
+        print_lines = False
         
         if 0:
             # get rekeyed text from DB
@@ -374,6 +388,9 @@ Commands:
             
             ret = {}
             
+            # remove all comments
+            content = re.sub(ur'(?musi)^<!--.*?-->', '', content)
+
             for page in re.split(ur'<margin>\s*fol\.?\s*', content):
                 #print '-' * 10
                 #pn = re.findall(ur'^[^<]+', page)
@@ -382,7 +399,7 @@ Commands:
                 # read the folio number
                 pnm = re.search(ur'^(\d+)\.?\s*(b\.?)?</margin>', page)
                 if not pnm:
-                    print 'WARNING: no page number found ' + repr(page[:30])
+                    self.msg('no page number found %s', repr(page[:30]))
                     continue
 
                 pn = pnm.group(1)
@@ -391,8 +408,7 @@ Commands:
                 elif pnm.group(2)[0] == 'b':
                     pn += 'v'
                 else:
-                    print 'WARNING: invalid folio number'
-                    print repr(page[:20])
+                    self.msg('invalid folio number %s', repr(page[:30]))
                     continue
 
                 ret[pn] = []
@@ -404,7 +420,7 @@ Commands:
                 # remove all the additions
                 page = re.sub(ur'(?musi)<add>.*?</add>', '', page)
                 # remove all the pb
-                page = re.sub(ur'<pb/?>', '', page)
+                page = re.sub(ur'<pb[^>]*>', '', page)
                 # convert /p into lb/
                 page = re.sub(ur'</p>', '<lb/>', page)
                 page = re.sub(ur'<p>', '', page)
@@ -417,6 +433,8 @@ Commands:
                     line = line.strip()
                     if line:
                         l += 1
+                        if print_lines:
+                            print pn, l, repr(line[:20])
                         
                         entries = []
 
@@ -1344,4 +1362,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # write result
         write_file(output_path, content)
-        
+
+    def msg(self, message, *args, **kwargs):
+        self.cm.msg(message, *args, **kwargs)

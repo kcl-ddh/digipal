@@ -115,9 +115,10 @@ Commands:
     
         #self.find_certainties()
         
-        self.find_missing_entries()
+        if 0:
+            self.find_missing_entries()
     
-        exit()
+            exit()
     
         entries_hands = self.get_entries_hands()
         
@@ -134,6 +135,11 @@ Commands:
         print '%s without hand' % len([hands for hands in entries_hands.values() if not hands])
 
     def find_missing_entries(self):
+        '''
+            Print entry numbers found in the translation but not in the rekeyed text.
+            Marginal text is ignored from the rekeyed text.
+        '''
+        
         lines_entries = self.get_lines_entries()
         
         from digipal_text.models import TextContentXML
@@ -154,15 +160,27 @@ Commands:
         print tl_entries
         print tc_entries
         missing = set(tl_entries) - set(tc_entries)
-        pages = []
+        pages = {}
         for entry in sorted_natural(list(missing)):
             entry_page = re.sub(ur'(.*[ab]).*', ur'\1', entry)
-            if entry_page not in pages:
+            if entry_page == entry: continue
+            if entry_page not in pages.keys():
                 print '-' * 10
-                pages.append(entry_page)
+                pages[entry_page] = 0
+            if re.match(ur'.*[ab]\d+', entry):
+                pages[entry_page] += 1
             print entry
         
-        print len(pages), '\n'.join(pages)
+        cnt = 0
+        pages_str = ''
+        for page in sorted_natural(pages.keys()):
+            if pages[page] > 0:
+                cnt += 1
+                pages_str += ', ' + page.replace('a', 'r').replace('b', 'v')
+                if pages[page] > 1:
+                    pages_str += ' ('+str(pages[page])+')'
+        print pages_str
+        print cnt
 
     def find_certainties(self):
         lines_entries = self.get_lines_entries()
@@ -216,7 +234,7 @@ Commands:
                 
         '''
         
-        diag = '84vr'
+        diag = '96r'
         
         pages = set(lines_entries.keys()) | set(lines_hands.keys())
         
@@ -392,21 +410,13 @@ Commands:
         '''
         ret = []
         
-        print_lines = False
+        print_lines = 1
         
-        if 0:
-            # get rekeyed text from DB
-            from digipal_text.models import TextContentXML
-            text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
-            print text.id
-            content = text.content
-        else:
-            # get rekeyed text from file
-            from digipal import utils
-            content = utils.read_file('exon/source/rekeyed/converted/EXON-1-493.hands.xml')
-            xml = utils.get_xml_from_unicode(content)
-            content = utils.get_unicode_from_xml(xml)
-            
+        # get rekeyed text from file
+        from digipal import utils
+        content = utils.read_file('exon/source/rekeyed/converted/EXON-1-493.hands.xml')
+        xml = utils.get_xml_from_unicode(content)
+        content = utils.get_unicode_from_xml(xml)
         
         # TODO:
         # remove all the marginal text
@@ -415,92 +425,76 @@ Commands:
         # add £ = virtual § <= renumbered facs
         # add missing § and locus from rekeyed text
         
-        if 0:
-            entry = ''
+        entry = ''
+        
+        ret = {}
+        
+        # remove all comments
+        content = re.sub(ur'(?musi)<!--.*?-->', '', content)
+
+        for page in re.split(ur'<margin>\s*fol\.?\s*', content):
+            #print '-' * 10
+            #pn = re.findall(ur'^[^<]+', page)
+            #pn = pn[0].strip()
             
-            for page in content.split('<span data-dpt="location" data-dpt-loctype="locus">'):
-                #print '-' * 10
-                pn = re.findall(ur'^[^<]+', page)
-                pn = pn[0]
-                l = 0
-                en = 0
-                
-                for line in page.split('<span data-dpt="lb"/>'):
-                    line = line.strip()
-                    if line:
-                        l += 1
-                        
-                        for gallow in re.findall(ur'§', line):
-                            en += 1
-                            entry = '%s%s' % (pn, en)
-                        
-                        #print pn, l, entry
-        else:
-            entry = ''
-            
-            ret = {}
-            
-            # remove all comments
-            content = re.sub(ur'(?musi)^<!--.*?-->', '', content)
+            # read the folio number
+            pnm = re.search(ur'^(\d+)\.?\s*(b\.?)?</margin>', page)
+            if not pnm:
+                self.msg('no page number found %s', repr(page[:30]))
+                continue
 
-            for page in re.split(ur'<margin>\s*fol\.?\s*', content):
-                #print '-' * 10
-                #pn = re.findall(ur'^[^<]+', page)
-                #pn = pn[0].strip()
-                
-                # read the folio number
-                pnm = re.search(ur'^(\d+)\.?\s*(b\.?)?</margin>', page)
-                if not pnm:
-                    self.msg('no page number found %s', repr(page[:30]))
-                    continue
+            pn = pnm.group(1)
+            if pnm.group(2) is None:
+                pn += 'r'
+            elif pnm.group(2)[0] == 'b':
+                pn += 'v'
+            else:
+                self.msg('invalid folio number %s', repr(page[:30]))
+                continue
 
-                pn = pnm.group(1)
-                if pnm.group(2) is None:
-                    pn += 'r'
-                elif pnm.group(2)[0] == 'b':
-                    pn += 'v'
-                else:
-                    self.msg('invalid folio number %s', repr(page[:30]))
-                    continue
+            ret[pn] = []
 
-                ret[pn] = []
+            # remove rest of the folio number enclosure
+            page = re.sub(ur'^.*?</margin>', '', page)
+            # remove all the margins
+            page = re.sub(ur'(?musi)<margin>.*?</margin>', '', page)
+            # remove all the additions
+            page = re.sub(ur'(?musi)<add>.*?</add>', '', page)
+            # remove all the pb
+            page = re.sub(ur'<pb[^>]*>', '', page)
+            # convert /p into lb/
+            page = re.sub(ur'</p>', '<lb/>', page)
+            page = re.sub(ur'<p>', '', page)
+            # turn virtual gallows mark into normal ones
+            page = page.replace(ur'£', ur'§')
+            page = page.replace(ur'<nsc/?>', ur'')
 
-                # remove rest of the folio number enclosure
-                page = re.sub(ur'^.*?</margin>', '', page)
-                # remove all the margins
-                page = re.sub(ur'(?musi)<margin>.*?</margin>', '', page)
-                # remove all the additions
-                page = re.sub(ur'(?musi)<add>.*?</add>', '', page)
-                # remove all the pb
-                page = re.sub(ur'<pb[^>]*>', '', page)
-                # convert /p into lb/
-                page = re.sub(ur'</p>', '<lb/>', page)
-                page = re.sub(ur'<p>', '', page)
+            l = 0
+            en = 0
 
-                l = 0
-                en = 0
+            # parse the page
+            for line in re.split(ur'<lb/>|</p>', page):
+                line = line.strip()
+                if line:
+                    l += 1
+                    if print_lines:
+                        print pn, l, repr(line[:20])
+                    
+                    entries = []
 
-                # parse the page
-                for line in re.split(ur'<lb/>|</p>', page):
-                    line = line.strip()
-                    if line:
-                        l += 1
-                        if print_lines:
-                            print pn, l, repr(line[:20])
-                        
-                        entries = []
+                    # port the entry from previous line, 
+                    # unless the line starts with gallows mark 
+                    if entry and line[0] != ur'§':
+                        entries = [entry]
 
-                        if entry and line[0] not in [ur'£', ur'§']:
-                            entries = [entry]
+                    for gallows_number in re.findall(ur'§(\d*)', line):
+                        en = int(gallows_number or (en + 1))
+                        entry = '%s%s' % (pn, en)
+                        entries.append(entry)
 
-                        for gallow in re.findall(ur'£|§', line):
-                            en += 1
-                            entry = '%s%s' % (pn, en)
-                            entries.append(entry)
-
-                        ret[pn].append(entries)
-                        
-                        #print pn, l, ret[pn][l-1]
+                    ret[pn].append(entries)
+                    
+                    #print pn, l, ret[pn][l-1]
                     
         return ret
         

@@ -17,6 +17,8 @@ def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
+MAX_LINES_PER_PAGE = 50
+
 class Command(BaseCommand):
     help = """
 Text conversion tool
@@ -124,16 +126,64 @@ Commands:
         
         print '-' * 40
         
-#         for entry in sorted_natural(entries_hands.keys()):
-#             print entry, ','.join(entries_hands[entry]) or 'NO HANDS'
+        tl_entries = self.get_entry_numbers_from_translation()
+        all_entries = sorted_natural(list(set(entries_hands.keys() + tl_entries)))
+        
+        # print results
+        if 0:
+            for entry in all_entries:
+                hands = ''
+                if entry in entries_hands:
+                    hands = ','.join(entries_hands[entry])
+                print entry, hands or 'NO HANDS'
             
+        self.write_handsentry_csv(entries_hands, all_entries)
         
         print '%s entries' % len(entries_hands.keys())
-        print '%s assumed transitions (at beginning of entry)' % len([hands for hands in entries_hands.values() if 'ASSUMED' in hands])
-        print '%s ambiguous transitions' % len([hands for hands in entries_hands.values() if 'AMBIGUOUS' in hands])
-        print '%s with more than one hand' % len([hands for hands in entries_hands.values() if len([h for h in hands if h != 'ASSUMED']) > 1])
+        print '%s assumed transitions (at beginning of entry)' % len([hands for hands in entries_hands.values() if '_ASSUMED' in hands])
+        print '%s ambiguous transitions' % len([hands for hands in entries_hands.values() if '_AMBIGUOUS' in hands])
+        print '%s with more than one hand' % len([hands for hands in entries_hands.values() if len([h for h in hands if h != '_ASSUMED']) > 1])
         print '%s without hand' % len([hands for hands in entries_hands.values() if not hands])
 
+    def write_handsentry_csv(self, entries_hands, all_entries):
+        '''
+            Write the entries-hand info into a CSV file called entries-hands.csv
+        '''
+        #headings = ['entry', 'hands', 'nbhands', 'notes', 'certainty']
+        headings = ['entry', 'hands', 'nbhands', 'notes']
+        file_path = 'entries-hands.csv'
+        
+        rows = []
+        
+        # create a table for the result
+        for entry in all_entries:
+            row = {}
+            row['entry'] = entry
+            row['hands'] = ''
+            row['nbhands'] = 0
+            if entry in entries_hands:
+                hands = entries_hands[entry]
+                row['hands'] = [hand for hand in hands if hand[0] != '_']
+                row['nbhands'] = len(row['hands'])
+                row['notes'] = [hand.replace('_', '') for hand in hands if hand[0] == '_']
+                if row['nbhands'] == 0: row['notes'].append('NO_HAND')
+                for col in ['hands', 'notes']:
+                    row[col] = ', '.join(row[col])
+            rows.append(row)
+        
+        from digipal.utils import write_rows_to_csv
+        
+        write_rows_to_csv(file_path, rows, headings=headings)
+
+    def get_entry_numbers_from_translation(self):
+        from digipal_text.models import TextContentXML
+        tcx = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        content = tcx.content
+        
+        ret = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">\s*(\d+[ab]\d+)\s*</span>', content)
+
+        return ret
+    
     def find_missing_entries(self):
         '''
             Print entry numbers found in the translation but not in the rekeyed text.
@@ -142,11 +192,7 @@ Commands:
         
         lines_entries = self.get_lines_entries()
         
-        from digipal_text.models import TextContentXML
-        tcx = TextContentXML.objects.filter(text_content__type__slug='translation').first()
-        content = tcx.content
-        
-        tl_entries = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">([^<]+)</span>', content)
+        tl_entries = self.get_entry_numbers_from_translation()
         
         tc_entries = {}
         for page, lines in lines_entries.iteritems():
@@ -234,7 +280,7 @@ Commands:
                 
         '''
         
-        diag = '96r'
+        diag = '82v'
         
         pages = set(lines_entries.keys()) | set(lines_hands.keys())
         
@@ -242,7 +288,23 @@ Commands:
         
         last_page_warning = ''
         
+# ----------------------------------------
+# 3167 entries
+# 209 assumed transitions (at beginning of entry)
+# 49 ambiguous transitions
+# 224 with more than one hand
+# 8 without hand
+# ========================================
+# MESSAGES SUMMARY
+# 3 WARNING: page {} not in text but in stints (possible)
+# 4 WARNING: page not found {}
+# 25 WARNING: page {} not in stints but in text
+# 1 WARNING: no page number found {}
+# 145 WARNING: no hand on page {} line {}
+# done
+        
         for page in pages:
+            
             #print page
             if page not in lines_entries:
                 self.msg('page %s not in text but in stints (possible)', page)
@@ -250,48 +312,53 @@ Commands:
             if page not in lines_hands:
                 self.msg('page %s not in stints but in text', page)
                 continue
+            if (len(lines_entries[page]) != len(lines_hands[page])) and (len(lines_hands[page]) != MAX_LINES_PER_PAGE):
+                self.msg('page %s: %s lines in text vs %s lines in stints', page, len(lines_entries[page]), len(lines_hands[page]))
+            
             line0 = -1
             for line_entries in lines_entries[page]:
                 line0 += 1
+                
                 # get the hands on that line
+                hands = []
                 if line0 < len(lines_hands[page]):
                     hands = lines_hands[page][line0]
-                    # assign hands to entries
-                    if not hands:
-                        if last_page_warning != page:
-                            last_page_warning = page
-                            print '-' * 10
-                        self.msg('no hand on page %s line %s', page, line0 + 1)
-                    else:
-                        pass
-                    
-                    # assign all the hands to all the entries
-                    ie = -1
-                    for entry in line_entries:
-                        ie += 1
-                        if entry not in ret:
-                            ret[entry] = []
-                        ih = -1
-                        for hand in hands:
-                            ih += 1
-                            if len(hands) == len(line_entries):
-                                if ie != ih:
-                                    # assume that if we have 2 entries and 2 hands,
-                                    # there is one hand for each entry
-                                    # Otherwise all hands assigned to all entries
-                                    hand = 'ASSUMED'
-                                    #continue
-                                
-                            if hand not in ret[entry]:
-                                ret[entry].append(hand)
+                
+                # assign hands to entries
+                if not hands:
+                    if last_page_warning != page:
+                        last_page_warning = page
+                        print '-' * 10
+                    self.msg('no hand on page %s line %s', page, line0 + 1)
+                
+                # assign all the hands to all the entries
+                ie = -1
+                for entry in line_entries:
+                    ie += 1
+                    if entry not in ret:
+                        ret[entry] = []
+                    ih = -1
+                    for hand in hands:
+                        ih += 1
+                        if len(hands) == len(line_entries):
+                            if ie != ih:
+                                # assume that if we have 2 entries and 2 hands,
+                                # there is one hand for each entry
+                                # Otherwise all hands assigned to all entries
+                                hand = '_ASSUMED'
+                                #continue
+                            
+                        if hand not in ret[entry]:
+                            ret[entry].append(hand)
 
-                        if len(line_entries) != len(hands) and len(line_entries) > 1 and len(hands) > 1:
-                            msg = 'AMBIGUOUS'
-                            if msg not in ret[entry]:
-                                ret[entry].append(msg)
+                    if len(line_entries) != len(hands) and len(line_entries) > 1 and len(hands) > 1:
+                        msg = '_AMBIGUOUS'
+                        if msg not in ret[entry]:
+                            ret[entry].append(msg)
             
             if page == diag:
                 print '\ndebug %s' % page
+                
                 for i in range(0, max(len([l for l in lines_entries[diag] if l]), len([l for l in lines_hands[diag] if l]))):
                     entries = ''
                     if len(lines_entries[diag]) > i:
@@ -352,7 +419,7 @@ Commands:
                     page = pages[i]
 
                     # get number of lines on this page according to the rekeyed text
-                    lines_on_page = 50
+                    lines_on_page = MAX_LINES_PER_PAGE
                     if page in lines_entries:
                         lines_on_page = len(lines_entries[page])
                     else:
@@ -360,7 +427,7 @@ Commands:
 
                     # create line table for this page
                     if page not in ret:
-                        ret[page] = [[] for j in range(0, 50)]
+                        ret[page] = [[] for j in range(0, MAX_LINES_PER_PAGE)]
                     
                     # inclusive line range for this stint on this page
                     lns = [1, lines_on_page]
@@ -410,7 +477,7 @@ Commands:
         '''
         ret = []
         
-        print_lines = 1
+        print_lines = 0
         
         # get rekeyed text from file
         from digipal import utils
@@ -482,14 +549,15 @@ Commands:
                     
                     entries = []
 
-                    # port the entry from previous line, 
-                    # unless the line starts with gallows mark 
+                    # port the entry from previous line,
+                    # unless the line starts with gallows mark
                     if entry and line[0] != ur'§':
                         entries = [entry]
 
                     for gallows_number in re.findall(ur'§(\d*)', line):
                         en = int(gallows_number or (en + 1))
                         entry = '%s%s' % (pn, en)
+                        entry = entry.replace('r', 'a').replace('v', 'b')
                         entries.append(entry)
 
                     ret[pn].append(entries)

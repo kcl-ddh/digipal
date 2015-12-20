@@ -755,7 +755,7 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def write_rows_to_csv(file_path, rows, encoding=None):
+def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
     '''
         rows: a list of records, each record is a dictionary with key/values
             all records must have the same keys
@@ -766,7 +766,7 @@ def write_rows_to_csv(file_path, rows, encoding=None):
     import csv
     with open(file_path, 'wb') as csvfile:
         if len(rows):
-            csvwriter = csv.DictWriter(csvfile, rows[0].keys())
+            csvwriter = csv.DictWriter(csvfile, headings or rows[0].keys())
             csvwriter.writeheader()
             for row in rows:
                 row_encoded = {}

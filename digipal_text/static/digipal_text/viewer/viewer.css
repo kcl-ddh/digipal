@@ -100,9 +100,14 @@ ul.dropdown-menu.dpbs-clicked {
 }
 
 .btn-toolbar .chzn-container {
-    width: 10em !important;
+    /* width: 10em !important; */
+    width: auto !important;
     margin-top: 2px !important;
     margin-bottom: 2px !important;
+}
+
+.btn-toolbar .linker .chzn-container {
+    width: auto !important;
 }
 
 .btn-toolbar .chzn-container-single .chzn-single {

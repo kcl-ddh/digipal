@@ -520,10 +520,13 @@
                     // use the full width
                     dimension_request = '&WID=' + Math.round(max_expanded_width[right_or_left]);
                 }
-                dimension_request += '&QLT=100&CVT=JPG';
-
+                dimension_request += '&QLT=100&CVT=JPG';    
+                
                 // reposition the div to the right of the cursor
-                expanded_div.css('left', '' + (expanded_img_x[right_or_left]) + 'px');
+                //expanded_div.css('left', '' + (expanded_img_x[right_or_left]) + 'px');
+
+                // GN 2015/12/10: patch: if image to the right of thumb, we clip it to the window right edge
+                expanded_div.css(right_or_left ? 'right' : 'left', '0');
 
                 // update the image in the div
                 var img_url = thumbnail_img.attr('src').replace(/^([^?]+)\?.*(FIF=[^&]+).*$/i, '$1?$2');

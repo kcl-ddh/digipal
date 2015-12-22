@@ -36,6 +36,9 @@ Commands:
     cs
         TODO
         collect static
+        
+    cpip REQ1 REQ2
+        compare two PIP req files (pip freeze)
 
 """
     
@@ -117,6 +120,10 @@ Commands:
         if command =='multivalued':
             known_command = True
             self.multivalued(*args[1:])
+
+        if command =='cpip':
+            known_command = True
+            self.cpip(*args[1:])
 
         if command == 'chd':
             # convert hand desc from xml to html
@@ -256,6 +263,35 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def cpip(self, *args):
+        from digipal.utils import natural_sort_key
+        fs = (args[0], args[1])
+        
+        fpkgs = []
+        
+        # read packages from two PIP req files
+        from digipal.utils import read_file
+        for f in fs:
+            pkgs = {}
+            for line in read_file(f).split('\n'):
+                parts = line.strip().split('==')
+                if len(parts) == 2:
+                    pkgs[parts[0]] = parts[1]
+            fpkgs.append(pkgs)
+         
+        # compare
+        def get_version(fileindex, pkgname):
+            return fpkgs[fileindex].get(pkgname, '')
+        
+        for pkg in sorted(list(set(fpkgs[0].keys() + fpkgs[1].keys())), key=lambda l: l.lower()):
+            vers = (get_version(0, pkg), get_version(1, pkg))
+            status = '='
+            if vers[0] != vers[1]:
+                status = '>'
+                if  natural_sort_key(vers[0]) < natural_sort_key(vers[1]):
+                    status = '<'
+            print '%3s %10s %10s %s' % (status, vers[0], vers[1], pkg)
 
     def multivalued(self, *args):
         ''' test Whoosh search on multi-valued documents'''

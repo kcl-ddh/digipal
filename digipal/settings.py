@@ -596,6 +596,13 @@ CACHES = {
         'TIMEOUT': 60*60*24,
         #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
+    },
+    'digipal_compute': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/compute/'),
+        'TIMEOUT': 60*60*24,
+        #'TIMEOUT': 1,
+        'MAX_ENTRIES': 300,
     }
 }
 

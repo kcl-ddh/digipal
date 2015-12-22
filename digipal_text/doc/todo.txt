@@ -1,16 +1,31 @@
 
+--------------------------------------------------
+eta
+Invalid format
+{'note': u'', 'x': [], 'extent': u'465r2v7', 'hand': 'eta'}
+--------------------------------------------------
+sigma
+Invalid format
+{'note': u'', 'x': [], 'extent': u'9r7v10', 'hand': 'sigma'}
+--------------------------------------------------
+
+Odd stuff in stints desc:
+
+    Alpha: 110v18 but 20 lines on that page. Cod desc also seem
+    CORRECT! Page written by three hands: epsilon (lines 1-8 and 18-20), gamma (lines 10-17) and alpha (line 18).
+
 -----------------------------------------
 
 Graphical Annotation on the Text Viewer Image Pane
 
 . drawing actions:
-    . draw box
-    . select box
+    [DONE] draw box
+    [DONE] select box
     . transform box
     . move box
-    . delete box
+    [DONE] delete box
     . (copy box)
-    . select multiple boxes
+    [DONE] select multiple boxes
     . undo
 . persistence:
     . image editing mode

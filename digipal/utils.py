@@ -410,6 +410,16 @@ def get_xml_from_unicode(document, ishtml=False):
     
     return ret
 
+def get_xml_element_text(element):
+    # returns all the text within element and its descendents
+    # element is etree Element object
+    # '<r>t0<e1>t1<e2>t2</e2>t3</e1>t4</r>'
+    # e = (xml.findall(el))[0]
+    # e.text => t1
+    # e.tail => t4 (! part of e1)
+    # get_xml_element_text(element) => 't1t2t3'
+    return ''.join(element.itertext())
+    
 def get_xslt_transform(source, template, error=None):
     import lxml.etree as ET
     
@@ -755,7 +765,7 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def write_rows_to_csv(file_path, rows, encoding=None):
+def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
     '''
         rows: a list of records, each record is a dictionary with key/values
             all records must have the same keys
@@ -766,7 +776,7 @@ def write_rows_to_csv(file_path, rows, encoding=None):
     import csv
     with open(file_path, 'wb') as csvfile:
         if len(rows):
-            csvwriter = csv.DictWriter(csvfile, rows[0].keys())
+            csvwriter = csv.DictWriter(csvfile, headings or rows[0].keys())
             csvwriter.writeheader()
             for row in rows:
                 row_encoded = {}

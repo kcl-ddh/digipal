@@ -161,9 +161,14 @@ class TextContentXML(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     
     @classmethod
-    def get_public_only(cls):
-        '''Return all the publicly accessible records.'''
-        return cls.objects.filter(status__slug__in=['live', 'published', 'public', 'online'])
+    def get_public_only(cls, ignore=False):
+        '''Return all the publicly accessible records.
+           If ignore = True, returns all records, even private ones
+        '''
+        ret = cls.objects
+        if not ignore: ret = ret.filter(status__slug__in=['live', 'published', 'public', 'online'])
+        
+        return ret
     
     def get_length(self):
         if not self.content:

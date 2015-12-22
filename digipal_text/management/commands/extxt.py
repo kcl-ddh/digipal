@@ -6,6 +6,7 @@ import os
 import re
 from optparse import make_option
 from digipal.utils import sorted_natural
+import regex as re
 
 # pm dpxml convert exon\source\rekeyed\converted\EXON-1-493-part1.xml exon\source\rekeyed\conversion\xml2word.xslt > exon\source\rekeyed\word\EXON-word.html
 # pm extxt wordpre exon\source\rekeyed\word\EXON-word.html exon\source\rekeyed\word\EXON-word2.html
@@ -155,6 +156,8 @@ Commands:
         
         rows = []
         
+        from copy import deepcopy
+        
         # create a table for the result
         for entry in all_entries:
             row = {}
@@ -167,9 +170,16 @@ Commands:
                 row['nbhands'] = len(row['hands'])
                 row['notes'] = [hand.replace('_', '') for hand in hands if hand[0] == '_']
                 if row['nbhands'] == 0: row['notes'].append('NO_HAND')
-                for col in ['hands', 'notes']:
+                #for col in ['hands', 'notes']:
+                for col in ['notes']:
                     row[col] = ', '.join(row[col])
-            rows.append(row)
+                if not row['hands']: row['hands'] = ['']
+                for hand in row['hands']:
+                    rowc = deepcopy(row)
+                    rowc['hands'] = hand
+                    rows.append(rowc)
+            else:
+                rows.append(row)
         
         from digipal.utils import write_rows_to_csv
         
@@ -280,7 +290,7 @@ Commands:
                 
         '''
         
-        diag = '82v'
+        diag = '508v'
         
         pages = set(lines_entries.keys()) | set(lines_hands.keys())
         
@@ -483,7 +493,24 @@ Commands:
         from digipal import utils
         content = utils.read_file('exon/source/rekeyed/converted/EXON-1-493.hands.xml')
         xml = utils.get_xml_from_unicode(content)
+        
+        # Warnings about $|£ within <add>
+        for element in xml.findall('.//add'):
+            etext = utils.get_xml_element_text(element)
+            if etext and re.search(ur'[\$£]', etext):
+                self.msg('entry within <add> (%s)', repr(etext))
+        
+        # remove all nested <add>s
+        parent_map = {c:p for p in xml.iter() for c in p}
+        for element in xml.findall('.//add//add'):
+            parent_map[element].remove(element)
+            # don't use remove(), it deletes the tail (text after element)
+            #element.remove()
+        
         content = utils.get_unicode_from_xml(xml)
+
+        #utils.write_file('exon/source/rekeyed/converted/EXON-1-493.hands2.xml', content)
+            
         
         # TODO:
         # remove all the marginal text
@@ -526,7 +553,9 @@ Commands:
             # remove all the margins
             page = re.sub(ur'(?musi)<margin>.*?</margin>', '', page)
             # remove all the additions
+            # done above because add can contain add
             page = re.sub(ur'(?musi)<add>.*?</add>', '', page)
+            page = re.sub(ur'(?musi)<add/>', '', page)
             # remove all the pb
             page = re.sub(ur'<pb[^>]*>', '', page)
             # convert /p into lb/

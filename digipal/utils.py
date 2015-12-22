@@ -410,6 +410,16 @@ def get_xml_from_unicode(document, ishtml=False):
     
     return ret
 
+def get_xml_element_text(element):
+    # returns all the text within element and its descendents
+    # element is etree Element object
+    # '<r>t0<e1>t1<e2>t2</e2>t3</e1>t4</r>'
+    # e = (xml.findall(el))[0]
+    # e.text => t1
+    # e.tail => t4 (! part of e1)
+    # get_xml_element_text(element) => 't1t2t3'
+    return ''.join(element.itertext())
+    
 def get_xslt_transform(source, template, error=None):
     import lxml.etree as ET
     

@@ -95,7 +95,7 @@ class AnnotatorOL3 {
     interactions: AOL3Interactions = new AOL3Interactions();
     // events
     events = {startDrawing: null, stopDrawing: null};
-    // 
+    //
     lastDrawnFeature: ol.Feature;
     
     constructor(map: ol.Map) {
@@ -136,7 +136,7 @@ class AnnotatorOL3 {
         // Interactions are processed in reverse order:
         this.initDraw();
         this.initSelect();
-        // Selector BEFORE draw and select 
+        // Selector BEFORE draw and select
         // so we can chose which one handle the current event
         this.initInteractionSelector();
     }
@@ -147,10 +147,10 @@ class AnnotatorOL3 {
             var ctrl = e.originalEvent['ctrlKey'];
             var type = e['type'];
             //var key = e['browserEvent']['keyCode'];
-            var key = e.originalEvent['ctrlKey']['keyCode'] || 0;
+            var key = e.originalEvent['keyCode'] || 0;
             
-            if (!((type === 'pointermove') || 
-                (type === 'key' && ctrl))) { 
+            if (!((type === 'pointermove') ||
+                (type === 'key' && ctrl))) {
                 console.log('> ' + type + ' <------------------');
                 console.log(e);
             }
@@ -158,14 +158,14 @@ class AnnotatorOL3 {
             // CTRL + pointerdown
             if (type === 'pointerdown') {
                 if (ctrl && !this.interactions.draw.isStarted()) {
-                    console.log('CLICK ACTIVATE DRAW');
+                    console.log('CTRL-CLICK ACTIVATE DRAW');
                     this.interactions.switch('draw');
                 }
             }
             
             if (type === 'key') {
                 if (this.isDrawing()) {
-                    // ESC / DEL
+                    // DEL / ESC
                     if ((key === 46) || (key === 27)) {
                         // abort drawing
                         this.interactions.switch('select');
@@ -179,7 +179,7 @@ class AnnotatorOL3 {
             }
             
             return true;
-         }};
+        }};
         var interaction = new ol.interaction.Interaction(options);
         
         this.interactions.setInteraction('controller', interaction, this.map);
@@ -196,7 +196,7 @@ class AnnotatorOL3 {
         
         interaction.on('select', (e) => {
             // After drawing ends a 'click' event is generated
-            // and the feature under the pointer is 
+            // and the feature under the pointer is
             // the end point (endgeometry) of the drawn feature.
             // Because OL replay the drawing instructions to detect a hit.
             
@@ -221,7 +221,7 @@ class AnnotatorOL3 {
     }
     
     showFeatureInfo(feature: ol.Feature): void {
-        console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));        
+        console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));
     }
     
     initDraw(): void {
@@ -274,7 +274,7 @@ class AnnotatorOL3 {
             this.lastDrawnFeature = evt['feature'];
             
             console.log('DRAW END');
-        });    
+        });
 
         this.interactions.setInteraction('draw', interaction, this.map);
     }

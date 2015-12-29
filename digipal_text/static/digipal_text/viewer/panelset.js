@@ -249,6 +249,7 @@
         
         this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$locationSelect = this.$root.find('select[name=location]');
+        this.$linker = this.$root.find('.linker');
         
         var me = this;
         
@@ -1083,6 +1084,7 @@
             // tooltip to OL icon
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
+
         
         /*
             Open Layer Callback that keep count of the tile loading
@@ -1168,6 +1170,10 @@
         }
     };
     
+    PanelImage.prototype.onContentLoaded = function(data) {
+        this.$linker.closest('.dphidden').toggle(true);
+    };
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelSearch

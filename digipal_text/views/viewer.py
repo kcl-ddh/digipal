@@ -7,6 +7,7 @@ from django.http import HttpResponse, Http404
 from django.db import transaction
 from digipal import utils
 from django.utils.datastructures import SortedDict
+import json
 
 import logging
 dplog = logging.getLogger( 'digipal_debugger')
@@ -90,7 +91,6 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     ret = None
     
     if format == 'json':
-        import json
         ret = HttpResponse(json.dumps(response), mimetype='application/json')
     
     if format == 'html':
@@ -297,6 +297,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     
     from digipal.models import Image
     
+    request.visible_images = None
+    
     visible_images = None
     def get_visible_images(item_partid, request, visible_images=None):
         if visible_images is None:
@@ -318,6 +320,165 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     location_type, location = resolve_default_location(location_type, location, ret)
     
     # find the image
+    image = find_image(request, item_partid, location_type, location, get_visible_images, visible_images)
+    
+    # deal with writing annotations
+    if request.method == 'POST':
+        ret['newids'] = update_text_image_link(request, image)
+    else:
+        # image dimensions
+        options = {}
+        layout = request.REQUEST.get('layout', '')
+        if layout == 'width':
+            options['width'] = request.REQUEST.get('width', '100')
+        
+        # we return the location of the returned fragment
+        # this may not be the same as the requested location
+        # e.g. if the requested location is 'default' we resolve it
+        ret['location_type'] = location_type
+        ret['location'] = image.locus if image else location
+        
+        if image:
+            #ret['content'] = iip_img(image, **options)
+            ret['zoomify_url'] = image.zoomify()
+            ret['width'] = image.width
+            ret['height'] = image.height
+            
+            # add all the elements found on that page in the transcription
+            ret['text_elements'] = get_text_elements_from_image(request, item_partid, 'transcription', location_type, location)
+            
+            # add all the non-graph annotations
+            ret.update(get_annotations_from_image(image))
+        
+    return ret
+
+def get_annotations_from_image(image):
+    ret = {'annotations': []}
+    
+    from digipal.models import Annotation
+    for annotation in Annotation.objects.filter(image=image, graph__isnull=True):
+        info = {'geojson': annotation.get_geo_json_as_dict()}
+        info['geojson']['id'] = annotation.id
+        ret['annotations'].append(info)
+        
+    return ret
+
+def update_text_image_link(request, image):
+    ret = {}
+    
+    print 'TEXT IMAGE LINK: image #%s' % image.id
+    links = request.REQUEST.get('links', None)
+    if links:
+        ''' links = [
+                        [
+                            [["", "clause"], ["type", "address"]],
+                            {"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[270,-1632],[270,-984],[3006,-984],[3006,-1632],[270,-1632]]]},"properties":null}
+                        ],
+                        [...]
+                    ]
+        '''
+        for link in json.loads(links):
+            print link
+            attrs, geojson = link[0], link[1]
+            clientid = (geojson.get('properties', {}) or {}).pop('clientid', '')
+            serverid = geojson.pop('id', None)
+            action = geojson.pop('action', 'update')
+            
+            # 1. find the annotation
+            if not clientid and not serverid:
+                raise Exception('Cannot find annotation, need either "id" or "clientid"')
+            
+            from digipal.models import Annotation
+            filter = {}
+            if serverid:
+                filter['id'] = serverid
+            else:
+                filter['clientid'] = clientid
+            annotation = Annotation.objects.filter(**filter).first()
+            
+            # 2. delete or create annotation
+            if action == 'delete':
+                if annotation:
+                    print 'delete annotation'
+                    annotation.delete()
+                    annotation = None
+            else:
+                # create annotation
+                if not annotation:
+                    if serverid:
+                        raise Exception('Cannot find annotation by server id %s' % serverid)
+                    print 'create annotation'
+                    author = request.user
+                    annotation = Annotation(clientid=clientid, image=image, author=author)
+            
+                # update annotation and link
+                print 'update annotation'
+                annotation.set_geo_json_from_dict(geojson)
+                annotation.save()
+                if not serverid:
+                    ret[clientid] = annotation.id
+                
+                # update the text-annotation
+                from digipal_text.models import TextAnnotation
+                #text_annotation = TextAnnotation(annotation=annotation, element=json.dumps(attrs))
+                # TODO: assume a single element per annotation for the moment
+                text_annotation = TextAnnotation.objects.filter(annotation=annotation).first()
+                if not attrs:
+                    # delete it
+                    if text_annotation:
+                        print 'delete link'
+                        text_annotation.delete()
+                else:
+                    if not text_annotation:
+                        print 'create link'
+                        text_annotation = TextAnnotation(annotation=annotation)
+                    print 'update link'
+                    text_annotation.element = json.dumps(attrs)
+                    text_annotation.save()
+        
+    print ret
+    
+    return ret
+
+def get_text_elements_from_image(request, item_partid, content_type, location_type, location):
+    # returns the TRANSCRIPTION text for the requested IMAGE location
+    # if not found, returns the whole text
+    # eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["", "clause"], ["type", "disposition"]], [["", "clause"], ["type", "witnesses"]]]
+    ret = []
+    
+    from digipal_text.models import TextContentType
+    content_type_record = TextContentType.objects.filter(slug=content_type).first()
+    
+    # find the transcription for that image
+    text_info = text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
+    if text_info['status'] == 'error' and 'location not found' in text_info['message'].lower():
+        # location not found, try the whole text
+        text_info = text_api_view_text(request, item_partid, content_type, 'whole', '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
+    
+    #print text_info
+
+    # extract all the elements
+    if text_info.get('status', '').lower() != 'error':
+        content = text_info.get('content', '')
+        if content:
+            #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
+            for element in re.findall(ur'(?musi)data-dpt="[^>]+', content):
+                # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
+                parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
+                # white list to filter the elements
+                if parts[0][1] in ('clause', 'location'):
+#                     element_info = []
+#                     element_info[0] = ' '.join([part[0] for part in parts])
+#                     element_info[1] = ' '.join([part[1] for part in parts])
+#                     ret.append(element_info)
+                    ret.append(parts)
+        
+    return ret
+
+def find_image(request, item_partid, location_type, location, get_visible_images, visible_images):
+    # return a Image object that matches the requested manuscript and location
+    from digipal.models import Image
+
     image = None
     if location:
         imageid = re.sub(ur'^#(\d+)$', ur'\1', location)
@@ -338,26 +499,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # Image not found, display the first one
     if not image or not image.is_full_res_for_user(request):
         image = get_visible_images(item_partid, request, visible_images).first()
-    
-    # image dimensions
-    options = {}
-    layout = request.REQUEST.get('layout', '')
-    if layout == 'width':
-        options['width'] = request.REQUEST.get('width', '100')
-    
-    # we return the location of the returned fragment
-    # this may not be the same as the requested location
-    # e.g. if the requested location is 'default' we resolve it
-    ret['location_type'] = location_type
-    ret['location'] = image.locus if image else location
-    
-    if image:
-        #ret['content'] = iip_img(image, **options)
-        ret['zoomify_url'] = image.zoomify()
-        ret['width'] = image.width
-        ret['height'] = image.height
-    
-    return ret
+        
+    return image
 
 def get_locus_from_location(location_type, location):
     ret = None

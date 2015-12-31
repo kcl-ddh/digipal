@@ -250,6 +250,8 @@
         this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$locationSelect = this.$root.find('select[name=location]');
         this.$linker = this.$root.find('.linker');
+        this.$linkerImage = this.$linker.find('.linker-image');
+        this.$linkerText = this.$linker.find('select[name=linker-text]');
         
         var me = this;
         
@@ -376,6 +378,10 @@
                 var url = me.getContentAddress('whole', '');
                 url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
                 window.open(url, '_blank');
+            });
+            
+            this.$linkerText.on('change', function() {
+                me.onLinkerChanged();
             });
 
             setInterval(function() {
@@ -646,6 +652,9 @@
             }
         };
         
+    };
+
+    Panel.prototype.onLinkerChanged = function() {
     };
     
     Panel.prototype.onContentLoaded = function(data) {
@@ -935,7 +944,7 @@
                     'method': 'POST',
                 },
                 options.synced
-                );
+            );
         };
 
         this.initTinyMCE = function() {
@@ -1015,6 +1024,8 @@
     
     var PanelImage = TextViewer.PanelImage = function($root, contentType, options) {
 
+        var me = this;
+        
         Panel.call(this, $root, contentType, 'Image', options);
 
         this.loadContentCustom = function(loadLocations, address) {
@@ -1029,8 +1040,6 @@
 //                    });
                     //me.$content.text(data.content);
                     
-                    me.applyOpenLayer(data);
-                    
                     me.onContentLoaded(data);
                 },
                 {
@@ -1042,6 +1051,13 @@
             );
         };
         
+        this.annotatorEventHandler = function(e) {
+            console.log(e);
+            var selections = e.annotator.getSelectedFeatures();
+            me.$linkerImage.html('' + selections.getLength());
+            me.onLinkerChanged();
+        };
+
         this.applyOpenLayer = function(data) {
             
             if (!data || !data.zoomify_url) {
@@ -1071,7 +1087,9 @@
                 can_rotate: true,
             });
             
-            window.ann3 = new window.AnnotatorOL3(this.map);
+            this.annotator = window.ann3 = new window.AnnotatorOL3(this.map);
+            
+            this.annotator.addListener(function (e) { me.annotatorEventHandler(e); });
 
             this.clipImageToTop();
 
@@ -1132,7 +1150,70 @@
     };
     
     PanelImage.prototype = Object.create(Panel.prototype);
+
+    PanelImage.prototype.onContentLoaded = function(data) {
+        // OL
+        this.applyOpenLayer(data);
+        
+        // annotations
+        this.annotator.addAnnotations(data.annotations);
     
+        // text-image links
+        this.$linker.closest('.dphidden').toggle(true);
+        this.resetLinker(data);
+        Panel.prototype.onContentLoaded.call(this, data);
+    };
+
+    PanelImage.prototype.resetLinker = function(data) {
+        // eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["", "clause"], ["type", "disposition"]], [["", "clause"], ["type", "witnesses"]]]
+        var me = this;
+        var elements = data.text_elements;
+
+        var htmlstr = '<option value="">Unspecified</option>';
+        elements.map(function(el) {
+            var key = JSON.stringify(el);
+            var label = (el.map(function(attr) { return attr[1]; })).join(' > ');
+            htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+label+'</option>';
+        });
+        this.$linkerText.html(htmlstr);
+        this.$linkerText.trigger('liszt:updated');
+    };
+
+    Panel.prototype.onLinkerChanged = function() {
+        // Selection in linker has changed: either annotation or text element.
+        // Save the new link.
+        var me = this;
+        
+        var links = [];
+        (this.annotator.getSelectedFeatures()).forEach(function(feature) {
+            // set unique client id if no server id exists (unsaved feature)
+            if (!feature.getId() && !feature.get('clientid')) {
+                feature.set('clientid', '' + (new Date()).getTime() + ':' + Math.floor((Math.random() * 10000)));
+            }
+            var geojson = JSON.parse(me.annotator.getGeoJSONFromFeature(feature));
+            var link = [JSON.parse(me.$linkerText.val() || 'null'), geojson];
+            links.push(link);
+        });
+        links = JSON.stringify(links);
+        
+        console.log(links);
+
+        this.callApi(
+            'saving text-image link',
+            this.loadedAddress,
+            function(data) {
+                //me.tinymce.setContent(data.content);
+                //me.onContentSaved(data);
+            },
+            {
+                'links': links,
+                'method': 'POST'
+            },
+            false
+        );
+        
+    };
+
     PanelImage.prototype.getStateDict = function() {
         var ret = Panel.prototype.getStateDict.call(this);
 
@@ -1168,10 +1249,6 @@
                 view.setRotation(parseFloat(parts[3]) * Math.PI / 180);
             }
         }
-    };
-    
-    PanelImage.prototype.onContentLoaded = function(data) {
-        this.$linker.closest('.dphidden').toggle(true);
     };
 
     //////////////////////////////////////////////////////////////////////

@@ -509,7 +509,7 @@ declare module olx {
         
         interface SelectFilterFunction {
             (feature: ol.Feature, layer: ol.layer.Layer): boolean
-        }        
+        }
 
         interface DefaultsOptions {
             altShiftDragRotate?: boolean;
@@ -541,7 +541,7 @@ declare module olx {
         }
         
         interface InteractionOptions {
-            handleEvent: any; 
+            handleEvent: any;
         }
           
         interface SelectOptions {
@@ -2460,12 +2460,12 @@ declare module ol {
          * A function that takes an {@link ol.MapBrowserEvent} and returns a
          * `{boolean}`. If the condition is met, true should be returned.
          */
-        interface ConditionType { 
-            (event: ol.MapBrowserEvent): boolean; 
+        interface ConditionType {
+            (event: ol.MapBrowserEvent): boolean;
         }
 
         module condition {
-            function click(event: ol.MapBrowserEvent): boolean; 
+            function click(event: ol.MapBrowserEvent): boolean;
         }
     }
 
@@ -4082,6 +4082,8 @@ declare module ol {
             * @param {ol.Feature} feature Feature to remove.
             */
             removeFeature(feature: ol.Feature): void;
+            
+            addFeatures(features: Array<ol.Feature>): void;
         }
 
         class VectorEvent {

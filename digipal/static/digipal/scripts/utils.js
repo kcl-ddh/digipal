@@ -29,6 +29,21 @@
 (function($) {
     $(function() {
         window.dputils = {
+        
+            entityMap: {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': '&quot;',
+                "'": '&#39;',
+                "/": '&#x2F;'
+            },
+            
+            escapeHtml: function(string) {
+                return String(string).replace(/[&<>"'\/]/g, function (s) {
+                    return window.dputils.entityMap[s];
+                });
+            },
 
             /*
              * Sets a cookie
@@ -520,7 +535,7 @@
                     // use the full width
                     dimension_request = '&WID=' + Math.round(max_expanded_width[right_or_left]);
                 }
-                dimension_request += '&QLT=100&CVT=JPG';    
+                dimension_request += '&QLT=100&CVT=JPG';
                 
                 // reposition the div to the right of the cursor
                 //expanded_div.css('left', '' + (expanded_img_x[right_or_left]) + 'px');

@@ -2484,6 +2484,10 @@ class Annotation(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
     holes = models.CharField(max_length=1000, null=True, blank=True)
+    # GN: A temporary id set on the client side.
+    # Used ONLY until the id of the new record has been returned to the client.
+    clientid = models.CharField(max_length=24, blank=True, null=True, db_index=True)
+
     objects = AnnotationManager()
 
     class Meta:
@@ -2670,18 +2674,20 @@ class Annotation(models.Model):
         self.holes = json.dumps(holes)
 
     def save(self, *args, **kwargs):
-        # GN: why do we need this call BEFORE changing the cutout?
-        # That's two DB save operation each time!
-
         if not self.geo_json:
             raise Exception('Trying to save an annotation with an empty geo_json.')
             return
 
+        # GN: why do we need this call BEFORE changing the cutout?
+        # That's two DB save operation each time!
         super(Annotation, self).save(*args, **kwargs)
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
-        json = eval(self.geo_json)
-        coordinates = json['geometry']['coordinates']
+        # Causes issue with things like 'null' coming from JS
+        #print repr(self.geo_json)
+        #json = eval(self.geo_json)
+        geo = self.get_geo_json_as_dict()
+        coordinates = geo['geometry']['coordinates']
 
         xx = list()
         yy = list()
@@ -2851,6 +2857,9 @@ class Annotation(models.Model):
 
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
+
+#     def __unicode__(self):
+#         return u'%s' % (self.name)
 
 # PlaceEvidence in legacy db
 class PlaceEvidence(models.Model):

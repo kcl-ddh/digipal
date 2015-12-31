@@ -211,6 +211,15 @@ class TextContentXML(models.Model):
 
         self.content = content
 
+class TextAnnotation(models.Model):
+    annotation = models.ForeignKey('digipal.Annotation', blank=False, null=False)
+    elementid = models.CharField(max_length=255, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['annotation', 'elementid']
+
 from digipal.models import set_additional_models_methods
 
 set_additional_models_methods()

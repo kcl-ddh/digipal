@@ -151,14 +151,14 @@ class AnnotatorOL3 {
             
             if (!((type === 'pointermove') ||
                 (type === 'key' && ctrl))) {
-                console.log('> ' + type + ' <------------------');
-                console.log(e);
+                //console.log('> ' + type + ' <------------------');
+                //console.log(e);
             }
             
             // CTRL + pointerdown
             if (type === 'pointerdown') {
                 if (ctrl && !this.interactions.draw.isStarted()) {
-                    console.log('CTRL-CLICK ACTIVATE DRAW');
+                    //console.log('CTRL-CLICK ACTIVATE DRAW');
                     this.interactions.switch('draw');
                 }
             }
@@ -207,12 +207,12 @@ class AnnotatorOL3 {
                 this.lastDrawnFeature = null;
             }
             
-            console.log('SELECT '+e['type']);
+            //console.log('SELECT '+e['type']);
             var features = this.getSelectedFeatures();
             if (features.getLength() > 0) {
                 this.showFeatureInfo(features.item(0));
             } else {
-                console.log('No feature selected');
+                //console.log('No feature selected');
             }
             //console.log(e);
         });
@@ -221,7 +221,7 @@ class AnnotatorOL3 {
     }
     
     showFeatureInfo(feature: ol.Feature): void {
-        console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));
+        //console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));
     }
     
     initDraw(): void {
@@ -244,7 +244,7 @@ class AnnotatorOL3 {
             var ctrl = e.originalEvent['ctrlKey'];
             //var ctrl = ol.events.condition.platformModifierKeyOnly(e);
             
-            console.log('DRAW condition '+e['type']);
+            //console.log('DRAW condition '+e['type']);
             return this.interactions.draw.isStarted() || ctrl;
         }
         
@@ -263,7 +263,7 @@ class AnnotatorOL3 {
             // clear any selection
             this.selectFeature();
             
-            console.log('DRAW START');
+            //console.log('DRAW START');
         });
         interaction.on('drawend', (evt) => {
             //this.interactions.draw['isStarted'] = false;
@@ -273,7 +273,7 @@ class AnnotatorOL3 {
             // See select interaction. This is a work around.
             this.lastDrawnFeature = evt['feature'];
             
-            console.log('DRAW END');
+            //console.log('DRAW END');
         });
 
         this.interactions.setInteraction('draw', interaction, this.map);
@@ -283,10 +283,41 @@ class AnnotatorOL3 {
         return this.interactions.select.getFeatures();
     }
     
+    getGeoJSONFromFeature(feature?: ol.Feature): string {
+        return (new ol.format.GeoJSON()).writeFeature(feature);
+    }
+    
     selectFeature(feature?: ol.Feature): void {
         var features = this.getSelectedFeatures();
         features.clear();
         if (feature) features.push(feature);
+    }
+    
+    addAnnotations(annotations?: Array<any>): void {
+        var geojsonObject  = {
+            'type': 'FeatureCollection',
+            'crs': {
+                'type': 'name',
+                'properties': {
+                }
+            },
+            'features': annotations.map((v) => {return v.geojson})
+        };
+        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject));
+        this.source.addFeatures(features);
+    }
+    
+    /**
+     * Register an event listener
+     *
+     * listener: function({annotator: , action: 'select|unselect'})
+     */
+    addListener(listener): void {
+        var features = this.interactions.select.getFeatures();
+        features.on('add', () => {var e = {annotator: this, action: 'select'}; listener(e);});
+        features.on('remove', () => {var e = {annotator: this, action: 'unselect'}; listener(e);});
+        var e = {annotator: this, action: 'init'};
+        listener(e);
     }
     
 }

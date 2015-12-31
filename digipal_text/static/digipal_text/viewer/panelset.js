@@ -1051,13 +1051,6 @@
             );
         };
         
-        this.annotatorEventHandler = function(e) {
-            console.log(e);
-            var selections = e.annotator.getSelectedFeatures();
-            me.$linkerImage.html('' + selections.getLength());
-            me.onLinkerChanged();
-        };
-
         this.applyOpenLayer = function(data) {
             
             if (!data || !data.zoomify_url) {
@@ -1179,18 +1172,34 @@
         this.$linkerText.trigger('liszt:updated');
     };
 
-    Panel.prototype.onLinkerChanged = function() {
+    PanelImage.prototype.annotatorEventHandler = function(e) {
+        console.log(e);
+        
+        var selections = e.annotator.getSelectedFeatures();
+        this.$linkerImage.html('' + selections.getLength());
+        
+        this.onLinkerChanged(e.features, e.action);
+    };
+
+    PanelImage.prototype.onLinkerChanged = function(features, action) {
         // Selection in linker has changed: either annotation or text element.
         // Save the new link.
+        // features: a list of features to convert into links
+        //  if currently selected feature, we can leave the arg undefined
         var me = this;
         
+        if (!(features instanceof Array)) {
+            features = this.annotator.getSelectedFeatures().getArray();
+        }
+        
         var links = [];
-        (this.annotator.getSelectedFeatures()).forEach(function(feature) {
+        (features).map(function(feature) {
             // set unique client id if no server id exists (unsaved feature)
             if (!feature.getId() && !feature.get('clientid')) {
                 feature.set('clientid', '' + (new Date()).getTime() + ':' + Math.floor((Math.random() * 10000)));
             }
             var geojson = JSON.parse(me.annotator.getGeoJSONFromFeature(feature));
+            if (action) geojson.action = action;
             var link = [JSON.parse(me.$linkerText.val() || 'null'), geojson];
             links.push(link);
         });

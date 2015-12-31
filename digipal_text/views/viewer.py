@@ -359,7 +359,12 @@ def get_annotations_from_image(image):
     for annotation in Annotation.objects.filter(image=image, graph__isnull=True):
         info = {'geojson': annotation.get_geo_json_as_dict()}
         info['geojson']['id'] = annotation.id
+        for textannotation in annotation.textannotations.all():
+            info['properties'] = info.get('properties', {})
+            info['properties']['elementid'] = textannotation.elementid
         ret['annotations'].append(info)
+        
+    print ret
         
     return ret
 
@@ -397,7 +402,7 @@ def update_text_image_link(request, image):
             annotation = Annotation.objects.filter(**filter).first()
             
             # 2. delete or create annotation
-            if action == 'delete':
+            if action == 'deleted':
                 if annotation:
                     print 'delete annotation'
                     annotation.delete()
@@ -433,7 +438,7 @@ def update_text_image_link(request, image):
                         print 'create link'
                         text_annotation = TextAnnotation(annotation=annotation)
                     print 'update link'
-                    text_annotation.element = json.dumps(attrs)
+                    text_annotation.elementid = json.dumps(attrs)
                     text_annotation.save()
         
     print ret

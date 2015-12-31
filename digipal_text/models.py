@@ -212,7 +212,7 @@ class TextContentXML(models.Model):
         self.content = content
 
 class TextAnnotation(models.Model):
-    annotation = models.ForeignKey('digipal.Annotation', blank=False, null=False)
+    annotation = models.ForeignKey('digipal.Annotation', blank=False, null=False, related_name='textannotations')
     elementid = models.CharField(max_length=255, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)

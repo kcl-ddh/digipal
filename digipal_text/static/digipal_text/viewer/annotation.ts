@@ -49,7 +49,7 @@ class Select extends ol.interaction.Select {
         features.forEach((feature, i, featureArray) => {
             source.removeFeature(feature);
         });
-
+        
         features.clear();
     }
     
@@ -173,7 +173,7 @@ class AnnotatorOL3 {
                 } else {
                     // DEL remove feature
                     if (key === 46) {
-                        this.interactions.select.removeFeatures(this.source);
+                        this.removeSelectedFeatures();
                     }
                 }
             }
@@ -185,6 +185,18 @@ class AnnotatorOL3 {
         this.interactions.setInteraction('controller', interaction, this.map);
     }
     
+    removeSelectedFeatures(): void {
+        var features = this.getSelectedFeatures();
+        // clone the selection before it is cleared
+        var features_deleted = features.getArray().map((v) => v);
+        
+        this.interactions.select.removeFeatures(this.source);
+        
+        // fire deleted event
+        var e = {type: 'deleted', features: features_deleted};
+        features['dispatchEvent'](e);
+    }
+
     isDrawing(): boolean {
         return this.interactions.draw.isStarted();
     }
@@ -310,12 +322,14 @@ class AnnotatorOL3 {
     /**
      * Register an event listener
      *
-     * listener: function({annotator: , action: 'select|unselect'})
+     * listener: function({annotator: , action: 'select|unselect|deleted'})
      */
     addListener(listener): void {
-        var features = this.interactions.select.getFeatures();
+        var features = this.getSelectedFeatures();
         features.on('add', () => {var e = {annotator: this, action: 'select'}; listener(e);});
         features.on('remove', () => {var e = {annotator: this, action: 'unselect'}; listener(e);});
+        features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
+        
         var e = {annotator: this, action: 'init'};
         listener(e);
     }

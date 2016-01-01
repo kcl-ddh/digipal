@@ -192,9 +192,9 @@ class AnnotatorOL3 {
         
         this.interactions.select.removeFeatures(this.source);
         
-        // fire deleted event
-        var e = {type: 'deleted', features: features_deleted};
-        features['dispatchEvent'](e);
+//        // fire deleted event
+//        var e = {type: 'deleted', features: features_deleted};
+//        features['dispatchEvent'](e);
     }
 
     isDrawing(): boolean {
@@ -354,7 +354,9 @@ class AnnotatorOL3 {
         var features = this.getSelectedFeatures();
         features.on('add', () => {var e = {annotator: this, action: 'select'}; listener(e);});
         features.on('remove', () => {var e = {annotator: this, action: 'unselect'}; listener(e);});
-        features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
+        //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
+        this.source['on']('changefeature', (event) => {var e = {annotator: this, action: 'changed', features: [event['feature']]}; listener(e);});
+        this.source['on']('removefeature', (event) => {var e = {annotator: this, action: 'deleted', features: [event['feature']]}; listener(e);});
         
         var e = {annotator: this, action: 'init'};
         listener(e);

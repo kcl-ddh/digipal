@@ -1180,16 +1180,25 @@
         var selections = e.annotator.getSelectedFeatures();
         this.$linkerImage.html('' + selections.getLength());
         
+        // set unique client id if no server id exists (unsaved feature)
+        selections.forEach(function (feature) {
+            if (!feature.getId() && !feature.get('clientid')) {
+                feature.set('clientid', '' + (new Date()).getTime() + ':' + Math.floor((Math.random() * 10000)));
+            }
+        });
+
         // update the selected text element in the drop down
         var elementid = '';
         selections.forEach(function (feature) {
-            elementid = JSON.stringify(feature.get('elementid'));
+            elementid = JSON.stringify(feature.get('elementid') || '[]');
         });
         this.$linkerText.val(elementid);
         this.$linkerText.trigger('liszt:updated');
         
         // send the changes to the server
-        this.onAnnotationChanged(e.features, e.action);
+        if (e.action === 'changed' || e.action === 'deleted') {
+            this.onAnnotationChanged(e.features, e.action);
+        }
     };
 
     PanelImage.prototype.onLinkerTextChanged = function() {
@@ -1212,7 +1221,7 @@
         this.annotator.selectFeature(feature);
     
         // send the changes to the server
-        this.onAnnotationChanged();
+        //this.onAnnotationChanged();
     };
 
     PanelImage.prototype.onAnnotationChanged = function(features, action) {
@@ -1228,10 +1237,6 @@
         
         var links = [];
         (features).map(function(feature) {
-            // set unique client id if no server id exists (unsaved feature)
-            if (!feature.getId() && !feature.get('clientid')) {
-                feature.set('clientid', '' + (new Date()).getTime() + ':' + Math.floor((Math.random() * 10000)));
-            }
             var geojson = JSON.parse(me.annotator.getGeoJSONFromFeature(feature));
             if (action) geojson.action = action;
             var link = [JSON.parse(me.$linkerText.val() || 'null'), geojson];
@@ -1241,7 +1246,6 @@
         
         console.log(links);
         
-        /*
         this.callApi(
             'saving text-image link',
             this.loadedAddress,
@@ -1255,7 +1259,6 @@
             },
             false
         );
-        */
         
     };
 

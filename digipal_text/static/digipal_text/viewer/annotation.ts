@@ -295,6 +295,32 @@ class AnnotatorOL3 {
         return this.interactions.select.getFeatures();
     }
     
+    /*
+    findFeature(geojson_query): ol.Feature {
+        var ret = [];
+        
+        var geojsons = JSON.parse((new ol.format.GeoJSON()).writeFeatures(this.source['getFeatures']()));
+        
+        geojsons['features'].map((geojson) => {
+            var geojson2 = $.extend(true, {}, geojson, geojson_query);
+            if (JSON.stringify(geojson2) === JSON.stringify(geojson)) {
+                ret.push(geojson);
+            }
+        });
+        
+        return ret ? ret[0] : null;
+    }
+    */
+    
+    getFeatureFromElementId(elementid): ol.Feature {
+        var features = this.source['getFeatures']();
+        for (var i in features) {
+            if (JSON.stringify(features[i].get('elementid')) == JSON.stringify(elementid)) return features[i];
+        }
+        
+        return null;
+    }
+
     getGeoJSONFromFeature(feature?: ol.Feature): string {
         return (new ol.format.GeoJSON()).writeFeature(feature);
     }
@@ -335,6 +361,24 @@ class AnnotatorOL3 {
     }
     
 }
+
+
+var example_link_in_geojson = [
+    [["", "clause"], ["type", "address"]], // deprecated
+    {
+        "type":"Feature",
+        id: 101, // DB: Annotation.id
+        "geometry": {
+            "type":"Polygon",
+            "coordinates":[[[270,-1632],[270,-984],[3006,-984],[3006,-1632],[270,-1632]]],
+            "properties": {
+                elementid: [["", "clause"], ["type", "address"]], // DB: TextAnnotation.elementid
+                clientid: '3812738127319:1223', // DB: TextAnnotation.clientid
+            }
+        }
+    }
+];
+
 /*
 
 ------------

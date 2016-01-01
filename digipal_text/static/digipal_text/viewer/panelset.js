@@ -381,7 +381,7 @@
             });
             
             this.$linkerText.on('change', function() {
-                me.onLinkerChanged();
+                me.onLinkerTextChanged();
             });
 
             setInterval(function() {
@@ -654,7 +654,7 @@
         
     };
 
-    Panel.prototype.onLinkerChanged = function() {
+    Panel.prototype.onLinkerTextChanged = function() {
     };
     
     Panel.prototype.onContentLoaded = function(data) {
@@ -1173,15 +1173,49 @@
     };
 
     PanelImage.prototype.annotatorEventHandler = function(e) {
+        var me = this;
         console.log(e);
         
+        // update the selection count
         var selections = e.annotator.getSelectedFeatures();
         this.$linkerImage.html('' + selections.getLength());
         
-        this.onLinkerChanged(e.features, e.action);
+        // update the selected text element in the drop down
+        var elementid = '';
+        selections.forEach(function (feature) {
+            elementid = JSON.stringify(feature.get('elementid'));
+        });
+        this.$linkerText.val(elementid);
+        this.$linkerText.trigger('liszt:updated');
+        
+        // send the changes to the server
+        this.onAnnotationChanged(e.features, e.action);
     };
 
-    PanelImage.prototype.onLinkerChanged = function(features, action) {
+    PanelImage.prototype.onLinkerTextChanged = function() {
+        var feature = null;
+        var elementid = JSON.parse(this.$linkerText.val() || '[]');
+        if (elementid) {
+            //feature = this.annotator.findFeature({properties: {elementid: JSON.parse(elementid)} });
+            feature = this.annotator.getFeatureFromElementId(elementid);
+        }
+        
+        if (!feature) {
+            // no feature for this element
+            // assign the element to the currently selected feature
+            this.annotator.getSelectedFeatures().forEach(function(afeature) {
+                afeature.set('elementid', elementid);
+                feature = afeature;
+            });
+        }
+
+        this.annotator.selectFeature(feature);
+    
+        // send the changes to the server
+        this.onAnnotationChanged();
+    };
+
+    PanelImage.prototype.onAnnotationChanged = function(features, action) {
         // Selection in linker has changed: either annotation or text element.
         // Save the new link.
         // features: a list of features to convert into links
@@ -1206,7 +1240,8 @@
         links = JSON.stringify(links);
         
         console.log(links);
-
+        
+        /*
         this.callApi(
             'saving text-image link',
             this.loadedAddress,
@@ -1220,6 +1255,7 @@
             },
             false
         );
+        */
         
     };
 

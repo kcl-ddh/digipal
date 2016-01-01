@@ -358,10 +358,12 @@ def get_annotations_from_image(image):
     from digipal.models import Annotation
     for annotation in Annotation.objects.filter(image=image, graph__isnull=True):
         info = {'geojson': annotation.get_geo_json_as_dict()}
-        info['geojson']['id'] = annotation.id
+        geojson = info['geojson']
+        geojson['id'] = annotation.id
+        # TODO: optimise the retrieval of the textannotations
         for textannotation in annotation.textannotations.all():
-            info['properties'] = info.get('properties', {})
-            info['properties']['elementid'] = textannotation.elementid
+            geojson['properties'] = geojson.get('properties', None) or {}
+            geojson['properties']['elementid'] = json.loads(textannotation.elementid or [])
         ret['annotations'].append(info)
         
     print ret

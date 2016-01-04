@@ -68,7 +68,9 @@ span[data-dpt] > span[data-dpt] {
 
 /* Categories */
 
-.mce-content-body span[data-dpt-cat=chars] {
+.mce-content-body span[data-dpt-cat=chars],
+.mce-content-body span[data-dpt=person]
+{
     background-color: rgba(0,255,0,0.25);
 }
 
@@ -90,7 +92,9 @@ span[data-dpt] > span[data-dpt] {
     color: OrangeRed ;
 }
     
-.mce-content-body span[data-dpt-cat=chars]:before {
+.mce-content-body span[data-dpt-cat=chars]:before,
+.mce-content-body span[data-dpt=person]:before
+{
     font-size: 70%;
     color: green;
     font-weight: bold;
@@ -252,6 +256,13 @@ span[data-dpt] > span[data-dpt] {
     text-decoration: line-through;
 }
 
+.mce-content-body span[data-dpt=person][data-dpt-type=title]:before {
+    content: "Person title";
+}
+.mce-content-body span[data-dpt=person][data-dpt-type=name]:before {
+    content: "Person name";
+}
+
 .mce-content-body span[data-dpt-type=witnesses]:before {
     content: "Witnesses";
 }
@@ -406,16 +417,15 @@ span[data-dpt] > span[data-dpt] {
     background: none;
 }
 
-.preview.mce-content-body span[data-dpt=abbr]:before{
-    content: "";
-    background: none;
-}
-.preview.mce-content-body span[data-dpt=exp]:before{
+.preview.mce-content-body span[data-dpt=abbr]:before,
+.preview.mce-content-body span[data-dpt=exp]:before,
+.preview.mce-content-body span[data-dpt=person]:before
+ {
     content: "";
     background: none;
 }
 
-/* TOGGALE DISPLAY SETTINGS */
+/* TOGGABLE DISPLAY SETTINGS */
 .abbreviated.mce-content-body span[data-dpt=exp] {
     display: none;
 }

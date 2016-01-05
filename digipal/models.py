@@ -2568,9 +2568,18 @@ class Annotation(models.Model):
 
         cs = self.get_shape_path(geo_json_str)
 
+        # TODO: need to get to the bottom of this
+        # seem like OL3 returns negative Y coordinates (real one is positive and top base)
+        if cs[0][1] < 0:
+            width, height = self.image.dimensions()
+            for i in range(0, len(cs)):
+                cs[i][1] = height + cs[i][1]
+
         # change the y coordinates (from the top rather than the bottom)
         if y_from_top:
             width, height = self.image.dimensions()
+            print width, height
+            print cs
             for i in range(0, len(cs)):
                 cs[i][1] = height - cs[i][1]
 
@@ -2819,6 +2828,11 @@ class Annotation(models.Model):
             ret['frame_dims'][d] *= factor
 
         if esc: ret['url'] = escape(ret['url'])
+        
+        print
+        print psr
+        print ps
+        print ret
 
         return ret
 

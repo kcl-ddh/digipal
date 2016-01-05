@@ -144,7 +144,7 @@ class AnnotatorOL3 {
     initInteractionSelector(): void {
         
         var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => {
-            var ctrl = e.originalEvent['ctrlKey'];
+            var ctrl = e.originalEvent['ctrlKey'] || e.originalEvent['metaKey'];
             var type = e['type'];
             //var key = e['browserEvent']['keyCode'];
             var key = e.originalEvent['keyCode'] || 0;
@@ -253,7 +253,7 @@ class AnnotatorOL3 {
         };
 
         var condition = (e: ol.MapBrowserEvent): boolean => {
-            var ctrl = e.originalEvent['ctrlKey'];
+            var ctrl = e.originalEvent['ctrlKey'] || e.originalEvent['metaKey'];
             //var ctrl = ol.events.condition.platformModifierKeyOnly(e);
             
             //console.log('DRAW condition '+e['type']);

@@ -1,6 +1,7 @@
 from django.utils.html import conditional_escape, escape
 import re
 from binhex import LINELEN
+import lxml.etree as ET
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
@@ -381,22 +382,21 @@ def get_one2one_object(model, field_name):
     return ret
 
 def get_string_from_xml(xmltree):
-    import lxml.etree as ET
     return ET.tostring(xmltree)
 
 def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False):
     # if test_only = True => strip all XML tags
-    import lxml.etree as ET
     method = None
     if text_only: method = 'text'
-    return ET.tostring(xmltree, encoding=encoding, method=method).decode('utf-8')
+    if text_only:
+        return get_xml_element_text(xmltree)
+    else:
+        return ET.tostring(xmltree, encoding=encoding, method=method).decode('utf-8')
 
 def get_xml_from_unicode(document, ishtml=False):
     # document = a unicode object containing the document
     # ishtml = True will be more lenient about the XML format
     #          and won't complain about named entities (&nbsp;)
-    import lxml.etree as ET
-    
     parser = None
     if ishtml:
         from io import StringIO
@@ -421,8 +421,6 @@ def get_xml_element_text(element):
     return ''.join(element.itertext())
     
 def get_xslt_transform(source, template, error=None):
-    import lxml.etree as ET
-    
     dom = get_xml_from_unicode(source)
     xslt = get_xml_from_unicode(template)
     transform = ET.XSLT(xslt)

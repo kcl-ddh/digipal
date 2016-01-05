@@ -2829,11 +2829,6 @@ class Annotation(models.Model):
 
         if esc: ret['url'] = escape(ret['url'])
         
-        print
-        print psr
-        print ps
-        print ret
-
         return ret
 
     def get_cutout_url(self, esc=False, full_size=False):

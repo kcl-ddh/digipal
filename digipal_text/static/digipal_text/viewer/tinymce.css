@@ -22,7 +22,9 @@ Generate a hash key from it and use it in the query string to force reload when 
  
 */
 
+/* -------------------------------------------------------------------------*/
 /* General */
+/* -------------------------------------------------------------------------*/
 
 div.mce-content-body.preview {
     padding: 8px;
@@ -45,19 +47,18 @@ div.mce-content-body.preview {
     */
 }
 
-.preview.mce-content-body span[data-dpt] {
-    padding: 0px;
-    margin-right: 0px;
-}
-
 .mce-content-body span[data-dpt]:before {
     color: blue;
     content: "???";
     font-family: "Arial Black",Gadget,sans-serif;
-    font-size: 70%;
+    font-size: 60%;
     font-weight: bold;
     margin-top: -0.7em;
     position: absolute;
+    background-color1: white;
+    border-left1: 1px solid blue;
+    border-right1: 1px solid blue;
+    padding: 0 2px;
 }
 
 /*
@@ -79,11 +80,6 @@ span[data-dpt] > span[data-dpt] {
     margin-right: 0.2em;
 }
 
-.preview.mce-content-body span[data-dpt-cat=words] {
-    background-color: transparent;
-    /*border-bottom: 1px blue solid;*/
-}
-
 .mce-content-body span[data-dpt=record] {
     background-color: rgba(255, 176, 0, 0.35);
 }
@@ -95,7 +91,6 @@ span[data-dpt] > span[data-dpt] {
 .mce-content-body span[data-dpt-cat=chars]:before,
 .mce-content-body span[data-dpt=person]:before
 {
-    font-size: 70%;
     color: green;
     font-weight: bold;
 }
@@ -107,13 +102,6 @@ span[data-dpt] > span[data-dpt] {
 .mce-content-body span[data-dpt=lb] {
     color: brown;
     font-weight: bold;
-}
-
-.preview.mce-content-body span[data-dpt=lb] {
-    /*opacity: 0;*/
-    display: none;
-    /* Enable this to actually introduce a line break */
-    /* display: table-column; */
 }
 
 /* Transcription & Translation */
@@ -139,64 +127,13 @@ span[data-dpt] > span[data-dpt] {
     content: "( )";
 }
 
-.preview.mce-content-body span[data-dpt=ex] {
-    background: transparent;
-    font-style: italic;
-}
-
-.preview.mce-content-body span[data-dpt=ex]:before {
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    content: "";
-    font-family: junicode, arial, sans-serif;
-    margin-top: 0px;
-    position: relative;
-}
-.preview.mce-content-body span[data-dpt=ex]:after {
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    content: "";
-    position: relative;
-}
-
 .mce-content-body span[data-dpt=supplied]:before {
     content: "\271A";
 }
 
-.preview.mce-content-body span[data-dpt] {
-    background-color: inherit;
-}
-
-.preview.mce-content-body span[data-dpt=supplied] {
-    background: transparent;
-}
-
-.preview.mce-content-body span[data-dpt=supplied]:before,
-.preview.mce-content-body span[data-dpt=gap]:before {
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    font-family: junicode, arial, sans-serif;
-    margin-top: 0px;
-    position: relative;
-    content: "[";
-}
-.preview.mce-content-body span[data-dpt=supplied]:after,
-.preview.mce-content-body span[data-dpt=gap]:after {
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    content: "]";
-}
 
 .mce-content-body span[data-dpt=gap]:before {
     content: "Gap";
-}
-
-.preview.mce-content-body span[data-dpt=gap] {
-    background: transparent;
 }
 
 .mce-content-body span[data-dpt=marginal]:before {
@@ -210,50 +147,12 @@ span[data-dpt] > span[data-dpt] {
 .mce-content-body span[data-dpt=interlineation-to-margin]:before {
     content: "Int. -> marg.";
 }
-
-/*
-.mce-content-body span[data-dpt=clause] {
-    border-color: blue;
-}
-*/
-
 .mce-content-body span[data-dpt=clause]:before {
     content: "Clause";
-    /*
-    color: blue;
-    */
-}
-
-.preview.mce-content-body span[data-dpt=clause]:before {
-    font-size: 100%;
-    font-weight: bold;
-    content: "";
-    font-family: junicode, arial, sans-serif;
-    margin-top: 0px;
-    position: relative;
-}
-
-.preview.mce-content-body span[data-dpt=clause]:after {
-    color: blue;
-    content: "";
-    font-family: "Arial Black",Gadget,sans-serif;
-    font-size: 110%;
-    margin-left: 0.2em;
-    font-weight: normal;
-    margin-top: -0.1em;
-    position: relative;
 }
 
 .mce-content-body span[data-dpt=del]:before {
     content: "Deleted";
-}
-
-.preview.mce-content-body span[data-dpt=del]:before {
-    content: "";
-}
-
-.preview.mce-content-body span[data-dpt=del] {
-    text-decoration: line-through;
 }
 
 .mce-content-body span[data-dpt=person][data-dpt-type=title]:before {
@@ -387,7 +286,7 @@ span[data-dpt] > span[data-dpt] {
 }
 
 /* -------------------------------------------------------------------------*/
-/* TEI - EXON */
+/* EXON */
 /* -------------------------------------------------------------------------*/
 
 .ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
@@ -413,35 +312,306 @@ span[data-dpt] > span[data-dpt] {
     content: "Ex";
     background: none;
 }
+
+
+/* -------------------------------------------------------------------------*/
+/* Codicology */
+/* -------------------------------------------------------------------------*/
+
+.mce-content-body span[data-dpt=codesc]:before {
+    font-size: 70%;
+    color: green;
+    font-weight: bold;
+}
+
+.mce-content-body span[data-dpt=codesc] {
+    background-color: rgba(0,255,0,0.25);
+}
+
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=count]:before {
+    content: "Perf. count";
+}
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=shape]:before {
+    content: "Perf. shape";
+}
+.mce-content-body span[data-dpt-object=perforation][data-dpt-property=location]:before {
+    content: "Perf. location";
+}
+
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=size]:before {
+    content: "Rul. size";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=count]:before {
+    content: "Rul. count";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=distance]:before {
+    content: "Rul. distance";
+}
+.mce-content-body span[data-dpt-object=ruling][data-dpt-property=method]:before {
+    content: "Rul. method";
+}
+
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=color]:before {
+    content: "Parch. color";
+}
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=side]:before {
+    content: "Parch. side";
+}
+.mce-content-body span[data-dpt-object=parchment][data-dpt-property=size]:before {
+    content: "Parch. size";
+}
+
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=location]:before {
+    content: "Sig. location";
+}
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=label]:before {
+    content: "Sig. label";
+}
+.mce-content-body span[data-dpt-object=signature][data-dpt-property=appearance]:before {
+    content: "Sig. appearance";
+}
+
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=location]:before {
+    content: "Fol. location";
+}
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=label]:before {
+    content: "Fol. label";
+}
+.mce-content-body span[data-dpt-object=foliation][data-dpt-property=appearance]:before {
+    content: "Fol. appearance";
+}
+
+.mce-content-body span[data-dpt-object=bifolium][data-dpt-property=conjoint]:before {
+    content: "Bifol. conjoint";
+}
+.mce-content-body span[data-dpt-object=quire][data-dpt-property=number]:before {
+    content: "Quire number";
+}
+.mce-content-body span[data-dpt-object=column][data-dpt-property=count]:before {
+    content: "Col. count";
+}
+.mce-content-body span[data-dpt-object=column][data-dpt-property=size]:before {
+    content: "Col. size";
+}
+
+/* -------------------------------------------------------------------------*/
+/* PREVIEW */
+/* -------------------------------------------------------------------------*/
+
+.preview.mce-content-body span[data-dpt] {
+    padding: 0px;
+    margin-right: 0px;
+}
+
+.preview.mce-content-body span[data-dpt] {
+    background-color: inherit;
+}
+
+.preview.mce-content-body span[data-dpt-cat=words] {
+    background-color: transparent;
+    /*border-bottom: 1px blue solid;*/
+}
+
+.preview.mce-content-body span[data-dpt=lb] {
+    /*opacity: 0;*/
+    display: none;
+    /* Enable this to actually introduce a line break */
+    /* display: table-column; */
+}
+
+.preview.mce-content-body span[data-dpt=ex] {
+    background: transparent;
+    font-style: italic;
+}
+
+/*
+.preview.mce-content-body span[data-dpt=ex]:before {
+    font-size: 100%;
+    color: rgb(5,5,5);
+    font-weight: normal;
+    content: "";
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+}
+.preview.mce-content-body span[data-dpt=ex]:after {
+    font-size: 100%;
+    color: rgb(5,5,5);
+    font-weight: normal;
+    content: "";
+    position: relative;
+}
+ */
+ 
+.preview.mce-content-body span[data-dpt=supplied] {
+    background: transparent;
+}
+
+.preview.mce-content-body span[data-dpt=supplied]:before,
+.preview.mce-content-body span[data-dpt=gap]:before {
+    font-size: 100%;
+    color: rgb(5,5,5);
+    font-weight: normal;
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+    content: "[";
+}
+.preview.mce-content-body span[data-dpt=supplied]:after,
+.preview.mce-content-body span[data-dpt=gap]:after {
+    font-size: 100%;
+    color: rgb(5,5,5);
+    font-weight: normal;
+    content: "]";
+}
+.preview.mce-content-body span[data-dpt=gap] {
+    background: transparent;
+}
+
+/*
+.preview.mce-content-body span[data-dpt=clause]:before {
+    font-size: 100%;
+    font-weight: bold;
+    content: "";
+    font-family: junicode, arial, sans-serif;
+    margin-top: 0px;
+    position: relative;
+}
+
+.preview.mce-content-body span[data-dpt=clause]:after {
+    color: blue;
+    content: "";
+    font-family: "Arial Black",Gadget,sans-serif;
+    font-size: 110%;
+    margin-left: 0.2em;
+    font-weight: normal;
+    margin-top: -0.1em;
+    position: relative;
+}
+*/
+
+.preview.mce-content-body span[data-dpt=del]:before {
+    content: "";
+}
+
+.preview.mce-content-body span[data-dpt=del] {
+    text-decoration: line-through;
+}
+/* -------------------------------------------------------------------------*/
+/* PREVIEW - MOFA */
+/* -------------------------------------------------------------------------*/
+
+.preview.mce-content-body span[data-dpt]:before,
+.preview.mce-content-body span[data-dpt]:after {
+    display:none;
+}
+
+.highlights.preview.mce-content-body span:before,
+.highlights.preview.mce-content-body span:after {
+    display: inline;
+}
+
+.highlights.preview.mce-content-body span[data-dpt] {
+    background-color: rgba(0,255,0, 0.15);
+}
+
+.highlights.preview.mce-content-body span[data-dpt=clause] {
+    border: 1px solid rgba(0,0,255,0.2);
+    border-left: 1px solid rgba(0,0,255,0.2);
+    border-right: 1px solid rgba(0,0,255,0.2);
+    border-top: none;
+    background: rgba(0,0,255,0.1);
+    padding: 0px;
+    margin-right: 0.5em;
+    margin-bottom: 1px;
+    display: inline;
+}
+
+.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=disposition] {
+    background-color: rgba(255,0,255, 0.2);
+}
+.highlights.multicolor.mce-content-body span[data-dpt=clause][data-dpt-type=witnesses] {
+    background-color: rgba(255,80,0, 0.2);
+}
+.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=salutation] {
+    background-color: rgba(0,255,255, 0.2);
+}
+
+.highlights.preview.mce-content-body span[data-dpt]:hover {
+    background-color: rgba(255,255,0,0.2);
+}
+.highlights.preview.mce-content-body span[data-dpt]:hover:before {
+    background-color: rgba(255,255,0, 1);
+}
+
+.highlights.preview.mce-content-body span[data-dpt=supplied],
+.highlights.preview.mce-content-body span[data-dpt=ex],
+.preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
+    background: transparent;
+}
+.highlights.supplied-highlight.preview.mce-content-body span[data-dpt=supplied],
+.highlights.expansion-highlight.preview.mce-content-body span[data-dpt=ex] {
+    font-weight: bold;
+}
+.preview.mce-content-body span[data-dpt=ex]:before {
+    display: none;
+}
+.preview.supplied-hide.mce-content-body span[data-dpt=supplied] {
+    display: none;
+}
+.preview.expansion-hide.mce-content-body span[data-dpt=ex] {
+    font-size: 1px;
+}
+.preview.expansion-hide.mce-content-body span[data-dpt=ex]:after {
+    content: "'";
+    display: inline;
+    font-size: 16px;
+}
+
+.preview.line-breaks.mce-content-body span[data-dpt=lb] {
+    /* MS LB displayed as line breaks */
+    display: table-column;
+}
+.preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
+    /* MS LB displayed as line breaks */
+    display: inline;
+}
+
+
+/* -------------------------------------------------------------------------*/
+/* PREVIEW - EXON */
+/* -------------------------------------------------------------------------*/
+
 .preview.mce-content-body span[data-dpt=abbr], .preview.mce-content-body span[data-dpt=exp] {
     background: none;
 }
 
+/*
 .preview.mce-content-body span[data-dpt=abbr]:before,
 .preview.mce-content-body span[data-dpt=exp]:before,
 .preview.mce-content-body span[data-dpt=person]:before
- {
-    content: "";
-    background: none;
+{
+    display: none;
 }
 
-/* TOGGABLE DISPLAY SETTINGS */
 .abbreviated.mce-content-body span[data-dpt=exp] {
     display: none;
 }
 .mce-content-body span[data-dpt=abbr] {
     display: none;
 }
+*/
+
 .abbreviated.mce-content-body span[data-dpt=abbr] {
     display: inline;
 }
 
 /* MS LB displayed as line breaks */
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* MS LB displayed as line breaks */
     display: table-column;
 }
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms]:before {
+.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms]:before {
     content: "";
 }
 .ct-transcription-sample.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
@@ -459,7 +629,8 @@ span[data-dpt] > span[data-dpt] {
     content: "|";
     background: none;
 }
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body {
+.ct-transcription-sample.preview.ms-lb-lb.mce-content-body,
+.preview.line-breaks.mce-content-body {
     /* no word-wrap */
     overflow-x: scroll;
     white-space: nowrap;
@@ -560,85 +731,5 @@ span[data-dpt] > span[data-dpt] {
 
 .preview.mce-content-body span[data-dpt=add] {
     background: paleyellow;
-}
-
-/* -------------------------------------------------------------------------*/
-/* Codicology */
-/* -------------------------------------------------------------------------*/
-
-.mce-content-body span[data-dpt=codesc]:before {
-    font-size: 70%;
-    color: green;
-    font-weight: bold;
-}
-
-.mce-content-body span[data-dpt=codesc] {
-    background-color: rgba(0,255,0,0.25);
-}
-
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=count]:before {
-    content: "Perf. count";
-}
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=shape]:before {
-    content: "Perf. shape";
-}
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=location]:before {
-    content: "Perf. location";
-}
-
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=size]:before {
-    content: "Rul. size";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=count]:before {
-    content: "Rul. count";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=distance]:before {
-    content: "Rul. distance";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=method]:before {
-    content: "Rul. method";
-}
-
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=color]:before {
-    content: "Parch. color";
-}
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=side]:before {
-    content: "Parch. side";
-}
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=size]:before {
-    content: "Parch. size";
-}
-
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=location]:before {
-    content: "Sig. location";
-}
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=label]:before {
-    content: "Sig. label";
-}
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=appearance]:before {
-    content: "Sig. appearance";
-}
-
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=location]:before {
-    content: "Fol. location";
-}
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=label]:before {
-    content: "Fol. label";
-}
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=appearance]:before {
-    content: "Fol. appearance";
-}
-
-.mce-content-body span[data-dpt-object=bifolium][data-dpt-property=conjoint]:before {
-    content: "Bifol. conjoint";
-}
-.mce-content-body span[data-dpt-object=quire][data-dpt-property=number]:before {
-    content: "Quire number";
-}
-.mce-content-body span[data-dpt-object=column][data-dpt-property=count]:before {
-    content: "Col. count";
-}
-.mce-content-body span[data-dpt-object=column][data-dpt-property=size]:before {
-    content: "Col. size";
 }
 

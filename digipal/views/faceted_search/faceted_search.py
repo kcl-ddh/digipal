@@ -54,7 +54,7 @@ class FacetedModel(object):
     
     @classmethod
     def get_default_view(cls, selected=False):
-        return {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': selected}
+        return {'icon': 'list', 'label': 'List', 'key': 'list', 'selected': selected}
     
     def get_views(self):
         ret = self.get_option('views', [self.get_default_view(selected=False)])

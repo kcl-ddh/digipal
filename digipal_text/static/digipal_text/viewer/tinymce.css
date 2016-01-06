@@ -530,13 +530,14 @@ span[data-dpt] > span[data-dpt] {
 .highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=disposition] {
     background-color: rgba(255,0,255, 0.2);
 }
-.highlights.multicolor.mce-content-body span[data-dpt=clause][data-dpt-type=witnesses] {
+.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=witnesses] {
     background-color: rgba(255,80,0, 0.2);
 }
 .highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=salutation] {
     background-color: rgba(0,255,255, 0.2);
 }
 
+.highlights.multicolor.preview.mce-content-body span[data-dpt]:hover,
 .highlights.preview.mce-content-body span[data-dpt]:hover {
     background-color: rgba(255,255,0,0.2);
 }

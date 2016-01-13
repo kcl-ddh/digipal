@@ -654,26 +654,25 @@ span[data-dpt] > span[data-dpt] {
 /* Marginalia */
 .ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note] {
     display: inline;
-    background: none;
+    background-color: rgba(0,0,255,0.2);
+}
+.ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note]:before,
+.ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note]:after {
+    display: inline;
 }
 .ct-transcription-sample.preview.mce-content-body span[data-dpt=note]:before {
-    font-family: 'junicode';
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    position: relative;
-    background: none;
-    content: "<";
+    font-family: "Arial Black",Gadget,sans-serif;
+    font-size: 60%;
+    font-weight: bold;
+    margin-top: -0.7em;
+    position: absolute;
+    background-color1: white;
+    border-left1: 1px solid blue;
+    border-right1: 1px solid blue;
+    padding: 0 2px;
+    content: 'margin';
 }
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=note]:after {
-    font-family: 'junicode';
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    position: relative;
-    background: none;
-    content: ">";
-}
+
 .ct-transcription-sample.preview.mce-content-body span[data-dpt=note] {
     display: none;
 }

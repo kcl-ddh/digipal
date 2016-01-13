@@ -155,6 +155,10 @@ span[data-dpt] > span[data-dpt] {
     content: "Deleted";
 }
 
+.mce-content-body span[data-dpt=del][data-dpt-type=supplied]:before {
+    content: "Deleted (supplied)";
+}
+
 .mce-content-body span[data-dpt=person][data-dpt-type=title]:before {
     content: "Person title";
 }
@@ -278,7 +282,7 @@ span[data-dpt] > span[data-dpt] {
 }
 
 .mce-content-body span[data-dpt=hi][data-dpt-rend=sup]:before {
-    content: "HI:supp";
+    content: "HI:sup";
 }
 
 .mce-content-body span[data-dpt=hi][data-dpt-rend=smallcap]:before {
@@ -292,7 +296,7 @@ span[data-dpt] > span[data-dpt] {
 .ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
     background: none;
 }
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=location]:before {
+.preview.mce-content-body span[data-dpt=location]:before {
     font-family: 'junicode';
     font-size: 100%;
     color: rgb(5,5,5);
@@ -300,7 +304,7 @@ span[data-dpt] > span[data-dpt] {
     position: relative;
     content: "[";
 }
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=location]:after {
+.preview.mce-content-body span[data-dpt=location]:after {
     content: "]";
 }
 
@@ -413,10 +417,7 @@ span[data-dpt] > span[data-dpt] {
 }
 
 .preview.mce-content-body span[data-dpt=lb] {
-    /*opacity: 0;*/
     display: none;
-    /* Enable this to actually introduce a line break */
-    /* display: table-column; */
 }
 
 .preview.mce-content-body span[data-dpt=ex] {
@@ -497,6 +498,10 @@ span[data-dpt] > span[data-dpt] {
 .preview.mce-content-body span[data-dpt=del] {
     text-decoration: line-through;
 }
+.preview.mce-content-body span[data-dpt=del][data-dpt-type=supplied] {
+    text-decoration: underline;
+}
+
 /* -------------------------------------------------------------------------*/
 /* PREVIEW - MOFA */
 /* -------------------------------------------------------------------------*/
@@ -504,6 +509,11 @@ span[data-dpt] > span[data-dpt] {
 .preview.mce-content-body span[data-dpt]:before,
 .preview.mce-content-body span[data-dpt]:after {
     display:none;
+}
+
+.preview.mce-content-body span[data-dpt=location]:before,
+.preview.mce-content-body span[data-dpt=location]:after {
+    display: inline;
 }
 
 .highlights.preview.mce-content-body span:before,
@@ -569,7 +579,8 @@ span[data-dpt] > span[data-dpt] {
     font-size: 16px;
 }
 
-.preview.line-breaks.mce-content-body span[data-dpt=lb] {
+.preview.line-breaks.mce-content-body span[data-dpt=lb],
+.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* MS LB displayed as line breaks */
     display: table-column;
 }
@@ -587,23 +598,13 @@ span[data-dpt] > span[data-dpt] {
     background: none;
 }
 
-/*
-.preview.mce-content-body span[data-dpt=abbr]:before,
-.preview.mce-content-body span[data-dpt=exp]:before,
-.preview.mce-content-body span[data-dpt=person]:before
-{
+.preview.mce-content-body span[data-dpt=abbr] {
     display: none;
 }
-
-.abbreviated.mce-content-body span[data-dpt=exp] {
+.preview.abbreviated.mce-content-body span[data-dpt=exp] {
     display: none;
 }
-.mce-content-body span[data-dpt=abbr] {
-    display: none;
-}
-*/
-
-.abbreviated.mce-content-body span[data-dpt=abbr] {
+.preview.abbreviated.mce-content-body span[data-dpt=abbr] {
     display: inline;
 }
 
@@ -612,10 +613,7 @@ span[data-dpt] > span[data-dpt] {
     /* MS LB displayed as line breaks */
     display: table-column;
 }
-.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms]:before {
-    content: "";
-}
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* show instead | if disabled */
     display: inline;
     background: none;
@@ -636,17 +634,12 @@ span[data-dpt] > span[data-dpt] {
     overflow-x: scroll;
     white-space: nowrap;
 }
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=prj] {
-    /* hide editorial line breaks */
-    display: none;
-}
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body p {
-    /* hide editorial line breaks */
-    display: inline;
-}
 .ct-transcription-sample.preview.ms-lb-lb.mce-content-body p:before {
     /* make sure there is a space */
     content: " ";
+}
+.ct-transcription-sample.preview.ms-lb-lb.mce-content-body p {
+    display: inline;
 }
 
 /* Highlight */
@@ -690,6 +683,9 @@ span[data-dpt] > span[data-dpt] {
     display: none;
 }
 .ct-transcription-sample.preview.foliation.mce-content-body span[data-dpt-loctype=locus] {
+    display: inline;
+}
+.ct-transcription-sample.preview.foliation.ms-lb-lb.mce-content-body span[data-dpt-loctype=locus] {
     display: block;
 }
 .ct-transcription-sample.preview.entry.mce-content-body span[data-dpt-loctype=entry] {

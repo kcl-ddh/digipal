@@ -1573,7 +1573,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     };
 
     this.select_default_hand_and_allograph = function() {
-        // GN: if no hand and allograph is selected 
+        // GN: if no hand and allograph is selected
         // and only one hand is available, we select that hand.
         // This is more efficient for editors.
         // See MOA-195
@@ -1585,16 +1585,16 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             if (!(select.val())) {
                 var new_value = '';
                 
-                select.find('option').each(function(i, option) { 
+                select.find('option').each(function(i, option) {
                     if (option.value) {
-                        if (new_value) { 
+                        if (new_value) {
                             // more than one hand, we don't pick any
                             // it could be misleading for editors
-                            new_value = ''; 
-                            return false; 
+                            new_value = '';
+                            return false;
                         }
                         new_value = option.value;
-                    }  
+                    }
                 });
                 if (new_value) {
                     select.val(new_value);
@@ -3235,7 +3235,8 @@ function save(url, graphs, data, ann, features) {
 
         },
         complete: function() {
-            if (isModifyToolActive) {
+            // GN: MOA-140: modify tool remains de-activated after save
+            if (0 && isModifyToolActive) {
                 annotator.transformFeature.activate();
             }
             annotator.has_changed = true;

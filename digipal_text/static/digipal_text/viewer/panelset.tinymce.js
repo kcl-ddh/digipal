@@ -173,7 +173,15 @@ var PanelSetPlugIn = function(editor, url) {
     });
     
     function insertClauseOnSelectedDropdownOption(selectedValue) {
-        addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': selectedValue}, 'conditions': {'isparent': null}});
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'clause', 'words');
+    }
+
+    function insertPersonOnSelectedDropdownOption(selectedValue) {
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'person', 'chars');
+    }
+
+    function insertSpanOnSelectedDropdownOption(selectedValue, tag, cat) {
+        addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
 
     /*
@@ -243,36 +251,14 @@ var PanelSetPlugIn = function(editor, url) {
     // Clauses
     addDropDown('psclause', 'Address,Disposition,Witnesses', 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
 
-    // Clauses
+    // Other Clauses
     addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Title,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
 
-    // Clauses
-    /*
-    editor.addButton('psclause_minor', function() {
-        var items = [
+    // Person
+    addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);
 
-
-
-        
-        for (var i in items) {
-            items[i].value = items[i].value || items[i].text.toLowerCase();
-        }
-    
-        return {
-            type: 'listbox',
-            text: 'Clause',
-            tooltip: 'Clause',
-            values: items,
-            fixedWidth: true,
-            onclick: function(e) {
-                if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
-                    addSpan({'tag': 'clause', 'attributes': {'cat': 'words', 'type': e.control.settings.value}, 'conditions': {'isparent': null}});
-                }
-            }
-        };
-        
-    });
-    */
+    // Place
+    //addDropDown('psplace', 'Name', null, insertClauseOnSelectedDropdownOption);
 
     // H1
     editor.addButton('psh1', {

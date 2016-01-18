@@ -262,7 +262,7 @@
         this.$root.find('select').each(function() {
             $(this).chosen({
                 disable_search: $(this).hasClass('no-search'),
-                no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found'
+                no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
             });
         });
         
@@ -961,7 +961,7 @@
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | pslocation | psex pssupplied psdel | code ',
+                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | pslocation | psperson | psex pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
@@ -972,7 +972,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css?v=8"
+                content_css : "/static/digipal_text/viewer/tinymce.css?v=10"
             };
             
             if (this.contentType == 'codicology') {

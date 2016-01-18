@@ -54,7 +54,7 @@ class FacetedModel(object):
     
     @classmethod
     def get_default_view(cls, selected=False):
-        return {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': selected}
+        return {'icon': 'list', 'label': 'List', 'key': 'list', 'selected': selected}
     
     def get_views(self):
         ret = self.get_option('views', [self.get_default_view(selected=False)])
@@ -342,8 +342,11 @@ class FacetedModel(object):
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
         if field['type'] == 'image':
-            if 'Annotation' in str(type(ret)) and 'Graph' in str(type(record)):
-                ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
+            if 'Annotation' in str(type(ret)):
+                if 'Graph' in str(type(record)):
+                    ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
+                else:
+                    ret = html_escape.annotation_img(ret, lazy=1, fixlen=800)
             else:
                 ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1, wrap=record, link=record)
         if ret is None:

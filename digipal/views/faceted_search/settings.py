@@ -86,7 +86,7 @@ FACETED_SEARCH = {
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
+                              {'icon': 'th-list', 'label': 'List', 'key': 'list_images'},
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
                               {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
@@ -195,7 +195,7 @@ FACETED_SEARCH = {
                     #'model': 'mofa.customisations.digipal_text.models.Clause',
                     'model': 'digipal_text.models.TextUnit',
                     'fields': [
-                               {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True, 'rowspan': '2'},
+                               {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True, 'rowspan': '3'},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'content_xml.text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'content_xml.text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'content_xml.text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
@@ -203,7 +203,8 @@ FACETED_SEARCH = {
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'content_xml.text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'content_xml.text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 1},
+                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 2},
+                               {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1},
                                {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                ],
 #                     'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
@@ -280,7 +281,7 @@ FACETED_SEARCH = {
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
+                              {'icon': 'th-list', 'label': 'List', 'key': 'list_images'},
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
                               ],
                 },

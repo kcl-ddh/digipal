@@ -458,7 +458,7 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     
     # find the transcription for that image
     text_info = text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
-    if text_info['status'] == 'error' and 'location not found' in text_info['message'].lower():
+    if text_info.get('status', None) == 'error' and 'location not found' in text_info['message'].lower():
         # location not found, try the whole text
         text_info = text_api_view_text(request, item_partid, content_type, 'whole', '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
     
@@ -473,7 +473,7 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
                 # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
                 parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
                 # white list to filter the elements
-                if parts[0][1] in ('clause', 'location'):
+                if parts[0][1] in ('clause', 'location', 'person'):
 #                     element_info = []
 #                     element_info[0] = ' '.join([part[0] for part in parts])
 #                     element_info[1] = ' '.join([part[1] for part in parts])

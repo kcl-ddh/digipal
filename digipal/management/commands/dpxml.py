@@ -150,6 +150,8 @@ Commands:
         
         import regex
         
+        classes_used = {}
+        
         def repl(match):
             # e.g. match.group(0) = {% class super %}
             unknown = True
@@ -157,6 +159,51 @@ Commands:
             ret = match.group(0)
             parts = [p.strip() for p in directive.split(' ') if p.strip()]
             if parts:
+                if parts[0] == 'style':
+                    unknown = False
+
+                    classes_intersection = None
+                    for term in parts[1:]:
+                        classes = []
+                        if term == 'STRUCKTWICE':
+                            # <span class="T33">aiulfus</span>
+                            classes = regex.findall(ur'<text:span text:style-name="([^"]+)">(?:aiulfus|7 dim)</text:span>', xml_string)
+                            classes = list(set(classes))
+                        elif term == 'PRO':
+                            classes = regex.findall(ur'\s<text:span text:style-name="([^"]+)">p</text:span>\[ro\]\s', xml_string)
+                            classes = list(set(classes))
+                        else:
+                            # find the class with the term <term> (e.g. super)
+                            # <style:style style:name="T3" style:family="text">
+                            #     <style:text-properties
+                            #         style:text-position="super 58%" />
+                            # </style:style>        
+                            for style in regex.findall(ur'(?musi)<style:style style:name="(.*?)"[^>]*>(.*?)</style:style>', xml_string):
+                                if term in style[1]:
+                                    classes.append(style[0])
+                    
+                        if not classes:
+                            raise Exception('ERROR: style not found "%s"' % term)
+                        
+                        if classes_intersection is None:
+                            classes_intersection = classes
+                        else:
+                            # only keep the classes/styles that meet all keywords (AND) 
+                            classes_intersection = set(classes).intersection(set(classes_intersection))
+                            
+                    # now remove classes which we have already used
+                    already_used_warning = set(classes_intersection).intersection(set(classes_used.keys()))
+                    if already_used_warning:
+                        print '<!-- Already used classes/styles: %s (see above) -->' % ', '.join(list(already_used_warning))
+                    classes_intersection = set(classes_intersection).difference(set(classes_used.keys())) 
+                    # update the classes_used
+                    for cls in classes_intersection:
+                        classes_used[cls] = 1
+                    
+                    ret = ' or '.join([ur"@text:style-name='%s'" % cls for cls in classes_intersection])
+
+                    print '<!-- %s => %s -->' % (parts, ret)
+                    
                 if parts[0] == 'class':
                     unknown = False
 

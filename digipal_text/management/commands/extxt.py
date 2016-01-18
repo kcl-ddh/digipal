@@ -1077,6 +1077,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             print 'ERROR: could not find <body> element'
             return
 
+        content = regex.sub(ur'(?musi)\n', ur'', content)
+
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)&gt;', ur'<\1>', content)
@@ -1085,15 +1087,19 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = content.replace('&amp;', '#AMP#')
         
         # line breaks from MS
-        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms"></span>', content)
+        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
         # line breaks from editor
-        content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj"></span>', content)
+        content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>', content)
+        #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
         # <st>p</st> => ṕ
         content = regex.sub(ur'(?musi)<st>\s*p\s*</st>', ur'ṕ', content)
         # <st>q</st> => ƣ
         content = regex.sub(ur'(?musi)<st>\s*q\s*</st>', ur'ƣ', content)
+
+        # <u> => 
+        content = regex.sub(ur'(?musi)</?u>', ur'', content)
 
         # <del>de his</del> =>
         content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
@@ -1105,9 +1111,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
         def get_side(m):
             side = self.sides.get(m.group(3), m.group(3))
-            ret = ur'</p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span><p>' % (m.group(1), side)
+            ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (m.group(1), side)
             return ret
-        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', get_side, regex)
+        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.?(\s*(b?)\.?)\]', get_side, regex)
 
         # Entry number
         # [1a3]
@@ -1177,9 +1183,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = remove_accents(exp)
             
             # remove sub/sup from the expanded form as it usually contains abbreviation mark
-            # Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
+            # ? Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
             # here we keep ϛ because it is used as an insertion sign
-            ###exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
             # general removal
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
             
@@ -1199,14 +1204,17 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?musi)(〈[^〈〉]{1,30}〉)', ur'<span data-dpt="exp">\1</span>', content)
         
         # sup
-        content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
-
-        # sub
-        content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
-        content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+        if 0:
+            content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
+    
+            # sub
+            content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
+            content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
 
         # convert #AMP# to &amp;
         content = content.replace('#AMP#', '&amp;')
+
+        content = regex.sub(ur'</p>', u'</p>\n', content)
 
         # import
         from digipal_text.models import TextContentXML

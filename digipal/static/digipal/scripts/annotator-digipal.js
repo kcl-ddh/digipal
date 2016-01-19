@@ -34,7 +34,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     this.mediaUrl = mediaUrl;
     this.allow_multiple_dialogs = false;
     this.boxes_on_click = false;
-    this.deleteFeature.panel_div.title = 'Delete (del / shift + Backspace)';
+    this.deleteFeature.panel_div.title = 'Delete (del)';
     this.transformFeature.panel_div.title = 'Modify (m)';
     this.rectangleFeature.panel_div.title = 'Draw Annotation (d)';
     if (isAdmin !== 'True') {
@@ -85,7 +85,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     
     this.open_allograph_selector = function() {
         get_forms().allograph_form.trigger('liszt:open');
-    }
+    };
 
     this.showAnnotation = function(feature) {
         var select_allograph = get_forms().allograph_form;
@@ -3366,6 +3366,16 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
                     case 71: // G
                         toggleAll(activeControls, false);
                         _self.selectFeature.activate();
+                        break;
+                    case 32: // space
+                        var select_active = annotator.selectFeature.active;
+                        toggleAll(activeControls, false);
+                        if (select_active) {
+                            _self.rectangleFeature.activate();
+                        } else {
+                            _self.selectFeature.activate();
+                        }
+                        event.preventDefault();
                         break;
                     case 87: // W
                         toggleAll(activeControls, false);

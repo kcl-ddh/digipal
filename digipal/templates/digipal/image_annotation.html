@@ -76,7 +76,7 @@
                     {% endif %}
                     {% if show_image %}
                         {% include "digipal/image_annotation_control_bar.html" %}
-                        <div id="map" class='panel'></div>
+                        <div id="map" class='panel' tabindex="1"></div>
                         <div id="toolbar"></div>
                         {% include "digipal/image_annotation_settings.html" %}
                         <div id='annotations'></div>
@@ -198,6 +198,9 @@
                     if(annotator.isAdmin == 'True'){
                         $.getScript('{{ STATIC_URL }}digipal/scripts/allographs.js');
                     }
+                    // jQuery Chosen refocus to the select after the change event
+                    // so postponing is necessary to focus to something else after selection.
+                    $('select').on('change', function() { annotator.set_focus_postponed(); });
                 }
     
                 if(from_tab){

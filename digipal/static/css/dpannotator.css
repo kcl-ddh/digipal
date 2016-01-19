@@ -754,3 +754,7 @@ div.jquery-notebook p:first-child {
 .dialog_annotations .tab-content {
     padding: 0.5em;
 }
+
+#map:focus {
+    outline: 1px solid #C9C9D1;
+}

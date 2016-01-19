@@ -26,8 +26,10 @@ function AnnotatorLoader() {
         }
         var allographs_box = false,
             allographs_loaded = false;
+        
         var select_elements = $('select');
         select_elements.chosen();
+        
         self.switch_annotations();
         self.toolbar_position();
         

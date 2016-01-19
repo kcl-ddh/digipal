@@ -34,15 +34,15 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     this.mediaUrl = mediaUrl;
     this.allow_multiple_dialogs = false;
     this.boxes_on_click = false;
-    this.deleteFeature.panel_div.title = 'Delete (shift + Backspace)';
-    this.transformFeature.panel_div.title = 'Modify (shift + m)';
-    this.rectangleFeature.panel_div.title = 'Draw Annotation (shift + d)';
+    this.deleteFeature.panel_div.title = 'Delete (del / shift + Backspace)';
+    this.transformFeature.panel_div.title = 'Modify (m)';
+    this.rectangleFeature.panel_div.title = 'Draw Annotation (d)';
     if (isAdmin !== 'True') {
-        this.rectangleFeature.panel_div.title = 'Create Annotation (shift + d)';
+        this.rectangleFeature.panel_div.title = 'Create Annotation (d)';
     }
-    this.selectFeature.panel_div.title = 'Select (shift + g)';
-    this.zoomBoxFeature.panel_div.title = 'Zoom (shift + z)';
-    this.saveButton.panel_div.title = 'Save (shift + s)';
+    this.selectFeature.panel_div.title = 'Select (g)';
+    this.zoomBoxFeature.panel_div.title = 'Zoom (z)';
+    this.saveButton.panel_div.title = 'Save (s)';
     this.selectedAnnotations = [];
     this.cacheAnnotations = new AnnotationsCache();
     this.cacheHiddenFilters = [];
@@ -74,6 +74,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     var number_allographs_element = $(".number_annotated_allographs .number-allographs");
 
     ////////////////////////////////////////
+    
+    this.set_focus_postponed = function() {
+        window.dputils.postpone(function() {self.set_focus();});
+    };
+
+    this.set_focus = function() {
+        $('#map').focus();
+    };
 
     this.showAnnotation = function(feature) {
         var select_allograph = get_forms().allograph_form;
@@ -3077,7 +3085,7 @@ function save(url, graphs, data, ann, features) {
 
                 for (var i = 0; i < new_graphs.length; i++) {
 
-                    /*	Updating cache	*/
+                    /*  Updating cache  */
 
                     var is_editorial = false;
                     var new_graph = new_graphs[i].graph,
@@ -3106,7 +3114,7 @@ function save(url, graphs, data, ann, features) {
                         }
                     }
 
-                    /*	Updating annotator features	*/
+                    /*  Updating annotator features */
                     var n = 0;
                     for (var feature_ind = 0; feature_ind < f_length; feature_ind++) {
                         if (f[feature_ind].id == new_graphs[i].vector_id || f[feature_ind].id == new_graphs[i].annotation_id || (new_graphs[i].hasOwnProperty('graph') && f[feature_ind].graph == new_graphs[i].graph)) {
@@ -3324,70 +3332,78 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
     var toggleAll = _self.utils.toggleAll;
     $(document).bind('keydown', function(event) {
         activeControls = _self.map.getControlsBy('active', true);
-        var code = (event.keyCode ? event.keyCode : event.which);
+        var code = event.which || event.keyCode;
 
-        if (event.shiftKey && annotator.isAdmin == 'True') {
+        //if (event.shiftKey && annotator.isAdmin == 'True') {
+        if (annotator.isAdmin == 'True') {
             var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
+            //var focused_tag = $(':focus').first().prop('tagName');
             if (!isFocus) {
                 switch (code) {
-                    case 77:
-                        toggleAll(activeControls, false);
-                        _self.modifyFeature.activate();
+                    case 109: // m
+                    case 77: // M
+                        // not set if no vector selected
+                        if (_self.transformFeature) {
+                            toggleAll(activeControls, false);
+                            _self.transformFeature.activate();
+                            //_self.modifyFeature.activate();
+                        }
                         break;
-                    case 8:
+                    case 46: //  DEL
                         toggleAll(activeControls, false);
                         _self.deleteFeature.activate();
                         break;
-                    case 77:
-                        toggleAll(activeControls, false);
-                        _self.transformFeature.activate();
-                        break;
-                    case 68:
+                    case 100: // d
+                    case 68: // D
                         toggleAll(activeControls, false);
                         _self.rectangleFeature.activate();
                         break;
-                    case 71:
+                    case 103: // g
+                    case 71: // G
                         toggleAll(activeControls, false);
                         _self.selectFeature.activate();
                         break;
-                    case 87:
+                    case 87: // W
                         toggleAll(activeControls, false);
                         _self.dragFeature.activate();
                         break;
-                    case 90:
+                    case 122: // z
+                    case 90: // Z
                         toggleAll(activeControls, false);
                         _self.zoomBoxFeature.activate();
                         break;
-                    case 83:
+                    case 115: // s
+                    case 83: // S
                         _self.saveButton.trigger();
                         break;
-                    case 70:
+                    case 102: // f
+                    case 70: // F
                         _self.full_Screen();
                         break;
-                    case 38:
+                    case 38: // &
                         annotator.map.moveByPx(0, -60);
                         annotator.vectorLayer.redraw();
                         restoreFullscreenPositions();
                         break;
-                    case 40:
+                    case 40: // (
                         annotator.map.moveByPx(0, 60);
                         annotator.vectorLayer.redraw();
                         restoreFullscreenPositions();
                         break;
-                    case 37:
+                    case 37: // %
                         annotator.map.moveByPx(-60);
                         annotator.vectorLayer.redraw();
                         restoreFullscreenPositions();
                         break;
-                    case 39:
+                    case 39: // '
                         annotator.map.moveByPx(60);
                         annotator.vectorLayer.redraw();
                         restoreFullscreenPositions();
                         break;
-                    case 187:
+                    case 187: // >> ?
                         annotator.vectorLayer.map.zoomIn();
                         break;
-                    case 189:
+                    case 189: // 1/2
                         annotator.vectorLayer.map.zoomOut();
                         break;
                 }

@@ -39,6 +39,11 @@
                 "/": '&#x2F;'
             },
             
+            postpone: function(f) {
+                // execute f after the current event loop
+                window.setTimeout(f, 0);
+            },
+            
             escapeHtml: function(string) {
                 return String(string).replace(/[&<>"'\/]/g, function (s) {
                     return window.dputils.entityMap[s];

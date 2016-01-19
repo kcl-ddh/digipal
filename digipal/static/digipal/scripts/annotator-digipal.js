@@ -82,6 +82,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     this.set_focus = function() {
         $('#map').focus();
     };
+    
+    this.open_allograph_selector = function() {
+        get_forms().allograph_form.trigger('liszt:open');
+    }
 
     this.showAnnotation = function(feature) {
         var select_allograph = get_forms().allograph_form;
@@ -3379,6 +3383,10 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
                     case 102: // f
                     case 70: // F
                         _self.full_Screen();
+                        break;
+                    case 65: // a
+                        if (annotator) annotator.open_allograph_selector();
+                        event.preventDefault();
                         break;
                     case 38: // &
                         annotator.map.moveByPx(0, -60);

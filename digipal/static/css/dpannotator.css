@@ -581,7 +581,7 @@ label[for=id_internal_note], label[for=id_display_note]{
     transition-duration:0.250s;
 }
 
-.fullScreenPanel.no {
+.fullScreenPanel {
     position: fixed;
     z-index: 2000;
     width: 88%;

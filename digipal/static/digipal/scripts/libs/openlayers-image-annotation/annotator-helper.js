@@ -1,5 +1,10 @@
 /**
- * Control to duplicate features.
+ * New operations / modes /controls for Open layers 2:
+ *      DuplicateFeature
+ *      TransformFeature
+ *      
+ * This is modified version of the kcl-ddh/openlayers-image-annotation
+ * TODO: fork it on github and commit the changes
  */
 DuplicateFeature = OpenLayers.Class(OpenLayers.Control, {
 	initialize: function(layer, options) {

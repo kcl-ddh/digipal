@@ -1,6 +1,8 @@
 /**
- * Intiial annotator script loading
-   -- Digipal Project --> digipal.eu
+ * Code specific to the Annotator Page and its tool bar
+ * Dialogs, filtering, settings, drop downs, ...
+ * 
+ * -- Digipal Project --> digipal.eu
  */
 
 function AnnotatorLoader() {

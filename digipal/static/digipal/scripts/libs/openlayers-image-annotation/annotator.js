@@ -1,5 +1,6 @@
 /**
  * Class to control the Annotations with OpenLayers.
+ * It add a Vector layer and a tool bar to edit annotations.
  *
  * @param imageUrl
  *						URL of the image to annotate.
@@ -9,6 +10,10 @@
  *						Height of the image to annotate.
  * @param isZoomify
  *						Indicates if the imageUrl refers to a zoomify URL.
+ *
+ * This is modified version of the kcl-ddh/openlayers-image-annotation
+ * TODO: fork it on github and commit the changes
+ * 
  */
 
 function Annotator(imageUrl, imageWidth, imageHeight, isZoomify) {

@@ -1,3 +1,12 @@
+/**
+ * DigipalAnnotator: a class to kind of encapsulate the OpenLayers canvas and 
+ *                  the annotation interactions and display
+ * 
+ * A lot of extra functions to deal with dialogs
+ * 
+ * TODO: IN DIRE NEED OF CLEAN UP AND REFACTORING!
+ * 
+ */
 // inherits from Annotator
 DigipalAnnotator.prototype = new Annotator();
 
@@ -1911,6 +1920,10 @@ function notifySelectedAnnotations() {
     updateStatus(msg, 'success');
 }
 
+// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 
 function select_feature(feature) {
     annotator.showAnnotation(feature);

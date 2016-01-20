@@ -561,7 +561,7 @@ label[for=id_internal_note], label[for=id_display_note]{
     box-shadow: 0 0 5px 1px #ccc;
 }
 
-.fullScreenMap{
+.fullScreenMap {
     width: 100% !important;
     height: 100% !important;
     position: fixed !important;
@@ -581,7 +581,7 @@ label[for=id_internal_note], label[for=id_display_note]{
     transition-duration:0.250s;
 }
 
-.fullScreenPanel {
+.fullScreenPanel.no {
     position: fixed;
     z-index: 2000;
     width: 88%;
@@ -601,7 +601,7 @@ label[for=id_internal_note], label[for=id_display_note]{
     transition-duration:0.350s;
 }
 
-.fullScreenPanel label {
+.fullScreenPanel.no label {
     color:#fff;
 }
 

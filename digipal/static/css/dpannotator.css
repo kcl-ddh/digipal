@@ -601,7 +601,7 @@ label[for=id_internal_note], label[for=id_display_note]{
     transition-duration:0.350s;
 }
 
-.fullScreenPanel.no label {
+.fullScreenPanel label {
     color:#fff;
 }
 

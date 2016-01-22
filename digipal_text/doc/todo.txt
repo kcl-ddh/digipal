@@ -1,4 +1,22 @@
-
+. display settings for image
+    . hide mark-up
+    . show mark-up
+    [DON] zoom on markup
+. navigation:
+    . pgup / pgdn
+        . don't move web page
+        . same with mouse scroll
+        . go to previous/next unit in the sequence
+        . on image as well
+    . shift pgup / pgdn
+        . go to previous/next unit in the sequence
+    *** . load and zoom on image:
+        . when click on entry number in text
+        . when load the entry number in the text panel
+    . load entry in text
+        . when click on entry in image
+    . expand one panel
+    
 --------------------------------------------------
 eta
 Invalid format

@@ -331,6 +331,12 @@ class AnnotatorOL3 {
         if (feature) features.push(feature);
     }
     
+    zoomToFeature(feature?: ol.Feature): void {
+        if (feature) {
+            this.map.getView().fit(feature.getGeometry().getExtent(), this.map.getSize());
+        }
+    }
+    
     addAnnotations(annotations?: Array<any>): void {
         var geojsonObject  = {
             'type': 'FeatureCollection',

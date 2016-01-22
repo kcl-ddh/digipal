@@ -13,7 +13,6 @@
         this.$messageBox = null;
         this.isReady = false;
         
-        
         this.registerPanel = function(panel) {
             this.panels.push(panel);
             panel.panelSet = this;
@@ -33,13 +32,18 @@
         
         this.onPanelContentLoaded = function(panel, locationType, location) {
             for (var i in this.panels) {
-                this.panels[i].syncLocationWith(panel, locationType, location);
+                this.panels[i].syncLocationWith(panel, locationType, location, panel.getSubLocation());
             }
         };
         
+        this.syncWithPanel = function(panel) {
+            this.onPanelContentLoaded(panel);
+        };
+        
         this.syncPanel = function(panel) {
+            // sync the given panel (with others)
             for (var i in this.panels) {
-                panel.syncLocationWith(this.panels[i], this.panels[i].getLocationType(), this.panels[i].getLocation());
+                panel.syncLocationWith(this.panels[i], this.panels[i].getLocationType(), this.panels[i].getLocation(), this.panels[i].getSubLocation());
             }
         };
         
@@ -236,6 +240,8 @@
         // attempt to save will overwrite the fragment.
         this.loadedAddress = null;
 
+        this.subLocation = [];
+
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.removeAttr('id');
@@ -389,9 +395,9 @@
             }, 2500);
         };
         
-        this.syncLocationWith = function(panel, locationType, location) {
+        this.syncLocationWith = function(panel, locationType, location, subLocation) {
             if ((panel !== this) && (this.getLocationType() === 'sync') && (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase())) {
-                this.loadContent(false, this.getContentAddress(locationType, location));
+                this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
             }
         };
         
@@ -409,7 +415,9 @@
         
         /* LOADING CONTENT */
 
-        this.loadContent = function(loadLocations, address) {
+        this.loadContent = function(loadLocations, address, subLocation) {
+            subLocation = subLocation || [];
+        
             if (!address && (this.getLocationType() == 'sync')) {
                 this.panelSet.syncPanel(this);
                 return;
@@ -424,6 +432,7 @@
                 this.loadedAddress = null;
                 this.loadContentCustom(loadLocations, address);
             }
+            this.setSubLocation(subLocation);
         };
         
         this.loadContentCustom = function(loadLocations, address) {
@@ -812,6 +821,27 @@
     };
 
     
+    Panel.prototype.getSubLocation = function() {
+        var ret = this.subLocation;
+        
+        if (ret.length <= 0) {
+            // create a subLocation from the location
+            ret = [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
+        }
+        
+        return ret;
+    };
+    
+    Panel.prototype.setSubLocation = function(subLocation, stay) {
+        // if stay is true, we won't focus on the subLocation
+        // clone and set the location
+        this.subLocation = JSON.parse(JSON.stringify(subLocation));
+        // move to the sublocation
+        if (stay !== true) {
+            //this.moveToSubLocation();
+        }
+    };
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelText
@@ -819,6 +849,7 @@
     //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType, options) {
         TextViewer.Panel.call(this, $root, contentType, 'Text', options);
+        var me = this;
 
         this.getEditingMode = function() {
             return false;
@@ -842,6 +873,19 @@
                 }
             );
         };
+
+        this.$content.on('mouseup', function(e) {
+            if (!me.getEditingMode()) {
+                // find the dpt element we've just clicked on
+                var subLocation = get_sublocation_from_element(e.target);
+                
+                if (subLocation.length) {
+                    me.setSubLocation(subLocation);
+                    // dispatch the element we are on
+                    me.panelSet.syncWithPanel(me);
+                }
+            }
+        });
         
     };
     
@@ -1145,16 +1189,33 @@
     PanelImage.prototype = Object.create(Panel.prototype);
 
     PanelImage.prototype.onContentLoaded = function(data) {
-        // OL
-        this.applyOpenLayer(data);
+        // avoid reloading the same image
+        if (!(this.last_data && this.last_data.zoomify_url == data.zoomify_url)) {
+            // OL
+            this.applyOpenLayer(data);
+            
+            // annotations
+            this.annotator.addAnnotations(data.annotations);
         
-        // annotations
-        this.annotator.addAnnotations(data.annotations);
-    
-        // text-image links
-        this.$linker.closest('.dphidden').toggle(true);
-        this.resetLinker(data);
+            // text-image links
+            this.$linker.closest('.dphidden').toggle(true);
+            this.resetLinker(data);
+        }
+            
         Panel.prototype.onContentLoaded.call(this, data);
+
+        this.last_data = data;
+    };
+    
+    PanelImage.prototype.setSubLocation = function(subLocation, stay) {
+        // if stay is true, we won't focus on the sublocation
+        // clone and set the location
+        // TODO
+        if (this.annotator) {
+            var feature = this.annotator.getFeatureFromElementId(subLocation);
+            this.annotator.selectFeature(feature);
+            this.annotator.zoomToFeature(feature);
+        }
     };
 
     PanelImage.prototype.resetLinker = function(data) {
@@ -1165,7 +1226,11 @@
         var htmlstr = '<option value="">Unspecified</option>';
         elements.map(function(el) {
             var key = JSON.stringify(el);
-            var label = (el.map(function(attr) { return attr[1]; })).join(' > ');
+            // clause > address
+            //var label = (el_shorten.map(function(attr) { return attr[1]; })).join(' > ');
+            // address (clause)
+            var label = el.pop()[1];
+            if (el.length > 0) label += ' (' + el.pop()[1] + ')';
             htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+label+'</option>';
         });
         this.$linkerText.html(htmlstr);
@@ -1174,7 +1239,6 @@
 
     PanelImage.prototype.annotatorEventHandler = function(e) {
         var me = this;
-        console.log(e);
         
         // update the selection count
         var selections = e.annotator.getSelectedFeatures();
@@ -1243,8 +1307,6 @@
             links.push(link);
         });
         links = JSON.stringify(links);
-        
-        console.log(links);
         
         this.callApi(
             'saving text-image link',
@@ -1459,6 +1521,28 @@
             (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
             // or any other URL that isn't scheme relative or absolute i.e relative.
             !(/^(\/\/|http:|https:).*/.test(url));
+    }
+
+    function get_sublocation_from_element(element) {
+        // returns a sub location array from a html element
+        // <span data-dpt='location' data-dpt-loctype="entry">1a1</span>
+        // => [['', 'location'], ['loctype', 'entry'], ['@text', '1a1']]
+        var ret = [];
+        var $el = $(element).closest('[data-dpt]');
+        if ($el.length) {
+            // convert attributes
+            ret = $.map($el[0].attributes, function(val, i) {
+                var name = val.name.replace(/^data-dpt-?/, '');
+                if (name != val.name && name !== 'cat') return [[name, val.value]];
+            });
+            // add slugified small text content
+            var text = $el.text().toLowerCase().replace(/(^\s+|\s+$)/g, '').replace(/\W/g, '-');
+            if (text.length > 0 && text.length < 20) {
+                ret.push(['@text', text]);
+            }
+        }
+        
+        return ret;
     }
     
     initLayoutAddOns();

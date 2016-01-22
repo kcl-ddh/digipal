@@ -263,7 +263,7 @@ def resolve_default_location(location_type, location, response):
 def get_fragment_extent(content, location_type, location):
     ret = None
     
-    print location_type, location
+    #print location_type, location
     
     content = content or ''
     
@@ -366,14 +366,14 @@ def get_annotations_from_image(image):
             geojson['properties']['elementid'] = json.loads(textannotation.elementid or [])
         ret['annotations'].append(info)
         
-    print ret
+    #print ret
         
     return ret
 
 def update_text_image_link(request, image):
     ret = {}
     
-    print 'TEXT IMAGE LINK: image #%s' % image.id
+    #print 'TEXT IMAGE LINK: image #%s' % image.id
     links = request.REQUEST.get('links', None)
     if links:
         ''' links = [
@@ -385,7 +385,7 @@ def update_text_image_link(request, image):
                     ]
         '''
         for link in json.loads(links):
-            print link
+            #print link
             attrs, geojson = link[0], link[1]
             clientid = (geojson.get('properties', {}) or {}).pop('clientid', '')
             serverid = geojson.pop('id', None)
@@ -406,7 +406,7 @@ def update_text_image_link(request, image):
             # 2. delete or create annotation
             if action == 'deleted':
                 if annotation:
-                    print 'delete annotation'
+                    #print 'delete annotation'
                     annotation.delete()
                     annotation = None
             else:
@@ -414,12 +414,12 @@ def update_text_image_link(request, image):
                 if not annotation:
                     if serverid:
                         raise Exception('Cannot find annotation by server id %s' % serverid)
-                    print 'create annotation'
+                    #print 'create annotation'
                     author = request.user
                     annotation = Annotation(clientid=clientid, image=image, author=author)
             
                 # update annotation and link
-                print 'update annotation'
+                #print 'update annotation'
                 annotation.set_geo_json_from_dict(geojson)
                 annotation.save()
                 if not serverid:
@@ -433,17 +433,17 @@ def update_text_image_link(request, image):
                 if not attrs:
                     # delete it
                     if text_annotation:
-                        print 'delete link'
+                        #print 'delete link'
                         text_annotation.delete()
                 else:
                     if not text_annotation:
-                        print 'create link'
+                        #print 'create link'
                         text_annotation = TextAnnotation(annotation=annotation)
-                    print 'update link'
+                    #print 'update link'
                     text_annotation.elementid = json.dumps(attrs)
                     text_annotation.save()
         
-    print ret
+    #print ret
     
     return ret
 
@@ -451,6 +451,8 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     # returns the TRANSCRIPTION text for the requested IMAGE location
     # if not found, returns the whole text
     # eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["", "clause"], ["type", "disposition"]], [["", "clause"], ["type", "witnesses"]]]
+    from django.utils.text import slugify
+    
     ret = []
     
     from digipal_text.models import TextContentType
@@ -469,15 +471,16 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
         content = text_info.get('content', '')
         if content:
             #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
-            for element in re.findall(ur'(?musi)data-dpt="[^>]+', content):
+            for element in re.findall(ur'(?musi)(data-dpt="[^>]+)([^<]{0,30})', content):
+                element_text = element[1]
+                element = element[0]
                 # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
                 parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
                 # white list to filter the elements
                 if parts[0][1] in ('clause', 'location', 'person'):
-#                     element_info = []
-#                     element_info[0] = ' '.join([part[0] for part in parts])
-#                     element_info[1] = ' '.join([part[1] for part in parts])
-#                     ret.append(element_info)
+                    element_text = slugify(u'%s' % element_text. lower())
+                    if len(element_text) > 0 and len(element_text) < 20:
+                        parts.append(['@text', element_text])
                     ret.append(parts)
         
     return ret

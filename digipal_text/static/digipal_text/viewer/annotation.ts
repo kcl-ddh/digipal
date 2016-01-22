@@ -114,7 +114,7 @@ class AnnotatorOL3 {
           source: this.source,
           style: new ol.style.Style({
             fill: new ol.style.Fill({
-              color: 'rgba(255, 255, 255, 0.2)'
+              color: 'rgba(255, 255, 255, 0.07)'
             }),
             stroke: new ol.style.Stroke({
               color: '#ffcc33',
@@ -203,7 +203,24 @@ class AnnotatorOL3 {
 
     initSelect(): void {
         var interaction = new Select({
-            condition: ol.events.condition.click
+            condition: ol.events.condition.click,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.07)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(0,153,255, 1)',
+                    width: 3
+                }),
+                /*
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                    })
+                })
+                */
+            })
         });
         
         interaction.on('select', (e) => {

@@ -442,8 +442,6 @@ def update_text_image_link(request, image):
                     #print 'update link'
                     text_annotation.elementid = json.dumps(attrs)
                     text_annotation.save()
-        
-    #print ret
     
     return ret
 
@@ -464,8 +462,6 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
         # location not found, try the whole text
         text_info = text_api_view_text(request, item_partid, content_type, 'whole', '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
     
-    #print text_info
-
     # extract all the elements
     if text_info.get('status', '').lower() != 'error':
         content = text_info.get('content', '')

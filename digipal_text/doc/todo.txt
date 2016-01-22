@@ -1,7 +1,10 @@
-. display settings for image
-    . hide mark-up
-    . show mark-up
-    [DON] zoom on markup
+. tone down the mark up
+    . increase opacity
+    . change yellow to something more visible
+    . display settings for image
+        * . hide mark-up
+        . show mark-up
+        . zoom on markup
 . navigation:
     . pgup / pgdn
         . don't move web page
@@ -16,6 +19,7 @@
     . load entry in text
         . when click on entry in image
     . expand one panel
+    . reorder the features so we can click on nested ones
     
 --------------------------------------------------
 eta

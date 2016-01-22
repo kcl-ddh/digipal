@@ -7,6 +7,7 @@ from django.http import HttpResponse, Http404
 from django.db import transaction
 from digipal import utils
 from django.utils.datastructures import SortedDict
+from django.conf import settings
 import json
 
 import logging
@@ -345,7 +346,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
             ret['height'] = image.height
             
             # add all the elements found on that page in the transcription
-            ret['text_elements'] = get_text_elements_from_image(request, item_partid, 'transcription', location_type, location)
+            ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
             
             # add all the non-graph annotations
             ret.update(get_annotations_from_image(image))

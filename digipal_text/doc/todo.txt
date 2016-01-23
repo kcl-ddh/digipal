@@ -6,19 +6,15 @@
             . show current view
             . change yellow to something more visible
 . text-image linking
-    [fixed] . bug when clicking the entry number in Exon, it loads the wrong page
-        . the panel location wasn't passed when syncing from the mouseup event
-        . ok but might be an issue if the panel is synced...
-    [fixed] . click on any dpt- element would be synced: not efficient
-         . only clause, person and location are synced
-    . on page load, zoom the the smallest frame comprising all the boxes
     *** . not selected when the image is just loaded
     [done] . click -> load and zoom on image:
         . when click on entry number in text
         . when load the entry number in the text panel
     . load entry in text
         . when click on entry in image
+            . harder: because panels are synced one way only
 . navigation:
+    . on page load, zoom to the smallest frame comprising all the boxes
     * scroll up to sublocation
     . pgup / pgdn
         ** . don't move web page
@@ -29,7 +25,19 @@
         . go to previous/next unit in the sequence
     . expand one panel
     . reorder the features so we can click on nested ones
+    . switch location type doesn't trigger a reload of the content
 . show images in the search results for entries
+. bugs
+    [fixed] . bug when clicking the entry number in Exon, it loads the wrong page
+        . the panel location wasn't passed when syncing from the mouseup event
+        . ok but might be an issue if the panel is synced...
+    [fixed] . click on any dpt- element would be synced: not efficient
+         . only clause, person and location are synced
+    . clicking on 2a1 when address is whole or 1r or 1b1 won't load the right image
+    . sync always generate a request from the image panel
+        . ok: except when addres = 1r and click on entries
+        . ko: change @ from 1a1 to 1a2 => reload
+        * . ko: click from 1a1 to 1a2 when @ = whole => reload
 
 approx 2 mins for 6 entries
 => 3000 / 6 * 2 / 60 => 16 hours => approx. three days

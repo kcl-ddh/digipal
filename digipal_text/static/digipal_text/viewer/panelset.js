@@ -426,6 +426,7 @@
             address = address || this.getContentAddress();
             
             if (this.loadedAddress != address) {
+                console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
@@ -566,6 +567,7 @@
 
         this.onSelectLocationType = function(locationType) {
             // update the list of locations
+            var me = this;
             var htmlstr = '';
             if (this.locations && this.locations[locationType]) {
                 $(this.locations[locationType]).each(function (index, value) {
@@ -580,9 +582,24 @@
                 });
             }
             this.$locationSelect.html(htmlstr);
+            // ?? not a BS DD, just a select
             this.$locationSelect.trigger('liszt:updated');
             this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
-            if (!htmlstr) this.loadContent();
+            //             if (!htmlstr) { this.loadContent(); }
+            //             else
+            //             {
+            //                 // force a load bc the location has changed
+            //                 // This will create infinite event recursion on startup:
+            //                 // this.loadContent();
+            //                 // this.loadContent(false, this.getContentAddress(locationType));
+            //                 window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
+            //             };
+            // Try to reload bc the location has changed.
+            // Note that no request is sent if address hasn't changed.
+            // This will create infinite event recursion on startup:
+            // this.loadContent();
+            // this.loadContent(false, this.getContentAddress(locationType));
+            window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
         };
         
         this.setItemPartid = function(itemPartid) {

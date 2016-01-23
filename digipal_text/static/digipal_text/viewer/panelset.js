@@ -37,7 +37,7 @@
         };
         
         this.syncWithPanel = function(panel) {
-            this.onPanelContentLoaded(panel);
+            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
         };
         
         this.syncPanel = function(panel) {
@@ -1535,10 +1535,19 @@
                 var name = val.name.replace(/^data-dpt-?/, '');
                 if (name != val.name && name !== 'cat') return [[name, val.value]];
             });
+            // filter: we don't want ANY element (e.g. clause: ok, exp/abbr: no)
+            if (ret.length > 0) {
+                var accepted_tags = ['clause', 'location', 'person'];
+                if (accepted_tags.indexOf(ret[0][1]) < 0) {
+                    ret = [];
+                }
+            }
             // add slugified small text content
-            var text = $el.text().toLowerCase().replace(/(^\s+|\s+$)/g, '').replace(/\W/g, '-');
-            if (text.length > 0 && text.length < 20) {
-                ret.push(['@text', text]);
+            if (ret.length > 0) {
+                var text = $el.text().toLowerCase().replace(/(^\s+|\s+$)/g, '').replace(/\W/g, '-');
+                if (text.length > 0 && text.length < 20) {
+                    ret.push(['@text', text]);
+                }
             }
         }
         

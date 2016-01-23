@@ -1,25 +1,39 @@
-. tone down the mark up
-    . increase opacity
-    . change yellow to something more visible
+. calibrate the mark up
     . display settings for image
-        * . hide mark-up
-        . show mark-up
-        . zoom on markup
-. navigation:
-    . pgup / pgdn
-        . don't move web page
-        . same with mouse scroll
-        . go to previous/next unit in the sequence
-        . on image as well
-    . shift pgup / pgdn
-        . go to previous/next unit in the sequence
-    *** . load and zoom on image:
+        ** . discreet markup
+            . only box the selected feature, but with less vivid colors
+        . visible markup
+            . show current view
+            . change yellow to something more visible
+. text-image linking
+    [fixed] . bug when clicking the entry number in Exon, it loads the wrong page
+        . the panel location wasn't passed when syncing from the mouseup event
+        . ok but might be an issue if the panel is synced...
+    [fixed] . click on any dpt- element would be synced: not efficient
+         . only clause, person and location are synced
+    . on page load, zoom the the smallest frame comprising all the boxes
+    *** . not selected when the image is just loaded
+    [done] . click -> load and zoom on image:
         . when click on entry number in text
         . when load the entry number in the text panel
     . load entry in text
         . when click on entry in image
+. navigation:
+    * scroll up to sublocation
+    . pgup / pgdn
+        ** . don't move web page
+        ** . same with mouse scroll
+        . go to previous/next unit in the sequence
+        . on image as well
+    . shift pgup / pgdn
+        . go to previous/next unit in the sequence
     . expand one panel
     . reorder the features so we can click on nested ones
+. show images in the search results for entries
+
+approx 2 mins for 6 entries
+=> 3000 / 6 * 2 / 60 => 16 hours => approx. three days
+=> TO: 816 => 5 hours
     
 --------------------------------------------------
 eta

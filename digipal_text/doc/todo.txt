@@ -6,7 +6,7 @@
             . show current view
             . change yellow to something more visible
 . text-image linking
-    *** . not selected when the image is just loaded
+    [done] . not selected when the image is just loaded
     [done] . click -> load and zoom on image:
         . when click on entry number in text
         . when load the entry number in the text panel
@@ -14,7 +14,7 @@
         . when click on entry in image
             . harder: because panels are synced one way only
 . navigation:
-    . on page load, zoom to the smallest frame comprising all the boxes
+    *. on page load, zoom to the smallest frame comprising all the boxes
     * scroll up to sublocation
     . pgup / pgdn
         ** . don't move web page
@@ -24,7 +24,10 @@
     . shift pgup / pgdn
         . go to previous/next unit in the sequence
     . expand one panel
-    . reorder the features so we can click on nested ones
+    . features obstructing nested ones or ambiguity with partial overlap
+        . reorder the features so we can click on nested ones
+        . better would be to focus on the feature with nearest center
+            among all features intersecting with the pointer
     . switch location type doesn't trigger a reload of the content
 . show images in the search results for entries
 . bugs
@@ -33,7 +36,9 @@
         . ok but might be an issue if the panel is synced...
     [fixed] . click on any dpt- element would be synced: not efficient
          . only clause, person and location are synced
-    . clicking on 2a1 when address is whole or 1r or 1b1 won't load the right image
+    [fixed] . change location type doesn't reload panel content
+    [fixed] clicking on 1b1 when address is whole or 1r or 1a1 won't load the right image
+    . text: whole; image: synced and showing face; user clicks clause on dorse => not loading it
     . sync always generate a request from the image panel
         . ok: except when addres = 1r and click on entries
         . ko: change @ from 1a1 to 1a2 => reload

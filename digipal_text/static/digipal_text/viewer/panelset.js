@@ -425,18 +425,17 @@
             
             address = address || this.getContentAddress();
             
-            if (this.loadedAddress != address) {
+            if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
                 console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
                 this.loadedAddress = null;
-                this.loadContentCustom(loadLocations, address);
+                this.loadContentCustom(loadLocations, address, subLocation);
             }
-            this.setSubLocation(subLocation);
         };
         
-        this.loadContentCustom = function(loadLocations, address) {
+        this.loadContentCustom = function(loadLocations, address, subLocation) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY loadContent() can call it
             this.$content.html('Generic Panel Content');
@@ -623,7 +622,7 @@
             // this may trigger a content load
             if (this.getLocationType() !== 'sync') {
                 this.$locationTypes.dpbsdropdown('setOption', locationType);
-                if (this.$locationSelect.val() != location) {
+                if (this.getLocation() != location) {
                     this.$locationSelect.val(location);
                     this.$locationSelect.trigger('liszt:updated');
                     this.$locationSelect.trigger('change');
@@ -687,10 +686,14 @@
         //this.setMessage('Content loaded.', 'success');
         // TODO: update the current selections in the location dds
         // TODO: make sure no event is triggered while doing that
-        
         this.loadedAddress = this.getContentAddress(data.location_type, data.location);
         this.setNotDirty();
         this.setValid(true);
+        
+        // reset the sublocation because the content has changed
+        this.setSubLocation();
+        // move to the new sublocation
+        if (data.sub_location) this.moveToSubLocation(data.sub_location);
         
         // update the location drop downs
         this.setLocationTypeAndLocation(data.location_type, data.location);
@@ -837,6 +840,10 @@
         return ret;
     };
 
+    // SubLocation: a reference within the content
+    // e.g. entry 1a1 within page 1r
+    // e.g. 'address' clause within whole text or entry 1a1
+    // it is a location at a deeper level than the address
     
     Panel.prototype.getSubLocation = function() {
         var ret = this.subLocation;
@@ -849,16 +856,20 @@
         return ret;
     };
     
-    Panel.prototype.setSubLocation = function(subLocation, stay) {
-        // if stay is true, we won't focus on the subLocation
+    Panel.prototype.setSubLocation = function(subLocation) {
         // clone and set the location
-        this.subLocation = JSON.parse(JSON.stringify(subLocation));
-        // move to the sublocation
-        if (stay !== true) {
-            //this.moveToSubLocation();
-        }
+        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
     };
 
+    // TO BE OVERRIDEN
+    // Move to a sublocation
+    // if successful:
+    //  next time getSubLocation is called, the sublocation should be returned
+    //  return true
+    Panel.prototype.moveToSubLocation = function(subLocation) {
+        return false;
+    };
+    
     //////////////////////////////////////////////////////////////////////
     //
     // PanelText
@@ -872,7 +883,7 @@
             return false;
         };
         
-        this.loadContentCustom = function(loadLocations, address) {
+        this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
             this.callApi(
@@ -1089,7 +1100,7 @@
         
         Panel.call(this, $root, contentType, 'Image', options);
 
-        this.loadContentCustom = function(loadLocations, address) {
+        this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
             this.callApi(
@@ -1108,6 +1119,7 @@
                     'width': me.$content.width(),
                     'height': me.$content.height(),
                     'load_locations': loadLocations ? 1 : 0,
+                    'sub_location': JSON.stringify(subLocation),
                 }
             );
         };
@@ -1224,15 +1236,16 @@
         this.last_data = data;
     };
     
-    PanelImage.prototype.setSubLocation = function(subLocation, stay) {
-        // if stay is true, we won't focus on the sublocation
-        // clone and set the location
-        // TODO
+    PanelImage.prototype.moveToSubLocation = function(subLocation) {
+        var ret = false;
         if (this.annotator) {
             var feature = this.annotator.getFeatureFromElementId(subLocation);
             this.annotator.selectFeature(feature);
             this.annotator.zoomToFeature(feature);
+            if (feature) this.setSubLocation(subLocation);
+            ret = !!feature;
         }
+        return ret;
     };
 
     PanelImage.prototype.resetLinker = function(data) {
@@ -1386,7 +1399,7 @@
     var PanelSearch = TextViewer.PanelSearch = function($root, contentType, options) {
         TextViewer.Panel.call(this, $root, contentType, 'Search', options);
         
-        this.loadContentCustom = function(loadLocations, address) {
+        this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
             this.callApi(

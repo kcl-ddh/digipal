@@ -49,6 +49,24 @@ def update_viewer_context(context, request):
     # TODO: design a better overriding model
     pass
 
+def get_sub_location_from_request(request):
+    try:
+        ret = json.loads(request.REQUEST.get('sub_location', '[]'))
+    except:
+        ret = []
+    return ret
+
+# returns a pair: (location_type, location) from a sublocation
+# e.g. ['', 'location'], ['loctype', 'entry'], ['@text', '1a1']
+# => ('locus', '1r')
+def get_address_from_sub_location(sub_location):
+    ret = None
+    
+    if sub_location and len(sub_location) == 3 and sub_location[0][1] == 'location' and sub_location[1][1] in ['locus', 'entry']:
+        ret = [sub_location[1][1], sub_location[2][1]]
+    
+    return ret
+
 def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
     
     format = request.REQUEST.get('format', 'html')
@@ -81,6 +99,11 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     # we didn't find a custom function for this content type
     if response is None:
         response = {'status': 'error', 'message': 'Invalid Content Type (%s)' % content_type}
+    
+    # If sublocation is not defined by specific funciton we just return
+    # the desired sublocation.
+    # If specific function want to remove they can set it to []
+    response['sub_location'] = response.get('sub_location', get_sub_location_from_request(request))
 
     if location_type == 'sync':
         # dummy response in case of syncing with another panel
@@ -298,6 +321,17 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     
     from digipal.models import Image
     
+    ###
+    # The sub_location can override or contradict (location_type, location)
+    # e.g. text: whole -> image: synced with text
+    #      user clicks on entry in the text => we need to fetch that part
+    sub_location = get_sub_location_from_request(request)
+    new_address = get_address_from_sub_location(sub_location)
+    if new_address:
+        print new_address
+        location_type, location = new_address
+    ###
+    
     request.visible_images = None
     
     visible_images = None
@@ -336,7 +370,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
         # we return the location of the returned fragment
         # this may not be the same as the requested location
         # e.g. if the requested location is 'default' we resolve it
-        ret['location_type'] = location_type
+        #ret['location_type'] = location_type
+        ret['location_type'] = 'locus'
         ret['location'] = image.locus if image else location
         
         if image:
@@ -515,7 +550,7 @@ def get_locus_from_location(location_type, location):
     # e.g. location = 54b2 (entry number)
     # => convert to 54v
     # TODO: check location_type
-    # TODOL this is a customisation for EXON,
+    # TODO: this is a customisation for EXON,
     # unlikely to be relevant for other projects
     parts = re.match('(\d+)([abrv]?)(\d*)', location)
     if parts:

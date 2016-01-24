@@ -323,10 +323,12 @@ class FacetedModel(object):
                 option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
                 ret.append(option)
             
-        sort_option = 'count'
+        # sort the options (by count then key or the opposite)
+        sort_fct = lambda o: [-o['count'], o['key']]
         if sorted_by == 'o':
-            sort_option = 'key'
-        ret = sorted(ret, key=lambda o: o[sort_option], reverse=(sort_option == 'count'))
+            sort_fct = lambda o: [o['key'], -o['count']]
+        ret = sorted(ret, key=sort_fct)
+            
         return ret
     
     def get_record_field_html(self, record, field_key):

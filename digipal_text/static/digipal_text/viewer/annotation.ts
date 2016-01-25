@@ -97,6 +97,8 @@ class AnnotatorOL3 {
     events = {startDrawing: null, stopDrawing: null};
     //
     lastDrawnFeature: ol.Feature;
+    //
+    theme: string = '';
     
     constructor(map: ol.Map) {
         this.map = map;
@@ -111,25 +113,58 @@ class AnnotatorOL3 {
         this.source = new ol.source.Vector({wrapX: false});
         
         this.layer = new ol.layer.Vector({
-          source: this.source,
-          style: new ol.style.Style({
-            fill: new ol.style.Fill({
-              color: 'rgba(255, 255, 255, 0.07)'
-            }),
-            stroke: new ol.style.Stroke({
-              color: '#ffcc33',
-              width: 2
-            }),
-            image: new ol.style.Circle({
-              radius: 7,
-              fill: new ol.style.Fill({
-                color: '#ffcc33'
-              })
-            })
-          })
+            source: this.source,
+            style: this.getStyles(),
         });
         
         this.map.addLayer(this.layer);
+    }
+    
+    getStyles(part?:string): ol.style.Style {
+        var ret: ol.style.Style = null;
+        
+        if (part === 'select') {
+            // TODO: avoid creating new style object each time!!!
+            if (this.theme && this.theme === 'hidden') {
+                ret = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 255, 255, 0.07)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(0,153,255, 0.4)',
+                        width: 3
+                    }),
+                })
+            } else {
+                ret = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 255, 255, 0.07)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(0,153,255, 1)',
+                        width: 3
+                    }),
+                })
+            }
+        } else {
+            ret = new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(255, 255, 255, 0.07)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: '#ffcc33',
+                  width: 2
+                }),
+                image: new ol.style.Circle({
+                  radius: 7,
+                  fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                  })
+                })
+            });
+        }
+        
+        return ret;
     }
     
     initInteractions(): void {
@@ -201,26 +236,24 @@ class AnnotatorOL3 {
         return this.interactions.draw.isStarted();
     }
 
+    // Set a style theme, possible values:
+    //      'default'
+    //      'hidden'
+    setStyleTheme(theme): void {
+        this.theme = theme;
+        if (theme === 'hidden') {
+            this.layer.setStyle(null);
+        } else {
+            this.layer.setStyle(this.getStyles());
+        }
+    }
+    
     initSelect(): void {
         var interaction = new Select({
             condition: ol.events.condition.click,
-            style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 255, 255, 0.07)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(0,153,255, 1)',
-                    width: 3
-                }),
-                /*
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({
-                    color: '#ffcc33'
-                    })
-                })
-                */
-            })
+            style: (feature, resolution) => {
+                return [this.getStyles('select')];
+            }
         });
         
         interaction.on('select', (e) => {

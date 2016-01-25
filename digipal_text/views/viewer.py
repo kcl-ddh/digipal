@@ -361,6 +361,9 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     if request.method == 'POST':
         ret['newids'] = update_text_image_link(request, image)
     else:
+        # display settings
+        ret['presentation_options'] = [["highlight", "Highlight Text Units"]]
+        
         # image dimensions
         options = {}
         layout = request.REQUEST.get('layout', '')
@@ -385,7 +388,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
             
             # add all the non-graph annotations
             ret.update(get_annotations_from_image(image))
-        
+    
     return ret
 
 def get_annotations_from_image(image):

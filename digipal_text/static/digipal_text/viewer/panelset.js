@@ -1379,6 +1379,9 @@
     
     PanelImage.prototype.setStateDictArg = function(name, value) {
         // olv:RES,CX,CY
+        if (name == 'dis') {
+            this.enablePresentationOptions(value.split(' '));
+        }
         if (name === 'olv') {
             var parts = value.split(',');
             var map = this.map;
@@ -1389,6 +1392,12 @@
                 view.setRotation(parseFloat(parts[3]) * Math.PI / 180);
             }
         }
+    };
+
+    PanelImage.prototype.applyPresentationOptions = function() {
+        var classes = this.getListFromPresentationOptions();
+        
+        this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
     };
 
     //////////////////////////////////////////////////////////////////////

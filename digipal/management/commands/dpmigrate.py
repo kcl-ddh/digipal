@@ -1645,10 +1645,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # remove everything first
         from django.db import connection
         cursor = connection.cursor()
-        for model in [Repository, ItemPart, CurrentItem, HistoricalItem, Place, CatalogueNumber, Source, ItemPartItem, Owner, HistoricalItem.owners.through]:
-            print 'Delete from %s' % model._meta.db_table
-            cursor.execute('delete from %s' % model._meta.db_table)
-        cursor.execute('update digipal_image set item_part_id = null')
+        if 0:
+            for model in [Repository, ItemPart, CurrentItem, HistoricalItem, Place, CatalogueNumber, Source, ItemPartItem, Owner, HistoricalItem.owners.through]:
+                print 'Delete from %s' % model._meta.db_table
+                cursor.execute('delete from %s' % model._meta.db_table)
+            cursor.execute('update digipal_image set item_part_id = null')
         
         unknown_place = Place(name='Unknown')
         unknown_place.save()
@@ -1728,17 +1729,28 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 if not cis.count():
                     ci = CurrentItem(shelfmark=rec['Shelfmark'], repository=repo)
                     ci.save()
-                    
+                else:
+                    ci = cis[0]
+                    self.print_warning('Duplicate shelfmark', indent=1, extra='(line %s, CI #%s)' % (line_index, ci.id))
+
+                ip = ci.itempart_set.first()
+                if not ip:
                     # create the ItemPart
                     ip = ItemPart(current_item=ci, locus='')
                     ip.save()
-                    
+
+                hi = None
+                if ip:
+                    hi = ip.historical_item
+                
+                if not hi:
                     # create the HistoricalItem
                     hi = HistoricalItem(historical_item_type_id=1, date=rec['Date'])
                     hi.save()
                     ItemPartItem(historical_item=hi, item_part=ip).save()
                     print '    IP #%s, HI #%s, CI #%s' % (ip.id, hi.id, ci.id)
 
+                if hi:
                     # add the historical archive as an owner (i.e repo)
                     ha_name = rec['Historical archive'].strip()
                     if ha_name:
@@ -1757,16 +1769,17 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     # create the Cat Num
                     if import_cat_num:
                         if rec['POMS reference']:
-                            CatalogueNumber(source=poms_source, historical_item=hi, number=(re.sub(ur'\s*\(.*', '', rec['POMS reference'])).strip(), url=rec['POMS URL']).save()
-                            # save the hi to refresh its labels
-                            hi.save()
+                            ref = (re.sub(ur'\s*\(.*', '', rec['POMS reference'])).strip()
+                            if ref:
+                                # Document 3/516/1 (Scone Liber, no. 21)
+                                cn = CatalogueNumber(source=poms_source, historical_item=hi, number=ref, url=rec['POMS URL'])
+                                cn.save()
+                                print '    New Cat Number: %s' % (cn)
+                                # save the hi to refresh its labels
+                                hi.save()
                         else:
                             self.print_warning('catalogue number missing', indent=1, extra='(line %s)' % line_index)
                             
-                else:
-                    ci = cis[0]
-                    self.print_warning('Duplicate shelfmark', indent=1, extra='(line %s)' % line_index)
-                    ip = ci.itemparts_set.first()
                 
                 # link to the image records
                 image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
@@ -1781,21 +1794,19 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 else:
                     for image in images:
                         print '    Image #%s connected to this MS' % image.id
+                        if image.item_part is not None and image.item_part_id != ip.id:
+                            self.print_warning('WARNING: image already linked to another IP', indent=1, extra=extra+', IM #%s to IP #%s' % (image.id, image.item_part_id))
+                            continue
                         image.item_part = ip
                         image.save()
                     
-                #break
-                            
-#                 records.append(rec)
-#                 c += 1
-            
-
         for k, v in image_paths.iteritems():
             if len(v) > 1:
                 print k, v
 
         self.print_warning_report()
-        #raise Exception('ROLLBACK')
+        if self.is_dry_run():
+            raise Exception('ROLLBACK (dry run)')
         
     def getTablenameFromPath(self, path):
         ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)

@@ -2,7 +2,7 @@
     {% load pages_tags mezzanine_tags i18n %}
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
-    <h1 class='header1'>Search {{ result_type.label_plural }} ({{ hit_count }})
+    <h1 class='header1'>Search: {{ result_type.label_plural }} ({{ hit_count }})
         <span class="dp-small pull-right">
             <a href="/digipal/search/?s=1&terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}&amp;from_link=true" data-toggle="tooltip" title="Go to the Advanced Search page">
                 Advanced Search

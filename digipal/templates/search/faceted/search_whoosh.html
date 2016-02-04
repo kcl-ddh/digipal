@@ -3,7 +3,7 @@
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 {% block meta_title %}
-    Search {{ result_type.label }}
+    Search: {{ result_type.label }}
 {% endblock %}
 
 {% block extra_css %}
@@ -16,7 +16,7 @@
     {% include "search/faceted/search_whoosh_fragment.html" %}
 
     {% include "digipal/add_to_collection.html" %}
-    
+
 {% endblock %}
 
 {% block extra_js %}

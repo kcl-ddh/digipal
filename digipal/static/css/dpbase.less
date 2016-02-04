@@ -24,15 +24,15 @@ html, body {
 // FOOTER
 
 footer.footer {
-    
+
     background-color: rgb(249, 249, 249);
     border: 1px dotted rgba(0, 0, 0, 0.1);
     font-size: 11px;
-    
+
     div.container {
         padding-top: 1em;
     }
-    
+
     div.row > div {
         text-align: center;
         margin: 0;
@@ -41,19 +41,19 @@ footer.footer {
         p {
             line-height: 15px;
             margin: 0;
-            
+
             @media (max-width: 992px) {
                 text-align: center;
             }
         }
-        
+
         img {
             padding: 2%;
         }
-        
+
         .fa {
             font-size: 25px;
-            
+
             -webkit-transition-property:color;
             -moz-transition-property:color;
             -ms-transition-property:color;
@@ -63,20 +63,20 @@ footer.footer {
             -ms-transition-duration:0.35s;
             -o-transition-duration:0.35s;
             color: #5a5a5a;
-            
+
             .fa-twitter:hover {
                 color: #2c77ba;
             }
-            
+
             .fa-github:hover {
                 color: #fff;
                 background: #5a5a5a;
                 border-radius: 10px;
             }
         }
-        
+
     }
-    
+
 }
 
 /* end footer */
@@ -318,7 +318,7 @@ a.btn:hover {
     font-weight: bold;
 }
  */
- 
+
 /*
 .nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
     background-color: #EEEEEE;
@@ -512,6 +512,10 @@ ul.flat-list {
     margin-left:0;
 }
 
+.btn-group .pagination {
+    margin: 0;
+}
+
 .pagination .ellipsis a {
     padding-left: 4px;
     padding-right: 4px;
@@ -573,7 +577,7 @@ a.link-icon, a.link-icon:hover {
     color:#333;
     padding-left: 0.7em;
     padding-right: 0.5em;
-    
+
     span.glyphicon {
         margin-right: 0.3em;
     }
@@ -587,7 +591,7 @@ a.link-icon, a.link-icon:hover {
     background: rgba(220,220,220, 0.1);
     padding: 10px 20px;
     margin-bottom: 20px;
-    line-height: 170%;
+    /* line-height: 170%; */
     border: 1px solid #eee;
     border-radius: 5px;
 }

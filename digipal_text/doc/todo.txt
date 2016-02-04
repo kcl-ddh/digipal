@@ -1,3 +1,9 @@
+  Eclipse Quick Bookmarks   1.2.1.201404032042  to.etc.eclipse.editor.bookmarks.feature.feature.group   domui.org
+  LESS  1.0.22  net.vtst.ow.eclipse.less.feature.feature.group  Vincent Simonet
+  LiClipse  2.0.0.201504092214  com.brainwy.liclipse.rcp.product    null
+  Tail Console  1.0.1   name.schedenig.eclipse.tailconsole.feature.group    Marian Schedenig
+  TypeScript    1.7.0.v20151201-1631    com.palantir.typescript.feature.feature.group   Palantir Technologies, Inc.
+
 . calibrate the mark up
     . display settings for image
         ** . discreet markup

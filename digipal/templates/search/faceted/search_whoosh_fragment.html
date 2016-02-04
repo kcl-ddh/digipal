@@ -9,28 +9,30 @@
             </a>
         </span>
     </h1>
-    
-    
+
     <div class="panel faceted-summary">
         You are searching for: {{ summary }}
         <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets"> (Change)</a>
     </div>
-        
+
     <div class="row faceted-search">
         <form action="." method="get" class="">
-            
-            <div class="col-md-{%if wide_result%}12{% else %}9{%endif%} pull-right-md">
+
+            <div class="col-md-{%if wide_result%}12{% else %}10{%endif%} pull-right-md">
                 {% if views %}
                     <div class="panel panel-default">
                         <div class="btn-toolbar" role="toolbar">
-                            <!-- div class="btn-group pull-left" -->
+                            <div class="btn-group">
                                 <input type="hidden" name="wr" value="{{ wide_result }}" />
                                 <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
                                     class="btn btn-default {% if wide_result %} active {% endif %} hidden-sm hidden-xs"
                                     title="Toggle wide view" data-toggle="tooltip">
                                     <span class="glyphicon glyphicon-resize-horizontal"></span>
                                 </a>
-                            <!-- /div -->
+                            </div>
+
+                            {% dp_pagination_with_size_for current_page %}
+
                             <div class="btn-group pull-right">
                                 {% for view in views %}
                                     {% if view.selected %}
@@ -46,12 +48,10 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if result %}
-                    {% dp_pagination_with_size_for current_page %}
-                    
                     {% include result_type.selected_view_template %}
-                    
+
                     {% dp_pagination_with_size_for current_page %}
                 {% else %}
                     <div class='alert alert-warning'>
@@ -60,10 +60,10 @@
                         <p>It may help to try other Result Types than '{{ result_type.label_plural }}'.</p>
                     </div>
                 {% endif %}
-                
+
             </div>
 
-            <div class="col-md-{%if wide_result%}12{%else%}3{%endif%} facets" id="facets">
+            <div class="col-md-{%if wide_result%}12{%else%}2{%endif%} facets" id="facets">
                 {% for facet in facets %}
                     <div class="panel panel-default" id="panel-{{ facet.key }}">
                         <div class="panel-heading">

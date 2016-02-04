@@ -5,16 +5,16 @@ FACETED_SEARCH = {
                 # label = the label displayed on the screen
                 # label_col = the label in the column in the result table
                 # type = the type of the field
-                
+
                 # path = a field name (can go through a related object or call a function)
-                
+
                 # count = True to show the number of hits for each possible value of the field (i.e. show facet options)
                 # filter = True to let the user filter by this field
                 # search = True if the field can be searched on (phrase query)
                 # viewable = True if the field can be displayed in the result set
-                
+
                 # index = True iff (search or filter or count)
-                
+
                 # e.g. ann: viewable, full_size: count, repo_city: viewable+count+search
                 # id: special
                 # Most of the times viewable => searchable but not always (e.g. ann.)
@@ -27,9 +27,9 @@ FACETED_SEARCH = {
                     'label': 'Manuscript',
                     'model': 'digipal.models.ItemPart',
                     'fields': [
-                               
+
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-                               
+
                                {'key': 'hi_has_images', 'label': 'Image Availablity', 'path': 'get_has_public_image_label', 'type': 'code', 'count': True},
 
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
@@ -59,7 +59,7 @@ FACETED_SEARCH = {
                     'model': 'digipal.models.Image',
                     'django_filter': {'item_part__isnull': False},
                     'fields': [
-                               
+
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
                                #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
                                #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
@@ -77,7 +77,7 @@ FACETED_SEARCH = {
                                {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
 
                                {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_media_private', 'type': 'boolean', 'search': True},
-                               
+
                                ],
                     'select_related': ['item_part__current_item__repository__place'],
                     'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
@@ -91,22 +91,22 @@ FACETED_SEARCH = {
                               {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
                 },
-    
+
                 {
                     #'disabled': True,
                     'key': 'scribes',
                     'label': 'Scribe',
                     'model': 'digipal.models.Scribe',
                     'fields': [
-                               
+
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-                               
+
                                {'key': 'scribe', 'label': 'Scribe', 'path': 'name', 'type': 'title', 'viewable': True, 'search': True},
 
                                {'key': 'scribe_date', 'label': 'Date', 'path': 'date', 'type': 'date', 'viewable': True, 'filter': True, 'min': 900, 'max': 1200, 'id': 'scribe_date'},
-                               
+
                                {'key': 'scriptorium', 'label': 'Scriptorium', 'path': 'scriptorium.name', 'type': 'title', 'viewable': True, 'search': True, 'count': True},
-    
+
                                ],
                     #'select_related': ['item_part__current_item__repository__place'],
                     #'prefetch_related': ['item_part__historical_items', 'item_part__historical_items__historical_item_format', 'item_part__historical_items__historical_item_type'],
@@ -123,11 +123,11 @@ FACETED_SEARCH = {
                     'model': 'digipal.models.Hand',
                     #'condition': lambda r: max([len(d.description or '') for d in r.descriptions.all()] or [0]) > 2,
                     'fields': [
-                               
+
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-                               
+
                                {'key': 'hand', 'label': 'Hand', 'path': 'get_search_label', 'type': 'title', 'viewable': True, 'search': True},
-    
+
                                #{'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
                                #{'key': 'hi_type', 'label': 'Document Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                #{'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
@@ -136,11 +136,11 @@ FACETED_SEARCH = {
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'hand_label', 'label': 'Description', 'path': 'label', 'search': True, 'viewable': True, 'type': 'code', 'count': False},
                                {'key': 'hand_place', 'label': 'Medieval Place', 'path': 'assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
-                               
+
                                {'key': 'hand_date', 'label': 'Date', 'path': 'assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
-                               
+
                                {'key': 'index', 'label': 'Cat. Num.', 'path': 'item_part.historical_item.catalogue_number', 'search': True, 'viewable': True, 'type': 'code'},
-                               
+
                                #{'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'},
                                #{'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'hands_set.all.count', 'type': 'int', 'viewable': True},
                                #{'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
@@ -160,7 +160,7 @@ FACETED_SEARCH = {
                     'model': 'digipal_text.models.TextContentXML',
                     'condition': lambda r: r.content and re.search('[a-z]', r.content),
                     'fields': [
-                               
+
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},
 
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
@@ -169,13 +169,14 @@ FACETED_SEARCH = {
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
+                               {'key': 'hi_date', 'label': 'Date', 'path': 'text_content.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
                                {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_private', 'type': 'boolean', 'search': True},
-                               
+
                                #{'key': 'text_title', 'label': 'Title', 'path': 'text_content.__unicode__', 'type': 'title', 'viewable': True, 'search': True},
-                               
+
                                ],
                     'select_related': ['text_content__item_part__current_item__repository__place', 'text_content__type'],
                     #'prefetch_related': ['item_part__historical_items'],
@@ -183,7 +184,7 @@ FACETED_SEARCH = {
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'text_type'],
-                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
+                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type', 'hi_date'],
                 },
 
                 {
@@ -265,9 +266,11 @@ FACETED_SEARCH = {
                                 {'key': 'hand_date', 'label': 'Hand Date', 'path': 'hand.assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                 {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
-                                
+
+                                {'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
-                                
+
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place',
@@ -277,7 +280,7 @@ FACETED_SEARCH = {
                                        ],
                     'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
                     'filter_order': ['hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],
-                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
+                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
@@ -311,9 +314,9 @@ def remove_fields_from_faceted_search(fields, content_type_key=None):
             for ft in ['column_order', 'sorted_fields', 'filter_order']:
                 if ft in content_type:
                     content_type[ft] = [c for c in content_type[ft] if c not in fields]
-            
+
             content_type['fields'] = [c for c in content_type['fields'] if c['key'] not in fields]
-    
+
 def get_content_type_from_key(key):
     return [t for t in FACETED_SEARCH['types'] if t['key'] == key].pop()
-    
+

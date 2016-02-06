@@ -58,6 +58,8 @@ class FacetedModel(object):
 
     def get_views(self):
         ret = self.get_option('views', [self.get_default_view(selected=False)])
+        ret = ret[:]
+        ret.append({'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [100000]})
 
         found = False
         if hasattr(self, 'request'):
@@ -665,6 +667,9 @@ class FacetedModel(object):
 
             # SQL QUERY to get the records from the current result page
             records = self.get_all_records(True)
+
+            # TODO:
+            # if overview then instead we get everything and only tag the ids
             records = records.in_bulk(ids)
 
             if len(records) != len(ids):

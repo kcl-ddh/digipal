@@ -202,6 +202,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'content_xml.text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'content_xml.text_content.item_part.current_item.repository.human_readable', 'path_result': 'content_xml.text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'content_xml.text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'content_xml.text_content.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'content_xml.text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 2},

@@ -662,34 +662,39 @@ class FacetedModel(object):
             # print len(ids)
 
             # ids = [res['id'] for res in ret]
-
             hand_filters.chrono('sql:')
 
             # SQL QUERY to get the records from the current result page
             records = self.get_all_records(True)
 
-            # TODO:
             # if overview then instead we get everything and only tag the ids
-            records = records.in_bulk(ids)
+            if self.get_selected_view()['key'] == 'overview':
+                ret = []
+                for record in records:
+                    ret.append(record)
+                    if record.id in ids:
+                        record.found = True
+            else:
+                records = records.in_bulk(ids)
 
-            if len(records) != len(ids):
-                # raise Exception("DB query didn't retrieve all Whoosh results.")
-                pass
+                if len(records) != len(ids):
+                    # raise Exception("DB query didn't retrieve all Whoosh results.")
+                    pass
 
-            # 'item_part__historical_items'
-            #ret = [records[int(id)] for id in ids if int(id) in records]
-            if len(ids):
-                id_type = type(records.keys()[0])
+                # 'item_part__historical_items'
+                #ret = [records[int(id)] for id in ids if int(id) in records]
+                if len(ids):
+                    id_type = type(records.keys()[0])
 
-            # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
-            ret = [records[id_type(id)] for id in ids if id_type(id) in records]
+                # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
+                ret = [records[id_type(id)] for id in ids if id_type(id) in records]
 
-            # highlight
-            if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
-                from whoosh.highlight.Highlighter import highlight_hit
-                from whoosh.highlight import highlight
-                for r in ret:
-                    r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
+                # highlight
+                if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
+                    from whoosh.highlight.Highlighter import highlight_hit
+                    from whoosh.highlight import highlight
+                    for r in ret:
+                        r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
 
             hand_filters.chrono(':sql')
 
@@ -882,6 +887,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     context['wide_page'] = True
 
+    from overview import draw_overview
+    draw_overview(ct, context)
 
     hand_filters.chrono(':SEARCH')
 

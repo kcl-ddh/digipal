@@ -89,13 +89,18 @@ def update_query_params_internal(content, updates, url_wins=False):
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
         content = content[0:m.start()] + (template % new_url) + content[m.end():]
-    
+
     return content
 
 @register.filter
 def plural(value, count=2):
     from digipal.utils import plural
     return plural(value, count)
+
+@register.filter
+def json(value):
+    import json
+    return mark_safe(json.dumps(value))
 
 @register.filter
 def tag_phrase_terms(value, phrase=''):
@@ -106,9 +111,9 @@ def tag_phrase_terms(value, phrase=''):
     # we loose *some* the accents, e.g. u'r\u0305'
     value = remove_combining_marks(value)
     value_no_accent = remove_accents(value)
-    
+
     terms = get_tokens_from_phrase(remove_accents(phrase))
-    
+
     if terms:
         # Surround the occurrences of those terms in the value with a span (class="found-term")
         # TODO: this should really be done by Whoosh instead of manually here to deal properly with special cases.
@@ -129,12 +134,12 @@ def tag_phrase_terms(value, phrase=''):
                 #print m
                 if m:
                     replacement = u'%s<span class="found-term">%s</span>' % (value[m.start(1):m.end(1)], value[m.start(2):m.end(2)])
-                    
+
                     value = value[:m.start(0)] + replacement + value[m.end(0):]
 
                     replacement = u'%s<span class="found-term">%s</span>' % (value_no_accent[m.start(1):m.end(1)], value_no_accent[m.start(2):m.end(2)])
                     value_no_accent = value_no_accent[:m.start(0)] + replacement + value_no_accent[m.end(0):]
-                    
+
                     pos = m.start(0) + len(replacement)
                 else:
                     break
@@ -171,7 +176,7 @@ def reset_recordids():
 def iip_img_a(image, *args, **kwargs):
     '''
         ADMIN ONLY: link to raw image file
-        
+
         Usage {% iip_img_a IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
 
         Render a <a href=""><img src="" /></a> element with the url referenced
@@ -192,7 +197,7 @@ def iip_img(image_or_iipfield, *args, **kwargs):
         are treated.
         If lazy is True the image will be loaded only when visible in
         the browser.
-        
+
         wrap = True|False : to wrap the element within a spans that help
                 with styles and widgets (e.g. star to collection).
     '''
@@ -205,7 +210,7 @@ def iip_img(image_or_iipfield, *args, **kwargs):
     if hasattr(image_or_iipfield, 'iipimage'):
         image = image_or_iipfield
         iipfield = image.iipimage
-    
+
     if image:
         kwargs['alt'] = u'%s' % image
         # When we get height = 100 we calculate the width.
@@ -218,9 +223,9 @@ def iip_img(image_or_iipfield, *args, **kwargs):
                 for i in [0, 1]:
                     if vs[i] is None:
                         kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
-    
+
         ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
-    
+
     return ret
 
 @register.simple_tag
@@ -232,7 +237,7 @@ def annotation_img(annotation, *args, **kwargs):
 
         fixlen: fix the maximum length of the thumbnail
     '''
-    
+
     ret = u''
     if annotation:
         info = annotation.get_cutout_url_info(fixlen=kwargs.get('fixlen', None))
@@ -250,29 +255,29 @@ def wrap_img(html_img, **kwargs):
         collection widgets.
     '''
     ret = html_img
-    
+
     record = kwargs.get('wrap', None)
     link_record = kwargs.get('link', None)
-    
+
     if record:
         content_type = record.__class__.__name__.lower()
-    
+
         type_class = ''
         attributes = {}
         attributes['data-type'] = content_type
-        
+
         if content_type in ['graph']:
             attributes['data-type'] = 'annotation'
             attributes['data-graph'] = record.id
             attributes['data-allograph'] = record.idiograph.allograph.id
             attributes['data-image-id'] = record.annotation.image_id
             type_class = 'graph_img'
-        
+
         if content_type == 'image':
             type_class = 'imageDatabase'
 
         attributes['data-id'] = record.id
-    
+
         ret = ur'''
                 <span %s class="droppable_image %s">
                     %s
@@ -290,7 +295,7 @@ def wrap_img(html_img, **kwargs):
         if record:
             attributes += ' class="folio-image-wrapper" '
         ret = ur'''<%s %s>%s</%s>''' % (element, attributes, ret, element)
-    
+
     return ret
 
 @register.simple_tag
@@ -299,11 +304,11 @@ def img(src, *args, **kwargs):
         Returns <span class="img-frame"><img src="" alt=""></span>.
         The span is a bounding frame around the image. It also serves as
         mask as the <img> can be bigger than the frame.
-        
+
         XML special chars in the attributes are encoded with &.
-        
+
         src is the URL of the image to display.
-        
+
         recognised arguments (kwargs):
             alt => alt
             cls => class
@@ -316,7 +321,7 @@ def img(src, *args, **kwargs):
     '''
     more = ''
     style = ''
-    
+
     if 'alt' in kwargs:
         more += ur' alt="%s" ' % escape(kwargs['alt'])
 
@@ -326,7 +331,7 @@ def img(src, *args, **kwargs):
 
     if 'cls' in kwargs:
         more += ur' class="%s" ' % escape(kwargs['cls'])
-    
+
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
         ##style += ';position:relative;max-width:none;'
@@ -335,7 +340,7 @@ def img(src, *args, **kwargs):
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
-        
+
         # a serialised white dot GIF image
         #src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
         # TODO: don't hard-code the path!
@@ -370,24 +375,24 @@ def img(src, *args, **kwargs):
             v = (vs[0]-vs[1])/2
             if v:
                 style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
-    
+
     if style:
         style = ' style="%s" ' % style
-    
+
     ret = ur'<img src="%s" %s %s/>' % (escape(src), more, style)
-    
+
     holes_html = u''
     frame_size = [kwargs.get('frame_width', 0), kwargs.get('frame_height', 0)]
     if all(frame_size):
         for hole in kwargs.get('holes', {}).values():
             # [offx, offy, lengthx, lengthy]
             holes_html += ur'<span class="hole" style="left:%dpx;top:%dpx;width:%dpx;height:%dpx;"></span>' % (hole[0] * frame_size[0], hole[1] * frame_size[1], hole[2] * frame_size[0], hole[3] * frame_size[1])
-    
+
     if frame_css:
         frame_css = ' style="%s" ' % frame_css
-            
+
     ret = ur'<span class="img-frame" %s>%s%s</span>' % (frame_css, holes_html, ret)
-    
+
     ret = wrap_img(ret, **kwargs)
 
     return mark_safe(ret)
@@ -429,27 +434,27 @@ def dp_pagination_for(context, current_page):
     ''' Replacement for mezzanine template tag: pagination_for.
         It takes the same inputs but adapts them to use the django-pagination
         template we use everywhere else.
-        
+
         current_page = instance of 'django.core.paginator.Page'
     '''
     # JIRA 617
     ret = u''
-    
+
     if current_page is not None:
         context['paginator'] = current_page.paginator
-        
+
         context['page_obj'] = current_page
-        
+
         from pagination.templatetags.pagination_tags import paginate
         ret = paginate(context, window=3)
-    
+
     return ret
 
 @register.simple_tag
 def render_mezzanine_page(page_title, *args, **kwargs):
     '''
         Usage: {% render_mezzanine_page 'TITLE' %}
-        
+
         Returns the content of the Mezzanine page with title TITLE.
         The output is a string already marked as safe.
     '''
@@ -471,20 +476,20 @@ def image_icon(count, message, url, template_type=None, request=None):
 
         e.g.
         {% image_icon hand.images.count "COUNT image with this hand" hand.get_absolute_url|add:"pages" template_type request %}
-        
+
         TODO: deal with no request, template type and url
     '''
-    
+
     ret = u''
-    
+
     if count:
         from django.db.models.query import QuerySet
-        
+
         # if count is a QuerySet on Image model, convert it into a int
         if hasattr(count, 'all'):
             from digipal.models import Image
             count = Image.filter_permissions_from_request(count.all(), request).count()
-        
+
         if count:
             m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
             if m:
@@ -492,7 +497,7 @@ def image_icon(count, message, url, template_type=None, request=None):
             ret = u'''<span class="result-image-count">
                         (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
                       </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
-        
+
     return mark_safe(ret)
 
 @register.simple_tag
@@ -500,20 +505,20 @@ def mezzanine_page_active(request, page):
     '''
         Returns 'active' if the provided Mezzanine <page>
         is one of its children is in the current path.
-        
+
         This can be used in a template to set active in the class attribute.
     '''
     ret = False
-    
+
     cs = list(page.children.all())
     cs.append(page)
     path = request.path.strip('/')
-    
+
     for p in cs:
         page_path = re.sub(ur'\?.*$', ur'', p.get_absolute_url()).strip('/')
         if page_path in path:
             ret = True
-    
+
     return 'active' if ret else ''
 
 @register.simple_tag
@@ -531,11 +536,11 @@ def dpfootnotes(html):
     <p><a href="#refnote1" id="note1" name="note1">[1] the actual note</a> </p>
     <p> [2] the actual note, easy to find as it begins a p/li or after br </p>
     '''
-    
+
     # For testing
     #ret = example
     ret = html
-    
+
     #return ret
 
     # 1. clean up: remove the existing anchors around [1]
@@ -547,13 +552,13 @@ def dpfootnotes(html):
     ret = re.sub(ur'(?musi)<a\s+[^>]*>\s*</a>(\s*\[\d+\])', ur'\1', ret)
     # <a ...>[1] X</a> => [1] X
     ret = re.sub(ur'(?musi)<a\s+[^>]*>(\s*\[\d+\].*?)</a>', ur'\1', ret)
-    
+
     # 2. add the new anchors
     def sub_footnote(match):
         ret = match.group(0)
-        
+
         preceding = match.group(1) or u''
-        
+
         if preceding:
             # a note
             anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to main text" data-toggle="tooltip" data-placement="bottom">' % (match.group(3), match.group(3))
@@ -562,9 +567,9 @@ def dpfootnotes(html):
             anchor = u'<a id="refnote%s" href="#footnote%s" title="See the footnote" data-toggle="tooltip">' % (match.group(3), match.group(3))
 
         ret = u'%s%s%s[%s]</a>' % (preceding, match.group(2), anchor, match.group(3))
-        
+
         return ret
-    
+
     ret = re.sub(ur'(<p>|<br/>|<li>|<div>)?(\s*)\[(\d+)\]', sub_footnote, ret)
 
     return ret

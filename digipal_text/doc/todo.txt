@@ -2,7 +2,7 @@ Visualisation for MoA
     [done] add a new view to the faceted search result page
     [done] show clauses with Y=clause type and X=date range
     . compute Y after Xs
-    ***. stack date ranges! [1]
+    [done] stack date ranges! [1]
     ** . remove empty vert space
     ****. clean up dates [2]
     [done] category selector .5

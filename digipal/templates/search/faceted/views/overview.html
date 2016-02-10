@@ -95,13 +95,20 @@ function redraw_vis() {
     var ky_min = (ky < 1) ? 1 : Math.floor(ky);
     var kx = 1.0 / (cdims[0] + 1) * (dims[0] - extra_x);
     var kx_min = (kx < 1) ? 1 : Math.floor(kx);
+    // x coord of the maximum data point
+    var max_x = coord(cdims[0], 0)[0];
     //var dot_size = kx_min < ky_min ? kx_min : ky_min;
 
     function draw_pt(pt) {
         ctx.fillStyle = pt[2] ? '#ff0000' : '#000000';
-        cs = coord(pt[0], pt[1]);
+        var cs = coord(pt[0][0], pt[1]);
+        var cs2 = coord(pt[0][1], pt[1]);
+        var l = (cs2[0] - cs[0]) + kx_min
+        if (cs[0] + l > max_x) {
+            l = max_x - cs[0];
+        };
         //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
-        ctx.fillRect(cs[0], cs[1], kx_min, ky_min);
+        ctx.fillRect(cs[0], cs[1], l, ky_min);
     }
 
     function draw_xs(axis) {
@@ -117,8 +124,7 @@ function redraw_vis() {
     function draw_ys(axis) {
         // axis
         ctx.fillStyle = colors.label;
-        var cs = coord(cdims[0], axis[0][1]);
-        ctx.fillRect(cs[0], 0, 1, dims[1]);
+        ctx.fillRect(max_x, 0, 1, dims[1]);
 
         var max_count = axis.reduce(function(last, cat, i, array) {
             return last + cat[3];

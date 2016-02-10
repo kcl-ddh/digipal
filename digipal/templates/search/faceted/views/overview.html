@@ -1,0 +1,89 @@
+{% load html_escape %}
+
+<div>
+    {% comment %}
+        server side computes all the drawing data and coordinates
+        [
+            [[x0, x1], [y0, y1] ]
+        ]
+        {% for record in result %}
+            {{ record.id }}{% if record.found %}*{% endif %}&nbsp;
+        {% endfor %}
+    {% endcomment %}
+    {# Add selectors for X and Y #}
+    <div id="vis-div" style="height:400px; width: 100%; border: 1px solid grey;">
+    </div>
+    <!-- <canvas id="overview-layer1" tabindex="0" class="canvas" id="hands-ol-canvas"
+        {# height="{{ canvas.height }}" width="{{ canvas.width }}" #}
+        style="height:{{ canvas.height }}px; z-index: 100; width: 100%; border: 1px solid grey;">
+    </canvas> -->
+</div>
+
+<script type="text/javascript">
+//function() {
+    var data = {{ canvas|json }};
+    var pts = data.drawing.points;
+    var xs = data.drawing.x;
+    var cdims = [data.width, data.height]
+
+function view_init() {
+    $(function() {
+        function redraw_vis() {
+            var $container = $('#vis-div');
+            var dims = [$container.width(), $container.height()];
+            var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
+                            ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
+                            '</canvas>'
+                        );
+            $container.html($canvas);
+            var ctx = $canvas[0].getContext('2d');
+            var extra_y = 20;
+            var ky = 1.0 / (cdims[1] + extra_y) * dims[1];
+            var ky_min = (ky < 1) ? 1 : Math.floor(ky);
+            var kx = 1.0 / (cdims[0]) * dims[0];
+            var kx_min = (kx < 1) ? 1 : Math.floor(kx);
+
+            function draw_pt(pt) {
+                ctx.fillStyle = pt[2] ? '#ff0000' : '#000000';
+                cs = coord(pt[0], pt[1]);
+                ctx.fillRect(cs[0], cs[1], kx_min, ky_min);
+            }
+
+            function draw_axis(axis) {
+                // axis
+                ctx.fillStyle = '#0000ff';
+                cs = coord(0, axis[0][1]);
+                ctx.fillRect(0, cs[1], dims[0], 1);
+
+                axis.map(function(pt, pti) {draw_label(pt); });
+                //draw_label(axis[0]);
+            }
+
+            function draw_label(pt) {
+                // small bar to indicate the pos of the label on the axis
+                // TODO: bar size depends on label size
+                ctx.fillStyle = '#0000ff';
+                cs = coord(pt[0], pt[1]);
+                ctx.fillRect(cs[0], cs[1], 1, 10);
+
+                // label
+                // TODO: label pos depends on label size
+                ctx.font = '10px Arial';
+                ctx.fillText(pt[2],cs[0],cs[1]+10);
+            }
+
+            function coord(x, y) {
+                return [x * kx, y * ky];
+            }
+
+            pts.map(function(pt, pti) {draw_pt(pt); });
+            draw_axis(xs);
+        }
+
+        redraw_vis();
+        $(window).resize(redraw_vis);
+    });
+
+};
+//}();
+</script>

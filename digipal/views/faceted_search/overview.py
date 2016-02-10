@@ -1,4 +1,4 @@
-def draw_overview(faceted_search, context):
+def draw_overview(faceted_search, context, request):
     if faceted_search.get_selected_view()['key'] != 'overview': return
 
     context['canvas'] = {'width': 500, 'height': 500}
@@ -22,7 +22,14 @@ def draw_overview(faceted_search, context):
     from digipal.utils import get_midpoint_from_date_range
 
     print 'OVERVIEW SCAN'
-    fields = ['hi_date', 'medieval_archive']
+    #fields = ['hi_date', 'medieval_archive']
+    #fields = ['hi_date', 'clause_type']
+    category_field = faceted_search.get_field_by_key(request.REQUEST.get('vcat', 'hi_type'))
+    context['vcat'] = category_field
+
+    context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True)]
+
+    fields = ['hi_date', category_field['key']]
     fields = map(lambda field: faceted_search.get_field_by_key(field), fields)
     mins = [None, None]
     maxs = [None, None]
@@ -43,7 +50,9 @@ def draw_overview(faceted_search, context):
             l.append(v)
     bands = sorted_natural(list(set(l)))
     # eg. {'type1': 0, 'type2': 1000}
-    bands = {bands[i]: (i+1)*band_width for i in range(0, len(bands))}
+    bands = {bands[i]: i*band_width for i in range(0, len(bands))}
+
+    drawing['y'] = [[0, y, label] for label, y in bands.iteritems()]
 
     # process all records
     for record in records:

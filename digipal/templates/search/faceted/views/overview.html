@@ -11,7 +11,26 @@
         {% endfor %}
     {% endcomment %}
     {# Add selectors for X and Y #}
-    <div id="vis-div" style="height:400px; width: 100%; border: 1px solid grey;">
+    <div style="min-height:2.5em;">
+        &nbsp;
+
+        <div class="btn-group pull-right">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    {{ vcat.label }}
+                   <span class="caret"></span>
+                </button>
+                <input type="hidden" name="vcat" value="{{ vcat.key }}"/>
+                <ul class="dropdown-menu" role="menu">
+                    {% for cat in vcats %}
+                        <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?vcat={{ cat.key }}{% endfilter %}">{{ cat.label }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="vis-div" style="height:400px; width: 100%; border: 1px solid grey; margin-bottom: 3em;">
     </div>
     <!-- <canvas id="overview-layer1" tabindex="0" class="canvas" id="hands-ol-canvas"
         {# height="{{ canvas.height }}" width="{{ canvas.width }}" #}
@@ -24,66 +43,130 @@
     var data = {{ canvas|json }};
     var pts = data.drawing.points;
     var xs = data.drawing.x;
-    var cdims = [data.width, data.height]
+    var ys = data.drawing.y;
+    var cdims = [data.width, data.height];
 
 function view_init() {
     $(function() {
-        function redraw_vis() {
-            var $container = $('#vis-div');
-            var dims = [$container.width(), $container.height()];
-            var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
-                            ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
-                            '</canvas>'
-                        );
-            $container.html($canvas);
-            var ctx = $canvas[0].getContext('2d');
-            var extra_y = 20;
-            var ky = 1.0 / (cdims[1] + extra_y) * dims[1];
-            var ky_min = (ky < 1) ? 1 : Math.floor(ky);
-            var kx = 1.0 / (cdims[0]) * dims[0];
-            var kx_min = (kx < 1) ? 1 : Math.floor(kx);
-
-            function draw_pt(pt) {
-                ctx.fillStyle = pt[2] ? '#ff0000' : '#000000';
-                cs = coord(pt[0], pt[1]);
-                ctx.fillRect(cs[0], cs[1], kx_min, ky_min);
-            }
-
-            function draw_axis(axis) {
-                // axis
-                ctx.fillStyle = '#0000ff';
-                cs = coord(0, axis[0][1]);
-                ctx.fillRect(0, cs[1], dims[0], 1);
-
-                axis.map(function(pt, pti) {draw_label(pt); });
-                //draw_label(axis[0]);
-            }
-
-            function draw_label(pt) {
-                // small bar to indicate the pos of the label on the axis
-                // TODO: bar size depends on label size
-                ctx.fillStyle = '#0000ff';
-                cs = coord(pt[0], pt[1]);
-                ctx.fillRect(cs[0], cs[1], 1, 10);
-
-                // label
-                // TODO: label pos depends on label size
-                ctx.font = '10px Arial';
-                ctx.fillText(pt[2],cs[0],cs[1]+10);
-            }
-
-            function coord(x, y) {
-                return [x * kx, y * ky];
-            }
-
-            pts.map(function(pt, pti) {draw_pt(pt); });
-            draw_axis(xs);
-        }
-
-        redraw_vis();
         $(window).resize(redraw_vis);
+    })
+    redraw_vis();
+}
+
+if ($) {
+    redraw_vis();
+}
+
+function redraw_vis() {
+    $('select[name=vcat]').on('change', function() {
+        $(this).closest('form').submit();
     });
 
-};
+    var label_margin = 2;
+    var font_size = 12;
+    var extra_y = font_size+(label_margin*2);
+    var extra_x = 200;
+    var colors = {'label': '#000080'}
+
+    var $container = $('#vis-div');
+    resize_container($container);
+    function resize_container($container) {
+        var ret = 200;
+        // enough height to write all the category labels
+        ret = (font_size + (label_margin * 2)) * (1 + ys.length);
+        // enough height to display all the data points with 2px height
+        ret_alt = cdims[1] * 2;
+        if (ret_alt > ret) { ret = ret_alt; };
+        //
+        ret += extra_y;
+        $container.css('height', ret + 'px');
+        return ret;
+    }
+
+    var dims = [$container.width(), $container.height()];
+    var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
+                    ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
+                    '</canvas>'
+                );
+    $container.html($canvas);
+    var ctx = $canvas[0].getContext('2d');
+
+    var ky = 1.0 / (cdims[1] + 1) * (dims[1] - extra_y);
+    var ky_min = (ky < 1) ? 1 : Math.floor(ky);
+    var kx = 1.0 / (cdims[0] + 1) * (dims[0] - extra_x);
+    var kx_min = (kx < 1) ? 1 : Math.floor(kx);
+    //var dot_size = kx_min < ky_min ? kx_min : ky_min;
+
+    function draw_pt(pt) {
+        ctx.fillStyle = pt[2] ? '#ff0000' : '#000000';
+        cs = coord(pt[0], pt[1]);
+        //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
+        ctx.fillRect(cs[0], cs[1], kx_min, ky_min);
+    }
+
+    function draw_xs(axis) {
+        // axis
+        ctx.fillStyle = colors.label;
+        cs = coord(cdims[0], axis[0][1]);
+        ctx.fillRect(0, dims[1] - extra_y, cs[0], 1);
+
+        axis.map(function(pt, pti) {draw_label_x(pt); });
+        //draw_label(axis[0]);
+    }
+
+    function draw_ys(axis) {
+        // axis
+        ctx.fillStyle = colors.label;
+        var cs = coord(cdims[0], axis[0][1]);
+        ctx.fillRect(cs[0], 0, 1, dims[1]);
+
+        axis.map(function(pt, pti) {
+            draw_label_y(pt);
+        });
+        //draw_label(axis[0]);
+    }
+
+    function draw_label_x(pt, bar) {
+        // small bar to indicate the pos of the label on the axis
+        // TODO: bar size depends on label size
+        ctx.fillStyle = colors.label;
+        var cs = coord(pt[0], pt[1]);
+        ctx.fillRect(cs[0], dims[1] - extra_y, 1, 10);
+
+        // label
+        // TODO: label pos depends on label size
+        write_text(pt[2], cs[0], dims[1] - extra_y);
+    }
+
+    function draw_label_y(pt, bar) {
+        // small bar to indicate the pos of the label on the axis
+        // TODO: bar size depends on label size
+        ctx.fillStyle = '#707070';
+        var cs = coord(cdims[0], pt[1]);
+        ctx.fillRect(0, cs[1], dims[0], 1);
+        ctx.fillStyle = colors.label;
+        ctx.fillRect(cs[0], cs[1], extra_x, 1);
+
+        // label
+        // TODO: label pos depends on label size
+        write_text(pt[2], cs[0], cs[1]);
+    }
+
+    function write_text(text, x, y) {
+        ctx.fillStyle = colors.label;
+        ctx.font = font_size + 'px Arial';
+        ctx.fillText(text, x+label_margin, y+font_size + label_margin);
+    }
+
+    function coord(x, y) {
+        return [x * kx, y * ky];
+    }
+
+    draw_xs(xs);
+    draw_ys(ys);
+    pts.map(function(pt, pti) {draw_pt(pt); });
+}
+
+
 //}();
 </script>

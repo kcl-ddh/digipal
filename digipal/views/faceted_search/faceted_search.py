@@ -888,7 +888,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['wide_page'] = True
 
     from overview import draw_overview
-    draw_overview(ct, context)
+    draw_overview(ct, context, request)
 
     hand_filters.chrono(':SEARCH')
 

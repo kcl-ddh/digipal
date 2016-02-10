@@ -210,7 +210,7 @@ FACETED_SEARCH = {
                                {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                ],
 #                    'select_related': ['content_xml.text_content.item_partitem_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
-                    'prefetch_related': ['content_xml__text_content__item_part__historical_items'],
+                    'prefetch_related': ['text_content__item_part__historical_items'],
 #                     'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],

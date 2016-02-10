@@ -23,6 +23,9 @@
     {{ block.super }}
     <script type="text/javascript">
         init_search_page({});
+        if (window.view_init) {
+            window.view_init();
+        }
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol.js"></script>

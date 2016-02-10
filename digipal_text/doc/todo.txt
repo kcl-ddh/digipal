@@ -2,20 +2,22 @@ Visualisation for MoA
     [done] add a new view to the faceted search result page
     [done] show clauses with Y=clause type and X=date range
     . compute Y after Xs
-    ***. stack date ranges!
-    ***. clean up dates 2
-    * . category selector .5
+    ***. stack date ranges! [1]
+    ** . remove empty vert space
+    ****. clean up dates [2]
+    [done] category selector .5
     [done] add labels to axis
         [done] x
         [done] y
-    *** . add hover with info 1
+    *** . add hover with info 1 [1]
         * . add label
         . axis
         . snippet/text
-    ** . fix the scaling and proportion of the canvas
-        * . use bigger marks for the data points
-            *. use range for dates
-    . add hits for each cat and % bar
+    . fix the scaling and proportion of the canvas
+        . use bigger marks for the data points
+            . use range for dates
+    [done] add hits for each cat and
+    [done] add % bar for categories
 
   Eclipse Quick Bookmarks   1.2.1.201404032042  to.etc.eclipse.editor.bookmarks.feature.feature.group   domui.org
   LESS  1.0.22  net.vtst.ow.eclipse.less.feature.feature.group  Vincent Simonet

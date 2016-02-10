@@ -14,12 +14,7 @@ def draw_overview(faceted_search, context, request):
 
     points = drawing['points']
 
-    if 0:
-        points.append([10, 10])
-        points.append([20, 10])
-        points.append([30, 10])
-
-    from digipal.utils import get_midpoint_from_date_range
+    from digipal.utils import get_midpoint_from_date_range, get_range_from_date
 
     print 'OVERVIEW SCAN'
     #fields = ['hi_date', 'medieval_archive']
@@ -48,14 +43,18 @@ def draw_overview(faceted_search, context, request):
             l.extend(v)
         else:
             l.append(v)
+
     bands = sorted_natural(list(set(l)))
     # eg. {'type1': 0, 'type2': 1000}
     bands = {bands[i]: i*band_width for i in range(0, len(bands))}
 
-    drawing['y'] = [[0, y, label] for label, y in bands.iteritems()]
+    # {'agreement': [10, 20]}
+    cat_hits = {}
 
     # process all records
     for record in records:
+        found = 1 if getattr(record, 'found', 0) else 0
+
         # TODO: one request for the whole thing
         values = []
         for field in fields:
@@ -66,7 +65,10 @@ def draw_overview(faceted_search, context, request):
 
         # convert x to numerical value
         if fields[0]['type'] == 'date':
+            if found:
+                print x, get_midpoint_from_date_range(x)
             x = get_midpoint_from_date_range(x)
+            #x = get_range_from_date(x)
         else:
             # ()TODO: other type than date for x
             x = 0
@@ -84,8 +86,14 @@ def draw_overview(faceted_search, context, request):
             y = bands.get(v, 0)
 
             # add the points
-            point = [x, y, 1 if getattr(record, 'found', 0) else 0]
+            point = [x, y, found]
             points.append(point)
+
+            # increment hits per category
+            cat_hits[v] = cat_hits.get(v, [0, 0][:])
+            cat_hits[v][0] += 1
+            if found:
+                cat_hits[v][1] += 1
 
     # reframe the x values based on min
     for point in points:
@@ -102,5 +110,6 @@ def draw_overview(faceted_search, context, request):
     step = 10
     date0 = mins[0] - (mins[0] % step)
     drawing['x'] = [[d - mins[0], last_y + 2, '%s' % d] for d in range(date0, maxs[0], step)]
+    drawing['y'] = [[0, y, label, cat_hits.get(label, [0, 0])[0], cat_hits.get(label, [0, 0])[1]]  for label, y in bands.iteritems()]
 
     context['canvas']['drawing'] = drawing

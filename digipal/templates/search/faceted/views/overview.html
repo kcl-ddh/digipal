@@ -53,7 +53,7 @@ function view_init() {
     redraw_vis();
 }
 
-if ($) {
+if (typeof $ !== 'undefined') {
     redraw_vis();
 }
 
@@ -75,7 +75,7 @@ function redraw_vis() {
         // enough height to write all the category labels
         ret = (font_size + (label_margin * 2)) * (1 + ys.length);
         // enough height to display all the data points with 2px height
-        ret_alt = cdims[1] * 2;
+        ret_alt = cdims[1] * 4;
         if (ret_alt > ret) { ret = ret_alt; };
         //
         ret += extra_y;
@@ -120,13 +120,17 @@ function redraw_vis() {
         var cs = coord(cdims[0], axis[0][1]);
         ctx.fillRect(cs[0], 0, 1, dims[1]);
 
+        var max_count = axis.reduce(function(last, cat, i, array) {
+            return last + cat[3];
+        }, 0);
+
         axis.map(function(pt, pti) {
-            draw_label_y(pt);
+            draw_label_y(pt, max_count);
         });
         //draw_label(axis[0]);
     }
 
-    function draw_label_x(pt, bar) {
+    function draw_label_x(pt) {
         // small bar to indicate the pos of the label on the axis
         // TODO: bar size depends on label size
         ctx.fillStyle = colors.label;
@@ -138,28 +142,42 @@ function redraw_vis() {
         write_text(pt[2], cs[0], dims[1] - extra_y);
     }
 
-    function draw_label_y(pt, bar) {
+    function draw_label_y(pt, max_count) {
+        var cs = coord(cdims[0], pt[1]);
+
+        // global % bar
+        ctx.fillStyle = '#E0E0E0';
+        var pc = (1.0 / max_count) * pt[3];
+        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, font_size + label_margin * 2);
+
+        // local % bar
+        ctx.fillStyle = '#FFB0B0';
+        pc = (1.0 / max_count) * pt[4];
+        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, font_size + label_margin * 2);
+
         // small bar to indicate the pos of the label on the axis
         // TODO: bar size depends on label size
-        ctx.fillStyle = '#707070';
-        var cs = coord(cdims[0], pt[1]);
-        ctx.fillRect(0, cs[1], dims[0], 1);
-        ctx.fillStyle = colors.label;
-        ctx.fillRect(cs[0], cs[1], extra_x, 1);
+        if (cs[1] > 1) {
+            ctx.fillStyle = '#707070';
+            ctx.fillRect(0, cs[1], dims[0], 1);
+            ctx.fillStyle = colors.label;
+            ctx.fillRect(cs[0], cs[1], extra_x, 1);
+        }
 
         // label
         // TODO: label pos depends on label size
-        write_text(pt[2], cs[0], cs[1]);
+        var label = pt[2] + ' ( ' + pt[4] + ' / ' + pt[3] + ' )';
+        write_text(label, cs[0], cs[1], pt[4] ? colors.label : '#404040');
     }
 
-    function write_text(text, x, y) {
-        ctx.fillStyle = colors.label;
+    function write_text(text, x, y, color) {
+        ctx.fillStyle = color ? color : colors.label;
         ctx.font = font_size + 'px Arial';
         ctx.fillText(text, x+label_margin, y+font_size + label_margin);
     }
 
     function coord(x, y) {
-        return [x * kx, y * ky];
+        return [Math.floor(x * kx), Math.floor(y * ky)];
     }
 
     draw_xs(xs);

@@ -504,7 +504,7 @@ def get_midpoint_from_date_range(astr=None, arange=None):
 def get_range_from_date(str):
     ret = get_range_from_date_simple(str)
 
-    if is_max_date_range(ret):
+    if str is not None and is_max_date_range(ret):
         # circa 1221 x circa 1247
         if 'x' in str:
             parts = str.split('x')

@@ -502,6 +502,21 @@ def get_midpoint_from_date_range(astr=None, arange=None):
     return ret
 
 def get_range_from_date(str):
+    ret = get_range_from_date_simple(str)
+
+    if is_max_date_range(ret):
+        # circa 1221 x circa 1247
+        if 'x' in str:
+            parts = str.split('x')
+            if len(parts) == 2:
+                d0 = get_range_from_date_simple(parts[0])
+                d1 = get_range_from_date_simple(parts[1])
+                if not is_max_date_range(d0) or not is_max_date_range(d1):
+                    ret = [d0[0], d1[1]]
+
+    return ret
+
+def get_range_from_date_simple(str):
     '''
     Returns a range of numeric dates from a string expression
     e.g. get_range_from_date('940x956') => [940, 956]
@@ -520,15 +535,24 @@ def get_range_from_date(str):
 
     # remove day month
     # eg. 11 November 1170 X 24 March 1201 => 1170 X 1201
-    str = re.sub(ur'(?iu)((\d{1,2})\s)?(january|february|march|april|may|june|july|august|september|october|november|december),?', u'', str)
+    str = re.sub(ur'(?iu)((\d{1,2})\s)?(autumn|fall|summer|winter|spring|jan\.|feb\.|mar\.|apr\.|jun\.|jul\.|aug\.|sept\.|oct\.|nov\.|dec\.|january|february|march|april|may|june|july|august|september|october|november|december),?', u'', str)
 
     #print repr(str)
 
     # expand s. => Saec.
     str = re.sub(ur'\bs\.\s', u'Saec. ', str)
 
+    # early 12th => Saec. viii ex.
+    #str = re.sub(ur'\bs\.\s', u'Saec. ', str)
+
+    # convert circa => ca
+    str = re.sub(ur'\bcirca\b', u'Ca', str)
+
     # expand c. => ca
     str = re.sub(ur'\bc\.\s', u'Ca ', str)
+
+    # undated (early 1200s)
+    str = re.sub(ur'^\s*undated\s+\((.*)\)\s*$', ur'\1', str)
 
     # remove prob.
     str = re.sub(ur'(prob.|probably|by)\s', '', str).strip()

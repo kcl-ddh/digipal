@@ -481,7 +481,7 @@ Commands:
         print repr(ret)
 
     def date_conv(self, *args):
-        from digipal.utils import get_range_from_date, MAX_DATE_RANGE
+        from digipal.utils import get_range_from_date, get_range_from_date, MAX_DATE_RANGE
         from digipal.models import Date, HistoricalItem
         diff_count = 0
         unrec_count = 0

@@ -1,15 +1,15 @@
 Visualisation for MoA
     [done] add a new view to the faceted search result page
     [done] show clauses with Y=clause type and X=date range
-    . compute Y after Xs
+    [done] compute Y after Xs
     [done] stack date ranges! [1]
-    ** . remove empty vert space
+    [done] remove empty vert space
     ****. clean up dates [2]
     [done] category selector .5
     [done] add labels to axis
         [done] x
         [done] y
-    *** . add hover with info 1 [1]
+    [DONE] . add hover with info 1 [1]
         * . add label
         . axis
         . snippet/text

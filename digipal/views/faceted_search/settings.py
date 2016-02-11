@@ -159,6 +159,8 @@ FACETED_SEARCH = {
                     'label': 'Text',
                     'model': 'digipal_text.models.TextContentXML',
                     'condition': lambda r: r.content and re.search('[a-z]', r.content),
+                    # TODO: temporary!
+                    'django_filter': {'text_content__type__slug': 'transcription'},
                     'fields': [
 
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},

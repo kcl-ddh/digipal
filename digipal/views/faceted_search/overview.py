@@ -20,6 +20,7 @@ def draw_overview(faceted_search, context, request):
     #fields = ['hi_date', 'medieval_archive']
     #fields = ['hi_date', 'clause_type']
     category_field = faceted_search.get_field_by_key(request.REQUEST.get('vcat', 'hi_type'))
+    if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')
     context['vcat'] = category_field
 
     context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True)]
@@ -94,7 +95,8 @@ def draw_overview(faceted_search, context, request):
             y = bands.get(v, 0)
 
             # add the points
-            point = [x, y, found]
+            label = faceted_search.get_record_label_html(record, request);
+            point = [x, y, found, label]
             stack_point(point, stack)
             points.append(point)
 
@@ -145,7 +147,7 @@ def compact_bands(stack, points, bands, min_height=20):
         # +2 is to leave some nice space between categories on the front end
         # +10 is to leav enough space to write the label for the category
         # Note that 10 is scaled so difficult found it by trial and errors
-        new_y = max(new_y + 2, band[1] + 10)
+        new_y = max(new_y + 2, band[1] + 5)
 
     return bands
 

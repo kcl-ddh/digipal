@@ -16,19 +16,19 @@ from django.template.defaultfilters import slugify
 class Command(BaseCommand):
     help = """
 Digipal blog management tool.
-    
+
 Commands:
 
     locus
-    
+
     email
-    
+
     validate
-    
+
     record_path
         Test the field extraction from record + path used by the faceted search module
         e.g. record_path manuscripts historical_item.historical_item_type.name 598
-    
+
     max_date_range FIELD
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
@@ -36,12 +36,12 @@ Commands:
     cs
         TODO
         collect static
-        
+
     cpip REQ1 REQ2
         compare two PIP req files (pip freeze)
 
 """
-    
+
     args = 'locus|email'
     option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -67,15 +67,15 @@ Commands:
         )
 
     def handle(self, *args, **options):
-        
+
         self.log_level = 3
-        
+
         self.options = options
-        
+
         if len(args) < 1:
             raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
         command = args[0]
-        
+
         known_command = False
 
         if command == 'hd':
@@ -96,9 +96,9 @@ Commands:
             # 3 <note place="bottom" n="16"> [817, 1065, 1188]
             # 3 <title level="m" > [659, 887, 336]
             # 36 <title level="m"> [1227, 1227, 548, 13, 18, 21, 598, 604, 619, 619]
-            
+
             els = {}
-            
+
             # hand description element list
             from digipal.models import HandDescription
             for hd in HandDescription.objects.all():
@@ -109,7 +109,7 @@ Commands:
                         v = els.get(el, [])
                         v.append(hd.hand.id)
                         els[el] = v
-        
+
             for el in sorted(els.keys()):
                 print len(els[el]), el, els[el][0:10]
 
@@ -138,7 +138,7 @@ Commands:
                 hd.description = convert_xml_to_html(hd.description)
                 hd.save()
                 print repr(hd.description)
-        
+
         if command == 'stint':
             from digipal.utils import expand_folio_range
             cases = [
@@ -180,11 +180,11 @@ Commands:
         if command == 'img_info':
             known_command = True
             self.img_info(args[1])
-    
+
         if command == 'img_compare':
             known_command = True
             self.img_compare(args[1], args[2])
-            
+
         if command == 'adjust_offsets':
             self.adjust_offsets(args[1], args[2])
 
@@ -207,7 +207,7 @@ Commands:
         if command == 'dupim':
             known_command = True
             self.find_dup_im(*args[1:])
-            
+
         if command == 'find_offset':
             known_command = True
             self.find_image_offset(*args[1:])
@@ -251,15 +251,15 @@ Commands:
             im.save()
             print '8'
             print im.dimensions()
-            
+
         if command == 'stress_search':
             known_command = True
             self.stress_search(*args[1:])
-            
+
         if command == 'savean':
             known_command = True
             self.save_annotation(*args[1:])
-            
+
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
@@ -267,9 +267,9 @@ Commands:
     def cpip(self, *args):
         from digipal.utils import natural_sort_key
         fs = (args[0], args[1])
-        
+
         fpkgs = []
-        
+
         # read packages from two PIP req files
         from digipal.utils import read_file
         for f in fs:
@@ -279,11 +279,11 @@ Commands:
                 if len(parts) == 2:
                     pkgs[parts[0]] = parts[1]
             fpkgs.append(pkgs)
-         
+
         # compare
         def get_version(fileindex, pkgname):
             return fpkgs[fileindex].get(pkgname, '')
-        
+
         for pkg in sorted(list(set(fpkgs[0].keys() + fpkgs[1].keys())), key=lambda l: l.lower()):
             vers = (get_version(0, pkg), get_version(1, pkg))
             status = '='
@@ -298,11 +298,11 @@ Commands:
         from whoosh import fields
         from whoosh.filedb.filestore import RamStorage
         from whoosh import analysis, fields, index, qparser, query, searching, scoring
-        
+
         schema = fields.Schema(id=fields.STORED, f1=fields.TEXT)
         storage = RamStorage()
         ix = storage.create_index(schema)
-    
+
         writer = ix.writer()
         values = [u'Value One', u'Term Two', u'Value One;Term Two']
         i = 0
@@ -311,11 +311,11 @@ Commands:
             i += 1
             writer.add_document(id=i, f1=vf(value))
         writer.commit()
-    
+
         with ix.searcher() as s:
-            
+
             print list(s.lexicon('f1'))
-            
+
             qp = qparser.QueryParser('f1', schema)
             for i in range(0, 2):
                 print '-' * 40
@@ -341,7 +341,7 @@ Commands:
         ctype = args[0]
         path = args[1]
         recordid = args[2]
-        
+
         from digipal.views.faceted_search.faceted_search import get_types
         types = get_types(None)
         fmodel = None
@@ -351,7 +351,7 @@ Commands:
         if not fmodel:
             print 'ERROR: content type not found "%s"' % ctype
             exit()
-            
+
         record = fmodel.get_model().objects.get(id=recordid)
         afield = {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'}
         afield['path'] = path
@@ -364,9 +364,9 @@ Commands:
         ret = []
 
         max_length = 2000
-        
+
         # e.g. pm dptest recim "http://xxxx/proxy?method=R&ark=btv1b6001165p.f320&l=6&r=5923,3407,731,1406&save" 157v.png
-        
+
         # download all the parts
         print 'download tiles...'
         tile_numbers = [0, 0]
@@ -397,7 +397,7 @@ Commands:
                         break
             else:
                 tile_numbers = [2, 3]
-        
+
             # now reconstruct the full image
             # find the total size (by looking at the size of the last tile)
             last_tile = '%d-%d.jpg' % (tile_numbers[0], tile_numbers[1])
@@ -422,29 +422,29 @@ Commands:
                     target_area = (x * max_length, y * max_length, x*max_length + crop.size[0], y*max_length + crop.size[1])
                     print '', x, y, crop.size, target_area
                     im.paste(crop, target_area)
-            
+
             print 'Save full image (%s)' % dest_file
             im.save(dest_file)
             print 'done'
-                    
+
         else:
             print 'ERROR: please specify a URL to the bottom right tile of an image'
-        
+
         return ret
 
     def test_sources(self, *args):
         ret = []
         for keyword in ['ker', 'pelteret', 'gneuss', 'digipal', 'english manuscripts 1060', settings.SOURCE_SAWYER_KW, 'scragg', 'cla', 'davis']:
             print keyword, ' => ', repr(Source.get_source_from_keyword(keyword))
-        
+
         return ret
-        
+
     def max_date_range(self, *args):
         ret = [None, None]
         if not len(args) == 1:
             print 'ERROR: please provide a path to a date field. E.g. dptest max_date_range HistoricalItem.date'
             return
-        
+
         path = args[0]
         print 'Path: %s' % path
 
@@ -452,7 +452,7 @@ Commands:
 #         if len(parts) != 2:
 #             print 'ERROR: please provide a correct path to a date field. E.g. dptest max_date_range HistoricalItem.date . A model name and a field name separated by a dot.'
 #             return
-            
+
         model_name = parts[0]
         path_name = '__'.join(parts[1:])
         import digipal.models
@@ -466,6 +466,7 @@ Commands:
             #value = getattr(obj, path_name)
             if value:
                 rng = get_range_from_date(value)
+                #print u'%30s %s' % (rng, value)
                 if rng[0] and rng[0] > -5000:
                     if ret[0] is None:
                         ret[0] = rng[0]
@@ -476,24 +477,25 @@ Commands:
                         ret[1] = rng[1]
                     else:
                         ret[1] = max(ret[1], rng[1])
-                        
+
         print repr(ret)
 
     def date_conv(self, *args):
-        from digipal.utils import get_range_from_date
+        from digipal.utils import get_range_from_date, MAX_DATE_RANGE
         from digipal.models import Date, HistoricalItem
         diff_count = 0
-        
+        unrec_count = 0
+
         if 'hi' in args:
             query = HistoricalItem.objects.all()
         else:
             query = Date.objects.all()
-            
+
         rid = None
         if len(args) == 2:
             rid = args[1]
             query = query.filter(id=rid)
-        
+
         cnt = query.count()
         for d in query.order_by('id'):
         #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
@@ -501,20 +503,31 @@ Commands:
             if not args:
                 date_rgn = [d.min_weight, d.max_weight]
                 rng = get_range_from_date(d.date)
-                if not(rng[0] == date_rgn[0] and rng[1] == date_rgn[1]):
-                    status = '<>'
-                if rid or status == '<>':
+                if rng[0] in MAX_DATE_RANGE and rng[1] in MAX_DATE_RANGE:
+                    status = '00'
+                    unrec_count += 1
                     print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
+                else:
+                    if not(rng[0] == date_rgn[0] and rng[1] == date_rgn[1]):
+                        status = '<>'
+                    if rid or status == '<>':
+                        print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
             if 'hi' in args:
                 if d.date:
                     rng = get_range_from_date(d.date)
-                    if rid or (rng[0] == -5000 or rng[1] == 5000):
-                        status = '<>'
-                        print '%4s %40s [%7s, %7s]' % (d.id, d.date, rng[0], rng[1])
+                    if rng[0] in MAX_DATE_RANGE and rng[1] in MAX_DATE_RANGE:
+                        status = '00'
+                        unrec_count += 1
+                        print '%4s %s %40s [%7s, %7s]' % (d.id, status, d.date, rng[0], rng[1])
+                    else:
+                        if rid or (rng[0] == -5000 or rng[1] == 5000):
+                            status = '<>'
+                            print '%4s %s %40s [%7s, %7s]' % (d.id, status, d.date, rng[0], rng[1])
             if status != '==':
                 diff_count += 1
-                                                
+
         print '%s incorrect, %s correct, total %s' % (diff_count, cnt - diff_count, cnt)
+        print '%s unrecognised, total %s' % (unrec_count, cnt)
 
     def adhoc_test(self, *args):
         from digipal import utils
@@ -523,12 +536,12 @@ Commands:
         #d = 'c. 950x68'
         print d
         print utils.get_midpoint_from_date_range(d)
-    
+
     def adhoc_test_old(self, *args):
         from digipal.templatetags import html_escape
         value = u'''<tr>
                 <td>
-                    
+
                 </td>
                 <td>
                         G. 31
@@ -541,7 +554,7 @@ Commands:
                     Smaragdus, Diadema monachorum : s. xi ex. or xii in… (G.)
                 </td>
             </tr>
-        
+
             <tr>
                 <td>
                         G. 32
@@ -554,9 +567,9 @@ Commands:
                     Orosius, Historiae adversus paganos ; Justinus, Epitome… (G.)
                 </td>
             </tr>
-        
+
         '''
-        
+
         value = u'''\u00E6<td>Cambridge, n…  cambridge</td>'''
 
         ret = html_escape.tag_phrase_terms(value, unicode(args[0]))
@@ -588,7 +601,7 @@ Commands:
         an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.internal_note = 'int note'
         ans.append(an)
-        
+
         # create an editorial annotation with display note
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
         an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
@@ -608,7 +621,7 @@ Commands:
         for a in ans:
             print 'save'
             a.save()
-            
+
         # run queries
         print 'find all annotations'
         if Annotation.objects.all().filter(id__in=[a.id for a in ans]).count() == 3:
@@ -621,7 +634,7 @@ Commands:
             print '\tok'
         else:
             print '\terror'
-            
+
         print 'find publicly visible annotations'
         if Annotation.objects.all().publicly_visible().filter(id__in=[ans[1].id, ans[2].id]).count() == 2:
             print '\tok'
@@ -636,7 +649,7 @@ Commands:
 
         for a in ans:
             a.delete()
-            
+
         gr.delete()
 
     def save_annotation(self):
@@ -652,18 +665,18 @@ Commands:
         from datetime import datetime
         import time
         import threading
-    
+
         url = 'http://www.digipal.eu/digipal/search/?from_link=true&s=1'
         #url = 'http://localhost/digipal/search/?from_link=true&s=1'
 
         print 'Stress test for the search page.'
-        
+
         class FetchingThread(threading.Thread):
             def __init__(self, index):
                 super(FetchingThread, self).__init__()
                 self.index = index
                 self.status = ''
-                
+
             def run(self):
                 now = datetime.now()
                 #print '#%d %s Request' % (self.index, str(now))
@@ -673,7 +686,7 @@ Commands:
                 self.status = info['status']
                 #print info['status']
                 #print '#%d %s %s %s' % (self.index, str(now), info['status'], warning)
-        
+
         test_count = int(count)
         ts = []
         # start the threads
@@ -681,7 +694,7 @@ Commands:
             t = FetchingThread(i)
             t.start()
             ts.append(t)
-        
+
         # wait...
         alive_count = alive_count_old = test_count
         while alive_count:
@@ -694,9 +707,9 @@ Commands:
 #                     exit()
             if alive_count:
                 time.sleep(0.5)
-            
+
         return ret
-    
+
     def find_dup_im(self, **kwargs):
         print 'duplicates'
         from digipal.models import Image
@@ -733,7 +746,7 @@ Commands:
         hi2.save()
         print hi2.catalogue_number
         print hi2.catalogue_numbers.all()
-        
+
         print '\nh2'
         hi2.catalogue_numbers.add(CatalogueNumber.objects.all()[0])
         hi2.catalogue_numbers.add(CatalogueNumber.objects.all()[1])
@@ -747,25 +760,25 @@ Commands:
         hi2.save()
         print hi2.catalogue_number
         print hi2.catalogue_numbers.all()
-        
+
         print '\nh3'
         hi3 = HistoricalItem.objects.get(id=hi1_id)
         hi3.catalogue_numbers.add(CatalogueNumber.objects.all()[0])
         hi3.save()
-         
+
         print hi3.catalogue_number
         print hi3.catalogue_numbers.all()
 
     def fetch_and_test(self, root=None):
         from utils import web_fetch
         from datetime import datetime
-        
+
         if not root:
             root = 'http://localhost/'
         print 'Base URL: %s' % root
-        
+
         stats = []
-        
+
         pages = [
                 '',
                 # main search
@@ -794,14 +807,14 @@ Commands:
                 # collection
                 'digipal/lightbox/',
                 ]
-        
+
         #pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
         #pages = ['digipal/page/362/',]
         #pages = ['',]
-        
+
         #pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
         #pages = ['digipal/hands/1195/graphs/']
-        
+
         for page in pages:
             url = root + page
 
@@ -810,11 +823,11 @@ Commands:
 
             print
             print 'Request %s' % url
-            
+
             t0 = datetime.now()
 
             res = web_fetch(url)
-            
+
             t1 = datetime.now()
 
             if res['status'] != '200':
@@ -825,7 +838,7 @@ Commands:
                 continue
             if res['body']:
                 print '\t %s KB in %.4f s.' % (len(res['body']) / 1024, (t1 - t0).total_seconds())
-                
+
                 # prefix the line with numbers
                 ln = 0
                 lines = []
@@ -844,7 +857,7 @@ Commands:
 
     def find_errors(self, body):
         ret = []
-        
+
         # custom validations
         sheets = {}
         scripts = {}
@@ -886,19 +899,19 @@ Commands:
                 ret.append('%6s: %s (%s)' % (ln, msg, line.strip()))
         if containers > 0:
             ret.append('%6s: %s containers' % ('', containers))
-            
+
         # structural validation
         import bs4
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(body)
         print (' title: %s' % re.sub(ur'\s+', ' ', soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
-        
+
         # find all the headers
         print 'heading:'
         for i in range(1, 7):
             for header in soup.find_all('h%s' % i):
                 print '\t\t%s' % re.sub('\s+|\n', ' ', '%s' % header)
-        
+
         # check that all rows are under a container
         for row in soup.find_all('div', class_='row'):
             has_container = False
@@ -907,10 +920,10 @@ Commands:
                 if ('container' in classes) or ('container-fluid' in classes):
                     has_container = True
                     break
-                    
+
             if not has_container:
                 print ('    ? : Bootstrap ERROR: Rows must be placed within a .container (fixed-width) or .container-fluid (full-width) for proper alignment and padding\n\t\t%s ' % self.get_opening_tag(row)).encode('ascii', 'ignore')
-            
+
         # check that all cols are under a row
         for col in soup.find_all('div'):
             cl = ' '.join(col.get('class', []))
@@ -935,7 +948,7 @@ Commands:
                     ok = False
                 if ok: break
                 if attempts > 2: break
-    
+
             if ok:
                 for info in vld.warnings:
                     ret.append('%6s: [W3C WARNING] %s' % (info['line'], info['message']))
@@ -943,7 +956,7 @@ Commands:
                     ret.append('%6s: [W3C ERROR  ] %s' % (info['line'], info['message']))
             else:
                 ret.append('\tFailed to call W3C validation.')
-        
+
         return ret
 
     def adjust_offsets(self, offset_path, target_path):
@@ -951,11 +964,11 @@ Commands:
         # best match of one annotation along a line between the old (cropped)
         # and new (uncropped) image.
         # pm dptest adjust_offsets crop_offsets.json c:\vol\digipal2\images\originals\bl\backup_bl_from_server\bl
-        
+
         ###
         # UPDATE THE LOCAL DB FROM THE STG BEFORE RUNNING THIS!!!
         ###
-        
+
         import json
         from PIL import Image
         images = json.load(open(offset_path, 'rb'))
@@ -966,20 +979,20 @@ Commands:
             images['images'][rel_path]['offset'].append(images['images'][rel_path]['offset'][2])
             if images['images'][rel_path]['offset'][3] < 0: images['images'][rel_path]['offset'][3] = 0
             if images['images'][rel_path]['offset'][4] > 0: images['images'][rel_path]['offset'][4] = 0
-            
+
             #if rel_path != ur'arundel_60\83v': continue
             #if rel_path != ur'add_46204\recto': continue
             #if rel_path != ur'cotton_caligula_axv\152v': continue
             #if rel_path != ur'harley_5915\13r': continue
             c += 1
             print '%s (%d left)' % (rel_path, len(images['images']) - c)
-            
+
             src_path = os.path.join(images['root'], rel_path) + '.tif'
             dst_path = os.path.join(target_path, rel_path) + '.tif'
             if not os.path.exists(dst_path):
                 print '\tskipped (new image)'
                 continue
-            
+
             # find an annotation in the database
             a = Annotation.objects.filter(image__iipimage__endswith=rel_path.replace('\\', '/')+'.jp2')
             if a.count() == 0:
@@ -999,9 +1012,9 @@ Commands:
             sps = src_img.convert('L').load()
             dps = dst_img.convert('L').load()
             print '\tsrc: %s x %s; dst: %s x %s' % (src_img.size[0], src_img.size[1], dst_img.size[0], dst_img.size[1])
-            
+
             # find the best match for this annotation region on the new image
-            
+
             # We scan a whole line on the uncropped image to find the x value
             # that minimises the pixelwise difference of annotation regions.
             box = a.get_coordinates(None, True)
@@ -1028,17 +1041,17 @@ Commands:
                 print '\t******************************************'
                 #if info['offset'][1] < 0 and offsetx != 0:
                 #    print '\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        
+
         print '%d images with annotations.' % ca
-        
+
         print
-        
+
         print json.dumps(images)
-    
+
     def correct_annotations(self, info_path):
         import json
         images = json.load(open(info_path, 'rb'))
-        
+
         counts = {'image': 0, 'annotation': 0}
         for path, info in images['images'].iteritems():
             #if path != 'harley_5915\\13r': continue
@@ -1057,7 +1070,7 @@ Commands:
                 if c > 1:
                     #print '\tWARNING: More than one Image record not found.'
                     continue
-                
+
                 annotations = imgs[0].annotation_set.filter().distinct()
                 if annotations.count():
                     counts['image'] += 1
@@ -1069,34 +1082,34 @@ Commands:
                         #print annotation.geo_json
                         annotation.cutout = self.get_uncropped_cutout(annotation, info)
                         annotation.geo_json = self.get_uncropped_geo_json(annotation, offsets)
-                        
+
                         #print annotation.cutout
                         #print annotation.geo_json
                         annotation.save()
                     print '\t%d annotations' % annotations.count()
-                
+
         #print counts
-        
-    
+
+
     # TODO: remove, only temporary
     def get_uncropped_cutout(self, annotation, image_info):
         ret = annotation.cutout
-        
+
         offsets = image_info['offset']
-        
+
         '''
             Correct the region parameter in the cutout URLs
             E.g. http://digipal-stg.cch.kcl.ac.uk/iip/iipsrv.fcgi?FIF=jp2/bl/cotton_vitellius_cv/248r.jp2&RST=*&HEI=1206&RGN=0.381031,0.334415,0.019381,0.023682&CVT=JPG
-            
+
             0.381031,0.334415,0.019381,0.023682
-            
+
             px,py,lx,ly
-            
+
             px: x position of the top right corner of the box expressed as a ratio over the image width
             lx: the width of the box as a ratio over the image width
-            
+
             Algorithm and formula for the conversion:
-            
+
             for r in (px,py,lx,ly):
                 nl = new image length in that axis
                 l = old image length in that axis
@@ -1122,15 +1135,15 @@ Commands:
             #if (i > 1): offset = 0
 
             r = ((r * l) + offset) / nl
-            
+
             rgn.append(r)
-        
+
         #print rgn
         ret = re.sub(ur'RGN=[^&]+', ur'RGN=' + ','.join(['%.6f' % r for r in rgn]), ret)
         #print ret
-        
+
         return ret
-    
+
     def get_uncropped_geo_json(self, annotation, offsets):
         import json
         geo_json = annotation.geo_json
@@ -1164,20 +1177,20 @@ Commands:
         geo_json = geo_json.replace('\'', '"')
 
         geo_json = json.loads(geo_json)
-        
+
         coo = geo_json['geometry']['coordinates'][0]
         for c in coo:
             #if offsets[1] > 0:
             c[0] = int(c[0] + offsets[3])
             #if offsets[2] > 0:
             #c[1] = int(c[1] - offsets[4])
-        
+
         # convert the coordinates
         ret = json.dumps(geo_json)
-        
+
         return ret
-        
-                    
+
+
 #
 #
 #         from digipal.models import Annotation
@@ -1188,15 +1201,15 @@ Commands:
 #             break
 
     def img_compare(self, path_src, path_dst):
-        
+
         import json
         src = json.load(open(path_src, 'rb'))
         dst = json.load(open(path_dst, 'rb'))
-        
+
         new = []
         different = []
         same = []
-        
+
         # compare the two list of images
         for src_file in src['images']:
             src['images'][src_file]['offset'] = [False, 0, 0]
@@ -1219,7 +1232,7 @@ Commands:
 #         new = sorted(new)
 #         for f in new:
 #             print f
-        
+
         print '\nDifferent\n'
         different = sorted(different)
         for f in different:
@@ -1228,14 +1241,14 @@ Commands:
             print f
             print '', src['images'][f]['offset']
             #print '', src['images'][f]['offset']
-        
+
         # save the offsets
         print
-        
+
         print json.dumps(src)
-        
+
         print
-        
+
         print '\n'
         print '%d source images;  %d destination images' % (len(src['images']), len(dst['images']))
         print '%d new images; %d same images; %d different images' % (len(new), len(same), len(different))
@@ -1250,19 +1263,19 @@ Commands:
         ret = im1.find_image_offset(im2)
         print ret
         return ret
-        
+
     # ------------------------------------------------------------------------------
-    
+
     def get_image_offset(self, src, dst, f):
         '''
          Given one image and its cropped version, returns where the crop was made.
          We assume that at least one corner of the original image has not been cropped.
-        
+
          Input:
              src a dictionary as returned by get_info() on the source folder (uncropped)
              dst a dictionary as returned by get_info() on the dest. folder (cropped)
              f the relative path to the image, i.e. the key of the image in src and dst.
-         
+
          Returns a tuple [found, x, y]
          If found = True the dst image is a crop of the src image. Otherwise it is False and x, y can be ignored.
          x >= 0 then x pixels have been discarded from the top of the original image to make the crop.
@@ -1277,7 +1290,7 @@ Commands:
         uncropped_img = Image.open(uncropped_path)
 
         ret = [False, uncropped_img.size[0] - cropped_img.size[0], uncropped_img.size[1] - cropped_img.size[1]]
-        
+
         corner_diffs = [self.are_corner_identical(cropped_img, uncropped_img, *pos) for pos in [[0,0],[-1,0],[-1,-1],[0,-1]]]
         min_index = corner_diffs.index(min(corner_diffs))
         if min_index == 0:
@@ -1288,10 +1301,10 @@ Commands:
             ret = [True, ret[1], ret[2]]
         if min_index == 3:
             ret = [True, -ret[1], ret[2]]
-            
-        
+
+
         #print corner_diffs
-        
+
 #         if self.are_corner_identical(cropped_img, uncropped_img, 0, 0):
 #             ret = [True, -ret[1], -ret[2]]
 #         elif self.are_corner_identical(cropped_img, uncropped_img, -1, 0):
@@ -1310,29 +1323,29 @@ Commands:
 #             else:
 #                 print '\tDifferent widths %d <> %d' % (src['images'][f]['y'], dst['images'][f]['y'])
 #
-        
+
         return ret
 
     def are_corner_identical(self, cropped_img, uncropped_img, fromx=0, fromy=0):
         #ret = True
         ret = 0
-        
+
         imgs = [cropped_img, uncropped_img]
         imgps = [img.load() for img in imgs]
-        
+
         # scan direction for x and y dimensions
         dir = [fromx, fromy]
         if dir[0] == 0: dir[0] = 1
         if dir[1] == 0: dir[1] = 1
-        
+
         # initial position in each image
         pos = [[fromx, fromy], [fromx, fromy]]
-        
+
         # convert -1 pos (relative to right or bottom edge) to absolute position
         for i in (0, 1):
             for j in (0, 1):
                 if pos[i][j] == -1: pos[i][j] = imgs[i].size[j] + pos[i][j]
-                
+
         def is_color_identical(p0, p1):
             # not strictly true but it's a good approximation
             return sum(p0) == sum(p1)
@@ -1350,30 +1363,30 @@ Commands:
             pos[1][1] += dir[1]
 
         #print sum([avgs[0]]) / 3.0 / 100.0
-        
+
         return ret
-        
+
     def img_info(self, path):
-        
+
         ret = {'root': path}
-        
+
         ret['images'] = self.get_image_info(path)
-        
+
         import json
         print json.dumps(ret)
-        
+
         #img_dst = self.get_image_info(target_path)
-        
+
     def get_image_info(self, path):
         ret = {}
         from PIL import Image
-        
+
         files = [os.path.join(path, f) for f in os.listdir(path)]
         while files:
             file = files.pop(0)
-            
+
             file = os.path.join(path, file)
-            
+
             if os.path.isfile(file):
                 (file_base_name, extension) = os.path.splitext(file)
                 if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
@@ -1396,14 +1409,14 @@ Commands:
 
             elif isdir(file):
                 files.extend([os.path.join(file, f) for f in os.listdir(file)])
-        
+
         return ret
-    
+
     def rename_images(self, csv_path):
         print csv_path
         import csv
         import shutil
-        
+
         with open(csv_path, 'rb') as csvfile:
             #line = csv.reader(csvfile, delimiter=' ', quotechar='|')
             csvreader = csv.reader(csvfile)
@@ -1420,15 +1433,15 @@ Commands:
                 if matches:
                     dir_name = matches.group(1).lower()
                     file_name = matches.group(2).lower().strip()
-                    
+
                     file_name = re.sub(ur'^f\.\s*', '', file_name)
                     file_name = file_name.replace('*', 'star')
                     file_name = re.sub(ur'\s+', '_', file_name.strip())
-                    
+
                     dir_name = re.sub(ur'\b(\w)\s?\.\s?', ur'\1', dir_name)
                     dir_name = re.sub(ur'\s+', '_', dir_name.strip())
                     dir_name = re.sub(ur'\.', '', dir_name).strip()
-                    
+
                     # create the dir
                     dir_name = os.path.join(base_dir, dir_name)
                     #print dir_name, file_name
@@ -1440,8 +1453,8 @@ Commands:
                         print file_name
                 else:
                     print 'No match (%s)' % line[1]
-                
-    
+
+
     def test_natsort(self, options):
         #[ ItemPart.objects.filter(display_label__icontains='royal')]
         sms = ['A.897.abc.ixv', 'Hereford Cathedral Library O.IX.2', 'Hereford Cathedral Library O.VI.11']
@@ -1452,7 +1465,7 @@ Commands:
         #print natural_sort_key('Hereford Cathedral Library O.IX.2')
         #'Hereford Cathedral Library O.VI.11'
         return
-    
+
 #         l = list(ItemPart.objects.filter(display_label__icontains='royal').order_by('display_label'))
 #
 #         import re
@@ -1470,27 +1483,27 @@ Commands:
            #send_mail('Subject here', 'Here is the message.', 'gnoelp@yahoo.com', ['gnoelp@yahoo.com'], fail_silently=False)
         # Import smtplib for the actual sending function
         import smtplib
-        
+
         # Import the email modules we'll need
         from email.mime.text import MIMEText
-        
+
         # Open a plain text file for reading.  For this example, assume that
         # the text file contains only ASCII characters.
         # Create a text/plain message
         msg = MIMEText('my message')
-        
+
         # me == the sender's email address
         # you == the recipient's email address
         msg['Subject'] = 'Subject'
         msg['From'] = 'gnoelp@yahoo.com'
         msg['To'] = 'gnoelp@yahoo.com'
-        
+
         # Send the message via our own SMTP server, but don't include the
         # envelope header.
         s = smtplib.SMTP('localhost')
         s.sendmail(msg['From'], msg['To'].split(', '), msg.as_string())
         s.quit()
-    
+
     def test_locus(self, options):
         from digipal.models import Image
         i = Image()
@@ -1508,4 +1521,4 @@ Commands:
             print '%s => %s, %s' % (i.locus, i.folio_number, i.folio_side)
             if i.folio_number != l[1][0] or i.folio_side != l[1][1]:
                 print '\tERROR, expected %s, %s.' % (l[1][0], l[1][1])
-        
+

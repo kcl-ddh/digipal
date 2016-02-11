@@ -11,13 +11,14 @@ Visualisation for MoA
         [done] y
     [DONE] . add hover with info 1 [1]
         * . add label
-        . axis
         . snippet/text
     . fix the scaling and proportion of the canvas
         . use bigger marks for the data points
             . use range for dates
     [done] add hits for each cat and
     [done] add % bar for categories
+    [done] date projection of the hits
+    [done] click -> link to record
 
   Eclipse Quick Bookmarks   1.2.1.201404032042  to.etc.eclipse.editor.bookmarks.feature.feature.group   domui.org
   LESS  1.0.22  net.vtst.ow.eclipse.less.feature.feature.group  Vincent Simonet

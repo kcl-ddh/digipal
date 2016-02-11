@@ -677,7 +677,7 @@ class FacetedModel(object):
                 ret = []
                 for record in records:
                     ret.append(record)
-                    if str(record.id) in ids:
+                    if str(record.id) in ids and (search_phrase or field_queries):
                         record.found = True
             else:
                 records = records.in_bulk(ids)

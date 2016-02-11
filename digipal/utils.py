@@ -512,6 +512,18 @@ def get_range_from_date(str):
     if not str:
         return ret
 
+    #print str
+
+    # remove day
+    # eg. Saturday 5 August 1245 => 5 August 1245
+    str = re.sub(ur'(?iu)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', u'', str)
+
+    # remove day month
+    # eg. 11 November 1170 X 24 March 1201 => 1170 X 1201
+    str = re.sub(ur'(?iu)((\d{1,2})\s)?(january|february|march|april|may|june|july|august|september|october|november|december),?', u'', str)
+
+    #print repr(str)
+
     # expand s. => Saec.
     str = re.sub(ur'\bs\.\s', u'Saec. ', str)
 
@@ -529,6 +541,11 @@ def get_range_from_date(str):
 
     # 845 for 830 => 830
     str = re.sub(ur'.*\sfor\s', '', str).strip()
+
+    # 1234 x => after 1234
+    # x 1234 => before 1234
+    str = re.sub(ur'^\s*x\s*(\d{1,4})\s*$', ur'before \1', str).strip()
+    str = re.sub(ur'^(\d{1,4})\s*x\s*$', ur'after \1', str).strip()
 
     str = str.strip()
 
@@ -569,14 +586,14 @@ def get_range_from_date(str):
 
     # Ca 1075 [ 1070.0,  1080.0]
     # Ca 1086 [ 1080.0,  1090.0]
-    m = re.match(ur'(?iu)ca\.?\s?(\d+)$', str)
+    m = re.match(ur'(?iu)ca\.?\s*(\d+)$', str)
     if m:
         n = int(m.group(1))
         str = 'Ca %sx%s' % (n-5, n+5)
 
     # 1066x1087 => [1066, 1087]
     # Ca 820x840 => [820, 840]
-    m = re.match(ur'(?iu)(?:ca\s)?(\d+)\s?[-x\xd7]\s?(\d+)$', str)
+    m = re.match(ur'(?iu)(?:ca\s)?(\d+)\s*[-x\xd7]\s*(\d+)$', str)
     if m:
         ret = [int(m.group(1)), int(m.group(2))]
 

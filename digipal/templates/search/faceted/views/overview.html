@@ -1,6 +1,6 @@
 {% load html_escape %}
 
-<span id="info-div" style="position: fixed; z-index: 5000; top:0; left: 0; margin: 0.3em; padding: 0.2em; border: 1px solid orange; background-color: white; diplay: none;"></span>
+<span id="info-div" style="opacity: 0.9; position: fixed; z-index: 5000; top:0; left: 0; margin: 0.3em; padding: 0.2em; border: 1px solid orange; background-color: white; diplay: none;"></span>
 
 <div>
     {% comment %}
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div id="vis-div" style="height:400px; width: 100%; border: 1px solid grey; margin-bottom: 3em;">
+    <div id="vis-div" style="height:400px; width: 100%; border: 1px solid lightgrey; margin-bottom: 3em;">
     </div>
     <!-- <canvas id="overview-layer1" tabindex="0" class="canvas" id="hands-ol-canvas"
         {# height="{{ canvas.height }}" width="{{ canvas.width }}" #}
@@ -64,14 +64,14 @@ function redraw_vis() {
         $(this).closest('form').submit();
     });
 
+    var point_height = data.drawing.point_height;
     var last_selected_point = null;
     var label_margin = 2;
     var font_size = 12;
-    var extra_y = font_size+(label_margin*2);
+    var extra_y = font_size+(label_margin*2) + point_height * 2;
     var extra_x = 200;
     var colors = {'label': '#000080'}
     var point_index = {};
-    var point_height = 4;
 
     var $container = $('#vis-div');
     resize_container($container);
@@ -105,7 +105,7 @@ function redraw_vis() {
     //var dot_size = kx_min < ky_min ? kx_min : ky_min;
 
     function draw_pt(pt, highlight, add_to_index) {
-        ctx.fillStyle = pt[2] ? '#ff0000' : '#808080';
+        ctx.fillStyle = pt[2] ? '#a1514d' : '#A0A0A0';
         if (highlight) ctx.fillStyle = '#ffff00';
         var cs = coord(pt[0][0], pt[1]);
         var cs2 = coord(pt[0][1], pt[1]);
@@ -120,7 +120,12 @@ function redraw_vis() {
         }
 
         //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
-        ctx.fillRect(cs[0], cs[1], l, ky_min);
+        ctx.fillRect(cs[0], cs[1], (l > 1) ? l-1 : l, ky_min);
+
+        // projection at the bottom
+        if (pt[2] && ((cs[0] > 0) || (cs[0] + l < max_x))) {
+            ctx.fillRect(cs[0], dims[1] - ky_min - 2, l, ky_min);
+        }
     }
 
     function draw_xs(axis) {
@@ -143,7 +148,8 @@ function redraw_vis() {
         }, 0);
 
         axis.map(function(pt, pti) {
-            draw_label_y(pt, max_count);
+            var bottomy = ((pti + 1) < axis.length) ? axis[pti + 1][1] : cdims[1];
+            draw_label_y(pt, max_count, bottomy);
         });
         //draw_label(axis[0]);
     }
@@ -160,18 +166,21 @@ function redraw_vis() {
         write_text(pt[2], cs[0], dims[1] - extra_y);
     }
 
-    function draw_label_y(pt, max_count) {
+    function draw_label_y(pt, max_count, bottomy) {
         var cs = coord(cdims[0], pt[1]);
+        var bottom_cs = coord(cdims[0], bottomy)
 
         // global % bar
+        var bar_height = font_size + label_margin * 2;
+        var bar_height = bottom_cs[1] - cs[1];
         ctx.fillStyle = '#E0E0E0';
         var pc = (1.0 / max_count) * pt[3];
-        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, font_size + label_margin * 2);
+        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
 
         // local % bar
         ctx.fillStyle = '#FFB0B0';
         pc = (1.0 / max_count) * pt[4];
-        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, font_size + label_margin * 2);
+        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
 
         // small bar to indicate the pos of the label on the axis
         // TODO: bar size depends on label size
@@ -202,11 +211,22 @@ function redraw_vis() {
     draw_ys(ys);
     pts.map(function(pt, pti) {draw_pt(pt, false, true); });
 
-    $canvas.on('mousemove', function(e) {
+    $canvas.on('mousemove mouseleave', function(e) {
         // mouse is over canvas
         // we have a selected hand and a selected page
         var pos = get_mouse_pos(this, e);
         show_info_at(pos);
+    });
+
+    $canvas.on('click', function(e) {
+        // mouse is over canvas
+        // we have a selected hand and a selected page
+        var pos = get_mouse_pos(this, e);
+        point = get_point_from_pos(pos);
+        if (point) {
+            var win = window.open(point[4], '_blank');
+            win.focus();
+        }
     });
 
     function get_mouse_pos(canvas, evt) {
@@ -236,7 +256,6 @@ function redraw_vis() {
     function show_info_at(pos) {
         var message = '';
 
-        console.log(pos);
         if (last_selected_point) {
             draw_pt(last_selected_point);
         }
@@ -249,7 +268,7 @@ function redraw_vis() {
 
         var $info_div = $('#info-div');
         $info_div.toggle(!!message);
-        $info_div.html('<table class="table">'+message+'</table>');
+        $info_div.html('<table class="table table-compact" style="font-size: small;">'+message+'</table>');
     }
 
 }

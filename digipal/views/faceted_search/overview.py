@@ -3,7 +3,7 @@ def draw_overview(faceted_search, context, request):
 
     context['canvas'] = {'width': 500, 'height': 500}
 
-    drawing = {'points': [], 'x': [], 'y': []}
+    drawing = {'points': [], 'x': [], 'y': [], 'point_height': 7}
     '''
         points:
             [[x1, x2], y, id, label, group0]
@@ -96,7 +96,7 @@ def draw_overview(faceted_search, context, request):
 
             # add the points
             label = faceted_search.get_record_label_html(record, request);
-            point = [x, y, found, label]
+            point = [x, y, found, label, record.get_absolute_url()]
             stack_point(point, stack)
             points.append(point)
 
@@ -114,7 +114,7 @@ def draw_overview(faceted_search, context, request):
             point[0][1] -= mins[0]
 
     # remove holes in bands
-    bands = compact_bands(stack, points, bands)
+    bands = compact_bands(stack, drawing, bands)
 
     last_y = max([point[1] for point in points])
 
@@ -130,7 +130,7 @@ def draw_overview(faceted_search, context, request):
 
     context['canvas']['drawing'] = drawing
 
-def compact_bands(stack, points, bands, min_height=20):
+def compact_bands(stack, drawing, bands, min_height=14):
     bands = sorted([[label, y] for label, y in bands.iteritems()], key=lambda p: p[1])
     offset = 0
     new_y = 0
@@ -147,7 +147,7 @@ def compact_bands(stack, points, bands, min_height=20):
         # +2 is to leave some nice space between categories on the front end
         # +10 is to leav enough space to write the label for the category
         # Note that 10 is scaled so difficult found it by trial and errors
-        new_y = max(new_y + 2, band[1] + 5)
+        new_y = max(new_y + 2, band[1] + (min_height / drawing['point_height'] + 1))
 
     return bands
 

@@ -414,9 +414,10 @@ Commands:
         self._createTableFromCSV(file_path, options={'encoding': 'utf8'})
         self._insertTableFromCSV(file_path, options={'encoding': 'utf8'})
         
+    @transaction.atomic
     def import_poms(self):
         
-        raise Exception('Already imported? (comment this exception to confirm you want to import)')
+        ##raise Exception('Already imported? (comment this exception to confirm you want to import)')
         
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
@@ -528,7 +529,6 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         for row in utils.dictfetchall(pc):
 #             for k, v in row.iteritems():
 #                 print '%20s = %s' % (k, v)
-            
             docnum = ('document %s' % row['helper_hnumber']).lower().strip()
             # find counterpart in DigiPal
             for ip in sources_ips.get(docnum, []):
@@ -543,12 +543,29 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #    #print self.stats['sources'][source], source
         
         print self.print_warning_report()
+
+        if self.is_dry_run():
+            raise Exception('DRY_RUN ROLLBACK')
     
     def import_poms_into_ip(self, row, ip):
         docnum = ('document %s' % row['helper_hnumber']).lower().strip()
         
+        # GN: 12/02/2016: ONLY IMPORT THE DATA WHICH IS NOT IMPORTED YET
+        # Based on absence of other cat num than POMS
+        cat_nums = [cat_num.source.label for cat_num in ip.historical_item.catalogue_numbers.all()]
+        if len(cat_nums) == 1 and cat_nums[0] == 'POMS':
+            #print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
+            #print '\tPOMS cat num only %s' % cat_nums[0]
+            #print '\t %s' % ip.created
+            pass
+        else:
+            return
+#         if len(cat_nums) == 0:
+#             print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
+#             print '\tno cat num'
+        
         #if (row['helper_hnumber']).lower().strip() not in ['4/20/7']: return
-        print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
+        print 'POMS Source #%s = IP #%s (%s) (%s)' % (row['so_id'], ip.id, docnum, ip.created)
         
         #ref = row['source_tradid']
         #source = re.sub(',[^,]*$', '', ref).strip()
@@ -691,6 +708,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         _RRS_, iii
         _SEA_, i
         _St A. Lib._
+        _St A. Lib._
+        _St A. Lib._
+        _Stair Society Misc V_
+        _Scone Lib._
         '''
         
         # convert to a list sorted by length of name (longest first)

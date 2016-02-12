@@ -19,21 +19,23 @@ Digipal search tool.
 Commands:
     
   index
-                        Re-Index all the content
+    Re-Index all the content
 
-  info [--if=KEYWORD]
-                        Show general info and whoosh schemas
-                        
+  info [--if=KEYWORD] [--qs=QUERY_STRING] [--limit=LIMIT]
+    Show general info and whoosh schemas
+    If QUERY STRING is provided, runs a whoosh search
+    
   index_facets
-                        Re-Index the faceted content
+    Re-Index the faceted content
 
   dump
-                        Dump indices
+    Dump indices
 
   search --if=KEYWORD [--user=USERNAME] [--qs=QUERY_STRING]
+    Faceted Search
   
   clear_cache
-                        Clear the faceted search cache
+    Clear the faceted search cache
                         
 Options:
   
@@ -72,6 +74,11 @@ Options:
             dest='qs',
             default='',
             help='A query string'),
+        make_option('--limit',
+            action='store',
+            dest='limit',
+            default='',
+            help='number of hits to return'),
         make_option('--ctf',
             action='store',
             dest='content_type_filter',
@@ -212,6 +219,8 @@ Options:
             index = open_dir(path)
         except whoosh.index.EmptyIndexError:
             pass
+        
+        query = self.options['qs']
             
         if index:
             with index.searcher() as searcher:
@@ -222,68 +231,40 @@ Options:
                     field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
                     values = list(searcher.lexicon(item[0]))
                     field_info['unique_values'] = len(list(values))
-    
-    #                 if field_info['type'] == 'NUMERIC':
-    #                     print item
-    #                     for v in values:
-    #                         print v.decode('utf-8')
-    #                         break
-    #                     vals = [float(v) for v in values if v is not None and re.match(ur'^[\d.]+$', v)]
-    #
-    #                     vals = sorted(vals)
-    #                     if vals:
-    #                         field_info['range'] = (vals[0], vals[-1])
-                        
                     ret['fields'].append(field_info)
-#         except Exception, e:
-#             raise e
-#             pass
+                
+                if query:
+                    self.whoosh_search(query, searcher, index)
         
         return ret
-
-    def info_old(self, options):
-        from datetime import datetime
-        
-        print 'Indices:'
-        for name in self.get_requested_index_names():
-            print '\t%s' % name
-
-        print 'Content Types:'
-        for name in self.get_requested_content_types():
-            print '\t%s' % name.__class__.__name__
-        
-        for dir in os.listdir(settings.SEARCH_INDEX_PATH):
-            print 'Schemas - %s' % dir
-            dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, dir)
-
-            print '\t%s' % dir_abs
+    
+    def whoosh_search(self, query, searcher, index):
+        # run a whoosh search and display the hits
+        # query applies to all fields in the schema
+        # special query: ALL, ANY
+        #
+        limit = int(self.options['limit'] or '1000000')
+        if query in ['ALL', 'ANY']:
+            from whoosh.query.qcore import Every
+            q = Every()
+        else:
+            from whoosh.qparser import MultifieldParser, GtLtPlugin
+    
+            # TODO: only active columns
+            term_fields = [item[0] for item in index.schema.items()]
+            parser = MultifieldParser(term_fields, index.schema)
+            parser.add_plugin(GtLtPlugin)
             
-            if os.path.isdir(dir_abs):
-                # calculate the index size
-                size = 0.0
-                most_recent = 0
-                for file in os.listdir(dir_abs):
-                    try:
-                        file_abs = os.path.join(dir_abs, file)
-                        size += os.path.getsize(file_abs)
-                        most_recent = max(most_recent, os.path.getmtime(file_abs))
-                    except os.error:
-                        pass
-                size /= (1024.0 * 1024.0)
-                print '\t%.2f MB %s' % (size, datetime.fromtimestamp(most_recent))
+            q = parser.parse(u'%s' % query)
             
-                # print the schema
-                print
-                from whoosh.index import open_dir
-                try:
-                    index = open_dir(dir_abs)
-                    for item in index.schema.items():
-                        print '\t%s' % repr(item)
-                except:
-                    print 'Whoosh index not found'
+        if query in ['ANY']:
+            limit = 1
             
-            print
-            
+        res = searcher.search(q, limit=limit)
+        for hit in res:
+            for k, v in hit.iteritems():
+                print '\t%-20s %s' % (k, repr(v)[0:30])
+            print '\t'
 
     def test(self, options):
         print 'test'

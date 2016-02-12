@@ -27,7 +27,6 @@ FACETED_SEARCH = {
                     'label': 'Manuscript',
                     'model': 'digipal.models.ItemPart',
                     'fields': [
-
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
 
                                {'key': 'hi_has_images', 'label': 'Image Availablity', 'path': 'get_has_public_image_label', 'type': 'code', 'count': True},
@@ -43,6 +42,9 @@ FACETED_SEARCH = {
                                {'key': 'hi_image_count', 'label_col': 'Public Images', 'label': 'Public Images', 'path': 'get_non_private_image_count', 'type': 'int', 'viewable': True},
                                #{'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'hands_set.all.count', 'type': 'int', 'viewable': True},
                                #{'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
+                               
+                               # experiment for SJB - 12/2/16
+                               #{'key': 'allograph', 'label': 'Allograph', 'path': 'hands.all.graphs.all.idiograph.allograph.human_readable', 'viewable': False, 'type': 'title', 'count': True, 'search': True, 'multivalued': True},
                                ],
                     'select_related': ['current_item__repository__place'],
                     'prefetch_related': ['historical_items', 'historical_items__historical_item_format', 'historical_items__historical_item_type', 'images'],

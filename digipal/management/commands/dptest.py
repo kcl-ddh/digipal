@@ -353,9 +353,10 @@ Commands:
             exit()
 
         record = fmodel.get_model().objects.get(id=recordid)
-        afield = {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'}
-        afield['path'] = path
-        value = fmodel.get_record_field_whoosh(record, afield)
+        #afield = {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code'}
+        #afield['path'] = path
+        #value = fmodel.get_record_path(record, afield)
+        value = fmodel.get_record_path(record, path)
         print repr(value)
 
     def reconstruct_image(self, *args):

@@ -500,7 +500,8 @@ class FacetedModel(object):
 
     @classmethod
     def is_field_indexable(cls, field):
-        return field.get('search', False) or field.get('count', False) or field.get('filter', False)
+        ret = field.get('search', False) or field.get('count', False) or field.get('filter', False)
+        return ret
 
     def get_whoosh_sortedby(self, request):
         from whoosh import sorting
@@ -732,6 +733,7 @@ class FacetedModel(object):
         self.cache_hit = False
         if ret is None:
             utils.dplog('Cache MISS')
+            print q
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
 
             ret = {

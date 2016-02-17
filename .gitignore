@@ -10,3 +10,4 @@ digipal/settings.py
 digipal/search/
 .gitignore
 digipal/backups/*.sql
+digipal/repo_cfg.py

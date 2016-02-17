@@ -171,6 +171,7 @@ class FacetedModel(object):
                     value_rankings['None'] = u''
                     value_rankings[u''] = u''
                     for record in model.objects.all().order_by('id'):
+                    #for record in self.get_all_records(True).order_by('id'):
                         value = self.get_record_path(record, path)
                         #value = self.get_record_field_whoosh(record, field)
                         value = self.get_sortable_hash_value(value, field)

@@ -9,7 +9,7 @@ def get_config(varname='', default=''):
     return getattr(config, varname, default)
 
 class ExecutionError(Exception):
-    
+
     def __init__(self, title, message):
         self.title = title
         self.message = message
@@ -25,29 +25,29 @@ def show_help():
     print '''Usage: python %s [OPTIONS] COMMAND
 
  Commands:
-     
+
      pull
          Pulls the content from the hg and github repositories
          Fixes the file permissions.
          Runs South migrations.
          Validates the code.
          Touches wsgi.
-    
+
      diff
          Lists the difference across all repos
-         
+
      hgsub
          Update .hgsubstate
-         
+
      cs
          Collectstatic
-        
+
      st
          status
 
      g [...]
          from the git folder, executes git [...]
-         
+
 Options:
 
      -a --automatic
@@ -77,15 +77,15 @@ def get_hg_folder_name():
 
 def process_commands():
     original_dir = os.getcwd()
-    
+
     #parent_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
     #os.chdir(parent_dir)
-    
+
     try:
         process_commands_main_dir()
     finally:
         os.chdir(original_dir)
-        
+
 def process_commands_main_dir():
     parser = OptionParser()
     parser.add_option("-a", "--automatic",
@@ -100,9 +100,9 @@ def process_commands_main_dir():
     parser.add_option("--nohg",
                       action="store_true", dest="nohg", default=False,
                       help="skip hg pull")
-    
+
     (options, args) = parser.parse_args()
-    
+
     known_command = False
 
     if len(args):
@@ -115,30 +115,30 @@ def process_commands_main_dir():
                 break
         if not github_dir:
             github_dir = os.path.dirname(config.__file__)
-            
+
         username = get_terminal_username()
-        
+
         print 'GitHub folder: %s' % github_dir
-        
+
         if command == 'g':
             known_command = True
             argms = sys.argv[2:]
             print repr(argms)
             os.chdir(github_dir)
-            
+
             for pair in [['s', 'status'], ['p', 'pull'], ['l', 'log']]:
                 if argms[0] == pair[0]:
                     argms[0] = pair[1]
                     break
-            
+
             #os.system('git %s' % (' '.join(argms)))
             import subprocess
             argms.insert(0, 'git')
             subprocess.call(argms, shell=False)
-            
+
         if command == 'st':
             known_command = True
-            
+
             try:
                 out = {}
 
@@ -146,35 +146,35 @@ def process_commands_main_dir():
                 #print globals()
                 os.chdir(github_dir)
                 system('git status', '', False, '', out)
-                
+
                 branch = re.sub(ur'(?musi)^.*on branch (\S+).*$', ur'\1', out['output'])
                 has_local_change = (out['output'].find('modified:') > -1)
-                
+
                 status = branch
                 if has_local_change:
                     status += ' (%s)' % 'LOCAL CHANGES'
-                
+
                 print 'digipal: %s ' % (status,)
-                
+
                 if not config.SELF_CONTAINED:
                     os.chdir(original_dir)
-                    
+
                     # HG
                     system('hg sum', '', False, '', out)
-                    
+
                     branch = re.sub(ur'(?musi)^.*branch:\s(\S+).*$', ur'\1', out['output'])
                     parent = re.sub(ur'(?musi)^.*parent:\s(\S+).*$', ur'\1', out['output'])
                     modified = re.sub(ur'(?musi)^.*commit:\s(\S+)\smodified.*$', ur'\1', out['output'])
                     has_local_change = (len(modified) != len(out['output']))
-    
+
                     status = '%s, %s' % (branch, parent)
                     if has_local_change:
                         status += ' (%s)' % 'LOCAL CHANGES'
-                    
+
                     print 'Mercurial: %s ' % (status, )
             finally:
                 os.chdir(original_dir)
-        
+
         if command == 'diff':
             known_command = True
             try:
@@ -184,15 +184,15 @@ def process_commands_main_dir():
                 print '> Diff digipal'
                 os.chdir('digipal')
                 run_shell_command(['git', 'diff'])
-                
+
 #                 print '> Diff iipimage'
 #                 os.chdir(original_dir)
 #                 os.chdir('iipimage')
 #                 run_shell_command(['git', 'diff'])
-                
+
             finally:
                 os.chdir(original_dir)
-            
+
         if command == 'cs':
             known_command = True
             print '> Collect Static'
@@ -211,7 +211,7 @@ def process_commands_main_dir():
 #                         system('junction iipimage django-iipimage\iipimage')
 #                     else:
 #                         system('ln -s django-iipimage/iipimage iipimage')
-                
+
                 for path in ('iipimage', 'django-iipimage'):
                     if os.path.exists(path):
                         print '> remove %s' % path
@@ -228,7 +228,7 @@ def process_commands_main_dir():
                 #system('git status', r'(?i)on branch ('+get_allowed_branch_names_as_str()+')', True, 'Digipal should be on branch master. Try \'cd digipal_github; git checkout master\' to fix the issue.', git_status_info)
                 system('git status', output_data=git_status_info)
                 branch_name = re.sub(ur'(?musi)On branch\s+(\S+).*', ur'\1', git_status_info['output'])
-                
+
                 system('git pull', validation_git)
                 os.chdir(original_dir)
 
@@ -246,7 +246,7 @@ def process_commands_main_dir():
                         system('echo r | hg update', validation_hg)
                     else:
                         system('hg update', validation_hg)
-    
+
                 if os.name != 'nt':
                     with_sudo = ''
                     sudo = ''
@@ -254,9 +254,9 @@ def process_commands_main_dir():
                         with_sudo = '(with sudo)'
                         sudo = 'sudo '
                     print '> fix permissions %s' % with_sudo
-                    
+
                     # See MOA-197
-                    if username == 'www-data':
+                    if username == 'www-data' or username == config.PROJECT_GROUP:
                         # -rw xrw x---
                         system('%schmod 770 -R .' % sudo)
                         #system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
@@ -270,12 +270,12 @@ def process_commands_main_dir():
                         dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
                         # -rw xrw x---
                         system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
-                        
+
                     # we do this because the cron job to reindex the content
                     # recreate the dirs with owner = gnoel:ddh-research
                     system('%schmod o+r -R %s/search' % (sudo, project_folder))
                     system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
-                
+
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')
 
@@ -287,7 +287,7 @@ def process_commands_main_dir():
 
                 print '> Validate'
                 system('python manage.py validate', r'0 errors found', True)
-                                            
+
                 print '> Update build info'
                 system('python manage.py dpdb setbuild --branch "%s"' % branch_name)
 
@@ -335,7 +335,7 @@ def read_file(file_path):
 def system(command, validity_pattern='', pattern_must_be_found=False, error_message='', output_data=None):
     output = ''
     is_valid = True
-    
+
     val_file = 'repo.tmp'
     if os.name != 'nt':
         os.system('%s > %s 2>&1' % (command, val_file))
@@ -343,30 +343,30 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
         os.system('%s > %s 2>&1' % (command, val_file))
     output = read_file(val_file)
     if os.path.exists(val_file): os.unlink(val_file)
-    
+
     if validity_pattern:
         pattern_found = re.search(validity_pattern, output) is not None
         is_valid = (pattern_found == pattern_must_be_found)
-        
+
     if output_data is not None:
         output_data['output'] = output
-        
+
     if not is_valid:
         raise ExecutionError('%s - ERROR DURING EXECUTION of "%s"' % (error_message, command), output)
-    
+
     return is_valid
 
 def run_shell_command(command, sudo=False):
     ret = True
-    
+
     if sudo:
         command.insert(0, 'sudo')
-    
+
     try:
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        
+
         while True:
             out = process.stdout.read(1)
             if out == '' and process.poll() != None:
@@ -380,30 +380,30 @@ def run_shell_command(command, sudo=False):
         #os.remove(input_path)
         raise Exception('Error executing command: %s (%s)' % (e, command))
         ret = False
-    
+
     return ret
 
 def send_email(ato, amsg, asubject, afrom='noreply@digipal.eu'):
     import smtplib
-    
+
     # Import the email modules we'll need
     from email.mime.text import MIMEText
-    
+
     # Open a plain text file for reading.  For this example, assume that
     # the text file contains only ASCII characters.
     # Create a text/plain message
     msg = MIMEText(amsg)
-    
+
     # me == the sender's email address
     # you == the recipient's email address
     msg['Subject'] = asubject
     msg['From'] = afrom
     msg['To'] = ato
-    
+
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP('localhost')
     s.sendmail(msg['From'], msg['To'].split(', '), msg.as_string())
     s.quit()
-    
+
 process_commands()

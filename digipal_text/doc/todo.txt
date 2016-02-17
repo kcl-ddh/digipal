@@ -1,3 +1,7 @@
+Text conversion:
+    Converted ƥ -> p in expansions
+    Removed space after hypenation
+
 Visualisation for MoA
     [done] add a new view to the faceted search result page
     [done] show clauses with Y=clause type and X=date range

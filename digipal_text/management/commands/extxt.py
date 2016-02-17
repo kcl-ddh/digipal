@@ -1081,6 +1081,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)&gt;', ur'<\1>', content)
 
+#         print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
+#         exit()
+
         # convert &amp; to #AMP#
         content = content.replace('&amp;', '#AMP#')
 
@@ -1205,6 +1208,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         content = re_sub_fct(content, ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
 
+        # (supplied) expansions without abbreviation
         # Bal〈dwini〉 =>
         content = regex.sub(ur'(?musi)(〈[^〈〉]{1,30}〉)', ur'<span data-dpt="exp">\1</span>', content)
 
@@ -1217,8 +1221,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
 
         # convert #AMP# to &amp;
-        content = content.replace('#AMP#', '&amp;')
+        content = content.replace(ur'#AMP#', ur'&amp;')
 
+        # & => et
+        content = content.replace(ur'&amp;', ur'<i>et</i>')
+
+        #
         content = regex.sub(ur'</p>', u'</p>\n', content)
 
         # import

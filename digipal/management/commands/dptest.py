@@ -32,7 +32,10 @@ Commands:
     max_date_range FIELD
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
-
+        
+    date_prob
+        report all HI dates with a very wide range (unrecognised, or open ended range)
+        
     cs
         TODO
         collect static
@@ -116,6 +119,10 @@ Commands:
         if command =='record_path':
             known_command = True
             self.record_path(*args[1:])
+
+        if command == 'date_prob':
+            known_command = True
+            self.date_prob(*args[1:])
 
         if command =='multivalued':
             known_command = True
@@ -263,6 +270,29 @@ Commands:
         if command == 'adhoc':
             known_command = True
             self.adhoc_test(*args[1:])
+
+    def date_prob(self, *args):
+        from digipal.models import HistoricalItem
+        from digipal.utils import MAX_DATE_RANGE, get_range_from_date, write_rows_to_csv
+        
+        file_path = 'date_prob.csv'
+        
+        rows = []
+        
+        for hi in HistoricalItem.objects.all():
+            date = hi.date
+            rg = get_range_from_date(date)
+            if rg[0] in MAX_DATE_RANGE or rg[1] in MAX_DATE_RANGE:
+                rows.append({
+                            u'Document': u'%s' % hi.display_label,
+                            u'Date': u'%s' % hi.date, 
+                            u'Record ID (MOA HI)': u'%s' % hi.id,
+                            u'Evidence': u'%s' % u'| '.join([u'%s' % de.evidence for de in hi.date_evidences.all()]), 
+                            })
+                #print date, hi.id, hi.display_label
+        
+        write_rows_to_csv(file_path, rows, encoding='utf-8')
+        print 'Written %s' % file_path
 
     def cpip(self, *args):
         from digipal.utils import natural_sort_key

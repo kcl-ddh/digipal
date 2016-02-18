@@ -70,8 +70,8 @@ def div(value, arg):
         return integerVal + 1
     else:
         return integerVal
-        
-        
+
+
 @register.filter()
 def multiply(value, arg):
     "Divides the value by the arg and rounds up if needed"
@@ -83,20 +83,20 @@ def multiply(value, arg):
 def richfield(val):
     "Render a HTML field for the front end. Make it safe, make sure it is surrounded by <p>."
     import re
-    
+
     if val is None: val = u''
-    
+
     # trim the value from empty spaces and lines
     ret = re.sub(ur'(?usi)^\s+', '', val)
     ret = re.sub(ur'(?usi)\s+$', '', ret)
-    
+
     if ret:
         is_xml = (val[0] == u'<')
         if not is_xml:
             # this is a plain text field
             # convert to HTML by surrounding lines with <p>
             ret = u'<p>%s</p>' % (u'</p><p>'.join(re.split(ur'[\r\n]+', ret)),)
-    
+
     return mark_safe(ret)
 
 
@@ -113,7 +113,7 @@ def hand_description(description, request=None):
 def tei(value):
     "Convert TEI field into XML"
     import re
-    
+
     # tei text transform
     value = re.sub(ur'(<title level="a">)(.*?)(</title>)', ur"'\1\2\3'", value)
 
@@ -131,11 +131,11 @@ def tei(value):
             i += 2
         element_html += '">'
         value = value.replace(element[0], element_html)
-        
+
     value = re.sub(ur'<\s*/[^>]*>', ur'</span>', value)
     value = re.sub(ur'\r?\n', ur'<br/>', value)
     value = mark_safe(value)
-    
+
     return value
 
 @register.assignment_tag(takes_context=True)
@@ -143,10 +143,10 @@ def load_hands(context, var_name):
     '''
         Usage:
             {% load_hands hand_ids as hands %}
-        
+
         Loads all the Hand (and preload child graphs and annotations) into the hands template variable.
     '''
-    
+
     hands_ids = context[var_name]
 
     from digipal.models import Graph, Hand
@@ -156,19 +156,19 @@ def load_hands(context, var_name):
     graph_ids_current_page = []
     for ids in hands_ids:
         graph_ids_current_page.extend(ids[1:])
-    
+
     # get all the graphs on this page
     graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image',
         'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by(
         #'hand__scribe__name', 'hand__id', 'id')
         # JIRA 539: sort the graphs alphabetically
         'hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
-    
+
     hands = Hand.objects.in_bulk([g.hand_id for g in graphs])
 #     .select_related('scribe',
 #         'item_part', 'item_part__current_item', 'item_part__current_item__repository',
 #         'assigned_place', 'assigned_date').prefetch_related('item_part__historical_items', 'item_part__historical_items__catalogue_numbers')
-    
+
     # now organise the output by hand and attach their graphs to it
     # this assumes that graphs are sorted by hand id
     ret = []
@@ -179,7 +179,7 @@ def load_hands(context, var_name):
             ret.append(hand)
             hand.graphs_template = []
         hand.graphs_template.append(graph)
-        
+
     return ret
 
 from digipal.utils import dplog
@@ -188,7 +188,7 @@ from digipal.utils import dplog
 def chrono(label):
     '''
         Used to measure how much time is spent rendering parts of any template
-         
+
         Usage:
             {% chrono:"before listing" %}
         In debug mode it will print this on the std output:
@@ -198,7 +198,7 @@ def chrono(label):
         t = datetime.now()
         d = t - chrono.last_time
         chrono.last_time = t
-        
+
         if label.endswith(':'):
             chrono.last_times[label[:-1]] = t
         slice_duration = t - t
@@ -206,10 +206,10 @@ def chrono(label):
             k = label[1:]
             if k in chrono.last_times:
                 slice_duration = t - chrono.last_times[k]
-        
+
         message = '%8.4f %8.4f %s' % (d.total_seconds(), slice_duration.total_seconds(), label)
         dplog(message)
-        
+
     return''
 chrono.last_time = datetime.now()
 chrono.last_times = {}

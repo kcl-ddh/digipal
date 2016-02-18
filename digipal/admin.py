@@ -686,7 +686,7 @@ class ImageAdmin(DigiPalModelAdmin):
 
     exclude = ['image', 'caption']
     list_display = ['id', 'display_label', 'locus', 'get_thumbnail',
-            'get_status_label', 'get_annotation_status_field', 'get_annotations_count', 'get_media_permission_field', 'created', 'modified',
+            'get_status_label', 'get_annotations_count', 'get_dims', 'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
             'keywords_string', 'get_iipimage_field']
     list_display_links = ['id', 'display_label',
             'get_annotation_status_field', 'get_media_permission_field', 'created', 'modified',
@@ -733,10 +733,15 @@ class ImageAdmin(DigiPalModelAdmin):
 
         return SortedChangeList
 
+    def get_dims(self, image):
+        return ur'%s x %s' % (image.width, image.height)
+    get_dims.short_description = 'Dims'
+    get_dims.admin_order_field = 'width'
+
     def get_annotations_count(self, image):
         return image.annotation_set.count()
         #return ''
-    get_annotations_count.short_description = '#ann.'
+    get_annotations_count.short_description = '#A'
 
     def get_thumbnail(self, image):
         from templatetags.html_escape import iip_img_a
@@ -762,18 +767,18 @@ class ImageAdmin(DigiPalModelAdmin):
 
     def get_status_label(self, obj):
         hand_count = obj.hands.count()
-        ret = '%d hands' % hand_count
+        ret = '%d' % hand_count
         if not hand_count:
             ret = '<span style="color:red">%s</span>' % ret
         if obj.item_part is None:
-            ret = '<span style="color:red">Item Part Missing</span></br>%s' % ret
+            ret = '<span style="color:red">No IP</span></br>%s' % ret
         return ret
-    get_status_label.short_description = 'Hands'
+    get_status_label.short_description = '#H'
     get_status_label.allow_tags = True
 
     def get_media_permission_field(self, obj):
         return obj.media_permission
-    get_media_permission_field.short_description = 'Permission'
+    get_media_permission_field.short_description = 'Perms'
 
     def get_annotation_status_field(self, obj):
         return obj.annotation_status

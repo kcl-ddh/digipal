@@ -1,3 +1,9 @@
+Visualisation
+    . texts
+    . graphs
+        .
+
+
 DONE 1. image size too big on moa (all)
 2. 500 error (why? try the new iipsrv)
 3. pink images
@@ -11,7 +17,7 @@ New version doc:
         dots
     q could become q[u]
     point 8: m[od]o0
-    
+
 Point 5
 
 
@@ -21,7 +27,7 @@ Cannot see dorse image on the text editor:
     2. the return location is wrong, it should be updated when we get the first image with correct permissions
         FIXED
     3. the
-    
+
 
 BANNER
     [DONE] less tall
@@ -46,8 +52,8 @@ DEV
     caching
         bootstrap, dpmenu and dpsearch are returned in full
         varies, sometimes base
-     
-    
+
+
 LESS/BS
     BSVAR
         DPVAR

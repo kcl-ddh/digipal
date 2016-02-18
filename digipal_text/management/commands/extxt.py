@@ -1081,8 +1081,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)&gt;', ur'<\1>', content)
 
-#         print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
-#         exit()
+        #print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
+        #print u'\n'.join(list(set(regex.findall(ur'(?musi)(?:<st>)[^<]+', content))))
+        #exit()
 
         # convert &amp; to #AMP#
         content = content.replace('&amp;', '#AMP#')
@@ -1100,9 +1101,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
         # <st>p</st> => ṕ
-        content = regex.sub(ur'(?musi)<st>\s*p\s*</st>', ur'ṕ', content)
+        content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
         # <st>q</st> => ƣ
-        content = regex.sub(ur'(?musi)<st>\s*q\s*</st>', ur'ƣ', content)
+        content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
+        content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
+        # <st>L</st> => Ł
+        content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
+        content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
 
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
@@ -1174,6 +1179,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƣ', ur'q', exp)
+            exp = regex.sub(ur'Ł', ur'L', exp)
 
 
             # Remove abbreviation signs

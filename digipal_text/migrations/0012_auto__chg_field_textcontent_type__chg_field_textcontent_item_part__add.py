@@ -19,9 +19,9 @@ class Migration(SchemaMigration):
 
 
         # Changing field 'TextContentXMLCopy.content'
-        db.alter_column(u'digipal_text_textcontentxmlcopy', 'content', self.gf('django.db.models.fields.BinaryField')(default=''))
+        #db.alter_column(u'digipal_text_textcontentxmlcopy', 'content', self.gf('django.db.models.fields.BinaryField')(default=''))
         # Adding unique constraint on 'TextContentXMLCopy', fields ['content']
-        db.create_unique(u'digipal_text_textcontentxmlcopy', ['content'])
+        #db.create_unique(u'digipal_text_textcontentxmlcopy', ['content'])
 
 
     def backwards(self, orm):
@@ -39,7 +39,7 @@ class Migration(SchemaMigration):
         db.alter_column(u'digipal_text_textcontent', 'item_part_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['digipal.ItemPart']))
 
         # Changing field 'TextContentXMLCopy.content'
-        db.alter_column(u'digipal_text_textcontentxmlcopy', 'content', self.gf('django.db.models.fields.BinaryField')(null=True))
+        #db.alter_column(u'digipal_text_textcontentxmlcopy', 'content', self.gf('django.db.models.fields.BinaryField')(null=True))
 
     models = {
         u'auth.group': {

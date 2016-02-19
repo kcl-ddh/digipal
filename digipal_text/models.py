@@ -134,7 +134,7 @@ class TextContentXMLCopy(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
     class Meta:
-        unique_together = ('content',)
+        unique_together = ('source', 'ahash',)
 
     @classmethod
     def create_from_content_xml(cls, content_xml):

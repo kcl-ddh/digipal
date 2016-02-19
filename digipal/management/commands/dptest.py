@@ -32,10 +32,10 @@ Commands:
     max_date_range FIELD
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
-        
+
     date_prob
         report all HI dates with a very wide range (unrecognised, or open ended range)
-        
+
     cs
         TODO
         collect static
@@ -231,6 +231,10 @@ Commands:
             known_command = True
             self.reconstruct_image(*args[1:])
 
+        if command == 'race':
+            known_command = True
+            self.race(*args[1:])
+
         if command == 'img_size':
             known_command = True
             from digipal.models import Image
@@ -271,26 +275,61 @@ Commands:
             known_command = True
             self.adhoc_test(*args[1:])
 
+
+    def race(self, *args):
+        '''
+        test race condition on the text viewer opening new texts
+        The view creates new TextContent and TextCOntentXML records if they don't aleady exist
+        But if the text viewer calls this twice view in parallel (e.g. 2 panels open on Transcription)
+        then a race condition can lead to the creation of a second CT or CTX records.
+        '''
+
+        # 1. find a IP without any texts
+        from digipal.models import ItemPart
+        from digipal_text.models import TextContent, TextContentType
+        from django.contrib.auth import get_user_model
+
+        tct = TextContentType.objects.first()
+
+        ip = ItemPart.objects.exclude(id__in=TextContent.objects.all().values_list('item_part_id', flat=True)).first()
+
+        print 'IP without text: %s' % ip
+
+        if not ip: return
+
+        if 1:
+            TextContent(item_part=ip, type=tct).save()
+            TextContent(item_part=ip, type=tct).save()
+
+        # 2. simulate a call to the view that returns content for a text panel
+        from digipal_text.views.viewer import text_api_view_text
+
+        res = text_api_view_text(None, ip.id, tct.slug, 'default', '', tct, user=True)
+        print repr(res)
+
+        # delete all the TC & TCX records for this IP
+        TextContent.objects.filter(item_part=ip).delete()
+
     def date_prob(self, *args):
         from digipal.models import HistoricalItem
         from digipal.utils import MAX_DATE_RANGE, get_range_from_date, write_rows_to_csv
-        
+
         file_path = 'date_prob.csv'
-        
+
         rows = []
-        
+
         for hi in HistoricalItem.objects.all():
             date = hi.date
             rg = get_range_from_date(date)
             if rg[0] in MAX_DATE_RANGE or rg[1] in MAX_DATE_RANGE:
                 rows.append({
                             u'Document': u'%s' % hi.display_label,
-                            u'Date': u'%s' % hi.date, 
+                            u'Date': u'%s' % hi.date,
                             u'Record ID (MOA HI)': u'%s' % hi.id,
-                            u'Evidence': u'%s' % u'| '.join([u'%s' % de.evidence for de in hi.date_evidences.all()]), 
+                            u'Evidence': u'%s' % u'| '.join([u'%s' % de.evidence for de in hi.date_evidences.all()]),
                             })
                 #print date, hi.id, hi.display_label
-        
+
         write_rows_to_csv(file_path, rows, encoding='utf-8')
         print 'Written %s' % file_path
 

@@ -154,11 +154,14 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     item_part = ItemPart.objects.filter(id=item_partid).first()
     if item_part:
         #print 'item_part %s' % item_part
-        # get or create the TextContent
-        with transaction.atomic():
-            text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
-            # get or create the TextContentXML
-            text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
+        try:
+            with transaction.atomic():
+                # get or create the TextContent
+                text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
+                # get or create the TextContentXML
+                text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
+        except Exception, e:
+            return set_message(ret, 'Could not find or create %s (%s)' % (content_type.capitalize(), e))
 
     if not text_content_xml:
         return set_message(ret, '%s not found' % content_type.capitalize())
@@ -263,6 +266,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             ret['content'] = record_content[extent[0]:extent[1]]
             if new_fragment is None:
                 ret['message'] = 'Content loaded'
+                if created:
+                    ret['message'] += ' (new empty text)'
 
     # we return the location of the returned fragment
     # this may not be the same as the requested location

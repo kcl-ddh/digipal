@@ -8,9 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'TextContentXMLCopy', fields ['content']
-        db.delete_unique(u'digipal_text_textcontentxmlcopy', ['content'])
-
         # Adding unique constraint on 'TextContentXMLCopy', fields ['source', 'ahash']
         db.create_unique(u'digipal_text_textcontentxmlcopy', ['source_id', 'ahash'])
 
@@ -18,9 +15,6 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Removing unique constraint on 'TextContentXMLCopy', fields ['source', 'ahash']
         db.delete_unique(u'digipal_text_textcontentxmlcopy', ['source_id', 'ahash'])
-
-        # Adding unique constraint on 'TextContentXMLCopy', fields ['content']
-        db.create_unique(u'digipal_text_textcontentxmlcopy', ['content'])
 
 
     models = {

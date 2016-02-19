@@ -161,7 +161,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
                 # get or create the TextContentXML
                 text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
         except Exception, e:
-            return set_message(ret, 'Could not find or create %s (%s)' % (content_type.capitalize(), e))
+            return set_message(ret, '%s, server error (%s)' % (content_type.capitalize(), e))
 
     if not text_content_xml:
         return set_message(ret, '%s not found' % content_type.capitalize())

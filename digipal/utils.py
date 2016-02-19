@@ -1147,3 +1147,40 @@ def get_sortable_hash_value(obj):
     if isinstance(obj, list) and obj:
         ret = unicode(min(obj))
     return ret
+
+
+import threading
+
+class DPThread(threading.Thread):
+    def __init__(self, fct, args, kwargs):
+        threading.Thread.__init__(self)
+        self.fct = fct
+        self.args = args
+        self.res = None
+        self.kwargs = kwargs
+
+    def run(self):
+        self.res = self.fct(*self.args, **self.kwargs)
+
+def run_in_thread(fct, args, kwargs):
+    '''Runs one function is a separate thread'''
+    thread = DPThread(fct, args, kwargs)
+    thread.start()
+    return thread
+
+def run_in_thread_advanced(fct, args, kwargs, athreads=1, wait=False, print_results=False):
+    '''Runs one function in multiple separate threads'''
+    threads = []
+    for i in range(0, athreads):
+        threads.append(run_in_thread(fct, args, kwargs))
+
+    if wait:
+        from time import sleep
+        while any([thread.is_alive() for thread in threads]):
+            sleep(1)
+
+    if print_results:
+        for thread in threads:
+            print repr(thread.res)
+
+    return threads

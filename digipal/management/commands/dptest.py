@@ -12,6 +12,7 @@ from digipal.models import *
 from digipal.utils import natural_sort_key
 from digipal.templatetags.hand_filters import chrono
 from django.template.defaultfilters import slugify
+from time import sleep
 
 class Command(BaseCommand):
     help = """
@@ -297,15 +298,17 @@ Commands:
 
         if not ip: return
 
-        if 1:
+        if 0:
             TextContent(item_part=ip, type=tct).save()
             TextContent(item_part=ip, type=tct).save()
 
         # 2. simulate a call to the view that returns content for a text panel
         from digipal_text.views.viewer import text_api_view_text
+        from digipal import utils
 
-        res = text_api_view_text(None, ip.id, tct.slug, 'default', '', tct, user=True)
-        print repr(res)
+        args = (None, ip.id, tct.slug, 'default', '', tct)
+        kwargs = {'user': True}
+        utils.run_in_thread_advanced(text_api_view_text, args, kwargs, athreads=10, wait=True, print_results=True)
 
         # delete all the TC & TCX records for this IP
         TextContent.objects.filter(item_part=ip).delete()

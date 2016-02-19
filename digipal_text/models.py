@@ -94,12 +94,15 @@ class TextContentType(digipal.models.NameModel):
 
 class TextContent(models.Model):
     languages = models.ManyToManyField('digipal.Language', blank=True, null=True, related_name='text_contents')
-    type = models.ForeignKey('TextContentType', blank=True, null=True, related_name='text_contents')
-    item_part = models.ForeignKey('digipal.ItemPart', blank=True, null=True, related_name='text_contents')
+    type = models.ForeignKey('TextContentType', blank=False, null=False, related_name='text_contents')
+    item_part = models.ForeignKey('digipal.ItemPart', blank=False, null=False, related_name='text_contents')
     text = models.ForeignKey('digipal.Text', blank=True, null=True, related_name='text_contents')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ('item_part', 'type')
 
     def get_string_from_languages(self):
         return u', '.join([l.name for l in self.languages.all()])
@@ -125,10 +128,13 @@ class TextContentXMLStatus(digipal.models.NameModel):
 class TextContentXMLCopy(models.Model):
     source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
     ahash = models.CharField(max_length=100, blank=True, null=True)
-    content = models.BinaryField(blank=True, null=True)
+    content = models.BinaryField(blank=False, null=False)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ('content',)
 
     @classmethod
     def create_from_content_xml(cls, content_xml):

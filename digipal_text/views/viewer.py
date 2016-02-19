@@ -140,6 +140,43 @@ def set_message(ret, message, status='error'):
     ret['status'] = status
     return ret
 
+def get_or_create_text_content_records(item_part, content_type_record):
+    '''Returns a TextContentXML record for the given IP and Text Content Type
+        Create the records (TextContent, TextContentXML) if needed
+        Implements optimistic transaction with multiple attempts
+        TODO: review is this is still needed. SInce I have set unique_together
+        on the TC and TCX tables, the race condition doesn't appear!
+    '''
+    ret = None
+    created = False
+    error = {}
+    attempts = 3
+    #from django.core.exceptions import MultipleObjectsReturned
+    from django.db import IntegrityError
+    from threading import current_thread
+    for i in range(0, attempts):
+        try:
+            with transaction.atomic():
+                # get or create the TextContent
+                text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
+                # get or create the TextContentXML
+                ret, created = TextContentXML.objects.get_or_create(text_content=text_content)
+        except IntegrityError, e:
+            # race condition
+            from time import sleep, time
+            import random
+            #print time(), current_thread().getName(), i, '%s' % e
+            sleep(random.random())
+            continue
+        except Exception, e:
+            set_message(error, '%s, server error (%s)' % (content_type_record.slug.capitalize(), e))
+        break
+
+    if not error and not ret:
+        set_message(error, '%s, server error (race conditions)' % (content_type_record.slug.capitalize(),))
+
+    return ret, created, error
+
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
     ret = {}
 
@@ -154,14 +191,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     item_part = ItemPart.objects.filter(id=item_partid).first()
     if item_part:
         #print 'item_part %s' % item_part
-        try:
-            with transaction.atomic():
-                # get or create the TextContent
-                text_content, created = TextContent.objects.get_or_create(item_part=item_part, type=content_type_record)
-                # get or create the TextContentXML
-                text_content_xml, created = TextContentXML.objects.get_or_create(text_content=text_content)
-        except Exception, e:
-            return set_message(ret, '%s, server error (%s)' % (content_type.capitalize(), e))
+        text_content_xml, created, error = get_or_create_text_content_records(item_part, content_type_record)
+        if error:
+            return error
 
     if not text_content_xml:
         return set_message(ret, '%s not found' % content_type.capitalize())

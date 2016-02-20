@@ -1049,6 +1049,12 @@ def populate_index(ct, index):
                 writer.commit(optimize=True)
             # we have to recreate after commit because commit unlock index
             writer = index.writer()
+            
+#             for field in writer.schema:
+#                 print field
+#                 ana = getattr(field.format, 'analyzer', None)
+#                 print ana
+#             exit()
         if i == 0:
             chrono(':iterator')
             chrono('index:')

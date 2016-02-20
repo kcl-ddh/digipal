@@ -3,6 +3,8 @@
     Patches should always be avoided if possible because they are likely to break when the
     patched app gets upgraded. However we don't have direct control over them and it's
     sometimes the most efficient way to quickly include missing features.
+    
+    Patches are applied at the end of model.py (b/c/ this module is always loaded)
 '''
 
 import re

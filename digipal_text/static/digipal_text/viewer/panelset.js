@@ -12,7 +12,7 @@
         this.layout = null;
         this.$messageBox = null;
         this.isReady = false;
-        
+
         this.registerPanel = function(panel) {
             this.panels.push(panel);
             panel.panelSet = this;
@@ -21,7 +21,7 @@
                 panel.componentIsReady('panelset');
             }
         };
-        
+
         this.unRegisterPanel = function(panel) {
             for (var i in this.panels) {
                 if (this.panels[i] == panel) {
@@ -29,32 +29,32 @@
                 }
             }
         };
-        
+
         this.onPanelContentLoaded = function(panel, locationType, location) {
             for (var i in this.panels) {
                 this.panels[i].syncLocationWith(panel, locationType, location, panel.getSubLocation());
             }
         };
-        
+
         this.syncWithPanel = function(panel) {
             this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
         };
-        
+
         this.syncPanel = function(panel) {
             // sync the given panel (with others)
             for (var i in this.panels) {
                 panel.syncLocationWith(this.panels[i], this.panels[i].getLocationType(), this.panels[i].getLocation(), this.panels[i].getSubLocation());
             }
         };
-        
+
         this.getBaseAddress = function() {
             return '/digipal/manuscripts/' + this.itemPartid + '/texts/';
         };
-        
+
         this.onPanelStateChanged = function(panel) {
             var state = panel.getState();
             var key = panel.getPanelKey();
-            
+
             // update the URL
             var url = window.location.href;
             // add qs if none yet
@@ -72,9 +72,9 @@
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
             window.history.replaceState('', window.title, url);
-            
+
         };
-        
+
         this.setStateFromUrl = function(defaultState) {
             // we merge the defaultState with the state from the Query String
             var args = $.extend(this.getQSArgs(defaultState), this.getQSArgs(window.location.href, true));
@@ -83,7 +83,7 @@
             }, '?');
             this.setState(state);
         };
-        
+
         this.getQSArgs = function(queryString, decode) {
             // in: '?k1=v1&k2=v2'
             // out: {'k1': 'v1', 'k2': 'v2'}
@@ -113,7 +113,7 @@
                 });
             }
         };
-        
+
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -136,7 +136,7 @@
                 onresize: resize
             });
         };
-        
+
         // Change the relative size of the panel
         // panelLocation: west|north|south|east
         // size: a ratio. e.g. 1/2.0 for half the full length
@@ -165,14 +165,14 @@
             var height = window.dputils.get_elastic_height(this.$root);
 
             this.$panelset.css('height', height - this.$messageBox.outerHeight(true));
-            
+
             if (refreshLayout && this.layout) {
                 this.layout.resizeAll();
             }
-            
+
             this._resizePanels();
         };
-        
+
         this._resizePanels = function() {
             for (var i in this.panels) {
                 this.panels[i].onResize();
@@ -180,10 +180,10 @@
         };
 
         this.initEvents = function() {
-            
+
             this._resize(true);
             var me = this;
-            
+
             $(window).resize(function() {
                 me._resize();
                 });
@@ -191,7 +191,7 @@
                 me._resize(true);
                 });
         };
-        
+
         this.ready = function() {
             this.initEvents();
             for (var i in this.panels) {
@@ -199,9 +199,9 @@
             }
             this.isReady = true;
         };
-        
+
     };
-    
+
     /////////////////////////////////////////////////////////////////////////
     // Panel: an abstract Panel managed by the panelset
     // This is the base class for all specific panel types (e.g. text, image)
@@ -218,21 +218,21 @@
     /////////////////////////////////////////////////////////////////////////
     var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
         this.$root = $root;
-        
+
         this.loadOptions = options || {};
-        
+
         // we set a ref from the root element to its panel
         // so we can clean up things properly when the panel is replaced
         if ($root[0].textViewerPanel) {
             $root[0].textViewerPanel.onDestroy();
         }
         this.$root[0].textViewerPanel = this;
-        
+
         this.panelType = panelType;
         this.contentType = contentType;
-        
+
         this.panelSet = null;
-        
+
         // loaded is the location of the last successfully loaded text fragment
         // content cannot be saved unless it has been loaded properly
         // This is to avoid a loading error from erasing conent.
@@ -248,42 +248,42 @@
         $panelHtml.addClass('ct-'+contentType);
         $panelHtml.addClass('pt-'+panelType.toLowerCase());
         this.$root.html($panelHtml);
-        
+
         // We create bindings for all the html controls on the panel
-        
+
         this.$contentTypes = this.$root.find('.dropdown-content-type');
-        
+
         this.$locationTypes = this.$root.find('.dropdown-location-type');
         this.$locationSelect = this.$root.find('select[name=location]');
         this.$linker = this.$root.find('.linker');
         this.$linkerImage = this.$linker.find('.linker-image');
         this.$linkerText = this.$linker.find('select[name=linker-text]');
-        
+
         var me = this;
-        
+
         this.canAddLocation = function() {
             return this.getEditingMode();
         };
-        
+
         this.$root.find('select').each(function() {
             $(this).chosen({
                 disable_search: $(this).hasClass('no-search'),
                 no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
             });
         });
-        
+
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
-        
+
         this.$statusSelect = this.$root.find('select[name=status]');
         this.$presentationOptions = this.$root.find('.presentation-options');
-        
+
         this.$toggleEdit = this.$root.find('.toggle-edit');
-        
+
         this.$downloadButton = this.$root.find('.action-download');
-        
+
         // METHODS
-        
+
         this.callApi = function(title, url, onSuccess, requestData, synced) {
             var me = this;
             var onComplete = function(jqXHR, textStatus) {
@@ -306,7 +306,7 @@
             var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
             return ret;
         };
-        
+
         this.onDestroy = function() {
             // destructor, the place to remove any resource and detach event handlers
             this.panelSet.unRegisterPanel(this);
@@ -314,15 +314,15 @@
             this.setNotDirty();
             this.loadedAddress = null;
         };
-        
+
         this.setMessage = function(message, status) {
             // status = success|info|warning|error
             this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
             this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
         };
-                
+
         this.unreadyComponents = ['panelset'];
-        
+
         this.componentIsReady = function(component) {
             // we remove the component from the waiting list
             var index = $.inArray(component, this.unreadyComponents);
@@ -334,12 +334,12 @@
                 this._ready();
             }
         };
-        
+
         this._ready = function() {
             var me = this;
-            
+
             this.updateEditingModeIcon();
-            
+
             this.$contentTypes.dpbsdropdown({
                 onSelect: function($el, key, $a) {
                     // the user has selected another view/content type -> we replace this panel
@@ -349,7 +349,7 @@
             this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
 
             this.loadContent(true, this.loadOptions.contentAddress ?  this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
-            
+
             this.onResize();
 
             this.$locationTypes.dpbsdropdown({
@@ -357,7 +357,7 @@
             });
             // fire onSelect event as we want to refresh the list of locations
             //this.$locationTypes.dpbsdropdown('onSelect');
-            
+
             this.$statusSelect.on('change', function() {
                 // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
                 var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
@@ -368,7 +368,7 @@
                     '@select': 'id'
                 });
             });
-            
+
             this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
                 me.applyPresentationOptions();
                 me.panelSet.onPanelStateChanged(me);
@@ -377,7 +377,7 @@
             this.$locationSelect.on('change', function() {
                 me.loadContent();
             });
-            
+
             this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
             this.$downloadButton.on('click', function() {
                 // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
@@ -385,7 +385,7 @@
                 url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
                 window.open(url, '_blank');
             });
-            
+
             this.$linkerText.on('change', function() {
                 me.onLinkerTextChanged();
             });
@@ -394,13 +394,13 @@
                 me.saveContent();
             }, 2500);
         };
-        
+
         this.syncLocationWith = function(panel, locationType, location, subLocation) {
             if ((panel !== this) && (this.getLocationType() === 'sync') && (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase())) {
                 this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
             }
         };
-        
+
         /*
          * Loading and saving
          *
@@ -412,19 +412,19 @@
          *      only if the content has been changed (this.isDirty() and this.getContentHash())
          *      only if the content has been loaded properly (this.loadedAddress <> null)
          */
-        
+
         /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations, address, subLocation) {
             subLocation = subLocation || [];
-        
+
             if (!address && (this.getLocationType() == 'sync')) {
                 this.panelSet.syncPanel(this);
                 return;
             }
-            
+
             address = address || this.getContentAddress();
-            
+
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
                 console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
                 this.setValid(false);
@@ -434,16 +434,16 @@
                 this.loadContentCustom(loadLocations, address, subLocation);
             }
         };
-        
+
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY loadContent() can call it
             this.$content.html('Generic Panel Content');
             this.onContentLoaded();
         };
-        
+
         /* SAVING CONTENT */
-        
+
         this.saveContent = function(options) {
             options = options || {};
             if (this.loadedAddress && (this.isDirty() || options.forceSave)) {
@@ -452,17 +452,17 @@
                 this.saveContentCustom(options);
             }
         };
-        
+
         this.saveContentCustom = function(options) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY saveContent() can call it
         };
-        
+
         this.onContentSaved = function(data) {
         };
 
         /* -------------- */
-        
+
         this.setValid = function(isValid) {
             // tells us if the content is invalid
             // if it is invalid we have to block editing
@@ -491,13 +491,13 @@
             var d = new Date();
             this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
         };
-        
+
         this.getContentHash = function() {
             var ret = null;
             return ret;
             //return ret.length + ret;
         };
-        
+
         // Content Status
         this.setStatusSelect = function(contentStatus) {
             if (contentStatus) {
@@ -508,7 +508,7 @@
             // hide (chosen) select if no status supplied
             this.$statusSelect.closest('.dphidden').toggle(!!contentStatus);
         };
-        
+
         this.setPresentationOptions = function(presentationOptions) {
             var $pres = this.$presentationOptions;
             if (presentationOptions) {
@@ -529,13 +529,13 @@
             // hide (chosen) select if no status supplied
             $pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
         };
-        
+
         // Address / Locations
 
         this.updateLocations = function(locations) {
             // Update the location drop downs from a list of locations
             // received from the server.
-            
+
             if (locations) {
                 var empty = true;
                 for (var k in locations) {
@@ -544,16 +544,16 @@
                 }
                 if (!empty) {
                     locations.sync = this.$contentTypes.dpbsdropdown('getOptions');
-                    
+
                     // save the locations
                     this.locations = locations;
-    
+
                     // only show the available location types
                     var locationTypes = [];
                     for (var j in locations) {
                         locationTypes.push(j);
                     }
-                    
+
                     this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                     this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
                     this.$locationTypes.show();
@@ -600,7 +600,7 @@
             // this.loadContent(false, this.getContentAddress(locationType));
             window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
         };
-        
+
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -609,11 +609,11 @@
         this.getContentAddress = function(locationType, location) {
             return this.panelSet.getBaseAddress() + this.getContentAddressRelative(locationType, location);
         };
-        
+
         this.getContentAddressRelative = function(locationType, location) {
             return this.getContentType() + '/' + (locationType || this.getLocationType()) + '/' + encodeURIComponent((location === undefined) ? this.getLocation() : location) + '/';
         };
-        
+
         this.getContentType = function() {
             return this.contentType;
         };
@@ -629,7 +629,7 @@
                 }
             }
         };
-        
+
         this.getLocationType = function() {
             var ret = 'default';
             if (this.$locationTypes.is(':visible')) {
@@ -645,7 +645,7 @@
             }
             return ret;
         };
-        
+
         this.getEditingMode = function() {
             // returns:
             //  undefined: no edit mode at all
@@ -653,19 +653,19 @@
             //  false: not editing
             return undefined;
         };
-        
+
         this.updateEditingModeIcon = function() {
             if (this.$toggleEdit) {
                 var mode = this.getEditingMode();
-                
+
                 this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
-                
+
                 this.$toggleEdit.toggleClass('active', (mode === true));
-                
+
                 this.$toggleEdit.attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
-                
+
                 this.$toggleEdit.tooltip();
-                
+
                 var me = this;
                 this.$toggleEdit.on('click', function() {
                     var options = {
@@ -676,12 +676,12 @@
                 });
             }
         };
-        
+
     };
 
     Panel.prototype.onLinkerTextChanged = function() {
     };
-    
+
     Panel.prototype.onContentLoaded = function(data) {
         //this.setMessage('Content loaded.', 'success');
         // TODO: update the current selections in the location dds
@@ -689,35 +689,36 @@
         this.loadedAddress = this.getContentAddress(data.location_type, data.location);
         this.setNotDirty();
         this.setValid(true);
-        
+
         // reset the sublocation because the content has changed
         this.setSubLocation();
-        // move to the new sublocation
-        if (data.sub_location) this.moveToSubLocation(data.sub_location);
-        
+
         // update the location drop downs
         this.setLocationTypeAndLocation(data.location_type, data.location);
 
         // update the status
         this.setStatusSelect(data.content_status);
-        
+
         // update presentation options
         this.setPresentationOptions(data.presentation_options);
         this.applyPresentationOptions();
-        
+
         // send signal to other panels so they can sync themselves
         this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
-        
+
         //
         if (this.loadOptions && this.loadOptions.stateDict) {
             this.setStateDict(this.loadOptions.stateDict);
             this.loadOptions.stateDict = null;
         }
 
+        // move to the new sublocation
+        if (data.sub_location) this.moveToSubLocation(data.sub_location);
+
         // asks PanelSet to update URL
         this.panelSet.onPanelStateChanged(this);
     };
-    
+
     Panel.prototype.onResize = function () {
         // resize content to take the remaining height in the panel
         var height = this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true);
@@ -737,11 +738,11 @@
         if (error) ret.setMessage('Invalid content type ('+contentType+')', 'error');
         return ret;
     };
-    
+
     Panel.prototype.isDownloadable = function() {
         return false;
     };
-    
+
     Panel.createFromState = function(panelState, key, options) {
         // panelState =
         // transcription/locus/1r/
@@ -750,7 +751,7 @@
         var parts = metaparts[0].split('/');
         var contentType = parts[0];
         var stateDict = (metaparts.length > 1) ? metaparts[1]: null;
-        
+
         //Panel.create(Panel.getPanelClassFromContentType(contentType), '.ui-layout-'+key);
         return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
     };
@@ -765,14 +766,14 @@
         // lookup in the dropdown of the panel template
         // E.g. Translation => text
         var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentType.toLowerCase()+']:first').data('class') || contentType;
-        
+
         // Force first letter to uppercase. e.g Text
         panelType = panelType.toUpperCase().substr(0, 1) + panelType.substr(1, contentType.length - 1);
 
         var ret = 'Panel' + panelType + (write ? 'Write' : '');
         return TextViewer[ret] || null;
     };
-    
+
     Panel.prototype.enablePresentationOptions = function(options) {
         if (options) {
             var $pres = this.$presentationOptions;
@@ -791,7 +792,7 @@
         classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
         this.$content.addClass(classes);
     };
-    
+
     Panel.prototype.getState = function() {
         var ret = this.getContentAddressRelative();
         var dict = this.getStateDict();
@@ -807,7 +808,7 @@
     Panel.prototype.getListFromPresentationOptions = function() {
         return this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
     };
-    
+
     Panel.prototype.getStateDict = function() {
         var ret = {};
         //ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
@@ -826,7 +827,7 @@
             }
         });
     };
-    
+
     Panel.prototype.setStateDictArg = function(name, value) {
         if (name == 'dis') {
             this.enablePresentationOptions(value.split(' '));
@@ -844,18 +845,18 @@
     // e.g. entry 1a1 within page 1r
     // e.g. 'address' clause within whole text or entry 1a1
     // it is a location at a deeper level than the address
-    
+
     Panel.prototype.getSubLocation = function() {
         var ret = this.subLocation;
-        
+
         if (ret.length <= 0) {
             // create a subLocation from the location
             ret = [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
         }
-        
+
         return ret;
     };
-    
+
     Panel.prototype.setSubLocation = function(subLocation) {
         // clone and set the location
         this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
@@ -869,7 +870,7 @@
     Panel.prototype.moveToSubLocation = function(subLocation) {
         return false;
     };
-    
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelText
@@ -882,7 +883,7 @@
         this.getEditingMode = function() {
             return false;
         };
-        
+
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
@@ -906,7 +907,7 @@
             if (!me.getEditingMode()) {
                 // find the dpt element we've just clicked on
                 var subLocation = get_sublocation_from_element(e.target);
-                
+
                 if (subLocation.length) {
                     me.setSubLocation(subLocation);
                     // dispatch the element we are on
@@ -914,11 +915,11 @@
                 }
             }
         });
-        
+
     };
-    
+
     PanelText.prototype = Object.create(Panel.prototype);
-    
+
     PanelText.prototype.onContentLoaded = function(data) {
         this.$content.addClass('mce-content-body').addClass('preview ct-'+this.getContentType());
         this.$content.html(data.content);
@@ -928,20 +929,20 @@
     PanelText.prototype.isDownloadable = function() {
         return true;
     };
-    
-    
+
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelTextWrite
     //
     //////////////////////////////////////////////////////////////////////
     TextViewer.textAreaNumber = 0;
-    
+
     var PanelTextWrite = TextViewer.PanelTextWrite = function($root, contentType, options) {
         TextViewer.PanelText.call(this, $root, contentType, options);
-        
+
         this.unreadyComponents.push('tinymce');
-        
+
         this.getEditingMode = function() {
             return true;
         };
@@ -951,13 +952,13 @@
         this._ready = function() {
             var ret = this._baseReady();
             var me = this;
-            
+
             $(this.tinymce.editorContainer).on('psconvert', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
                 me.saveContent({forceSave: true, autoMarkup: true});
             });
-            
+
             $(this.tinymce.editorContainer).on('pssave', function() {
                 // mark up the content
                 // TODO: make sure the editor is read-only until we come back
@@ -972,7 +973,7 @@
             $(window).bind('beforeunload', function() {
                 me.saveContent({synced: true});
             });
-            
+
             return ret;
         };
 
@@ -987,7 +988,7 @@
                 $el.height(height+'px');
             }
         };
-        
+
         this.getContentHash = function() {
             var ret = this.tinymce.getContent();
             return ret;
@@ -1046,7 +1047,7 @@
                 height: '15em',
                 content_css : "/static/digipal_text/viewer/tinymce.css?v=10"
             };
-            
+
             if (this.contentType == 'codicology') {
                 options.toolbar = 'psclear undo redo pssave | psh1 psh2 | italic | pshand | pscodparch pscodfol pscodsign pscodperf pscodruling pscodothers | code';
                 options.paste_as_text = true;
@@ -1056,7 +1057,7 @@
                     //$(args.node).html($(args.node).html().replace(/<(\/?)p/g, '<$1div'));
                     //console.log($(args.node).html());
                     //console.log(args.node);
-                    
+
                     // remove all tags except <p>s
                     var content = $(args.node).html();
                     content = content.replace(/<(?!\/?p(?=>|\s.*>))\/?.*?>/gi, '');
@@ -1069,11 +1070,11 @@
                     $(args.node).html(content);
                 };
             }
-            
+
             window.tinyMCE.init(options);
-            
+
         };
-        
+
         this.initTinyMCE();
     };
 
@@ -1093,11 +1094,11 @@
     // PanelImage
     //
     //////////////////////////////////////////////////////////////////////
-    
+
     var PanelImage = TextViewer.PanelImage = function($root, contentType, options) {
 
         var me = this;
-        
+
         Panel.call(this, $root, contentType, 'Image', options);
 
         this.loadContentCustom = function(loadLocations, address, subLocation) {
@@ -1111,7 +1112,7 @@
 //                        me.onContentLoaded(data);
 //                    });
                     //me.$content.text(data.content);
-                    
+
                     me.onContentLoaded(data);
                 },
                 {
@@ -1123,9 +1124,9 @@
                 }
             );
         };
-        
+
         this.applyOpenLayer = function(data) {
-            
+
             if (!data || !data.zoomify_url) {
                 // TODO: this is shortcut
                 // we may arrive here if selection doesn't return an zoomify url
@@ -1134,15 +1135,15 @@
                 this.$content.html('<p>&nbsp;Full resolution image not available.</p>');
                 return;
             }
-            
+
             // TODO: think about reusing the OL objects and only changing the underlying image
             // rather than recreating everything each time
             // See http://openlayers.org/en/v3.5.0/examples/zoomify.html
             var me = this;
-            
+
             // empty the content as OL appends to it
             this.$content.html('');
-            
+
             this.map = window.dputils.add_open_layer({
                 $target: this.$content,
                 image_url: data.zoomify_url,
@@ -1152,9 +1153,9 @@
                 load_tile_callback: function() {me.loadTile.apply(me, arguments);},
                 can_rotate: true,
             });
-            
+
             this.annotator = window.ann3 = new window.AnnotatorOL3(this.map);
-            
+
             this.annotator.addListener(function (e) { me.annotatorEventHandler(e); });
 
             this.clipImageToTop();
@@ -1164,16 +1165,16 @@
             view.on('change:center', function (event){me.panelSet.onPanelStateChanged(me);});
             view.on('change:resolution', function (event){me.panelSet.onPanelStateChanged(me);});
             view.on('change:rotation', function (event){me.panelSet.onPanelStateChanged(me);});
-             
+
             // tooltip to OL icon
             this.$content.find('.ol-attribution').tooltip({title: 'Viewer by OpenLayers (link to external site)'});
         };
 
-        
+
         /*
             Open Layer Callback that keep count of the tile loading
             We display a laoding status message to the user
-            
+
             incdec:
                 the number of tiles loading (-1 if a new one is loaded)
                 'reset': to reset the count (e.g. we load a new image)
@@ -1212,9 +1213,9 @@
                 view.setCenter([view.getCenter()[0], - (viewerFullHeight / 2)]);
             }
         };
-        
+
     };
-    
+
     PanelImage.prototype = Object.create(Panel.prototype);
 
     PanelImage.prototype.onContentLoaded = function(data) {
@@ -1222,20 +1223,20 @@
         if (!(this.last_data && this.last_data.zoomify_url == data.zoomify_url)) {
             // OL
             this.applyOpenLayer(data);
-            
+
             // annotations
             this.annotator.addAnnotations(data.annotations);
-        
+
             // text-image links
             this.$linker.closest('.dphidden').toggle(true);
             this.resetLinker(data);
         }
-            
+
         Panel.prototype.onContentLoaded.call(this, data);
 
         this.last_data = data;
     };
-    
+
     PanelImage.prototype.moveToSubLocation = function(subLocation) {
         var ret = false;
         if (this.annotator) {
@@ -1269,11 +1270,11 @@
 
     PanelImage.prototype.annotatorEventHandler = function(e) {
         var me = this;
-        
+
         // update the selection count
         var selections = e.annotator.getSelectedFeatures();
         this.$linkerImage.html('' + selections.getLength());
-        
+
         // set unique client id if no server id exists (unsaved feature)
         selections.forEach(function (feature) {
             if (!feature.getId() && !feature.get('clientid')) {
@@ -1288,7 +1289,7 @@
         });
         this.$linkerText.val(elementid);
         this.$linkerText.trigger('liszt:updated');
-        
+
         // send the changes to the server
         if (e.action === 'changed' || e.action === 'deleted') {
             this.onAnnotationChanged(e.features, e.action);
@@ -1302,7 +1303,7 @@
             //feature = this.annotator.findFeature({properties: {elementid: JSON.parse(elementid)} });
             feature = this.annotator.getFeatureFromElementId(elementid);
         }
-        
+
         if (!feature) {
             // no feature for this element
             // assign the element to the currently selected feature
@@ -1313,7 +1314,7 @@
         }
 
         this.annotator.selectFeature(feature);
-    
+
         // send the changes to the server
         //this.onAnnotationChanged();
     };
@@ -1324,11 +1325,11 @@
         // features: a list of features to convert into links
         //  if currently selected feature, we can leave the arg undefined
         var me = this;
-        
+
         if (!(features instanceof Array)) {
             features = this.annotator.getSelectedFeatures().getArray();
         }
-        
+
         var links = [];
         (features).map(function(feature) {
             var geojson = JSON.parse(me.annotator.getGeoJSONFromFeature(feature));
@@ -1337,7 +1338,7 @@
             links.push(link);
         });
         links = JSON.stringify(links);
-        
+
         this.callApi(
             'saving text-image link',
             this.loadedAddress,
@@ -1351,7 +1352,7 @@
             },
             false
         );
-        
+
     };
 
     PanelImage.prototype.getStateDict = function() {
@@ -1366,17 +1367,17 @@
                         Math.round(view.getRotation() * 180 / Math.PI)];
             ret.olv = olv.join(',');
         }
-        
+
         return ret;
     };
-    
+
     PanelImage.prototype.onResize = function() {
         Panel.prototype.onResize.call(this);
         if (this.map) {
             this.map.updateSize();
         }
     };
-    
+
     PanelImage.prototype.setStateDictArg = function(name, value) {
         // olv:RES,CX,CY
         if (name == 'dis') {
@@ -1396,7 +1397,7 @@
 
     PanelImage.prototype.applyPresentationOptions = function() {
         var classes = this.getListFromPresentationOptions();
-        
+
         this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
     };
 
@@ -1407,7 +1408,7 @@
     //////////////////////////////////////////////////////////////////////
     var PanelSearch = TextViewer.PanelSearch = function($root, contentType, options) {
         TextViewer.Panel.call(this, $root, contentType, 'Search', options);
-        
+
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
@@ -1428,7 +1429,7 @@
                 }
             );
         };
-        
+
         this.search = function(address, query) {
             var me = this;
             this.callApi(
@@ -1452,11 +1453,11 @@
                 }
             );
         };
-        
+
     };
-    
+
     PanelSearch.prototype = Object.create(Panel.prototype);
-    
+
     //////////////////////////////////////////////////////////////////////
     //
     // PanelXmlelement
@@ -1465,7 +1466,7 @@
     var PanelXmlelementWrite = TextViewer.PanelXmlelementWrite = function($root, contentType) {
         TextViewer.Panel.call(this, $root, contentType);
     };
-        
+
     //////////////////////////////////////////////////////////////////////
     //
     // Utilities
@@ -1478,7 +1479,7 @@
         // it will show only the last Ajax response instead of the full HTML page.
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
-        
+
         var getData = {
             url: url_ajax,
             data: requestData,
@@ -1491,10 +1492,10 @@
             delete requestData.method;
         }
         var ret = $.ajax(getData);
-        
+
         return ret;
     };
-    
+
     TextViewer.getStrFromTime = function(date) {
         date = date || new Date();
         var parts = [date.getHours(), date.getMinutes(), date.getSeconds()];
@@ -1528,20 +1529,20 @@
             if ($.fn.enableSelection && $d.data(s))
                 $d.enableSelection().data(s, false);
         };
-    
+
         var $lrs = $(".ui-layout-resizer");
-        
+
         // affects only the resizer element
         // TODO: GN - had to add this condition otherwise the function call fails.
         if ($.fn.disableSelection) {
             $lrs.disableSelection();
         }
-        
+
         $lrs.on('mousedown', $.layout.disableTextSelection ); // affects entire document
     }
-    
+
     // TODO: move to dputils.js
-    
+
     // See https://docs.djangoproject.com/en/1.7/ref/contrib/csrf/#ajax
     // This allows us to POST with Ajax
     function csrfSafeMethod(method) {
@@ -1589,12 +1590,12 @@
                 }
             }
         }
-        
+
         return ret;
     }
-    
+
     initLayoutAddOns();
-    
+
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
@@ -1605,5 +1606,5 @@
             }
         }
     });
-    
+
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

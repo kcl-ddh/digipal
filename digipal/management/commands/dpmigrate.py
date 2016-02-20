@@ -13,51 +13,51 @@ from django.utils.datastructures import SortedDict
 import difflib
 from django.utils.text import slugify
 from django.db import transaction
-  
+
 
 class Command(BaseCommand):
     help = """
 Digipal database migration tools.
-    
+
 Commands:
-    
+
   csv2table CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Create a table from a CSV file. Only schema, not the data.
-  
+
   csv2records CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Import the data from a CSV file. Use csv2table to create the table first.
-  
+
   csv2db CSV_FILE_PATH [--offset=LINE_OFFSET]
       = csv2table + csv2records
-  
+
   hand [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
-        
+
                         Copy all the records from SRC_DB_ALIAS.hand_* to
                         DB_ALIAS.digipal_*
                         Existing records are removed. Preexisting table
                         structures are preserved.
 
   copy [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER] [--dry-run]
-        
+
                         Copy all the records from SRC_DB_ALIAS.*TABLE_FILTER*
                         to DB_ALIAS.*TABLE_FILTER*
                         Existing records are removed. Preexisting table
                         structures are preserved.
-                        
+
   stewart_import --src=CSV_FILE_PATH [--db DB_ALIAS] [--dry-run]
 
   stewart_integrate [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--dry-run]
-  
+
   stokes_catalogue_import --src=XML_FILE_PATH
-  
+
   parse_em_table --src=HTML_FILE_PATH
-  
+
   fp7_import --src=XML_FILE_PATH
                         Where file.xml is a XML file exported from a FileMaker
                         Pro 7 table.
                         This command will (re)create a table in the database
                         and upload all the data from the XML file.
-    
+
   esawyer_import
                         Import data from the filemaker table into the Text
                         records
@@ -65,14 +65,14 @@ Commands:
 
   match_owners
                         Match owner relationships from legacy DB into DigiPal
-                        
+
   import_pim
                         Import PIM images from the CSV
-  
+
   convert_exon_folio_numbers
                         Convert the folio numbers to the new system
 """
-    
+
     args = 'hand'
     option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -115,20 +115,20 @@ Commands:
     migrations = ['0004_page_number_and_side', '0005_page_iipimage']
 
     def handle(self, *args, **options):
-        
+
         self.warnings = {}
-        
+
         self.logger = utils.Logger()
-        
+
         self.log_level = 3
-        
+
         self.options = options
-        
+
         if len(args) < 1:
             raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
         command = args[0]
         self._args = args
-        
+
         known_command = False
 
         if command == 'clear-compressor':
@@ -138,7 +138,7 @@ Commands:
             from django.core.cache import get_cache
             cache = get_cache(cache_name)
             cache.clear()
-            
+
             from compressor import conf
             path = os.path.join(conf.settings.COMPRESS_ROOT, conf.settings.COMPRESS_OUTPUT_DIR.strip('/'))
             print path
@@ -146,7 +146,7 @@ Commands:
         if command == 'convert_exon_folio_numbers':
             known_command = True
             self.convert_exon_folio_numbers()
-        
+
         if command == 'csv2table':
             known_command = True
             self.createTableFromCSV()
@@ -154,12 +154,12 @@ Commands:
         if command == 'csv2records':
             known_command = True
             self.insertTableFromCSV()
-        
+
         if command == 'csv2db':
             known_command = True
             self.createTableFromCSV()
             self.insertTableFromCSV()
-        
+
         if command == 'match_owners':
             known_command = True
             self.match_legacy_owners()
@@ -197,19 +197,19 @@ Commands:
             if not self.is_dry_run():
                 c = utils.fix_sequences(options.get('db'), True)
                 self.log('%s sequences fixed' % c)
-                
+
         if command == 'parse_em_table':
             known_command = True
             self.parse_em_table(options)
-            
+
         if command == 'fp7_import':
             known_command = True
             self.fp7_import(options)
-        
+
         if command == 'esawyer_import':
             known_command = True
             self.esawyer_import(options)
-            
+
         if command == 'gen_em_table':
             known_command = True
             self.gen_em_table(options)
@@ -220,11 +220,11 @@ Commands:
 
         if command == 'stewart_integrate':
             pass
-        
+
         if command == 'stokes_catalogue_import':
             known_command = True
             self.importStokesCatalogue(options)
-        
+
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
 
@@ -235,17 +235,17 @@ Commands:
     def convert_exon_folio_numbers(self):
         from digipal import utils as dputils
         lines = dputils.read_all_lines_from_csv(self.options['src'])
-        
+
         from digipal.models import Image
         images = Image.objects.all()
-        
+
         for line in lines:
             if not line: continue
             new_number = line['barnesellisfol']
             old_number = line['olderfol']
-            
+
             print old_number, new_number
-            
+
             #folio = '%s%s' % (old_number)
             for image in images:
                 new_locus = re.sub(ur'\b%s(r|v)\b' % old_number, r'%s\1' % new_number, image.locus)
@@ -258,14 +258,14 @@ Commands:
                 print image.locus, image.new_locus
                 image.locus = image.new_locus
                 image.save()
-        
+
         return True
 
     @transaction.atomic
     def import_pim(self):
         from digipal.models import Image, Hand, ItemPart, CurrentItem, Source, CatalogueNumber, HistoricalItem, ItemPartItem
         import csv
-        
+
         # load the CSV
         '''
         [u'nnb', u'cote', u'localisation', u'dr', u'rfbibtrsorsbaisbuis',
@@ -273,11 +273,11 @@ Commands:
         u'poids', u'idphotos', u'rfbibprou', u'atelier', u'',  u'rgion',
         u'autoritmettrice', u'montaire', u'imitation', u'mtal']
         '''
-        
+
         images = {}
         for image in Image.objects.all():
             images[re.sub(ur'^.*/([^./]*)\.jp2$', ur'\1', str(image.iipimage))] = image
-        
+
         # create the source
         prou_source, created = Source.objects.get_or_create(name='Prou')
 
@@ -285,16 +285,16 @@ Commands:
         line_index = 0
         with open(csv_path, 'rb') as csvfile:
             csvreader = csv.reader(csvfile)
-            
+
             columns = None
-            
+
             for line in csvreader:
                 line_index += 1
                 line = [v.decode('latin-1') for v in line]
                 if not columns:
                     columns = [re.sub(ur'[^a-z]', '', c.lower()) for c in line]
                     continue
-                
+
                 rec = dict(zip(columns, line))
 
                 # find the image
@@ -310,10 +310,10 @@ Commands:
                     else:
                         # set the side
                         image.locus = rec['dr']
-                        
+
                         # create the CI
                         ci, created = CurrentItem.objects.get_or_create(shelfmark='MER-%s' % rec['cote'].strip(), repository_id=2)
-                        
+
                         # create the IP
                         ip, created = ItemPart.objects.get_or_create(current_item=ci)
                         ip.locus = ''
@@ -328,25 +328,25 @@ Commands:
 
                         # add the Hand to the Image
                         hand.images.add(image)
-                        
+
                         # add a HI
                         hi = ip.historical_item
                         if not hi:
                             hi = HistoricalItem(historical_item_type_id=1)
                             hi.save()
                             ItemPartItem(historical_item=hi, item_part=ip).save()
-                        
+
                         # add the cat num
                         prou_number = rec['rfbibprou'].strip()
                         if prou_number:
                             hand, created = CatalogueNumber.objects.get_or_create(historical_item=hi, source=prou_source, number=prou_number)
                             # regen label
                             hi.save()
-                        
+
         raise Exception('Rollback')
-        
+
         #return ret
-        
+
     def import_poms_extra(self):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
@@ -385,7 +385,7 @@ Commands:
             order by ch.helper_hnumber, fa.id
             ;
         ''')
-        
+
         '''
             select helperhnumber, count(*)
             from poms_charter_info ci
@@ -399,26 +399,26 @@ Commands:
 
         from digipal.utils import write_rows_to_csv
         file_path = 'poms_charter_info.csv'
-        
+
         rows = utils.dictfetchall(pc)
-        
+
         # Note that the rows values are python unicode objects
         # but with latin-1 encoding!
         # So we use utf8 encoding for the output
         # but later we read as latin-1
         write_rows_to_csv(file_path, rows, encoding='utf8')
-        
+
         print 'Written %s records in %s.' % (len(rows), file_path)
         # transaction,0,3,"William, abbot of Scone (fl.1206×09-1225)",2/139/91 ,825,abbot of Scone
-        
+
         self._createTableFromCSV(file_path, options={'encoding': 'utf8'})
         self._insertTableFromCSV(file_path, options={'encoding': 'utf8'})
-        
+
     @transaction.atomic
     def import_poms(self):
-        
+
         ##raise Exception('Already imported? (comment this exception to confirm you want to import)')
-        
+
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         poms = connections['poms']
         pc = poms.cursor()
@@ -502,13 +502,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                notes = None
          datingnotes = About the same time as H1-4-37 & 38. See A.A.M. Duncan, 'The Foundation of St Andrews Cathedral Priory, 1140', 13.
         '''
-        
+
         self.init_possible_sources()
-        
+
         import digipal
         from digipal import utils as dputils
         from digipal.models import ItemPart
-        
+
         print '> Load manuscripts from DigiPal...\n'
         sources_ips = dputils.MultiDict()
         for ip in ItemPart.objects.filter(historical_items__id__gt=0).prefetch_related('historical_items__catalogue_number__source').select_related('current_item__repository__place'):
@@ -516,14 +516,14 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             if catnum:
                 sources_ips.add_entry(catnum.number.strip().lower(), ip)
         sources_found = {}
-        
+
         print '%s records, %s unique document/source/text numbers' % (sources_ips.get_entry_count(), len(sources_ips))
 
         print '\n> POMS texts with more than one HI/IP\n'
         for docnum, ips in sources_ips.iteritems():
             if len(ips) > 1:
                 print docnum, ', '.join(['IP #%s HI #%s: %s' % (ip.id, ip.historical_items.first().id, ip.display_label) for ip in ips])
-        
+
         print '\n> Import data from POMS database...\n'
         self.stats = {'sources': {}}
         for row in utils.dictfetchall(pc):
@@ -534,22 +534,22 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             for ip in sources_ips.get(docnum, []):
                 sources_found[docnum] = 1
                 self.import_poms_into_ip(row, ip)
-                
+
         print '%s MS in DigiPal, %s matching a source in POMS' % (len(sources_ips), len(sources_found))
         for catnum in set(sources_ips.keys()) - set(sources_found.keys()):
             print '    %s not found in POMS' % catnum
-            
+
         #for source in sorted(self.stats['sources'].keys()):
         #    #print self.stats['sources'][source], source
-        
+
         print self.print_warning_report()
 
         if self.is_dry_run():
             raise Exception('DRY_RUN ROLLBACK')
-    
+
     def import_poms_into_ip(self, row, ip):
         docnum = ('document %s' % row['helper_hnumber']).lower().strip()
-        
+
         # GN: 12/02/2016: ONLY IMPORT THE DATA WHICH IS NOT IMPORTED YET
         # Based on absence of other cat num than POMS
         cat_nums = [cat_num.source.label for cat_num in ip.historical_item.catalogue_numbers.all()]
@@ -563,31 +563,31 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 #         if len(cat_nums) == 0:
 #             print 'POMS Source #%s = IP #%s (%s)' % (row['so_id'], ip.id, docnum)
 #             print '\tno cat num'
-        
+
         #if (row['helper_hnumber']).lower().strip() not in ['4/20/7']: return
         print 'POMS Source #%s = IP #%s (%s) (%s)' % (row['so_id'], ip.id, docnum, ip.created)
-        
+
         #ref = row['source_tradid']
         #source = re.sub(',[^,]*$', '', ref).strip()
         #self.stats['sources'][source] = self.stats['sources'].get(source, 0) + 1
-        
+
         source, cat_num = self.get_source_and_num_from_poms_ref(row['source_tradid'])
-        
+
         if not source or not cat_num:
             self.print_warning('Unrecognised reference', 1, '%s' % row['source_tradid'])
             return
-        
+
         # import the reference -> source
         hi = ip.historical_item
         print '    HI #%s.cat_num = (%s | %s)' % (hi.id, source , cat_num)
         from digipal.models import CatalogueNumber, Language, HistoricalItemType
         CatalogueNumber.objects.filter(historical_item=hi).exclude(source__label='POMS').delete()
         hi.catalogue_numbers.add(CatalogueNumber(source=source, number=cat_num))
-        
+
         # import Notes
         ip.notes = row['notes']
         ip.save()
-        
+
         # import Language
         if not row['la_name']:
             self.print_warning('No language language', 1, '%s' % row['source_tradid'])
@@ -595,16 +595,16 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             lg, created = Language.objects.get_or_create(name=row['la_name'])
             print '    HI #%s.language = %s' % (hi.id, lg)
             hi.language = lg
-        
+
         # import Charter type
         ct_name = row['ct_name'].strip()
         if not ct_name:
             self.print_warning('No charter type', 1, '%s' % row['source_tradid'])
             ct_name = 'Charter'
-        
+
         print '    HI #%s.type = %s' % (hi.id, ct_name)
         hi.historical_item_type, created = HistoricalItemType.objects.get_or_create(name=ct_name)
-        
+
         # import description
         from digipal.models import Description, DateEvidence, Date, PlaceEvidence, Place, Reference
         if row['so_description']:
@@ -616,7 +616,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         else:
             print '    Remove HI #%s.description = (%s)' % (hi.id, source)
             Description.objects.filter(historical_item=hi, source__label='POMS').delete()
-            
+
         # import dates
 #         if hi.date != row['firmdate']:
 #             self.print_warning('Dates are different', 1, 'hi.date = %s, so.firmdate = %s' % (hi.date, row['firmdate']))
@@ -635,7 +635,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     date.weight = 1100
                     date.save()
                 DateEvidence(historical_item=hi, evidence=evidence, is_firm_date=(field_name.startswith('firm')), date=date).save()
-        
+
         # imoprt places
         PlaceEvidence.objects.filter(historical_item=hi).delete()
         if 'placedatedoc' in row:
@@ -664,20 +664,20 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def get_source_and_num_from_poms_ref(self, ref):
         # '_Holy. Lib._, no. 11' => <Source: ?>, 'no. 11|'
         ret = [None, '']
-        
+
         ref = ref.strip()
-        
+
         for source_label in self.possible_sources.keys():
             if ref.lower().startswith(source_label.lower()):
                 ret = [self.possible_sources[source_label], ref[len(source_label):]]
                 ret[1] = ret[1].strip(' ,')
                 break
-        
+
         return ret
 
     def init_possible_sources(self):
         ret = SortedDict()
-        
+
         possible_sources = '''
         Ash, St Andrews
         BL
@@ -713,34 +713,34 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         _Stair Society Misc V_
         _Scone Lib._
         '''
-        
+
         # convert to a list sorted by length of name (longest first)
         possible_sources = sorted([l.strip() for l in re.split(ur'\n', possible_sources) if l.strip()], key=lambda x: -len(x))
-        
+
         from digipal.models import Source
-        
+
         # convert to a sorted dict with reference to source record (create them if not there yet)
         for label in possible_sources:
             source, created = Source.objects.get_or_create(label_styled=label)
             source.label = label.replace('_', '')
             source.name = source.label
             source.save()
-            
+
             ret[label] = source
-        
+
         self.possible_sources = ret
-        
+
         return ret
-        
+
     @transaction.atomic
     def match_legacy_owners(self):
         # find a match for all the record in legacy.`ms owners`
-        
+
         # 1. get all the ownership information from the legacy DB
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         leg = connections['legacy']
         cursor = leg.cursor()
-        
+
         # legacy.manuscripts
         #
         # ['Hair Arrangement', 'Index', 'Illustrated?', 'Fragment?', 'Frame Width', 'Style', 'Colours', 'Illus Cat Refs', 'Illus Description',
@@ -761,23 +761,23 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #            1 for People (e.g. Lambarde, William (1536--1601))
         #            2 for Library (e.g. Cambridge, Peterhouse College)
         #
-        
+
         #
         # Heuristics match legacy.`owner text` (OT) with digipal_repository (REPO):
         #    1. OT.Owner = legacy.Libraries.Library and legacy.Libraries.ID = REPO.legacy_id
         #    2. find nearest distance between REPO.name and OT.Owner
         #
         from digipal.models import Repository, HistoricalItem, ItemPart, Owner
-        
+
         self.load_ips()
-        
+
         self.repos = {}
         self.repos_by_name = {}
         for repo in Repository.objects.all():
             key = repo.legacy_id
             self.repos[key] = repo
             self.repos_by_name[slugify(repo.name)] = repo
-        
+
         cursor.execute('''select
                             ms.ID as ms_id, mo.ID as mo_id, ot.ID as ot_id, li.ID as li_ID,
                             ms.*, mo.*, ot.*
@@ -795,40 +795,40 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         order
                             by ot.Owner, ms.Shelfmark
                         ''')
-        
+
         owners = {}
-        
+
         ms_matches = {}
-        
+
         i = 0
         for row in utils.dictfetchall(cursor):
             i += 1
             utils.prnt(ur'%3s, Legacy record (OT #%4s, OW #%4s, MS #%4s, CAT %s) - (%s; %s; %s)' % (i, row['ot_id'], row['mo_id'], row['ms_id'], row['Category'], row['Owner'], row['Shelfmark'], row['Locus']))
-            
+
             # match the owner
             repo = self.find_matching_repo(row, owners)
-    
+
             if repo:
                 utils.prnt(u'\t\t#%s, %s' % (repo.id, repo))
             else:
                 utils.prnt(u'\t\t#%s, %s' % (0, 'No match'))
-            
+
             # match the MS
             # legacy.`manuscripts`.ID = HI.legacy_id AND legacy.`manuscripts`.shelfmark = IP.CI.shelfmark
             # Q: what about charters?
             # Q: we replicate the IP.CI.Repo in the ownership...
-            
+
             ms_matches[row['ms_id']] = 0
 
             print '\tmatch legacy.`manuscripts` with digipal.itempart'
             ip = self.find_matching_ip(row)
-            
+
             if ip:
                 ms_matches[row['ms_id']] = ip.id
                 utils.prnt('\t\t#%s, %s' % (ip.id, ip.display_label))
             else:
                 utils.prnt('\t\t#%s, %s' % (0, 'No match'))
-            
+
             if ip is None:
                 self.print_warning('Don\'t import, could not match the MS with an IP', 1)
             else:
@@ -836,7 +836,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     self.print_warning('New owner/`repository` record', 1)
                     repo = self.create_owner(row, owners)
                     utils.prnt(u'\t\t#%s, %s [Repository]' % (repo.id, repo))
-                
+
                 # do we have this relationship already?
                 import_ownership = True
                 if not ip.current_item.repository == repo:
@@ -846,7 +846,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     self.print_warning('Ownership record already in digipal (IP <- Owner -> Repo)', 1)
                 else:
                     self.print_warning('Ownership record already in digipal (IP -> CI -> Repo)', 1)
-                
+
                 if import_ownership:
                     self.print_warning('New ownership record (IP -> Repo)', 1)
                     ownership = self.create_ownership(repo, ip, row)
@@ -855,10 +855,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # Print the MS matches
         print '\n%s ownerships records' % i
         self.print_warning_report()
-        
+
         if 1:
             print '%s manuscripts records, %s matched, %s not matched.' % (len(set(ms_matches.keys())), len(set(ms_matches.values())), len(set(ms_matches.keys())) - len(set(ms_matches.values())))
-        
+
         # Print the owner matches
         if 0:
             owners_2_count = 0
@@ -873,11 +873,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         if owner['repo']:
                             matched_count += 1
             utils.prnt('%s owners (%s cat 2), %s matched' % (len(owners), owners_2_count, matched_count))
-        
+
         #raise Exception('DRY RUN')
-        
+
         print 'done'
-        
+
     def create_ownership(self, repo, ip, row):
         # row = ['Manuscript', 'Annotated?', 'Evidence', 'Rebound?', 'Date', 'Owner', 'Dubitable?', 'ID']
         from digipal.models import Owner
@@ -893,15 +893,15 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         ip.owners.add(ret)
         ip.save()
         return ret
-        
+
     def create_owner(self, row, owners):
         # row = ['Owner', 'Category', 'Overseas?', 'ID']
 
         from digipal.models import Repository, Place
-        
+
         # place unknown, type unknown
         ret = Repository(legacy_id=-row['ot_id'], name=row['Owner'], british_isles=utils.get_bool_from_mysql(row['Overseas?']), type_id=4, place_id = 40)
-        
+
         cat = unicode(row['Category']).strip()
         if cat == '0':
             # unknown owner in a place
@@ -925,13 +925,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if cat == '2':
             # modern library
             ret.type_id = 2
-            
+
         ret.save()
         row['repo'] = ret
         owners[row['ot_id']] = row
-        
+
         return ret
-        
+
     def find_matching_repo(self, row, owners):
         print '\tmatch legacy.`owner text` with digipal.repository record'
         owner = owners.get(row['ot_id'], None)
@@ -950,9 +950,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     owner['repo_heu'] = 2
                     owner['repo'] = self.repos_by_name[closests[0]]
                     #print '\t%s = %s' % (row['Owner'], owner['repo'].name)
-        
+
         repo = owner['repo']
-            
+
         return repo
 
     def load_ips(self):
@@ -986,22 +986,22 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 ip['shelfmark'] = slugify(ip['shelfmark'])
                 ip['locus'] = slugify(ip['locus'])
                 self.ips.append(ip)
-    
+
     def find_matching_ip(self, row):
         # pm dpmigrate copy --src=2stg --table="digipal_.*item.*|collation|decoration|layout|description|hand|image|cataloguenumber"
         ret = None
-        
+
         from digipal.models import ItemPart
         from django.utils.html import strip_tags
-        
+
         matches = {'shelfmark': [], 'legacy_id': [], 'description': [], 'fshelfmark': [], 'locus': []}
-        
+
         # find matching IPs based on legacy id, shelfmark and description
-        
+
         row_desc = slugify(row['Description'])
         row_shelfmark = slugify(row['Shelfmark'])
         row_locus = slugify(row['Locus'] or u'')
-        
+
         # exact matches
         for ip in self.ips:
             if ip['description'] == row_desc:
@@ -1021,7 +1021,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # show matches based on individual fields
         for field in matches.keys():
             print '\t\t\t%-12s: %s' % (field, ', '.join(set([unicode(v) for v in matches[field]])))
-        
+
         # now combine the fields to find best and reliable matches
         def get_inter(d, *ks):
             ret = None
@@ -1055,7 +1055,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         for combination in combinations:
             comb_name = ', '.join(combination['fields'])
             inter = get_inter(matches, *combination['fields'])
-            
+
             if len(inter) == 1:
                 min_size = combination.get('min_size', 1)
                 if len(row['Shelfmark']) >= min_size:
@@ -1075,7 +1075,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             self.print_warning('%s (%s)' % (reason, comb_name), 2)
 
         return ret
-    
+
     def get_close_matches(self, word, possibilities=[]):
         '''Works like difflib.get_close_matches
             but also include relevant matches ignored by difflib.get_close_matches
@@ -1083,7 +1083,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             => ['12', '234']
             e.g. self.get_close_matches('123', ['abcdef 123', '12', '234'])
             => ['12', '234', 'abcdef 123']
-            
+
         '''
         ret = difflib.get_close_matches(word, possibilities)
         digits = re.sub(ur'\D+', '-', '-%s-' % word)
@@ -1098,12 +1098,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 #             print '\tfound [%s] in [%s]' % (word, ', '.join([pos for pos in possibilities if word in pos]))
         return ret
 
-    
+
     def find_matching_ip_old(self, row):
         ret = None
-        
+
         from digipal.models import ItemPart
-        
+
         ms_matching_message = ''
         ms_matching_message_extra = ''
         ips = ItemPart.objects.filter(historical_items__legacy_id=row['ms_id'])
@@ -1146,12 +1146,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             else:
                 ms_matching_message = 'not matched (legacy shelfmark is empty)'
             #, row['Shelfmark'], [ip.current_item.shelfmark for ip in ips]
-        
+
         if ms_matching_message:
             self.print_warning(ms_matching_message, 1, ms_matching_message_extra)
-        
+
         return ret
-        
+
     def gen_em_table(self, options):
         # TODO: update this query to work with the itempartitem table
         query = ur'''
@@ -1199,13 +1199,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 order by
                     "Place", "Repository", shelf_num, "Shelf Mark", "Ker", "Locus"
         '''
-        
+
         from django.db import connections
         con_src = connections[options.get('src')]
-        
+
         cursor = con_src.cursor()
         cursor.execute(query)
-        
+
         rows = [[col[0] for col in cursor.description]]
         for row in cursor.fetchall():
             row_latin_1 = [(u'%s' % v).encode('latin-1', 'ignore') for v in row]
@@ -1216,7 +1216,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             import csv
             csvwriter = csv.writer(csvfile)
             csvwriter.writerows(rows)
-            
+
     def esawyer_import(self, options):
         # Copy fields from esawyer MSS-Esawyer relationship table
         # to the TextItemPart
@@ -1224,12 +1224,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         con_dst = connections[options.get('db')]
         con_dst.enter_transaction_management()
         con_dst.managed()
-        
+
         print '\n fm_sawyerdetails -> digipal_text\n'
-        
+
         from digipal.models import Text, CatalogueNumber, Description, Source
         source_esawyer = Source.objects.get(name=settings.SOURCE_SAWYER)
-        
+
         es_descriptions = utils.fetch_all_dic(utils.sqlSelect(con_dst, 'select sawyer_num, title, king, kingdom, comments from fm_sawyerdetails'))
 
         es_text_item_parts0 = utils.fetch_all_dic(utils.sqlSelect(con_dst, '''
@@ -1240,7 +1240,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 and re.msid = cm.msid
             order by sd.sawyer_num
         '''))
-        
+
         # Create a key/hash for every item part in eSawyer DB
         #
         # Two problems:
@@ -1249,7 +1249,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         #
         # => we first try to match records using an exact key for our item part.
         #     if it does not work we try to match using a loose key: without cm.part
-        
+
         def get_key(code):
             ret = utils.get_simple_str(code).replace('_i_', '_1_').replace('_lat_', '_latin_')
             ret = ret.replace('_additionals_', '_add_').replace('_additional_', '_add_').replace('_f_', '_').replace('_fols_', '_').replace('_ff_', '_')
@@ -1260,9 +1260,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             ret = ret.replace('1497_m_140', '1497_m140').replace('_wcm_', '_').replace('_muniments_', '_').replace('_cathedral_', '_cath_').replace('_d_dp_t_', '_d_dp_t')
             ret = ret.replace('_e_d_c_1b_', '_edc_1b_').replace('795_pro_30_', '795_30_').replace('eng_hist_a_2_no_viii_a', 'eng_hist_a_2_no_viiia')
             ret = ret.replace('981_stowe_ch_40_none', '981_stowe_ch_40_')
-            
+
             return ret
-        
+
         es_text_item_parts = {}
         for key in es_text_item_parts0:
             es_text_item_part = es_text_item_parts0[key]
@@ -1275,9 +1275,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     # The loose key cannot be used anymore as it corresponds to more than one item part
                     #print loose_key
                     es_text_item_parts[loose_key] = None
-        
+
         #print '-' * 50
-        
+
         # For each text with an eSawyer cat num
         # We update the text description from the matching record in eSawyer.
         # Then find the item part matching those in eSawyer DB.
@@ -1286,13 +1286,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         cat_nums = CatalogueNumber.objects.filter(number__in=es_descriptions.keys(), source=source_esawyer, text_id__isnull=False)
         for cat_num in cat_nums:
             # update the Text record from the esawyerdetails record
-            
+
             # Create/Update the Description
             es_desc = es_descriptions[cat_num.number]
             text = cat_num.text
-            
+
             print 'Text %s' % utils.get_obj_label(text)
-            
+
             descriptions = text.descriptions.filter(source=source_esawyer)
             if descriptions:
                 print '\tUpdate description'
@@ -1300,7 +1300,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             else:
                 print '\tCreate description'
                 description = Description(source=source_esawyer, text=text)
-            
+
             if es_desc['title'] and es_desc['title'].strip():
                 description.description = es_desc['title']
                 print '\t\tUpdate description'
@@ -1308,9 +1308,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 description.comments = es_desc['comments']
                 print '\t\tUpdate comments'
             description.summary = ''
-            
+
             description.save()
-            
+
             # Update the textitempart record from the esawyer mssrelationship record
             for text_item_part in text.text_instances.all():
                 # first try a precise match on the locus
@@ -1336,7 +1336,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                                  if similars: similars += ' | '
                                  similars += '#%s (%s)' % (es_text_item_parts[pk]['recordid'], pk)
                         print '\t\tSimilar: %s' % similars
-                
+
                 if es_text_item_part:
                     item_part_count += 1
                     print u'\tUpdate item part %s' % repr(utils.get_obj_label(text_item_part))
@@ -1345,7 +1345,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     if es_text_item_part['this_text_date']:
                         text_item_part.date = es_text_item_part['this_text_date']
                     text_item_part.save()
-            
+
         print 'Updated %d Text records and % d item parts.' % (cat_nums.count(), item_part_count)
 
         self.print_warning_report()
@@ -1360,11 +1360,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def fp7_import(self, options):
         '''
         --src=file.xml
-        
+
         Where file.xml is a XML file exported from a FileMaker Pro 7 table.
         This command will (re)create a table in the database and upload all
         the date from the XML file.
-        
+
         '''
         import xml.etree.ElementTree as ET
 
@@ -1383,10 +1383,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         con_dst = connections[options.get('db')]
         con_dst.enter_transaction_management()
         con_dst.managed()
-        
+
         # get all the rows and fields and the max lengths
         fields = {}
-        
+
         rows = []
         for row in root.findall('.//%sROW' % ns):
             arow = {}
@@ -1396,7 +1396,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             for col, val in row.attrib.iteritems():
                 field_name = utils.get_simple_str(re.sub(ur'\{[^}]*\}', '', col))
                 arow[field_name] = val
-            
+
             for field, val in arow.iteritems():
                 if field not in fields:
                     fields[field] = [0, True, False]
@@ -1404,16 +1404,16 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     fields[field][0] = max(fields[field][0], len(val))
                     fields[field][1] &= utils.is_int(val)
                 fields[field][2] |= (val is None)
-                 
+
             #print arow
             rows.append(arow)
-            
+
         # (re)create the table
         table_name = 'fm_' + utils.get_simple_str(re.sub(ur'^.*[\\/]([^.]+).*$', ur'\1', xml_file))
         print table_name
-        
+
         utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
-        
+
         def field_type(field, field_name):
             ret = 'int'
             if not field[1]:
@@ -1422,91 +1422,91 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 ret += ' PRIMARY KEY '
             if field[2]:
                 ret += ' NULL '
-            
+
             return ret
-        
+
         fields_sql = ', '.join(['%s %s' % (f, field_type(fields[f], f)) for f in fields])
-        
+
         create_table_sql = 'CREATE TABLE %s (%s)' % (table_name, fields_sql)
-        
+
         #print create_table_sql
-        
+
         utils.sqlWrite(con_dst, create_table_sql)
-        
+
         # write the records
         fields_ordered = fields.keys()
         insert_sql = ur'INSERT INTO %s (%s) VALUES (%s)' % (table_name, ', '.join([f for f in fields_ordered]), ','.join([ur'%s'] * len(fields_ordered)))
-        
+
         for row in rows:
             utils.sqlWrite(con_dst, insert_sql, [row[f] for f in fields_ordered])
-            
+
         con_dst.commit()
         con_dst.leave_transaction_management()
 
         print 'Wrote %d records in table %s' % (len(rows), table_name)
-        
+
         #print fields
-    
+
     def parse_em_table(self, options):
         from digipal.utils import find_first
         import HTMLParser
         hp = HTMLParser.HTMLParser()
-        
+
         csv_path = 'em.csv'
 
         with open(csv_path, 'wb') as csvfile:
 
             import csv
             csvwriter = csv.writer(csvfile)
-        
+
             xml_file = options.get('src', '')
             html = utils.readFile(xml_file)
-            
+
             # extract the rows
             rows = re.findall(ur'<tr>(.*?)</tr>', html)
-            
+
             csvwriter.writerow(['Digipal URL', 'Type', 'Place', 'Repository', 'Collection', 'Shelf Mark', 'Ker', 'Content', 'Place', 'Date', 'File Name', 'URL'])
-            
+
             for row in rows:
                 # extract the columns
                 cols = re.findall(ur'<td>(.*?)</td>', row)
-                
+
                 # extract href from first column
                 href = find_first(ur'href="(.*?)"', cols[0])
-    
+
                 # get the file name from the href
                 href_file = find_first(ur'/([^/]+?)$', href)
-                
+
                 href_abs = ''
                 if href_file:
                     href_abs = ur'http://www.le.ac.uk/english/em1060to1220/mss/%s' % href_file
-                
+
                 # extract class
                 ms_type = find_first(ur'class="(.*?)"', cols[0])
-                
+
                 # strip html from all columns
                 # and decode html entities (e.g. &nbsp; &amp;)
                 for i in range(0, len(cols)):
                     cols[i] = re.sub(ur'<.*?>', '', cols[i])
                     cols[i] = hp.unescape(cols[i])
-                    
+
                 # add extracted fields to the list of columns
                 cols.extend([href_file, href_abs])
                 cols.insert(0, ms_type)
                 cols.insert(0, '')
-                
+
                 for i in range(0, len(cols)):
                     cols[i] = cols[i].encode('latin-1', 'ignore')
-                
+
                 # write this row to a CSV file
                 #line = csv.reader(csvfile, delimiter=' ', quotechar='|')
                 csvwriter.writerow(cols)
-        
+
     def importStokesCatalogue(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
-        
+
         xml_file = options.get('src', '')
-        
+
         # <p><label>G.4-2</label>. Hand 2 (5r). This large, very rotund hand was written
         # with a thick pen held quite flat and with a great deal of shading. Ascenders
         # are thick, straight
@@ -1514,48 +1514,48 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         content = utils.readFile(xml_file)
         #hand_infos = re.findall(ur'(?uis)<p><label>\s*(.*?)\s*</label>(?:\s|\.)*(.*?)\s*\((.*?)\)\s*(.*?)\s*</p>', content)
         hand_infos = re.findall(ur'(?uis)<p><label>\s*(.*?)\s*</label>(?:\s|\.)*(.*?)\s*(?:\((.*?)\)|\.)\s*(.*?)\s*</p>', content)
-        
+
         updated_hands = {}
         modified_hands = []
         tags = []
-        
+
         for info in hand_infos:
-            
+
             migrated = False
-            
+
             self.logger.resetWarning()
-            
+
             # G.65.5-1 => [G, 65.5, 1]
             hand_id, hand_label, loci, description = info
             label_parts = re.findall(ur'^(\w)\.([^-]+)(?:-(.*))?$', info[0])
             if label_parts:
                 #self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
-                
+
                 description = (re.sub(ur'^(\s|\.)*', '', description)).strip()
-                
+
                 if len(label_parts[0]) > 30:
                     self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
                     self.log(u'Labels is too long (%s)' % label_parts[0], Logger.WARNING, 1)
                     continue
-                
+
                 loci = loci.strip()
                 catalogue, doc_number, hand_number = label_parts[0]
                 if not hand_number:
 #                      print '\tWARNING: no hand number.'
                      hand_number = '1'
-                
+
                 # 1. find the Hand record
                 from digipal.models import Hand
-                
+
                 hand_number_parts = (re.findall(ur'^(\d+)(.*)$', hand_number))[0]
-                
+
                 # TODO: update this query to work with multiple historical_itemS for each item part
                 hands = Hand.objects.filter(num=hand_number_parts[0], item_part__historical_item__catalogue_numbers__number=doc_number, item_part__historical_item__catalogue_numbers__source__label='%s.' % catalogue)
-                
+
                 # 2. validation
 #                    if hand_number_parts[1]:
 #                        self.log('non numeric hand number', Logger.WARNING, 1)
-                     
+
                      # 3 advanced matching:
                      # 3.1 No match at all
                 if not hands:
@@ -1574,7 +1574,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         self.log('more than one similar record.', Logger.WARNING, 1)
                     if same_hands.count() == 1:
                         hands = same_hands
-                     
+
                      # 3.2 More than one match
                 if len(hands) > 1:
                     self.log(u','.join([hand_id, hand_label, loci]), Logger.INFO)
@@ -1591,27 +1591,27 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         self.log('no similar record', Logger.WARNING, 1)
                     if len(hands) > 1:
                         self.log('more than one similar record.', Logger.WARNING, 1)
-                         
+
                 # 4. update the Hand record
                 for hand in hands:
                     new_description = hand_label
                     if loci: new_description += u' (%s)' % loci
-                    
+
                     hand_desc_short = re.sub(ur'\(.*', '', hand.description.lower()).strip()
-                    
+
                     new_desc_short = hand_label.lower().strip()
-                    
+
                     #                      if hand_desc_short != new_desc_short:
                     #                          self.log(u'%s <> %s' % (hand.description, new_description), Logger.WARNING, 1)
-                    
+
                     # 3. update the Hand record
-                        
+
                     # hand.label = hand_description
                     if hand.label and hand.label.strip() != hand.description.strip():
                         self.log(u'label is not empty: %s' % hand.label, Logger.WARNING, 1)
                     else:
                         hand.label = hand.description
-                    
+
                     existing_hand_id = updated_hands.get(hand.id, '')
                     if existing_hand_id:
                         self.log(u'Hand #%s already updated from %s' % (hand.id, existing_hand_id), Logger.WARNING, 1)
@@ -1620,11 +1620,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                              self.log(u'Update Hand #%s' % hand.id, Logger.INFO, 1)
                         # hand.description = xml description
                         hand.description = re.sub(ur'(?iu)\s+', ' ', description).strip()
-                        
+
                         modified_hands.append(hand)
                         updated_hands[hand.id] = hand_id
                         migrated = True
-                 
+
                 if not migrated:
                     self.log('DESCRIPTION NOT MIGRATED', Logger.WARNING, 1)
 
@@ -1645,7 +1645,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             r.save()
         for r in Owner.objects.all():
             r.save()
-    
+
     @transaction.atomic
     def import_moa_charters(self):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -1659,7 +1659,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             raise CommandError('Please provide the path to a source CSV file with --src=PATH .')
 
         import csv
-        
+
         from digipal.models import Repository, ItemPart, CurrentItem, HistoricalItem, Image, Place, CatalogueNumber, Source, ItemPartItem, Owner
         from digipal.utils import get_normalised_path
 
@@ -1671,17 +1671,17 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 print 'Delete from %s' % model._meta.db_table
                 cursor.execute('delete from %s' % model._meta.db_table)
             cursor.execute('update digipal_image set item_part_id = null')
-        
+
         unknown_place = Place(name='Unknown')
         unknown_place.save()
-        
+
         with open(csv_path, 'rb') as csvfile:
             csvreader = csv.reader(csvfile)
-            
+
             # TODO: Split source: Document 1/4/1 (Chrs. David I, no. 16)
             # => (POMS, Document 1/4/1) + (Chrs. David I, no. 16)
             # TODO: manually review and correct the repo name and place as the values are sometimes missing or conflated
-            
+
             # Create POMS source
             if import_cat_num:
                 poms_source_data = {'name': 'Prosopography of Medieval Scotland', 'label': 'POMS'}
@@ -1691,26 +1691,26 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 else:
                     poms_source = Source(**poms_source_data)
                     poms_source.save()
-            
+
             # Create the MS for each line in the CSV
             columns = None
             records = []
             c = 0
             stats = {}
             line_index = 0
-            
+
             image_paths = {}
             unique_lines = {}
-            
+
             for line in csvreader:
                 line_index += 1
                 line = [v.decode('latin-1') for v in line]
                 if not columns:
                     columns = line
                     continue
-                
+
                 rec = dict(zip(columns, line))
-                
+
                 print line_index, rec['Shelfmark']
 
                 # report and skip duplicate CSV lines
@@ -1720,7 +1720,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     continue
                 else:
                     unique_lines[line_key] = line_index
-                
+
                 # find duplicate image refs
                 if 0:
                     image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
@@ -1729,9 +1729,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     items = image_paths.get(image_path, [])
                     items.append('%s %s' % (line_index, rec['Shelfmark']))
                     image_paths[image_path] = items
-                    
+
                     continue
-                
+
                 # create the repo
                 repos = Repository.objects.filter(name=rec['Repository'])
                 if not repos.count():
@@ -1741,11 +1741,11 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     repo.save()
                 else:
                     repo = repos[0]
-                    
+
                 # create the CurrentItem
                 if not rec['Shelfmark']:
                     rec['Shelfmark'] = 'Missing Shelfmark (%s)' % rec['POMS reference']
-                
+
                 cis = CurrentItem.objects.filter(shelfmark=rec['Shelfmark'])
                 if not cis.count():
                     ci = CurrentItem(shelfmark=rec['Shelfmark'], repository=repo)
@@ -1763,7 +1763,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 hi = None
                 if ip:
                     hi = ip.historical_item
-                
+
                 if not hi:
                     # create the HistoricalItem
                     hi = HistoricalItem(historical_item_type_id=1, date=rec['Date'])
@@ -1781,12 +1781,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                             ha.save()
                         else:
                             ha = has[0]
-                            
+
                         # add link b/w HI and Historical Archive
                         ownership = Owner(repository=ha)
                         ownership.save()
                         hi.owners.add(ownership)
-                    
+
                     # create the Cat Num
                     if import_cat_num:
                         if rec['POMS reference']:
@@ -1800,8 +1800,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                                 hi.save()
                         else:
                             self.print_warning('catalogue number missing', indent=1, extra='(line %s)' % line_index)
-                            
-                
+
+
                 # link to the image records
                 image_path = get_normalised_path(re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
                 # remove drive (e.g. Z/)
@@ -1820,7 +1820,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                             continue
                         image.item_part = ip
                         image.save()
-                    
+
         for k, v in image_paths.iteritems():
             if len(v) > 1:
                 print k, v
@@ -1828,40 +1828,40 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.print_warning_report()
         if self.is_dry_run():
             raise Exception('ROLLBACK (dry run)')
-        
+
     def getTablenameFromPath(self, path):
         ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)
         return ret
-        
+
     def createTableFromCSV(self):
         options = self.options
 
         file_path = self._args[1]
-        
+
         self._createTableFromCSV(file_path, options)
 
     def _createTableFromCSV(self, file_path, options=None):
         options = options or {}
-        
+
         from digipal.utils import read_all_lines_from_csv
         same_as_above = options.get('saa', None)
         if same_as_above:
             same_as_above.split(',')
         fct_args = {
-                    'ignore_incomplete_lines': options.get('iil', False), 
+                    'ignore_incomplete_lines': options.get('iil', False),
                     'same_as_above': same_as_above,
                     'encoding': options.get('encoding', None)
                     }
         lines = read_all_lines_from_csv(file_path, **fct_args)
-        
+
         if not lines:
             print 'ERROR: cannot create table, no line in input CSV file (%s)' % file_path
             exit()
 
         table_name = self.getTablenameFromPath(file_path)
-        
+
         #print lines[0].keys()
-        
+
         # find the type of each column
         schema = []
         types = {}
@@ -1872,9 +1872,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 if len(val) > max_len:
                     max_len = len(val)
             schema.append([col, 'varchar(%s)' % max_len])
-        
+
         #print schema
-        
+
         from django.db import connections
         con_dst = connections[options.get('db', 'default')]
         utils.sqlWrite(con_dst, 'DROP TABLE IF EXISTS %s' % table_name)
@@ -1883,7 +1883,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             %s
         )
         ''' % (table_name, ', '.join(['%s %s' % (col[0], col[1]) for col in schema]))
-        
+
         utils.sqlWrite(con_dst, create)
 
         print 'Created table %s (%s columns)' % (table_name, len(schema))
@@ -1892,7 +1892,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         options = self.options
         file_path = self._args[1]
         self._insertTableFromCSV(file_path, options)
-        
+
     def _insertTableFromCSV(self, file_path, options=None):
         options = options or {}
 
@@ -1901,7 +1901,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if same_as_above:
             same_as_above.split(',')
         fct_args = {
-                    'ignore_incomplete_lines': options.get('iil', False), 
+                    'ignore_incomplete_lines': options.get('iil', False),
                     'same_as_above': same_as_above,
                     'encoding': options.get('encoding', None)
                     }
@@ -1913,14 +1913,14 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         from django.db import connections
         con_dst = connections[options.get('db', 'default')]
         utils.sqlDeleteAll(con_dst, table_name, self.is_dry_run())
-        
+
         fields_ordered = lines[0].keys()
-        
+
         from digipal.utils import ProgressBar
-        
+
         pbar = ProgressBar()
         pbar.reset(len(lines))
-        
+
         # insert all
         i = 0
         for line in lines:
@@ -1929,9 +1929,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             insert_sql = ur'INSERT INTO %s (%s) values (%s)' % (table_name, ','.join(fields_ordered), ','.join([ur'%s' for f in fields_ordered]))
             utils.sqlWrite(con_dst, insert_sql, [unicode(line[f]).strip() for f in fields_ordered])
         pbar.complete()
-            
+
         print 'Written %s records into table %s' % (len(lines), table_name)
-    
+
     def importStewart(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 
@@ -1940,19 +1940,19 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             raise CommandError('Please provide the path to a source CSV file with --src=PATH .')
 
         import csv
-        
+
         dst_table = 'digipal_stewartrecord'
-        
+
         with open(csv_path, 'rb') as csvfile:
             #line = csv.reader(csvfile, delimiter=' ', quotechar='|')
             csvreader = csv.reader(csvfile)
-            
+
             con_dst = connections[options.get('db')]
             con_dst.enter_transaction_management()
             con_dst.managed()
 
             utils.sqlDeleteAll(con_dst, dst_table, self.is_dry_run())
-            
+
             columns = None
             records = []
             c = 0
@@ -1963,30 +1963,30 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     columns = line
                     for co in columns: stats[co] = 0
                     continue
-                
+
                 rec = dict(zip(columns, line))
-                
+
                 for k,v in rec.iteritems():
                     if len(v) > stats[k]: stats[k] = len(v)
-                                    
+
                 records.append(rec)
                 c += 1
                 #if c > 10: exit()
-                
+
             #print stats
             #exit()
-            
+
             self.copyTable(None, csv_path, con_dst, dst_table, records, {'Date': 'adate'})
-                
+
             con_dst.commit()
             con_dst.leave_transaction_management()
-    
+
     def is_dry_run(self):
         return self.options.get('dry-run', False)
-    
+
     def migrateRecords(self, options):
         from django.db import connections, transaction
-        
+
         table_filter = options.get('table', '')
         if not table_filter:
             raise CommandError('Please provide a table filter using the --table option. To copy all tables, use --table ALL')
@@ -1994,17 +1994,17 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         con_src = connections[options.get('src')]
         con_dst = connections[options.get('db')]
-        
+
         with transaction.atomic(con_dst.alias):
 
             self.log('MIGRATE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
-            
+
             # 1. find all the remote tables starting with the prefix
             src_tables = con_src.introspection.table_names()
             dst_tables = con_dst.introspection.table_names()
-            
+
             con_dst.disable_constraint_checking()
-            
+
             for src_table in src_tables:
                 if re.search(r'%s' % table_filter, src_table):
                     if src_table in dst_tables:
@@ -2012,15 +2012,15 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         self.copyTable(con_src, src_table, con_dst, src_table)
                     else:
                         self.log('Table not found in destination (%s)' % src_table, 1)
-    
+
     def reapplyDataMigrations(self):
         '''
             We have to re-apply the data migrations only.
-            
+
             Why?
-            
+
             Because pouring data from an old datatabase structure to a new one is already a hack.
-            
+
             It leaves the schema migration applied but reverses the data migrations.
             South does not allow you to reapply single data migration without reversing olders and this will
             break anyway as they are not necessarily reversible.
@@ -2038,27 +2038,27 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             mig = migmodule.Migration()
             mig.forwards(orm)
             self.log('done.', 2)
-    
+
     def migrateHandRecords(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
 
         con_src = connections[options.get('src')]
         con_dst = connections[options.get('db')]
-        
+
         con_dst.enter_transaction_management()
         con_dst.managed()
 
         self.log('MIGRATE Hands from "%s" DB to "%s" DB.' % (con_src.alias, con_dst.alias), 2)
-        
+
         table_prefix_src = 'hand_'
         table_prefix_dst = 'digipal_'
-        
+
         # 1. find all the remote tables starting with the prefix
         src_tables = con_src.introspection.table_names()
         dst_tables = con_dst.introspection.table_names()
-        
+
         con_dst.disable_constraint_checking()
-        
+
         for src_table in src_tables:
             dst_table = re.sub(r'^'+table_prefix_src, table_prefix_dst, src_table)
             if dst_table != src_table:
@@ -2067,31 +2067,31 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                     self.copyTable(con_src, src_table, con_dst, dst_table)
                 else:
                     self.log('Table not found in destination (%s)' % dst_table, 1)
-        
+
         con_dst.commit()
         con_dst.leave_transaction_management()
-        
+
     def normalisedField(self, name):
         name = name.lower()
         name = re.sub(ur'\s', '_', name)
         name = re.sub(ur'\W', '', name)
         return name
-    
+
     def copyTable(self, con_src, src_table, con_dst, dst_table, src_records=[], partial_mapping = None):
         ret = True
-        
+
         self.log('Copy from %s to %s ' %  (src_table, dst_table), 2)
-        
+
         # 1 find all fields in source and destinations
         if con_src:
             fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
             fnames_src = [f[0] for f in fields_src]
         else:
             fnames_src = src_records[0].keys()
-        
+
         fields_dst = con_dst.introspection.get_table_description(con_dst.cursor(), dst_table)
         fnames_dst = [f[0] for f in fields_dst]
-        
+
         # 2. find a mapping between the src and dst fields
         from django.utils.datastructures import SortedDict
         mapping = SortedDict()
@@ -2104,7 +2104,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 for fn2 in fnames_dst:
                     if self.normalisedField(fn) == self.normalisedField(fn2):
                         mapping[fn] = fn2
-                                        
+
         missings = set(fnames_src) - set(mapping.keys())
         additionals = set(fnames_dst) - set(mapping.values())
         ##common = [fn for fn in fnames_src if fn in fnames_dst]
@@ -2128,7 +2128,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if 0 and dst_table == 'generic_threadedcomment' and src_table == 'generic_threadedcomment':
             common_str_dst = common_str_dst + ', rating_average, rating_count, rating_sum'
             params_str = params_str + ', 0, 0, 0'
-            
+
         # 3 copy all the records over
         recs_src = None
         if con_src:
@@ -2138,31 +2138,31 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         while True:
             l += 1
             rec_src = None
-            
+
             if recs_src:
                 rec_src = recs_src.fetchone()
             else:
                 if l < len(src_records):
                     rec_src = [src_records[l][fn] for fn in mapping.keys()]
-                    
+
             if rec_src is None: break
-            
+
             # hack...
             if dst_table == 'digipal_itempart' and src_table == 'hand_itempart':
                 rec_src = list(rec_src)
                 rec_src.append(False)
-            
+
             utils.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src, self.is_dry_run())
             c = c + 1
             #print c
             #break
-            
+
         self.log('Copied %s records' % c, 2)
         if recs_src:
             recs_src.close()
-        
+
         return ret
-            
+
     def run_shell_command(self, command):
         ret = True
         try:
@@ -2184,9 +2184,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             self.messages = {}
         self.messages[message] = self.messages.get(message, 0) + 1
         utils.prnt((u'\t' * indent) + u'WARNING: ' + message + u' ' + extra)
-        
+
     def print_warning_report(self):
         print 'WARNINGS:'
         for message in getattr(self, 'messages', []):
             print '\t%6d: %s' % (self.messages[message], message)
-    
+

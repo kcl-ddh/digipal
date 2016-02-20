@@ -90,7 +90,9 @@ class TextUnit(object):
         return TextUnits()
 
 class TextContentType(digipal.models.NameModel):
-    pass
+    class Meta:
+        verbose_name = 'Text Type'
+        verbose_name_plural = 'Text Types'
 
 class TextContent(models.Model):
     languages = models.ManyToManyField('digipal.Language', blank=True, null=True, related_name='text_contents')
@@ -103,6 +105,8 @@ class TextContent(models.Model):
 
     class Meta:
         unique_together = ('item_part', 'type')
+        verbose_name = 'Text (meta)'
+        verbose_name_plural = 'Texts (meta)'
 
     def get_string_from_languages(self):
         return u', '.join([l.name for l in self.languages.all()])
@@ -125,6 +129,10 @@ class TextContent(models.Model):
 class TextContentXMLStatus(digipal.models.NameModel):
     sort_order = models.IntegerField(blank=False, null=False, default=0, help_text='The order of this status in your workflow.')
 
+    class Meta:
+        verbose_name = 'Text Status'
+        verbose_name_plural = 'Text Statuses'
+
 class TextContentXMLCopy(models.Model):
     source = models.ForeignKey('TextContentXML', blank=True, null=True, related_name='versions')
     ahash = models.CharField(max_length=100, blank=True, null=True)
@@ -135,6 +143,8 @@ class TextContentXMLCopy(models.Model):
 
     class Meta:
         unique_together = ('source', 'ahash',)
+        verbose_name = 'Text Copy'
+        verbose_name_plural = 'Text Copies'
 
     @classmethod
     def create_from_content_xml(cls, content_xml):
@@ -171,13 +181,18 @@ class TextContentXMLCopy(models.Model):
 
 class TextContentXML(models.Model):
     status = models.ForeignKey('TextContentXMLStatus', blank=False, null=False, related_name='text_content_xmls')
-    text_content = models.ForeignKey('TextContent', blank=True, null=True, related_name='text_content_xmls')
+    text_content = models.ForeignKey('TextContent', blank=False, null=False, related_name='text_content_xmls')
     content = models.TextField(blank=True, null=True)
     last_image = models.ForeignKey('digipal.Image', blank=True, null=True, related_name='text_content_xmls')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
+    class Meta:
+        unique_together = ('text_content',)
+        verbose_name = 'Text (XML)'
+        verbose_name_plural = 'Texts (XML)'
+    
     @classmethod
     def get_public_only(cls, ignore=False):
         '''Return all the publicly accessible records.

@@ -350,6 +350,8 @@ class Text(models.Model):
             editable=False)
 
     class Meta:
+        verbose_name = 'Text Info'
+        verbose_name_plural = 'Text Info'
         unique_together = ['name']
         ordering = ['name']
 

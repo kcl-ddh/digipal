@@ -284,8 +284,9 @@ MIDDLEWARE_CLASSES = (
 
 ADMIN_MENU_ORDER = (
     ('Web Content', ('blog.BlogPost', 'pages.Page', 'digipal.CarouselItem', 'generic.Keyword', 'generic.ThreadedComment', ('Media Library', 'fb_browse'))),
-    ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart', 'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
     ('Image', ('digipal.Image', 'digipal.MediaPermission')),
+    ('Text', ('digipal_text.TextContentXML', 'digipal_text.TextContent', 'digipal_text.TextContentType', 'digipal_text.TextContentXMLStatus', 'digipal.Text')),
+    ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart', 'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
     ('Hand', ('digipal.Hand', 'digipal.Scribe', 'digipal.Script')),
     ('Annotation', ('digipal.Annotation', 'digipal.Graph', 'digipal.ImageAnnotationStatus')),
     ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
@@ -293,7 +294,6 @@ ADMIN_MENU_ORDER = (
     ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
     ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County')),
     ('Admin', ('auth.User', 'auth.Group', 'conf.Setting', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog', 'admin.LogEntry')),
-    ('Text Content', ('digipal.Text', 'digipal_text.TextContent', 'digipal_text.TextContentType', 'digipal_text.TextContentXML', 'digipal_text.TextContentXMLStatus')),
 )
 
 ADMIN_MENU_COLLAPSED = True

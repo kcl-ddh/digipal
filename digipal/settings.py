@@ -495,7 +495,17 @@ DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
 # the site admins on every HTTP 500 error.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
+# Log debug info into debug.log
+# Includes SQL statements
+# Not for production
 DJANGO_DEBUG_LOG = False
+
+# Log the duration of each http response from django
+# and internal operations (search, indexing)
+# See middleware,py
+# Indepent from DJANGO_DEBUG_LOG
+DEBUG_PERFORMANCE = False
 
 LOGGING = {
         'version': 1,
@@ -715,8 +725,11 @@ if DJANGO_DEBUG_LOG and LOGGING:
     }
 
 # See http://stackoverflow.com/questions/26682413/django-rotating-file-handler-stuck-when-file-is-equal-to-maxbytes/32011192#32011192
+# Deactivate log for the parent process of runserver, children will have the log
+# This is to avoid errors when the log rotates and the parent process still has a handle of the file
 import os
-if DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
+RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
+if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}
 
 ####################

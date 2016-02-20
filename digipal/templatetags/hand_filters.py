@@ -194,7 +194,7 @@ def chrono(label):
         In debug mode it will print this on the std output:
             before listing: CURRENT DATE TIME
     '''
-    if getattr(settings, 'DEV_SERVER', False):
+    if getattr(settings, 'DEBUG_PERFORMANCE', False):
         t = datetime.now()
         d = t - chrono.last_time
         chrono.last_time = t

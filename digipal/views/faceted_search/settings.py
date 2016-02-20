@@ -272,7 +272,8 @@ FACETED_SEARCH = {
                                 {'key': 'is_described', 'label': 'With description', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
 
-                                {'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                                #{'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                                {'key': 'hi_date', 'label': 'Date', 'path': 'annotation.image.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
 
@@ -281,9 +282,12 @@ FACETED_SEARCH = {
                     'select_related': ['annotation__image__item_part__current_item__repository__place',
                                        'idiograph__allograph__character__ontograph__ontograph_type',
                                        'idiograph__allograph__character__form__name',
-                                       'hand__assigned_place',
+                                       'hand__assigned_place'
                                        ],
-                    'prefetch_related': ['annotation__image__item_part__historical_items', 'annotation__image__item_part__historical_items__historical_item_format', 'annotation__image__item_part__historical_items__historical_item_type'],
+                    'prefetch_related': ['annotation__image__item_part__historical_items', 
+                                         'annotation__image__item_part__historical_items__historical_item_format', 
+                                         'annotation__image__item_part__historical_items__historical_item_type'
+                                         ],
                     'filter_order': ['hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],

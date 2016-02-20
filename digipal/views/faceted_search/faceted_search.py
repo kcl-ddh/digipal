@@ -130,14 +130,16 @@ class FacetedModel(object):
         '''
         ret = self.model
         parts = field['path'].split('.')
-        path = parts[-1]
-        for part in parts[:-1]:
-            ret = getattr(ret, part, None)
-            if not hasattr(ret, 'get_queryset'):
-                ret = self.model
-                path = field['path']
+        while parts:
+            part = parts.pop(0)
+            part_obj = getattr(ret, part, None)
+            if hasattr(part_obj, 'get_queryset'):
+                ret = part_obj.get_queryset().model
+            else:
+                parts.insert(0, part)
                 break
-            ret = ret.get_queryset().model
+        path = '.'.join(parts)
+            
         return ret, path
 
     def prepare_value_rankings(self):
@@ -147,9 +149,10 @@ class FacetedModel(object):
         '''
         self.value_rankings = {}
 
-        records = self.get_all_records(False)
+        #records = self.get_all_records(False)
+        records = self.get_all_records(True).order_by('id')
         print '\t\t%d records' % records.count()
-
+        
         for field in self.fields:
             if self.is_field_indexable(field):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
@@ -171,7 +174,6 @@ class FacetedModel(object):
                     value_rankings['None'] = u''
                     value_rankings[u''] = u''
                     for record in model.objects.all().order_by('id'):
-                    #for record in self.get_all_records(True).order_by('id'):
                         value = self.get_record_path(record, path)
                         #value = self.get_record_field_whoosh(record, field)
                         value = self.get_sortable_hash_value(value, field)

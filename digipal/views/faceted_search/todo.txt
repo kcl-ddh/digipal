@@ -1,8 +1,22 @@
-Visualisation
-    . texts
-    . graphs
-        .
 
+Visualisation
+    . date ranges
+        . add migration for new col hi.date_sort
+        . import file to repo
+        . add migration to import date into db
+        . use fct to return hi.date_sort OR hi.date
+    . texts
+        . colors for another cat
+            . how?
+        . reference set? => layers
+            . show layers
+                . query summary | color | remove|save|hide|show
+    . graphs
+        . COLLAPSING
+        . show SAMPLES graph
+    . info box:
+        . show thumb
+        . show text sample
 
 DONE 1. image size too big on moa (all)
 2. 500 error (why? try the new iipsrv)

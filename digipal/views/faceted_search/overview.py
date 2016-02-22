@@ -30,6 +30,9 @@ def draw_overview(faceted_search, context, request):
     mins = [None, None]
     maxs = [None, None]
 
+    # if True, we group all the results by document to avoid stacking graphs or clauses
+    collapse = True
+
     records = context['result']
 
     # determine large y bands for the categories

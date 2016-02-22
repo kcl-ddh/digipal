@@ -30,6 +30,10 @@ Commands:
         Test the field extraction from record + path used by the faceted search module
         e.g. record_path manuscripts historical_item.historical_item_type.name 598
 
+    dateconv [hi [HI_ID]]
+        reports datse which cannot be parsed correctly
+        if hi: check hi.get_date_sort() otherwise check dateevidence.date
+
     max_date_range FIELD
         e.g. max_date_range HistoricalItem.date
         returns the minimum and maximum of the date values among all HistoricalItem records
@@ -276,6 +280,9 @@ Commands:
             known_command = True
             self.adhoc_test(*args[1:])
 
+        if not known_command:
+            print self.help
+
 
     def race(self, *args):
         '''
@@ -322,12 +329,12 @@ Commands:
         rows = []
 
         for hi in HistoricalItem.objects.all():
-            date = hi.date
+            date = hi.get_date_sort()
             rg = get_range_from_date(date)
             if rg[0] in MAX_DATE_RANGE or rg[1] in MAX_DATE_RANGE:
                 rows.append({
                             u'Document': u'%s' % hi.display_label,
-                            u'Date': u'%s' % hi.date,
+                            u'Date': u'%s' % hi.get_date_sort(),
                             u'Record ID (MOA HI)': u'%s' % hi.id,
                             u'Evidence': u'%s' % u'| '.join([u'%s' % de.evidence for de in hi.date_evidences.all()]),
                             })
@@ -563,6 +570,7 @@ Commands:
             query = HistoricalItem.objects.all()
         else:
             query = Date.objects.all()
+            #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
 
         rid = None
         if len(args) == 2:
@@ -570,32 +578,33 @@ Commands:
             query = query.filter(id=rid)
 
         cnt = query.count()
-        for d in query.order_by('id'):
-        #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
+        for rec in query.order_by('id'):
+            d = rec.date
             status = '=='
             if not args:
-                date_rgn = [d.min_weight, d.max_weight]
-                rng = get_range_from_date(d.date)
+                date_rgn = [rec.min_weight, rec.max_weight]
+                rng = get_range_from_date(rec.date)
                 if rng[0] in MAX_DATE_RANGE and rng[1] in MAX_DATE_RANGE:
                     status = '00'
                     unrec_count += 1
-                    print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
+                    print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (rec.id, status, rec.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
                 else:
                     if not(rng[0] == date_rgn[0] and rng[1] == date_rgn[1]):
                         status = '<>'
                     if rid or status == '<>':
-                        print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (d.id, status, d.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
+                        print '%4s %s %40s [%7s, %7s] [%7s, %7s]' % (rec.id, status, rec.date, date_rgn[0], date_rgn[1], rng[0], rng[1])
             if 'hi' in args:
-                if d.date:
-                    rng = get_range_from_date(d.date)
+                d = rec.get_date_sort()
+                if rec.date:
+                    rng = get_range_from_date(d)
                     if rng[0] in MAX_DATE_RANGE and rng[1] in MAX_DATE_RANGE:
                         status = '00'
                         unrec_count += 1
-                        print '%4s %s %40s [%7s, %7s]' % (d.id, status, d.date, rng[0], rng[1])
                     else:
                         if rid or (rng[0] == -5000 or rng[1] == 5000):
                             status = '<>'
-                            print '%4s %s %40s [%7s, %7s]' % (d.id, status, d.date, rng[0], rng[1])
+                    if status != '==':
+                        print '%4s %s %40s [%7s, %7s]' % (rec.id, status, d, rng[0], rng[1])
             if status != '==':
                 diff_count += 1
 

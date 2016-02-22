@@ -827,12 +827,12 @@ def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
 
 def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
     '''
-        Read a CSV file and returns an array where
+        Read a CSV file and returns an ARRAY where
         each entry correspond to a line in the file.
         It is assumed that the first line of the CSV
         contains the headings.
 
-        Each entry in the returned array is a dictionary
+        Each entry in the returned array is a DICTIONARY
         where the keys are the column headings and the
         values in the corresponding line in the file.
 

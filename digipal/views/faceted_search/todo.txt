@@ -4,6 +4,7 @@ Visualisation
         [done] add migration for new col hi.date_sort
         [done] import file to repo
         . add migration to import date into db
+        . use HI.get_date_sort() in the faceted search
         [done] use fct to return hi.date_sort OR hi.date
     . texts
         . colors for another cat

@@ -31,7 +31,7 @@ FACETED_SEARCH = {
 
                                {'key': 'hi_has_images', 'label': 'Image Availablity', 'path': 'get_has_public_image_label', 'type': 'code', 'count': True},
 
-                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'hi_format', 'label': 'Format', 'path': 'historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
@@ -42,7 +42,7 @@ FACETED_SEARCH = {
                                {'key': 'hi_image_count', 'label_col': 'Public Images', 'label': 'Public Images', 'path': 'get_non_private_image_count', 'type': 'int', 'viewable': True},
                                #{'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'hands_set.all.count', 'type': 'int', 'viewable': True},
                                #{'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
-                               
+
                                # experiment for SJB - 12/2/16
                                #{'key': 'allograph', 'label': 'Allograph', 'path': 'hands.all.graphs.all.idiograph.allograph.human_readable', 'viewable': False, 'type': 'title', 'count': True, 'search': True, 'multivalued': True},
                                ],
@@ -66,7 +66,7 @@ FACETED_SEARCH = {
                                #{'key': 'scribe', 'label': 'Scribe', 'path': 'hands__scribes__count', 'faceted': True, 'index': True},
                                #{'key': 'annotation', 'label': 'Annotations', 'path': 'annotations__count01', 'faceted': True, 'index': True},
                                #
-                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                #{'key': 'img_is_public', 'label': 'Full Image', 'path': 'is_media_public', 'type': 'boolean', 'count': True, 'search': True},
                                {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_media_permission.get_permission_label', 'type': 'code', 'count': True},
                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
@@ -173,7 +173,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
-                               {'key': 'hi_date', 'label': 'Date', 'path': 'text_content.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'Date', 'path': 'text_content.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
@@ -206,7 +206,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'content_xml.text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'content_xml.text_content.item_part.current_item.repository.human_readable', 'path_result': 'content_xml.text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'content_xml.text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'content_xml.text_content.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'content_xml.text_content.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'content_xml.text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 2},
@@ -250,7 +250,7 @@ FACETED_SEARCH = {
                     'django_filter': {'annotation__isnull': False},
                     'fields': [
                                 {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-    #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+    #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
     #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
                                 {'key': 'hi_type', 'label': 'Document Type', 'path': 'annotation.image.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
     #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
@@ -273,7 +273,7 @@ FACETED_SEARCH = {
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
 
                                 #{'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-                                {'key': 'hi_date', 'label': 'Date', 'path': 'annotation.image.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                                {'key': 'hi_date', 'label': 'Date', 'path': 'annotation.image.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
 
@@ -284,8 +284,8 @@ FACETED_SEARCH = {
                                        'idiograph__allograph__character__form__name',
                                        'hand__assigned_place'
                                        ],
-                    'prefetch_related': ['annotation__image__item_part__historical_items', 
-                                         'annotation__image__item_part__historical_items__historical_item_format', 
+                    'prefetch_related': ['annotation__image__item_part__historical_items',
+                                         'annotation__image__item_part__historical_items__historical_item_format',
                                          'annotation__image__item_part__historical_items__historical_item_type'
                                          ],
                     'filter_order': ['hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],

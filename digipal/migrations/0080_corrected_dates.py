@@ -12,14 +12,18 @@ class Migration(DataMigration):
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
 
-        from digipal.utils import read_all_lines_from_csv
+        file_path = 'mofa/sources/hi_dates_corrected.csv'
 
-        for line in read_all_lines_from_csv('mofa/sources/hi_dates_corrected.csv'):
-            if line['newdate'] and line['recordidmoahi']:
-                hi = orm['digipal.HistoricalItem'].objects.get(id=line['recordidmoahi'])
-                hi.date_sort = line['newdate'].strip()
-                print 'HI #%s: %s => %s' % (hi.id, hi.date, hi.date_sort)
-                hi.save()
+        from os.path import isfile
+        if isfile(file_path):
+            from digipal.utils import read_all_lines_from_csv
+
+            for line in read_all_lines_from_csv(file_path):
+                if line['newdate'] and line['recordidmoahi']:
+                    hi = orm['digipal.HistoricalItem'].objects.get(id=line['recordidmoahi'])
+                    hi.date_sort = line['newdate'].strip()
+                    print 'HI #%s: %s => %s' % (hi.id, hi.date, hi.date_sort)
+                    hi.save()
 
         #raise Exception('rollback')
 

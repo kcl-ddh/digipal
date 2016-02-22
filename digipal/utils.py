@@ -535,9 +535,7 @@ def get_range_from_date_simple(str):
 
     # remove day month
     # eg. 11 November 1170 X 24 March 1201 => 1170 X 1201
-    str = re.sub(ur'(?iu)((\d{1,2})\s)?(autumn|fall|summer|winter|spring|jan\.|feb\.|mar\.|apr\.|jun\.|jul\.|aug\.|sept\.|oct\.|nov\.|dec\.|january|february|march|april|may|june|july|august|september|october|november|december),?', u'', str)
-
-    #print repr(str)
+    str = re.sub(ur'(?iu)((\d{1,2})\s)?(autumn|fall|summer|winter|spring|jan(\.|\s)|feb(\.|\s)|mar(\.|\s)|apr(\.|\s)|jun(\.|\s)|jul(\.|\s)|aug(\.|\s)|sept(\.|\s)|oct(\.|\s)|nov(\.|\s)|dec\.|january|february|march|april|may|june|july|august|september|october|november|december),?', u'', str)
 
     # expand s. => Saec.
     str = re.sub(ur'\bs\.\s', u'Saec. ', str)
@@ -547,6 +545,9 @@ def get_range_from_date_simple(str):
 
     # convert circa => ca
     str = re.sub(ur'\bcirca\b', u'Ca', str)
+
+    # expand c.1205 OR c 1205 => c. 1205
+    str = re.sub(ur'\bc(?:\.|\s)(\d{4,4})', ur'c. \1', str)
 
     # expand c. => ca
     str = re.sub(ur'\bc\.\s', u'Ca ', str)

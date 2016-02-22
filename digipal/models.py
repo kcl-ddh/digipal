@@ -103,7 +103,7 @@ class NameModel(models.Model):
         return u'%s' % (self.name)
 
 class MediaPermission(models.Model):
-    
+
     PERM_PRIVATE    = 100
     PERM_THUMB_ONLY = 200
     PERM_PUBLIC     = 300
@@ -112,18 +112,18 @@ class MediaPermission(models.Model):
         (PERM_THUMB_ONLY, 'Thumbnail Only'),
         (PERM_PUBLIC, 'Full Resolution'),
     )
-    
+
     label = models.CharField(max_length=64, blank=False, null=False,
         help_text='''An short label describing the type of permission. For internal use only.''')
-    
+
     permission = models.IntegerField(null=False, default=PERM_PRIVATE, choices=PERM_CHOICES)
-    
+
     display_message = HTMLField(blank=True, null=False, default='',
         help_text='''This message will be displayed when the image is not available to the user.''')
 
     class Meta:
         ordering = ['label']
-        
+
     @classmethod
     def get_new_default(cls):
         ret = cls(display_message=settings.UNSPECIFIED_MEDIA_PERMISSION_MESSAGE,
@@ -604,6 +604,7 @@ class HistoricalItem(models.Model):
     historical_item_type = models.ForeignKey(HistoricalItemType)
     historical_item_format = models.ForeignKey(Format, blank=True, null=True)
     date = models.CharField(max_length=128, blank=True, null=True)
+    date_sort = models.CharField(max_length=128, blank=True, null=True, help_text='Optional date, usually narrower than the date field. Used for result visualisation and sorting.')
     name = models.CharField(max_length=256, blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True, null=True)
     hair = models.ForeignKey(Hair, blank=True, null=True)
@@ -637,6 +638,9 @@ class HistoricalItem(models.Model):
             if cns:
                 cn = u''.join([u'%s %s ' % (cn.source, cn.number) for cn in cns]).strip()
         self.catalogue_number = cn
+
+    def get_date_sort(self):
+        return self.date_sort or self.date
 
     def get_part_count(self):
         return self.item_parts.all().count()
@@ -1397,7 +1401,7 @@ class ItemPart(models.Model):
 
     def get_non_private_image_count(self):
         return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
-    
+
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'
@@ -1610,7 +1614,7 @@ class Image(models.Model):
     def __init__(self, *args, **kwargs):
         super(Image, self).__init__(*args, **kwargs)
         self.__original_iipimage = self.iipimage
-    
+
     def __unicode__(self):
         ret = u''
         if self.display_label:
@@ -1620,7 +1624,7 @@ class Image(models.Model):
             if self.iipimage:
                 ret += u' (%s)' % re.sub(ur'^.*?([^/]+)/([^/.]+)[^/]+$', ur'\1, \2', self.iipimage.name)
         return ret
-    
+
     def get_annotation_count(self):
         '''returns only annotations which have either a graph or a display note'''
         return len([1 for an in self.annotation_set.all() if an.is_publicly_visible])
@@ -1701,20 +1705,20 @@ class Image(models.Model):
         '''
         ret = image_queryset
         if permissions:
-            
+
             conditions = Q(media_permission__permission__in=permissions) |\
                 (
                     Q(media_permission__permission__isnull=True) &
                     Q(item_part__current_item__repository__media_permission__permission__in=permissions)
                 )
-            
+
             if MediaPermission.PERM_PRIVATE in permissions:
                 conditions = conditions |\
                     (
                         Q(media_permission__permission__isnull=True) &
                         Q(item_part__current_item__repository__media_permission__permission__isnull=True)
                     )
-            
+
             ret = ret.filter(conditions)
         return ret
 
@@ -1733,7 +1737,7 @@ class Image(models.Model):
                 permissions.append(MediaPermission.PERM_THUMB_ONLY)
             ret = cls.filter_permissions(ret, permissions)
         return ret
-    
+
     @classmethod
     def get_all_public_images(cls):
         if not hasattr(cls, 'public_images'):
@@ -2088,7 +2092,7 @@ class Hand(models.Model):
 
     # def get_idiographs(self):
         # return [idiograph for idiograph in self.scribe.idiograph_set.all()]
-        
+
     @classmethod
     def get_default_label(cls):
         return getattr(settings, 'HAND_DEFAULT_LABEL', 'Default Hand')
@@ -2830,7 +2834,7 @@ class Annotation(models.Model):
             ret['frame_dims'][d] *= factor
 
         if esc: ret['url'] = escape(ret['url'])
-        
+
         return ret
 
     def get_cutout_url(self, esc=False, full_size=False):

@@ -1,10 +1,10 @@
 
 Visualisation
-    . date ranges
-        . add migration for new col hi.date_sort
-        . import file to repo
+    ### date ranges
+        [done] add migration for new col hi.date_sort
+        [done] import file to repo
         . add migration to import date into db
-        . use fct to return hi.date_sort OR hi.date
+        [done] use fct to return hi.date_sort OR hi.date
     . texts
         . colors for another cat
             . how?
@@ -12,7 +12,7 @@ Visualisation
             . show layers
                 . query summary | color | remove|save|hide|show
     . graphs
-        . COLLAPSING
+        ### COLLAPSING
         . show SAMPLES graph
     . info box:
         . show thumb

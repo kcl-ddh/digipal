@@ -278,6 +278,8 @@ FACETED_SEARCH = {
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
 
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
+
+                                {'key': 'COLLAPSEID', 'label': 'Collapseid', 'path': 'annotation.image.item_part.id', 'type': 'int'},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place',
                                        'idiograph__allograph__character__ontograph__ontograph_type',

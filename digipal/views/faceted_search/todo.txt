@@ -6,18 +6,32 @@ Visualisation
         [done] add migration to import date into db
         [done] use HI.get_date_sort() in the faceted search
         [done] use fct to return hi.date_sort OR hi.date
+    ### 0. LAYERS
+        => proper way to solves many issues in the code and visualisation
+        => solves OR with <> cols
+        => partially solves colors for dif cat
+
     . texts
-        . colors for another cat
+        5. colors for another cat
             . how?
         . reference set? => layers
             . show layers
                 . query summary | color | remove|save|hide|show
-    . graphs
-        ### COLLAPSING
-        . show SAMPLES graph
+    ### . graphs
+        1. ### COLLAPSING
+        2. show SAMPLES graph
+        . red/grey
+        . counts
     . info box:
-        . show thumb
-        . show text sample
+        3a show text sample
+        3b show thumb
+    4. histogram
+        . show all greys
+        . bars
+        . bar highlight
+    . sums
+
+. not logged in: full res (bars) should exclude private images (e.g. graphs)
 
 DONE 1. image size too big on moa (all)
 2. 500 error (why? try the new iipsrv)

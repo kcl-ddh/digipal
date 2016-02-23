@@ -279,7 +279,7 @@ FACETED_SEARCH = {
 
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
 
-                                {'key': 'COLLAPSEID', 'label': 'Collapseid', 'path': 'annotation.image.item_part.id', 'type': 'int'},
+                                {'key': 'CONFLATEID', 'label': 'Conflate ID', 'path': 'annotation.image.item_part.id', 'type': 'int'},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place',
                                        'idiograph__allograph__character__ontograph__ontograph_type',

@@ -10,6 +10,20 @@ Visualisation
         => proper way to solves many issues in the code and visualisation
         => solves OR with <> cols
         => partially solves colors for dif cat
+        . server
+            . prepare layers
+            . go through all hits
+                . check layers for each hit
+                . generate color
+                . discard if not in any layer
+                . generate single data point (per band)
+
+            . single stack
+        . client
+            . layers list
+                . add/remove
+                . hide/show
+            .
 
     . texts
         5. colors for another cat

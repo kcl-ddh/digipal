@@ -189,6 +189,12 @@ DPCanvas.prototype.clear = function(opacity) {
             if (pt[6]) {
                 draw_graph(pt[6], cs[0] + l, cs[1] + ky_min, highlight);
             }
+
+            // draw the bar at the bottom
+            if (highlight) {
+                cs = coord(pt[0][0], ys[ys.length-1][1]);
+                ctx.fillRect(cs[0], cs[1], (l > 1) ? l-1 : l, ky_min/2);
+            }
         }
 
         function draw_graph(url, x, y, highlight) {

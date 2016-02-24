@@ -1,4 +1,5 @@
 import re
+from digipal import utils
 from digipal.utils import inc_counter
 
 def draw_overview(faceted_search, context, request):
@@ -64,7 +65,12 @@ class Overview(object):
         # margin on each side of a label (in pixels)
         self.margin = 3
         self.font_size_margin = self.font_size + 2 * self.margin
-        self.bar_height = request.REQUEST.get('vz_bh', 20)
+        self.bar_height = utils.get_int_from_request_var(request, 'vz_bh', 7)
+        self.graph_size = utils.get_int_from_request_var(request, 'vz_gs', 40)
+
+        context['viz'] = {}
+        context['viz']['vz_bh'] = self.bar_height
+        context['viz']['vz_gs'] = self.graph_size
 
         self.mins = [None, None]
         self.maxs = [None, None]
@@ -173,7 +179,7 @@ class Overview(object):
                 # add image
                 from digipal.models import Graph
                 if isinstance(record, Graph):
-                    info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=40)
+                    info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
                     point[6] = info['url']
 
         self.points = ret

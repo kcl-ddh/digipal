@@ -38,6 +38,16 @@
         {# height="{{ canvas.height }}" width="{{ canvas.width }}" #}
         style="height:{{ canvas.height }}px; z-index: 100; width: 100%; border: 1px solid grey;">
     </canvas> -->
+
+    <div class="panel panel-default">
+        <div class="panel-heading">Visualisation Settings</div>
+        <div class="panel-body">
+            Bar size: <input name="vz_bh" type="text" value="{{viz.vz_bh}}" /><br/>
+            Graph size: <input name="vz_gs" type="text" value="{{viz.vz_gs}}" /><br/>
+            <input class="btn btn-default" type="submit" name="Redraw" value="Redraw" />
+        </div>
+    </div>
+
 </div>
 
 <script type="text/javascript">

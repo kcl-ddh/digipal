@@ -2863,7 +2863,7 @@ class Annotation(models.Model):
         return ret
 
     def thumbnail(self):
-        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.graph, self.get_cutout_url(True)))
+        ''' returns HTML of an image inside a span'''
         from templatetags.html_escape import annotation_img
         return annotation_img(self, lazy=1)
 

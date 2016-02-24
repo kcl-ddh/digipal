@@ -122,13 +122,21 @@
                 point_index[cs[1]].push([pt, [cs[0], cs[0]+l]]);
             }
 
-            //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
+            // draw the bar
             ctx.fillRect(cs[0], cs[1], (l > 1) ? l-1 : l, ky_min);
 
-            // projection at the bottom
-    //         if (pt[2] && ((cs[0] > 0) || (cs[0] + l < max_x))) {
-    //             ctx.fillRect(cs[0], dims[1] - ky_min - 2, l, ky_min);
-    //         }
+            // draw the image (if any)
+            if (pt[6]) {
+                draw_image(pt[6], cs[0] + l, cs[1] + ky_min);
+            }
+        }
+
+        function draw_image(url, x, y) {
+            var image = new Image();
+            image.onload = function() {
+                ctx.drawImage(image, x, y);
+            };
+            image.src = url;
         }
 
         function draw_histogram(histogram, ys) {

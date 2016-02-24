@@ -25,25 +25,28 @@ Visualisation
             . info
             . histogram
     . texts
-        5. colors for another cat
-            . how?
-        . reference set? => layers
-            . show layers
-                . query summary | color | remove|save|hide|show
+    . vis control panel
+        . size bars
+        . size graphs
+        . opacity graphs
+
     [done]. graphs
         [done]. #### COLLAPSING
         . red/grey
         . counts
     2. info:
-        . show SAMPLES graph
-            . show all relevant graphs in info box
+        . one sample graph per bar
+        . info box
+            . other graphs
+            . clause or text
         . show sample text
             . with highlight
     1. histogram
+        !!! make sure histgram layers are sorted by count otherwise the grey will cover other colors
         [done] move x axis below all categories
         [done] compute histogram on server side
-        . show histogram
-        . show all greys
+        [done] show histogram
+        [done] show all greys
         . bars
         . optimise the format: nested array instead of nested dicts
     . selection highlight projected on histogram

@@ -64,7 +64,7 @@ class Overview(object):
         # margin on each side of a label (in pixels)
         self.margin = 3
         self.font_size_margin = self.font_size + 2 * self.margin
-        self.bar_height = 7
+        self.bar_height = request.REQUEST.get('vz_bh', 20)
 
         self.mins = [None, None]
         self.maxs = [None, None]
@@ -133,7 +133,7 @@ class Overview(object):
             (e.g. graphs into itempart) to simplify visualisation.
 
             A data point is an array of the form
-            [x, y, layers, label, url, conflatedid]
+            [x, y, layers, label, url, conflatedid, image]
         '''
         ret = {}
 
@@ -163,12 +163,18 @@ class Overview(object):
                 ys = values[1]
 
                 label = faceted_search.get_record_label_html(record, self.request);
-                point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid]
+                point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid, '']
 
                 ret[conflateid] = point
 
             if str(record.id) in self.faceted_search.ids:
+                # add layerid
                 point[2].add(1)
+                # add image
+                from digipal.models import Graph
+                if isinstance(record, Graph):
+                    info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=40)
+                    point[6] = info['url']
 
         self.points = ret
 

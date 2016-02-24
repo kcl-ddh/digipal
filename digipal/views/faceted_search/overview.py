@@ -75,6 +75,8 @@ class Overview(object):
         self.histogram = {}
         self.histogram_height = 0
 
+        self.band_width = 1000000
+
     def draw(self):
         '''
             Write the drawing information on the context for the view to
@@ -266,7 +268,6 @@ class Overview(object):
             set self.bands = {'agreement': 0, 'brieve': 1000, LABEL: TOPY}
         '''
         # determine large y bands for the categories
-        band_width = 5000
         # eg. ['type1', 'type2']
         from digipal.utils import sorted_natural
         l = []
@@ -281,7 +282,7 @@ class Overview(object):
 
         self.bands = sorted_natural(list(set(l)))
         # eg. {'type1': 0, 'type2': 1000}
-        self.bands = {self.bands[i]: i*band_width for i in range(0, len(self.bands))}
+        self.bands = {self.bands[i]: i*self.band_width for i in range(0, len(self.bands))}
 
     def compact_bands(self):
         '''
@@ -301,8 +302,9 @@ class Overview(object):
         '''
         stack = self.stack
         self.bands = sorted([[label, y] for label, y in self.bands.iteritems()], key=lambda p: p[1])
-        self.bands.append(['', 0]) # X Axis
-        self.bands.append(['', 0]) # Histograms
+        last_y = max([band[1] for band in self.bands])
+        self.bands.append(['', last_y+self.band_width]) # X Axis
+        self.bands.append(['', last_y+self.band_width+self.band_width]) # Histograms
 
         offset = 0
         new_y = 0

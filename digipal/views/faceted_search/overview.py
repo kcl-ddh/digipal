@@ -30,6 +30,7 @@ class Overview(object):
             vcat = { e.g. faceted field for document type }
             vcats = [ list of faceted field for the drop down ]
             canvas:
+                font_size
                 width
                 height
                 drawing
@@ -41,10 +42,11 @@ class Overview(object):
                     point_height: 7
                     x:
                         # x, y, label
-                        [[0, 2000, '1000', 10, 2000, '1010', ...]]
+                        [[0, 2000, '1000'], [10, 2000, '1010'], ...]]
                     y:
                         # x, y, label
                         []
+
     '''
 
     def __init__(self, faceted_search, context, request):
@@ -57,6 +59,11 @@ class Overview(object):
         self.stack = {}
 
         self.cat_hits = {}
+        self.font_size = 12
+        # margin on each side of a label (in pixels)
+        self.margin = 3
+        self.font_size_margin = self.font_size + 2 * self.margin
+        self.bar_height = 7
 
         self.mins = [None, None]
         self.maxs = [None, None]
@@ -111,6 +118,14 @@ class Overview(object):
         return ret
 
     def set_points(self):
+        '''
+            set self.points, an array of data points from one or more result sets.
+            Separate results can be conflated into unique data points
+            (e.g. graphs into itempart) to simplify visualisation.
+
+            A data point is an array of the form
+            [x, y, layers, label, url, conflatedid]
+        '''
         ret = {}
 
         faceted_search = self.faceted_search
@@ -151,21 +166,15 @@ class Overview(object):
         return ret
 
     def draw_internal(self):
-        faceted_search = self.faceted_search
-        context = self.context
-        request = self.request
-
         self.context['canvas'] = {'width': 500, 'height': 500}
 
-        self.drawing = {'points': [], 'x': [], 'y': [], 'point_height': 7}
+        self.drawing = {'points': [], 'x': [], 'y': [], 'bar_height': self.bar_height, 'font_size': self.font_size, 'label_margin': self.margin}
 
         points = self.drawing['points']
 
         # {'agreement': [10, 20]}
 
         print 'OVERVIEW SCAN'
-
-        records = context['result']
 
         self.init_bands()
 
@@ -253,16 +262,17 @@ class Overview(object):
                 point[0][0] -= self.mins[0]
                 point[0][1] -= self.mins[0]
 
-        last_y = max([point[1] for point in points])
+        #last_y = max([point[1] for point in points])
+        xaxis_y = self.bands[-2][1]
 
         self.context['canvas']['width'] = self.maxs[0] - self.mins[0] + 1
-        self.context['canvas']['height'] = last_y
+        self.context['canvas']['height'] = self.bands[-1][1] + 3
 
         # X axis
         # eg. 1055, 1150 => [[5, 100, 1060], [15, 100,  1070], ...]
         step = 10
         date0 = self.mins[0] - (self.mins[0] % step)
-        drawing['x'] = [[d - self.mins[0], last_y + 2, '%s' % d] for d in range(date0, self.maxs[0], step)]
+        drawing['x'] = [[d - self.mins[0], xaxis_y, '%s' % d] for d in range(date0, self.maxs[0], step)]
         drawing['y'] = [[0, y, label, self.cat_hits.get(label, [0, 0])[0], self.cat_hits.get(label, [0, 0])[1]] for label, y in self.bands]
 
         self.context['canvas']['drawing'] = drawing
@@ -291,7 +301,7 @@ class Overview(object):
         # eg. {'type1': 0, 'type2': 1000}
         self.bands = {self.bands[i]: i*band_width for i in range(0, len(self.bands))}
 
-    def compact_bands(self, min_height=14):
+    def compact_bands(self):
         '''
             Initially each band has a fixed height,
             large enough to contain all the data points in that category.
@@ -302,9 +312,16 @@ class Overview(object):
             Note that self.bands with have a different structure on return.
 
             [[label, y], ...] sorted by label
+
+            Add two artificial bands at the end:
+            * one for the timeline / X Axis
+            * one for the histograms
         '''
         stack = self.stack
         self.bands = sorted([[label, y] for label, y in self.bands.iteritems()], key=lambda p: p[1])
+        self.bands.append(['', 0]) # X Axis
+        self.bands.append(['', 0]) # Histograms
+
         offset = 0
         new_y = 0
         for band in self.bands:
@@ -317,10 +334,9 @@ class Overview(object):
                 y += 1
                 new_y += 1
             band[1] -= offset
+
             # +2 is to leave some nice space between categories on the front end
-            # +10 is to leav enough space to write the label for the category
-            # Note that 10 is scaled so difficult found it by trial and errors
-            new_y = max(new_y + 2, band[1] + (min_height / self.drawing['point_height'] + 1))
+            new_y = max(new_y + 1, band[1] + (self.font_size_margin / self.bar_height))
 
         return self.bands
 

@@ -1,3 +1,6 @@
+ But yes, something which enabled two features of diplomatic to be searched
+  would be excellent, so you could see (say) how many charters which had a
+  particular form of address also had sciatis quod.
 
 Visualisation
     [done] date ranges
@@ -10,6 +13,7 @@ Visualisation
         => proper way to solves many issues in the code and visualisation
         => solves OR with <> cols
         => partially solves colors for dif cat
+        . chose between all records in DB or all records with graph/clause
         . server
             . prepare layers
             [done] single stack
@@ -33,6 +37,9 @@ Visualisation
         . show sample text
             . with highlight
     4. histogram
+        . move x axis below all categories
+        . compute histogram on server side
+        . show histogram
         . show all greys
         . bars
         . bar highlight

@@ -86,6 +86,9 @@ DPCanvas.prototype.newLayer = function(name) {
 DPCanvas.prototype.setOpacity = function(opacity) {
     this.$canvas.css('opacity', opacity);
 }
+DPCanvas.prototype.clear = function(opacity) {
+    this.getContext().clearRect(0, 0, this.$canvas[0].width, this.$canvas[0].height);
+}
 
 //function dpvis() {
     var data = {{ canvas|json }};
@@ -164,6 +167,7 @@ DPCanvas.prototype.setOpacity = function(opacity) {
         //var dot_size = kx_min < ky_min ? kx_min : ky_min;
 
         function draw_pt(pt, highlight, add_to_index) {
+            var ctx = gct(highlight ? 'hovers' : '');
             ctx.fillStyle = pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
             if (highlight) ctx.fillStyle = '#ffff00';
             var cs = coord(pt[0][0], pt[1]);
@@ -183,14 +187,19 @@ DPCanvas.prototype.setOpacity = function(opacity) {
 
             // draw the image (if any)
             if (pt[6]) {
-                draw_graph(pt[6], cs[0] + l, cs[1] + ky_min);
+                draw_graph(pt[6], cs[0] + l, cs[1] + ky_min, highlight);
             }
         }
 
-        function draw_graph(url, x, y) {
+        function draw_graph(url, x, y, highlight) {
             var image = new Image();
             image.onload = function() {
-                gct('graphs').drawImage(image, x, y);
+                var ctx = gct(highlight ? 'hovers' : 'graphs');
+                if (highlight) {
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fillRect(x-1, y-1, image.width+2, image.height+2);
+                }
+                ctx.drawImage(image, x, y);
             };
             image.src = url;
         }
@@ -341,19 +350,21 @@ DPCanvas.prototype.setOpacity = function(opacity) {
         function show_info_at(pos) {
             var message = '';
 
-            if (last_selected_point) {
-                draw_pt(last_selected_point);
-            }
+            var selected_point = get_point_from_pos(pos);
+            if (selected_point != last_selected_point) {
+                if (last_selected_point) {
+                    canvas.getLayer('hovers').clear();
+                }
+                if (selected_point) {
+                    draw_pt(selected_point, true);
+                    message = selected_point[3];
+                }
 
-            last_selected_point = get_point_from_pos(pos);
-            if (last_selected_point) {
-                draw_pt(last_selected_point, true);
-                message = last_selected_point[3];
+                var $info_div = $('#info-div');
+                $info_div.toggle(!!message);
+                $info_div.html('<table class="table table-compact" style="font-size: small;">'+message+'</table>');
             }
-
-            var $info_div = $('#info-div');
-            $info_div.toggle(!!message);
-            $info_div.html('<table class="table table-compact" style="font-size: small;">'+message+'</table>');
+            last_selected_point = selected_point;
         }
 
     }

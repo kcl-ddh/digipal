@@ -51,6 +51,42 @@
 </div>
 
 <script type="text/javascript">
+var DPCanvas = function($canvas) {
+    this.$canvas = $canvas;
+    this.zindex = 100;
+    this.layers = {'': this};
+}
+DPCanvas.prototype.getLayer = function(name) {
+    name = name || '';
+    return this.layers[name];
+};
+DPCanvas.prototype.$cnv = function(name) {
+    return this.getLayer(name).$canvas;
+};
+DPCanvas.prototype.ctx = function(name) {
+    return this.getLayer(name).getContext();
+};
+DPCanvas.prototype.getContext = function() {
+    return this.$canvas[0].getContext('2d');
+};
+DPCanvas.prototype.newLayer = function(name) {
+    this.zindex += 100;
+
+    var $canvas = $(this.$canvas[0].outerHTML);
+    $canvas.css('z-index', this.zindex);
+    $canvas.css('position', 'absolute');
+    $canvas.css('width', this.$canvas.width());
+    $canvas.css('height', this.$canvas.height());
+
+    this.$canvas.before($canvas);
+    var ret = new DPCanvas($canvas);
+    this.layers[name] = ret;
+    return ret;
+};
+DPCanvas.prototype.setOpacity = function(opacity) {
+    this.$canvas.css('opacity', opacity);
+}
+
 //function dpvis() {
     var data = {{ canvas|json }};
     window.datavis = data;
@@ -102,12 +138,22 @@
         }
 
         var dims = [$container.width(), $container.height()];
-        var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
-                        ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
+        var $canvas = $('<canvas tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
+                        ' style="z-index: 100; display: block; width: 100%;">' +
                         '</canvas>'
                     );
         $container.html($canvas);
-        var ctx = $canvas[0].getContext('2d');
+        var canvas = new DPCanvas($canvas);
+        var ctx = canvas.getContext();
+        canvas.newLayer('graphs');
+        canvas.getLayer('graphs').setOpacity(0.8);
+        canvas.newLayer('hovers');
+        canvas.newLayer('events');
+        canvas.getLayer('events').setOpacity(0);
+
+        function gct(name) {
+            return canvas.ctx(name);
+        }
 
         var ky = 1.0 / (cdims[1] + 1) * (dims[1] - extra_y);
         var ky_min = (ky < 1) ? 1 : Math.floor(ky);
@@ -137,14 +183,14 @@
 
             // draw the image (if any)
             if (pt[6]) {
-                draw_image(pt[6], cs[0] + l, cs[1] + ky_min);
+                draw_graph(pt[6], cs[0] + l, cs[1] + ky_min);
             }
         }
 
-        function draw_image(url, x, y) {
+        function draw_graph(url, x, y) {
             var image = new Image();
             image.onload = function() {
-                ctx.drawImage(image, x, y);
+                gct('graphs').drawImage(image, x, y);
             };
             image.src = url;
         }
@@ -248,14 +294,14 @@
         draw_histogram(data.drawing.histogram, ys);
         pts.map(function(pt, pti) {draw_pt(pt, false, true); });
 
-        $canvas.on('mousemove mouseleave', function(e) {
+        canvas.$cnv('events').on('mousemove mouseleave', function(e) {
             // mouse is over canvas
             // we have a selected hand and a selected page
             var pos = get_mouse_pos(this, e);
             show_info_at(pos);
         });
 
-        $canvas.on('click', function(e) {
+        canvas.$cnv('events').on('click', function(e) {
             // mouse is over canvas
             // we have a selected hand and a selected page
             var pos = get_mouse_pos(this, e);
@@ -268,16 +314,18 @@
 
         function get_mouse_pos(canvas, evt) {
             var rect = canvas.getBoundingClientRect();
-            return {
+            var ret = {
                 x: Math.round(1.0 * (evt.clientX - rect.left) / $(canvas).width() * $(canvas).attr('width')),
                 y: Math.round(1.0 * (evt.clientY - rect.top) / $(canvas).height() * $(canvas).attr('height')),
             };
+            //console.log(ret);
+            return ret;
         }
 
         function get_point_from_pos(pos) {
             var ret = null;
             for (var i = 0; i < ky; i++) {
-                var pts = point_index[pos.y + i];
+                var pts = point_index[pos.y - i];
                 if (pts) {
                     pts.map(function(pt, pti) {
                         if (pos.x >= pt[1][0] & pos.x <= pt[1][1]) {

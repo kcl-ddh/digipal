@@ -6,25 +6,17 @@ Visualisation
         [done] add migration to import date into db
         [done] use HI.get_date_sort() in the faceted search
         [done] use fct to return hi.date_sort OR hi.date
-    ### 0. LAYERS
+    ### 0. LAYERS/Multi-search
         => proper way to solves many issues in the code and visualisation
         => solves OR with <> cols
         => partially solves colors for dif cat
         . server
             . prepare layers
-            . go through all hits
-                . check layers for each hit
-                . generate color
-                . discard if not in any layer
-                . generate single data point (per band)
-
-            . single stack
+            [done] single stack
         . client
             . layers list
                 . add/remove
                 . hide/show
-            .
-
     . texts
         5. colors for another cat
             . how?
@@ -32,13 +24,14 @@ Visualisation
             . show layers
                 . query summary | color | remove|save|hide|show
     ### . graphs
-        1. ### COLLAPSING
-        2. show SAMPLES graph
+        [done]. #### COLLAPSING
         . red/grey
         . counts
-    . info box:
-        3a show text sample
-        3b show thumb
+    . info:
+        2. show SAMPLES graph
+            . show all relevant graphs in info box
+        . show sample text
+            . with highlight
     4. histogram
         . show all greys
         . bars

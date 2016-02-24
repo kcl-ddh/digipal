@@ -105,7 +105,7 @@ function redraw_vis() {
     //var dot_size = kx_min < ky_min ? kx_min : ky_min;
 
     function draw_pt(pt, highlight, add_to_index) {
-        ctx.fillStyle = pt[2] ? '#a1514d' : '#A0A0A0';
+        ctx.fillStyle = pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
         if (highlight) ctx.fillStyle = '#ffff00';
         var cs = coord(pt[0][0], pt[1]);
         var cs2 = coord(pt[0][1], pt[1]);

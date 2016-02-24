@@ -139,7 +139,7 @@ class FacetedModel(object):
                 parts.insert(0, part)
                 break
         path = '.'.join(parts)
-            
+
         return ret, path
 
     def prepare_value_rankings(self):
@@ -152,7 +152,7 @@ class FacetedModel(object):
         #records = self.get_all_records(False)
         records = self.get_all_records(True).order_by('id')
         print '\t\t%d records' % records.count()
-        
+
         for field in self.fields:
             if self.is_field_indexable(field):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
@@ -161,50 +161,51 @@ class FacetedModel(object):
                     print '\t\t' + field['key']
 
                     # get all the values for that field in the table
-                    value_rankings = self.value_rankings[whoosh_sortable_field] = {}
-                    # We call iterator() here to avoid fetching all the records at ones
-                    # which causes this query to crash on the Linux VM due to excessive
-                    # memory consumption.
-                    # for record in records.iterator():
+                    self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
 
-                    # get unique values
-                    model, path = self.get_model_from_field(field)
-                    sort_function = field.get('sort_fct', None)
-                    value_rankings[None] = u''
-                    value_rankings['None'] = u''
-                    value_rankings[u''] = u''
-                    for record in model.objects.all().order_by('id'):
-                        value = self.get_record_path(record, path)
-                        #value = self.get_record_field_whoosh(record, field)
-                        value = self.get_sortable_hash_value(value, field)
+    def get_field_value_ranking(self, field):
+        # get all the values for that field in the table
+        value_rankings = {}
+        # We call iterator() here to avoid fetching all the records at ones
+        # which causes this query to crash on the Linux VM due to excessive
+        # memory consumption.
+        # for record in records.iterator():
 
-                        v = value
-                        if sort_function:
-                            v = sort_function(record)
-                        v = v or u''
+        # get unique values
+        model, path = self.get_model_from_field(field)
+        sort_function = field.get('sort_fct', None)
+        value_rankings[None] = u''
+        value_rankings['None'] = u''
+        value_rankings[u''] = u''
+        for record in model.objects.all().order_by('id'):
+            value = self.get_record_path(record, path)
+            #value = self.get_record_field_whoosh(record, field)
+            value = self.get_sortable_hash_value(value, field)
 
-                        value_rankings[value] = v
+            v = value
+            if sort_function:
+                v = sort_function(record)
+            v = v or u''
 
-                    # convert dates to numbers
-                    if field['type'] == 'date':
-                        for k, v in value_rankings.iteritems():
-                            v = utils.get_midpoint_from_date_range(v)
-                            value_rankings[k] = v or 10000
-                        sorted_values = sorted(value_rankings.values())
-                        # print sorted_values
-                        # exit()
-                    else:
-                        # sort by natural order
-                        sorted_values = utils.sorted_natural(value_rankings.values(), True)
+            value_rankings[value] = v
 
-                    # now assign the ranking to each value
-                    for k, v in value_rankings.iteritems():
-                        value_rankings[k] = sorted_values.index(v)
+        # convert dates to numbers
+        if field['type'] == 'date':
+            for k, v in value_rankings.iteritems():
+                v = utils.get_midpoint_from_date_range(v)
+                value_rankings[k] = v or 10000
+            sorted_values = sorted(value_rankings.values())
+            # print sorted_values
+            # exit()
+        else:
+            # sort by natural order
+            sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
-                    # print self.value_rankings[whoosh_sortable_field]
+        # now assign the ranking to each value
+        for k, v in value_rankings.iteritems():
+            value_rankings[k] = sorted_values.index(v)
 
-        #print self.value_rankings['image_name_sortable']
-        #exit()
+        return value_rankings, sorted_values
 
     def get_sortable_hash_value(self, value, field):
         if field.get('multivalued', False) and hasattr(value, 'split'):
@@ -681,8 +682,11 @@ class FacetedModel(object):
                 ret = []
                 for record in records:
                     ret.append(record)
-                    if str(record.id) in ids and (search_phrase or field_queries):
-                        record.found = True
+                # TODO: quick hack to avoid full search to show all bars in red
+                if not (search_phrase or field_queries):
+                    self.ids = []
+#                     if str(record.id) in ids and (search_phrase or field_queries):
+#                         record.found = True
             else:
                 records = records.in_bulk(ids)
 
@@ -1049,7 +1053,7 @@ def populate_index(ct, index):
                 writer.commit(optimize=True)
             # we have to recreate after commit because commit unlock index
             writer = index.writer()
-            
+
 #             for field in writer.schema:
 #                 print field
 #                 ana = getattr(field.format, 'analyzer', None)

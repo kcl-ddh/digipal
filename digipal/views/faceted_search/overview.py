@@ -1,3 +1,5 @@
+import re
+
 def draw_overview(faceted_search, context, request):
     view = Overview(faceted_search, context, request)
     view.draw()
@@ -10,8 +12,8 @@ class Overview(object):
             request
 
         OUT
-            Visualisation as a TIMELINE
-            Where result is encoded as a DATA POINT and represented by a BAR
+            Visualisation of faceted search results on a TIMELINE.
+            Where each result is encoded as a DATA POINT and display as a hor. BAR
             Data points/bars can be CONFLATED/COLLAPSED by document/IP/HI
             The bars are STACKED DOWN and
             arranged vertically into BANDS, where each band is a separate option
@@ -33,7 +35,7 @@ class Overview(object):
                 drawing
                     points:
                         [
-                            [[x1, x2], y, id, label, group0]
+                            [[x1, x2], y, found, label, url, conflatedid]
                             ...
                         ]
                     point_height: 7
@@ -47,7 +49,6 @@ class Overview(object):
 
     def __init__(self, faceted_search, context, request):
         # if True, we group all the results by document to avoid stacking graphs or clauses
-        self.conflate = 1
         self.faceted_search = faceted_search
         self.context = context
         self.request = request
@@ -61,15 +62,93 @@ class Overview(object):
         self.maxs = [None, None]
 
     def draw(self):
+        '''
+            Write the drawing information on the context for the view to
+            generate the visualisation.
+        '''
         if self.faceted_search.get_selected_view()['key'] != 'overview': return
 
+        self.set_conflate('item_part')
+
         self.set_fields()
+
+        self.set_points()
 
         self.draw_internal()
 
         self.compact_bands()
 
         self.reframe()
+
+    def set_conflate(self, conflate):
+        '''Returns the model represented by a bar (e.g. Graph, ItemPart)'''
+#         model = self.faceted_search.get_model()
+#         self.conflate = ''
+#         if conflate:
+#             # get any field with the conflate part
+#             for field in self.faceted_search.get_fields():
+#                 path = re.replace(conflate, '', field.get('path', ''))
+#
+#                 if path:
+#                     self.conflate = conflate
+#                     model, path = self.get_model_from_field(field)
+#                     model =
+#
+#         self.conflate_model = model
+        self.conflate = conflate
+
+    def get_conflate_relative_field(self):
+        '''Return a new faceted field whith a relative path to the conflated record id'''
+        ret = {'path': 'id'}
+
+        if self.conflate:
+            # let's assume the path is already part of at least one field
+            for field in self.faceted_search.get_fields():
+                m = re.search(ur'(?musi)(.*\.'+re.escape(self.conflate)+')[._a-z]', field['path'])
+                if m:
+                    ret['path'] = m.group(1)+'.id'
+
+        return ret
+
+    def set_points(self):
+        ret = {}
+
+        faceted_search = self.faceted_search
+
+        # TODO: combine multiple results
+        # Here we conflate the results and build data points
+        # with all info except coordinates.
+        conflate_relative_field = self.get_conflate_relative_field()
+
+        for record in self.context['result']:
+
+            # TODO: self.fields depends on the result type!!!
+            # once we allow a mix of result type we'll have to get the fields differently
+            conflateid = faceted_search.get_record_field(record, conflate_relative_field)
+
+            point = ret.get(conflateid, None)
+            if point is None:
+                point = []
+
+                # TODO: one request for the whole thing
+                values = []
+                for field in self.fields[:2]:
+                    values.append(faceted_search.get_record_field(record, field))
+
+                x = values[0]
+                ys = values[1]
+
+                label = faceted_search.get_record_label_html(record, self.request);
+                point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid]
+
+                ret[conflateid] = point
+
+            if str(record.id) in self.faceted_search.ids:
+                point[2].add(1)
+
+        self.points = ret
+
+        return ret
 
     def draw_internal(self):
         faceted_search = self.faceted_search
@@ -93,23 +172,14 @@ class Overview(object):
         from digipal.utils import get_range_from_date, MAX_DATE_RANGE
 
         # process all records
-        for record in records:
-            found = 1 if getattr(record, 'found', 0) else 0
-
-            # TODO: one request for the whole thing
-            values = []
-            for field in self.fields:
-                values.append(faceted_search.get_record_field(record, field))
-
-            x = values[0]
-            ys = values[1]
-            conflateid = values[2]
+        #for record in self.get_all_conflated_ids():
+        for point in self.points.values():
+            found = any(point[2])
+            x = point[0]
+            ys = point[1]
 
             # convert x to numerical value
             if self.fields[0]['type'] == 'date':
-    #             if found:
-    #                 print x, get_midpoint_from_date_range(x)
-                #x = get_midpoint_from_date_range(x)
                 x = get_range_from_date(x)
             else:
                 # ()TODO: other type than date for x
@@ -131,9 +201,11 @@ class Overview(object):
             for v in ys:
                 y = self.bands.get(v, 0)
 
-                # add the points
-                label = faceted_search.get_record_label_html(record, request);
-                point = [x, y, found, label, record.get_absolute_url(), conflateid]
+                # add the points to the stack
+                point[0] = x
+                point[1] = y
+                # convert layers from set to list to allow json serialisation
+                point[2] = list(point[2])
 
                 self.stack_point(point)
                 points.append(point)
@@ -166,7 +238,12 @@ class Overview(object):
         self.fields = map(lambda field: faceted_search.get_field_by_key(field), fields)
 
     def reframe(self):
+        '''
+            Frame the drawing around the points so the first data point is
+            on the left border and the last on the right border.
 
+            Generate data for the X and Y axis.
+        '''
         drawing = self.drawing
         points = self.drawing['points']
 
@@ -192,6 +269,8 @@ class Overview(object):
 
     def init_bands(self):
         '''
+            Initialise the vertical category-bands with a fixed height and label
+
             set self.bands = {'agreement': 0, 'brieve': 1000, LABEL: TOPY}
         '''
         # determine large y bands for the categories
@@ -206,12 +285,24 @@ class Overview(object):
                 l.extend(v)
             else:
                 l.append(v)
+        #value_rankings, self.bands = self.faceted_search.get_field_value_ranking(self.fields[1])
 
         self.bands = sorted_natural(list(set(l)))
         # eg. {'type1': 0, 'type2': 1000}
         self.bands = {self.bands[i]: i*band_width for i in range(0, len(self.bands))}
 
     def compact_bands(self, min_height=14):
+        '''
+            Initially each band has a fixed height,
+            large enough to contain all the data points in that category.
+            This function is called after all datapoints have been assigned.
+            It removes vertical holes in order to compact the height of each band.
+            All the data points are also repositioned.
+
+            Note that self.bands with have a different structure on return.
+
+            [[label, y], ...] sorted by label
+        '''
         stack = self.stack
         self.bands = sorted([[label, y] for label, y in self.bands.iteritems()], key=lambda p: p[1])
         offset = 0

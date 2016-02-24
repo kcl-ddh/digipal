@@ -41,244 +41,256 @@
 </div>
 
 <script type="text/javascript">
-//function() {
+//function dpvis() {
     var data = {{ canvas|json }};
+    window.datavis = data;
     var pts = data.drawing.points;
     var xs = data.drawing.x;
     var ys = data.drawing.y;
     var cdims = [data.width, data.height];
 
-function view_init() {
-    $(function() {
-        $(window).resize(redraw_vis);
-    })
-    redraw_vis();
-}
-
-if (typeof $ !== 'undefined') {
-    redraw_vis();
-}
-
-function redraw_vis() {
-    $('select[name=vcat]').on('change', function() {
-        $(this).closest('form').submit();
-    });
-
-    var bar_height = data.drawing.bar_height;
-    var last_selected_point = null;
-    var label_margin = data.drawing.label_margin;
-    var font_size = data.drawing.font_size;
-    //var extra_y = font_size+(label_margin*2) + bar_height * 2;
-    //var extra_y = font_size+(label_margin*2) + bar_height * 2;
-    var extra_y = 0;
-    var extra_x = 200;
-    var colors = {'label': '#000080'}
-    var point_index = {};
-
-    var $container = $('#vis-div');
-    resize_container($container);
-    function resize_container($container) {
-        var ret = 200;
-        // enough height to write all the category labels
-        ret = (font_size + (label_margin * 2)) * (1 + ys.length);
-        // enough height to display all the data points with 2px height
-        ret_alt = cdims[1] * bar_height;
-        if (ret_alt > ret) { ret = ret_alt; };
-        //
-        ret += extra_y;
-        $container.css('height', ret + 'px');
-        return ret;
+    function view_init() {
+        $(function() {
+            $(window).resize(redraw_vis);
+        })
+        redraw_vis();
     }
 
-    var dims = [$container.width(), $container.height()];
-    var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
-                    ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
-                    '</canvas>'
-                );
-    $container.html($canvas);
-    var ctx = $canvas[0].getContext('2d');
-
-    var ky = 1.0 / (cdims[1] + 1) * (dims[1] - extra_y);
-    var ky_min = (ky < 1) ? 1 : Math.floor(ky);
-    var kx = 1.0 / (cdims[0] + 1) * (dims[0] - extra_x);
-    var kx_min = (kx < 1) ? 1 : Math.floor(kx);
-    // x coord of the maximum data point
-    var max_x = coord(cdims[0], 0)[0];
-    //var dot_size = kx_min < ky_min ? kx_min : ky_min;
-
-    function draw_pt(pt, highlight, add_to_index) {
-        ctx.fillStyle = pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
-        if (highlight) ctx.fillStyle = '#ffff00';
-        var cs = coord(pt[0][0], pt[1]);
-        var cs2 = coord(pt[0][1], pt[1]);
-        var l = (cs2[0] - cs[0]) + kx_min
-        if (cs[0] + l > max_x) {
-            l = max_x - cs[0];
-        };
-
-        if (add_to_index) {
-            if (!point_index[cs[1]]) point_index[cs[1]] = [];
-            point_index[cs[1]].push([pt, [cs[0], cs[0]+l]]);
-        }
-
-        //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
-        ctx.fillRect(cs[0], cs[1], (l > 1) ? l-1 : l, ky_min);
-
-        // projection at the bottom
-        if (pt[2] && ((cs[0] > 0) || (cs[0] + l < max_x))) {
-            ctx.fillRect(cs[0], dims[1] - ky_min - 2, l, ky_min);
-        }
+    if (typeof $ !== 'undefined') {
+        redraw_vis();
     }
 
-    function draw_xs(axis) {
-        // axis
-        ctx.fillStyle = colors.label;
-        cs = coord(cdims[0], axis[0][1]);
-        ctx.fillRect(0, cs[1], cs[0], 1);
-
-        axis.map(function(pt, pti) {draw_label_x(pt); });
-        //draw_label(axis[0]);
-    }
-
-    function draw_label_x(pt) {
-        //var xaxis_y = coord(0, pt[1]);
-        // small bar to indicate the pos of the label on the axis
-        // TODO: bar size depends on label size
-        ctx.fillStyle = colors.label;
-        var cs = coord(pt[0], pt[1]);
-        ctx.fillRect(cs[0], cs[1], 1, 10);
-
-        // label
-        // TODO: label pos depends on label size
-        write_text(pt[2], cs[0], cs[1]);
-    }
-
-    function draw_ys(axis) {
-        // axis
-        ctx.fillStyle = colors.label;
-        var cs = coord(0, axis[axis.length-2][1]);
-        ctx.fillRect(max_x, 0, 1, cs[1]);
-
-        var max_count = axis.reduce(function(last, cat, i, array) {
-            return last + cat[3];
-        }, 0);
-
-        axis.map(function(pt, pti) {
-            var bottomy = ((pti + 1) < axis.length) ? axis[pti + 1][1] : cdims[1];
-            draw_label_y(pt, max_count, bottomy);
+    function redraw_vis() {
+        $('select[name=vcat]').on('change', function() {
+            $(this).closest('form').submit();
         });
-        //draw_label(axis[0]);
-    }
 
-    function draw_label_y(pt, max_count, bottomy) {
-        var cs = coord(cdims[0], pt[1]);
-        var bottom_cs = coord(cdims[0], bottomy)
+        var bar_height = data.drawing.bar_height;
+        var last_selected_point = null;
+        var label_margin = data.drawing.label_margin;
+        var font_size = data.drawing.font_size;
+        //var extra_y = font_size+(label_margin*2) + bar_height * 2;
+        //var extra_y = font_size+(label_margin*2) + bar_height * 2;
+        var extra_y = 0;
+        var extra_x = 200;
+        var colors = {'label': '#000080'}
+        var point_index = {};
 
-        // global % bar
-        var bar_height = font_size + label_margin * 2;
-        var bar_height = bottom_cs[1] - cs[1];
-        ctx.fillStyle = '#E0E0E0';
-        var pc = (1.0 / max_count) * pt[3];
-        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
+        var $container = $('#vis-div');
+        resize_container($container);
+        function resize_container($container) {
+            var ret = 200;
+            // enough height to write all the category labels
+            ret = (font_size + (label_margin * 2)) * (1 + ys.length);
+            // enough height to display all the data points with 2px height
+            ret_alt = cdims[1] * bar_height;
+            if (ret_alt > ret) { ret = ret_alt; };
+            //
+            ret += extra_y;
+            $container.css('height', ret + 'px');
+            return ret;
+        }
 
-        // local % bar
-        ctx.fillStyle = '#FFB0B0';
-        pc = (1.0 / max_count) * pt[4];
-        ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
+        var dims = [$container.width(), $container.height()];
+        var $canvas = $('<canvas id="overview-layer1" tabindex="0" class="canvas" height="'+ dims[1] +'" width="' + dims[0] + '" ' +
+                        ' style="height2:{{ canvas.height }}px; z-index: 100; width: 100%; border: 0px solid red;">' +
+                        '</canvas>'
+                    );
+        $container.html($canvas);
+        var ctx = $canvas[0].getContext('2d');
 
-        if (pt[2] && pt[2].length) {
+        var ky = 1.0 / (cdims[1] + 1) * (dims[1] - extra_y);
+        var ky_min = (ky < 1) ? 1 : Math.floor(ky);
+        var kx = 1.0 / (cdims[0] + 1) * (dims[0] - extra_x);
+        var kx_min = (kx < 1) ? 1 : Math.floor(kx);
+        // x coord of the maximum data point
+        var max_x = coord(cdims[0], 0)[0];
+        //var dot_size = kx_min < ky_min ? kx_min : ky_min;
+
+        function draw_pt(pt, highlight, add_to_index) {
+            ctx.fillStyle = pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
+            if (highlight) ctx.fillStyle = '#ffff00';
+            var cs = coord(pt[0][0], pt[1]);
+            var cs2 = coord(pt[0][1], pt[1]);
+            var l = (cs2[0] - cs[0]) + kx_min
+            if (cs[0] + l > max_x) {
+                l = max_x - cs[0];
+            };
+
+            if (add_to_index) {
+                if (!point_index[cs[1]]) point_index[cs[1]] = [];
+                point_index[cs[1]].push([pt, [cs[0], cs[0]+l]]);
+            }
+
+            //ctx.fillRect(cs[0], cs[1], dot_size, dot_size);
+            ctx.fillRect(cs[0], cs[1], (l > 1) ? l-1 : l, ky_min);
+
+            // projection at the bottom
+    //         if (pt[2] && ((cs[0] > 0) || (cs[0] + l < max_x))) {
+    //             ctx.fillRect(cs[0], dims[1] - ky_min - 2, l, ky_min);
+    //         }
+        }
+
+        function draw_histogram(histogram, ys) {
+            var base = coord(0, ys[ys.length - 1][1]);
+            $.each(histogram, function(x, layers) {
+                $.each(layers, function(layer, count) {
+                    ctx.fillStyle = (layer > 0) ? '#a1514d' : '#A0A0A0';
+                    var cs = coord(x, ys[ys.length - 1][1] + count / 2.0);
+                    ctx.fillRect(cs[0], base[1], kx_min + 1, cs[1] - base[1]);
+                });
+            });
+        }
+
+        function draw_xs(axis) {
+            // axis
+            ctx.fillStyle = colors.label;
+            cs = coord(cdims[0], axis[0][1]);
+            ctx.fillRect(0, cs[1], cs[0], 1);
+
+            axis.map(function(pt, pti) {draw_label_x(pt); });
+            //draw_label(axis[0]);
+        }
+
+        function draw_label_x(pt) {
+            //var xaxis_y = coord(0, pt[1]);
             // small bar to indicate the pos of the label on the axis
             // TODO: bar size depends on label size
-            if (cs[1] > 1) {
-                ctx.fillStyle = '#707070';
-                ctx.fillRect(0, cs[1], dims[0], 1);
-                ctx.fillStyle = colors.label;
-                ctx.fillRect(cs[0], cs[1], extra_x, 1);
-            }
+            ctx.fillStyle = colors.label;
+            var cs = coord(pt[0], pt[1]);
+            ctx.fillRect(cs[0], cs[1], 1, 10);
 
             // label
             // TODO: label pos depends on label size
-            var label = pt[2] + ' ( ' + pt[4] + ' / ' + pt[3] + ' )';
-            write_text(label, cs[0], cs[1], pt[4] ? colors.label : '#404040');
+            write_text(pt[2], cs[0], cs[1]);
         }
-    }
 
-    function write_text(text, x, y, color) {
-        ctx.fillStyle = color ? color : colors.label;
-        ctx.font = font_size + 'px Arial';
-        ctx.fillText(text, x+label_margin, y+font_size);
-    }
+        function draw_ys(axis) {
+            // axis
+            ctx.fillStyle = colors.label;
+            var cs = coord(0, axis[axis.length-2][1]);
+            ctx.fillRect(max_x, 0, 1, cs[1]);
 
-    function coord(x, y) {
-        return [Math.floor(x * kx), Math.floor(y * ky)];
-    }
+            var max_count = axis.reduce(function(last, cat, i, array) {
+                return last + cat[3];
+            }, 0);
 
-    draw_xs(xs);
-    draw_ys(ys);
-    pts.map(function(pt, pti) {draw_pt(pt, false, true); });
-
-    $canvas.on('mousemove mouseleave', function(e) {
-        // mouse is over canvas
-        // we have a selected hand and a selected page
-        var pos = get_mouse_pos(this, e);
-        show_info_at(pos);
-    });
-
-    $canvas.on('click', function(e) {
-        // mouse is over canvas
-        // we have a selected hand and a selected page
-        var pos = get_mouse_pos(this, e);
-        point = get_point_from_pos(pos);
-        if (point) {
-            var win = window.open(point[4], '_blank');
-            win.focus();
+            axis.map(function(pt, pti) {
+                var bottomy = ((pti + 1) < axis.length) ? axis[pti + 1][1] : cdims[1];
+                draw_label_y(pt, max_count, bottomy);
+            });
+            //draw_label(axis[0]);
         }
-    });
 
-    function get_mouse_pos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-            x: Math.round(1.0 * (evt.clientX - rect.left) / $(canvas).width() * $(canvas).attr('width')),
-            y: Math.round(1.0 * (evt.clientY - rect.top) / $(canvas).height() * $(canvas).attr('height')),
-        };
-    }
+        function draw_label_y(pt, max_count, bottomy) {
+            var cs = coord(cdims[0], pt[1]);
+            var bottom_cs = coord(cdims[0], bottomy)
 
-    function get_point_from_pos(pos) {
-        var ret = null;
-        for (var i = 0; i < ky; i++) {
-            var pts = point_index[pos.y + i];
-            if (pts) {
-                pts.map(function(pt, pti) {
-                    if (pos.x >= pt[1][0] & pos.x <= pt[1][1]) {
-                        ret = pt[0];
-                    }
-                });
-                if (ret) break;
+            // global % bar
+            var bar_height = font_size + label_margin * 2;
+            var bar_height = bottom_cs[1] - cs[1];
+            ctx.fillStyle = '#E0E0E0';
+            var pc = (1.0 / max_count) * pt[3];
+            ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
+
+            // local % bar
+            ctx.fillStyle = '#FFB0B0';
+            pc = (1.0 / max_count) * pt[4];
+            ctx.fillRect(dims[0] - Math.ceil(extra_x * pc), cs[1], extra_x, bar_height);
+
+            if (pt[2] && pt[2].length) {
+                // small bar to indicate the pos of the label on the axis
+                // TODO: bar size depends on label size
+                if (cs[1] > 1) {
+                    ctx.fillStyle = '#707070';
+                    ctx.fillRect(0, cs[1], dims[0], 1);
+                    ctx.fillStyle = colors.label;
+                    ctx.fillRect(cs[0], cs[1], extra_x, 1);
+                }
+
+                // label
+                // TODO: label pos depends on label size
+                var label = pt[2] + ' ( ' + pt[4] + ' / ' + pt[3] + ' )';
+                write_text(label, cs[0], cs[1], pt[4] ? colors.label : '#404040');
             }
         }
-        return ret;
-    }
 
-    function show_info_at(pos) {
-        var message = '';
-
-        if (last_selected_point) {
-            draw_pt(last_selected_point);
+        function write_text(text, x, y, color) {
+            ctx.fillStyle = color ? color : colors.label;
+            ctx.font = font_size + 'px Arial';
+            ctx.fillText(text, x+label_margin, y+font_size);
         }
 
-        last_selected_point = get_point_from_pos(pos);
-        if (last_selected_point) {
-            draw_pt(last_selected_point, true);
-            message = last_selected_point[3];
+        function coord(x, y) {
+            return [Math.floor(x * kx), Math.floor(y * ky)];
         }
 
-        var $info_div = $('#info-div');
-        $info_div.toggle(!!message);
-        $info_div.html('<table class="table table-compact" style="font-size: small;">'+message+'</table>');
+        draw_xs(xs);
+        draw_ys(ys);
+        draw_histogram(data.drawing.histogram, ys);
+        pts.map(function(pt, pti) {draw_pt(pt, false, true); });
+
+        $canvas.on('mousemove mouseleave', function(e) {
+            // mouse is over canvas
+            // we have a selected hand and a selected page
+            var pos = get_mouse_pos(this, e);
+            show_info_at(pos);
+        });
+
+        $canvas.on('click', function(e) {
+            // mouse is over canvas
+            // we have a selected hand and a selected page
+            var pos = get_mouse_pos(this, e);
+            point = get_point_from_pos(pos);
+            if (point) {
+                var win = window.open(point[4], '_blank');
+                win.focus();
+            }
+        });
+
+        function get_mouse_pos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: Math.round(1.0 * (evt.clientX - rect.left) / $(canvas).width() * $(canvas).attr('width')),
+                y: Math.round(1.0 * (evt.clientY - rect.top) / $(canvas).height() * $(canvas).attr('height')),
+            };
+        }
+
+        function get_point_from_pos(pos) {
+            var ret = null;
+            for (var i = 0; i < ky; i++) {
+                var pts = point_index[pos.y + i];
+                if (pts) {
+                    pts.map(function(pt, pti) {
+                        if (pos.x >= pt[1][0] & pos.x <= pt[1][1]) {
+                            ret = pt[0];
+                        }
+                    });
+                    if (ret) break;
+                }
+            }
+            return ret;
+        }
+
+        function show_info_at(pos) {
+            var message = '';
+
+            if (last_selected_point) {
+                draw_pt(last_selected_point);
+            }
+
+            last_selected_point = get_point_from_pos(pos);
+            if (last_selected_point) {
+                draw_pt(last_selected_point, true);
+                message = last_selected_point[3];
+            }
+
+            var $info_div = $('#info-div');
+            $info_div.toggle(!!message);
+            $info_div.html('<table class="table table-compact" style="font-size: small;">'+message+'</table>');
+        }
+
     }
-
-}
-
-
-//}();
+//};
+//dpvis();
 </script>

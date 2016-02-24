@@ -1185,3 +1185,11 @@ def run_in_thread_advanced(fct, args, kwargs, athreads=1, wait=False, print_resu
             print repr(thread.res)
 
     return threads
+
+# increment the value of an item in a counter dictionary
+# {item: count, item: count}
+def inc_counter(dic, item, count=1):
+    dic[item] = dic.get(item, 0)
+    dic[item] += count
+    return dic[item]
+

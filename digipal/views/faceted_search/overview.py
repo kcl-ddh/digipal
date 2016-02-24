@@ -1,4 +1,5 @@
 import re
+from digipal.utils import inc_counter
 
 def draw_overview(faceted_search, context, request):
     view = Overview(faceted_search, context, request)
@@ -67,6 +68,12 @@ class Overview(object):
 
         self.mins = [None, None]
         self.maxs = [None, None]
+        # histogram at the bottom of the chart with the sum of all the ocurrences
+        # above
+        # format = {0: {0: 3, 1: 2}, 1: {0:2, 1:1}, ... }
+        # format = {X/year: {layer index: bar count, layer index: bar count, ...}, ...}
+        self.histogram = {}
+        self.histogram_height = 0
 
     def draw(self):
         '''
@@ -204,6 +211,12 @@ class Overview(object):
             if x[1] is not None and x[1] not in MAX_DATE_RANGE and (self.maxs[0] is None or self.maxs[0] < x[1]):
                 self.maxs[0] = x[1]
 
+            # update histogram
+            for xi in range(x[0], x[1]+1):
+                hist = self.histogram[xi] = self.histogram.get(xi, {})
+                for layer in point[2]:
+                    self.histogram_height = max(inc_counter(hist, layer), self.histogram_height)
+
             # convert y to numerical value
             if not isinstance(ys, list):
                 ys = [ys]
@@ -245,37 +258,6 @@ class Overview(object):
 
         fields = ['hi_date', category_field['key'], 'CONFLATEID' if self.conflate else 'url']
         self.fields = map(lambda field: faceted_search.get_field_by_key(field), fields)
-
-    def reframe(self):
-        '''
-            Frame the drawing around the points so the first data point is
-            on the left border and the last on the right border.
-
-            Generate data for the X and Y axis.
-        '''
-        drawing = self.drawing
-        points = self.drawing['points']
-
-        # reframe the x values based on min date
-        for point in points:
-            if point[0] is not None:
-                point[0][0] -= self.mins[0]
-                point[0][1] -= self.mins[0]
-
-        #last_y = max([point[1] for point in points])
-        xaxis_y = self.bands[-2][1]
-
-        self.context['canvas']['width'] = self.maxs[0] - self.mins[0] + 1
-        self.context['canvas']['height'] = self.bands[-1][1] + 3
-
-        # X axis
-        # eg. 1055, 1150 => [[5, 100, 1060], [15, 100,  1070], ...]
-        step = 10
-        date0 = self.mins[0] - (self.mins[0] % step)
-        drawing['x'] = [[d - self.mins[0], xaxis_y, '%s' % d] for d in range(date0, self.maxs[0], step)]
-        drawing['y'] = [[0, y, label, self.cat_hits.get(label, [0, 0])[0], self.cat_hits.get(label, [0, 0])[1]] for label, y in self.bands]
-
-        self.context['canvas']['drawing'] = drawing
 
     def init_bands(self):
         '''
@@ -360,3 +342,38 @@ class Overview(object):
             point[1] += 1
 
         self.stack[point[1]].append(point)
+
+    def reframe(self):
+        '''
+            Frame the drawing around the points so the first data point is
+            on the left border and the last on the right border.
+
+            Generate data for the X and Y axis.
+        '''
+        drawing = self.drawing
+        points = self.drawing['points']
+
+        # reframe the x values based on min date
+        for point in points:
+            if point[0] is not None:
+                point[0][0] -= self.mins[0]
+                point[0][1] -= self.mins[0]
+        # reframe the histograms
+        self.histogram = {x - self.mins[0]: hist for x, hist in self.histogram.iteritems()}
+        drawing['histogram'] = self.histogram
+
+        #last_y = max([point[1] for point in points])
+        xaxis_y = self.bands[-2][1]
+
+        self.context['canvas']['width'] = self.maxs[0] - self.mins[0] + 1
+        self.context['canvas']['height'] = self.bands[-1][1] + self.histogram_height / 2
+
+        # X axis
+        # eg. 1055, 1150 => [[5, 100, 1060], [15, 100,  1070], ...]
+        step = 10
+        date0 = self.mins[0] - (self.mins[0] % step)
+        drawing['x'] = [[d - self.mins[0], xaxis_y, '%s' % d] for d in range(date0, self.maxs[0], step)]
+        drawing['y'] = [[0, y, label, self.cat_hits.get(label, [0, 0])[0], self.cat_hits.get(label, [0, 0])[1]] for label, y in self.bands]
+
+        self.context['canvas']['drawing'] = drawing
+

@@ -9,7 +9,7 @@ Visualisation
         [done] add migration to import date into db
         [done] use HI.get_date_sort() in the faceted search
         [done] use fct to return hi.date_sort OR hi.date
-    ### 0. LAYERS/Multi-search
+    ### 3. LAYERS/Multi-search
         => proper way to solves many issues in the code and visualisation
         => solves OR with <> cols
         => partially solves colors for dif cat
@@ -21,28 +21,32 @@ Visualisation
             . layers list
                 . add/remove
                 . hide/show
+            . coloring
+            . info
+            . histogram
     . texts
         5. colors for another cat
             . how?
         . reference set? => layers
             . show layers
                 . query summary | color | remove|save|hide|show
-    ### . graphs
+    [done]. graphs
         [done]. #### COLLAPSING
         . red/grey
         . counts
-    . info:
-        2. show SAMPLES graph
+    2. info:
+        . show SAMPLES graph
             . show all relevant graphs in info box
         . show sample text
             . with highlight
-    4. histogram
-        . move x axis below all categories
-        . compute histogram on server side
+    1. histogram
+        [done] move x axis below all categories
+        [done] compute histogram on server side
         . show histogram
         . show all greys
         . bars
-        . bar highlight
+        . optimise the format: nested array instead of nested dicts
+    . selection highlight projected on histogram
     . sums
 
 . not logged in: full res (bars) should exclude private images (e.g. graphs)

@@ -26,8 +26,8 @@ Visualisation
             . histogram
     . texts
     . vis control panel
-        . size bars
-        . size graphs
+        [done] size bars
+        [done] size graphs
         . opacity graphs
 
     [done]. graphs
@@ -35,22 +35,22 @@ Visualisation
         . red/grey
         . counts
     2. info:
-        . one sample graph per bar
+        [done] one sample graph per bar
         . info box
             . other graphs
             . clause or text
         . show sample text
             . with highlight
-    1. histogram
-        !!! make sure histgram layers are sorted by count otherwise the grey will cover other colors
+    [done]. histogram
         [done] move x axis below all categories
         [done] compute histogram on server side
         [done] show histogram
         [done] show all greys
-        . bars
+        [done] bars
         . optimise the format: nested array instead of nested dicts
-    . selection highlight projected on histogram
+    [done] selection highlight projected on histogram
     . sums
+    !!! make sure histgram layers are sorted by count otherwise the grey will cover other colors
 
 . not logged in: full res (bars) should exclude private images (e.g. graphs)
 

@@ -129,6 +129,9 @@ def update_query_string(url, updates, url_wins=False):
     # Parse and unparse it again to remove the empty values
     query_dict = parse_qs(urlencode(query_dict, True))
 
+    # remove temporary parameters __
+    query_dict = {k: v for k, v in query_dict.iteritems() if not k.startswith('__')}
+
     # Convert back into a string
     parts[4] = urlencode(query_dict, True)
 

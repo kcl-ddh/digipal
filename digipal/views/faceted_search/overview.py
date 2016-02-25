@@ -6,6 +6,122 @@ def draw_overview(faceted_search, context, request):
     view = Overview(faceted_search, context, request)
     view.draw()
 
+class Query(object):
+    def __init__(self, index=0):
+        self.index = index
+        self.is_active = 0
+        self.is_valid = 0
+        self.faceted_search = None
+        self.request = None
+
+    def get_summary(self):
+        ret = 'Summary for query %s' % self.index
+        if self.index == 0:
+            ret = 'All records'
+        else:
+            if self.faceted_search:
+                ret = self.faceted_search.get_summary(self.request, True)
+        if self.faceted_search:
+            ret = '%s : %s' %  (self.faceted_search.get_label(), ret)
+        return ret
+
+    def get_color(self):
+        colors = ['#A0A0A0', '#a1514d', 'blue', 'green', 'orange', '#A000A0', '#00A0A0']
+        return colors[self.index]
+
+    def get_index(self):
+        return self.index
+
+    def set_active(self, is_active):
+        self.is_active = is_active
+
+    def is_active(self):
+        return self.is_active
+
+    def get_remove_link(self):
+        ret = '?'
+        for k,v in self.request_current.GET.iteritems():
+            if k.startswith('q%s_' % self.index): continue
+            ret += '&%s=%s' % (k, v)
+        return ret
+
+    def set_from_request(self, request, faceted_search):
+        if self.index < 2:
+            self.is_valid = 1
+
+        index = utils.get_int_from_request_var(request, 'qi', 1)
+        if self.index == index:
+            self.is_active = 1
+
+        self.request = request
+        self.request_current = request
+        if request.REQUEST.get('q%s_result_type'%(self.index), ''):
+            self.is_valid = 1
+
+        #if self.is_active:
+        if self.index < 2:
+            self.faceted_search = faceted_search
+        else:
+            from digipal.views.faceted_search.faceted_search import simple_search
+
+            new_url = '/?'
+            for k, v in self.request.GET.iteritems():
+                if k.startswith('q%s_' % self.index):
+                    new_url += '&%s=%s' % (k.replace('q%s_' % self.index, ''), v)
+
+            from django.test.client import RequestFactory
+            request = RequestFactory().get(new_url)
+            self.request = request
+
+            self.faceted_search = simple_search(request)
+
+        self.is_hidden = utils.get_int_from_request_var(request, 'q%s_hidden' % self.index, 0)
+
+class Queries(object):
+    def __init__(self, request, context, faceted_search):
+        self.request = request
+        self.context = context
+        self.faceted_search = faceted_search
+
+        self.queries = []
+
+        i = 0
+        while True:
+            query = self.get_query_from_request(i)
+            if query:
+                self.queries.append(query)
+            else:
+                break
+            i += 1
+
+    def get_query_from_request(self, index=0):
+        ret = Query(index)
+        ret.set_from_request(self.request, self.faceted_search)
+
+        if not ret.is_valid:
+            ret = None
+
+        return ret
+
+    def get_copy_link(self):
+        ret = '?'
+        for k,v in self.request.GET.iteritems():
+            ret += '&%s=%s' % (k, v)
+            if not re.match(ur'^q\d+_.*$', k):
+                ret += '&q%s_%s=%s' % (len(self.queries), k, v)
+        return ret
+
+    def get_queries(self):
+        return self.queries
+
+    def get_hidden_inputs(self):
+        ret = ''
+        for k,v in self.request.GET.iteritems():
+            if re.match(ur'^q\d+_.*$', k):
+                ret += u'<input type="hidden" name="%s" value="%s" />' % (k, v)
+        return ret
+
+
 class Overview(object):
     '''
         IN
@@ -90,6 +206,8 @@ class Overview(object):
         '''
         if self.faceted_search.get_selected_view()['key'] != 'overview': return
 
+        self.init_queries()
+
         self.set_conflate('item_part')
 
         self.set_fields()
@@ -101,6 +219,10 @@ class Overview(object):
         self.compact_bands()
 
         self.reframe()
+
+    def init_queries(self):
+        self.queries = Queries(self.request, self.context, self.faceted_search)
+        self.context['queries'] = self.queries
 
     def set_conflate(self, conflate):
         '''Returns the model represented by a bar (e.g. Graph, ItemPart)'''
@@ -194,8 +316,6 @@ class Overview(object):
         points = self.drawing['points']
 
         # {'agreement': [10, 20]}
-
-        print 'OVERVIEW SCAN'
 
         self.init_bands()
 

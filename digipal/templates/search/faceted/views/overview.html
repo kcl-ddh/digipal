@@ -3,16 +3,36 @@
 <span id="info-div" style="opacity: 0.9; position: fixed; z-index: 5000; top:0; left: 0; margin: 0.3em; padding: 0.2em; border: 1px solid orange; background-color: white; diplay: none;"></span>
 
 <div>
-    {% comment %}
-        server side computes all the drawing data and coordinates
-        [
-            [[x0, x1], [y0, y1] ]
-        ]
-        {% for record in result %}
-            {{ record.id }}{% if record.found %}*{% endif %}&nbsp;
-        {% endfor %}
-    {% endcomment %}
-    {# Add selectors for X and Y #}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Color
+                {{ queries.get_hidden_inputs|safe }}
+                </th>
+                <th>Query</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for query in queries.get_queries %}
+                <tr class="{% if query.is_active%}warning{% endif %}">
+                    <td><span style="display:inline-block;width:1em;height:1em;background-color:{{query.get_color}}">&nbsp</span></td>
+                    <td>{{ query.get_summary }}</td>
+                    <td>
+                        {% if 0 and query.index > 0 %}<a href="" class="btn btn-default">Select</a>{% endif %}
+                        {% if query.index == 1 %}<a href="{{ queries.get_copy_link }}" class="btn btn-default">Save copy</a>{% endif %}
+                        {% if query.index > 1 and forloop.last %}<a href="{{ query.get_remove_link }}" class="btn btn-default">Remove</a>{% endif %}
+
+                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?q{{ query.index }}_hidden={% if query.is_hidden %}0{% else %}1{% endif %}{% endfilter %}" class="btn btn-default">
+                            {% if query.is_hidden %}Hidden{% else %}Visible{% endif %}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
     <div style="min-height:2.5em;">
         &nbsp;
 
@@ -34,17 +54,13 @@
 
     <div id="vis-div" style="height:400px; width: 100%; border: 1px solid lightgrey; margin-bottom: 3em;">
     </div>
-    <!-- <canvas id="overview-layer1" tabindex="0" class="canvas" id="hands-ol-canvas"
-        {# height="{{ canvas.height }}" width="{{ canvas.width }}" #}
-        style="height:{{ canvas.height }}px; z-index: 100; width: 100%; border: 1px solid grey;">
-    </canvas> -->
 
     <div class="panel panel-default">
         <div class="panel-heading">Visualisation Settings</div>
         <div class="panel-body">
             Bar size: <input name="vz_bh" type="text" value="{{viz.vz_bh}}" /><br/>
             Graph size: <input name="vz_gs" type="text" value="{{viz.vz_gs}}" /><br/>
-            <input class="btn btn-default" type="submit" name="Redraw" value="Redraw" />
+            <input class="btn btn-default" type="submit" name="__Redraw" value="Redraw" />
         </div>
     </div>
 

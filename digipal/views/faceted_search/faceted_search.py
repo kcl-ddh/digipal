@@ -11,6 +11,7 @@ from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
 from django.utils.datastructures import SortedDict
 import digipal.models
+import re
 
 import logging
 
@@ -450,7 +451,7 @@ class FacetedModel(object):
 
         return ret
 
-    def get_summary(self, request):
+    def get_summary(self, request, passive=False):
         ret = u''
         for facet in self.get_facets(request):
             for option in facet['removable_options']:
@@ -458,6 +459,9 @@ class FacetedModel(object):
                 ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label'])
 
         from django.utils.safestring import mark_safe
+
+        if passive:
+            ret = re.sub(ur'<[^>]*>', ur' ', ret)
 
         if not ret.strip():
             ret = 'All'
@@ -740,7 +744,6 @@ class FacetedModel(object):
         self.cache_hit = False
         if ret is None:
             utils.dplog('Cache MISS')
-            print q
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
 
             ret = {
@@ -834,6 +837,45 @@ def get_types(request):
     ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get('disabled', False) and is_model_visible(ct['model'], request)]
 
     return ret
+
+# TODO: DIRTY code duplication (see next function!!!)
+def simple_search(request, content_type='', objectid='', tabid=''):
+    from digipal.views.search import reroute_to_static_search
+    ret = reroute_to_static_search(request)
+    if ret: return ret
+
+    # we just remove jx=1 from the request as we don't want to expose it in the HTML
+    # this is an ajax ONLY request parameter.
+    request = utils.remove_param_from_request(request, 'jx')
+
+    hand_filters.chrono('VIEW:')
+
+    hand_filters.chrono('SEARCH:')
+
+    context = {'tabid': tabid}
+
+    context['nofollow'] = True
+    context['terms'] = request.GET.get('terms', '')
+
+    # select the content type
+    cts = get_types(request)
+    context['result_type'] = cts[0]
+    ct_key = request.REQUEST.get('result_type', context['result_type'].key)
+    for ct in cts:
+        if ct.key == ct_key:
+            context['result_type'] = ct
+            break
+
+    ct = context['result_type']
+
+    ct.set_faceted_model_group(cts)
+
+    context['result_type'] = ct
+
+    # run the search
+    records = ct.get_requested_records(request)
+
+    return ct
 
 def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     from digipal.views.search import reroute_to_static_search

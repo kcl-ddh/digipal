@@ -9,6 +9,7 @@
                 <th>Color
                 {{ queries.get_hidden_inputs|safe }}
                 </th>
+                <th>Count</th>
                 <th>Query</th>
                 <th>Actions</th>
             </tr>
@@ -17,6 +18,7 @@
             {% for query in queries.get_queries %}
                 <tr class="{% if query.is_active%}warning{% endif %}">
                     <td><span style="display:inline-block;width:1em;height:1em;background-color:{{query.get_color}}">&nbsp</span></td>
+                    <td>{{ query.get_count }}</td>
                     <td>{{ query.get_summary }}</td>
                     <td>
                         {% if 0 and query.index > 0 %}<a href="" class="btn btn-default">Select</a>{% endif %}
@@ -106,16 +108,17 @@ DPCanvas.prototype.clear = function(opacity) {
     this.getContext().clearRect(0, 0, this.$canvas[0].width, this.$canvas[0].height);
 }
 
-//function dpvis() {
+function dpvis() {
     var data = {{ canvas|json }};
     window.datavis = data;
-if (data.drawing && data.drawing.points) {
+    if (!data.drawing || !data.drawing.points) return;
     var pts = data.drawing.points;
     var xs = data.drawing.x;
     var ys = data.drawing.y;
     var cdims = [data.width, data.height];
+    var colors = data.drawing.colors;
 
-    function view_init() {
+    window.view_init = function() {
         if (data.drawing && data.drawing.points) {
             $(function() {
                 $(window).resize(redraw_vis);
@@ -141,7 +144,7 @@ if (data.drawing && data.drawing.points) {
         //var extra_y = font_size+(label_margin*2) + bar_height * 2;
         var extra_y = 0;
         var extra_x = 200;
-        var colors = {'label': '#000080'}
+        var label_color = '#202040';
         var point_index = {};
 
         var $container = $('#vis-div');
@@ -187,11 +190,15 @@ if (data.drawing && data.drawing.points) {
 
         function get_color_from_point(pt) {
             // TODO: cache combinations!!!
-            if (pt[2].length == 1) return data.drawing.colors[pt[2][0]];
+            return get_color_from_layers(pt[2]);
+        }
+
+        function get_color_from_layers(layer_ids) {
+            if (layer_ids.length == 1) return data.drawing.colors[layer_ids[0]];
             var ret = '';
-            for (var i = 0; i < pt[2].length; i++) {
-                if (pt[2][i] > 0) {
-                    var c = data.drawing.colors[pt[2][i]];
+            for (var i = 0; i < layer_ids.length; i++) {
+                if (layer_ids[i] > 0) {
+                    var c = data.drawing.colors[layer_ids[i]];
                     if (ret != '') {
                         ret = tinycolor.mix(ret, c).toHexString();
                     } else {
@@ -199,15 +206,13 @@ if (data.drawing && data.drawing.points) {
                     }
                 }
             }
-            console.log(ret, pt[2])
+            //console.log(ret, layer_ids)
             return ret;
-            //pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
         }
 
         function draw_pt(pt, highlight, add_to_index) {
             var ctx = gct(highlight ? 'hovers' : '');
             ctx.fillStyle = get_color_from_point(pt);
-            console.log(ctx.fillStyle);
             if (highlight) ctx.fillStyle = '#ffff00';
             var cs = coord(pt[0][0], pt[1]);
             var cs2 = coord(pt[0][1], pt[1]);
@@ -251,18 +256,31 @@ if (data.drawing && data.drawing.points) {
 
         function draw_histogram(histogram, ys) {
             var base = coord(0, ys[ys.length - 1][1]);
+            var bcolors = [colors[0], get_color_from_layers(colors.map(function(v,i){ return i; }))];
+
+            function draw_bar(color, x, size) {
+                if (size < 1) return;
+                ctx.fillStyle = color;
+                var cs = coord(x, ys[ys.length - 1][1] + size / 2.0);
+                ctx.fillRect(cs[0], base[1], kx_min + 1, cs[1] - base[1]);
+            }
+
             $.each(histogram, function(x, layers) {
+                var sizes = [0, 0];
+                var acolors = [];
                 $.each(layers, function(layer, count) {
-                    ctx.fillStyle = (layer > 0) ? '#a1514d' : '#A0A0A0';
-                    var cs = coord(x, ys[ys.length - 1][1] + count / 2.0);
-                    ctx.fillRect(cs[0], base[1], kx_min + 1, cs[1] - base[1]);
+                    sizes[(layer == 0) ? 0 : 1] += count;
+                    if (layer > 0 && count > 0) acolors.push(layer);
                 });
+                for (i in sizes) {
+                    draw_bar((i == 0) ? colors[0] : get_color_from_layers(acolors), x, sizes[i]);
+                }
             });
         }
 
         function draw_xs(axis) {
             // axis
-            ctx.fillStyle = colors.label;
+            ctx.fillStyle = label_color;
             cs = coord(cdims[0], axis[0][1]);
             ctx.fillRect(0, cs[1], cs[0], 1);
 
@@ -274,7 +292,7 @@ if (data.drawing && data.drawing.points) {
             //var xaxis_y = coord(0, pt[1]);
             // small bar to indicate the pos of the label on the axis
             // TODO: bar size depends on label size
-            ctx.fillStyle = colors.label;
+            ctx.fillStyle = label_color;
             var cs = coord(pt[0], pt[1]);
             ctx.fillRect(cs[0], cs[1], 1, 10);
 
@@ -285,7 +303,7 @@ if (data.drawing && data.drawing.points) {
 
         function draw_ys(axis) {
             // axis
-            ctx.fillStyle = colors.label;
+            ctx.fillStyle = label_color;
             var cs = coord(0, axis[axis.length-2][1]);
             ctx.fillRect(max_x, 0, 1, cs[1]);
 
@@ -322,19 +340,19 @@ if (data.drawing && data.drawing.points) {
                 if (cs[1] > 1) {
                     ctx.fillStyle = '#707070';
                     ctx.fillRect(0, cs[1], dims[0], 1);
-                    ctx.fillStyle = colors.label;
+                    ctx.fillStyle = label_color;
                     ctx.fillRect(cs[0], cs[1], extra_x, 1);
                 }
 
                 // label
                 // TODO: label pos depends on label size
                 var label = pt[2] + ' ( ' + pt[4] + ' / ' + pt[3] + ' )';
-                write_text(label, cs[0], cs[1], pt[4] ? colors.label : '#404040');
+                write_text(label, cs[0], cs[1], pt[4] ? label_color : '#404040');
             }
         }
 
         function write_text(text, x, y, color) {
-            ctx.fillStyle = color ? color : colors.label;
+            ctx.fillStyle = color ? color : label_color;
             ctx.font = font_size + 'px Arial';
             ctx.fillText(text, x+label_margin, y+font_size);
         }
@@ -413,7 +431,8 @@ if (data.drawing && data.drawing.points) {
         }
 
     }
-}
+};
 //};
-//dpvis();
+dpvis();
+
 </script>

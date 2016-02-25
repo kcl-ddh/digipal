@@ -20,6 +20,11 @@ class Query(object):
         else:
             return self.faceted_search.overview_records
 
+    def get_count(self):
+        ret = 0
+        return len(self.get_records())
+        return ret
+
     def get_summary(self):
         ret = 'Summary for query %s' % self.index
         if self.index == 0:

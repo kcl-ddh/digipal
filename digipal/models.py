@@ -2584,8 +2584,8 @@ class Annotation(models.Model):
         # change the y coordinates (from the top rather than the bottom)
         if y_from_top:
             width, height = self.image.dimensions()
-            print width, height
-            print cs
+            #print width, height
+            #print cs
             for i in range(0, len(cs)):
                 cs[i][1] = height - cs[i][1]
 

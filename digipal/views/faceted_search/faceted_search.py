@@ -683,15 +683,22 @@ class FacetedModel(object):
 
             # if overview then instead we get everything and only tag the ids
             if self.get_selected_view()['key'] == 'overview':
-                ret = []
-                for record in records:
-                    ret.append(record)
+                self.overview_all_records = records
+#                 for record in records:
+#                     ret.append(record)
                 # TODO: quick hack to avoid full search to show all bars in red
-                if not (search_phrase or field_queries):
-                    self.ids = []
+                # ! filter not implemented in all faceted models
+                #ret = records.filter(id__in=self.ids)
+                #ret = records.in_bulks(ids)
+                #print self.overview_records.count()
+                self.is_full_search = not (search_phrase or field_queries)
+                self.is_full_search = (self.get_summary(request, True).strip().lower() == 'all')
+#                 if self.is_full_search:
+#                     self.ids = []
 #                     if str(record.id) in ids and (search_phrase or field_queries):
 #                         record.found = True
-            else:
+            if 1:
+            #else:
                 records = records.in_bulk(ids)
 
                 if len(records) != len(ids):
@@ -712,6 +719,9 @@ class FacetedModel(object):
                     from whoosh.highlight import highlight
                     for r in ret:
                         r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
+
+                self.overview_records = ret
+
 
             hand_filters.chrono(':sql')
 

@@ -21,6 +21,7 @@
 
 {% block extra_js %}
     {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/tinycolor/tinycolor.js"></script>
     <script type="text/javascript">
         init_search_page({});
         if (window.view_init) {

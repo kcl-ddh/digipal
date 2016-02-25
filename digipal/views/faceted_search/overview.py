@@ -14,6 +14,12 @@ class Query(object):
         self.faceted_search = None
         self.request = None
 
+    def get_records(self):
+        if self.index == 0:
+            return self.faceted_search.overview_all_records
+        else:
+            return self.faceted_search.overview_records
+
     def get_summary(self):
         ret = 'Summary for query %s' % self.index
         if self.index == 0:
@@ -26,7 +32,8 @@ class Query(object):
         return ret
 
     def get_color(self):
-        colors = ['#A0A0A0', '#a1514d', 'blue', 'green', 'orange', '#A000A0', '#00A0A0']
+        #colors = ['#A0A0A0', '#a1514d', 'blue', 'green', 'orange', '#A000A0', '#00A0A0']
+        colors = ['#C0C0C0', '#6060FF', '#60FF60', '#FF8080', 'orange', '#A000A0', '#00A0A0']
         return colors[self.index]
 
     def get_index(self):
@@ -46,8 +53,11 @@ class Query(object):
         return ret
 
     def set_from_request(self, request, faceted_search):
-        if self.index < 2:
+        if self.index < 1:
             self.is_valid = 1
+        if self.index == 1:
+            if not faceted_search.is_full_search:
+                self.is_valid = 1
 
         index = utils.get_int_from_request_var(request, 'qi', 1)
         if self.index == index:
@@ -57,6 +67,8 @@ class Query(object):
         self.request_current = request
         if request.REQUEST.get('q%s_result_type'%(self.index), ''):
             self.is_valid = 1
+
+        self.is_hidden = utils.get_int_from_request_var(request, 'q%s_hidden' % self.index, 0)
 
         #if self.is_active:
         if self.index < 2:
@@ -71,11 +83,11 @@ class Query(object):
 
             from django.test.client import RequestFactory
             request = RequestFactory().get(new_url)
+            user = self.request.user
             self.request = request
+            self.request.user = user
 
             self.faceted_search = simple_search(request)
-
-        self.is_hidden = utils.get_int_from_request_var(request, 'q%s_hidden' % self.index, 0)
 
 class Queries(object):
     def __init__(self, request, context, faceted_search):
@@ -91,7 +103,8 @@ class Queries(object):
             if query:
                 self.queries.append(query)
             else:
-                break
+                if i > 1:
+                    break
             i += 1
 
     def get_query_from_request(self, index=0):
@@ -118,7 +131,8 @@ class Queries(object):
         ret = ''
         for k,v in self.request.GET.iteritems():
             if re.match(ur'^q\d+_.*$', k):
-                ret += u'<input type="hidden" name="%s" value="%s" />' % (k, v)
+                from django.utils.html import escape
+                ret += u'<input type="hidden" name="%s" value="%s" />' % (escape(k), escape(v))
         return ret
 
 
@@ -210,15 +224,17 @@ class Overview(object):
 
         self.set_conflate('item_part')
 
-        self.set_fields()
+        #self.set_fields()
 
         self.set_points()
 
-        self.draw_internal()
+        if self.points:
+            self.draw_internal()
 
-        self.compact_bands()
+            self.compact_bands()
 
-        self.reframe()
+            self.reframe()
+
 
     def init_queries(self):
         self.queries = Queries(self.request, self.context, self.faceted_search)
@@ -241,13 +257,13 @@ class Overview(object):
 #         self.conflate_model = model
         self.conflate = conflate
 
-    def get_conflate_relative_field(self):
+    def get_conflate_relative_field(self, faceted_search):
         '''Return a new faceted field whith a relative path to the conflated record id'''
         ret = {'path': 'id'}
 
         if self.conflate:
             # let's assume the path is already part of at least one field
-            for field in self.faceted_search.get_fields():
+            for field in faceted_search.get_fields():
                 m = re.search(ur'(?musi)(.*\.'+re.escape(self.conflate)+')[._a-z]', field['path'])
                 if m:
                     ret['path'] = m.group(1)+'.id'
@@ -265,44 +281,94 @@ class Overview(object):
         '''
         ret = {}
 
-        faceted_search = self.faceted_search
+        self.bands = []
 
-        # TODO: combine multiple results
-        # Here we conflate the results and build data points
-        # with all info except coordinates.
-        conflate_relative_field = self.get_conflate_relative_field()
+        for query in self.queries.get_queries():
+            if query.is_hidden: continue
+            faceted_search = query.faceted_search
 
-        for record in self.context['result']:
+            self.set_fields(faceted_search)
 
-            # TODO: self.fields depends on the result type!!!
-            # once we allow a mix of result type we'll have to get the fields differently
-            conflateid = faceted_search.get_record_field(record, conflate_relative_field)
+            # TODO: combine multiple results
+            # Here we conflate the results and build data points
+            # with all info except coordinates.
+            conflate_relative_field = self.get_conflate_relative_field(faceted_search)
 
-            point = ret.get(conflateid, None)
-            if point is None:
-                point = []
+            #for record in query.self.context['result']:
+            for record in query.get_records():
 
-                # TODO: one request for the whole thing
-                values = []
-                for field in self.fields[:2]:
-                    values.append(faceted_search.get_record_field(record, field))
+                # TODO: self.fields depends on the result type!!!
+                # once we allow a mix of result type we'll have to get the fields differently
+                conflateid = faceted_search.get_record_field(record, conflate_relative_field)
 
-                x = values[0]
-                ys = values[1]
+                point = ret.get(conflateid, None)
+                if point is None:
+                    point = []
 
-                label = faceted_search.get_record_label_html(record, self.request);
-                point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid, '']
+                    # TODO: one request for the whole thing
+                    values = []
+                    for field in self.fields[:2]:
+                        values.append(faceted_search.get_record_field(record, field))
 
-                ret[conflateid] = point
+                    x = values[0]
+                    ys = values[1]
 
-            if str(record.id) in self.faceted_search.ids:
-                # add layerid
-                point[2].add(1)
-                # add image
-                from digipal.models import Graph
-                if isinstance(record, Graph):
-                    info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
-                    point[6] = info['url']
+                    label = faceted_search.get_record_label_html(record, self.request);
+                    point = [x, ys, set([query.index]), label, record.get_absolute_url(), conflateid, '']
+
+                    ret[conflateid] = point
+
+                    # determine large y bands for the categories
+                    # eg. ['type1', 'type2']
+                    if isinstance(ys, list):
+                        # flatten it, it may contain nested lists
+                        self.bands.extend(ys)
+                    else:
+                        self.bands.append(ys)
+
+                if query.index > 0:
+                    # add layerid
+                    point[2].add(query.index)
+
+                    # add image
+                    from digipal.models import Graph
+                    if not point[6] and isinstance(record, Graph):
+                        info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
+                        point[6] = info['url']
+
+
+#         if 0:
+#             for record in self.context['result']:
+#
+#                 # TODO: self.fields depends on the result type!!!
+#                 # once we allow a mix of result type we'll have to get the fields differently
+#                 conflateid = faceted_search.get_record_field(record, conflate_relative_field)
+#
+#                 point = ret.get(conflateid, None)
+#                 if point is None:
+#                     point = []
+#
+#                     # TODO: one request for the whole thing
+#                     values = []
+#                     for field in self.fields[:2]:
+#                         values.append(faceted_search.get_record_field(record, field))
+#
+#                     x = values[0]
+#                     ys = values[1]
+#
+#                     label = faceted_search.get_record_label_html(record, self.request);
+#                     point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid, '']
+#
+#                     ret[conflateid] = point
+#
+#                 if str(record.id) in self.faceted_search.ids:
+#                     # add layerid
+#                     point[2].add(1)
+#                     # add image
+#                     from digipal.models import Graph
+#                     if isinstance(record, Graph):
+#                         info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
+#                         point[6] = info['url']
 
         self.points = ret
 
@@ -314,6 +380,8 @@ class Overview(object):
         self.drawing = {'points': [], 'x': [], 'y': [], 'bar_height': self.bar_height, 'font_size': self.font_size, 'label_margin': self.margin}
 
         points = self.drawing['points']
+
+        self.drawing['colors'] = [query.get_color() for query in self.queries.get_queries()]
 
         # {'agreement': [10, 20]}
 
@@ -372,14 +440,14 @@ class Overview(object):
                 if found:
                     self.cat_hits[v][1] += 1
 
-    def set_fields(self):
+    def set_fields(self, faceted_search):
         '''
             set self.fields = array of faceted fields such that:
                 self.fields[0] = field for Y dimensions (e.g. { hi_date })
                 self.fields[1] = field for bands (e.g. { hi_date } )
                 self.fields[2] = field for conflating (e.g. { ip.id } )
         '''
-        faceted_search = self.faceted_search
+        #faceted_search = self.faceted_search
         context = self.context
 
         #fields = ['hi_date', 'medieval_archive']
@@ -399,20 +467,10 @@ class Overview(object):
 
             set self.bands = {'agreement': 0, 'brieve': 1000, LABEL: TOPY}
         '''
-        # determine large y bands for the categories
-        # eg. ['type1', 'type2']
-        from digipal.utils import sorted_natural
-        l = []
-        for record in self.context['result']:
-            v = self.faceted_search.get_record_field(record, self.fields[1])
-            if isinstance(v, list):
-                # flatten it, it may contain nested lists
-                l.extend(v)
-            else:
-                l.append(v)
         #value_rankings, self.bands = self.faceted_search.get_field_value_ranking(self.fields[1])
 
-        self.bands = sorted_natural(list(set(l)))
+        from digipal.utils import sorted_natural
+        self.bands = sorted_natural(list(set(self.bands)))
         # eg. {'type1': 0, 'type2': 1000}
         self.bands = {self.bands[i]: i*self.band_width for i in range(0, len(self.bands))}
 

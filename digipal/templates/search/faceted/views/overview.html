@@ -109,16 +109,19 @@ DPCanvas.prototype.clear = function(opacity) {
 //function dpvis() {
     var data = {{ canvas|json }};
     window.datavis = data;
+if (data.drawing && data.drawing.points) {
     var pts = data.drawing.points;
     var xs = data.drawing.x;
     var ys = data.drawing.y;
     var cdims = [data.width, data.height];
 
     function view_init() {
-        $(function() {
-            $(window).resize(redraw_vis);
-        })
-        redraw_vis();
+        if (data.drawing && data.drawing.points) {
+            $(function() {
+                $(window).resize(redraw_vis);
+            })
+            redraw_vis();
+        }
     }
 
     if (typeof $ !== 'undefined') {
@@ -182,9 +185,29 @@ DPCanvas.prototype.clear = function(opacity) {
         var max_x = coord(cdims[0], 0)[0];
         //var dot_size = kx_min < ky_min ? kx_min : ky_min;
 
+        function get_color_from_point(pt) {
+            // TODO: cache combinations!!!
+            if (pt[2].length == 1) return data.drawing.colors[pt[2][0]];
+            var ret = '';
+            for (var i = 0; i < pt[2].length; i++) {
+                if (pt[2][i] > 0) {
+                    var c = data.drawing.colors[pt[2][i]];
+                    if (ret != '') {
+                        ret = tinycolor.mix(ret, c).toHexString();
+                    } else {
+                        ret = c;
+                    }
+                }
+            }
+            console.log(ret, pt[2])
+            return ret;
+            //pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
+        }
+
         function draw_pt(pt, highlight, add_to_index) {
             var ctx = gct(highlight ? 'hovers' : '');
-            ctx.fillStyle = pt[2].length > 1 ? '#a1514d' : '#A0A0A0';
+            ctx.fillStyle = get_color_from_point(pt);
+            console.log(ctx.fillStyle);
             if (highlight) ctx.fillStyle = '#ffff00';
             var cs = coord(pt[0][0], pt[1]);
             var cs2 = coord(pt[0][1], pt[1]);
@@ -390,6 +413,7 @@ DPCanvas.prototype.clear = function(opacity) {
         }
 
     }
+}
 //};
 //dpvis();
 </script>

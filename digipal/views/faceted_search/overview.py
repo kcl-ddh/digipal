@@ -23,7 +23,6 @@ class Query(object):
     def get_count(self):
         ret = 0
         return len(self.get_records())
-        return ret
 
     def get_summary(self):
         ret = 'Summary for query %s' % self.index
@@ -396,6 +395,7 @@ class Overview(object):
 
         # process all records
         #for record in self.get_all_conflated_ids():
+        cat_hit = [0] * len(self.queries.get_queries())
         for point in self.points.values():
             found = any(point[2])
             x = point[0]
@@ -440,7 +440,7 @@ class Overview(object):
                 points.append(point)
 
                 # increment hits per category
-                self.cat_hits[v] = self.cat_hits.get(v, [0, 0][:])
+                self.cat_hits[v] = self.cat_hits.get(v, [0,0][:])
                 self.cat_hits[v][0] += 1
                 if found:
                     self.cat_hits[v][1] += 1

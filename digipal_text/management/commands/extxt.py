@@ -39,6 +39,9 @@ Commands:
 
     handentry
         Map the hands to the entries
+
+    setquire
+        Set the quire number on the images from the codicological desc.
 """
 
     args = 'locus|email'
@@ -73,6 +76,10 @@ Commands:
 
         known_command = False
 
+        if command == 'setquire':
+            known_command = True
+            self.setquire()
+
         if command == 'wordpre':
             known_command = True
             self.word_preprocess()
@@ -106,6 +113,20 @@ Commands:
             print 'done'
         else:
             print self.help
+
+    def setquire(self):
+        from exon.customisations.digipal_lab.views.hands import get_stints_from_text
+        pages_quire = {}
+        codesc = {}
+        get_stints_from_text('codicology', codesc, pages_quire=pages_quire)
+        from digipal.models import Image
+
+        for image in Image.objects.filter(item_part_id=1):
+            quire = pages_quire.get(image.locus, '')
+            if quire:
+                image.quire = quire
+                image.save()
+                print '%s, %s' % (quire, image.locus)
 
     def handentry_command(self):
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')

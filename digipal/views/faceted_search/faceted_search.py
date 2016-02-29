@@ -474,6 +474,8 @@ class FacetedModel(object):
         if keys is None:
             ret = [field for field in self.fields if field.get('viewable', False)]
         else:
+            for key in keys:
+                print key, self.get_field_by_key(key)
             ret = [self.get_field_by_key(key) for key in keys]
         for field in ret:
             field['sortable'] = self._get_sortable_whoosh_field(field)

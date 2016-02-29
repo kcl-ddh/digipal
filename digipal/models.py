@@ -1601,6 +1601,8 @@ class Image(models.Model):
 
     keywords = KeywordsField(help_text='<br/>Comma separated list of keywords. Keywords are case sensitive and can contain spaces. Keywords can also be added or removed using the list above.')
 
+    quire = models.CharField(max_length=10, blank=True, null=True, default=None, help_text='A quire number, e.g. 3')
+
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 

@@ -321,7 +321,26 @@ def resolve_default_location(location_type, location, response):
             break
     return location_type, location
 
-def get_fragment_extent(content, location_type, location):
+def get_all_units(content, location_type):
+    '''
+        Returns a list of fragments of type <location_type> from <content>
+        [
+            {'unitid': '1a1', 'content': '<p>in hundreto ...</p>'},
+            ...
+        ]
+    '''
+    
+    ret = []
+    
+    extent = [0, 0]
+    while True:
+        extent = get_fragment_extent(content, location_type, None, extent[1])
+        if not extent: break
+        ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
+    
+    return ret
+
+def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None
 
     #print location_type, location
@@ -329,22 +348,37 @@ def get_fragment_extent(content, location_type, location):
     content = content or ''
 
     if location_type == 'whole':
-        ret = [0, len(content)]
+        ret = [0, len(content), location]
     else:
         # extract the requested fragment
-        # ASSUMES: root > p > span
+        # ASSUMES: root > p > span for location
         # ASSUME order of the attributes in the span (OK)
         # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
-        span0 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+location+'<')
+        content_location = ''
+        if location is not None:
+            content_location = location+'<'
+        location_pattern = '<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+content_location
+        span0 = content.find(location_pattern, from_pos)
+        if location is None:
+            loc_end = content.find('</span>', span0 + len(location_pattern))
+            if loc_end > -1:
+                location = content[span0 + len(location_pattern):loc_end]
+        
         if span0 > -1:
-            p0 = content.rfind('<p>', 0, span0)
+            p0 = content.rfind('<p>', from_pos, span0)
             if p0 > -1:
                 span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
                 if span1 == -1:
-                    ret = [p0, len(content)]
+                    ret = [p0, len(content), location]
                 else:
-                    p1 = content.find('</p>', span1)
-                    ret = [p0, p1+4]
+                    if 0:
+                        # old version, includes a bit of the next location
+                        p1 = content.find('</p>', span1)
+                        ret = [p0, p1+4, location]
+                    else:
+                        # new version: stops at the last </p> before the next location
+                        p1 = content.rfind('</p>', p0, span1)
+                        ret = [p0, p1, location]
 
     return ret
 

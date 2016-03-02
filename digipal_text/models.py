@@ -193,6 +193,9 @@ class TextContentXML(models.Model):
         verbose_name = 'Text (XML)'
         verbose_name_plural = 'Texts (XML)'
     
+    def __unicode__(self):
+        return '%s (#%s)' % (self.text_content, self.id)
+    
     @classmethod
     def get_public_only(cls, ignore=False):
         '''Return all the publicly accessible records.

@@ -173,12 +173,21 @@ class FacetedModel(object):
         # for record in records.iterator():
 
         # get unique values
+
+        hand_filters.chrono('%s:' % field['key'])
+
+        print 'h1'
+
         model, path = self.get_model_from_field(field)
         sort_function = field.get('sort_fct', None)
         value_rankings[None] = u''
         value_rankings['None'] = u''
         value_rankings[u''] = u''
+        print 'h2'
+        print model, path
+        i = 0
         for record in model.objects.all().order_by('id'):
+            i += 1
             value = self.get_record_path(record, path)
             #value = self.get_record_field_whoosh(record, field)
             value = self.get_sortable_hash_value(value, field)
@@ -189,6 +198,8 @@ class FacetedModel(object):
             v = v or u''
 
             value_rankings[value] = v
+
+        print 'h3'
 
         # convert dates to numbers
         if field['type'] == 'date':
@@ -202,9 +213,12 @@ class FacetedModel(object):
             # sort by natural order
             sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
+        print 'h4'
         # now assign the ranking to each value
         for k, v in value_rankings.iteritems():
             value_rankings[k] = sorted_values.index(v)
+
+        hand_filters.chrono(':%s' % field['key'])
 
         return value_rankings, sorted_values
 
@@ -236,10 +250,7 @@ class FacetedModel(object):
                     value = int(bool(value) and value not in ['0', 'False', 'false'])
 
                 if field['type'] == 'xml':
-                    from django.utils.html import strip_tags
-                    import HTMLParser
-                    html_parser = HTMLParser.HTMLParser()
-                    value = html_parser.unescape(strip_tags(value))
+                    value = self.get_plain_text_from_xml(value)
 
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
@@ -251,6 +262,22 @@ class FacetedModel(object):
                         ret[fkey + '_max'] = ret[fkey + '_min']
 
                 ret[fkey] = value
+
+        return ret
+
+    def get_plain_text_from_xml(self, value):
+        '''Returns a plain text version of the XML <value>.
+            For indexing purpose.
+            Strip tags, remove some abbreviations, ...
+        '''
+        # remove abbreviations
+        import regex
+        ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', value)
+
+        import HTMLParser
+        html_parser = HTMLParser.HTMLParser()
+        from django.utils.html import strip_tags
+        ret = html_parser.unescape(strip_tags(ret))
 
         return ret
 

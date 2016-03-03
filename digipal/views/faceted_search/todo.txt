@@ -1,3 +1,11 @@
+Fix entries
+images
+    hands missing for some images -> script to regen from stints in hands desc.
+        AND the corrected stints hardcoded in the hands-entries script
+    hand not showing for entry 1a1, why?
+
+--
+
  But yes, something which enabled two features of diplomatic to be searched
   would be excellent, so you could see (say) how many charters which had a
   particular form of address also had sciatis quod.

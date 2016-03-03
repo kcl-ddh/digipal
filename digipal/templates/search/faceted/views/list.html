@@ -26,7 +26,7 @@
                 <tr class="{{rowcolors}}">
                     {% for col in cols %}
                         {% if col.line == line %}
-                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %} class="{% if col.type == 'text' %} text {% endif %}">
+                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %} class="{% if col.type == 'text' %} text {% endif %} {{col.class}} {{ record.classes }} ">
                                 {% if col.type == 'image'  %}
                                 {% else %}
                                     {% if col.link == True %}

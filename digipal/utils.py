@@ -1196,3 +1196,13 @@ def inc_counter(dic, item, count=1):
     dic[item] += count
     return dic[item]
 
+
+def get_cache_key_from_string(s):
+    '''Returns a base64 string from a hash of the given string <s>
+        Hashed with SHA1
+    '''
+    import hashlib, base64
+    hasher = hashlib.sha1()
+    hasher.update(s)
+    return base64.b64encode(hasher.digest())
+    

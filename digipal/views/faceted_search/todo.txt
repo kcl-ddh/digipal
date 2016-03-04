@@ -1,4 +1,14 @@
-Fix entries
+Import new version of the transcription
+Entry number not showing in the text viewer
+add preview entry
+fix search
+    fix the highlight
+    O〈sbernus〉
+    C〈odulfus〉
+     r〈ex〉
+  Ansge-|rus
+  pa〈r〉te
+     
 images
     hands missing for some images -> script to regen from stints in hands desc.
         AND the corrected stints hardcoded in the hands-entries script

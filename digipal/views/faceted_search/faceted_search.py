@@ -176,15 +176,15 @@ class FacetedModel(object):
 
         hand_filters.chrono('%s:' % field['key'])
 
-        print 'h1'
+        #print 'h1'
 
         model, path = self.get_model_from_field(field)
         sort_function = field.get('sort_fct', None)
         value_rankings[None] = u''
         value_rankings['None'] = u''
         value_rankings[u''] = u''
-        print 'h2'
-        print model, path
+        #print 'h2'
+        #print model, path
         i = 0
         for record in model.objects.all().order_by('id'):
             i += 1
@@ -199,7 +199,7 @@ class FacetedModel(object):
 
             value_rankings[value] = v
 
-        print 'h3'
+        #print 'h3'
 
         # convert dates to numbers
         if field['type'] == 'date':
@@ -213,7 +213,7 @@ class FacetedModel(object):
             # sort by natural order
             sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
-        print 'h4'
+        #print 'h4'
         # now assign the ranking to each value
         for k, v in value_rankings.iteritems():
             value_rankings[k] = sorted_values.index(v)
@@ -501,8 +501,8 @@ class FacetedModel(object):
         if keys is None:
             ret = [field for field in self.fields if field.get('viewable', False)]
         else:
-            for key in keys:
-                print key, self.get_field_by_key(key)
+#             for key in keys:
+#                 print key, self.get_field_by_key(key)
             ret = [self.get_field_by_key(key) for key in keys]
         for field in ret:
             field['sortable'] = self._get_sortable_whoosh_field(field)
@@ -772,7 +772,9 @@ class FacetedModel(object):
         search_key = 'query=%s|groups=%s|sorts=%s' % (q,
             ','.join([f.default_name() for f in groupedby]),
             ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
-        utils.dplog('Facetted Cache GET: %s' % search_key)
+        utils.dplog('Faceted Cache GET: %s' % search_key)
+
+        search_key = utils.get_cache_key_from_string(search_key)
 
         cache = self.get_cache()
 

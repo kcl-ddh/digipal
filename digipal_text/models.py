@@ -84,6 +84,12 @@ class TextUnit(object):
     def get_absolute_url(self):
         return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
 
+    def get_thumb(self):
+        from digipal.models import Annotation
+        ret = Annotation.objects.filter(image__item_part=self.content_xml.text_content.item_part, textannotations__elementid=self.get_elementid()).first()
+        
+        return ret
+
     @ClassProperty
     @classmethod
     def objects(cls, *args, **kwargs):

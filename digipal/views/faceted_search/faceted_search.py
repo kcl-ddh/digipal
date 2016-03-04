@@ -961,6 +961,10 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))
 
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
+    
+    view = ct.get_selected_view()
+    if view:
+        context.update(view.get('params', {}))
 
     # add the results to the template
     context['result'] = list(records)

@@ -83,12 +83,14 @@ class FacetedModel(object):
         return ret
 
     def get_selected_views_template(self):
+        
         for view in self.views:
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))
                 break
 
-        return 'search/faceted/views/' + ret + '.html'
+        ret = 'search/faceted/views/' + ret + '.html'
+        return ret
     selected_view_template = property(get_selected_views_template)
 
     def get_all_records(self, prefetch=False):
@@ -230,7 +232,7 @@ class FacetedModel(object):
     def get_document_from_record(self, record):
         '''
             Returns a Whoosh document from a Django model instance.
-            The list od instance fields to extract come from the content type
+            The list of instance fields to extract come from the content type
             definition (see settings.py).
             Multivalued fields are turned into a list of unicode values.
         '''

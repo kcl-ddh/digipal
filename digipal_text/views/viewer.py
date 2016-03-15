@@ -374,11 +374,11 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
                     if 0:
                         # old version, includes a bit of the next location
                         p1 = content.find('</p>', span1)
-                        ret = [p0, p1+4, location]
                     else:
                         # new version: stops at the last </p> before the next location
                         p1 = content.rfind('</p>', p0, span1)
-                        ret = [p0, p1, location]
+                    if p1 > -1:
+                        ret = [p0, p1+4, location]
 
     return ret
 
@@ -399,7 +399,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     sub_location = get_sub_location_from_request(request)
     new_address = get_address_from_sub_location(sub_location)
     if new_address:
-        print new_address
+        #print new_address
         location_type, location = new_address
     ###
 

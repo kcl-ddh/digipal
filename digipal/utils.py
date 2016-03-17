@@ -482,7 +482,10 @@ def get_midpoint_from_date_range(astr=None, arange=None):
     Returns None for unknown date
     '''
     ret = None
-
+    
+    if astr:
+        astr = astr.strip()
+    
     if arange is None:
         arange = get_range_from_date(astr)
 
@@ -497,7 +500,7 @@ def get_midpoint_from_date_range(astr=None, arange=None):
         # Ca. 1090 => 1090
         patterns = [ur'(?i)^(?:c|ca)\.? (\d+)$']
         for pattern in patterns:
-            s = re.sub(pattern, ur'\1', astr.strip())
+            s = re.sub(pattern, ur'\1', astr)
             if s != astr:
                 ret = int(s)
                 break

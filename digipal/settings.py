@@ -171,6 +171,8 @@ TEMPLATE_DIRS = [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(PROJECT_R
 
 CUSTOM_STATIC_PATH = os.path.join(PROJECT_ROOT, 'customisations', 'static')
 
+print CUSTOM_STATIC_PATH
+
 # Additional locations of static files
 STATICFILES_DIRS = (
         # Put strings here, like '/home/html/static' or 'C:/www/django/static'.

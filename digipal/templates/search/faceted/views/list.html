@@ -26,8 +26,8 @@
                 <tr class="{{rowcolors}}">
                     {% for col in cols %}
                         {% if col.line == line %}
-                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %} class="{% if col.type == 'text' %} text {% endif %}">
-                                {% if col.type == 'image'  %}
+                            <td {% if col.rowspan %}rowspan="{{col.rowspan}}"{% else%}{% if col.line %}colspan="50"{% endif %}{% endif %} class="{% if col.type == 'text' %} text {% endif %} {{col.classes}} {{ record.classes }} ">
+                                {% if col.type == 'image' and hide_image_cols %}
                                 {% else %}
                                     {% if col.link == True %}
                                         <a href="{{record.get_absolute_url}}">

@@ -88,7 +88,7 @@ FACETED_SEARCH = {
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list_images'},
+                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
                               {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
@@ -295,7 +295,7 @@ FACETED_SEARCH = {
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list_images'},
+                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
                               ],
                 },

@@ -83,12 +83,14 @@ class FacetedModel(object):
         return ret
 
     def get_selected_views_template(self):
+        
         for view in self.views:
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))
                 break
 
-        return 'search/faceted/views/' + ret + '.html'
+        ret = 'search/faceted/views/' + ret + '.html'
+        return ret
     selected_view_template = property(get_selected_views_template)
 
     def get_all_records(self, prefetch=False):
@@ -173,12 +175,21 @@ class FacetedModel(object):
         # for record in records.iterator():
 
         # get unique values
+
+        hand_filters.chrono('%s:' % field['key'])
+
+        #print 'h1'
+
         model, path = self.get_model_from_field(field)
         sort_function = field.get('sort_fct', None)
         value_rankings[None] = u''
         value_rankings['None'] = u''
         value_rankings[u''] = u''
+        #print 'h2'
+        #print model, path
+        i = 0
         for record in model.objects.all().order_by('id'):
+            i += 1
             value = self.get_record_path(record, path)
             #value = self.get_record_field_whoosh(record, field)
             value = self.get_sortable_hash_value(value, field)
@@ -189,6 +200,8 @@ class FacetedModel(object):
             v = v or u''
 
             value_rankings[value] = v
+
+        #print 'h3'
 
         # convert dates to numbers
         if field['type'] == 'date':
@@ -202,9 +215,12 @@ class FacetedModel(object):
             # sort by natural order
             sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
+        #print 'h4'
         # now assign the ranking to each value
         for k, v in value_rankings.iteritems():
             value_rankings[k] = sorted_values.index(v)
+
+        hand_filters.chrono(':%s' % field['key'])
 
         return value_rankings, sorted_values
 
@@ -216,7 +232,7 @@ class FacetedModel(object):
     def get_document_from_record(self, record):
         '''
             Returns a Whoosh document from a Django model instance.
-            The list od instance fields to extract come from the content type
+            The list of instance fields to extract come from the content type
             definition (see settings.py).
             Multivalued fields are turned into a list of unicode values.
         '''
@@ -236,10 +252,7 @@ class FacetedModel(object):
                     value = int(bool(value) and value not in ['0', 'False', 'false'])
 
                 if field['type'] == 'xml':
-                    from django.utils.html import strip_tags
-                    import HTMLParser
-                    html_parser = HTMLParser.HTMLParser()
-                    value = html_parser.unescape(strip_tags(value))
+                    value = self.get_plain_text_from_xml(value)
 
                 if field['type'] == 'date':
                     from digipal.utils import get_range_from_date, is_max_date_range
@@ -251,6 +264,22 @@ class FacetedModel(object):
                         ret[fkey + '_max'] = ret[fkey + '_min']
 
                 ret[fkey] = value
+
+        return ret
+
+    def get_plain_text_from_xml(self, value):
+        '''Returns a plain text version of the XML <value>.
+            For indexing purpose.
+            Strip tags, remove some abbreviations, ...
+        '''
+        # remove abbreviations
+        import regex
+        ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', value)
+
+        import HTMLParser
+        html_parser = HTMLParser.HTMLParser()
+        from django.utils.html import strip_tags
+        ret = html_parser.unescape(strip_tags(ret))
 
         return ret
 
@@ -474,8 +503,8 @@ class FacetedModel(object):
         if keys is None:
             ret = [field for field in self.fields if field.get('viewable', False)]
         else:
-            for key in keys:
-                print key, self.get_field_by_key(key)
+#             for key in keys:
+#                 print key, self.get_field_by_key(key)
             ret = [self.get_field_by_key(key) for key in keys]
         for field in ret:
             field['sortable'] = self._get_sortable_whoosh_field(field)
@@ -745,7 +774,9 @@ class FacetedModel(object):
         search_key = 'query=%s|groups=%s|sorts=%s' % (q,
             ','.join([f.default_name() for f in groupedby]),
             ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
-        utils.dplog('Facetted Cache GET: %s' % search_key)
+        utils.dplog('Faceted Cache GET: %s' % search_key)
+
+        search_key = utils.get_cache_key_from_string(search_key)
 
         cache = self.get_cache()
 
@@ -932,6 +963,10 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))
 
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
+    
+    view = ct.get_selected_view()
+    if view:
+        context.update(view.get('params', {}))
 
     # add the results to the template
     context['result'] = list(records)

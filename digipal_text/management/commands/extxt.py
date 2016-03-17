@@ -42,6 +42,9 @@ Commands:
 
     setquire
         Set the quire number on the images from the codicological desc.
+        
+    marginal_entries
+        List the number of the entries starting in the margin
 """
 
     args = 'locus|email'
@@ -83,6 +86,10 @@ Commands:
         if command == 'wordpre':
             known_command = True
             self.word_preprocess()
+
+        if command == 'marginal_entries':
+            known_command = True
+            self.marginal_entries()
 
         if command == 'pattern':
             known_command = True
@@ -128,10 +135,32 @@ Commands:
                 image.save()
                 print '%s, %s' % (quire, image.locus)
 
+    def marginal_entries(self):
+        from digipal_text.models import TextContentXML
+        
+        #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        text = TextContentXML.objects.filter(text_content__type__slug='transcription-sample').first()
+        content = u'<root>%s</root>' % text.content
+        from digipal import utils
+        xml = utils.get_xml_from_unicode(content, True)
+        
+        #print '\n'.join(list(set(re.findall('data-dpt="(.*?)"', content))))
+        
+        
+        #exit()
+        
+        # Warnings about $|£ within <add>
+        for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
+        #for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
+            for element in xml.findall(pattern):
+                etext = utils.get_xml_element_text(element)
+                print etext
+#             if etext and re.search(ur'[\$£]', etext):
+#                 self.msg('entry within <add> (%s)', repr(etext))
+        
+
     def handentry_command(self):
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
-
-
         #entries = self.get_entries()
 
         #self.find_certainties()

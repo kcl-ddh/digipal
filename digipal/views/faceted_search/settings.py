@@ -331,3 +331,39 @@ def remove_fields_from_faceted_search(fields, content_type_key=None):
 def get_content_type_from_key(key):
     return [t for t in FACETED_SEARCH['types'] if t['key'] == key].pop()
 
+class FacettedType(object):
+    
+    def __init__(self, options):
+        self.options = options
+        
+    @staticmethod
+    def fromKey(akey):
+        ret = None
+        for options in FACETED_SEARCH['types']:
+            if options['key'] == akey:
+                return FacettedType(options)
+        return ret
+    
+    @staticmethod
+    def getAll():
+        return [FacettedType(options) for options in FACETED_SEARCH['types']]
+        
+    def getFields(self):
+        return self.options['fields']
+    fields = property(getFields)
+
+    def getOption(self, key, default=None):
+        return self.options.get(key, default)
+        
+    def getFilterKeys(self):
+        ''' Returns a list of fitler field keys in the order they should appear in the filter panel'''
+        ret = self.getOption('filter_order', None)
+        if not ret:
+            ret = [field['key'] for field in self.fields if field.get('count', False) or field.get('filter', False)]
+        return ret
+    
+    def setDateRange(self, rng):
+        for f in self.fields:
+            if f['type'] == 'date':
+                f['min'], f['max'] = rng
+    

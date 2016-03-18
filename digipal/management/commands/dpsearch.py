@@ -197,7 +197,7 @@ Options:
             
             print '  fields:'
             for field in info['fields']:
-                print '    %25s: %10s %6s %s' % (field['name'], field['type'], field['unique_values'], repr(field['range']))
+                print '    %25s: %10s %6s %12s %12s' % (field['name'], field['type'], field['unique_values'], field['range'][0], field['range'][1])
             print '  segments:'
             for seg in info['segments']:
                 print '    %25s: %s' % (seg['id'], seg['entries'])
@@ -229,8 +229,16 @@ Options:
                     ret['segments'].append({'id': segment.segid, 'entries': segment.doc_count()})
                 for item in index.schema.items():
                     field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
-                    values = list(searcher.lexicon(item[0]))
+                    #values = list(searcher.lexicon(item[0]))
+                    values = list(searcher.field_terms(item[0]))
+                    #values_filtered = [v for v in values if repr(v) not in ['-2147483640L', '-2147483641L', '-2147483520L']]
+                    values_filtered = values
+                    if field_info['type'] == 'NUMERIC' and 'date' in field_info['name']:
+                        values_filtered = [v for v in values if v < 5000 and v > -5000]
+                    if not values_filtered:
+                        values_filtered = [0] 
                     field_info['unique_values'] = len(list(values))
+                    field_info['range'] = [repr(v)[0:12] for v in [min(values_filtered), max(values_filtered)]]
                     ret['fields'].append(field_info)
                 
                 if query:

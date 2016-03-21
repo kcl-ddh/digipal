@@ -632,7 +632,7 @@ class Command(BaseCommand):
         
             # 1. convert the image to temporary format
             # kdu_compress is sensitive to some TIFF but never complained about BMP 
-            ret_shell = self.run_shell_command('convert -quiet %s %s' % (absp(name_src), absp(name_tmp)))
+            ret_shell = self.run_shell_command('convert -quiet %s -compress None %s' % (absp(name_src), absp(name_tmp)))
             
             if not ret_shell:
                 # we take the largest output from that conversion

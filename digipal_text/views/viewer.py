@@ -177,6 +177,8 @@ def get_or_create_text_content_records(item_part, content_type_record):
 
     return ret, created, error
 
+# TODO: content_type_record makes this signature non-polymorphic and even incompatible with image
+# need to use optional parameter for it 
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
     ret = {}
 
@@ -382,7 +384,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
 
     return ret
 
-def text_api_view_image(request, item_partid, content_type, location_type, location, max_size=None):
+def text_api_view_image(request, item_partid, content_type, location_type, location, max_size=None, ignore_sublocation=False):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000
@@ -396,11 +398,12 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     # The sub_location can override or contradict (location_type, location)
     # e.g. text: whole -> image: synced with text
     #      user clicks on entry in the text => we need to fetch that part
-    sub_location = get_sub_location_from_request(request)
-    new_address = get_address_from_sub_location(sub_location)
-    if new_address:
-        #print new_address
-        location_type, location = new_address
+    if not ignore_sublocation:
+        sub_location = get_sub_location_from_request(request)
+        new_address = get_address_from_sub_location(sub_location)
+        if new_address:
+            #print new_address
+            location_type, location = new_address
     ###
 
     request.visible_images = None

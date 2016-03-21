@@ -3,7 +3,7 @@
 ###### Digital Resource for and Database of Palaeography, Manuscripts and Diplomatic.
 
 The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) was a project funded by the European Research Council to bring digital technology to bear on scholarly discussion of medieval handwriting. A large part of this work has been the development of a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. This GitHub repository presents the code for that framework. To date it is being used for the following material:
-- Writing in Old English from the eleventh century (DigiPal)
+- [Writing in Old English from the eleventh century (DigiPal)](http://digipal.eu)
 - Fragments of manuscripts from Scandinavia written in the eleventh century (ScandiPal)
 - The decoration and script of fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
 - Inscriptions in Greek, Latin and both from the province of Thracia (InsPal)

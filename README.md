@@ -8,8 +8,8 @@ The Digital Resource and Database for Palaeography, Manuscript Studies and Diplo
 - The decoration and script of fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
 - Inscriptions in Greek, Latin and both from the province of Thracia (InsPal)
 - Inscriptions on medieval coins in the Bibliothèque Nationale de France (PIM)
-- The palaeography and codicology of the Exon Domesday Book (Exon Domesday/The Conqueror's Commissioners)
-- Twelfth-century cursive charters from Scotland (Models of Authority)
+- [The palaeography and codicology of the Exon Domesday Book (Exon Domesday/The Conqueror's Commissioners)](http://www.exondomesday.ac.uk)
+- [Twelfth-century cursive charters from Scotland (Models of Authority)](https://www.modelsofauthority.ac.uk)
 
 The DigiPal Project formally ended on 30 September 2014, but the code is still being updated and extended as part of the follow-on projects listed above.
 

@@ -37,7 +37,11 @@ Commands:
             OPERATION =
                 pb2locus    convert pb to locus
                     OPTIONS = START_NUMBER
-                    
+  
+  unit      [CTXID [LOCATION_TYPE [LOCATION]]]
+            List the units from a text
+            e.g. unit 1 entry 104b1
+            
 """
     
     args = 'reformat|importtags'
@@ -90,9 +94,9 @@ Commands:
             known_command = True
             self.command_restore()
             
-        if command == 'units':
+        if command == 'unit':
             known_command = True
-            self.command_units()
+            self.command_unit()
         
         if command == 'markup':
             known_command = True
@@ -281,14 +285,37 @@ Commands:
         
         return content
         
+    def get_arg(self, i, default=None):
+        if len(self.args) > i:
+            return self.args[i]
+        else:
+            return default
+         
+    def command_unit(self):
+        #from digipal_text.models import TextUnit
+        #rs = TextUnit.objects
+        from digipal_text.models import TextContentXML
+        from digipal_text.views.viewer import get_fragment_extent, get_all_units
+        rid = self.get_arg(1)
+        fitler = {}
+        if rid:
+            fitler = {'id': rid}
+        ctx = TextContentXML.objects.filter(**fitler).first()
         
-    def command_units(self):
-        from digipal_text.models import TextUnit
-        rs = TextUnit.objects
-        #print repr(rs)
-        rs = rs.all()
-        for r in rs:
-            print r.id
+        if ctx:
+            print ctx
+            location_type = self.get_arg(2, 'locus')
+            
+            location = self.get_arg(3, None)
+            units = get_all_units(ctx.content, location_type)
+            for unit in units:
+                if location is None or unit['unitid'] == location:
+                    print '%-10s %-5s %-10s' % (unit['unitid'], len(unit['content']), repr(unit['content'][:10]))
+                    if location:
+                        print repr(unit['content'])
+        
+            print '%s units' % len(units)
+            #fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
 
     def get_friendly_datetime(self, dtime):
         return re.sub(ur'\..*', '', unicode(dtime))

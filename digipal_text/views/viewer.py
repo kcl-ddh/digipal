@@ -376,11 +376,14 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
                     if 0:
                         # old version, includes a bit of the next location
                         p1 = content.find('</p>', span1)
+                        if p1 > -1:
+                            ret = [p0, p1+4, location]
                     else:
-                        # new version: stops at the last </p> before the next location
-                        p1 = content.rfind('</p>', p0, span1)
-                    if p1 > -1:
-                        ret = [p0, p1+4, location]
+                        # new version: stops at the last <p> before the next location
+                        #p1 = content.rfind('</p>', p0, span1)
+                        p1 = content.rfind('<p>', p0, span1)
+                        if p1 > -1:
+                            ret = [p0, p1, location]
 
     return ret
 

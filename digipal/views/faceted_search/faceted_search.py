@@ -83,7 +83,7 @@ class FacetedModel(object):
         return ret
 
     def get_selected_views_template(self):
-        
+
         for view in self.views:
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))
@@ -785,9 +785,13 @@ class FacetedModel(object):
             ret = None
 
         self.cache_hit = False
-        if ret is None:
+        if 1 or ret is None:
             utils.dplog('Cache MISS')
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
+
+            print q
+            print res
+            print limit
 
             ret = {
                    'ids': [hit['id'] for hit in res],
@@ -963,7 +967,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))
 
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
-    
+
     view = ct.get_selected_view()
     if view:
         context.update(view.get('params', {}))
@@ -1079,15 +1083,18 @@ def get_whoosh_field_type(field, sortable=False):
     field_type = field['type']
     if field_type == 'id':
         # An ID (e.g. 708-AB)
+        # EXACT search only
         ret = ID(stored=True, sortable=sortable)
     elif field_type in ['int']:
         ret = NUMERIC(sortable=sortable)
     elif field_type in ['code']:
         # A code (e.g. K. 402, Royal 7.C.xii)
+        # Accepts partial but exact search (e.g. royal)
         # See JIRA 358
         ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
     elif field_type == 'title':
         # A title (e.g. British Library)
+        # Accepts variants and partial search (e.g. 'libraries')
         ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     elif field_type == 'short_text':
         # A few words.

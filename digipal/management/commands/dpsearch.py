@@ -10,21 +10,24 @@ import utils
 from utils import Logger
 from django.utils.datastructures import SortedDict
 from __builtin__ import True
-  
+
 
 class Command(BaseCommand):
     help = """
 Digipal search tool.
-    
+
 Commands:
-    
+
   index
     Re-Index all the content
 
-  info [--if=KEYWORD] [--qs=QUERY_STRING] [--limit=LIMIT]
+  info [--if=KEYWORD] [--qs=QUERY_STRING] [--limit=LIMIT] [--field=FIELD]
     Show general info and whoosh schemas
     If QUERY STRING is provided, runs a whoosh search
-    
+    e.g. info --if=graphs --qs="character:O NOT position:unspecified"
+    e.g. info --if=graphs --qs=ANY
+    e.g. info --if=graphs --field=position
+
   index_facets
     Re-Index the faceted content
 
@@ -33,12 +36,12 @@ Commands:
 
   search --if=KEYWORD [--user=USERNAME] [--qs=QUERY_STRING]
     Faceted Search
-  
+
   clear_cache
     Clear the faceted search cache
-                        
+
 Options:
-  
+
   --if=INDEX_NAME
                         Work only with index INDEX_NAME
 
@@ -51,7 +54,7 @@ Options:
   --qs=QUERY_STRING
 
 """
-    
+
     args = 'index'
     option_list = BaseCommand.option_list + (
         make_option('--dry-run',
@@ -79,6 +82,11 @@ Options:
             dest='limit',
             default='',
             help='number of hits to return'),
+        make_option('--field',
+            action='store',
+            dest='field',
+            default='',
+            help='field name'),
         make_option('--ctf',
             action='store',
             dest='content_type_filter',
@@ -87,17 +95,17 @@ Options:
         )
 
     def handle(self, *args, **options):
-        
+
         self.logger = utils.Logger()
-        
+
         self.log_level = 3
-        
+
         self.options = options
-        
+
         if len(args) < 1:
             raise CommandError('Please provide a command. Try "python manage.py help dpsearch" for help.')
         command = args[0]
-        
+
         known_command = False
 
         if command == 'clear_cache':
@@ -132,14 +140,14 @@ Options:
         if command == 'test':
             known_command = True
             self.test(options)
-        
+
         if command == 'index_graph':
             known_command = True
             self.index_graph_description()
 
         if self.is_dry_run():
             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
-        
+
         if not known_command:
             print Command.help
 
@@ -155,11 +163,11 @@ Options:
             dir_abs = os.path.join(settings.SEARCH_INDEX_PATH, name)
 
             print '\t%s' % dir_abs
-            
+
             from whoosh.index import open_dir
             from whoosh.query import Every
             index = open_dir(dir_abs)
-            
+
             q = Every()
             with index.searcher() as searcher:
                 hits = searcher.search(q, limit=None)
@@ -194,23 +202,36 @@ Options:
             print '  size  : %.2f MB' % (info['size'] / 1024.0 / 1024.0)
             print '  date  : %s' % datetime.fromtimestamp(info['date'])
             print '  docs  : %s' % info['entries']
-            
+
             print '  fields:'
             for field in info['fields']:
                 print '    %25s: %10s %6s %12s %12s' % (field['name'], field['type'], field['unique_values'], field['range'][0], field['range'][1])
             print '  segments:'
             for seg in info['segments']:
                 print '    %25s: %s' % (seg['id'], seg['entries'])
-            
+
+            values = info.get('values', [])
+            if values:
+                print '\n  %s:' % self.options['field']
+                i = 0
+                for value in values:
+                    print '\t', i, repr(value)
+                    i += 1
+
+            results = info.get('results', '')
+            if results:
+                print '\n  results:'
+                print results
+
     def get_index_info(self, path):
         ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?', 'segments': []}
-        
+
         # basic filesystem info
         from digipal.utils import get_all_files_under
         for file in get_all_files_under(path, file_types='f'):
             ret['size'] += os.path.getsize(file)
             ret['date'] = max(ret['date'], os.path.getmtime(file))
-            
+
         # whoosh info
         import whoosh
         from whoosh.index import open_dir
@@ -219,9 +240,10 @@ Options:
             index = open_dir(path)
         except whoosh.index.EmptyIndexError:
             pass
-        
+
         query = self.options['qs']
-            
+        afield = self.options['field']
+
         if index:
             with index.searcher() as searcher:
                 ret['entries'] = searcher.doc_count()
@@ -236,17 +258,21 @@ Options:
                     if field_info['type'] == 'NUMERIC' and 'date' in field_info['name']:
                         values_filtered = [v for v in values if v < 5000 and v > -5000]
                     if not values_filtered:
-                        values_filtered = [0] 
+                        values_filtered = [0]
                     field_info['unique_values'] = len(list(values))
                     field_info['range'] = [repr(v)[0:12] for v in [min(values_filtered), max(values_filtered)]]
                     ret['fields'].append(field_info)
-                
+
+                    if field_info['name'] == afield:
+                        ret['values'] = sorted(list(set(values)))
+
                 if query:
-                    self.whoosh_search(query, searcher, index)
-        
+                    ret['results'] = self.whoosh_search(query, searcher, index)
+
         return ret
-    
+
     def whoosh_search(self, query, searcher, index):
+        ret = ''
         # run a whoosh search and display the hits
         # query applies to all fields in the schema
         # special query: ALL, ANY
@@ -257,22 +283,35 @@ Options:
             q = Every()
         else:
             from whoosh.qparser import MultifieldParser, GtLtPlugin
-    
+
             # TODO: only active columns
             term_fields = [item[0] for item in index.schema.items()]
             parser = MultifieldParser(term_fields, index.schema)
             parser.add_plugin(GtLtPlugin)
-            
+
             q = parser.parse(u'%s' % query)
-            
+
         if query in ['ANY']:
             limit = 1
-            
+
+        afield = self.options['field']
         res = searcher.search(q, limit=limit)
+        vs = {}
         for hit in res:
-            for k, v in hit.iteritems():
-                print '\t%-20s %s' % (k, repr(v)[0:30])
-            print '\t'
+            if afield:
+                # display only the unique value in the requested field
+                vs[hit[afield]] = 1
+            else:
+                # display all field, value in this record
+                for k, v in hit.iteritems():
+                    ret += '\t%-20s %s\n' % (k, repr(v)[0:30])
+                ret += '\t' + ('-' * 20) + '\n'
+
+        if vs:
+            for v in vs:
+                ret += '\t%s\n' % repr(v)
+
+        return ret
 
     def test(self, options):
         print 'test'
@@ -280,10 +319,10 @@ Options:
         index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'unified'))
         with index.searcher() as searcher:
             from whoosh.qparser import MultifieldParser
-            
+
             #field_names = [field['whoosh']['name'] for field in self.get_fields_info().values()]
             field_names = ['description', 'repository', 'place']
-            
+
             parser = MultifieldParser(field_names, index.schema)
             print index.schema.stored_names()
             query = parser.parse('vaticana')
@@ -298,7 +337,7 @@ Options:
     def index_all(self, options):
         for name in self.get_requested_index_names():
             self.index(name)
-            
+
     def get_requested_index_names(self):
         #ret = ['unified', 'autocomplete']
         ret = ['unified']
@@ -309,7 +348,7 @@ Options:
                 exit()
             else:
                 ret = [index_filter]
-        
+
         return ret
 
     def get_requested_content_types(self):
@@ -320,7 +359,7 @@ Options:
         from digipal.views.content_type.search_hands import SearchHands
         from digipal.views.content_type.search_manuscripts import SearchManuscripts
         from digipal.views.content_type.search_scribes import SearchScribes
-        
+
         options = self.options
 
         content_type_filter = options['content_type_filter']
@@ -333,29 +372,29 @@ Options:
                     types.append(cl())
         else:
             types = [SearchHands(), SearchManuscripts(), SearchScribes()]
-            
+
         if not types:
             print 'ERROR: Content Type not found (%s)' % content_type_filter
             exit()
-            
+
         return types
-    
+
     def search(self):
         from digipal.views.faceted_search import faceted_search
         cts = faceted_search.get_types(None)
-        
+
         class Req(object):
-            
+
             def __init__(self):
                 self.META = {}
                 self.GET = {}
                 self.REQUEST = self.GET
                 self.user = None
-                
+
             def set_user(self, name):
                 from django.contrib.auth.models import User
                 self.user = User.objects.filter(username=name).first() or None
-                
+
             def set_query_string(self, query_string):
                 self.META['QUERY_STRING'] = query_string
                 if query_string:
@@ -363,16 +402,16 @@ Options:
                         parts = pair.split('=')
                         if len(parts) == 2:
                             self.GET[parts[0]] = parts[1]
-                
-        
+
+
         request = Req()
         request.set_user(self.options['user'])
         request.set_query_string(self.options['qs'])
-        
+
         for ct in faceted_search.get_types(None):
             if ct.get_key() == self.options['index_filter']:
                 records = ct.get_requested_records(request)
-                
+
                 print '%s records found' % len(records)
                 for record in records:
                     print record.id, repr(record)
@@ -380,16 +419,16 @@ Options:
     def index_facets(self, options):
         from digipal.views.faceted_search import faceted_search
         faceted_search.rebuild_index(self.get_filtered_indexes())
-        
+
     def index(self, index_name='unified'):
         types = self.get_requested_content_types()
-        
+
         from whoosh.fields import TEXT, ID, NGRAM, NUMERIC
         from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
         from whoosh.analysis.filters import LowercaseFilter
         simp_ana = SimpleAnalyzer()
         print 'Building %s index...' % index_name
-        
+
         # build a single schema from the fields exposed by the different search types
         print '\tSchema:'
         fields = {}
@@ -398,7 +437,7 @@ Options:
                 if info['whoosh']['name'] not in fields and not info['whoosh'].get('ignore', False):
                     print '\t\t%s' % info
                     field_type = info['whoosh']['type']
-                    
+
                     if index_name == 'autocomplete':
                         # break the long text fields into terms, leave the others as single expression
                         if not (field_type.__class__ == NUMERIC):
@@ -408,17 +447,17 @@ Options:
                                 field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
                     print '\t\t%s' % field_type
                     fields[info['whoosh']['name']] = field_type
-                    
+
                     # JIRA 508 - Add an ID counterpart to allow exact phrase search
 #                     if info.get('long_text', False):
 #                         fields[info['whoosh']['name']+'_iexact'] = ID(analyzer=IDAnalyzer(lowercase=True))
-        
+
         from whoosh.fields import Schema
         schema = Schema(**fields)
-        
+
         # Create the index schema
         index = self.recreate_index(index_name, schema)
-        
+
         # Add documents to the index
         print '\tWrite indexes:'
         writer = index.writer()
@@ -426,13 +465,13 @@ Options:
         for type in types:
             count = type.write_index(writer, self.is_verbose(), aci)
             print '\t\t%s %s records indexed' % (count, type.get_model().__name__)
-        
+
         # autocomplete
         if index_name == 'unified':
             f = open(types[0].get_autocomplete_path(True), 'w')
             f.write((ur'|'.join(aci.keys())).encode('utf8'))
             f.close()
-        
+
         writer.commit()
 
     def index_graph_description(self, index_name='graphs'):
@@ -440,18 +479,18 @@ Options:
         from whoosh.analysis import StemmingAnalyzer, SimpleAnalyzer, IDAnalyzer
         from whoosh.analysis.filters import LowercaseFilter
         print 'Building %s index...' % index_name
-        
+
         # build a single schema from the fields exposed by the different search types
         print '\tSchema:'
         fields = {'gid': ID(stored=True), 'description': KEYWORD(lowercase=True, scorable=True)}
         #fields = {'gid': ID(stored=True), 'description': TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))}
-        
+
         from whoosh.fields import Schema
         schema = Schema(**fields)
-        
+
         # Create the index schema
         index = self.recreate_index(index_name, schema)
-        
+
         # Add documents to the index
         print '\tWrite indexes:'
         writer = index.writer()
@@ -461,16 +500,16 @@ Options:
             c += 1
             doc = {'gid': unicode(graph.id), 'description': graph.get_serialised_description()}
             writer.add_document(**doc)
-        
+
         print '\t\tIndex %d graphs' % c
-        
+
         writer.commit()
 
     def recreate_index(self, index_name, schema):
         from digipal.utils import recreate_whoosh_index
         ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
         return ret
-        
+
     def is_dry_run(self):
         return self.options.get('dry-run', False)
 

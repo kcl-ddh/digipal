@@ -154,14 +154,14 @@ class FacetedModel(object):
 
         #records = self.get_all_records(False)
         records = self.get_all_records(True).order_by('id')
-        print '\t\t%d records' % records.count()
+        #print '\t\t%d records' % records.count()
 
         for field in self.fields:
             if self.is_field_indexable(field):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
 
-                    print '\t\t' + field['key']
+                    #print '\t\t' + field['key']
 
                     # get all the values for that field in the table
                     self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
@@ -178,15 +178,15 @@ class FacetedModel(object):
 
         hand_filters.chrono('%s:' % field['key'])
 
-        #print 'h1'
+        ##print 'h1'
 
         model, path = self.get_model_from_field(field)
         sort_function = field.get('sort_fct', None)
         value_rankings[None] = u''
         value_rankings['None'] = u''
         value_rankings[u''] = u''
-        #print 'h2'
-        #print model, path
+        ##print 'h2'
+        ##print model, path
         i = 0
         for record in model.objects.all().order_by('id'):
             i += 1
@@ -201,7 +201,7 @@ class FacetedModel(object):
 
             value_rankings[value] = v
 
-        #print 'h3'
+        ##print 'h3'
 
         # convert dates to numbers
         if field['type'] == 'date':
@@ -209,13 +209,13 @@ class FacetedModel(object):
                 v = utils.get_midpoint_from_date_range(v)
                 value_rankings[k] = v or 10000
             sorted_values = sorted(value_rankings.values())
-            # print sorted_values
+            # #print sorted_values
             # exit()
         else:
             # sort by natural order
             sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
-        #print 'h4'
+        ##print 'h4'
         # now assign the ranking to each value
         for k, v in value_rankings.iteritems():
             value_rankings[k] = sorted_values.index(v)
@@ -461,7 +461,7 @@ class FacetedModel(object):
                 # a fct on the queryset, e.g. person.cars.all.count
                 # we don't want to fork in that case.
                 if isinstance(v, QuerySet) and not(parts and hasattr(v, parts[0])):
-                    #print v, parts
+                    ##print v, parts
                     rec = v
                     v = []
                     for item in rec:
@@ -504,7 +504,7 @@ class FacetedModel(object):
             ret = [field for field in self.fields if field.get('viewable', False)]
         else:
 #             for key in keys:
-#                 print key, self.get_field_by_key(key)
+#                 #print key, self.get_field_by_key(key)
             ret = [self.get_field_by_key(key) for key in keys]
         for field in ret:
             field['sortable'] = self._get_sortable_whoosh_field(field)
@@ -514,7 +514,7 @@ class FacetedModel(object):
 
     def get_whoosh_facets(self):
         from whoosh import sorting
-        # print [field['key'] for field in self.fields if field.get('count', False)]
+        # #print [field['key'] for field in self.fields if field.get('count', False)]
         # return []
 
         ret = []
@@ -655,7 +655,7 @@ class FacetedModel(object):
             # ret = s.search(q, groupedby=facets, limit=1000000)
             # ret = s.search(q, sortedby=sortedby, limit=1000000)
             # ret = s.search(q, limit=1000000)
-            # print facets
+            # #print facets
             # ret = s.search_page(q, 1, pagelen=10, groupedby=facets, sortedby=sortedby)
 
             hand_filters.chrono(':whoosh.search')
@@ -667,7 +667,7 @@ class FacetedModel(object):
                 for field in self.fields:
                     if field.get('count', False):
     #                     if field['key'] == 'hi_has_images':
-    #                         print ret.groups(field['key'])
+    #                         #print ret.groups(field['key'])
                         self.whoosh_groups[field['key']] = ret.groups(field['key'])
                     # #self.whoosh_groups[field['key']] = {}
                     # self.whoosh_groups[field['key']] = {}
@@ -683,13 +683,14 @@ class FacetedModel(object):
             # get highlights from the hits
             if 0:
                 for hit in ret:
-                    #print repr(hit)
-                    # print '- ' * 20
-                    # print hit['id']
+                    ##print repr(hit)
+                    # #print '- ' * 20
+                    # #print hit['id']
 
                     if 1 and self.key == 'clauses':
                         #text = self.get_model().objects.get(id=hit['id'])
-                        print repr(hit.highlights('content', top=10))
+                        #print repr(hit.highlights('content', top=10))
+                        pass
 
             # Paginate
             self.paginator = Paginator(ret['ids'], self.get_page_size(request))
@@ -704,7 +705,7 @@ class FacetedModel(object):
 
             hand_filters.chrono(':whoosh')
 
-            # print len(ids)
+            # #print len(ids)
 
             # ids = [res['id'] for res in ret]
             hand_filters.chrono('sql:')
@@ -721,7 +722,7 @@ class FacetedModel(object):
                 # ! filter not implemented in all faceted models
                 #ret = records.filter(id__in=self.ids)
                 #ret = records.in_bulks(ids)
-                #print self.overview_records.count()
+                ##print self.overview_records.count()
                 self.is_full_search = not (search_phrase or field_queries)
                 self.is_full_search = (self.get_summary(request, True).strip().lower() == 'all')
 #                 if self.is_full_search:
@@ -785,13 +786,13 @@ class FacetedModel(object):
             ret = None
 
         self.cache_hit = False
-        if 1 or ret is None:
+        if ret is None:
             utils.dplog('Cache MISS')
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
 
-            print q
-            print res
-            print limit
+            #print q
+            #print res
+            #print limit
 
             ret = {
                    'ids': [hit['id'] for hit in res],

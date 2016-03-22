@@ -1075,7 +1075,7 @@ def get_whoosh_field_type(field, sortable=False):
 
     from whoosh.fields import TEXT, ID, NUMERIC, BOOLEAN
     # TODO: shall we use stop words? e.g. 'A and B' won't work?
-    from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter
+    from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter, RegexTokenizer
     from whoosh.support.charset import accent_map
     # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
     # minsize=1 because we want to search for 'Scribe 2'
@@ -1085,7 +1085,10 @@ def get_whoosh_field_type(field, sortable=False):
     if field_type == 'id':
         # An ID (e.g. 708-AB)
         # EXACT search only
-        ret = ID(stored=True, sortable=sortable)
+        analyzer = None
+        if field.get('multivalued', False):
+            analyzer = RegexTokenizer(ur'\|', gaps=True)
+        ret = ID(stored=True, sortable=sortable, analyzer=analyzer)
     elif field_type in ['int']:
         ret = NUMERIC(sortable=sortable)
     elif field_type in ['code']:

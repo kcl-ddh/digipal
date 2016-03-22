@@ -161,7 +161,7 @@ class FacetedModel(object):
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != field['key']:
 
-                    #print '\t\t' + field['key']
+                    print '\t\t' + field['key']
 
                     # get all the values for that field in the table
                     self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)

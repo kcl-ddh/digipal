@@ -300,7 +300,7 @@ Options:
         for hit in res:
             if afield:
                 # display only the unique value in the requested field
-                vs[hit[afield]] = 1
+                vs[hit[afield]] = vs.get(hit[afield], 0) + 1
             else:
                 # display all field, value in this record
                 for k, v in hit.iteritems():
@@ -308,8 +308,8 @@ Options:
                 ret += '\t' + ('-' * 20) + '\n'
 
         if vs:
-            for v in vs:
-                ret += '\t%s\n' % repr(v)
+            for v, c in vs.iteritems():
+                ret += '\t%6s x %s\n' % (c, repr(v))
 
         return ret
 

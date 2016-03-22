@@ -222,26 +222,6 @@ FACETED_SEARCH = {
 #                    'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
                 },
 
-#                 {
-#                     'disabled': True,
-#                     'key': 'textunits',
-#                     'label': 'Unit of Text',
-#                     'model': 'digipal_text.models.TextUnit',
-#                     'fields': [
-#
-#                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-#                                {'key': 'entryid', 'label': 'Ref', 'path': 'entryid', 'search': True, 'viewable': True, 'type': 'code'},
-#                                {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
-#                                ],
-#                      'select_related': ['item_part__current_item__repository__place', 'assigned_place', 'assigned_date'],
-#                      'prefetch_related': ['item_part__historical_items'],
-#                      'filter_order': ['hand_date', 'repo_city', 'repo_place', 'hand_place'],
-#                      'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'annotations', 'hi_format', 'hi_type', 'thumbnail'],
-#                      'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
-#                      'sorted_fields': ['hand', 'repo_city', 'repo_place', 'shelfmark'],
-#                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type'],
-#                 },
-
                 {
                     'disabled': False,
                     'key': 'graphs',
@@ -261,7 +241,6 @@ FACETED_SEARCH = {
                                 {'key': 'hand_label', 'label': 'Hand', 'path': 'hand.label', 'search': True, 'viewable': True, 'type': 'title', 'count': True},
                                 {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
     #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-    #                            {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
     #                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
                                 #{'key': 'hand_script', 'label': 'Script of the Hand', 'label_col': 'Script', 'path': 'hand.script.name', 'viewable': True, 'search': True, 'type': 'code', 'count': True},
                                 {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
@@ -332,7 +311,15 @@ def get_content_type_from_key(key):
     return [t for t in FACETED_SEARCH['types'] if t['key'] == key].pop()
 
 class FacettedType(object):
+    '''
+        A wrapper around the settings of a faceted search result type.
+        Provides convenient methods to get more info or update the settings.
 
+        Usage:
+
+        ft = FacettedType().fromKey('manuscripts')
+        print ft.getOption('column_order')
+    '''
     def __init__(self, options):
         self.options = options
 

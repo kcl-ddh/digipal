@@ -2374,6 +2374,14 @@ class Graph(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
+    def get_aspect_positions(self):
+        ret = []
+        for a in self.aspects.all():
+            name = re.sub(ur'(?i)Position\s*:\s*', ur'', a.name)
+            if name != a.name:
+                ret.append(name)
+        return ret or ['unspecified']
+
     def get_short_label(self):
         locus = ''
         if self.annotation and self.annotation.image:

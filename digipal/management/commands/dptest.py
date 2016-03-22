@@ -48,6 +48,9 @@ Commands:
     cpip REQ1 REQ2
         compare two PIP req files (pip freeze)
 
+    download_images URL
+        URL: e.g. "http://domain/path/to/image_{001_r,003_v}.jpg"
+
 """
 
     args = 'locus|email'
@@ -124,6 +127,10 @@ Commands:
         if command =='record_path':
             known_command = True
             self.record_path(*args[1:])
+
+        if command =='download_images':
+            known_command = True
+            self.download_images(*args[1:])
 
         if command == 'date_prob':
             known_command = True
@@ -437,6 +444,68 @@ Commands:
         #value = fmodel.get_record_path(record, afield)
         value = fmodel.get_record_path(record, path)
         print repr(value)
+
+    def download_images(self, *args):
+        if len(args) < 1:
+            print 'ERROR: please provide a URL'
+            return
+        if len(args) < 2:
+            print 'ERROR: please provide a path'
+            return
+
+        from utils import web_fetch
+        from digipal.utils import write_file
+
+        url = args[0]
+        path = args[1]
+
+        rng = re.sub(ur'^.*\{([^}]*)\}.*$', ur'\1', url)
+        if rng == url:
+            return 'ERROR: please specify a range in the URL. e.g. {1r-10v}'
+
+        # e.g. ['001_R', '141_V']
+        rng = rng.split(',')
+        rng = [rng[0], rng[-1]]
+
+        locus = rng[0]
+        while True:
+            aurl = re.sub(ur'\{[^}]*\}', locus, url)
+
+            filename = os.path.join(path, locus)
+            if not re.search(ur'\..{1,4}$', filename):
+                filename += '.jpg'
+
+            print 'downloading %s to %s' % (aurl, filename)
+            #break
+
+            res = web_fetch(aurl)
+            if res['error']:
+                print res['error']
+            else:
+                import json
+                write_file(filename, res['body'], None)
+
+            break
+
+            if locus == rng[-1]:
+                break
+
+            # increment
+            inc = 1
+            if 'r' in locus or 'R' in locus:
+                locus = locus.replace('R', 'V').replace('r', 'v')
+                inc = 0
+            else:
+                if 'v' in locus or 'V' in locus:
+                    locus = locus.replace('V', 'R').replace('v', 'r')
+            if inc:
+                def incn(m):
+                    # 0001
+                    n = m.group(0)
+                    return ('%0'+str(len(n))+'d') % (int(n) + 1)
+
+                # increment number
+                locus = re.sub(ur'\d+', incn, locus)
 
     def reconstruct_image(self, *args):
         from utils import web_fetch, write_file

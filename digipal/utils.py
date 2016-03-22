@@ -359,9 +359,11 @@ def remove_combining_marks(input_str):
     import unicodedata
     return u"".join([c for c in unicode(input_str) if not unicodedata.combining(c)])
 
-def write_file(file_path, content):
+def write_file(file_path, content, encoding='utf8'):
     f = open(file_path, 'wb')
-    f.write(content.encode('utf8'))
+    if encoding:
+        content = content.encode(encoding)
+    f.write(content)
     f.close()
 
 def get_bool_from_string(string):
@@ -482,10 +484,10 @@ def get_midpoint_from_date_range(astr=None, arange=None):
     Returns None for unknown date
     '''
     ret = None
-    
+
     if astr:
         astr = astr.strip()
-    
+
     if arange is None:
         arange = get_range_from_date(astr)
 
@@ -1208,4 +1210,3 @@ def get_cache_key_from_string(s):
     hasher = hashlib.sha1()
     hasher.update(s)
     return base64.b64encode(hasher.digest())
-    

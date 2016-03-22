@@ -485,8 +485,6 @@ Commands:
                 import json
                 write_file(filename, res['body'], None)
 
-            break
-
             if locus == rng[-1]:
                 break
 

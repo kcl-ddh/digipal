@@ -105,7 +105,7 @@ FACETED_SEARCH = {
 
                                {'key': 'scribe', 'label': 'Scribe', 'path': 'name', 'type': 'title', 'viewable': True, 'search': True},
 
-                               {'key': 'scribe_date', 'label': 'Date', 'path': 'date', 'type': 'date', 'viewable': True, 'filter': True, 'min': 900, 'max': 1200, 'id': 'scribe_date'},
+                               {'key': 'scribe_date', 'label': 'Date assigned to Scribe', 'path': 'date', 'type': 'date', 'viewable': True, 'filter': True, 'min': 900, 'max': 1200, 'id': 'scribe_date'},
 
                                {'key': 'scriptorium', 'label': 'Scriptorium', 'path': 'scriptorium.name', 'type': 'title', 'viewable': True, 'search': True, 'count': True},
 
@@ -173,7 +173,7 @@ FACETED_SEARCH = {
                                {'key': 'repo_place', 'label': 'Repository Place', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
-                               {'key': 'hi_date', 'label': 'Date', 'path': 'text_content.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'text_content.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
@@ -273,7 +273,7 @@ FACETED_SEARCH = {
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
 
                                 #{'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-                                {'key': 'hi_date', 'label': 'Date', 'path': 'annotation.image.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'annotation.image.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
 
@@ -332,10 +332,10 @@ def get_content_type_from_key(key):
     return [t for t in FACETED_SEARCH['types'] if t['key'] == key].pop()
 
 class FacettedType(object):
-    
+
     def __init__(self, options):
         self.options = options
-        
+
     @staticmethod
     def fromKey(akey):
         ret = None
@@ -343,27 +343,26 @@ class FacettedType(object):
             if options['key'] == akey:
                 return FacettedType(options)
         return ret
-    
+
     @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
-        
+
     def getFields(self):
         return self.options['fields']
     fields = property(getFields)
 
     def getOption(self, key, default=None):
         return self.options.get(key, default)
-        
+
     def getFilterKeys(self):
         ''' Returns a list of fitler field keys in the order they should appear in the filter panel'''
         ret = self.getOption('filter_order', None)
         if not ret:
             ret = [field['key'] for field in self.fields if field.get('count', False) or field.get('filter', False)]
         return ret
-    
+
     def setDateRange(self, rng):
         for f in self.fields:
             if f['type'] == 'date':
                 f['min'], f['max'] = rng
-    

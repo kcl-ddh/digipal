@@ -55,7 +55,7 @@ def get_idiograph(request):
                 }
                 components.append(c)
         idiograph['components'] = components
-        return HttpResponse(json.dumps([idiograph]), mimetype='application/json')
+        return HttpResponse(json.dumps([idiograph]), content_type='application/json')
     else:
         return HttpResponseBadRequest()
 
@@ -83,7 +83,7 @@ def save_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(json.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 
@@ -115,7 +115,7 @@ def update_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(json.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), content_type='application/json')
 
 @staff_member_required
 @transaction.commit_on_success
@@ -129,7 +129,7 @@ def delete_idiograph(request):
         response['errors'] = False
     except Exception as e:
         response['errors'] = ['Internal error: %s' % e.message]
-    return HttpResponse(json.dumps(response), mimetype='application/json')
+    return HttpResponse(json.dumps(response), content_type='application/json')
 
 @staff_member_required
 def get_idiographs(request):
@@ -148,7 +148,7 @@ def get_idiographs(request):
             }
             idiographs.append(object_idiograph)
 
-        return HttpResponse(json.dumps(idiographs), mimetype='application/json')
+        return HttpResponse(json.dumps(idiographs), content_type='application/json')
 
 @staff_member_required
 def get_allographs(request):
@@ -173,7 +173,7 @@ def get_allographs(request):
 
                 data.append(ac_dict)
 
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), content_type='application/json')
     else:
         return HttpResponseBadRequest()
 

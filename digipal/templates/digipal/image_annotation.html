@@ -27,6 +27,12 @@
             <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
         {% endif %}
     </h2>
+    
+    {{ PAGE_IMAGE_SHOW_MSDATE }}
+    {% if PAGE_IMAGE_SHOW_MSDATE %}
+        {{ image.item_part.historical_item.date|default:'Unspecified' }}
+    {% endif %}
+    
     <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
 
     <div class='row'>

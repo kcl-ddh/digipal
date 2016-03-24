@@ -122,7 +122,7 @@ def process_bulk_image_ajax(request):
     
     #find_image_offset
     
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 @staff_member_required
 def image_bulk_edit(request, url=None):

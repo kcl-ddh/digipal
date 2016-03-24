@@ -57,7 +57,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         return render_to_response('digipal/api/webpage.html', {'api_response': mark_safe(data)}, context_instance=RequestContext(request))
 
     # Access-Control-Allow-Origin: *
-    ret = HttpResponse(data, mimetype=mimetype)
+    ret = HttpResponse(data, content_type=mimetype)
     ret['Access-Control-Allow-Origin'] = '*'
     return ret
 
@@ -69,7 +69,7 @@ def get_old_api_request(request, content_type, ids=None, only_features=False):
         data = allograph_features(request, ids)
     elif content_type == 'hand':
         data = get_hands(ids)
-    return HttpResponse(data, mimetype='application/json')
+    return HttpResponse(data, content_type='application/json')
 
 
 def get_list_from_csv(csv):
@@ -308,7 +308,7 @@ def get_allograph(request, graph_id):
     g = Graph.objects.get(id=graph_id)
     allograph_id = g.idiograph.allograph_id
     data = {'id': allograph_id}
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 # GN: dec 14, commented out as it is seems to be no longer used
 # def image_vectors(request, image_id):
@@ -340,7 +340,7 @@ def get_vector(request, image_id, graph):
     data = {}
     data['vector_id'] = ast.literal_eval(annotation.geo_json.strip())
     data['id'] = annotation.id
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 # def image_annotations(request, image_id, annotations_page=True, hand=False):
 #     """Returns a JSON of all the annotations for the requested image."""
@@ -519,7 +519,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
             an['display_order'] = min([float(point[0]) for point in an['geo_json']['coordinates'][0]])
 
     if annotations_page:
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), content_type='application/json')
     else:
         return data
 
@@ -539,7 +539,7 @@ def get_allographs_by_graph(request, image_id, graph_id):
                     'vector_id': i.vector_id
                 }
                 annotations_list.append(annotation)
-            return HttpResponse(json.dumps(annotations_list), mimetype='application/json')
+            return HttpResponse(json.dumps(annotations_list), content_type='application/json')
         else:
             return HttpResponse(False)
 
@@ -557,7 +557,7 @@ def get_allographs_by_allograph(request, image_id, character_id, allograph_id):
                 'vector_id': i.vector_id
             }
             annotations_list.append(annotation)
-        return HttpResponse(json.dumps(annotations_list), mimetype='application/json')
+        return HttpResponse(json.dumps(annotations_list), content_type='application/json')
     else:
         return HttpResponse(False)
 
@@ -596,7 +596,7 @@ def hands_list(request, image_id):
     hands = []
     for h in hands_list:
         hands.append(h.display_label)
-    return HttpResponse(json.dumps(hands), mimetype='application/json')
+    return HttpResponse(json.dumps(hands), content_type='application/json')
 
 def get_hands(hands):
     hands_list = []
@@ -674,7 +674,7 @@ def images_lightbox(request, collection_name):
                 full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
             data['editorial'] = editorial_annotations
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 def form_dialog(request, image_id):
     image = Image.objects.get(id=image_id)
@@ -858,7 +858,7 @@ def save(request, graphs):
             data['errors'] = [u'Internal error: %s' % e]
             #tb = sys.exc_info()[2]
 
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
 @login_required
 def save_editorial(request, graphs):
@@ -937,7 +937,7 @@ def save_editorial(request, graphs):
             data['errors'] = [u'Internal error: %s' % e]
             #tb = sys.exc_info()[2]
 
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
 def get_json_error_from_form_errors(form):
     '''Returns a list of errors from a set of Django form errors.
@@ -980,4 +980,4 @@ def delete(request, image_id, graph_id):
         #transaction.commit()
         data.update({'success': True})
 
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')

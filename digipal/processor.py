@@ -32,7 +32,7 @@ def get_contextable_digipal_settings():
     # space separated list of django settings variable names
     # to expose in the templates as global javascript var
     # window.digipal_settings.VARNAME = VALUE
-    template_settings = 'ANNOTATOR_ZOOM_LEVELS ANNOTATOR_ZOOM_FACTOR'
+    template_settings = 'ANNOTATOR_ZOOM_LEVELS ANNOTATOR_ZOOM_FACTOR PAGE_IMAGE_SHOW_MSDATE'
     for k in template_settings.split(' '):
         k = k.strip()
         ret[k] = getattr(settings, k, '')

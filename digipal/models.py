@@ -1693,6 +1693,14 @@ class Image(models.Model):
 
         return ret
 
+    def get_document_summary(self):
+        ret = u''
+        if self.item_part and self.item_part.historical_item:
+            ret = self.item_part.historical_item.get_display_description()
+            if ret:
+                ret = ret.description
+        return ret
+
     @classmethod
     def filter_public_permissions(cls, image_queryset):
         '''Filter an Image queryset to keep only the images with FULL public permissions.

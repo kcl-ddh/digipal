@@ -291,8 +291,12 @@ def image(request, image_id):
                'repositories': Repository.objects.filter(currentitem__itempart__images=image_id),
                # hide all annotations and all annotation tools from the user
                'hide_annotations': int(not is_model_visible('graph', request)),
+               'PAGE_IMAGE_SHOW_MSDATE': settings.PAGE_IMAGE_SHOW_MSDATE,
                }
 
+    if settings.PAGE_IMAGE_SHOW_MSSUMMARY:
+        context['document_summary'] = image.get_document_summary()
+        
     context['annotations_switch_initial'] =  1 - int(context['hide_annotations'] or ((request.REQUEST.get('annotations', 'true')).strip().lower() in ['0', 'false']))
     
     context['show_image'] = context['can_edit'] or not context['no_image_reason']
@@ -300,8 +304,7 @@ def image(request, image_id):
     if vector_id:
         context['vector_id'] = vector_id
 
-    return render_to_response('digipal/image_annotation.html', context,
-                              context_instance=RequestContext(request))
+    return render_to_response('digipal/image_annotation.html', context, context_instance=RequestContext(request))
 
 def get_allograph(request, graph_id):
     """Returns the allograph id of a given graph"""

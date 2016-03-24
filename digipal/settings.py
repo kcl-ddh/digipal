@@ -678,6 +678,11 @@ ANNOTATOR_ZOOM_LEVELS = 7
 # Lower value for smaller increments (OL default = 2)
 ANNOTATOR_ZOOM_FACTOR = 1.4
 
+# Show ms date on annotator?
+PAGE_IMAGE_SHOW_MSDATE = False
+# Show MS summary on annotator?
+PAGE_IMAGE_SHOW_MSSUMMARY = False
+
 # Web API
 REJECT_HTTP_API_REQUESTS = False
 # See /digipal/doc/http-api.md for instructions

@@ -28,9 +28,11 @@
         {% endif %}
     </h2>
     
-    {{ PAGE_IMAGE_SHOW_MSDATE }}
-    {% if PAGE_IMAGE_SHOW_MSDATE %}
-        {{ image.item_part.historical_item.date|default:'Unspecified' }}
+    {% if PAGE_IMAGE_SHOW_MSDATE or document_summary %}
+        <p>
+            <span title="Date of the document" data-toggle="tooltip">{{ image.item_part.historical_item.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
+            <span data-toggle="tooltip" title="{{ document_summary|escape }}">{{ document_summary|truncatewords:15 }}</span>
+        </p>
     {% endif %}
     
     <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />

@@ -1,0 +1,22 @@
+{% load html_escape %}
+
+{% if cansee.textcontentxml %}
+	<div class='tab-pane fade {% if tabid = "texts" %}active in{% endif %}' id='texts'>
+	    {% if text_content_xmls.count %}
+	        <ul class="list-group">
+	            {% for text_content_xml in text_content_xmls %}
+	                <li class="list-group-item">
+	                    <a href="{{ text_content_xml.get_absolute_url }}">
+	                        {{ text_content_xml.text_content.type }}
+	                    </a>
+	                </li>
+	            {% endfor %}
+	        </ul>
+	    {% else %}
+	        {% include "digipal/empty_tab.html" with type="text" %}
+	    {% endif %}
+	    {% if can_edit %}
+	        <p><a href="view/">Edit the Texts</a></p>
+	    {% endif %}
+	</div>
+{% endif %}

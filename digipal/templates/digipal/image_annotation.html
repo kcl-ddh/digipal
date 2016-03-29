@@ -60,16 +60,21 @@
                         <a data-toggle="tab" data-target='#hands' href="/digipal/page/{{ image.id }}/hands/">Hands ({{image.hands.all.count}})</a>
                     </li>
                 {% endif %}
+			    {% if cansee.textcontentxml %}
+			        <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+			            <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
+		            </li>
+			    {% endif %}
                 {% if 0 %}
                     <li {% if url == 'metadata' %} class='active in' {% endif %}>
                         <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
                     </li>
                 {% endif %}
-                <li {% if url == 'copyright' %} class='active in' {% endif %}>
-                    <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
-                </li>
                 <li {% if not images.count %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
+                </li>
+                <li {% if url == 'copyright' %} class='active in' {% endif %}>
+                    <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                 </li>
             </ul>
         </div>
@@ -103,6 +108,8 @@
                         {% include "digipal/hands.html" %}
                     </div>
                 {% endif %}
+
+                {% include "pages/tab_texts.html" %}
 
                 {% if 0 %}
                     <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>

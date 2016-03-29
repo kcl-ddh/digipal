@@ -274,6 +274,8 @@ def image(request, image_id):
     images = image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set')
     images = Image.filter_permissions_from_request(images, request)
     images = Image.sort_query_set_by_locus(images, True)
+    
+    from digipal_text.models import TextContentXML
 
     context = {
                'form': form.as_ul(), 'dimensions': dimensions,
@@ -292,6 +294,7 @@ def image(request, image_id):
                # hide all annotations and all annotation tools from the user
                'hide_annotations': int(not is_model_visible('graph', request)),
                'PAGE_IMAGE_SHOW_MSDATE': settings.PAGE_IMAGE_SHOW_MSDATE,
+               'text_content_xmls': TextContentXML.objects.filter(text_content__item_part=image.item_part),
                }
 
     if settings.PAGE_IMAGE_SHOW_MSSUMMARY:

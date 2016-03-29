@@ -137,7 +137,7 @@ Commands:
         from digipal_text.models import TextContentXML, TextAnnotation
         from digipal_text.views import viewer
         for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
-            if tcx.text_content.item_part_id != 598: continue
+            #if tcx.text_content.item_part_id != 598: continue
             
             '''
             Before
@@ -148,19 +148,35 @@ Commands:
             
             content = tcx.content
             if not content or len(content) < 5: continue
-            print tcx.id
+            print 'TA #%s' % tcx.id
+            import json
             
-            elements = viewer.get_text_elements_from_content_bugged(content)
-            print elements
-
-            elements = viewer.get_text_elements_from_content(content)
-            print elements
+            elementss = []
+            elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content_bugged(content)])
+            elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content(content)])
+            
+            if len(elementss[0]) != len(elementss[1]):
+                print '\tWARNING: Different number of elements!'
+            
+            for i in range(len(elementss[0])):
+                if elementss[0][i] != elementss[1][i]:
+                    pass
+                    #print u'\t%s <> %s' % (elementss[0][i], elementss[1][i]) 
             
             # get elements from TI annotation
             tas = TextAnnotation.objects.filter(annotation__image__item_part_id=tcx.text_content.item_part_id)
             for ta in tas:
-                print ta.elementid
-            
+                i = -1
+                if ta.elementid in elementss[0]:
+                    i = elementss[0].index(ta.elementid)
+                if i < 0:
+                    print '\tWARNING: Annotation id not found in text (%s)' % ta.elementid
+                else:
+                    newid = elementss[1][i]
+                    if newid != ta.elementid:
+                        print '\tCONVERT %s -> %s' % (elementss[0][i], elementss[1][i])
+                        ta.elementid = elementss[1][i]
+                        #ta.save()
 
     def get_textcontentxml(self, ip_id, content_type_name):
         from django.utils.text import slugify

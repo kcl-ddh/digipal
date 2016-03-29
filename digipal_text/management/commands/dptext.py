@@ -42,6 +42,9 @@ Commands:
             List the units from a text
             e.g. unit 1 entry 104b1
             
+  fixids    
+            See MOA-247 + 260: convert the wrong markup ids
+            to the correct ones. For all texts. 
 """
     
     args = 'reformat|importtags'
@@ -117,6 +120,10 @@ Commands:
         if command == 'clauses':
             known_command = True
             self.command_clauses()
+            
+        if command == 'fixids':
+            known_command = True
+            self.command_fixids()
 
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
@@ -125,6 +132,35 @@ Commands:
             print self.help
         else:
             print 'done'
+            
+    def command_fixids(self):
+        from digipal_text.models import TextContentXML, TextAnnotation
+        from digipal_text.views import viewer
+        for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
+            if tcx.text_content.item_part_id != 598: continue
+            
+            '''
+            Before
+            [[(u'', u'clause'), (u'type', u'address'), ['@text', u'walt']], [(u'', u'clause'), (u'type', u'salutation'), ['@text', u'salutem']], [(u'', u'clause'), (u'type', u'disposition')], [(u'', u'clause'), (u'type', u'witnesses')]]
+            After
+            [[(u'', u'clause'), (u'type', u'address'), ['@text', u'walt']], [(u'', u'clause'), (u'type', u'salutation'), ['@text', u'salutem']], [(u'', u'clause'), (u'type', u'disposition')], [(u'', u'clause'), (u'type', u'witnesses')]]
+            '''
+            
+            content = tcx.content
+            if not content or len(content) < 5: continue
+            print tcx.id
+            
+            elements = viewer.get_text_elements_from_content_bugged(content)
+            print elements
+
+            elements = viewer.get_text_elements_from_content(content)
+            print elements
+            
+            # get elements from TI annotation
+            tas = TextAnnotation.objects.filter(annotation__image__item_part_id=tcx.text_content.item_part_id)
+            for ta in tas:
+                print ta.elementid
+            
 
     def get_textcontentxml(self, ip_id, content_type_name):
         from django.utils.text import slugify

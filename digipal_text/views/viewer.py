@@ -469,6 +469,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     return ret
 
 def get_annotations_from_image(image):
+    '''Returns a dict with a list of all TextAnnotation for this image'''
     ret = {'annotations': []}
 
     from digipal.models import Annotation
@@ -481,8 +482,6 @@ def get_annotations_from_image(image):
             geojson['properties'] = geojson.get('properties', None) or {}
             geojson['properties']['elementid'] = json.loads(textannotation.elementid or [])
         ret['annotations'].append(info)
-
-    #print ret
 
     return ret
 
@@ -562,10 +561,9 @@ def update_text_image_link(request, image):
     return ret
 
 def get_text_elements_from_image(request, item_partid, content_type, location_type, location):
-    # returns the TRANSCRIPTION text for the requested IMAGE location
+    # returns the TRANSCRIPTION text for the requested location
     # if not found, returns the whole text
     # eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["", "clause"], ["type", "disposition"]], [["", "clause"], ["type", "witnesses"]]]
-    from django.utils.text import slugify
 
     ret = []
 
@@ -581,20 +579,50 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     # extract all the elements
     if text_info.get('status', '').lower() != 'error':
         content = text_info.get('content', '')
-        if content:
-            #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
-            for element in re.findall(ur'(?musi)(data-dpt="[^>]+)([^<]{0,30})', content):
-                element_text = element[1]
-                element = element[0]
-                # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
-                parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
-                # white list to filter the elements
-                if parts[0][1] in ('clause', 'location', 'person'):
-                    element_text = slugify(u'%s' % element_text. lower())
-                    if len(element_text) > 0 and len(element_text) < 20:
-                        parts.append(['@text', element_text])
-                    ret.append(parts)
+        ret = get_text_elements_from_content(content)
 
+    return ret
+
+def get_text_elements_from_content(content):
+    from django.utils.text import slugify
+    
+    ret = []
+    if content:
+        xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
+        
+        for element in xml.findall("//*[@data-dpt]"):
+            element_text = utils.get_xml_element_text(element)
+            
+            # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
+            parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k,v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
+            
+            # white list to filter the elements
+            if parts[0][1] in ('clause', 'location', 'person'):
+                element_text = slugify(u'%s' % element_text.lower())
+                if len(element_text) > 0 and len(element_text) < 20:
+                    parts.append(['@text', element_text])
+                ret.append(parts)
+    
+    return ret
+
+def get_text_elements_from_content_bugged(content):
+    from django.utils.text import slugify
+    
+    ret = []
+    if content:
+        #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
+        for element in re.findall(ur'(?musi)(data-dpt="[^>]+)([^<]{0,30})', content):
+            element_text = element[1]
+            element = element[0]
+            # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
+            parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
+            # white list to filter the elements
+            if parts[0][1] in ('clause', 'location', 'person'):
+                element_text = slugify(u'%s' % element_text. lower())
+                if len(element_text) > 0 and len(element_text) < 20:
+                    parts.append(['@text', element_text])
+                ret.append(parts)
+    
     return ret
 
 def find_image(request, item_partid, location_type, location, get_visible_images, visible_images):

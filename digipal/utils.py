@@ -387,22 +387,45 @@ def get_one2one_object(model, field_name):
 
     return ret
 
+#-------------------------------------
+#
+#             XML 
+#
+#-------------------------------------
+
 def get_string_from_xml(xmltree):
+    '''Serialise the given XML node into a string.
+        BEWARE: the method returns the TAIL, that is,
+        the text that follows the element.
+        E.g. '<a>some text</a> and its tail'
+    '''
     return ET.tostring(xmltree)
 
 def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False):
-    # if test_only = True => strip all XML tags
-    method = None
-    if text_only: method = 'text'
+    # if text_only = True => strip all XML tags
+    # EXCLUDE the TAIL
     if text_only:
         return get_xml_element_text(xmltree)
     else:
-        return ET.tostring(xmltree, encoding=encoding, method=method).decode('utf-8')
+        ret = ET.tostring(xmltree, encoding=encoding).decode('utf-8')
+        if xmltree.tail is not None and ret[0] == '<':
+            # remove the tail
+            import regex as re
+            ret = re.sub(ur'[^>]+$', '', ret)
+            
+        return ret
 
-def get_xml_from_unicode(document, ishtml=False):
+def get_xml_from_unicode(document, ishtml=False, add_root=False):
     # document = a unicode object containing the document
     # ishtml = True will be more lenient about the XML format
     #          and won't complain about named entities (&nbsp;)
+    # add_root = True to surround the given document string with 
+    #         <root> element before parsing. In case there is no 
+    #        single containing element.
+    
+    if document and add_root:
+        document = ur'<root>%s</root>' % document
+    
     parser = None
     if ishtml:
         from io import StringIO
@@ -417,13 +440,17 @@ def get_xml_from_unicode(document, ishtml=False):
     return ret
 
 def get_xml_element_text(element):
-    # returns all the text within element and its descendents
+    # returns all the text within element and its descendants 
+    # WITHOUT the TAIL.
+    #
     # element is etree Element object
+    #
     # '<r>t0<e1>t1<e2>t2</e2>t3</e1>t4</r>'
     # e = (xml.findall(el))[0]
     # e.text => t1
     # e.tail => t4 (! part of e1)
     # get_xml_element_text(element) => 't1t2t3'
+    
     return ''.join(element.itertext())
 
 def get_xslt_transform(source, template, error=None):
@@ -435,6 +462,12 @@ def get_xslt_transform(source, template, error=None):
     ret = newdom
 
     return ret
+
+#-------------------------------------
+#
+#             WHOOSH 
+#
+#-------------------------------------
 
 def recreate_whoosh_index(path, index_name, schema):
     import os.path

@@ -73,6 +73,13 @@
                 <li {% if not images.count %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
                 </li>
+                {% if cansee.itempart %}
+	                <li {% if not image.item_part %} class='disabled' {% endif %} {% if url == 'pages' %} class='active in' {% endif %}>
+	                    <a data-toggle="tooltip" title="More info about this document ({{ image.item_part  }})" href='{{ image.item_part.get_absolute_url }}' class="link-internal">
+	                       Document
+	                    </a>
+	                </li>
+                {% endif %}
                 <li {% if url == 'copyright' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
                 </li>

@@ -807,3 +807,41 @@ a[data-toggle="pill"]{
 #info-div table tr td {
     padding: 2px;
 }
+
+.link-internal {
+    &:before {
+        font: normal normal normal 14px/1 FontAwesome;
+        font-size: inherit;
+        text-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        content: "\f14c";
+    }
+    
+    &:hover, &:focus {
+        text-decoration: underline;
+    }
+}
+
+.nav > li > a.link-internal, .nav > li > a.link-external {
+    &:hover, &:focus {
+        text-decoration: underline;
+        background-color: transparent;
+    }
+}
+
+.link-external {
+    &:before {
+        font: normal normal normal 14px/1 FontAwesome;
+        font-size: inherit;
+        text-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        content: "\f08e";
+    }
+    
+    &:hover, &:focus {
+        text-decoration: underline;
+    }
+}
+

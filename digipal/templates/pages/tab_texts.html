@@ -1,7 +1,7 @@
 {% load html_escape %}
 
 {% if cansee.textcontentxml %}
-	<div class='tab-pane fade {% if tabid = "texts" %}active in{% endif %}' id='texts'>
+	<div class='tab-pane fade {% if tabid = "texts" or url = "texts" %}active in{% endif %}' id='texts'>
 	    {% if text_content_xmls.count %}
 	        <ul class="list-group">
 	            {% for text_content_xml in text_content_xmls %}

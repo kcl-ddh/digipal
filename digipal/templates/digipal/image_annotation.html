@@ -61,7 +61,7 @@
                     </li>
                 {% endif %}
 			    {% if cansee.textcontentxml %}
-			        <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+			        <li class="{% if url = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
 			            <a href="/digipal/page/{{ image.id }}/texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
 		            </li>
 			    {% endif %}
@@ -74,7 +74,7 @@
                     <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
                 </li>
                 {% if cansee.itempart %}
-	                <li {% if not image.item_part %} class='disabled' {% endif %} {% if url == 'pages' %} class='active in' {% endif %}>
+	                <li {% if not image.item_part %} class='disabled' {% endif %}>
 	                    <a data-toggle="tooltip" title="More info about this document ({{ image.item_part  }})" href='{{ image.item_part.get_absolute_url }}' class="link-internal">
 	                       Document
 	                    </a>

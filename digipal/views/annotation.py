@@ -296,7 +296,7 @@ def image(request, image_id):
                'PAGE_IMAGE_SHOW_MSDATE': settings.PAGE_IMAGE_SHOW_MSDATE,
                'text_content_xmls': TextContentXML.objects.filter(text_content__item_part=image.item_part),
                }
-
+    
     if settings.PAGE_IMAGE_SHOW_MSSUMMARY:
         context['document_summary'] = image.get_document_summary()
         

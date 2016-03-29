@@ -99,7 +99,7 @@
                             {% for catnum in item_part.historical_item.catalogue_numbers.all %}
                                 <dd>
                                     {% if catnum.url %}
-                                        <a href="{{ catnum.url }}">
+                                        <a class="link-external" href="{{ catnum.url }}" data-toggle="tooltip" title="{{ catnum.source.get_display_reference }} description (external link)" target="_blank">
                                     {% endif %}
                                             {{ catnum }}
                                     {% if catnum.url %}

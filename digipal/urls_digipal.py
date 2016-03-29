@@ -5,7 +5,7 @@ from mezzanine.core.views import direct_to_template
 
 urlpatterns = patterns('digipal.views.annotation',
     (r'^page/(?P<image_id>\d+)/$', 'image'),
-    (r'^page/(?P<image_id>\d+)/(allographs|metadata|copyright|pages|hands)/$', 'image'),
+    (r'^page/(?P<image_id>\d+)/(allographs|metadata|copyright|pages|hands|texts)/$', 'image'),
     # GN: dec 14, commented out as it is seems to be no longer used
     #(r'^page/(?P<image_id>\d+)/vectors/$', 'image_vectors'),
     (r'^page/(?P<image_id>\d+)/annotations/$', 'image_annotations'),

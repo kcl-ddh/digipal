@@ -62,7 +62,7 @@
                 {% endif %}
 			    {% if cansee.textcontentxml %}
 			        <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
-			            <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
+			            <a href="/digipal/page/{{ image.id }}/texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
 		            </li>
 			    {% endif %}
                 {% if 0 %}

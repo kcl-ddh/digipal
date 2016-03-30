@@ -87,7 +87,7 @@ class TextUnit(object):
     def get_thumb(self):
         from digipal.models import Annotation
         ret = Annotation.objects.filter(image__item_part=self.content_xml.text_content.item_part, textannotations__elementid=self.get_elementid()).first()
-        
+
         return ret
 
     @ClassProperty
@@ -127,9 +127,12 @@ class TextContent(models.Model):
         return ret
 
     def get_absolute_url(self, unset=False):
+        types = set(['transcription', 'translation'])
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
             ret += '?center=%s' % self.type.slug
+            ret += '&east=%s/sync/%s/' % (types.difference(set([self.type.slug])).pop(), self.type.slug)
+            ret += '&north=image/sync/transcription/'
         return ret
 
 class TextContentXMLStatus(digipal.models.NameModel):
@@ -198,10 +201,10 @@ class TextContentXML(models.Model):
         unique_together = ('text_content',)
         verbose_name = 'Text (XML)'
         verbose_name_plural = 'Texts (XML)'
-    
+
     def __unicode__(self):
         return '%s (#%s)' % (self.text_content, self.id)
-    
+
     @classmethod
     def get_public_only(cls, ignore=False):
         '''Return all the publicly accessible records.

@@ -358,8 +358,9 @@ class FacetedModel(object):
         if hasattr(self, 'whoosh_groups'):
             for k, v in self.whoosh_groups[field['key']].iteritems():
                 label = k
+                labels = field.get('labels', {0: 'No', 1: 'Yes'})
                 if field['type'] == 'boolean':
-                    label = 'Yes' if k else 'No'
+                    label = labels[int(utils.get_bool_from_string(k))]
                 option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
                 option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
                 ret.append(option)

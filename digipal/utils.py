@@ -368,7 +368,7 @@ def write_file(file_path, content, encoding='utf8'):
 
 def get_bool_from_string(string):
     ret = False
-    if string in ['1', 'True', 'true']:
+    if str(string) in ['1', 'True', 'true', 'on', 'On']:
         ret = True
     return ret
 

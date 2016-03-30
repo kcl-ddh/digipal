@@ -14,20 +14,20 @@ except Exception, e:
 class Command(BaseCommand):
     help = """
 Digipal Text management tool.
-    
+
 Commands:
-    
+
   download  CONTENT_XML_ID
-    
+
   copies    [IP_ID]
             List copies of the texts.
-  
+
   restore   COPY_ID
             restore a copy
-            
+
   markup    CONTENT_XML_ID
             auto-markup a content
-            
+
   upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
             upload a XML file into the database
             e.g. upload 'mytext.xml' 13 'transcription'
@@ -37,16 +37,16 @@ Commands:
             OPERATION =
                 pb2locus    convert pb to locus
                     OPTIONS = START_NUMBER
-  
+
   unit      [CTXID [LOCATION_TYPE [LOCATION]]]
             List the units from a text
             e.g. unit 1 entry 104b1
-            
-  fixids    
+
+  fixids
             See MOA-247 + 260: convert the wrong markup ids
-            to the correct ones. For all texts. 
+            to the correct ones. For all texts.
 """
-    
+
     args = 'reformat|importtags'
     option_list = BaseCommand.option_list + (
         make_option('--db',
@@ -72,17 +72,17 @@ Commands:
         )
 
     def handle(self, *args, **options):
-        
+
         self.log_level = 3
-        
+
         self.options = options
         self.args = args
-        
+
         if len(args) < 1:
             print self.help
             return
         command = args[0]
-        
+
         known_command = False
 
         if command == 'list':
@@ -92,15 +92,15 @@ Commands:
         if command == 'copies':
             known_command = True
             self.command_copies()
-            
+
         if command == 'restore':
             known_command = True
             self.command_restore()
-            
+
         if command == 'unit':
             known_command = True
             self.command_unit()
-        
+
         if command == 'markup':
             known_command = True
             self.command_markup()
@@ -108,11 +108,11 @@ Commands:
         if command == 'upload':
             known_command = True
             self.command_upload()
-            
+
         if command == 'download':
             known_command = True
             self.command_download()
-            
+
         if command == 'process':
             known_command = True
             self.command_process()
@@ -120,49 +120,49 @@ Commands:
         if command == 'clauses':
             known_command = True
             self.command_clauses()
-            
+
         if command == 'fixids':
             known_command = True
             self.command_fixids()
 
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
-            
+
         if not known_command:
             print self.help
         else:
             print 'done'
-            
+
     def command_fixids(self):
         from digipal_text.models import TextContentXML, TextAnnotation
         from digipal_text.views import viewer
         for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
             #if tcx.text_content.item_part_id != 598: continue
-            
+
             '''
             Before
             [[(u'', u'clause'), (u'type', u'address'), ['@text', u'walt']], [(u'', u'clause'), (u'type', u'salutation'), ['@text', u'salutem']], [(u'', u'clause'), (u'type', u'disposition')], [(u'', u'clause'), (u'type', u'witnesses')]]
             After
             [[(u'', u'clause'), (u'type', u'address'), ['@text', u'walt']], [(u'', u'clause'), (u'type', u'salutation'), ['@text', u'salutem']], [(u'', u'clause'), (u'type', u'disposition')], [(u'', u'clause'), (u'type', u'witnesses')]]
             '''
-            
+
             content = tcx.content
             if not content or len(content) < 5: continue
-            print 'TA #%s' % tcx.id
+            print 'TA #%s IP #%s' % (tcx.id, tcx.text_content.item_part.id)
             import json
-            
+
             elementss = []
             elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content_bugged(content)])
             elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content(content)])
-            
+
             if len(elementss[0]) != len(elementss[1]):
                 print '\tWARNING: Different number of elements!'
-            
+
             for i in range(len(elementss[0])):
                 if elementss[0][i] != elementss[1][i]:
                     pass
-                    #print u'\t%s <> %s' % (elementss[0][i], elementss[1][i]) 
-            
+                    #print u'\t%s <> %s' % (elementss[0][i], elementss[1][i])
+
             # get elements from TI annotation
             tas = TextAnnotation.objects.filter(annotation__image__item_part_id=tcx.text_content.item_part_id)
             for ta in tas:
@@ -171,12 +171,25 @@ Commands:
                     i = elementss[0].index(ta.elementid)
                 if i < 0:
                     print '\tWARNING: Annotation id not found in text (%s)' % ta.elementid
-                else:
+                    if ta.elementid in elementss[1]:
+                        print '\tINFO: Found in new ids'
+                        i = elementss[1].index(ta.elementid)
+                    else:
+                        i = len(elementss[0])
+                        while i > 0:
+                            i -= 1
+                            if elementss[0][i].startswith(ta.elementid[:-1]):
+                                print '\tINFO: Partial match (%s)' % elementss[0][i]
+                                break
+                if i >= 0:
                     newid = elementss[1][i]
                     if newid != ta.elementid:
-                        print '\tCONVERT %s -> %s' % (elementss[0][i], elementss[1][i])
+                        print '\tCONVERT %s -> %s' % (ta.elementid, elementss[1][i])
                         ta.elementid = elementss[1][i]
-                        #ta.save()
+                        ta.save()
+                else:
+                    print '\tERROR: Annotation id not found in text (%s)' % ta.elementid
+
 
     def get_textcontentxml(self, ip_id, content_type_name):
         from django.utils.text import slugify
@@ -196,19 +209,19 @@ Commands:
         from digipal_text.models import TextContentXML
         text_content_xml = TextContentXML.objects.get(id=recordid)
         ret = text_content_xml.content
-        
+
         import regex
-        
+
         if ret is None:
             ret = u''
-        
+
         #ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
 
         #ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
         #ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
-        
+
         #print repr(ret)
-        
+
 #         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
 #             print repr(it)
 
@@ -221,14 +234,14 @@ Commands:
             ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
             ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
             ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
-        
+
         #print repr(ret)
         file_name = 'tcx%s.xml' % text_content_xml.id
         from digipal.utils import write_file
         write_file(file_name, ret)
         print 'Written file %s ' % file_name
-        
-        
+
+
     def command_upload(self):
         '''upload    XML_PATH IP_ID CONTENT_TYPE [XPATH]
             pm dptext upload exon\source\rekeyed\converted\EXON-1-493.xhtml 1 transcription
@@ -236,13 +249,13 @@ Commands:
         if len(self.args) < 4:
             print 'upload requires 3 arguments'
             return
-        
+
         xml_path, ip_id, content_type_name = self.args[1:4]
-        
+
         xpath = None
         if len(self.args) > 4:
             xpath = self.args[4]
-        
+
         # I find the TextContentXML record (or create it)
         tcx = self.get_textcontentxml(ip_id, content_type_name)
         if not tcx:
@@ -251,7 +264,7 @@ Commands:
         # II load the file and convert it
         from digipal.utils import read_file, get_xml_from_unicode
         xml_string = read_file(xml_path)
-        
+
         # III get the XML into a string
         xml = get_xml_from_unicode(xml_string)
         if xpath:
@@ -267,28 +280,28 @@ Commands:
 #         print type(root)
 #         print dir(root)
 #         content = str(root)
-        
+
         if '&#361;' in content:
             print 'Numeric entity'
             exit()
-        
+
         # don't keep root element tag
         content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
-        
+
         # IV convert the xml tags and attribute to HTML-TEI
         #content = self.get_xhtml_from_xml(content)
-        
+
         # save the content into the TextContentXML record
         tcx.content = content
         tcx.save()
-        
+
         from django.template.defaultfilters import filesizeformat
         print 'Uploaded %s into record #%s' % (filesizeformat(tcx.get_length()), tcx.id)
-        
+
 
     def get_xhtml_from_xml(self, xml_string):
         # IV convert the xml tags and attribute to HTML-TEI
-        
+
         # remove comments
         content = re.sub(ur'(?musi)<!--.*?-->', ur'', xml_string)
         #
@@ -298,26 +311,26 @@ Commands:
         def replace_tag(match):
             if match.group(0) in self.conversion_cache:
                 return self.conversion_cache[match.group(0)]
-            
+
             self.c += 1
             if self.c > 10e6:
                 exit()
 
             ret = match.group(0)
-            
+
             tag = match.group(2)
-            
+
             # don't convert <p>
             if tag in ['p', 'span']:
                 return ret
-            
+
             # any closing tag is /span
             if '/' in match.group(1):
                 return '</span>'
-            
+
             if tag == 'pb':
                 print self.c
-            
+
             # tag -
             ret = ur'<span data-dpt="%s"' % tag
             # attribute - assumes " for attribute values
@@ -325,24 +338,24 @@ Commands:
             if attrs:
                 ret += ' ' + attrs
             ret += match.group(4)
-            
+
             #print '', ret
-            
+
             self.conversion_cache[match.group(0)] = ret
-            
+
             return ret
-            
+
         from digipal.utils import re_sub_fct
         content = re_sub_fct(content, ur'(?musi)(<\s*/?\s*)(\w+)([^>]*?)(/?\s*>)', replace_tag)
-        
+
         return content
-        
+
     def get_arg(self, i, default=None):
         if len(self.args) > i:
             return self.args[i]
         else:
             return default
-         
+
     def command_unit(self):
         #from digipal_text.models import TextUnit
         #rs = TextUnit.objects
@@ -353,11 +366,11 @@ Commands:
         if rid:
             fitler = {'id': rid}
         ctx = TextContentXML.objects.filter(**fitler).first()
-        
+
         if ctx:
             print ctx
             location_type = self.get_arg(2, 'locus')
-            
+
             location = self.get_arg(3, None)
             units = get_all_units(ctx.content, location_type)
             for unit in units:
@@ -365,7 +378,7 @@ Commands:
                     print '%-10s %-5s %-10s' % (unit['unitid'], len(unit['content']), repr(unit['content'][:10]))
                     if location:
                         print repr(unit['content'])
-        
+
             print '%s units' % len(units)
             #fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
 
@@ -375,12 +388,12 @@ Commands:
     def get_content_xml_summary(self, content_xml):
         return '#%4s %8s %20s %20s %20s' % (content_xml.id, content_xml.get_length(),
                 self.get_friendly_datetime(content_xml.created), self.get_friendly_datetime(content_xml.modified), content_xml.text_content)
-            
+
     def command_list(self):
         from digipal_text.models import TextContentXML
         for content_xml in TextContentXML.objects.all().order_by('text_content__item_part__display_label', 'text_content__type__name'):
             print self.get_content_xml_summary(content_xml)
-        
+
     def command_markup(self):
         # call the auto-markup function on a text
         from digipal_text.models import TextContentXML
@@ -388,39 +401,39 @@ Commands:
             content_xml = TextContentXML.objects.filter(id=self.args[1]).first()
             if content_xml:
                 print self.get_content_xml_summary(content_xml)
-                
+
                 versions = [content_xml.content]
-                
+
                 content_xml.convert()
-                
+
                 #versions.append(content_xml.content)
-                
+
                 #print repr(content_xml.content)
-                
+
                 # 1a
                 # 1b
                 # 14b1
                 # 16a1
                 # 179, 379
-                
+
 #                 pattern = ur'(?musi)&lt;\s*(\w+a)\s*&gt;'
 #                 for folio in re.findall(pattern, content_xml.content):
 #                     print folio
                 content_xml.save()
-                
+
         else:
             pass
-    
+
     def command_copies(self):
         from digipal_text.models import TextContentXMLCopy
         copies = TextContentXMLCopy.objects.all().order_by('-id')
         if len(self.args) > 1:
             ipid = self.args[1]
             copies = copies.filter(source__text_content__item_part_id=ipid)
-        
+
         for copy in copies:
             print ', '.join([str(v) for v in (copy.id, copy.source.text_content, copy.created, len(copy.content))])
-            
+
     def command_restore(self):
         if len(self.args) < 2:
             print 'ERROR: please provide a copy ID.'
@@ -432,38 +445,38 @@ Commands:
             print 'ERROR: no copy with ID #%s.' % copyid
             return
         print 'Restore copy #%s, "%s"' % (copyid, copy.source.text_content)
-        
+
         copy.restore()
-        
+
     def command_process(self):
         if len(self.args) < 4:
             print 'upload requires 3 arguments'
             return
-        
+
         operation, ip_id, content_type_name = self.args[1:4]
-        
+
         options = []
         if len(self.args) > 4:
             options = self.args[4:]
-        
+
         # I find the TextContentXML record (or create it)
         tcx = self.get_textcontentxml(ip_id, content_type_name)
         if not tcx:
             return
 
         content = tcx.content
-        
+
         len0 = len(content)
-        
+
         if operation == 'pb2locus':
             content = self.operation_pb2locus(options, content)
-        
+
         if operation == 'foliate':
             content = self.operation_foliate(options, content)
 
         if operation == 'addentries':
             content = self.operation_addentries(options, content)
-            
+
         if content and len(content) != len0:
             tcx.content = content
             print repr(content)
@@ -474,30 +487,30 @@ Commands:
 
     def operation_addentries(self, options, content):
         first, last = options[0].split('..')
-        
+
         content = u'';
-        
+
         for i in range(int(first), int(last)):
             for s in ['r', 'v']:
                 content += u'<p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p>\n\n' % (i, s)
-            
+
         return content
 
     def operation_foliate(self, options, content):
         '''
             <span data-dpt="margin">fol. 1. b</span>[...]
-            
+
             =>
-            
+
             <p><span data-dpt="location" data-dpt-loctype="locus">1v</span><p>
         '''
         self._next_locus = u'1r'
-        
+
         def replace(match):
             ret = match.group(0)
-            
+
             locus = match.group(1)
-            
+
             parts = re.match(ur'(?musi)^\s?(\d+)\.?\s*(b?)\.?$', locus)
             if not parts:
                 print 'WARNING: no match [%s]' % repr(locus)
@@ -512,41 +525,41 @@ Commands:
                     lo += 'r'
 
                 print '%s ("%s")' % (lo, locus)
-                
+
                 if lo != self._next_locus:
                     print 'WARNING: locus out of sequence, expected %s, got %s' % (self._next_locus, lo)
-                
+
                 self._next_locus = lon
-                
+
                 ret = u'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p><p>' % lo
-            
+
             return ret
 
         content = re_sub_fct(content, ur'(?musi)<span data-dpt="margin">\s*fol.([^<]*)</span>', replace)
-            
+
         return content
-    
+
     def operation_pb2locus(self, options, content):
         start_page = 1
         if options:
             start_page = int(options[0])
-        
+
         self.rep_option = start_page
         def replace(match):
             # !!! ASSUME pb is not in <p> or anything else
-            
+
             number = re.sub(ur'^.*"([^"]+)".*$', ur'\1', match.group(1))
             if len(number) == len(match.group(1)):
                 number = self.rep_option
-            
+
             ret = u'<p><span data-dpt="location" data-dpt-loctype="locus">%s</span></p>' % number
-            
+
             self.rep_option = get_int(number, default=self.rep_option) + 1
-            
+
             return ret
-        
+
         content = re_sub_fct(content, ur'<span\s+data-dpt\s*=\s*"pb"([^>]*)>', replace)
-        
+
         return content
-        
-        
+
+

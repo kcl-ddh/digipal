@@ -42,14 +42,14 @@ def anchorify(value):
     value = re.sub(ur'(?u)[^\w\s-]', u'', value).strip()
     return mark_safe(re.sub(u'[-\s]+', u'-', value))
 
-@register.filter(is_safe=True)
+@register.filter()
 def update_query_params(content, updates):
     ''' The query strings in the content are updated by the filter.
         In case of conflict, the parameters in the filter always win.
     '''
     return update_query_params_internal(content, updates)
 
-@register.filter(is_safe=True)
+@register.filter()
 def add_query_params(content, updates):
     ''' The query strings in the content are updated by the filter.
         In case of conflict, the parameters in the content always win.
@@ -59,6 +59,8 @@ def add_query_params(content, updates):
 def update_query_params_internal(content, updates, url_wins=False):
     '''
         Update the query strings found in an HTML fragment.
+        RETURNS a mark_safe string. To be used for attribute value.
+        Note that the query string is URL/% encoded.
 
         See update_query_string()
 
@@ -90,7 +92,7 @@ def update_query_params_internal(content, updates, url_wins=False):
         new_url = update_query_string(url, updates, url_wins)
         content = content[0:m.start()] + (template % new_url) + content[m.end():]
 
-    return content
+    return mark_safe(content)
 
 @register.filter
 def plural(value, count=2):

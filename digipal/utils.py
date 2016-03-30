@@ -389,7 +389,7 @@ def get_one2one_object(model, field_name):
 
 #-------------------------------------
 #
-#             XML 
+#             XML
 #
 #-------------------------------------
 
@@ -412,20 +412,20 @@ def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False):
             # remove the tail
             import regex as re
             ret = re.sub(ur'[^>]+$', '', ret)
-            
+
         return ret
 
 def get_xml_from_unicode(document, ishtml=False, add_root=False):
     # document = a unicode object containing the document
     # ishtml = True will be more lenient about the XML format
     #          and won't complain about named entities (&nbsp;)
-    # add_root = True to surround the given document string with 
-    #         <root> element before parsing. In case there is no 
+    # add_root = True to surround the given document string with
+    #         <root> element before parsing. In case there is no
     #        single containing element.
-    
+
     if document and add_root:
         document = ur'<root>%s</root>' % document
-    
+
     parser = None
     if ishtml:
         from io import StringIO
@@ -440,7 +440,7 @@ def get_xml_from_unicode(document, ishtml=False, add_root=False):
     return ret
 
 def get_xml_element_text(element):
-    # returns all the text within element and its descendants 
+    # returns all the text within element and its descendants
     # WITHOUT the TAIL.
     #
     # element is etree Element object
@@ -450,7 +450,7 @@ def get_xml_element_text(element):
     # e.text => t1
     # e.tail => t4 (! part of e1)
     # get_xml_element_text(element) => 't1t2t3'
-    
+
     return ''.join(element.itertext())
 
 def get_xslt_transform(source, template, error=None):
@@ -465,7 +465,7 @@ def get_xslt_transform(source, template, error=None):
 
 #-------------------------------------
 #
-#             WHOOSH 
+#             WHOOSH
 #
 #-------------------------------------
 

@@ -317,7 +317,7 @@ class FacetedModel(object):
             for faceted_model in self.faceted_model_group:
                 selected = faceted_model.key == ct_facet['value']
                 option = {'label': faceted_model.label_plural, 'key': faceted_model.key, 'count': '', 'selected': selected}
-                option['href'] = mark_safe(html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] }))
+                option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], ct_facet['key']: [option['key']] })
                 ct_facet['options'].append(option)
             ret.append(ct_facet)
 

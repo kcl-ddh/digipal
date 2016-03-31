@@ -275,6 +275,16 @@ class TextAnnotation(models.Model):
     class Meta:
         unique_together = ['annotation', 'elementid']
 
+    def __unicode__(self):
+        return 'Annotation of "%s" in image "%s"' % (self.get_friendly_name(), self.annotation.image)
+    
+    def get_friendly_name(self):
+        ''' return a friendly name for the element this annotation refers to'''
+        import json
+        ret = json.loads(self.elementid)
+        ret = ' '.join([p[1] for p in ret])
+        return ret
+
 from digipal.models import set_additional_models_methods
 
 set_additional_models_methods()

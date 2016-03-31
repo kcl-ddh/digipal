@@ -1120,12 +1120,26 @@ def dplog(message, level='DEBUG'):
     from datetime import datetime
     #print '[%s] %s' % (datetime.now(), message)
 
+def get_model_from_table_name(table_name):
+    # BEWARE: not efficient!
+    # Only use in command line scripts, not in site controllers/views
+    ret = None
+    
+    from django.contrib.contenttypes.models import ContentType
+    for ct in ContentType.objects.all():
+        atable_name = '%s_%s' % (ct.app_label, ct.model)
+        if atable_name == table_name:
+            ret = ct.model_class() 
+            break
+        
+    return ret
+
 def get_model_from_name(name):
     return get_models_from_names([name])
 
 def get_models_from_names(names):
     # name = an array of model names
-    # return a list of model classes with those names
+    # return a dictionary of model classes for the given model names
     # Only one class per name. In case of ambiguity, digipal app takes precedence. Otherwise it is undetermined.
     # The order of the returned list is undetermined.
     ret = {}

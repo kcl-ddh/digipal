@@ -71,6 +71,10 @@ Commands:
 
   convert_exon_folio_numbers
                         Convert the folio numbers to the new system
+                        
+  cmp_recs [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER]
+                        Compare records between two DBs
+                        e.g. pm dpmigrate cmp_recs --src=stg --table=ALL | grep ">"
 """
 
     args = 'hand'
@@ -191,6 +195,10 @@ Commands:
             self.update_derived_fields()
             known_command = True
 
+        if command == 'cmp_recs':
+            known_command = True
+            self.cmp_recs(options)
+        
         if command == 'copy':
             known_command = True
             self.migrateRecords(options)
@@ -1983,6 +1991,81 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
     def is_dry_run(self):
         return self.options.get('dry-run', False)
+
+    def cmp_recs(self, options):
+        '''Main command: compare the records between two DBs'''
+        from django.db import connections, transaction
+
+        table_filter = options.get('table', '')
+        if not table_filter:
+            raise CommandError('Please provide a table filter using the --table option. To copy all tables, use --table ALL')
+        if table_filter == 'ALL': table_filter = ''
+
+        con_src = connections[options.get('src')]
+        con_dst = connections[options.get('db')]
+
+        with transaction.atomic(con_dst.alias):
+            
+            self.log('COMPARE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
+
+            # 1. find all the remote tables starting with the prefix
+            src_tables = con_src.introspection.table_names()
+            dst_tables = con_dst.introspection.table_names()
+
+            print '%40s %2s %6s %6s %6s %6s' % ('table name', '=?', '+lcl', '+rmt', 'lcl', 'rmt')
+
+            for src_table in src_tables:
+                if re.search(r'%s' % table_filter, src_table):
+                    if src_table in dst_tables:
+                        self.cmp_table_recs(con_src, src_table, con_dst, src_table)
+                    else:
+                        self.log('Table not found in destination (%s)' % src_table, 1)
+        
+    
+    def cmp_table_recs(self, con_src, src_table, con_dst, dst_table):
+        '''compare the records between two tables'''
+        from digipal.utils import get_model_from_table_name
+        
+        # 0: remote, 1: local 
+        cons = [(con_src, src_table), (con_dst, dst_table)]
+
+        fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
+        fnames_src = [f[0] for f in fields_src]
+
+        if 'id' in fnames_src:
+            idss = []
+            for con in cons:
+                cursor_src = utils.sqlSelect(con[0], 'SELECT %s FROM %s' % ('id', con[1]))
+                ids = [k for k, r in utils.fetch_all_dic(cursor_src, 'id').iteritems()]
+                cursor_src.close()
+                idss.append(ids)
+            
+            # 0: missing in remote, 1: missing in local 
+            diffs = (set(idss[1]) - set(idss[0]), set(idss[0]) - set(idss[1]))
+            diff_status = ''
+            if diffs[1]:
+                diff_status += '<'
+            if diffs[0]:
+                diff_status += '>'
+            if not diff_status:
+                diff_status = '='
+            print '%40s %2s %6s %6s %6s %6s' % (src_table, diff_status, len(diffs[0]), len(diffs[1]), len(idss[1]), len(idss[0]))
+            
+            # show actual records
+            if diffs[0] and self.get_verbosity() > 1:
+                missing_ids = sorted(list(diffs[0]))
+                print '  ' + ', '.join([str(v) for v in missing_ids])
+                
+                if self.get_verbosity() > 2:
+                    model = get_model_from_table_name(src_table)
+                    for rec in model.objects.filter(id__in=missing_ids):
+                        print '  #%4s: %s' % (rec.id, rec)
+        else:
+            print '%40s NO ID FIELD' % (src_table, )
+            
+
+    def get_verbosity(self):
+        return int(self.options.get('verbosity', 1))
 
     def migrateRecords(self, options):
         from django.db import connections, transaction

@@ -51,7 +51,8 @@ def update_viewer_context(context, request):
 
 def get_sub_location_from_request(request):
     try:
-        ret = json.loads(request.REQUEST.get('sub_location', '[]'))
+        subl = request.REQUEST.get('sub_location', '[]')
+        ret = json.loads(subl)
     except:
         ret = []
     return ret
@@ -104,6 +105,8 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     # the desired sublocation.
     # If specific function want to remove they can set it to []
     response['sub_location'] = response.get('sub_location', get_sub_location_from_request(request))
+    if not response['sub_location']:
+        del response['sub_location']
 
     if location_type == 'sync':
         # dummy response in case of syncing with another panel

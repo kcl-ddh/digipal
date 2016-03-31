@@ -135,9 +135,8 @@ class TextContent(models.Model):
             ret += '?center=%s' % self.type.slug
             if metas:
                 from digipal.utils import urlencode
-                metas = ';' + urlencode(metas, True)
-            metas = metas or ''
-            ret += '&east=%s/sync/%s/;%s' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug, metas or '')
+                ret += (';' + urlencode(metas, True)).replace('=', ':')
+            ret += '&east=%s/sync/%s/' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug)
             ret += '&north=image/sync/%s/' % self.type.slug
         if qs:
             if '?' not in ret:
@@ -149,6 +148,8 @@ class TextContent(models.Model):
             ret += qs
         ret += '#text-viewer'
         return ret
+    # http://localhost/digipal/manuscripts/598/texts/view/?center=transcription;subl:%5B%5B%22%22%2C+%22clause%22%5D%2C+%5B%22type%22%2C+%22witnesses%22%5D%5D&east=translation/sync/transcription/&north=image/sync/transcription/#text-viewer
+    # http://localhost/digipal/manuscripts/598/texts/view/?center=transcription;subl:%5B%5B%22%22,%22clause%22%5D,%5B%22type%22,%22witnesses%22%5D%5D;&east=translation/sync/transcription/;subl:%5B%5B%22%22,%22clause%22%5D,%5B%22type%22,%22witnesses%22%5D%5D;&north=image/sync/transcription/;subl:%5B%5B%22%22,%22clause%22%5D,%5B%22type%22,%22witnesses%22%5D%5D;olv:2,1860,-1385,0;#text-viewer
 
 class TextContentXMLStatus(digipal.models.NameModel):
     sort_order = models.IntegerField(blank=False, null=False, default=0, help_text='The order of this status in your workflow.')

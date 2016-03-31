@@ -94,7 +94,7 @@
                 if (match) {
                     match.map(function(v) {
                         var arg = v.replace(/[\?#&]/g, '').split('=');
-                        ret[arg[0]] = decodeURIComponent ? decodeURIComponent(arg[1]) : arg[1];
+                        ret[arg[0]] = urldecode(arg[1]);
                         return '';
                     });
                 }
@@ -241,7 +241,7 @@
         // attempt to save will overwrite the fragment.
         this.loadedAddress = null;
 
-        this.subLocation = [];
+        this.resetSubLocation();
 
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -692,7 +692,7 @@
         this.setValid(true);
 
         // reset the sublocation because the content has changed
-        this.setSubLocation();
+        this.resetSubLocation();
 
         // update the location drop downs
         this.setLocationTypeAndLocation(data.location_type, data.location);
@@ -820,6 +820,8 @@
         var ret = {};
         //ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
         ret.dis = (this.getListFromPresentationOptions()).join(' ');
+        var subl = this.getSubLocation();
+        if (subl && subl.length) ret.subl = JSON.stringify(subl);
         return ret;
     };
 
@@ -841,6 +843,7 @@
         }
         if (name == 'subl') {
             //this.enablePresentationOptions(value.split(' '));
+            this.moveToSubLocation(JSON.parse(value));
         }
     };
 
@@ -867,9 +870,22 @@
         return ret;
     };
 
+    Panel.prototype.resetSubLocation = function(subLocation) {
+        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
+    }
+    
     Panel.prototype.setSubLocation = function(subLocation) {
         // clone and set the location
-        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
+        var subLocationOld = JSON.stringify(this.subLocation || []);
+        var subLocationNew = JSON.stringify(subLocation || []);
+        
+        if (subLocationOld != subLocationNew) {
+            this.resetSubLocation(subLocation);
+            // state has changed
+            this.panelSet.onPanelStateChanged(this);
+            // dispatch the element we are on
+            this.panelSet.syncWithPanel(this);
+        }
     };
 
     // TO BE OVERRIDEN
@@ -878,7 +894,9 @@
     //  next time getSubLocation is called, the sublocation should be returned
     //  return true
     Panel.prototype.moveToSubLocation = function(subLocation) {
-        return false;
+        var ret = true;
+        this.setSubLocation(subLocation);
+        return true;
     };
     
     
@@ -923,7 +941,7 @@
                 if (subLocation.length) {
                     me.setSubLocation(subLocation);
                     // dispatch the element we are on
-                    me.panelSet.syncWithPanel(me);
+                    //me.panelSet.syncWithPanel(me);
                 }
             }
         });
@@ -1604,6 +1622,11 @@
         }
 
         return ret;
+    }
+    
+    
+    function urldecode(str) {
+        return decodeURIComponent((str+'').replace(/\+/g, '%20'));
     }
 
     initLayoutAddOns();

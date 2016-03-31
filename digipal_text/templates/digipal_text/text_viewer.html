@@ -55,11 +55,11 @@
                 <option value="1v">1v</option>
             </select>
         </div>
-        
+
         <div class="btn-group dphidden">
             <div class="presentation-options"></div>
         </div>
-        
+
         {% if request.user.is_authenticated %}
             <div class="btn-group">
                 <button class="btn btn-default btn-sm toggle-edit dphidden" title="Edit the text" data-toggle="tooltip" href="#toggle-edit" data-placement="bottom">
@@ -81,7 +81,7 @@
                 </button>
             </div>
         {% endif %}
-        
+
         <div class="linker btn-group pull-right dphidden">
             <span class="linker-image btn btn-default btn-sm">
                 status
@@ -90,18 +90,18 @@
                 <option value="markup-clause-address">markup > clause > address</option>
             </select>
         </div>
-        
+
     </div>
-    
+
     <div class="panel-content" tabindex="0">
     </div>
-    
+
     <div class="status-bar">
         <span class="status"></span>
         <span class="message"></span>
         <span class="time pull-right"></span>
     </div>
-    
+
 </div>
 
 {% endblock %}
@@ -131,9 +131,9 @@
             panelset.setLayout($('#text-viewer .panels'));
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
-            
+
             panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
-            
+
             ///panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             ///panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center'));
             //panelset.registerPanel(TextViewer.Panel.create('translation', '.ui-layout-center', true));
@@ -143,7 +143,7 @@
             //panelset.setPanelSize('west', 0.5);
             panelset.ready();
             //panelset.setPanelSize('south', 0);
-            panelset.setPanelSize('north', 0.4);
+            panelset.setPanelSize('north', 0.6);
             panelset.setPanelSize('east', 0.5);
             //panelset.setPanelSize('center', 0);
             //panelset.setPanelSize('west', 0);

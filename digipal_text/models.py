@@ -82,6 +82,7 @@ class TextUnit(object):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)
 
     def get_absolute_url(self):
+        # TODO: fix it, broken for EXON b/c url now contains more specific info and # fragment
         return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
 
     def get_thumb(self):
@@ -126,13 +127,22 @@ class TextContent(models.Model):
         ret = u'%s (%s)' % (self.item_part, info)
         return ret
 
-    def get_absolute_url(self, unset=False):
+    def get_absolute_url(self, unset=False, qs=''):
         types = set(['transcription', 'translation'])
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
             ret += '?center=%s' % self.type.slug
             ret += '&east=%s/sync/%s/' % (types.difference(set([self.type.slug])).pop(), self.type.slug)
             ret += '&north=image/sync/transcription/'
+        if qs:
+            if '?' not in ret:
+                ret += '?'
+            else:
+                ret += '&'
+            if qs[0] in ['&', '?']:
+                qs = qs[1:]
+            ret += qs
+        ret += '#text-viewer'
         return ret
 
 class TextContentXMLStatus(digipal.models.NameModel):

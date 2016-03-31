@@ -14,6 +14,7 @@
         this.isReady = false;
 
         this.registerPanel = function(panel) {
+            if (!panel) return;
             this.panels.push(panel);
             panel.panelSet = this;
             panel.setItemPartid(this.itemPartid);
@@ -734,8 +735,12 @@
             // we display an error message so user understands why
             constructor = Panel.getPanelClassFromContentType('text');
         }
-        var ret = new constructor($(selector), contentType, options);
-        if (error) ret.setMessage('Invalid content type ('+contentType+')', 'error');
+        var ret = null;
+        var $root = $(selector);
+        if ($root.size() > 0) {
+            ret = new constructor($root, contentType, options);
+        }
+        if (error && ret) ret.setMessage('Invalid content type ('+contentType+')', 'error');
         return ret;
     };
 

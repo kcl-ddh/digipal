@@ -161,6 +161,9 @@ def get_str_from_call_stack():
 def urlencode(dict, doseq=0):
     ''' This is a unicode-compatible wrapper around urllib.urlencode()
         See http://stackoverflow.com/questions/3121186/error-with-urlencode-in-python
+
+        dict: a dictionary of param name = values
+        doseq: see urlliburlencode (if dicts values are sequences)
     '''
     import urllib
     d = {}

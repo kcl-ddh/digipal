@@ -178,7 +178,7 @@ def get_or_create_text_content_records(item_part, content_type_record):
     return ret, created, error
 
 # TODO: content_type_record makes this signature non-polymorphic and even incompatible with image
-# need to use optional parameter for it 
+# need to use optional parameter for it
 def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
     ret = {}
 
@@ -331,15 +331,15 @@ def get_all_units(content, location_type):
             ...
         ]
     '''
-    
+
     ret = []
-    
+
     extent = [0, 0]
     while True:
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
         ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
-    
+
     return ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
@@ -365,7 +365,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
             loc_end = content.find('</span>', span0 + len(location_pattern))
             if loc_end > -1:
                 location = content[span0 + len(location_pattern):loc_end]
-        
+
         if span0 > -1:
             p0 = content.rfind('<p>', from_pos, span0)
             if p0 > -1:
@@ -585,29 +585,29 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
 
 def get_text_elements_from_content(content):
     from django.utils.text import slugify
-    
+
     ret = []
     if content:
         xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
-        
+
         for element in xml.findall("//*[@data-dpt]"):
             element_text = utils.get_xml_element_text(element)
-            
+
             # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
             parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k,v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
-            
+
             # white list to filter the elements
             if parts[0][1] in ('clause', 'location', 'person'):
                 element_text = slugify(u'%s' % element_text.lower())
                 if len(element_text) > 0 and len(element_text) < 20:
                     parts.append(['@text', element_text])
                 ret.append(parts)
-    
+
     return ret
 
 def get_text_elements_from_content_bugged(content):
     from django.utils.text import slugify
-    
+
     ret = []
     if content:
         #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
@@ -622,7 +622,7 @@ def get_text_elements_from_content_bugged(content):
                 if len(element_text) > 0 and len(element_text) < 20:
                     parts.append(['@text', element_text])
                 ret.append(parts)
-    
+
     return ret
 
 def find_image(request, item_partid, location_type, location, get_visible_images, visible_images):

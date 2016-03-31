@@ -81,9 +81,10 @@ class TextUnit(object):
     def id(self):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)
 
-    def get_absolute_url(self):
+    def get_absolute_url(self, qs=None, metas=None):
         # TODO: fix it, broken for EXON b/c url now contains more specific info and # fragment
-        return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
+        #return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
+        return '%s' % self.content_xml.get_absolute_url(qs=qs, metas=metas)
 
     def get_thumb(self):
         from digipal.models import Annotation
@@ -127,13 +128,17 @@ class TextContent(models.Model):
         ret = u'%s (%s)' % (self.item_part, info)
         return ret
 
-    def get_absolute_url(self, unset=False, qs=''):
-        types = set(['transcription', 'translation'])
+    def get_absolute_url(self, unset=False, qs='', metas=None):
+        types = ['transcription', 'translation']
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
             ret += '?center=%s' % self.type.slug
-            ret += '&east=%s/sync/%s/' % (types.difference(set([self.type.slug])).pop(), self.type.slug)
-            ret += '&north=image/sync/transcription/'
+            if metas:
+                from digipal.utils import urlencode
+                metas = ';' + urlencode(metas, True)
+            metas = metas or ''
+            ret += '&east=%s/sync/%s/;%s' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug, metas or '')
+            ret += '&north=image/sync/%s/' % self.type.slug
         if qs:
             if '?' not in ret:
                 ret += '?'
@@ -236,9 +241,8 @@ class TextContentXML(models.Model):
             self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
 
-    def get_absolute_url(self, unset=False):
-        ret = self.text_content.get_absolute_url(unset)
-        return ret
+    def get_absolute_url(self, unset=False, qs=None, metas=None):
+        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas)
 
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''

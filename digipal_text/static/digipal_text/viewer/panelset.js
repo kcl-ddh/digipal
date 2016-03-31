@@ -839,6 +839,9 @@
         if (name == 'dis') {
             this.enablePresentationOptions(value.split(' '));
         }
+        if (name == 'subl') {
+            //this.enablePresentationOptions(value.split(' '));
+        }
     };
 
     Panel.prototype.getPanelKey = function() {
@@ -877,6 +880,8 @@
     Panel.prototype.moveToSubLocation = function(subLocation) {
         return false;
     };
+    
+    
 
     //////////////////////////////////////////////////////////////////////
     //

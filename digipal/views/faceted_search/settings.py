@@ -210,7 +210,7 @@ FACETED_SEARCH = {
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'content_xml.text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
                                {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 2},
-                               {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1},
+                               {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1, 'link': True},
                                {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                ],
 #                    'select_related': ['content_xml.text_content.item_partitem_part__current_item__repository__place', 'assigned_place', 'assigned_date'],

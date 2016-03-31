@@ -94,7 +94,7 @@
                 if (match) {
                     match.map(function(v) {
                         var arg = v.replace(/[\?#&]/g, '').split('=');
-                        ret[arg[0]] = decodeURI ? decodeURI(arg[1]) : arg[1];
+                        ret[arg[0]] = decodeURIComponent ? decodeURIComponent(arg[1]) : arg[1];
                         return '';
                     });
                 }
@@ -770,7 +770,9 @@
         // Get panel type from content type
         // lookup in the dropdown of the panel template
         // E.g. Translation => text
-        var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentType.toLowerCase()+']:first').data('class') || contentType;
+        var contentTypeKey = contentType.toLowerCase();
+        if (contentTypeKey.match(/[^-0-9a-z_]/gi)) return null
+        var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentTypeKey+']:first').data('class') || contentType;
 
         // Force first letter to uppercase. e.g Text
         panelType = panelType.toUpperCase().substr(0, 1) + panelType.substr(1, contentType.length - 1);

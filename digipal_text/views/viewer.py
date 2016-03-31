@@ -587,26 +587,42 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     return ret
 
 def get_text_elements_from_content(content):
-    from django.utils.text import slugify
-
     ret = []
     if content:
         xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
 
         for element in xml.findall("//*[@data-dpt]"):
-            element_text = utils.get_xml_element_text(element)
-
-            # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
-            parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k,v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
-
-            # white list to filter the elements
-            if parts[0][1] in ('clause', 'location', 'person'):
-                element_text = slugify(u'%s' % element_text.lower())
-                if len(element_text) > 0 and len(element_text) < 20:
-                    parts.append(['@text', element_text])
-                ret.append(parts)
+            
+            elementid = get_elementid_from_xml_element(element)
+            if elementid:
+                ret.append(elementid)
 
     return ret
+
+def get_elementid_from_xml_element(element, as_string=False):
+    ''' element: an xml element (etree)
+        returns the elementid as a list, e.g. [(u'', u'clause'), (u'type', u'disposition')]
+    '''
+    from django.utils.text import slugify
+
+    element_text = utils.get_xml_element_text(element)
+
+    # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
+    parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k,v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
+
+    # white list to filter the elements
+    if parts[0][1] in ('clause', 'location', 'person'):
+        element_text = slugify(u'%s' % element_text.lower())
+        if len(element_text) > 0 and len(element_text) < 20:
+            parts.append(['@text', element_text])
+    else:
+        parts = None
+        
+    if as_string:
+        parts = json.dumps(parts)
+    
+    return parts
+
 
 def get_text_elements_from_content_bugged(content):
     from django.utils.text import slugify

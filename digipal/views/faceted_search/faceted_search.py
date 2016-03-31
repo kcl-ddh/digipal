@@ -249,7 +249,7 @@ class FacetedModel(object):
 
                 # value conversions
                 if field['type'] == 'boolean':
-                    value = int(bool(value) and value not in ['0', 'False', 'false'])
+                    value = int(bool(value) and ('%s' % value).lower() not in ['0', 'false', 'none'])
 
                 if field['type'] == 'xml':
                     value = self.get_plain_text_from_xml(value)

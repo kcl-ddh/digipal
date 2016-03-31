@@ -1338,7 +1338,10 @@ Commands:
             if not os.path.isfile(file):
                 raise CommandError('Backup not found (%s).' % file)
 
-            cmd = 'psql -q -U %s -h %s %s < %s > tmp' % (db_settings['USER'], db_settings['HOST'], db_settings['NAME'], file)
+            arg_host = ''
+            if db_settings['HOST']:
+                arg_host = ' -h %s ' % db_settings['HOST'] 
+            cmd = 'psql -q -U %s %s %s < %s > tmp' % (db_settings['USER'], arg_host, db_settings['NAME'], file)
             self.run_shell_command(cmd)
 
         if command == 'user':
@@ -1383,7 +1386,10 @@ Commands:
                 table_option = '--table=%s' % options['table']
 
             output_file = os.path.join(path, file_base_name + '.sql')
-            cmd = 'pg_dump -c %s -U %s -h %s -f "%s" %s ' % (table_option, db_settings['USER'], db_settings['HOST'], output_file, db_settings['NAME'])
+            arg_host = ''
+            if db_settings['HOST']:
+                arg_host = ' -h %s ' % db_settings['HOST'] 
+            cmd = 'pg_dump -c %s -U %s %s -f "%s" %s ' % (table_option, db_settings['USER'], arg_host, output_file, db_settings['NAME'])
             self.run_shell_command(cmd)
             print 'Database saved to %s' % output_file
 
@@ -1435,7 +1441,9 @@ Commands:
     def run_shell_command(self, command):
         ret = True
         try:
-            os.system(command)
+            res = os.system(command)
+            if res != 0:
+                raise Exception('Exit code %s' % (res, ))
         except Exception, e:
             #os.remove(input_path)
             raise CommandError('Error executing command: %s (%s)' % (e, command))
@@ -1444,4 +1452,4 @@ Commands:
             # whether the conversion is successful or not.
             #os.remove(input_path)
             pass
-
+        return ret

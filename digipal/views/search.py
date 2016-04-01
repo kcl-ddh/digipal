@@ -20,7 +20,7 @@ def get_search_types(request=None):
     search_hands = SearchHands()
     from digipal.utils import is_model_visible
     ret = [search_model for search_model in [SearchManuscripts(), search_hands, SearchScribes(), SearchGraphs(search_hands)] if is_model_visible(search_model.get_model(), request or True)]
-    
+
     return ret
 
 def get_search_types_display(content_types):
@@ -37,23 +37,35 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
+def catalogue_number_view(request, source='', number=''):
+    cns = CatalogueNumber.objects.filter(source__label_slug=slugify(source), number_slug=slugify(number))
+    if len(list(cns)) == 1:
+        # TODO: error management: no hi, no ip, multiple his, mutliple ips, etc.
+        ipi = ItemPartItem.objects.filter(historical_item=cns[0].historical_item).first()
+        ip = ipi.item_part
+        from django.shortcuts import redirect
+        redirect_url = ip.get_absolute_url()
+        return redirect(redirect_url)
+    else:
+        raise Http404('Catalogue number not found. Source "%s", number "%s".' % (source, number))
+
 def record_view(request, content_type='', objectid='', tabid=''):
     '''The generic view for any type of record: Hand, Scribe, Manuscript'''
     context = {'tabid': tabid}
-    
+
     template = 'errors/404.html'
 
     # We need to do a search to show the next and previous record
     # Only when we come from the the search image.
     set_search_results_to_context(request, allowed_type=content_type, context=context)
-    
+
     for type in context['types']:
         if type.key == content_type:
-            
+
             # Hide if not set as visible in settings.py
             from digipal.utils import request_invisible_model
             request_invisible_model(type.get_model(), request, content_type)
-            
+
             # Now find templates and populate context
             context['id'] = objectid
             from django.core.exceptions import ObjectDoesNotExist
@@ -67,14 +79,14 @@ def record_view(request, content_type='', objectid='', tabid=''):
                 context['title'] = 'This %s record does not exist' % type.label_singular
                 template = 'errors/404.html'
             break
-    
+
     return render_to_response(template, context, context_instance=RequestContext(request))
 
 def index_view(request, content_type=''):
     context = {}
-    
+
     types = get_search_types(request)
-    
+
     # search & sort
     from datetime import datetime
     t0 = datetime.now()
@@ -84,7 +96,7 @@ def index_view(request, content_type=''):
             break
     t1 = datetime.now()
     #print '%s' % (t1 - t0)
-    
+
     # pagination
     page_letter = request.GET.get('pl', '').lower()
     context['pages'] = [{'label': 'All', 'id': '', 'selected': (not page_letter)}]
@@ -94,16 +106,16 @@ def index_view(request, content_type=''):
         context['pages'].append(page)
         if page['selected']:
             context['selected_page'] = page
-    
+
     template = 'pages/record_index.html'
-    
+
     return render_to_response(template, context, context_instance=RequestContext(request))
 
 def search_ms_image_view(request):
     '''View for the Browse Image page'''
 
     hand_filters.chrono('BROWSE:')
-    
+
     from digipal.utils import request_invisible_model
     request_invisible_model('image', request, 'Image')
 
@@ -111,7 +123,7 @@ def search_ms_image_view(request):
     hand_filters.chrono('all():')
     images = Image.objects.all()
     hand_filters.chrono(':all()')
-    
+
     from digipal.forms import FilterManuscriptsImages
 
     # Get Buttons
@@ -143,19 +155,19 @@ def search_ms_image_view(request):
     images = images.filter(item_part_id__gt = 0)
     # not sufficient, see JIRA #552
     #images = Image.sort_query_set_by_locus(images)
-    
+
     #images = list(images.order_by('id'))
     #from digipal.utils import natural_sort_key
     #images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
     #context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
-    
+
     # permission filter
     # OPT: on DigiPal prefetch_related of annotation_set takes 20s and it retrieves all the fields even
     # related to linked tables (allograph, character, etc.)
     # Same with hands which takes around 2/3 s.
     #images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
     images = Image.filter_permissions_from_request(images, request)
-    
+
     hand_filters.chrono(':search')
 
     # count hands
@@ -167,7 +179,7 @@ def search_ms_image_view(request):
     image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form
     context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, '', True, [image_search_form])
-    
+
     hand_filters.chrono('template:')
     ret = render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
     hand_filters.chrono(':template')
@@ -189,10 +201,10 @@ def reroute_to_static_search(request):
 def search_record_view(request):
     ret = reroute_to_static_search(request)
     if ret: return ret
-    
+
     hand_filters.chrono('SEARCH VIEW:')
     hand_filters.chrono('SEARCH LOGIC:')
-    
+
     # Backward compatibility.
     # Previously all the record pages would go through this search URL and view
     # and their URL was:
@@ -218,10 +230,10 @@ def search_record_view(request):
 
     request.GET['hand_place'] = request.REQUEST.get('hand_place', '')  or request.REQUEST.get('place', '')
     request.GET['scriptorium'] = request.REQUEST.get('scriptorium', '')  or request.REQUEST.get('place', '')
-    
+
     # Actually run the searches
     context = {}
-    
+
     context['nofollow'] = True
 
     set_search_results_to_context(request, context=context, show_advanced_search_form=True)
@@ -248,10 +260,10 @@ def search_record_view(request):
                 if not first_non_empty_type and not type.is_empty:
                     first_non_empty_type = type.key
             if not result_type: result_type = first_non_empty_type
-        
+
         result_type = result_type or context['types'][0].key
         context['result_type'] = result_type
-        
+
         # No result at all?
         for type in context['types']:
             if not type.is_empty:
@@ -262,11 +274,11 @@ def search_record_view(request):
 
     # Initialise the advanced search forms
     #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
-    
+
     page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
     context['expanded_custom_filters'] = page_options['advanced_search_expanded']
     page_options['linked_fields'] = []
-    
+
     for type in context['types']:
         type.add_field_links(page_options['linked_fields'])
 
@@ -274,17 +286,17 @@ def search_record_view(request):
     for custom_filter in page_options['filters']:
         if custom_filter['key'] == context['search_type_defaulted']:
             context['filters_form'] = custom_filter
-    
+
     from digipal.models import RequestLog
     RequestLog.save_request(request, sum([type.count for type in context['types']]))
 
     hand_filters.chrono(':SEARCH LOGIC')
     hand_filters.chrono('SEARCH TEMPLATE:')
-    
+
     ret = render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':SEARCH TEMPLATE')
-    
+
     hand_filters.chrono(':SEARCH VIEW')
 
     return ret
@@ -296,51 +308,51 @@ def set_page_sizes_to_context(request, context, options=[10, 20, 50, 100]):
         context['page_size'] = int(context['page_size'])
     if context['page_size'] not in context['page_sizes']:
         context['page_size'] = context['page_sizes'][0]
-    
+
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
         for each relevant type of content (e.g. MS, Hand) => context['results']
-        
+
         If the form was not valid or submitted, context['results'] is left undefined.
-        
+
         Other context variables used by the search template are also set.
     '''
-    
+
     # allowed_type: this variable is used to restrict the search to one content type only.
     # This is useful when we display a specific record page and we only
     # have to search for the related content type to show the previous/next links.
     #allowed_type = kwargs.get('allowed_type', None)
     #context = kwargs.get('context', {})
-    
+
     context['terms'] = ''
 
     # pagination sizes
     set_page_sizes_to_context(request, context)
-        
+
     # list of query parameter/form fields which can be changed without triggering a search
     context['submitted'] = False
     non_search_params = ['basic_search_type', 'from_link', 'result_type']
     for param in request.GET:
         if param not in non_search_params and request.GET.get(param):
             context['submitted'] = True
-    
+
     context['can_edit'] = has_edit_permission(request, Hand)
     context['types'] = get_search_types(request)
-    
+
     context['annotation_mode'] = request.GET.get('am', '0')
 
     context['view'] = request.GET.get('view', '')
     for type in context['types']:
         type.set_desired_view(context['view'])
         type.set_page_size(context['page_size'])
-    
+
     context['search_types_display'] = get_search_types_display(context['types'])
     context['is_empty'] = True
 
     advanced_search_form = SearchPageForm(request.GET)
-    
+
     advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
-    
+
     if show_advanced_search_form:
         context['advanced_search_form'] = advanced_search_form
 
@@ -350,19 +362,19 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
         context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, term, context['submitted'], [type.get_form(request) for type in context['types']])
-        
+
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
-        
+
         context['search_type_defaulted'] = context['search_type']
         if not context['search_type_defaulted']:
             if context['types']:
                 context['search_type_defaulted'] = context['types'][0].key
             else:
                 context['search_type_defaulted'] = '?'
-        
+
         has_result = False
-        
+
         if context['submitted']:
             # Create the queryset for each allowed content type.
             # If allowed_types is None, search for each supported content type.
@@ -382,9 +394,9 @@ def get_query_summary(request, term, submitted, forms):
     ret = u''
 
     query_all = False
-    
+
     from django.utils.html import strip_tags
-    
+
     def get_filter_html(val, param, label=''):
         ret = u'<a href="%s">' % update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param)
         if label:
@@ -392,13 +404,13 @@ def get_query_summary(request, term, submitted, forms):
         ret += u'"%s" <span class="glyphicon glyphicon-remove"></span>' % escape(val)
         ret += u'</a>'
         return ret
-        
+
     if submitted:
         from digipal.templatetags.html_escape import update_query_params
-        
+
         if term.strip():
             ret += get_filter_html(term, 'terms')
-        
+
         found_params = []
         for form in forms:
             for field_name in form.fields:
@@ -410,7 +422,7 @@ def get_query_summary(request, term, submitted, forms):
                         if hasattr(boundfield.field, 'choices'):
                             for choice_value, choice_label in boundfield.field.choices:
                                 if unicode(value) == unicode(choice_value):
-                                    
+
                                     # special case for this clunky dropdown...
                                     # The main issue is that it has multiple options with the same value
                                     # e.g. insular -> a,insular, insular, r, insular
@@ -422,26 +434,26 @@ def get_query_summary(request, term, submitted, forms):
                                             char = request.REQUEST.get('character', '')
                                             if char:
                                                 choice_label = u'%s, %s' % (char.strip(), parts[1].strip())
-                                            
+
                                     # format the field for the summary
                                     if ret:
                                         ret += ', '
                                     ret += get_filter_html(choice_label, field_name, field_label)
                                     found_params.append(field_name)
                                     break
-                
-        
+
+
         query_all = not ret.strip()
-        
+
         if query_all:
             ret = u'All'
-            
+
     ret = [strip_tags(ret), ret]
-    
+
     # add clear all button (see JIRA 484)
     if not query_all:
         ret[1] += u'<a class="clear-all" href="?s=1">Clear All <span class="glyphicon glyphicon-remove"></span></a>'
-        
+
     return tuple(ret)
 
 def get_search_page_js_data(content_types, expanded_search=False, request=None):
@@ -452,18 +464,18 @@ def get_search_page_js_data(content_types, expanded_search=False, request=None):
                          'label': type.label,
                          'key': type.key,
                          })
-    
+
     ret = {
         'advanced_search_expanded': expanded_search or any([type.is_advanced_search for type in content_types]),
         'filters': filters,
     };
-    
+
     return ret
 
 def search_graph_view(request):
     # this has been integrated into the main search page
     # see search_record_view()
-    
+
     # we redirect old addresses to the new main search
     from django.shortcuts import redirect
     # TODO: get digipal from current project name or current URL

@@ -687,6 +687,7 @@ class HistoricalItem(models.Model):
 class Source(models.Model):
     name = models.CharField(max_length=128, unique=True, help_text='Full reference of this source (e.g. British Library)')
     label = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='A shorthand for the reference (e.g. BL)')
+    label_slug = models.SlugField(max_length=30, blank=True, null=True)
     label_styled = models.CharField(max_length=30, blank=True, null=True, help_text='Styled version of the label, text between _underscores_ will be italicised')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -746,6 +747,10 @@ class Source(models.Model):
 
         return ret
 
+    def save(self, *args, **kwargs):
+        self.label_slug = slugify(unicode(self.label))
+        super(Source, self).save(*args, **kwargs)
+
 # Manuscripts, Charters in legacy db
 class CatalogueNumber(models.Model):
     historical_item = models.ForeignKey(HistoricalItem,
@@ -753,6 +758,7 @@ class CatalogueNumber(models.Model):
     text = models.ForeignKey('Text', related_name='catalogue_numbers', blank=True, null=True)
     source = models.ForeignKey(Source)
     number = models.CharField(max_length=100)
+    number_slug = models.SlugField(max_length=100, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
@@ -771,7 +777,10 @@ class CatalogueNumber(models.Model):
         return get_list_as_string(self.source, ' ', self.number)
 
     def save(self, *args, **kwargs):
+        self.number_slug = slugify(unicode(self.number).replace('/', '-'))
+
         super(CatalogueNumber, self).save(*args, **kwargs)
+
         # save the associated HI (to recalculate HI.catalogue_number and HI.display_label)
         if self.historical_item:
             self.historical_item.save()

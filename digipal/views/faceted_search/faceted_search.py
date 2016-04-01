@@ -695,7 +695,7 @@ class FacetedModel(object):
 
             # Paginate
             self.paginator = Paginator(ret['ids'], self.get_page_size(request))
-            current_page = utils.get_int(request.GET.get('page'), 1)
+            current_page = self.get_page_number(request)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:
                 current_page = self.paginator.num_pages
@@ -823,6 +823,9 @@ class FacetedModel(object):
         ret = getattr(self, 'current_page', None)
         return ret
 
+    def get_page_number(self, request):
+        return utils.get_int(request.GET.get('page'), 1)
+
     def get_whoosh_parser(self, index):
         from whoosh.qparser import MultifieldParser, GtLtPlugin
 
@@ -870,6 +873,21 @@ class FacetedModel(object):
 
     def get_col_per_row(self, request):
         return 4 if self.get_wide_result(request) else 3
+
+    def get_page_title(self, request):
+        ret = 'Search: '
+        ret += self.get_label_plural()
+        ret += ', '
+        ret += self.get_selected_view()['label']
+        page = self.get_page_number(request)
+        if page > 1:
+            ret += ', page %s' % page
+
+        ret += ' ['
+        ret += self.get_summary(request, True)
+        ret += ']'
+        ret += ' | %s' % settings.SITE_TITLE
+        return ret
 
 def get_types(request):
     ''' Returns a list of FacetModel instance generated from either
@@ -964,6 +982,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     # add the search parameters to the template
     context['facets'] = ct.get_facets(request)
+
+    context['search_page_title'] = ct.get_page_title(request)
 
     context['cols'] = ct.get_columns(request)
     context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))

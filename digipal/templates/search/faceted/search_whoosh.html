@@ -3,7 +3,9 @@
 {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
 {% block meta_title %}
-    Search: {{ result_type.label }}
+    {{ search_page_title }}
+{% endblock %}
+{% block meta_title_site %}
 {% endblock %}
 
 {% block extra_css %}

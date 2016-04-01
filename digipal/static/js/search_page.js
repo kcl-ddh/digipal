@@ -262,6 +262,8 @@ function init_search_page(options) {
         // convert div.slider into jquery UI slider widget
         init_sliders();
 
+        // this is to force a reload of the search page after pressing back button
+        // see http://stackoverflow.com/a/21507994
         window.onpopstate = function(event) {
             if(event && event.state) {
                 location.reload();
@@ -300,6 +302,9 @@ function init_search_page(options) {
                     var $fragment = $('#search-ajax-fragment');
                     $fragment.html($data.html());
                     dputils.update_address_bar(url, false, true);
+                    // TODO: find a way to pass this via the pushState/update_address_bar?
+                    document.title = $('#search_page_title').val();
+
                     $fragment.stop().animate({
                         'background-color': 'white',
                         opacity: 1,

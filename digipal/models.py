@@ -2397,6 +2397,11 @@ class Graph(models.Model):
         return self.get_label(pattern=settings.GRAPH_TOOLTIP_LONG)
 
     def get_label(self, pattern='{allograph} by {hand}\n {ip}, {locus}\n ({hi_date})'):
+        '''Return a label by sustituting the fields in the given pattern.
+           Error during susbtitution goes to std out and generate UPPERcase field in label.
+           Unkown field names are left untouched.
+           See setting.GRAPH_TOOLTIP_*
+        '''
         ret = unicode(pattern)
 
         def get_field(match):

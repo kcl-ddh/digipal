@@ -35,7 +35,7 @@ function init_suggestions() {
             cb([]);
         }
     }
-    
+
     // JQuery UI
     if (1) {
         $(function() {
@@ -262,6 +262,12 @@ function init_search_page(options) {
         // convert div.slider into jquery UI slider widget
         init_sliders();
 
+        window.onpopstate = function(event) {
+            if(event && event.state) {
+                location.reload();
+            }
+        };
+
         // Ajaxify the faceted search request
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
@@ -273,7 +279,7 @@ function init_search_page(options) {
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
             var url = this.hasAttribute('href') ? this.href : page_url + '?' + $element.parents('form').serialize();
             var $focus_selector = $element.data('focus');
-            
+
             // check if the href is for this page
             if (page_url !== dputils.get_page_url(url)) return true;
 
@@ -282,7 +288,7 @@ function init_search_page(options) {
                 opacity: 0.50,
                 'border': 'none'
             }, 500);
-            
+
             // See http://stackoverflow.com/questions/9956255.
             // This tricks prevents caching of the fragment by the browser.
             // Without this if you move away from the page and then click back
@@ -293,7 +299,7 @@ function init_search_page(options) {
                     var $data = $(data);
                     var $fragment = $('#search-ajax-fragment');
                     $fragment.html($data.html());
-                    dputils.update_address_bar(url);
+                    dputils.update_address_bar(url, false, true);
                     $fragment.stop().animate({
                         'background-color': 'white',
                         opacity: 1,
@@ -411,9 +417,9 @@ $(function() {
             can_rotate: true,
             can_fullscreen: true,
         });
-        
+
         window.dputils.elastic_element($target, function() { map.updateSize(); }, 100, 10);
     };
-    
+
     window.set_open_layer_on_faceted_results();
 });

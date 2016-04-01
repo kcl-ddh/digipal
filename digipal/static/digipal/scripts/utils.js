@@ -29,7 +29,7 @@
 (function($) {
     $(function() {
         window.dputils = {
-        
+
             entityMap: {
                 "&": "&amp;",
                 "<": "&lt;",
@@ -38,12 +38,12 @@
                 "'": '&#39;',
                 "/": '&#x2F;'
             },
-            
+
             postpone: function(f) {
                 // execute f after the current event loop
                 window.setTimeout(f, 0);
             },
-            
+
             escapeHtml: function(string) {
                 return String(string).replace(/[&<>"'\/]/g, function (s) {
                     return window.dputils.entityMap[s];
@@ -175,36 +175,36 @@
                     });
                 });
             },
-            
+
             /*
                 Returns the height $element should have to fill the remaining
                 space in the viewport.
             */
             get_elastic_height: function($element, min, margin) {
                 var height = 0;
-                
+
                 // This is a hack for OL - we force 100% height when it is in
                 // full screen mode. See zoom view of images on the faceted search.
                 if ($element.find('.ol-full-screen-true').length > 0) {
                     return '100%';
                 }
-                
+
                 min = min || 0;
                 margin = margin || 0;
-                
+
                 var window_height = $(window).height() - margin;
                 height = window_height - $element.offset().top + $(document).scrollTop();
                 height = (height <= min) ? min : height;
                 height = (height > window_height) ? window_height : height;
-                
+
                 return height;
             },
-            
+
             /*
                 Make $target height elastic. It will take the rest of the
                 viewport space. This is automatically updated when the user
                 scrolls or change the viewport size.
-                
+
                 $callback is called each time the height is updated.
             */
             elastic_element: function($target, callback, min, margin) {
@@ -232,7 +232,7 @@
                         true,
                     can_fullscreen:
                         true,
-                        
+
                     version:
                         2|3
                     max_resolution (version 2)
@@ -242,7 +242,7 @@
             add_open_layer: function(options) {
                 options.version = options.version || 3;
                 options.zoom = options.zoom || 0;
-                
+
                 //options.zoom_levels = options.zoom_levels || window.digipal_settings.ANNOTATOR_ZOOM_LEVELS;
                 if (!options.max_resolution) {
                     // calculate max resolution so the image maximizes the viewport
@@ -269,18 +269,18 @@
                 if (new_res > 0.5) {
                     options.resolutions.push((new_res / zoom_factor));
                 }
-                
+
                 var function_name = 'add_open_layer' + ((options.version < 3) ? '2' : '3');
                 var ret = window.dputils[function_name](options);
                 return ret;
             },
 
             add_open_layer2: function(options) {
-            
+
                 var $target = $(options.$target);
 
                 var maxExtent = new window.OpenLayers.Bounds(0, 0, options.image_width, options.image_height);
-            
+
                 // creates a new OpenLayers map
                 var map_options = {
                     maxExtent: maxExtent,
@@ -295,21 +295,21 @@
                     numZoomLevels: window.digipal_settings.ANNOTATOR_ZOOM_LEVELS,
                     //numZoomLevels: options.zoom_levels,
                 };
-                
+
                 if (options.event_listeners) {
                     map_options.eventListeners = options.event_listeners;
                 }
-                
+
                 options.map = new window.OpenLayers.Map($target.attr('id'), map_options);
-                
+
                 return options.map;
             },
-            
+
             add_open_layer3: function(options) {
                 var ol = window.ol;
-                
+
                 var $target = $(options.$target);
-                
+
                 // Maps always need a projection, but Zoomify layers are not geo-referenced, and
                 // are only measured in pixels.  So, we create a fake projection that the map
                 // can use to properly display the layer.
@@ -318,16 +318,16 @@
                   units: 'pixels',
                   extent: [0, 0, options.image_width, options.image_height]
                 });
-                
+
                 var source = new ol.source.Zoomify({
                     url: options.image_url,
                     size: [options.image_width, options.image_height],
                     crossOrigin: 'anonymous'
                 });
-                
+
                 if (options.load_tile_callback) {
                     options.load_tile_callback('reset');
-                
+
                     source.on('tileloadstart', function(event) {
                       options.load_tile_callback(1);
                     });
@@ -338,11 +338,11 @@
                       options.load_tile_callback(-1, true);
                     });
                 }
-            
+
                 var tileLayer = new ol.layer.Tile({
                     source: source
                 });
-                
+
                 var view_options = {
                     projection: proj,
                     center: [options.image_width / 2, - options.image_height / 2],
@@ -357,7 +357,7 @@
                     // this extent
                     extent: [0, -options.image_height, options.image_width, 0]
                 };
-                
+
                 var map_options = {
                     layers: [tileLayer],
                     // overview is not great, see EXON-28
@@ -367,21 +367,21 @@
                     target: $target[0],
                     view: new ol.View(view_options)
                 };
-                
+
                 if (options.can_fullscreen) {
                     map_options.controls = ol.control.defaults().extend([
                         new ol.control.FullScreen()
                     ]);
                 }
-            
+
                 if (options.can_rotate) {
                     map_options.interactions = ol.interaction.defaults().extend([
                         new ol.interaction.DragRotate()
                     ]);
                 }
-            
+
                 options.map = new ol.Map(map_options);
-                
+
                 return options.map;
             }
 
@@ -467,7 +467,7 @@
             // enable fancybox on the .fancybox elements
             $(".fancybox").fancybox();
         }
-        
+
     });
 })(jQuery);
 
@@ -541,7 +541,7 @@
                     dimension_request = '&WID=' + Math.round(max_expanded_width[right_or_left]);
                 }
                 dimension_request += '&QLT=100&CVT=JPG';
-                
+
                 // reposition the div to the right of the cursor
                 //expanded_div.css('left', '' + (expanded_img_x[right_or_left]) + 'px');
 

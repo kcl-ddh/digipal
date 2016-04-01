@@ -2391,11 +2391,29 @@ class Graph(models.Model):
         return ret or ['unspecified']
 
     def get_short_label(self):
-        locus = ''
-        if self.annotation and self.annotation.image:
-            locus = self.annotation.image.locus
-        ret = u'%s, %s' % (self.idiograph.allograph, locus)
-        return ret
+        return self.get_label(pattern=settings.GRAPH_TOOLTIP_SHORT)
+
+    def get_long_label(self):
+        return self.get_label(pattern=settings.GRAPH_TOOLTIP_LONG)
+
+    def get_label(self, pattern='{allograph} by {hand}\n {ip}, {locus}\n ({hi_date})'):
+        ret = unicode(pattern)
+
+        def get_field(match):
+            r = match.group(0)
+            key = match.group(1)
+            try:
+                if key == 'allograph': r = self.idiograph.allograph
+                if key == 'hand': r = self.hand
+                if key == 'locus': r = self.annotation.image.locus
+                if key == 'ip': r = self.annotation.image.item_part
+                if key == 'hi_date': r = self.annotation.image.item_part.historical_item.date
+            except Exception, e:
+                print 'EXCEPTION: graph.get_label() => "%s"' % e
+                r = r.upper()
+            return ur'%s' % r
+
+        return re.sub(ur'\{([^}]+)\}', get_field, ret)
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s. %s' % (self.idiograph, self.hand)

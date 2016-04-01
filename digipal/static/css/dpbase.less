@@ -817,7 +817,7 @@ a[data-toggle="pill"]{
         -moz-osx-font-smoothing: grayscale;
         content: "\f14c";
     }
-    
+
     &:hover, &:focus {
         text-decoration: underline;
     }
@@ -839,9 +839,13 @@ a[data-toggle="pill"]{
         -moz-osx-font-smoothing: grayscale;
         content: "\f08e";
     }
-    
+
     &:hover, &:focus {
         text-decoration: underline;
     }
 }
 
+/* BS Tooltip preserve line breaks */
+.tooltip-inner {
+    white-space:pre-wrap;
+}

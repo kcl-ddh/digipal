@@ -699,6 +699,11 @@ TEXT_IMAGE_MASTER_CONTENT_TYPE = 'transcription'
 # Lightbox Settings
 LIGHTBOX = False
 
+# GRAPH TOOLTIPS
+# see digipal.models Graph.get_label for available field names
+GRAPH_TOOLTIP_SHORT = u'{allograph} by {hand}\n {locus}'
+GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
+
 ##################
 # LOCAL SETTINGS #
 ##################

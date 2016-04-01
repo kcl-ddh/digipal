@@ -1,3 +1,8 @@
+search history
+poms document url
+
+.
+
 Bug with segmentation of the text fragments: it doesn't return the closing tag </p>
 => A new one gets added on save: => </p></p>
 => Breaks the templating system for the codicological desc because it expects a </p> when remonving the locations

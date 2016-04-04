@@ -310,6 +310,12 @@ function init_search_page(options) {
                         opacity: 1,
                         'border': 'none'
                     }, 50);
+
+                    // scroll to top of the search div
+                    $('html, body').animate({
+                        scrollTop: $('#search-top').offset().top
+                    }, 500);
+
                     // make sure visible thumbnails are loaded
                     document.load_lazy_images();
                     init_sliders();

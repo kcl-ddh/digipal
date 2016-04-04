@@ -33,7 +33,8 @@ FACETED_SEARCH = {
 
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
-                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               # id to avoid clashes on partials (e.g. brieve/charter vs brieve-charter)
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
                                {'key': 'hi_format', 'label': 'Format', 'path': 'historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository', 'path': 'current_item.repository.human_readable', 'path_result': 'current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
@@ -69,7 +70,7 @@ FACETED_SEARCH = {
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                #{'key': 'img_is_public', 'label': 'Full Image', 'path': 'is_media_public', 'type': 'boolean', 'count': True, 'search': True},
                                {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_media_permission.get_permission_label', 'type': 'code', 'count': True},
-                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'item_part.historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
                                {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository', 'path': 'item_part.current_item.repository.human_readable', 'path_result': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
@@ -168,7 +169,7 @@ FACETED_SEARCH = {
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'text_content.get_absolute_url', 'type': 'url', 'viewable': True},
 
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
-                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'text_content.item_part.historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository', 'path': 'text_content.item_part.current_item.repository.human_readable', 'path_result': 'text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
@@ -202,7 +203,7 @@ FACETED_SEARCH = {
                     'fields': [
                                {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True, 'rowspan': '3'},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'content_xml.text_content.item_part.historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
-                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'content_xml.text_content.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                               {'key': 'hi_type', 'label': 'Document Type', 'path': 'content_xml.text_content.item_part.historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'content_xml.text_content.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository', 'path': 'content_xml.text_content.item_part.current_item.repository.human_readable', 'path_result': 'content_xml.text_content.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'content_xml.text_content.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
@@ -233,7 +234,7 @@ FACETED_SEARCH = {
                                 {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
     #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
     #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
-                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'annotation.image.item_part.historical_item.historical_item_type.name', 'type': 'code', 'viewable': True, 'count': True},
+                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'annotation.image.item_part.historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
     #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
                                 {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'repo_place', 'label': 'Repository', 'path': 'annotation.image.item_part.current_item.repository.human_readable', 'path_result': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
